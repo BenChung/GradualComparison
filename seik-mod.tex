@@ -34,8 +34,11 @@
 
 \inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\} \vee \Gamma \vdash e : \anyt} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\Gamma \vdash e_i : \tau_i \\ \Gamma(C) = \{\ldots, \overline{l_i : \tau'_i}, \ldots\}\\ \overline{\tau_i <: \tau'_i \vee \tau_i = \anyt}}{\Gamma \vdash \text{new }C(\overline{e_i}) : C}
+\inferrule*[right=TNew]{\Gamma \vdash e_i : \tau_i \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}\\ \overline{\tau <: \tau' \vee (\tau = \anyt \wedge \tau' \neq !D)}}{\Gamma \vdash \text{new }C(\overline{e}) : C}
 
-\inferrule*[right=TClass]{ \overline{\Gamma \vdash C_i} \\ \overline{\Gamma \vdash e_i : \tau'''_i}  \\ \overline{\tau'''_i <: \tau'_i \vee \tau'''_i = \anyt} \\ \Gamma,C\mapsto\{\overline{l_i : \tau_i}, \overline{l'_i(\overline{l''_j:\tau''_j}):\tau'_i}\} \vdash e' : \tau}{\Gamma \vdash \text{class } C \text{ extends } \overline{C_i}\;\{\overline{l_i : \tau_i}, \overline{l'_i(\overline{l''_j:\tau''_j}):\tau'_i = \{ e_i \}}\};e' : \tau}
+\inferrule*[right=TClass]{ \overline{\Gamma \vdash D} \\  
+\overline{\Gamma \vdash e : \tau'''}  \\ 
+\overline{\tau''' <: \tau' \vee (\tau''' = \anyt \wedge \tau' \neq !D)} 
+}{\Gamma \vdash \text{class } C \text{ extends } \overline{D}\;\{\overline{l : \tau}, \overline{l'(\overline{l'':\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 \end{document}
