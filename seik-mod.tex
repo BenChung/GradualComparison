@@ -24,21 +24,21 @@
 
 \inferrule*[right=TInt]{ }{\Gamma \vdash int : \intt}
 
-\inferrule*[right=TApp]{\overline{\Gamma \vdash e_i : \tau_i} \\ \Gamma \vdash x : \{\ldots, l(\overline{\tau'_i}):\tau', \ldots\} \vee \Gamma \vdash x : \anyt \\ \overline{\tau_i <: \tau'_i \vee \tau_i = \anyt}}{\Gamma \vdash x.l(\overline{e_i}) : \tau'}
+\inferrule*[right=TApp]{\overline{\Gamma \vdash e_i : \tau_i} \\ \Gamma \vdash x : \{\ldots, l(\overline{\tau'_i}):\tau', \ldots\}\\ \overline{\tau_i <: \tau'_i}}{\Gamma \vdash x.l(\overline{e_i}) : \tau'}
 
 \inferrule*[right=TIf]{ 
 \Gamma \vdash e_1 : \tau_1 \\ 
-	\tau_1 <: \intt\vee\tau_1 = \anyt \\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau_2 \\ \Gamma \vdash e_3 : \tau_3 \\ \tau_2 <: \tau\vee \tau_2 = \anyt \\ \tau_3 <: \tau\vee \tau_3 = \anyt} { \Gamma \vdash if\;e_1\;e_2\;e_3 : \tau}
+	\tau_1 <: \intt\\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau_2 \\ \Gamma \vdash e_3 : \tau_3 \\ \tau_2 <: \tau \\ \tau_3 <: \tau} { \Gamma \vdash if\;e_1\;e_2\;e_3 : \tau}
 
-\inferrule*[right=TPlus]{ \Gamma \vdash e_1 : \tau_1 \\ \Gamma \vdash e_2 : \tau_2 \\ \tau_1 <: \intt\vee\tau_1 = \anyt \\ \tau_2 <: \intt\vee\tau_2 = \anyt} { \Gamma \vdash e_1 + e_2 : \intt}
+\inferrule*[right=TPlus]{ \Gamma \vdash e_1 : \tau_1 \\ \Gamma \vdash e_2 : \tau_2 \\ \tau_1 <: \intt \\ \tau_2 <: \intt} { \Gamma \vdash e_1 + e_2 : \intt}
 
-\inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\} \vee \Gamma \vdash e : \anyt} { \Gamma \vdash e.l : \tau}
+\inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\Gamma \vdash e_i : \tau_i \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}\\ \overline{\tau <: \tau' \vee (\tau = \anyt \wedge \tau' \neq !D)}}{\Gamma \vdash \text{new }C(\overline{e}) : C}
+\inferrule*[right=TNew]{\Gamma \vdash e_i : \tau_i \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}\\ \overline{\tau <: \tau'}}{\Gamma \vdash \text{new }C(\overline{e}) : C}
 
 \inferrule*[right=TClass]{ \overline{\Gamma \vdash D} \\  
 \overline{\Gamma \vdash e : \tau'''}  \\ 
-\overline{\tau''' <: \tau' \vee (\tau''' = \anyt \wedge \tau' \neq !D)} 
+\overline{\tau''' <: \tau'} 
 }{\Gamma \vdash \text{class } C \text{ extends } \overline{D}\;\{\overline{l : \tau}, \overline{l'(\overline{l'':\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 \end{document}
