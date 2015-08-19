@@ -1,6 +1,6 @@
 \documentclass{llncs}
 \usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure}
-\usepackage{graphicx,wrapfig,array,multirow}
+\usepackage{graphicx,wrapfig,array,multirow,mathpartir}
 \newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
  \hypersetup{colorlinks=true,
    linkcolor=black,  citecolor=black,filecolor=magenta, urlcolor=black,
@@ -51,6 +51,18 @@
 \newcommand{\Figure}[1]{Fig.~\ref{#1}\xspace}
 \newcommand{\figref}[1]{Fig.~\ref{fig:#1}\xspace}
 \newcommand{\tabref}[1]{Table~\ref{tab:#1}\xspace}
+
+\newcommand{\class}[4]{\ensuremath\texttt{class } #1 \texttt{ extends } #2 \;\{#3; #4\}}
+\newcommand{\field}[2]{\ensuremath #1 : #2}
+\newcommand{\method}[4]{\ensuremath #1(#2):#3 = \{#4\}}
+
+\newcommand{\ifabs}[3]{\texttt{if } #1\;#2\;#3}
+\newcommand{\opplus}[2]{#1 + #2}
+\newcommand{\newclass}[2]{\texttt{#1 }(#2)}
+
+\newcommand{\strt}{\texttt{str}}
+\newcommand{\intt}{\texttt{int}}
+\newcommand{\anyt}{\texttt{any}}
 \mainmatter
 %\titlerunning{\it Evaluating the Design of R}
 %\authorrunning{\it Morandat et al.}
@@ -138,6 +150,37 @@ nominal) as this seems to be an orthogonal design choice.
 \section{Related Work}
 
 \section{Core Calculus}
+
+\begin{figure}
+\begin{align*}
+d&::= \class{C}{D}{\field{l}{\tau}}{\method{l}{\field{l}{\tau}}{\tau}{e}}\\
+\tau &::= \intt | \strt | \anyt | C | !C\\
+e&::= l | l = e | e.l(e \ldots) | \texttt{const} | \ifabs{e}{e}{e} | \opplus{e}{e} | \newclass{C}{e\ldots}
+\end{align*}
+
+\caption{Abstract Syntax for the Core Calculus}
+\end{figure}
+
+The core calculus is a simple object based system, including classes and 
+restricted mutability. We have declarations $d$, which act as the high level 
+building blocks, types $\tau$, and expressions $e$. This construction is similar
+to the core calculus in StrongScript, though with some major modifications.
+
+In our calculus, a class is represented by a \emph{class declaration}, which includes
+the nominal relationships between that class and its parents. Then, we represent fields
+as labels with types, and notate methods as a label, a list of typed parameters, a return type,
+and a method body. This construction models many other object systems while remaining fairly trivial.
+
+Our types are modeled after those in StrongScript. In addition to the basic types $\intt$ and
+$\strt$, we have the $\anyt$ type, representing a dynamic value, as well as two kinds of class type.
+$C$ represents a weaker, optional, class type with few guarantees. Only finding a $C$ implies very
+little about the eventual value that is recieved at runtime. In contrast, however, $!C$ is a concrete type,
+one with strong static guarantees that will hold at runtime. In this manner, we combine attributes of both
+\emph{optional} type systems as well as \emph{concrete} type systems.
+
+Our expression grammar is fairly simple, with a few interesting components. Mutability is expressed our
+system by altering fields, which are only accessible from inside an object. This is expressed in our expression
+grammar by having get and set forms only involving labels. 
 
 \section{Conclusion}
 
