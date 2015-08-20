@@ -1,6 +1,7 @@
 \documentclass{llncs}
 \usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure}
 \usepackage{graphicx,wrapfig,array,multirow,mathpartir}
+
 \newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
  \hypersetup{colorlinks=true,
    linkcolor=black,  citecolor=black,filecolor=magenta, urlcolor=black,
@@ -52,17 +53,20 @@
 \newcommand{\figref}[1]{Fig.~\ref{fig:#1}\xspace}
 \newcommand{\tabref}[1]{Table~\ref{tab:#1}\xspace}
 
-\newcommand{\class}[4]{\ensuremath\texttt{class } #1 \texttt{ extends } #2 \;\{#3; #4\}}
-\newcommand{\field}[2]{\ensuremath #1 : #2}
-\newcommand{\method}[4]{\ensuremath #1(#2):#3 = \{#4\}}
+\newcommand{\class}[4]{\ensuremath\texttt{class } \texttt{#1} \texttt{ implements } \texttt{#2} \;\{#3; #4\}}
+\newcommand{\field}[2]{\ensuremath \texttt{#1} : \texttt{#2}}
+\newcommand{\method}[4]{\ensuremath {\texttt{#1}}({#2}):\texttt{#3} = \{\texttt{#4}\}}
 
-\newcommand{\ifabs}[3]{\texttt{if } #1\;#2\;#3}
+\newcommand{\ifabs}[3]{\texttt{if } #1 \texttt{ then } #2 \texttt{ else } #3}
 \newcommand{\opplus}[2]{#1 + #2}
-\newcommand{\newclass}[2]{\texttt{#1 }(#2)}
+\newcommand{\newclass}[2]{\texttt{new #1 }(#2)}
 
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\intt}{\texttt{int}}
 \newcommand{\anyt}{\texttt{any}}
+\newcommand{\vbar}{\;|\;}
+
+
 \mainmatter
 %\titlerunning{\it Evaluating the Design of R}
 %\authorrunning{\it Morandat et al.}
@@ -185,9 +189,10 @@ than the more usual well-typed one.
 
 \begin{figure}
 \begin{align*}
-d&::= \class{C}{D}{\field{l}{\tau}}{\method{l}{\field{l}{\tau}}{\tau}{e}}\\
-\tau &::= \intt | \strt | \anyt | C | !C\\
-e&::= l | l = e | e.l(e \ldots) | \texttt{const} | \ifabs{e}{e}{e} | \opplus{e}{e} | \newclass{C}{e\ldots}
+\texttt{d}&::= \class{C}{D}{\field{f}{T}}{\method{m}{\field{l}{T}}{T}{e}}\\
+\texttt{T} &::= \intt \vbar \strt \vbar \anyt \vbar C \vbar !C\\
+\texttt{e}&::= \texttt{f} \vbar \texttt{f} = \texttt{e} \vbar \texttt{e.m}(\texttt{e} \ldots) \vbar \texttt{const} \vbar 
+\ifabs{\texttt{e}}{\texttt{e}}{\texttt{e}} \vbar \opplus{\texttt{e}}{\texttt{e}} \vbar \newclass{\texttt{C}}{\texttt{e}\ldots}
 \end{align*}
 
 \caption{Abstract Syntax for the Core Calculus}
