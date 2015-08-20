@@ -53,13 +53,20 @@
 \newcommand{\figref}[1]{Fig.~\ref{fig:#1}\xspace}
 \newcommand{\tabref}[1]{Table~\ref{tab:#1}\xspace}
 
-\newcommand{\class}[4]{\ensuremath\texttt{class } \texttt{#1} \texttt{ implements } \texttt{#2} \;\{#3; #4\}}
+\newcommand{\kewif}{\texttt{\textbf{if}}}
+\newcommand{\kewthen}{\texttt{\textbf{then}}}
+\newcommand{\kewelse}{\texttt{\textbf{else}}}
+\newcommand{\kewnew}{\texttt{\textbf{new}}}
+\newcommand{\kewclass}{\texttt{\textbf{class}}}
+\newcommand{\kewimplements}{\texttt{\textbf{implements}}}
+
+\newcommand{\class}[4]{\ensuremath\kewclass\; \texttt{#1}\; \kewimplements\; \texttt{#2} \;\{#3;\;#4\}}
 \newcommand{\field}[2]{\ensuremath \texttt{#1} : \texttt{#2}}
 \newcommand{\method}[4]{\ensuremath {\texttt{#1}}({#2}):\texttt{#3} = \{\texttt{#4}\}}
 
-\newcommand{\ifabs}[3]{\texttt{if } #1 \texttt{ then } #2 \texttt{ else } #3}
+\newcommand{\ifabs}[3]{\kewif \; #1 \;\kewthen\; #2 \;\kewelse\; #3}
 \newcommand{\opplus}[2]{#1 + #2}
-\newcommand{\newclass}[2]{\texttt{new #1 }(#2)}
+\newcommand{\newclass}[2]{\kewnew\;\texttt{#1}(#2)}
 
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\intt}{\texttt{int}}
@@ -189,10 +196,10 @@ than the more usual well-typed one.
 
 \begin{figure}
 \begin{align*}
-\texttt{d}&::= \class{C}{D}{\field{f}{T}}{\method{m}{\field{l}{T}}{T}{e}}\\
+\texttt{d}&::= \class{C}{D}{\overline{\field{f}{T}}}{\overline{\method{m}{\overline{\field{l}{T}}}{T}{e}}}\\
 \texttt{T} &::= \intt \vbar \strt \vbar \anyt \vbar C \vbar !C\\
-\texttt{e}&::= \texttt{f} \vbar \texttt{f} = \texttt{e} \vbar \texttt{e.m}(\texttt{e} \ldots) \vbar \texttt{const} \vbar 
-\ifabs{\texttt{e}}{\texttt{e}}{\texttt{e}} \vbar \opplus{\texttt{e}}{\texttt{e}} \vbar \newclass{\texttt{C}}{\texttt{e}\ldots}
+\texttt{e}&::= \texttt{f} \vbar \texttt{f} = \texttt{e} \vbar \texttt{e.m}(\overline{\texttt{e}}) \vbar \texttt{const} \vbar 
+\ifabs{\texttt{e}}{\texttt{e}}{\texttt{e}} \vbar \opplus{\texttt{e}}{\texttt{e}} \vbar \newclass{\texttt{C}}{\overline{\texttt{e}}}
 \end{align*}
 
 \caption{Abstract Syntax for the Core Calculus}
