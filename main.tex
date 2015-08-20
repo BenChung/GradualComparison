@@ -149,6 +149,38 @@ nominal) as this seems to be an orthogonal design choice.
 
 \section{Related Work}
 
+Typescript~\cite{typescript13} is an extension of Javascript, enabling existing 
+Javascript code to be typed without substantial changes. In order to do so, 
+Typescript uses an optional type system, only providing type guarantees within 
+local code, not across call boundaries. This approach eases the transition from
+Javascript to typed code, but the guarantees provided are very weak, only 
+ensuring type saftey in local contexts, restricting optimization as well as
+limiting the information provided by a type signature.
+
+The example of a concrete type sysetm we are considering in this work is
+Strongscript~\cite{stongscript}. Strongscript builds on lambda JS and 
+Typescript, strengthening the guarantees provided in the latter by providing
+\emph{concrete} types, represented by an excalmation mark. Within Strongscript,
+concrete types impose guarantess about the runtime values that they represent, 
+a stronger guarantee than that provided by Typescript, while still allowing
+programmers the flexibility of the Typescript approach, though with fewer
+guarantees.
+
+Another approach is that taken by~\cite{seik-monotonic} (Seik Monotonic)
+This approach presents a system that takes a \emph{promised type} approach.
+Its novelty comes from a new approach to avoiding expensive and complex
+wrappers. Instead of ensuring that the type of references remain consistent
+by adding a wrapper, this approach works by ensuring that the type of values in
+the heap only get \emph{less} generic.
+
+Within this approach, references that were well-typed previously will always
+remain well-typed, as the new type is strictly less generic than the one that
+it had at the time that the reference was checked. By doing this, the monotonic
+approach can avoid many of the expensive checks that wrapper approaches incur, 
+while still providing similar functionality. However, this approach is less
+generic than wrapper-based systems, as the monotonic constraint is much stronger
+than the more usual well-typed one.
+
 \section{Core Calculus}
 
 \begin{figure}
@@ -163,23 +195,26 @@ e&::= l | l = e | e.l(e \ldots) | \texttt{const} | \ifabs{e}{e}{e} | \opplus{e}{
 
 The core calculus is a simple object based system, including classes and 
 restricted mutability. We have declarations $d$, which act as the high level 
-building blocks, types $\tau$, and expressions $e$. This construction is similar
-to the core calculus in StrongScript, though with some major modifications.
+building blocks, types $\tau$, and expressions $e$. This construction is 
+similar to the core calculus in StrongScript, though with some major 
+modifications.
 
-In our calculus, a class is represented by a \emph{class declaration}, which includes
-the nominal relationships between that class and its parents. Then, we represent fields
-as labels with types, and notate methods as a label, a list of typed parameters, a return type,
-and a method body. This construction models many other object systems while remaining fairly trivial.
+In our calculus, a class is represented by a \emph{class declaration}, which 
+includes the nominal relationships between that class and its parents. Then, we 
+represent fields as labels with types, and notate methods as a label, a list 
+of typed parameters, a return type, and a method body. This construction models 
+many other object systems while remaining fairly trivial.
 
-Our types are modeled after those in StrongScript. In addition to the basic types $\intt$ and
-$\strt$, we have the $\anyt$ type, representing a dynamic value, as well as two kinds of class type.
-$C$ represents a weaker, optional, class type with few guarantees. Only finding a $C$ implies very
-little about the eventual value that is recieved at runtime. In contrast, however, $!C$ is a concrete type,
-one with strong static guarantees that will hold at runtime. In this manner, we combine attributes of both
-\emph{optional} type systems as well as \emph{concrete} type systems.
+Our types are modeled after those in StrongScript. In addition to the basic 
+types $\intt$ and $\strt$, we have the $\anyt$ type, representing a dynamic 
+value, as well as two kinds of class type. $C$ represents a weaker, optional, 
+class type with few guarantees. Only finding a $C$ implies very little about 
+the eventual value that is recieved at runtime. In contrast, however, $!C$ is 
+a concrete type, one with strong static guarantees that will hold at runtime. 
 
-Our expression grammar is fairly simple, with a few interesting components. Mutability is expressed our
-system by altering fields, which are only accessible from inside an object. This is expressed in our expression
+Our expression grammar is fairly simple, with a few interesting components. 
+Mutability is expressed our system by altering fields, which are only 
+accessible from inside an object. This is expressed in our expression
 grammar by having get and set forms only involving labels. 
 
 \section{Conclusion}
@@ -187,7 +222,6 @@ grammar by having get and set forms only involving labels.
 \bibliographystyle{plain}
 
 \bibliography{bib/compactdoi}
-
 \end{document}
 
 
