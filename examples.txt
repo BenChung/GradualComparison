@@ -3,7 +3,7 @@ class C {
 	a : int
 	b : any
 	main():int {
-		a + b
+		a + (int) b
 	}
 }
 
@@ -44,14 +44,18 @@ class D {
 	main():C {
 		ref = new C()
 		anyref = ref
-		anyref
+		(C) anyref
 	}
 }
 
 #4:
-class A { }
+class A { 
+  foo() : int { 1 }
+}
 
-class B { }
+class B { 
+  foo() : str { "meh" }
+}
 
 class D {
 	ref : A
@@ -59,9 +63,9 @@ class D {
 	main():B {
 		ref = new A()
 		anyref = ref
-		anyref
+		(B) anyref
 	}
-
+}
 
 #5:
 
@@ -69,7 +73,7 @@ class A {
 	a : any
 	b : any
 	main():any {
-		foo(<int>a, <int>b)
+		foo( (int)a, (int)b)
 	}
 	foo(a:int, b:int):int {
 		a+b
@@ -81,10 +85,32 @@ class A {
 class A {
 	a : any
 	tbs(i1:any, i2:any):any {
-		i1 + i2
+		(int)i1 + (int)i2
 	}
 	main():any {
 		a = tbs(2, 3)
 		a
 	}
 }
+
+#7
+class A { 
+  f() : int { 1 }
+}
+
+class B { 
+  g() : str { "meh" }
+}
+
+class Dummy_A_B implements A, B{
+  f() : int { 1 }
+  g() : str { "meh" }
+}
+
+class D {
+	main( x : Dummy_A_B, i : int ) : {
+	  if ( i ) then x.f() else x.g()
+	}
+}
+
+
