@@ -1,0 +1,90 @@
+#1:
+class C {
+	a : int
+	b : any
+	main():int {
+		a + b
+	}
+}
+
+
+#2:
+class A {
+	a : any
+	getA(): any { a }
+}
+
+class B implements A {
+	a : int
+	getA(): int { a }
+}
+
+class C {
+	ref : A
+	main():any {
+		ref = new A(2)
+		ref = new B(2)
+		ref.getA()
+	}
+}
+
+
+#3:
+class A {
+	getN():int { 2 }
+}
+
+class C implements A {
+	getN():int { 4 }
+}
+
+class D {
+	ref : A
+	anyref : any
+	main():C {
+		ref = new C()
+		anyref = ref
+		anyref
+	}
+}
+
+#4:
+class A { }
+
+class B { }
+
+class D {
+	ref : A
+	anyref : any
+	main():B {
+		ref = new A()
+		anyref = ref
+		anyref
+	}
+
+
+#5:
+
+class A {
+	a : any
+	b : any
+	main():any {
+		foo(<int>a, <int>b)
+	}
+	foo(a:int, b:int):int {
+		a+b
+	}
+}
+
+#6
+
+class A {
+	a : any
+	tbs(i1:any, i2:any):any {
+		i1 + i2
+	}
+	main():any {
+		a = tbs(2, 3)
+		a
+	}
+}
