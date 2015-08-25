@@ -1,0 +1,22 @@
+#lang typed/racket
+(define A% (class object%
+             (super-new)
+             (: getN (-> Integer))
+             (define/public (getN) 2)
+             ))
+(define C% (class A%
+             (super-new)
+             (: getN (-> Integer))
+             (define/override (getN) 4)
+                ))
+
+(define D% (class object%
+             (super-new)
+             (: main (-> C%))
+             (define/public (main)
+               (: ref C%)
+               (define ref (make-object C%))
+               (: anyref Any)
+               (define anyref ref)
+               anyref
+               )))
