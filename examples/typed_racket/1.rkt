@@ -12,3 +12,6 @@
                 (define/public (main)
                   a + (cast b Integer))
                 ))
+
+(define test (make-object main% 2 4))
+(send test main)
