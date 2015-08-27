@@ -16,3 +16,14 @@ class D {
 		if (i == 0) { return x.f() } else { return x.g() }
 	}
 }
+
+
+// 
+class D' { 
+        main(x: DAB, i:!number) {
+              if (i == 0) { return x.f() } else { return x.g() }
+        }
+
+// use case:
+new D().main( new A() )
+new D'().main( new B() )
