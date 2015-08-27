@@ -12,7 +12,7 @@ class DAB {
 }
 
 class D {
-	main(x:!DAB, i:!number) {
+	main(x:DAB, i:!number) {
 		if (i == 0) { return x.f() } else { return x.g() }
 	}
 }
