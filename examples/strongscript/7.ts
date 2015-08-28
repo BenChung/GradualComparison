@@ -17,13 +17,6 @@ class D {
 	}
 }
 
-
-// 
-class D' { 
-        main(x: DAB, i:!number) {
-              if (i == 0) { return x.f() } else { return x.g() }
-        }
-
 // use case:
-new D().main( new A() )
-new D'().main( new B() )
+new D().main( new A(), 0 )
+new D().main( new B(), 1 )
