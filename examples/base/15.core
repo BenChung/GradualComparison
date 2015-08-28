@@ -1,0 +1,19 @@
+class A {
+	a:Dyn
+}
+
+class B extends A {
+	a:Int
+}
+
+class C {
+	a:A
+	b:B
+	i:Int
+	main():Int {
+		a = new B(1)
+		b = <B>a //a.a must be an Int now
+		a.a = "foo"
+		return b.a // Shouldn't work - type violation
+	}
+}
