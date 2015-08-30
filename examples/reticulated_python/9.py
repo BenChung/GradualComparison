@@ -4,5 +4,7 @@ class Mult:
 			return 0
 		else:
 			return y+self.mult(x-1, y)
-	def main(self:Mult) -> dyn:
+	def main(self:Mult) -> Dyn:
 		return self.mult(6,6)
+
+print(Mult().main())
