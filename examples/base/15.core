@@ -1,19 +1,19 @@
 class A {
-	a:Dyn
+	a:any
 }
 
 class B extends A {
-	a:Int
+	a:int
 }
 
 class C {
 	a:A
 	b:B
-	i:Int
-	main():Int {
+	i:int
+	main():int {
 		a = new B(1)
 		b = <B>a //a.a must be an Int now
-		a.a = "foo"
-		return b.a // Shouldn't work - type violation
+		a.a = "foo" // Shouldn't work - type violation
+		return b.a 
 	}
 }

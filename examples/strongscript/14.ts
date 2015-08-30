@@ -1,15 +1,14 @@
 class Inner {
-  i : any
+  var i : any
   set(x:any) { i = x }
-  get():any { x }
+  get():any { return x }
 }
 
 class Main {
-  i:Inner
   main():any {
     i = new Inner()
     i.set(1)
     i.set("test")
-    i.get()
+    return i.get()
   }
 }
