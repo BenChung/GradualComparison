@@ -1,19 +1,19 @@
 class B:
-	def foo() -> Int:
+	def foo(self:B) -> Int:
 		return 2
 
 class C:
-	def foo() -> Dyn:
+	def foo(self:C) -> Dyn:
 		return 2
 
 @fields({'b' : B, 'c' : C})
-class C:
+class D:
 	b = B()
 	c = C()
-	def main(self:C) -> Int:
+	def main(self:D) -> Int:
 		self.c = C()
 		self.b = self.c
 		return self.b.foo()
 
 
-print(C().main())
+print(D().main())
