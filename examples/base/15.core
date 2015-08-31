@@ -1,24 +1,22 @@
 class A {
-	a:any
-	setA(v:any) {
-		a = v
-	}
 }
 
 class B implements A {
-	a:int
-	setA(v:any) {
-	}
+	foo():int { 2 }
+
+}
+class C implements A {
+	bar():int { 3 }
 }
 
 class C {
 	a:A
 	b:B
-	i:int
+	c:C
 	main():int {
-		a = new A(1)
-		b = <B>a //a.a must be an Int now
-		a.setA("foo") // Shouldn't work - type violation in the heap
-		return b.a 
+		b = new B()
+		a = <A>b
+		c = <C>a
+		b.foo()
 	}
 }

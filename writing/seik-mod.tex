@@ -28,18 +28,18 @@
 
 \inferrule*[right=TIf]{ 
 \Gamma \vdash e_1 : \tau_1 \\ 
-	\tau_1 <: \intt\\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau_2 \\ \Gamma \vdash e_3 : \tau_3 \\ \tau_2 <: \tau \\ \tau_3 <: \tau} { \Gamma \vdash if\;e_1\;e_2\;e_3 : \tau}
+	\tau_1 <: \intt\\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau_2 \\ \Gamma \vdash e_3 : \tau_3 \\ \tau_2 <: \tau \\ \tau_3 <: \tau} { \Gamma \vdash \texttt{if }e_1\texttt{ then }e_2\texttt{ else }e_3 : \tau}
 
 \inferrule*[right=TPlus]{ \Gamma \vdash e_1 : \tau_1 \\ \Gamma \vdash e_2 : \tau_2 \\ \tau_1 <: \intt \\ \tau_2 <: \intt} { \Gamma \vdash e_1 + e_2 : \intt}
 
 \inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\Gamma \vdash e_i : \tau_i \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}\\ \overline{\tau <: \tau'}}{\Gamma \vdash \text{new }C(\overline{e}) : C}
+\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau} \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}\\ \overline{\tau <: \tau'}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
 
 \inferrule*[right=TClass]{ \overline{\Gamma \vdash D} \\  
-\overline{\Gamma \vdash e : \tau'''}  \\ 
+\overline{\Gamma,\overline{l'':\tau''} \vdash e : \tau'''}  \\ 
 \overline{\tau''' <: \tau'} 
-}{\Gamma \vdash \text{class } C \text{ extends } \overline{D}\;\{\overline{l : \tau}, \overline{l'(\overline{l'':\tau''}):\tau' = \{ e \}}\}}
+}{\Gamma \vdash \texttt{class } C \texttt{ extends } \overline{D}\;\{\overline{l : \tau}, \overline{l'(\overline{l'':\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 
 Dynamic semantics
