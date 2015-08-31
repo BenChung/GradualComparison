@@ -1,19 +1,24 @@
 class A {
-	var a:Dyn
 }
 
 class B extends A {
-	var a:Int
+	foo():!number { return 2 }
+
+}
+class C extends A {
+	bar():!number { return 3 }
 }
 
-class C {
-	var a:A
-	var b:B
-	var i:Int
-	main():Int {
-		this.a = new B(1)
-		this.b = <B>this.a //a.a must be an Int now
-		this.a.a = "foo" // Shouldn't work - type violation
-		return this.b.a 
+class D {
+	a:!A;
+	b:!B;
+	c:!C;
+	main():!number {
+		this.b = <!B>new B()
+		this.a = this.b
+		this.c = <!C>this.a
+		return this.b.foo()
 	}
 }
+
+new D().main()
