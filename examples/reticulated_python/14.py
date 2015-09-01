@@ -2,8 +2,9 @@
 @fields({'i':Dyn})
 class Inner:
 	i = 1
-	def set(self:Inner, x:Dyn):
+	def set(self:Inner, x:Dyn) -> Dyn:
 		self.i = x
+		return self.i
 	def get(self:Inner):
 		return self.i
 

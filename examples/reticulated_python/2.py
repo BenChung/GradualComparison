@@ -7,7 +7,8 @@ class A:
 
 @fields({'a' : Int})
 class B(A):
-	def __init__(self, a:Int):
+	a = 1
+	def __init__(self:B, a:Int):
 		self.a = a
 	def getA(self:B)->Int:
 		return self.a

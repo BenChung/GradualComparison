@@ -1,10 +1,10 @@
 class Fruit:
 	def say(self:Fruit)->str:
 		return "Fruit"
-class Apple(Fruit):
+class Apple:
 	def say(self:Apple)->str:
 		return "apple"
-class Banana(Fruit):
+class Banana:
 	def say(self:Banana)->str:
 		return "banana"
 
@@ -16,4 +16,4 @@ class Main:
 		self.f = Banana()
 		return self.f.say()
 
-Main().main()
+print(Main().main())
