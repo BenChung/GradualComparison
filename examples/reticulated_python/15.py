@@ -10,7 +10,7 @@ class C(A):
 		return 3
 
 @fields({'a' : A, 'b' : B, 'c' : C})
-class C:
+class D:
 	a = A()
 	b = B()
 	c = C()
@@ -21,4 +21,4 @@ class C:
 		return self.b.foo()
 
 
-print(C().main())
+print(D().main())
