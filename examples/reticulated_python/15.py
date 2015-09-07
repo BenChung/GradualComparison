@@ -14,7 +14,7 @@ class D:
 	a = A()
 	b = B()
 	c = C()
-	def main(self:C) -> Int:
+	def main(self:D) -> Int:
 		self.b = B()
 		self.a = self.b
 		self.c = self.a

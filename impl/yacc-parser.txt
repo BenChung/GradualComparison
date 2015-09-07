@@ -1,0 +1,61 @@
+%token NUM
+%token ID
+%left  'PLUS' 'DOT' 'CA'
+%start (classes)
+%%
+classes: class classes 
+| class 
+;
+class: 'CLASS' ID 'OC' classbody 'CC' 
+| 'CLASS' ID 'IMPLEMENTS' ids 'OC' classbody 'CC' 
+;
+ids: ID ids 
+| 
+;
+classbody: classelem classbody 
+| 
+;
+classelem: field 
+| method 
+;
+field: ID 'COLON' type 
+| ID 
+;
+method: ID argdecls 'COLON' type 'OC' body 'CC' 
+| ID argdecls 'OC' body 'CC' 
+;
+type: 'ANY' 
+| 'INT' 
+| ID 
+| 'BANG' ID 
+;
+argdecls: 'OP' iargs 'CP' 
+| 'OP' 'CP' 
+;
+iargs: arg 'COMMA' iargs 
+| arg 
+;
+arg: ID 'COLON' type 
+| ID 
+;
+body: body 'SEMICOLON' bodyexpr 
+| bodyexpr 
+;
+bodyexpr: exp 
+| ID 'EQUALS' exp 
+;
+exp: NUM 
+| ID 
+| exp 'PLUS' exp 
+| ID 'OP' args 'CP' 
+| ID 'DOT' ID 'OP' args 'CP' 
+| 'OP' exp 'CP' 
+| 'IF0' exp 'THEN' exp 'ELSE' exp 'END' 
+| 'OA' type 'CA' exp 
+| 'NEW' ID 'OP' args 'CP' 
+;
+args: exp 'COMMA' args 
+| exp 
+| 
+;
+%%

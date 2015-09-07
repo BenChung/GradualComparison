@@ -1,0 +1,783 @@
+0	g79217	=	(g79218)
+1	g79218	=	(classes EOF)
+2	classes	=	(class classes)
+3	classes	=	(class)
+4	class	=	(CLASS ID OC classbody CC)
+5	class	=	(CLASS ID IMPLEMENTS ids OC classbody CC)
+6	ids	=	(ID ids)
+7	ids	=	()
+8	classbody	=	(classelem classbody)
+9	classbody	=	()
+10	classelem	=	(field)
+11	classelem	=	(method)
+12	field	=	(ID COLON type)
+13	field	=	(ID)
+14	method	=	(ID argdecls COLON type OC body CC)
+15	method	=	(ID argdecls OC body CC)
+16	type	=	(ANY)
+17	type	=	(INT)
+18	type	=	(ID)
+19	type	=	(BANG ID)
+20	argdecls	=	(OP iargs CP)
+21	argdecls	=	(OP CP)
+22	iargs	=	(arg COMMA iargs)
+23	iargs	=	(arg)
+24	arg	=	(ID COLON type)
+25	arg	=	(ID)
+26	body	=	(body SEMICOLON bodyexpr)
+27	body	=	(bodyexpr)
+28	bodyexpr	=	(exp)
+29	bodyexpr	=	(ID EQUALS exp)
+30	exp	=	(NUM)
+31	exp	=	(ID)
+32	exp	=	(exp PLUS exp)
+33	exp	=	(ID OP args CP)
+34	exp	=	(ID DOT ID OP args CP)
+35	exp	=	(OP exp CP)
+36	exp	=	(IF0 exp THEN exp ELSE exp END)
+37	exp	=	(OA type CA exp)
+38	exp	=	(NEW ID OP args CP)
+39	args	=	(exp COMMA args)
+40	args	=	(exp)
+41	args	=	()
+State 0
+	g79217 -> . g79218 
+
+	class					goto	3
+	g79218					goto	1
+	CLASS					shift	4
+	classes					goto	2
+
+State 1
+	g79217 -> g79218 . 
+
+
+State 2
+	g79218 -> classes . EOF 
+
+	EOF					accept	
+
+State 3
+	classes -> class . classes 
+	classes -> class . 
+
+	class					goto	3
+	EOF					reduce	3
+	CLASS					shift	4
+	classes					goto	6
+
+State 4
+	class -> CLASS . ID OC classbody CC 
+	class -> CLASS . ID IMPLEMENTS ids OC classbody CC 
+
+	ID					shift	7
+
+State 5
+	g79218 -> classes EOF . 
+
+
+State 6
+	classes -> class classes . 
+
+	EOF					reduce	2
+
+State 7
+	class -> CLASS ID . OC classbody CC 
+	class -> CLASS ID . IMPLEMENTS ids OC classbody CC 
+
+	OC					shift	8
+	IMPLEMENTS					shift	9
+
+State 8
+	class -> CLASS ID OC . classbody CC 
+
+	classelem					goto	11
+	CC					reduce	9
+	method					goto	13
+	ID					shift	14
+	classbody					goto	10
+	field					goto	12
+
+State 9
+	class -> CLASS ID IMPLEMENTS . ids OC classbody CC 
+
+	ids					goto	15
+	ID					shift	16
+	OC					reduce	7
+
+State 10
+	class -> CLASS ID OC classbody . CC 
+
+	CC					shift	17
+
+State 11
+	classbody -> classelem . classbody 
+
+	classelem					goto	11
+	CC					reduce	9
+	method					goto	13
+	ID					shift	14
+	classbody					goto	18
+	field					goto	12
+
+State 12
+	classelem -> field . 
+
+	CC					reduce	10
+	ID					reduce	10
+
+State 13
+	classelem -> method . 
+
+	CC					reduce	11
+	ID					reduce	11
+
+State 14
+	field -> ID . COLON type 
+	field -> ID . 
+	method -> ID . argdecls COLON type OC body CC 
+	method -> ID . argdecls OC body CC 
+
+	OP					shift	20
+	CC					reduce	13
+	ID					reduce	13
+	argdecls					goto	19
+	COLON					shift	21
+
+State 15
+	class -> CLASS ID IMPLEMENTS ids . OC classbody CC 
+
+	OC					shift	22
+
+State 16
+	ids -> ID . ids 
+
+	ids					goto	23
+	ID					shift	16
+	OC					reduce	7
+
+State 17
+	class -> CLASS ID OC classbody CC . 
+
+	EOF					reduce	4
+	CLASS					reduce	4
+
+State 18
+	classbody -> classelem classbody . 
+
+	CC					reduce	8
+
+State 19
+	method -> ID argdecls . COLON type OC body CC 
+	method -> ID argdecls . OC body CC 
+
+	OC					shift	24
+	COLON					shift	25
+
+State 20
+	argdecls -> OP . iargs CP 
+	argdecls -> OP . CP 
+
+	arg					goto	27
+	CP					shift	29
+	ID					shift	28
+	iargs					goto	26
+
+State 21
+	field -> ID COLON . type 
+
+	type					goto	30
+	ID					shift	31
+	ANY					shift	32
+	BANG					shift	34
+	INT					shift	33
+
+State 22
+	class -> CLASS ID IMPLEMENTS ids OC . classbody CC 
+
+	classelem					goto	11
+	CC					reduce	9
+	method					goto	13
+	ID					shift	14
+	classbody					goto	35
+	field					goto	12
+
+State 23
+	ids -> ID ids . 
+
+	OC					reduce	6
+
+State 24
+	method -> ID argdecls OC . body CC 
+
+	OP					shift	42
+	body					goto	36
+	ID					shift	40
+	exp					goto	38
+	NEW					shift	44
+	IF0					shift	43
+	bodyexpr					goto	37
+	OA					shift	41
+	NUM					shift	39
+
+State 25
+	method -> ID argdecls COLON . type OC body CC 
+
+	type					goto	45
+	ID					shift	31
+	ANY					shift	32
+	BANG					shift	34
+	INT					shift	33
+
+State 26
+	argdecls -> OP iargs . CP 
+
+	CP					shift	46
+
+State 27
+	iargs -> arg . COMMA iargs 
+	iargs -> arg . 
+
+	CP					reduce	23
+	COMMA					shift	47
+
+State 28
+	arg -> ID . COLON type 
+	arg -> ID . 
+
+	CP					reduce	25
+	COMMA					reduce	25
+	COLON					shift	48
+
+State 29
+	argdecls -> OP CP . 
+
+	OC					reduce	21
+	COLON					reduce	21
+
+State 30
+	field -> ID COLON type . 
+
+	CC					reduce	12
+	ID					reduce	12
+
+State 31
+	type -> ID . 
+
+	CP					reduce	18
+	CC					reduce	18
+	CA					reduce	18
+	ID					reduce	18
+	OC					reduce	18
+	COMMA					reduce	18
+
+State 32
+	type -> ANY . 
+
+	CP					reduce	16
+	CC					reduce	16
+	CA					reduce	16
+	ID					reduce	16
+	OC					reduce	16
+	COMMA					reduce	16
+
+State 33
+	type -> INT . 
+
+	CP					reduce	17
+	CC					reduce	17
+	CA					reduce	17
+	ID					reduce	17
+	OC					reduce	17
+	COMMA					reduce	17
+
+State 34
+	type -> BANG . ID 
+
+	ID					shift	49
+
+State 35
+	class -> CLASS ID IMPLEMENTS ids OC classbody . CC 
+
+	CC					shift	50
+
+State 36
+	method -> ID argdecls OC body . CC 
+	body -> body . SEMICOLON bodyexpr 
+
+	CC					shift	51
+	SEMICOLON					shift	52
+
+State 37
+	body -> bodyexpr . 
+
+	CC					reduce	27
+	SEMICOLON					reduce	27
+
+State 38
+	bodyexpr -> exp . 
+	exp -> exp . PLUS exp 
+
+	CC					reduce	28
+	PLUS					shift	53
+	SEMICOLON					reduce	28
+
+State 39
+	exp -> NUM . 
+
+	ELSE					reduce	30
+	COMMA					reduce	30
+	SEMICOLON					reduce	30
+	CC					reduce	30
+	CP					reduce	30
+	THEN					reduce	30
+	PLUS					reduce	30
+	END					reduce	30
+
+State 40
+	bodyexpr -> ID . EQUALS exp 
+	exp -> ID . 
+	exp -> ID . OP args CP 
+	exp -> ID . DOT ID OP args CP 
+
+	OP					shift	54
+	CC					reduce	31
+	PLUS					reduce	31
+	EQUALS					shift	55
+	DOT					shift	56
+	SEMICOLON					reduce	31
+
+State 41
+	exp -> OA . type CA exp 
+
+	type					goto	57
+	ID					shift	31
+	ANY					shift	32
+	BANG					shift	34
+	INT					shift	33
+
+State 42
+	exp -> OP . exp CP 
+
+	OP					shift	42
+	IF0					shift	43
+	exp					goto	58
+	NEW					shift	44
+	OA					shift	41
+	NUM					shift	39
+	ID					shift	59
+
+State 43
+	exp -> IF0 . exp THEN exp ELSE exp END 
+
+	OP					shift	42
+	IF0					shift	43
+	exp					goto	60
+	NEW					shift	44
+	OA					shift	41
+	NUM					shift	39
+	ID					shift	59
+
+State 44
+	exp -> NEW . ID OP args CP 
+
+	ID					shift	61
+
+State 45
+	method -> ID argdecls COLON type . OC body CC 
+
+	OC					shift	62
+
+State 46
+	argdecls -> OP iargs CP . 
+
+	OC					reduce	20
+	COLON					reduce	20
+
+State 47
+	iargs -> arg COMMA . iargs 
+
+	arg					goto	27
+	ID					shift	28
+	iargs					goto	63
+
+State 48
+	arg -> ID COLON . type 
+
+	type					goto	64
+	ID					shift	31
+	ANY					shift	32
+	BANG					shift	34
+	INT					shift	33
+
+State 49
+	type -> BANG ID . 
+
+	CP					reduce	19
+	CC					reduce	19
+	CA					reduce	19
+	ID					reduce	19
+	OC					reduce	19
+	COMMA					reduce	19
+
+State 50
+	class -> CLASS ID IMPLEMENTS ids OC classbody CC . 
+
+	EOF					reduce	5
+	CLASS					reduce	5
+
+State 51
+	method -> ID argdecls OC body CC . 
+
+	CC					reduce	15
+	ID					reduce	15
+
+State 52
+	body -> body SEMICOLON . bodyexpr 
+
+	OP					shift	42
+	IF0					shift	43
+	ID					shift	40
+	exp					goto	38
+	NEW					shift	44
+	bodyexpr					goto	65
+	OA					shift	41
+	NUM					shift	39
+
+State 53
+	exp -> exp PLUS . exp 
+
+	OP					shift	42
+	IF0					shift	43
+	exp					goto	66
+	NEW					shift	44
+	OA					shift	41
+	NUM					shift	39
+	ID					shift	59
+
+State 54
+	exp -> ID OP . args CP 
+
+	OP					shift	42
+	IF0					shift	43
+	ID					shift	59
+	exp					goto	67
+	NEW					shift	44
+	CP					reduce	41
+	OA					shift	41
+	NUM					shift	39
+	args					goto	68
+
+State 55
+	bodyexpr -> ID EQUALS . exp 
+
+	OP					shift	42
+	IF0					shift	43
+	exp					goto	69
+	NEW					shift	44
+	OA					shift	41
+	NUM					shift	39
+	ID					shift	59
+
+State 56
+	exp -> ID DOT . ID OP args CP 
+
+	ID					shift	70
+
+State 57
+	exp -> OA type . CA exp 
+
+	CA					shift	71
+
+State 58
+	exp -> exp . PLUS exp 
+	exp -> OP exp . CP 
+
+	CP					shift	72
+	PLUS					shift	53
+
+State 59
+	exp -> ID . 
+	exp -> ID . OP args CP 
+	exp -> ID . DOT ID OP args CP 
+
+	OP					shift	54
+	ELSE					reduce	31
+	COMMA					reduce	31
+	SEMICOLON					reduce	31
+	CC					reduce	31
+	CP					reduce	31
+	THEN					reduce	31
+	PLUS					reduce	31
+	DOT					shift	56
+	END					reduce	31
+
+State 60
+	exp -> exp . PLUS exp 
+	exp -> IF0 exp . THEN exp ELSE exp END 
+
+	THEN					shift	73
+	PLUS					shift	53
+
+State 61
+	exp -> NEW ID . OP args CP 
+
+	OP					shift	74
+
+State 62
+	method -> ID argdecls COLON type OC . body CC 
+
+	OP					shift	42
+	body					goto	75
+	ID					shift	40
+	exp					goto	38
+	NEW					shift	44
+	IF0					shift	43
+	bodyexpr					goto	37
+	OA					shift	41
+	NUM					shift	39
+
+State 63
+	iargs -> arg COMMA iargs . 
+
+	CP					reduce	22
+
+State 64
+	arg -> ID COLON type . 
+
+	CP					reduce	24
+	COMMA					reduce	24
+
+State 65
+	body -> body SEMICOLON bodyexpr . 
+
+	CC					reduce	26
+	SEMICOLON					reduce	26
+
+State 66
+	exp -> exp . PLUS exp 
+	exp -> exp PLUS exp . 
+
+	ELSE					reduce	32
+	COMMA					reduce	32
+	SEMICOLON					reduce	32
+	CC					reduce	32
+	CP					reduce	32
+	THEN					reduce	32
+	PLUS					reduce	32
+	END					reduce	32
+
+State 67
+	exp -> exp . PLUS exp 
+	args -> exp . COMMA args 
+	args -> exp . 
+
+	CP					reduce	40
+	PLUS					shift	53
+	COMMA					shift	76
+
+State 68
+	exp -> ID OP args . CP 
+
+	CP					shift	77
+
+State 69
+	bodyexpr -> ID EQUALS exp . 
+	exp -> exp . PLUS exp 
+
+	CC					reduce	29
+	PLUS					shift	53
+	SEMICOLON					reduce	29
+
+State 70
+	exp -> ID DOT ID . OP args CP 
+
+	OP					shift	78
+
+State 71
+	exp -> OA type CA . exp 
+
+	OP					shift	42
+	IF0					shift	43
+	exp					goto	79
+	NEW					shift	44
+	OA					shift	41
+	NUM					shift	39
+	ID					shift	59
+
+State 72
+	exp -> OP exp CP . 
+
+	ELSE					reduce	35
+	COMMA					reduce	35
+	SEMICOLON					reduce	35
+	CC					reduce	35
+	CP					reduce	35
+	THEN					reduce	35
+	PLUS					reduce	35
+	END					reduce	35
+
+State 73
+	exp -> IF0 exp THEN . exp ELSE exp END 
+
+	OP					shift	42
+	IF0					shift	43
+	exp					goto	80
+	NEW					shift	44
+	OA					shift	41
+	NUM					shift	39
+	ID					shift	59
+
+State 74
+	exp -> NEW ID OP . args CP 
+
+	OP					shift	42
+	IF0					shift	43
+	ID					shift	59
+	exp					goto	67
+	NEW					shift	44
+	CP					reduce	41
+	OA					shift	41
+	NUM					shift	39
+	args					goto	81
+
+State 75
+	method -> ID argdecls COLON type OC body . CC 
+	body -> body . SEMICOLON bodyexpr 
+
+	CC					shift	82
+	SEMICOLON					shift	52
+
+State 76
+	args -> exp COMMA . args 
+
+	OP					shift	42
+	IF0					shift	43
+	ID					shift	59
+	exp					goto	67
+	NEW					shift	44
+	CP					reduce	41
+	OA					shift	41
+	NUM					shift	39
+	args					goto	83
+
+State 77
+	exp -> ID OP args CP . 
+
+	ELSE					reduce	33
+	COMMA					reduce	33
+	SEMICOLON					reduce	33
+	CC					reduce	33
+	CP					reduce	33
+	THEN					reduce	33
+	PLUS					reduce	33
+	END					reduce	33
+
+State 78
+	exp -> ID DOT ID OP . args CP 
+
+	OP					shift	42
+	IF0					shift	43
+	ID					shift	59
+	exp					goto	67
+	NEW					shift	44
+	CP					reduce	41
+	OA					shift	41
+	NUM					shift	39
+	args					goto	84
+
+State 79
+	exp -> exp . PLUS exp 
+	exp -> OA type CA exp . 
+
+	ELSE					reduce	37
+	COMMA					reduce	37
+	SEMICOLON					reduce	37
+	CC					reduce	37
+	CP					reduce	37
+	THEN					reduce	37
+	PLUS					reduce	37
+	END					reduce	37
+
+State 80
+	exp -> exp . PLUS exp 
+	exp -> IF0 exp THEN exp . ELSE exp END 
+
+	PLUS					shift	53
+	ELSE					shift	85
+
+State 81
+	exp -> NEW ID OP args . CP 
+
+	CP					shift	86
+
+State 82
+	method -> ID argdecls COLON type OC body CC . 
+
+	CC					reduce	14
+	ID					reduce	14
+
+State 83
+	args -> exp COMMA args . 
+
+	CP					reduce	39
+
+State 84
+	exp -> ID DOT ID OP args . CP 
+
+	CP					shift	87
+
+State 85
+	exp -> IF0 exp THEN exp ELSE . exp END 
+
+	OP					shift	42
+	IF0					shift	43
+	exp					goto	88
+	NEW					shift	44
+	OA					shift	41
+	NUM					shift	39
+	ID					shift	59
+
+State 86
+	exp -> NEW ID OP args CP . 
+
+	ELSE					reduce	38
+	COMMA					reduce	38
+	SEMICOLON					reduce	38
+	CC					reduce	38
+	CP					reduce	38
+	THEN					reduce	38
+	PLUS					reduce	38
+	END					reduce	38
+
+State 87
+	exp -> ID DOT ID OP args CP . 
+
+	ELSE					reduce	34
+	COMMA					reduce	34
+	SEMICOLON					reduce	34
+	CC					reduce	34
+	CP					reduce	34
+	THEN					reduce	34
+	PLUS					reduce	34
+	END					reduce	34
+
+State 88
+	exp -> exp . PLUS exp 
+	exp -> IF0 exp THEN exp ELSE exp . END 
+
+	PLUS					shift	53
+	END					shift	89
+
+State 89
+	exp -> IF0 exp THEN exp ELSE exp END . 
+
+	ELSE					reduce	36
+	COMMA					reduce	36
+	SEMICOLON					reduce	36
+	CC					reduce	36
+	CP					reduce	36
+	THEN					reduce	36
+	PLUS					reduce	36
+	END					reduce	36
+
