@@ -1,5 +1,6 @@
 %token NUM
 %token ID
+%token STRING
 %left  'PLUS' 'DOT' 'CA'
 %start (classes)
 %%
@@ -9,8 +10,8 @@ classes: class classes
 class: 'CLASS' ID 'OC' classbody 'CC' 
 | 'CLASS' ID 'IMPLEMENTS' ids 'OC' classbody 'CC' 
 ;
-ids: ID ids 
-| 
+ids: ID 'COMMA' ids 
+| ID 
 ;
 classbody: classelem classbody 
 | 
@@ -27,6 +28,7 @@ method: ID argdecls 'COLON' type 'OC' body 'CC'
 type: 'ANY' 
 | 'INT' 
 | ID 
+| 'STR' 
 | 'BANG' ID 
 ;
 argdecls: 'OP' iargs 'CP' 
@@ -45,6 +47,7 @@ bodyexpr: exp
 | ID 'EQUALS' exp 
 ;
 exp: NUM 
+| STRING 
 | ID 
 | exp 'PLUS' exp 
 | ID 'OP' args 'CP' 

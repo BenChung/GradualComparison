@@ -2,11 +2,13 @@
 (require parser-tools/lex)
 (require parser-tools/yacc)
 
-(define-tokens a (NUM ID))
-(define-empty-tokens b (OC CC OA CA OP CP COLON CLASS IF0 THEN ELSE END EOF EQUALS ANY INT PLUS DOT COMMA BANG SEMICOLON IMPLEMENTS NEW))
+(define-tokens a (NUM ID STRING))
+(define-empty-tokens b (OC CC OA CA OP CP COLON CLASS IF0 THEN ELSE END
+                           EOF EQUALS ANY INT PLUS DOT COMMA BANG SEMICOLON IMPLEMENTS NEW
+                           STR))
 
 (define lex (lexer
-             [numeric
+             [(union (concatenation #\- numeric) numeric)
               (token-NUM (string->symbol lexeme))]
              [#\{ (token-OC)]
              [#\} (token-CC)]
@@ -29,9 +31,12 @@
              ["end" (token-END)]
              ["any" (token-ANY)]
              ["int" (token-INT)]
+             ["str" (token-STR)]
              ["new" (token-NEW)]
-             [(concatenation alphabetic (repetition 0 +inf.0 (union alphabetic numeric)))
+             [(concatenation alphabetic (repetition 0 +inf.0 (union alphabetic numeric #\_)))
               (token-ID (string->symbol lexeme))]
+             [(concatenation #\" (repetition 0 +inf.0 (char-complement #\")) #\")
+              (token-STRING (substring lexeme 1 (- (string-length lexeme) 1)))]
              [whitespace (lex input-port)]
              [(eof) (token-EOF)]
              ))
@@ -43,6 +48,7 @@
 
 (define-struct tany ())
 (define-struct tint ())
+(define-struct tstr ())
 (define-struct tclass (name) #:transparent)
 (define-struct tsclass (name) #:transparent)
 
@@ -69,7 +75,7 @@
                          ((class) (cons $1 null)))
                 (class [(CLASS ID OC classbody CC) (class-decl $2 null $4)]
                   [(CLASS ID IMPLEMENTS ids OC classbody CC) (class-decl $2 $4 $6)])
-                (ids [(ID ids) (cons $1 $2)] [() null])
+                (ids [(ID COMMA ids) (cons $1 $3)] [(ID) (cons $1 null)])
                 (classbody
                  [(classelem classbody)(cons $1 $2)]
                  [() null]
@@ -86,7 +92,8 @@
                  [(ID argdecls COLON type OC body CC) (method-decl $1 $2 $4 $6)]
                  [(ID argdecls OC body CC) (method-decl $1 $2 (tany) $4)]
                  )
-                (type [(ANY) (tany)] [(INT) (tint)] [(ID) (tclass $1)] [(BANG ID) (tsclass $2)])
+                (type [(ANY) (tany)] [(INT) (tint)] [(ID) (tclass $1)]
+                      [(STR) (tstr)] [(BANG ID) (tsclass $2)])
                 (argdecls
                  [(OP iargs CP) $2]
                  [(OP CP) null]
@@ -108,6 +115,7 @@
                  )
                 (exp
                  [(NUM) $1]
+                 [(STRING) $1]
                  [(ID) (exp-var $1)]
                  [(exp PLUS exp) (exp-plus $1 $3)]
                  [(ID OP args CP) (exp-self-call $1 $3)]
@@ -123,7 +131,7 @@
                  [() null])
                 )))
 
-
 (define (do-parse path)
   (define test-input (open-input-file path))
   (parse (λ () (lex test-input))))
+
