@@ -116,7 +116,7 @@
                 (exp
                  [(NUM) $1]
                  [(STRING) $1]
-                 [(ID) (exp-var $1)]
+                 [(ID) (exp-var $1)] 
                  [(exp PLUS exp) (exp-plus $1 $3)]
                  [(ID OP args CP) (exp-self-call $1 $3)]
                  [(ID DOT ID OP args CP) (exp-call $1 $3 $5)]
@@ -135,3 +135,37 @@
   (define test-input (open-input-file path))
   (parse (λ () (lex test-input))))
 
+(define/match (type->strongstring type)
+  [(tany) "any"]
+  [(tint) ]
+  [(tstr) ]
+  [(tclass name) ]
+  [(tsclass name) ]
+  )
+
+(define (generate-strongscript-fields decls)
+  (string-append "constructor(" (string-join (map (match-lambda (field-decl name type)  (string-append "public " name ":" type)) decls) ", ") ") {}")
+  )
+
+(define/match (generate-strongscript-method decl)
+  [((method-decl name args type body))
+   (string-append name ":" 
+   ]
+  )
+
+(define/match (generate-strongscript-class class)
+  [((class-decl name implements body))
+   (define-values (fields methods) (partition field-decl? body))
+   (string-append
+    "class "
+    name
+    (if (empty? implements) "" (string-join implements ", "))
+    " {\n"
+    (generate-strongscript-fields fields)
+    (string-join (map generate-strongscript-method body) "\n")
+    "}"
+    )])
+  
+(define (generate-strongscript tree)
+  (map generate-strongscript-class tree)
+  )
