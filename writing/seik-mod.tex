@@ -1,9 +1,25 @@
 \documentclass{report}
-\usepackage{mathpartir,amsmath}
+\usepackage{mathpartir,amsmath,amssymb}
 \newcommand{\intt}{\texttt{int}}
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\anyt}{\texttt{any}}
+\newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
+\newcommand{\cast}[1]{\langle #1\rangle}
 \begin{document}
+
+Syntax:
+\begin{align*}
+\tau &::= \anyt | \strt | \intt | \{l(\overline{\tau}):\tau\}\\
+e &::= \texttt{string } | \texttt{ integer } | \;e.l(\overline{e}) \;| \ifthenelse{e}{e}{e}\;|\;e + e\\
+&|\;l\;|\texttt{ new }C(\overline{e})\\
+v &::= i | s | \{\overline{l=v},\overline{l(\overline{l})=e}\}\\
+I &::= \strt | \intt | \{\overline{l(\overline{\tau}):\tau}\}\\
+c &::= \rho | I? | I! | \{\overline{l(\overline{c}):c}\}\\
+cv &::= v | v\cast{c} | \{\overline{l=v\cast{c}},\overline{l(\overline{l})\cast{c}=e}\}\\
+\mu &::= \emptyset | \mu( l \mapsto v )\\
+F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
+&|\texttt{ new }C(\overline{v},\square,e,\overline{e})\\
+\end{align*}
 
 \begin{mathpar}
 \inferrule*[right=SubRefl]{ }{ C <: C }
@@ -13,10 +29,6 @@
 \inferrule*[right=SubInt]{ }{ \intt <: \intt }
 
 \inferrule*[right=SubStr]{ }{ \strt <: \strt }
-
-\inferrule*[right=SubDyn]{ }{ \tau <: \anyt }
-
-\inferrule*[right=DynSub]{ }{ \anyt <: \tau }
 \end{mathpar}
 
 \begin{mathpar}
@@ -26,22 +38,24 @@
 
 \inferrule*[right=TInt]{ }{\Gamma \vdash int : \intt}
 
-\inferrule*[right=TApp]{\overline{\Gamma \vdash e_i : \tau_i} \\ \Gamma \vdash x : \{\ldots, l(\overline{\tau'_i}):\tau', \ldots\}\\ \overline{\tau_i <: \tau'_i}}{\Gamma \vdash x.l(\overline{e_i}) : \tau'}
+\inferrule*[right=TSub]{\Gamma \vdash e : \tau' \\ \tau' <: \tau}{\Gamma \vdash e : \tau}
+
+\inferrule*[right=TApp]{\overline{\Gamma \vdash e_i : \tau_i} \\ \Gamma \vdash x : \{\ldots, l(\overline{\tau'_i}):\tau', \ldots\}}{\Gamma \vdash x.l(\overline{e_i}) : \tau'}
 
 \inferrule*[right=TIf]{ 
-\Gamma \vdash e_1 : \tau_1 \\ 
-	\tau_1 <: \intt\\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau_2 \\ \Gamma \vdash e_3 : \tau_3 \\ \tau_2 <: \tau \\ \tau_3 <: \tau} { \Gamma \vdash \texttt{if }e_1\texttt{ then }e_2\texttt{ else }e_3 : \tau}
+\Gamma \vdash e_1 : \intt \\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau \\ \Gamma \vdash e_3 : \tau} { \Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} : \tau}
 
-\inferrule*[right=TPlus]{ \Gamma \vdash e_1 : \tau_1 \\ \Gamma \vdash e_2 : \tau_2 \\ \tau_1 <: \intt \\ \tau_2 <: \intt} { \Gamma \vdash e_1 + e_2 : \intt}
+\inferrule*[right=TPlus]{ \Gamma \vdash e_1 : \intt \\ \Gamma \vdash e_2 : \intt} { \Gamma \vdash e_1 + e_2 : \intt}
 
 \inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau} \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}\\ \overline{\tau <: \tau'}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
+\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau} \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
 
-\inferrule*[right=TClass]{ \overline{\Gamma \vdash D} \\  
-\overline{\Gamma,\overline{l'':\tau''} \vdash e : \tau'''}  \\ 
-\overline{\tau''' <: \tau'} 
-}{\Gamma \vdash \texttt{class } C \texttt{ extends } \overline{D}\;\{\overline{l : \tau}, \overline{l'(\overline{l'':\tau''}):\tau' = \{ e \}}\}}
+\inferrule*[right=TClass]{ 
+\overline{\Gamma \vdash D} \\  
+\overline{l'(\overline{l'':\tau''}):\tau' \in \overline{D}}\\
+\overline{\Gamma,\overline{l:\tau},\overline{l'':\tau''} \vdash e : \tau'}\\
+}{\Gamma \vdash \texttt{class } C \texttt{ implements } \overline{D}\;\{\overline{l : \tau}, \overline{l'(\overline{l'':\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 
 Dynamic semantics

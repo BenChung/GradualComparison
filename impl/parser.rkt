@@ -9,7 +9,7 @@
 
 (define lex (lexer
              [(union (concatenation #\- numeric) numeric)
-              (token-NUM (string->symbol lexeme))]
+              (token-NUM (string->number lexeme))]
              [#\{ (token-OC)]
              [#\} (token-CC)]
              [#\< (token-OA)]
@@ -34,7 +34,7 @@
              ["str" (token-STR)]
              ["new" (token-NEW)]
              [(concatenation alphabetic (repetition 0 +inf.0 (union alphabetic numeric #\_)))
-              (token-ID (string->symbol lexeme))]
+              (token-ID lexeme)]
              [(concatenation #\" (repetition 0 +inf.0 (char-complement #\")) #\")
               (token-STRING (substring lexeme 1 (- (string-length lexeme) 1)))]
              [whitespace (lex input-port)]
@@ -100,13 +100,13 @@
                  )
                 (iargs
                  [(arg COMMA iargs) (cons $1 $3)]
-                 [(arg) $1])
+                 [(arg) (cons $1 null)])
                 (arg
                   [(ID COLON type) (arg-decl $1 $3)]
                   [(ID) (arg-decl $1 (tany))]
                   )
                 (body
-                 [(body SEMICOLON bodyexpr) (cons $1 $3)]
+                 [(bodyexpr SEMICOLON body) (cons $1 $3)]
                  [(bodyexpr) (cons $1 null)]
                  )
                 (bodyexpr
@@ -137,19 +137,38 @@
 
 (define/match (type->strongstring type)
   [(tany) "any"]
-  [(tint) ]
-  [(tstr) ]
-  [(tclass name) ]
-  [(tsclass name) ]
+  [(tint) "!number"]
+  [(tstr) "!string"]
+  [((tclass name)) "name"]
+  [((tsclass name)) (string-append "!" name) ]
+  )
+
+(define/match (exp->strongstring body)
+  [((exp-assign target value)) (string-append "this." target " = " (exp->strongstring value) "")]
+  [((exp-plus left right)) (string-append (exp->strongstring left) "+" (exp->strongstring right))]
+  [((exp-var name)) (string-append "this." name)]
+  [((exp-call target name args)) (string-append target "." name "(" (string-join (map exp->strongstring args) ",") ")")]
+  [((exp-self-call name args)) (string-append "this." name "(" (string-join (map exp->strongstring args) ",") ")")]
+  [((exp-if0 cond then else)) (string-append "if (" (exp->strongstring cond) " == 0) {" (exp->strongstring then) "} else {" (exp->strongstring else) "}")]
+  [((exp-cast type value)) (string-append "<" (type->strongstring type) ">" (exp->strongstring value))]
+  [((exp-new name args)) (string-append "new " name "(" (string-join (map exp->strongstring args) ",") ")")]
+  [((? number? num)) (number->string num)] 
   )
 
 (define (generate-strongscript-fields decls)
-  (string-append "constructor(" (string-join (map (match-lambda (field-decl name type)  (string-append "public " name ":" type)) decls) ", ") ") {}")
+  (string-append "constructor("
+                 (string-join (map (match-lambda [(field-decl name type) (string-append "public " name ":" (type->strongstring type))])
+                                   decls)
+                              ", ")
+                 ") {}\n")
   )
+
 
 (define/match (generate-strongscript-method decl)
   [((method-decl name args type body))
-   (string-append name ":" 
+   (string-append name ":" (type->strongstring type) " { "
+                  (if (> (length body) 1) (string-append (string-join (map exp->strongstring (take body (- (length body) 1))) ";\n") ";\n") "")
+                  "return " (exp->strongstring (last body)) ";\n" " }")
    ]
   )
 
@@ -159,11 +178,11 @@
    (string-append
     "class "
     name
-    (if (empty? implements) "" (string-join implements ", "))
+    (if (empty? implements) "" (string-append " implements " (string-join implements ", ")))
     " {\n"
     (generate-strongscript-fields fields)
-    (string-join (map generate-strongscript-method body) "\n")
-    "}"
+    (string-join (map generate-strongscript-method methods) "\n")
+    "\n}"
     )])
   
 (define (generate-strongscript tree)
