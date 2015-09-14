@@ -3,20 +3,23 @@
 \newcommand{\intt}{\texttt{int}}
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\anyt}{\texttt{any}}
-\newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
+\newcommand{\ifthenelse}[3]{\texttt{if0 }#1\texttt{ then }#2\texttt{ else }#3}
 \newcommand{\cast}[1]{\langle #1\rangle}
+\newcommand{\xt}[1]{\texttt{#1}}
+\newcommand{\castreduce}{\longrightarrow_{cr}}
+\newcommand{\expreduce}{\longrightarrow_{e}}
 \begin{document}
 
 Syntax:
 \begin{align*}
 \tau &::= \anyt | \strt | \intt | \{l(\overline{\tau}):\tau\}\\
-e &::= \texttt{string } | \texttt{ integer } | \;e.l(\overline{e}) \;| \ifthenelse{e}{e}{e}\;|\;e + e\\
-&|\;l\;|\texttt{ new }C(\overline{e})\\
-v &::= i | s | \{\overline{l=v},\overline{l(\overline{l})=e}\}\\
-I &::= \strt | \intt | \{\overline{l(\overline{\tau}):\tau}\}\\
-c &::= \rho | I? | I! | \{\overline{l(\overline{c}):c}\}\\
-cv &::= v | v\cast{c} | \{\overline{l=v\cast{c}},\overline{l(\overline{l})\cast{c}=e}\}\\
-\mu &::= \emptyset | \mu( l \mapsto v )\\
+e &::= c | \;e.l(\overline{e}) \;| \ifthenelse{e}{e}{e}\;|\;e + e\\
+&|\;x\;|\texttt{ new }C(\overline{e}) | e\cast{\tau}\\
+v &::= i | s | \{\overline{\texttt{f}=v},\overline{\xt{m}(\overline{\xt{p}})=e}\}\\
+I &::= \strt | \intt | \{\overline{\xt{m}(\overline{\tau}):\tau}\}\\
+c &::= \iota | I? | I! | \{\overline{\xt{m}(\overline{c}):c}\}\\
+cv &::= v | v\cast{c} | \{\overline{\xt{f}=v\cast{c}},\overline{\xt{m}(\overline{l})\cast{c}=e}\}\\
+\mu &::= \emptyset | \mu( a \mapsto v )\\
 F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
 &|\texttt{ new }C(\overline{v},\square,e,\overline{e})\\
 \end{align*}
@@ -49,17 +52,22 @@ F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ift
 
 \inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau} \\ \Gamma(C) = \{\ldots, \overline{l : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
+\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau} \\ \Gamma(C) = \{\ldots, \overline{\xt{f} : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
+
+\inferrule*[right=TCast]{\Gamma \vdash e : \tau' \\ \tau <: \tau' \vee \tau' = \anyt}{\Gamma \vdash e\cast{\tau}}
 
 \inferrule*[right=TClass]{ 
 \overline{\Gamma \vdash D} \\  
-\overline{l'(\overline{l'':\tau''}):\tau' \in \overline{D}}\\
-\overline{\Gamma,\overline{l:\tau},\overline{l'':\tau''} \vdash e : \tau'}\\
-}{\Gamma \vdash \texttt{class } C \texttt{ implements } \overline{D}\;\{\overline{l : \tau}, \overline{l'(\overline{l'':\tau''}):\tau' = \{ e \}}\}}
+\overline{\xt{m}'(\overline{\xt{p}:\tau_D''}):\tau_D' \in D \implies \xt{m}'(\overline{\xt{p}:\tau_D''}):\tau_D' \in C}\\
+\overline{\Gamma,\overline{\xt{f}:\tau},\overline{\xt{p}:\tau''} \vdash e : \tau'}\\
+}{\Gamma \vdash \texttt{class } C \texttt{ implements } \overline{D}\;\{\overline{\xt{f} : \tau}, \overline{\xt{m}(\overline{\xt{p}:\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 
-Dynamic semantics
+\section{Dynamic semantics:}
+
 \begin{mathpar}
-\inferrule*[]{ }{ }
+\inferrule*[]{ e,v \castreduce e',v'}{F[e],v \castreduce F[e'],v'}
+
+\inferrule*[]{ e,v \expreduce e',v'}{F[e],v \expreduce F[e'],v'}
 \end{mathpar}
 \end{document}
