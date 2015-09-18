@@ -8,6 +8,7 @@
 \newcommand{\xt}[1]{\texttt{#1}}
 \newcommand{\castreduce}{\longrightarrow_{cr}}
 \newcommand{\expreduce}{\longrightarrow_{e}}
+\newcommand{\stepsto}{\longrightarrow}
 \begin{document}
 
 Syntax:
@@ -15,10 +16,10 @@ Syntax:
 \tau &::= \anyt | \strt | \intt | \{l(\overline{\tau}):\tau\}\\
 e &::= c | \;e.l(\overline{e}) \;| \ifthenelse{e}{e}{e}\;|\;e + e\\
 &|\;x\;|\texttt{ new }C(\overline{e}) | e\cast{\tau}\\
-v &::= i | s | \{\overline{\texttt{f}=v},\overline{\xt{m}(\overline{\xt{p}})=e}\}\\
-I &::= \strt | \intt | \{\overline{\xt{m}(\overline{\tau}):\tau}\}\\
-c &::= \iota | I? | I! | \{\overline{\xt{m}(\overline{c}):c}\}\\
-cv &::= v | v\cast{c} | \{\overline{\xt{f}=v\cast{c}},\overline{\xt{m}(\overline{l})\cast{c}=e}\}\\
+v &::= i | s | \{\overline{\texttt{f}=v},\overline{\xt{m}(\overline{\xt{p}})=e}\} | v\cast{I!}\\
+I &::= \strt | \intt | \{\overline{\xt{f}:\tau},\overline{\xt{m}(\overline{\tau}):\tau}\}\\
+c &::= \iota | I? | I! | \{\overline{\xt{m}(\overline{\xt{f}\cast{c}}):c}\}\\
+cv &::= v | v\cast{c} | \{\overline{\xt{f}\cast{c}=v},\overline{\xt{m}(\overline{l\cast{c}})\cast{c}=e}\}\\
 \mu &::= \emptyset | \mu( a \mapsto v )\\
 F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
 &|\texttt{ new }C(\overline{v},\square,e,\overline{e})\\
@@ -43,23 +44,24 @@ F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ift
 
 \inferrule*[right=TSub]{\Gamma \vdash e : \tau' \\ \tau' <: \tau}{\Gamma \vdash e : \tau}
 
-\inferrule*[right=TApp]{\overline{\Gamma \vdash e_i : \tau_i} \\ \Gamma \vdash x : \{\ldots, l(\overline{\tau'_i}):\tau', \ldots\}}{\Gamma \vdash x.l(\overline{e_i}) : \tau'}
+\inferrule*[right=TApp]{\overline{\Gamma \vdash e_i : \tau_i \vee \Gamma \vdash e_i : \anyt} \\ \Gamma \vdash e : \{\ldots, l(\overline{\tau'_i}):\tau', \ldots\}}{\Gamma \vdash e.l(\overline{e_i}) : \tau'}
 
 \inferrule*[right=TIf]{ 
-\Gamma \vdash e_1 : \intt \\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau \\ \Gamma \vdash e_3 : \tau} { \Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} : \tau}
+\Gamma \vdash e_1 : \intt \vee \Gamma \vdash e_1 :\anyt \\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau \\ \Gamma \vdash e_3 : \tau} { \Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} : \tau}
 
 \inferrule*[right=TPlus]{ \Gamma \vdash e_1 : \intt \\ \Gamma \vdash e_2 : \intt} { \Gamma \vdash e_1 + e_2 : \intt}
 
 \inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau} \\ \Gamma(C) = \{\ldots, \overline{\xt{f} : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
+\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau \vee \Gamma \vdash e : \anyt} \\ \Gamma(C) = \{\ldots, \overline{\xt{f} : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
 
 \inferrule*[right=TCast]{\Gamma \vdash e : \tau' \\ \tau <: \tau' \vee \tau' = \anyt}{\Gamma \vdash e\cast{\tau}}
 
 \inferrule*[right=TClass]{ 
 \overline{\Gamma \vdash D} \\  
-\overline{\xt{m}'(\overline{\xt{p}:\tau_D''}):\tau_D' \in D \implies \xt{m}'(\overline{\xt{p}:\tau_D''}):\tau_D' \in C}\\
-\overline{\Gamma,\overline{\xt{f}:\tau},\overline{\xt{p}:\tau''} \vdash e : \tau'}\\
+\overline{\xt{m}'(\overline{\xt{p}:\tau_D''}):\tau_D' \in D \implies \xt{m}'(\overline{\xt{p}:\tau_C''}):\tau_C' \in C \wedge (\tau_C' <: \tau_D' \vee \tau_D' = \anyt) \wedge (\overline{\tau_D'' <: \tau_C'' \vee \tau_C'' = \anyt})}\\
+\overline{\xt{f}:\tau_D \in D \implies \xt{f}:\tau_C \in C \wedge (\tau_C <: \tau_D \vee \tau_D = \anyt)}\\
+\overline{\Gamma,\xt{this}:C,\overline{\xt{f}:\tau},\overline{\xt{p}:\tau''} \vdash e : \tau'}\\
 }{\Gamma \vdash \texttt{class } C \texttt{ implements } \overline{D}\;\{\overline{\xt{f} : \tau}, \overline{\xt{m}(\overline{\xt{p}:\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 
@@ -69,5 +71,15 @@ F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ift
 \inferrule*[]{ e,v \castreduce e',v'}{F[e],v \castreduce F[e'],v'}
 
 \inferrule*[]{ e,v \expreduce e',v'}{F[e],v \expreduce F[e'],v'}
+
+\inferrule*[]{ e \stepsto e' }{ e,\mu \expreduce e',\mu}
+
+\inferrule*[]{\xt{class}\;C\{\overline{\xt{f}:\tau}, \overline{\xt{m}(\overline{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\overline{f=v},\overline{\xt{m}(\overline{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\overline{v}),\mu \expreduce a,\mu'}
+
+\inferrule*[]{ \mu[a\mapsto \{\ldots,\xt{m}(\overline{f})=e\}] }{ a.\xt{m}(\overline{v}),\mu \expreduce [a/\xt{this}][\overline{v/f}]e,\mu}
+
+\inferrule*[]{ \mu[a\mapsto\{\ldots,\xt{f}=v,\ldots\}] }{a.f,\mu \expreduce v,\mu}
+
+\inferrule*[]{ \mu' = \mu[a\mapsto v] }{a.f = v,\mu \expreduce v,\mu}
 \end{mathpar}
 \end{document}
