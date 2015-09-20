@@ -1,25 +1,24 @@
+@fields({'a':Dyn, 'b' : Dyn})
+class MyList:
+	def __init__(self, a:Dyn, b:Dyn):
+		self.a = a
+		self.b = b
 
-@fields({'a' : Dyn})
-class E:
-	a = 1
+@fields({'a':Int, 'b':'MyListForce'})
+class MyListForce:
+	def __init__(self, a:Int, b:MyListForce):
+		self.a = a
+		self.b = b
 
-@fields({'a' : Int})
-class Ep:
-	a = 1
+def cast(x:MyListForce) -> Int:
+	return x.a
 
-@fields({'a' : Dyn})
-class A:
-	a = 1
+init = MyList(5, None)
+x = init
+x = MyList(4, x)
+x = MyList(3, x)
+x = MyList(2, x)
+x = MyList(1, x)
+init.b = x
 
-@fields({'a' : Int, 'b' : Ap})
-class Ap:
-	a = 1
-
-def cast(a : Ap) -> Int:
-	return a.a
-
-a = A()
-a.b = A()
-a.b.b = A()
-a.b.b.b  = a
-print(cast(a))
+print(cast(x))

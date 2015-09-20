@@ -9,6 +9,8 @@
 \newcommand{\castreduce}{\longrightarrow_{cr}}
 \newcommand{\expreduce}{\longrightarrow_{e}}
 \newcommand{\stepsto}{\longrightarrow}
+\newcommand{\intv}[1]{\xt{int}[#1]}
+\newcommand{\strv}[1]{\xt{str}[#1]}
 \begin{document}
 
 Syntax:
@@ -18,7 +20,7 @@ e &::= c | \;e.l(\overline{e}) \;| \ifthenelse{e}{e}{e}\;|\;e + e\\
 &|\;x\;|\texttt{ new }C(\overline{e}) | e\cast{\tau}\\
 v &::= i | s | \{\overline{\texttt{f}=v},\overline{\xt{m}(\overline{\xt{p}})=e}\} | v\cast{I!}\\
 I &::= \strt | \intt | \{\overline{\xt{f}:\tau},\overline{\xt{m}(\overline{\tau}):\tau}\}\\
-c &::= \iota | I? | I! | \{\overline{\xt{m}(\overline{\xt{f}\cast{c}}):c}\}\\
+c &::= \iota | I? | I! | \{\overline{\xt{f}\cast{c}}, \overline{\xt{m}(\overline{\xt{f}\cast{c}}):c}\}\\
 cv &::= v | v\cast{c} | \{\overline{\xt{f}\cast{c}=v},\overline{\xt{m}(\overline{l\cast{c}})\cast{c}=e}\}\\
 \mu &::= \emptyset | \mu( a \mapsto v )\\
 F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
@@ -61,11 +63,13 @@ F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ift
 \overline{\Gamma \vdash D} \\  
 \overline{\xt{m}'(\overline{\xt{p}:\tau_D''}):\tau_D' \in D \implies \xt{m}'(\overline{\xt{p}:\tau_C''}):\tau_C' \in C \wedge (\tau_C' <: \tau_D' \vee \tau_D' = \anyt) \wedge (\overline{\tau_D'' <: \tau_C'' \vee \tau_C'' = \anyt})}\\
 \overline{\xt{f}:\tau_D \in D \implies \xt{f}:\tau_C \in C \wedge (\tau_C <: \tau_D \vee \tau_D = \anyt)}\\
-\overline{\Gamma,\xt{this}:C,\overline{\xt{f}:\tau},\overline{\xt{p}:\tau''} \vdash e : \tau'}\\
+\overline{\Gamma,\xt{this}:C,\overline{\xt{f}:\tau},\overline{\xt{p}:\tau''} \vdash e : \tau'}\\s
 }{\Gamma \vdash \texttt{class } C \texttt{ implements } \overline{D}\;\{\overline{\xt{f} : \tau}, \overline{\xt{m}(\overline{\xt{p}:\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 
 \section{Dynamic semantics:}
+
+Expression reduction:
 
 \begin{mathpar}
 \inferrule*[]{ e,v \castreduce e',v'}{F[e],v \castreduce F[e'],v'}
@@ -81,5 +85,20 @@ F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ift
 \inferrule*[]{ \mu[a\mapsto\{\ldots,\xt{f}=v,\ldots\}] }{a.f,\mu \expreduce v,\mu}
 
 \inferrule*[]{ \mu' = \mu[a\mapsto v] }{a.f = v,\mu \expreduce v,\mu}
+
+\inferrule*[]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\mu \expreduce e_1,\mu }
+
+\inferrule*[]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\mu \expreduce e_1,\mu }
+
+\inferrule*[]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\mu \expreduce \intv{n_3},\mu}
+\end{mathpar}
+
+Cast reduction:
+\begin{mathpar}
+\inferrule*[]{e\castreduce e'}{ e,\mu \rightarrow_{cr} e',v }
+
+\inferrule*[]{ }{ v\cast{\iota} \castreduce v}
+
+\inferrule*[]{ }{ v\cast{\iota} \castreduce v}
 \end{mathpar}
 \end{document}
