@@ -15,15 +15,15 @@
 
 Syntax:
 \begin{align*}
-\tau &::= \anyt | \strt | \intt | \{l(\overline{\tau}):\tau\}\\
+\tau &::= \anyt | \strt | \intt | \{\overline{\xt{f}:\tau},\overline{\xt{m}(\overline{\tau}):\tau}\}\\
 e &::= c | \;e.l(\overline{e}) \;| \ifthenelse{e}{e}{e}\;|\;e + e\\
 &|\;x\;|\texttt{ new }C(\overline{e}) | e\cast{\tau}\\
 v &::= i | s | \{\overline{\texttt{f}=v},\overline{\xt{m}(\overline{\xt{p}})=e}\} | v\cast{I!}\\
-I &::= \strt | \intt | \{\overline{\xt{f}:\tau},\overline{\xt{m}(\overline{\tau}):\tau}\}\\
-c &::= \iota | I? | I! | \{\overline{\xt{f}\cast{c}}, \overline{\xt{m}(\overline{\xt{f}\cast{c}}):c}\}\\
-cv &::= v | v\cast{c} | \{\overline{\xt{f}\cast{c}=v},\overline{\xt{m}(\overline{l\cast{c}})\cast{c}=e}\}\\
+I &::= \strt | \intt | \{\overline{\xt{f}:I},\overline{\xt{m}(\overline{I}):I}\}\\
+c &::= \iota | I? | I! | \{\overline{\xt{f}\cast{c}}, \overline{\xt{m}(\overline{c}):c}\}\\
+cv &::= v | v\cast{c} | \{\overline{f=cv},\overline{\xt{m}(\overline{\xt{p}})=e}\}\\
 \mu &::= \emptyset | \mu( a \mapsto v )\\
-F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
+F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | v!l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
 &|\texttt{ new }C(\overline{v},\square,e,\overline{e})\\
 \end{align*}
 
@@ -80,7 +80,9 @@ Expression reduction:
 
 \inferrule*[]{\xt{class}\;C\{\overline{\xt{f}:\tau}, \overline{\xt{m}(\overline{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\overline{f=v},\overline{\xt{m}(\overline{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\overline{v}),\mu \expreduce a,\mu'}
 
-\inferrule*[]{ \mu[a\mapsto \{\ldots,\xt{m}(\overline{f})=e\}] }{ a.\xt{m}(\overline{v}),\mu \expreduce [a/\xt{this}][\overline{v/f}]e,\mu}
+\inferrule*[]{ \mu[a\mapsto \{\ldots,\xt{m}(\overline{\xt{p}\cast{c}})=e\}] }{ a.\xt{m}(\overline{v}),\mu \expreduce a!\xt{m}(\overline{v\cast{c}})}
+
+\inferrule*[]{a\mapsto \{\ldots,\xt{m}(\overline{\xt{p}\cast{c}})=e\}]}{a!\xt{m}(\overline{v}) \expreduce [a/\xt{this}][\overline{v/\xt{p}}]e,\mu}
 
 \inferrule*[]{ \mu[a\mapsto\{\ldots,\xt{f}=v,\ldots\}] }{a.f,\mu \expreduce v,\mu}
 
@@ -99,6 +101,11 @@ Cast reduction:
 
 \inferrule*[]{ }{ v\cast{\iota} \castreduce v}
 
-\inferrule*[]{ }{ v\cast{\iota} \castreduce v}
+\inferrule*[]{ }{ v\cast{I_1!}\cast{I_2?} \castreduce v\cast{I_1 \Rightarrow I_2}}\\
+
+\inferrule*[]{
+\mu(a) = \{\overline{\xt{f} = v}, \overline{\xt{m}(\overline{\xt{p}\cast{c}}) = e}\} : \tau \\ 
+\tau = \{\overline{\xt{f}:\tau_i},\overline{\xt{m}(\overline{\xt{p}:\tau_{ip}}) : \tau_{im}}\}\\ \tau \sqcap \tau' = \{\overline{\xt{f}:\tau_f}, \overline{\xt{m}(\overline{\xt{p}:\tau_p}):\tau_m}\}
+}{ a\cast{\tau},\mu \castreduce a,\mu(a\mapsto \{\overline{\xt{f} = v\cast{\tau_i \Rightarrow \tau_f}}, \overline{\xt{m}(\overline{\xt{p} \cast{c;\tau_{p} \Rightarrow \tau_{ip}}}) = e\cast{\tau_{im} \Rightarrow \tau_m}}\})}\\
 \end{mathpar}
 \end{document}
