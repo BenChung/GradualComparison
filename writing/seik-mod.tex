@@ -11,6 +11,7 @@
 \newcommand{\stepsto}{\longrightarrow}
 \newcommand{\intv}[1]{\xt{int}[#1]}
 \newcommand{\strv}[1]{\xt{str}[#1]}
+\newcommand{\cstctx}{\nu}
 \begin{document}
 
 Syntax:
@@ -24,7 +25,8 @@ c &::= \iota | I? | I! | \{\overline{\xt{f}\cast{c}}, \overline{\xt{m}(\overline
 cv &::= v | v\cast{c} | \{\overline{f=cv},\overline{\xt{m}(\overline{\xt{p}})=e}\}\\
 \mu &::= \emptyset | \mu( a \mapsto v )\\
 F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | v!l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
-&|\texttt{ new }C(\overline{v},\square,e,\overline{e})\\
+&|\texttt{ new }C(\overline{v},\square,\overline{e})\\
+CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}\\
 \end{align*}
 
 \begin{mathpar}
@@ -97,15 +99,48 @@ Expression reduction:
 
 Cast reduction:
 \begin{mathpar}
-\inferrule*[]{e\castreduce e'}{ e,\mu \rightarrow_{cr} e',v }
 
 \inferrule*[]{ }{ v\cast{\iota} \castreduce v}
 
-\inferrule*[]{ }{ v\cast{I_1!}\cast{I_2?} \castreduce v\cast{I_1 \Rightarrow I_2}}\\
+\inferrule*[]{ I_1 \sim I_2 }{ v\cast{I_1!}\cast{I_2?} \castreduce v\cast{I_1 \Rightarrow I_2}}
 
 \inferrule*[]{
-\mu(a) = \{\overline{\xt{f} = v}, \overline{\xt{m}(\overline{\xt{p}\cast{c}}) = e}\} : \tau \\ 
+v(a) = \{\overline{\xt{f} = v}, \overline{\xt{m}(\overline{\xt{p}\cast{c}}) = e}\} : \tau \\ 
 \tau = \{\overline{\xt{f}:\tau_i},\overline{\xt{m}(\overline{\xt{p}:\tau_{ip}}) : \tau_{im}}\}\\ \tau \sqcap \tau' = \{\overline{\xt{f}:\tau_f}, \overline{\xt{m}(\overline{\xt{p}:\tau_p}):\tau_m}\}
-}{ a\cast{\tau},\mu \castreduce a,\mu(a\mapsto \{\overline{\xt{f} = v\cast{\tau_i \Rightarrow \tau_f}}, \overline{\xt{m}(\overline{\xt{p} \cast{c;\tau_{p} \Rightarrow \tau_{ip}}}) = e\cast{\tau_{im} \Rightarrow \tau_m}}\})}\\
+}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx(a\mapsto \{\overline{\xt{f} = v\cast{\tau_i \Rightarrow \tau_f}}, \overline{
+\xt{m}(\overline{\xt{ip} : \tau_{p}}) = \texttt{this}.m'(\overline{\xt{ip}\cast{\tau_{p} \Rightarrow \tau_{ip}}}),
+\xt{m'}(\overline{\xt{p} : \tau_{ip}}) = e\cast{\tau_{im} \Rightarrow \tau_m}
+}\})}
+
+\inferrule*[]{
+\mu(a) = \{\overline{\xt{f} = v}, \overline{\xt{m}(\overline{\xt{p}\cast{c}}) = e}\} : \tau \\ \tau \sqcap \tau'
+ = \tau}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx}
+\end{mathpar}
+
+State reduction:
+\begin{mathpar}
+\inferrule*[]{ e,v\castreduce e',v' }{ CF[e],v \longrightarrow CF[e'],v'}
+
+\inferrule*[]{ e,v\expreduce e',v' }{ CF[e],v \longrightarrow CF[e'],v'}
+
+\inferrule*[]{ e,v\castreduce e',v' }{ e,v \longrightarrow e',v'}
+
+\inferrule*[]{ e,v\expreduce e',v' }{ e,v \longrightarrow e',v'}
+
+ \inferrule*[]{
+ 	\cstctx(a) = cv : \tau\\
+ 	cv,\cstctx \castreduce cv',\cstctx'\\
+ 	\cstctx'(a)_{rtti} = \tau\\
+ }{
+ 	e,\cstctx \longrightarrow e,\cstctx'(a \mapsto cv' : \tau)
+ }
+
+ \inferrule*[]{
+ 	\cstctx(a) = cv : \tau\\
+ 	cv,\cstctx \castreduce cv',\cstctx'\\
+ 	\cstctx'(a)_{rtti} \neq \tau\\
+ }{
+ 	e,\cstctx \longrightarrow e,\cstctx'
+ }
 \end{mathpar}
 \end{document}

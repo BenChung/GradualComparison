@@ -33,14 +33,22 @@
 
 (define evaluator (make-module-evaluator "#lang typed/racket"))
 (evaluator '(begin (: x Integer) (define x "foo") x))
-(match (term (lookup 2 "foo"))
-  [`(lookup ,x ,name) `(,x ,name)]
-  [`(call ,e1 ,name ,e2 ...) `(,name)]
-  [`(if ,e1 ,e2 ,e3) `(,e1 ,e2 ,e3)]
-  [`(oplus ,e1 ,e2) `(,e1 ,e2)]
-  [`(new ,name (,arg ...)) `(,name ,arg ...)]
-  [`(assign ,e1 ,name ,e2) `(,e1 ,name ,e2)]
-  [`cons `(,cons)]
+
+(define (translate-program prog)
+  (match prog
+    [`(class ,name ,inherits ... (,argname ,argtype) ... (,defname (,paramname ,paramtype) ... ,type ,body ...)) name])
+  )
+
+(define (translate-expression expr)
+  (match (term (lookup 2 "foo"))
+    [`(lookup ,x ,name) `(,x ,name)]
+    [`(call ,e1 ,name ,e2 ...) `(,name)]
+    [`(if ,e1 ,e2 ,e3) `(,e1 ,e2 ,e3)]
+    [`(oplus ,e1 ,e2) `(,e1 ,e2)]
+    [`(new ,name (,arg ...)) `(,name ,arg ...)]
+    [`(assign ,e1 ,name ,e2) `(,e1 ,name ,e2)]
+    [`cons `(,cons)]
+    )
   )
 
 (display-to-file (quasiquote ((foo 1) 3 1 2)) "test.rkt" #:exists `replace)
