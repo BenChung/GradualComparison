@@ -105,16 +105,24 @@ Cast reduction:
 \inferrule*[]{ I_1 \sim I_2 }{ v\cast{I_1!}\cast{I_2?} \castreduce v\cast{I_1 \Rightarrow I_2}}
 
 \inferrule*[]{
-v(a) = \{\overline{\xt{f} = v}, \overline{\xt{m}(\overline{\xt{p}\cast{c}}) = e}\} : \tau \\ 
-\tau = \{\overline{\xt{f}:\tau_i},\overline{\xt{m}(\overline{\xt{p}:\tau_{ip}}) : \tau_{im}}\}\\ \tau \sqcap \tau' = \{\overline{\xt{f}:\tau_f}, \overline{\xt{m}(\overline{\xt{p}:\tau_p}):\tau_m}\}
-}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx(a\mapsto \{\overline{\xt{f} = v\cast{\tau_i \Rightarrow \tau_f}}, \overline{
-\xt{m}(\overline{\xt{ip} : \tau_{p}}) = \texttt{this}.m'(\overline{\xt{ip}\cast{\tau_{p} \Rightarrow \tau_{ip}}}),
-\xt{m'}(\overline{\xt{p} : \tau_{ip}}) = e\cast{\tau_{im} \Rightarrow \tau_m}
-}\})}
+\cstctx(a) = v : \tau \\ 
+\tau \sqcap \tau' = \tau''\\
+\tau'' \neq \tau\\
+}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx(a\mapsto v \cast{\tau \Rightarrow \tau''})}
 
 \inferrule*[]{
-\mu(a) = \{\overline{\xt{f} = v}, \overline{\xt{m}(\overline{\xt{p}\cast{c}}) = e}\} : \tau \\ \tau \sqcap \tau'
+\mu(a) = v : \tau \\ \tau \sqcap \tau'
  = \tau}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx}
+
+\inferrule*[]{
+	v = \{\overline{\xt{f} = v'}, \overline{\xt{m}(\overline{\xt{p}}) = e}\}\\
+	c = \{\overline{\xt{f}:c_f},\overline{\xt{m}(\overline{c_p}):c_m}\}
+}{
+	v\cast{c},\cstctx \castreduce \{\overline{\xt{f} = v\cast{c_f}}, \overline{
+\xt{m}(\overline{\xt{ip}}) = \texttt{this}.\xt{m'}(\overline{\xt{ip}\cast{c_p}}),
+\xt{m'}(\overline{\xt{p}}) = e\cast{c_m}
+}\}
+}
 \end{mathpar}
 
 State reduction:
@@ -122,6 +130,8 @@ State reduction:
 \inferrule*[]{ e,v\castreduce e',v' }{ CF[e],v \longrightarrow CF[e'],v'}
 
 \inferrule*[]{ e,v\expreduce e',v' }{ CF[e],v \longrightarrow CF[e'],v'}
+
+\inferrule*[]{ e,v\expreduce e',v' }{ F[e],v \longrightarrow F[e'],v'}
 
 \inferrule*[]{ e,v\castreduce e',v' }{ e,v \longrightarrow e',v'}
 
@@ -142,5 +152,29 @@ State reduction:
  }{
  	e,\cstctx \longrightarrow e,\cstctx'
  }
+\end{mathpar}
+
+Cast to coersion compilation
+\begin{mathpar}
+\inferrule*[]{}{\intt \Rightarrow \intt = \iota}
+
+\inferrule*[]{}{\strt \Rightarrow \strt = \iota}
+
+\inferrule*[]{}{I \Rightarrow \anyt = I!}
+
+\inferrule*[]{}{\anyt \Rightarrow I = I?}
+
+\inferrule*[]{}{\{\overline{\xt{f}:\tau_1}, \overline{\xt{m}(\overline{\xt{p}:\tau_1''}):\tau_1'} \} \Rightarrow \{\overline{\xt{f}:\tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_2''}):\tau_2'} \} = \{\overline{\xt{f}:\tau_1\Rightarrow\tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_2'' \Rightarrow \tau_1''}) : \tau_1' \Rightarrow \tau_2'}\}}
+\end{mathpar}
+
+Meet
+\begin{mathpar}
+\inferrule*[]{}{\tau \sqcap \tau = \tau}
+
+\inferrule*[]{}{\tau \sqcap \anyt = \tau}
+
+\inferrule*[]{}{\anyt \sqcap \tau = \tau}
+
+\inferrule*[]{}{\{\overline{\xt{f}:\tau_1}, \overline{\xt{m}(\overline{\xt{p}:\tau_1''}):\tau_1'} \}\sqcap \{\overline{\xt{f}:\tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_2''}):\tau_2'} \} = \{\overline{\xt{f}:\tau_2 \sqcap \tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_1'' \sqcap \tau_2''}):\tau_1' \sqcap \tau_2'} \}}
 \end{mathpar}
 \end{document}
