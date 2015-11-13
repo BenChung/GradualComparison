@@ -12,6 +12,7 @@
 \newcommand{\intv}[1]{\xt{int}[#1]}
 \newcommand{\strv}[1]{\xt{str}[#1]}
 \newcommand{\cstctx}{\nu}
+\newcommand{\tlate}{\rightsquigarrow}
 \begin{document}
 
 Syntax:
@@ -68,6 +69,15 @@ CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:
 \overline{\Gamma,\xt{this}:C,\overline{\xt{f}:\tau},\overline{\xt{p}:\tau''} \vdash e : \tau'}\\s
 }{\Gamma \vdash \texttt{class } C \texttt{ implements } \overline{D}\;\{\overline{\xt{f} : \tau}, \overline{\xt{m}(\overline{\xt{p}:\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
+
+\subsection{Cast Insertion}
+
+\begin{mathpar}
+\inferrule*[]{\Gamma \vdash e \tlate e' : \{\ldots, l(\overline{\tau}):\tau', \ldots\} \\ \overline{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \overline{\tau \sim \tau_a} \\ \overline{(\tau_a \Rightarrow{\tau}) = c}}{\Gamma \vdash e.l(\overline{e_a}) \tlate e.l(\overline{e_a'\cast{c}}) : \tau'}
+
+\inferrule*[]{ }{\Gamma \vdash e.l(\overline{e_a}) \tlate : }
+\end{mathpar}
+
 
 \section{Dynamic semantics:}
 
