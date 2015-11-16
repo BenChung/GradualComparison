@@ -75,7 +75,9 @@ CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:
 \begin{mathpar}
 \inferrule*[]{\Gamma \vdash e \tlate e' : \{\ldots, l(\overline{\tau}):\tau', \ldots\} \\ \overline{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \overline{\tau \sim \tau_a} \\ \overline{(\tau_a \Rightarrow{\tau}) = c}}{\Gamma \vdash e.l(\overline{e_a}) \tlate e.l(\overline{e_a'\cast{c}}) : \tau'}
 
-\inferrule*[]{ }{\Gamma \vdash e.l(\overline{e_a}) \tlate : }
+\inferrule*[]{ \Gamma \vdash e \tlate e' : \anyt \\  \overline{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \anyt \Rightarrow \{l(\overline{\tau_a}):\anyt\} = c}{\Gamma \vdash e.l(\overline{e_a}) \tlate e'\cast{c}.l(\overline{e_a'}) : \anyt }
+
+\inferrule*[]{\Gamma \vdash e_1 \tlate e_1' : \tau_1 \\ \tau_1 \sim \intt \\ \Gamma \vdash e_2\tlate e_2':\tau_2 \\ \Gamma \vdash e_3 \tlate e_3' : \tau_2}{\Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} \tlate :}
 \end{mathpar}
 
 
