@@ -36,8 +36,7 @@
 Syntax:
 \begin{align*}
 \tau &::= \anyt \B  \strt \B  \intt \B  \{\bar{\xt{f}:\tau},\bar{\xt{m}(\bar{\tau}):\tau}\}\\
-e &::= k \B  e.\m(\bar{e}) \B e.\xt{f} \B e.\xt{f} = e \B  \ifthenelse{e}{e}{e}\B e + e 
-\B e!\m(\bar{v})\\
+e &::= k \B  e.\m(\bar{e}) \B e.\xt{f} \B e.\xt{f} = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\tau}\\
 v &::= k \B  \{\bar{\texttt{f}=v},\bar{\xt{m}(\bar{\xt{p}})=e}\} \B  v\cast{I!}\\
 I &::= \strt \B  \intt \B  \{\bar{\xt{f}:I},\bar{\xt{m}(\bar{I}):I}\}\\
@@ -53,8 +52,7 @@ F &::=    \square.\m(\bar e)
    \B     \square + e 
    \B      v + \square\\
 &\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\mathit{CF} &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=cv,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}
-   \B     v!\m(\bar{v},\square,\bar{cv}) \\
+\mathit{CF} &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=cv,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}\\
 \end{align*}
 
 \begin{mathpar}
@@ -121,32 +119,30 @@ Expression reduction:
 \begin{mathpar}
 \inferrule*[right=EFrame]{ e,v \expreduce e',v'}{F[e],v \expreduce F[e'],v'}
 
-\inferrule*[]{\xt{class}\;C\{\bar{\xt{f}:\tau}, \bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\bar{f=v},\bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\bar{v}),\mu \expreduce a,\mu'}
+\inferrule*[right=ENew]{\xt{class}\;C\{\bar{\xt{f}:\tau}, \bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\bar{f=v},\bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\bar{v}),\mu \expreduce a,\mu'}
 
-\inferrule*[]{ \mu[a\mapsto \{\ldots,\xt{m}(\bar{\xt{p}\cast{c}})=e\}] }{ a.\xt{m}(\bar{v}),\mu \expreduce a!\xt{m}(\bar{v\cast{c}})}
+\inferrule*[right=EInv]{a\mapsto \{\ldots,\xt{m}(\bar{\xt{p}})=e\}]}{a.\xt{m}(\bar{v}),\mu \expreduce [a/\xt{this}][\bar{v/\xt{p}}]e,\mu}
 
-\inferrule*[]{a\mapsto \{\ldots,\xt{m}(\bar{\xt{p}\cast{c}})=e\}]}{a!\xt{m}(\bar{v}) \expreduce [a/\xt{this}][\bar{v/\xt{p}}]e,\mu}
+\inferrule*[right=EField]{ \mu[a\mapsto\{\ldots,\xt{f}=v,\ldots\}] }{a.f,\mu \expreduce v,\mu}
 
-\inferrule*[]{ \mu[a\mapsto\{\ldots,\xt{f}=v,\ldots\}] }{a.f,\mu \expreduce v,\mu}
+\inferrule*[right=EAssign]{ \mu' = \mu[a\mapsto \{\ldots,\xt{f}=v,\ldots\}] }{a.f = v,\mu \expreduce v,\mu'}
 
-\inferrule*[]{ \mu' = \mu[a\mapsto \{\ldots,\xt{f}=v,\ldots\}] }{a.f = v,\mu \expreduce v,\mu'}
+\inferrule*[right=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\mu \expreduce e_1,\mu }
 
-\inferrule*[]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\mu \expreduce e_1,\mu }
+\inferrule*[right=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\mu \expreduce e_2,\mu }
 
-\inferrule*[]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\mu \expreduce e_1,\mu }
-
-\inferrule*[]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\mu \expreduce \intv{n_3},\mu}
+\inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\mu \expreduce \intv{n_3},\mu}
 \end{mathpar}
 
 Cast reduction:
 \begin{mathpar}
-\inferrule*[]{ e,v \castreduce e',v'}{F[e],v \castreduce F[e'],v'}
+\inferrule*[]{ e,\cstctx \castreduce e',\cstctx'}{F[e],\cstctx \castreduce F[e'],\cstctx'}
 
-\inferrule*[]{ e,v\castreduce e',v' }{ CF[e],v \longrightarrow CF[e'],v'}
+\inferrule*[]{ e,\cstctx\castreduce e',\cstctx' }{ CF[e],\cstctx \castreduce CF[e'],\cstctx'}
 
-\inferrule*[]{ }{ v\cast{\iota} \castreduce v}
+\inferrule*[]{ }{ v\cast{\iota},\cstctx \castreduce v,\cstctx}
 
-\inferrule*[]{ I_1 \sim I_2 }{ v\cast{I_1!}\cast{I_2?} \castreduce v\cast{I_1 \Rightarrow I_2}}
+\inferrule*[]{ I_1 \sim I_2 }{ v\cast{I_1!}\cast{I_2?},\cstctx \castreduce v\cast{I_1 \Rightarrow I_2},\cstctx}
 
 \inferrule*[]{
 \cstctx(a) = v : \tau \\ 
@@ -165,15 +161,15 @@ Cast reduction:
 	v\cast{c},\cstctx \castreduce \{\bar{\xt{f} = v\cast{c_f}}, \bar{
 \xt{m}(\bar{\xt{ip}}) = \texttt{this}.\xt{m'}(\bar{\xt{ip}\cast{c_p}}),
 \xt{m'}(\bar{\xt{p}}) = e\cast{c_m}
-}\}
+}\},\cstctx
 }
 \end{mathpar}
 
 State reduction:
 \begin{mathpar}
-\inferrule*[]{ e,v\castreduce e',v' }{ e,v \longrightarrow e',v'}
+\inferrule*[]{ e,\cstctx\castreduce e',\cstctx' }{ e,\cstctx \longrightarrow e',\cstctx'}
 
-\inferrule*[]{ e,v\expreduce e',v' }{ e,v \longrightarrow e',v'}
+\inferrule*[]{ e,\mu\expreduce e',\cstctx }{ e,\mu \longrightarrow e',\cstctx}
 
  \inferrule*[]{
  	\cstctx(a) = cv : \tau\\

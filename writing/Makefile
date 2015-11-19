@@ -2,7 +2,7 @@ all:
 	pdflatex main.tex
 
 siek:
-	pdflatex seik-mod && open seik-mod.pdf
+	pdflatex siek-mod && open siek-mod.pdf
 
 no:
 	bibtex main
