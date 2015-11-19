@@ -1,8 +1,13 @@
 \documentclass{report}
 \usepackage{mathpartir,amsmath,amssymb,xspace}
 \newcommand{\intt}{\texttt{int}}
+
+\newcommand{\any}{\anyt}
+\newcommand{\coerce}{\Rightarrow}
+
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\anyt}{\texttt{any}}
+\newcommand{\this}{\texttt{this}}
 \newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
 \newcommand{\cast}[1]{\langle #1\rangle}
 \newcommand{\xt}[1]{\texttt{#1}}
@@ -11,10 +16,12 @@
 \newcommand{\stepsto}{\longrightarrow}
 \newcommand{\intv}[1]{\xt{int}[#1]}
 \newcommand{\strv}[1]{\xt{str}[#1]}
-\newcommand{\cstctx}{\nu}
 \newcommand{\tlate}{\rightsquigarrow}
 \begin{document}
 
+\newcommand{\s}{\sigma}
+\renewcommand{\sc}{\mu}
+\renewcommand{\t}{\tau}
 \newcommand{\B}{\ensuremath{~|~}\xspace}
 \newcommand{\new}{\ensuremath{\texttt{new}}\xspace}
 \newcommand{\NEW}[2]{\ensuremath{  \new ~ #1 ( #2 )}\xspace}
@@ -23,44 +30,50 @@
 \newcommand{\m}{\ensuremath{\xt{m}}\xspace}
 \newcommand{\f}{\ensuremath{\xt{f}}\xspace}
 \newcommand{\C}{\ensuremath{\xt{C}}\xspace}
+\newcommand{\D}{\ensuremath{\xt{D}}\xspace}
 
 %% TOODO if0 => if   ??
-
 
 %% Cast syntax??
 
 %% TODO \bar p ==> \bar x
 
+\newcommand{\cl}{\mathit{cl}\xspace}
+\newcommand{\implements}{\xt{implements}\xspace}
 
+\newcommand{\CLASS}[3]{ \ensuremath{  \xt{class}~#1~\implements~#2\;\{ #3 \}}\xspace} 
+\newcommand{\MDEF}[4] { #1( #2 ):#3 = #4}
+\newcommand{\MVAL}[3] { #1( #2 ) = #3}
 
 Syntax:
 \begin{align*}
-\tau &::= \anyt \B  \strt \B  \intt \B  \{\bar{\xt{f}:\tau},\bar{\xt{m}(\bar{\tau}):\tau}\}\\
-e &::= k \B  e.\m(\bar{e}) \B e.\xt{f} \B e.\xt{f} = e \B  \ifthenelse{e}{e}{e}\B e + e \\
-&\B x\B \NEW \C {\bar{e}} \B  e\cast{\tau}\\
-v &::= k \B  \{\bar{\texttt{f}=v},\bar{\xt{m}(\bar{\xt{p}})=e}\} \B  v\cast{I!}\\
-I &::= \strt \B  \intt \B  \{\bar{\xt{f}:I},\bar{\xt{m}(\bar{I}):I}\}\\
-c &::= \iota \B  I? \B  I! \B  \{\bar{\xt{f}\cast{c}}, \bar{\xt{m}(\bar{c}):c}\}\\
-cv &::= v \B  v\cast{c} \B  \{\bar{\f=cv},\bar{\m(\bar{\xt{p}})=e}\}\\
-\mu &::= \emptyset \B  \mu( a \mapsto v )\\
+\t &::= \anyt \B  \strt \B  \intt \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
+e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
+&\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
+\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
+v &::= k \B  \{\bar{\texttt{f}=v},\bar{\m (\bar x)=e}\} \B  v\cast{I \coerce \any}\\
+I &::= \strt \B  \intt \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
+cv &::= v \B  v\cast{\t \coerce \t} \B  \{\bar{\f=cv},\bar{ \MVAL\m{\bar x}e }\}\\
+\s &::= \emptyset \B  \s( a \mapsto v )\\
+\sc &::= \emptyset \B  \sc( a \mapsto cv )\\
 F &::=    \square.\m(\bar e) 
-   \B 	  \square.\xt{f}
-   \B 	  \square.\xt{f} = e
-   \B     v.\xt{f} = \square
-   \B     v.\m(\bar v,\square,e, \bar e) 
+   \B 	  \square.\f 
+   \B 	  \square.\f  = e
+   \B     v.\f  = \square
+   \B     v.\m(\bar v,\square, \bar e) 
    \B     \ifthenelse{\square}{e}{e} 
    \B     \square + e 
    \B      v + \square\\
 &\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\mathit{CF} &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=cv,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}\\
+\mathit{CF} &::= \{\f=v\ldots,\f'=\square,\f''=cv,\ldots\}\\
 \end{align*}
 
 \begin{mathpar}
-\inferrule*[right=SubRefl]{ }{ \tau <: \tau }
+\inferrule*[right=SubRefl]{ }{ \t <: \t }
 
 \inferrule*[right=SubClass]{\texttt{class }\C\texttt{ extends }\xt{C}}{ \C <: \xt{D} }
 
-\inferrule*[right=SubAny]{ }{\tau <: \anyt}
+\inferrule*[right=SubAny]{ }{\t <: \anyt}
 \end{mathpar}
 
 \begin{mathpar}
@@ -70,145 +83,155 @@ F &::=    \square.\m(\bar e)
 
 \inferrule*[right=TInt]{ }{\Gamma \vdash int : \intt}
 
-\inferrule*[right=TSub]{\Gamma \vdash e : \tau' \\ \tau' <: \tau}{\Gamma \vdash e : \tau}
+\inferrule*[right=TSub]{\Gamma \vdash e : \t' \\ \t' <: \t}{\Gamma \vdash e : \t}
 
-\inferrule*[right=TApp]{\bar{\Gamma \vdash e_i : \tau_i \vee \Gamma \vdash e_i : \anyt} \\ \Gamma \vdash e : \{\ldots, l(\bar{\tau'_i}):\tau', \ldots\}}{\Gamma \vdash e.l(\bar{e_i}) : \tau'}
+\inferrule*[right=TApp]{\bar{\Gamma \vdash e_i : \t_i \vee \Gamma \vdash e_i : \anyt} \\ \Gamma \vdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gamma \vdash e.\m(\bar{e_i}) : \t'}
 
 \inferrule*[right=TIf]{ 
-\Gamma \vdash e_1 : \intt \vee \Gamma \vdash e_1 :\anyt \\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau \\ \Gamma \vdash e_3 : \tau} { \Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} : \tau}
+\Gamma \vdash e_1 : \intt \vee \Gamma \vdash e_1 :\anyt \\ \Gamma \vdash \t \\ \Gamma \vdash e_2 : \t \\ \Gamma \vdash e_3 : \t} { \Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} : \t}
 
 \inferrule*[right=TPlus]{ \Gamma \vdash e_1 : \intt \\ \Gamma \vdash e_2 : \intt} { \Gamma \vdash e_1 + e_2 : \intt}
 
-\inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
+\inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots \f:\t \ldots\}} { \Gamma \vdash e.\f : \t}
 
-\inferrule*[right=TNew]{\bar{\Gamma \vdash e : \tau \vee \Gamma \vdash e : \anyt} \\ \Gamma(C) = \{\ldots, \bar{\xt{f} : \tau}, \ldots\}}{\Gamma \vdash \NEW{\xt{C}}{\bar{e}} : C}
+\inferrule*[right=TNew]{\bar{\Gamma \vdash e : \t \vee \Gamma \vdash e : \anyt} \\ \Gamma(C) = \{\ldots, \bar{\f  : \t}, \ldots\}}{\Gamma \vdash \NEW{\xt{C}}{\bar{e}} : C}
 
-\inferrule*[right=TCast]{\Gamma \vdash e : \tau'}{\Gamma \vdash e\cast{\tau}}
+\inferrule*[right=TCast]{\Gamma \vdash e : \t'}{\Gamma \vdash e\cast{\t}}
 
 \inferrule*[right=TClass]{ 
 \bar{\Gamma \vdash D} \\  
-\bar{\xt{m}'(\bar{\xt{x}:\tau''}):\tau' \in D \implies \xt{m}'(\bar{\xt{x}:\tau''}):\tau' \in C }\\
-\bar{\xt{f}:\tau \in D \implies \xt{f}:\tau \in C}\\
-\bar{\Gamma,\xt{this}:C,\bar{\xt{x}:\tau''} \vdash e : \tau'}\\
-}{\Gamma \vdash \texttt{class } C \texttt{ implements } \bar{D}\;\{\bar{\xt{f} : \tau}, \bar{\xt{m}(\bar{\xt{x}:\tau''}):\tau' = \{ e \}}\}}
+\bar{\m '(\bar{\xt{x}:\t''}):\t' \in D \implies \m '(\bar{\xt{x}:\t''}):\t' \in C }\\
+\bar{\f :\t \in D \implies \f :\t \in C}\\
+\bar{\Gamma,\xt{this}:C,\bar{\xt{x}:\t''} \vdash e : \t'}\\
+}{\Gamma \vdash \texttt{class } C \texttt{ implements } \bar{D}\;\{\bar{\f  : \t}, \bar{\m (\bar{\xt{x}:\t''}):\t' = \{ e \}}\}}
 \end{mathpar}
 
 \subsection{Cast Insertion}
 
 \begin{mathpar}
-\inferrule*[]{\Gamma \vdash e \tlate e' : \tau' \\ \tau' \sim \tau}{\Gamma \vdash e\cast{\tau} \tlate e'\cast{\tau' \Rightarrow \tau} : \tau}
+\inferrule*[]{\Gamma \vdash e \tlate e' : \t' \\ \t' \sim \t}{\Gamma \vdash e\cast{\t} \tlate e'\cast{\t' \Rightarrow \t} : \t}
 
-\inferrule*[]{\Gamma \vdash e \tlate e' : \{\ldots, l(\bar{\tau}):\tau', \ldots\} \\ \bar{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \bar{\tau \sim \tau_a} \\ \bar{(\tau_a \Rightarrow{\tau}) = c}}{\Gamma \vdash e.l(\bar{e_a}) \tlate e.l(\bar{e_a'\cast{c}}) : \tau'}
+\inferrule*[]{\Gamma \vdash e \tlate e' : \{\ldots, \m(\bar{\t}):\t', \ldots\} \\ \bar{\Gamma \vdash e_a \tlate e_a' : \t_a} \\ \bar{\t \sim \t_a} \\ \bar{(\t_a \Rightarrow{\t}) = c}}{\Gamma \vdash e.\m(\bar{e_a}) \tlate e.\m(\bar{e_a'\cast{c}}) : \t'}
 
-\inferrule*[]{ \Gamma \vdash e \tlate e' : \anyt \\  \bar{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \anyt \Rightarrow \{l(\bar{\tau_a}):\anyt\} = c}{\Gamma \vdash e.l(\bar{e_a}) \tlate e'\cast{c}.l(\bar{e_a'}) : \anyt }
+\inferrule*[]{ \Gamma \vdash e \tlate e' : \anyt \\  \bar{\Gamma \vdash e_a \tlate e_a' : \t_a} \\ \anyt \Rightarrow \{\m(\bar{\t_a}):\anyt\} = c}{\Gamma \vdash e.\m(\bar{e_a}) \tlate e'\cast{c}.\m(\bar{e_a'}) : \anyt }
 
-\inferrule*[]{\Gamma \vdash e_1 \tlate e_1' : \tau_1 \\ \tau_1 \sim \intt \\ \Gamma \vdash e_2\tlate e_2':\tau_2 \\ \Gamma \vdash e_3 \tlate e_3' : \tau_2}{\Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'\cast{\tau_1 \Rightarrow \intt}}{e_2'}{e_3'} : \tau_2} 
+\inferrule*[]{\Gamma \vdash e_1 \tlate e_1' : \t_1 \\ \t_1 \sim \intt \\ \Gamma \vdash e_2\tlate e_2':\t_2 \\ \Gamma \vdash e_3 \tlate e_3' : \t_2}{\Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'\cast{\t_1 \Rightarrow \intt}}{e_2'}{e_3'} : \t_2} 
 
-\inferrule*[]{\Gamma \vdash e_1 \tlate e_1' : \tau_1 \\ \Gamma \vdash e_2 \tlate e_2' : \tau_2 \\ \tau_1 \sim \intt \\ \tau_2 \sim \intt }{\Gamma \vdash e_1 + e_2 \tlate e_1'\cast{\tau_1 \Rightarrow \intt} + e_2' \cast{\tau_2 \Rightarrow \intt}:\intt }
+\inferrule*[]{\Gamma \vdash e_1 \tlate e_1' : \t_1 \\ \Gamma \vdash e_2 \tlate e_2' : \t_2 \\ \t_1 \sim \intt \\ \t_2 \sim \intt }{\Gamma \vdash e_1 + e_2 \tlate e_1'\cast{\t_1 \Rightarrow \intt} + e_2' \cast{\t_2 \Rightarrow \intt}:\intt }
 
-\inferrule*[]{x:\tau \in \Gamma}{\Gamma \vdash x \tlate x : \tau}
+\inferrule*[]{x:\t \in \Gamma}{\Gamma \vdash x \tlate x : \t}
 
-\inferrule*[]{C=\{\bar{\xt{f}:\tau},\ldots\} \in \Gamma \\ \bar{\Gamma \vdash e \tlate e' : \tau'} \\ \bar{\tau \sim \tau'}}{\Gamma \vdash \xt{new } C(\bar{e}) \tlate \xt{new }C(\bar{e'\cast{\tau' \Rightarrow \tau}}) : C}
+\inferrule*[]{C=\{\bar{\f :\t},\ldots\} \in \Gamma \\ \bar{\Gamma \vdash e \tlate e' : \t'} \\ \bar{\t \sim \t'}}{\Gamma \vdash \xt{new } C(\bar{e}) \tlate \xt{new }C(\bar{e'\cast{\t' \Rightarrow \t}}) : C}
 \end{mathpar}
 
 
 \section{Dynamic semantics:}
+
+
+\newcommand{\class}{\ensuremath{\xt{class}}\xspace}
 
 Expression reduction:
 
 \begin{mathpar}
 \inferrule*[right=EFrame]{ e,v \expreduce e',v'}{F[e],v \expreduce F[e'],v'}
 
-\inferrule*[right=ENew]{\xt{class}\;C\{\bar{\xt{f}:\tau}, \bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\bar{f=v},\bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\bar{v}),\mu \expreduce a,\mu'}
+\inferrule*[right=ENew]{
+     \class \; \C  \{\bar{\f : \t}, \bar{ \m (\bar{x:\t}) : \t' = e}\} \\
+     \s'=\s(a\mapsto\{\bar{\f=v},\bar{ \m (\bar{x :\t}):\t' = e}\}) }{ \NEW \C {\bar v},\s \expreduce a,\s'}
 
-\inferrule*[right=EInv]{a\mapsto \{\ldots,\xt{m}(\bar{\xt{p}})=e\}]}{a.\xt{m}(\bar{v}),\mu \expreduce [a/\xt{this}][\bar{v/\xt{p}}]e,\mu}
+\inferrule*[right=EInv]{a\mapsto \{\ldots,\m(\bar x)=e\}, \ldots]}{a.\m(\bar v),\s \expreduce [a/\xt{this}][\bar{v/x}]e,\s}
 
-\inferrule*[right=EField]{ \mu[a\mapsto\{\ldots,\xt{f}=v,\ldots\}] }{a.f,\mu \expreduce v,\mu}
+\inferrule*[right=EField]{ \s[a\mapsto\{\ldots,\f =v,\ldots\}] }{a.\f,\s \expreduce v,\s}
 
-\inferrule*[right=EAssign]{ \mu' = \mu[a\mapsto \{\ldots,\xt{f}=v,\ldots\}] }{a.f = v,\mu \expreduce v,\mu'}
+\inferrule*[right=EAssign]{ \s' = \s[a\mapsto \{\ldots,\f =v,\ldots\}] }{a.\f = v,\s \expreduce v,\s'}
 
-\inferrule*[right=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\mu \expreduce e_1,\mu }
+\inferrule*[right=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\s \expreduce e_1,\s }
 
-\inferrule*[right=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\mu \expreduce e_2,\mu }
+\inferrule*[right=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\s \expreduce e_2,\s }
 
-\inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\mu \expreduce \intv{n_3},\mu}
+\inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \expreduce \intv{n_3},\s}
 \end{mathpar}
 
-Cast reduction:
+
+\subsection{Cast reduction}
+
 \begin{mathpar}
-\inferrule*[]{ e,\cstctx \castreduce e',\cstctx'}{F[e],\cstctx \castreduce F[e'],\cstctx'}
+\inferrule*[right=CRF]{ e,\sc \castreduce e',\sc'}{F[e],\sc \castreduce F[e'],\sc'}
 
-\inferrule*[]{ e,\cstctx\castreduce e',\cstctx' }{ CF[e],\cstctx \castreduce CF[e'],\cstctx'}
+\inferrule*[right=CRCF]{ e,\sc\castreduce e',\sc' }{ CF[e],\sc \castreduce CF[e'],\sc'}
 
-\inferrule*[]{ }{ v\cast{\iota},\cstctx \castreduce v,\cstctx}
+\inferrule*[right=CREmpty]{ } { v\cast{\t \coerce \t},\sc \castreduce v,\sc}
+ 
+\inferrule*[right=CRChain]{ I \sim I' }{ v\cast{I \coerce \any}\cast{\any \coerce I'},\sc \castreduce v\cast{I \coerce I'},\sc}
 
-\inferrule*[]{ I_1 \sim I_2 }{ v\cast{I_1!}\cast{I_2?},\cstctx \castreduce v\cast{I_1 \Rightarrow I_2},\cstctx}
+\inferrule*[right=CRRef1]{
+  \sc(a) = v : \t \\ 
+  \t \sqcap \t' = \t''\\
+  \t'' \neq \t\\
+}{ a\cast{\t'},\sc \castreduce a,\sc(a\mapsto v \cast{\t \coerce \t''})}
 
-\inferrule*[]{
-\cstctx(a) = v : \tau \\ 
-\tau \sqcap \tau' = \tau''\\
-\tau'' \neq \tau\\
-}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx(a\mapsto v \cast{\tau \Rightarrow \tau''})}
+\inferrule*[right=CRRef2]{
+\s(a) = v : \t \\ \t \sqcap \t'
+ = \t}{ a\cast{\t'},\sc \castreduce a,\sc}
 
-\inferrule*[]{
-\mu(a) = v : \tau \\ \tau \sqcap \tau'
- = \tau}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx}
 
-\inferrule*[]{
-	v = \{\bar{\xt{f} = v'}, \bar{\xt{m}(\bar{\xt{p}}) = e}\}\\
-	c = \{\bar{\xt{f}:c_f},\bar{\xt{m}(\bar{c_p}):c_m}\}
+
+\inferrule*[right=CRObj]{
+       \t = \{ \bar{ \f : \t_1}, \bar{\m (\bar{ x:\t_1''}):\t_1'} \}\\
+       \t' = \{ \bar{ \f : \t_2}, \bar{\m (\bar{ x:\t_2''}):\t_2'} \}\\
+	v = \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\\
+        v' =    \{\bar{\f= v'\cast{\t_1\coerce\t_2}}, 
+     \bar{\m (\bar x) = \this.\m'(\bar{ x \cast{\t_2''\coerce\t_1''}}),
+          \m'(\bar x) = e\cast{\t_1'\coerce \t_2'}}\}
 }{
-	v\cast{c},\cstctx \castreduce \{\bar{\xt{f} = v\cast{c_f}}, \bar{
-\xt{m}(\bar{\xt{ip}}) = \texttt{this}.\xt{m'}(\bar{\xt{ip}\cast{c_p}}),
-\xt{m'}(\bar{\xt{p}}) = e\cast{c_m}
-}\},\cstctx
+   v\cast{\t\coerce\t'},\sc \castreduce v',\sc
 }
 \end{mathpar}
 
 State reduction:
 \begin{mathpar}
-\inferrule*[]{ e,\cstctx\castreduce e',\cstctx' }{ e,\cstctx \longrightarrow e',\cstctx'}
+\inferrule*[]{ e,\sc\castreduce e',\sc' }{ e,\sc \longrightarrow e',\sc'}
 
-\inferrule*[]{ e,\mu\expreduce e',\cstctx }{ e,\mu \longrightarrow e',\cstctx}
+\inferrule*[]{ e,\s\expreduce e',\sc }{ e,\s \longrightarrow e',\sc}
 
  \inferrule*[]{
- 	\cstctx(a) = cv : \tau\\
- 	cv,\cstctx \castreduce cv',\cstctx'\\
- 	\cstctx'(a)_{rtti} = \tau\\
+ 	\sc(a) = cv : \t\\
+ 	cv,\sc \castreduce cv',\sc'\\
+ 	\sc'(a)_{rtti} = \t\\
  }{
- 	e,\cstctx \longrightarrow e,\cstctx'(a \mapsto cv' : \tau)
+ 	e,\sc \longrightarrow e,\sc'(a \mapsto cv' : \t)
  }
 
  \inferrule*[]{
- 	\cstctx(a) = cv : \tau\\
- 	cv,\cstctx \castreduce cv',\cstctx'\\
- 	\cstctx'(a)_{rtti} \neq \tau\\
+ 	\sc(a) = cv : \t\\
+ 	cv,\sc \castreduce cv',\sc'\\
+ 	\sc'(a)_{rtti} \neq \t\\
  }{
- 	e,\cstctx \longrightarrow e,\cstctx'
+ 	e,\sc \longrightarrow e,\sc'
  }
 \end{mathpar}
 
 Cast to coersion compilation
 \begin{mathpar}
-\inferrule*[]{}{\intt \Rightarrow \intt = \iota}
+\inferrule*[]{}{\intt \coerce \intt = \iota}
 
-\inferrule*[]{}{\strt \Rightarrow \strt = \iota}
+\inferrule*[]{}{\strt \coerce \strt = \iota}
 
-\inferrule*[]{}{I \Rightarrow \anyt = I!}
+\inferrule*[]{}{I \coerce \anyt = I!}
 
-\inferrule*[]{}{\anyt \Rightarrow I = I?}
+\inferrule*[]{}{\anyt \coerce I = I?}
 
-\inferrule*[]{}{\{\bar{\xt{f}:\tau_1}, \bar{\xt{m}(\bar{\xt{p}:\tau_1''}):\tau_1'} \} \Rightarrow \{\bar{\xt{f}:\tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_2''}):\tau_2'} \} = \{\bar{\xt{f}:\tau_1\Rightarrow\tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_2'' \Rightarrow \tau_1''}) : \tau_1' \Rightarrow \tau_2'}\}}
+\inferrule*[]{}{\{\bar{\f :\t_1}, \bar{\m (\bar{\xt{p}:\t_1''}):\t_1'} \} \coerce \{\bar{\f :\t_2}, \bar{\m (\bar{\xt{p}:\t_2''}):\t_2'} \} = \{\bar{\f :\t_1\coerce\t_2}, \bar{\m (\bar{\xt{p}:\t_2'' \coerce \t_1''}) : \t_1' \coerce \t_2'}\}}
 \end{mathpar}
 
 Meet
 \begin{mathpar}
-\inferrule*[]{}{\tau \sqcap \tau = \tau}
+\inferrule*[]{}{\t \sqcap \t = \t}
 
-\inferrule*[]{}{\tau \sqcap \anyt = \tau}
+\inferrule*[]{}{\t \sqcap \anyt = \t}
 
-\inferrule*[]{}{\anyt \sqcap \tau = \tau}
+\inferrule*[]{}{\anyt \sqcap \t = \t}
 
-\inferrule*[]{}{\{\bar{\xt{f}:\tau_1}, \bar{\xt{m}(\bar{\xt{p}:\tau_1''}):\tau_1'} \}\sqcap \{\bar{\xt{f}:\tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_2''}):\tau_2'} \} = \{\bar{\xt{f}:\tau_2 \sqcap \tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_1'' \sqcap \tau_2''}):\tau_1' \sqcap \tau_2'} \}}
+\inferrule*[]{}{\{\bar{\f :\t_1}, \bar{\m (\bar{\xt{p}:\t_1''}):\t_1'} \}\sqcap \{\bar{\f :\t_2}, \bar{\m (\bar{\xt{p}:\t_2''}):\t_2'} \} = \{\bar{\f :\t_2 \sqcap \t_2}, \bar{\m (\bar{\xt{p}:\t_1'' \sqcap \t_2''}):\t_1' \sqcap \t_2'} \}}
 \end{mathpar}
 \end{document}
