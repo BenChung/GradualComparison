@@ -3,7 +3,7 @@
 \newcommand{\intt}{\texttt{int}}
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\anyt}{\texttt{any}}
-\newcommand{\ifthenelse}[3]{\texttt{if0 }#1\texttt{ then }#2\texttt{ else }#3}
+\newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
 \newcommand{\cast}[1]{\langle #1\rangle}
 \newcommand{\xt}[1]{\texttt{#1}}
 \newcommand{\castreduce}{\longrightarrow_{cr}}
@@ -36,7 +36,8 @@
 Syntax:
 \begin{align*}
 \tau &::= \anyt \B  \strt \B  \intt \B  \{\bar{\xt{f}:\tau},\bar{\xt{m}(\bar{\tau}):\tau}\}\\
-e &::= k \B  e.\m(\bar{e}) \B  \ifthenelse{e}{e}{e}\B e + e\\
+e &::= k \B  e.\m(\bar{e}) \B e.\xt{f} \B e.\xt{f} = e \B  \ifthenelse{e}{e}{e}\B e + e 
+\B e!\m(\bar{v})\\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\tau}\\
 v &::= k \B  \{\bar{\texttt{f}=v},\bar{\xt{m}(\bar{\xt{p}})=e}\} \B  v\cast{I!}\\
 I &::= \strt \B  \intt \B  \{\bar{\xt{f}:I},\bar{\xt{m}(\bar{I}):I}\}\\
@@ -44,23 +45,24 @@ c &::= \iota \B  I? \B  I! \B  \{\bar{\xt{f}\cast{c}}, \bar{\xt{m}(\bar{c}):c}\}
 cv &::= v \B  v\cast{c} \B  \{\bar{\f=cv},\bar{\m(\bar{\xt{p}})=e}\}\\
 \mu &::= \emptyset \B  \mu( a \mapsto v )\\
 F &::=    \square.\m(\bar e) 
+   \B 	  \square.\xt{f}
+   \B 	  \square.\xt{f} = e
+   \B     v.\xt{f} = \square
    \B     v.\m(\bar v,\square,e, \bar e) 
-   \B     v!\m(\bar{v},\square,e,\bar{e}) 
    \B     \ifthenelse{\square}{e}{e} 
    \B     \square + e 
    \B      v + \square\\
 &\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\mathit{CF} &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}\\
+\mathit{CF} &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=cv,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}
+   \B     v!\m(\bar{v},\square,\bar{cv}) \\
 \end{align*}
 
 \begin{mathpar}
-\inferrule*[right=SubRefl]{ }{ C <: C }
+\inferrule*[right=SubRefl]{ }{ \tau <: \tau }
 
-\inferrule*[right=SubClass]{\texttt{class }C\texttt{ extends }D}{ C <: D }
+\inferrule*[right=SubClass]{\texttt{class }\C\texttt{ extends }\xt{C}}{ \C <: \xt{D} }
 
-\inferrule*[right=SubInt]{ }{ \intt <: \intt }
-
-\inferrule*[right=SubStr]{ }{ \strt <: \strt }
+\inferrule*[right=SubAny]{ }{\tau <: \anyt}
 \end{mathpar}
 
 \begin{mathpar}
@@ -81,16 +83,16 @@ F &::=    \square.\m(\bar e)
 
 \inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\bar{\Gamma \vdash e : \tau \vee \Gamma \vdash e : \anyt} \\ \Gamma(C) = \{\ldots, \bar{\xt{f} : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\bar{e}) : C}
+\inferrule*[right=TNew]{\bar{\Gamma \vdash e : \tau \vee \Gamma \vdash e : \anyt} \\ \Gamma(C) = \{\ldots, \bar{\xt{f} : \tau}, \ldots\}}{\Gamma \vdash \NEW{\xt{C}}{\bar{e}} : C}
 
-\inferrule*[right=TCast]{\Gamma \vdash e : \tau' \\ \tau <: \tau' \vee \tau' = \anyt}{\Gamma \vdash e\cast{\tau}}
+\inferrule*[right=TCast]{\Gamma \vdash e : \tau'}{\Gamma \vdash e\cast{\tau}}
 
 \inferrule*[right=TClass]{ 
 \bar{\Gamma \vdash D} \\  
-\bar{\xt{m}'(\bar{\xt{p}:\tau_D''}):\tau_D' \in D \implies \xt{m}'(\bar{\xt{p}:\tau_C''}):\tau_C' \in C \wedge (\tau_C' <: \tau_D' \vee \tau_D' = \anyt) \wedge (\bar{\tau_D'' <: \tau_C'' \vee \tau_C'' = \anyt})}\\
-\bar{\xt{f}:\tau_D \in D \implies \xt{f}:\tau_C \in C \wedge (\tau_C <: \tau_D \vee \tau_D = \anyt)}\\
-\bar{\Gamma,\xt{this}:C,\bar{\xt{f}:\tau},\bar{\xt{p}:\tau''} \vdash e : \tau'}\\s
-}{\Gamma \vdash \texttt{class } C \texttt{ implements } \bar{D}\;\{\bar{\xt{f} : \tau}, \bar{\xt{m}(\bar{\xt{p}:\tau''}):\tau' = \{ e \}}\}}
+\bar{\xt{m}'(\bar{\xt{x}:\tau''}):\tau' \in D \implies \xt{m}'(\bar{\xt{x}:\tau''}):\tau' \in C }\\
+\bar{\xt{f}:\tau \in D \implies \xt{f}:\tau \in C}\\
+\bar{\Gamma,\xt{this}:C,\bar{\xt{x}:\tau''} \vdash e : \tau'}\\
+}{\Gamma \vdash \texttt{class } C \texttt{ implements } \bar{D}\;\{\bar{\xt{f} : \tau}, \bar{\xt{m}(\bar{\xt{x}:\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 
 \subsection{Cast Insertion}
@@ -117,7 +119,7 @@ F &::=    \square.\m(\bar e)
 Expression reduction:
 
 \begin{mathpar}
-\inferrule*[]{ e,v \expreduce e',v'}{F[e],v \expreduce F[e'],v'}
+\inferrule*[right=EFrame]{ e,v \expreduce e',v'}{F[e],v \expreduce F[e'],v'}
 
 \inferrule*[]{\xt{class}\;C\{\bar{\xt{f}:\tau}, \bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\bar{f=v},\bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\bar{v}),\mu \expreduce a,\mu'}
 
