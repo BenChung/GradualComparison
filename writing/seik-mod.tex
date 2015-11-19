@@ -1,5 +1,5 @@
 \documentclass{report}
-\usepackage{mathpartir,amsmath,amssymb}
+\usepackage{mathpartir,amsmath,amssymb,xspace}
 \newcommand{\intt}{\texttt{int}}
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\anyt}{\texttt{any}}
@@ -15,19 +15,42 @@
 \newcommand{\tlate}{\rightsquigarrow}
 \begin{document}
 
+\newcommand{\B}{\ensuremath{~|~}\xspace}
+\newcommand{\new}{\ensuremath{\texttt{new}}\xspace}
+\newcommand{\NEW}[2]{\ensuremath{  \new ~ #1 ( #2 )}\xspace}
+\renewcommand{\bar}[1]{\ensuremath{\overline{ #1} }\xspace}
+
+\newcommand{\m}{\ensuremath{\xt{m}}\xspace}
+\newcommand{\f}{\ensuremath{\xt{f}}\xspace}
+\newcommand{\C}{\ensuremath{\xt{C}}\xspace}
+
+%% TOODO if0 => if   ??
+
+
+%% Cast syntax??
+
+%% TODO \bar p ==> \bar x
+
+
+
 Syntax:
 \begin{align*}
-\tau &::= \anyt | \strt | \intt | \{\overline{\xt{f}:\tau},\overline{\xt{m}(\overline{\tau}):\tau}\}\\
-e &::= c | \;e.l(\overline{e}) \;| \ifthenelse{e}{e}{e}\;|\;e + e\\
-&|\;x\;|\texttt{ new }C(\overline{e}) | e\cast{\tau}\\
-v &::= i | s | \{\overline{\texttt{f}=v},\overline{\xt{m}(\overline{\xt{p}})=e}\} | v\cast{I!}\\
-I &::= \strt | \intt | \{\overline{\xt{f}:I},\overline{\xt{m}(\overline{I}):I}\}\\
-c &::= \iota | I? | I! | \{\overline{\xt{f}\cast{c}}, \overline{\xt{m}(\overline{c}):c}\}\\
-cv &::= v | v\cast{c} | \{\overline{f=cv},\overline{\xt{m}(\overline{\xt{p}})=e}\}\\
-\mu &::= \emptyset | \mu( a \mapsto v )\\
-F &::= \square.l(\overline{e}) | v.l(\overline{v},\square,e,\overline{e}) | v!l(\overline{v},\square,e,\overline{e}) | \ifthenelse{\square}{e}{e} | \square + e | v + \square\\
-&|\texttt{ new }C(\overline{v},\square,\overline{e})\\
-CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}\\
+\tau &::= \anyt \B  \strt \B  \intt \B  \{\bar{\xt{f}:\tau},\bar{\xt{m}(\bar{\tau}):\tau}\}\\
+e &::= k \B  e.\m(\bar{e}) \B  \ifthenelse{e}{e}{e}\B e + e\\
+&\B x\B \NEW \C {\bar{e}} \B  e\cast{\tau}\\
+v &::= k \B  \{\bar{\texttt{f}=v},\bar{\xt{m}(\bar{\xt{p}})=e}\} \B  v\cast{I!}\\
+I &::= \strt \B  \intt \B  \{\bar{\xt{f}:I},\bar{\xt{m}(\bar{I}):I}\}\\
+c &::= \iota \B  I? \B  I! \B  \{\bar{\xt{f}\cast{c}}, \bar{\xt{m}(\bar{c}):c}\}\\
+cv &::= v \B  v\cast{c} \B  \{\bar{\f=cv},\bar{\m(\bar{\xt{p}})=e}\}\\
+\mu &::= \emptyset \B  \mu( a \mapsto v )\\
+F &::=    \square.\m(\bar e) 
+   \B     v.\m(\bar v,\square,e, \bar e) 
+   \B     v!\m(\bar{v},\square,e,\bar{e}) 
+   \B     \ifthenelse{\square}{e}{e} 
+   \B     \square + e 
+   \B      v + \square\\
+&\B \NEW  \C {\bar{v},\square,\bar{e}}\\
+\mathit{CF} &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:}\tau\texttt{):}\tau'=e,\ldots\}\\
 \end{align*}
 
 \begin{mathpar}
@@ -49,7 +72,7 @@ CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:
 
 \inferrule*[right=TSub]{\Gamma \vdash e : \tau' \\ \tau' <: \tau}{\Gamma \vdash e : \tau}
 
-\inferrule*[right=TApp]{\overline{\Gamma \vdash e_i : \tau_i \vee \Gamma \vdash e_i : \anyt} \\ \Gamma \vdash e : \{\ldots, l(\overline{\tau'_i}):\tau', \ldots\}}{\Gamma \vdash e.l(\overline{e_i}) : \tau'}
+\inferrule*[right=TApp]{\bar{\Gamma \vdash e_i : \tau_i \vee \Gamma \vdash e_i : \anyt} \\ \Gamma \vdash e : \{\ldots, l(\bar{\tau'_i}):\tau', \ldots\}}{\Gamma \vdash e.l(\bar{e_i}) : \tau'}
 
 \inferrule*[right=TIf]{ 
 \Gamma \vdash e_1 : \intt \vee \Gamma \vdash e_1 :\anyt \\ \Gamma \vdash \tau \\ \Gamma \vdash e_2 : \tau \\ \Gamma \vdash e_3 : \tau} { \Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} : \tau}
@@ -58,16 +81,16 @@ CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:
 
 \inferrule*[right=TField]{ \Gamma \vdash e : \{\ldots l:\tau \ldots\}} { \Gamma \vdash e.l : \tau}
 
-\inferrule*[right=TNew]{\overline{\Gamma \vdash e : \tau \vee \Gamma \vdash e : \anyt} \\ \Gamma(C) = \{\ldots, \overline{\xt{f} : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\overline{e}) : C}
+\inferrule*[right=TNew]{\bar{\Gamma \vdash e : \tau \vee \Gamma \vdash e : \anyt} \\ \Gamma(C) = \{\ldots, \bar{\xt{f} : \tau'}, \ldots\}}{\Gamma \vdash \texttt{new }C(\bar{e}) : C}
 
 \inferrule*[right=TCast]{\Gamma \vdash e : \tau' \\ \tau <: \tau' \vee \tau' = \anyt}{\Gamma \vdash e\cast{\tau}}
 
 \inferrule*[right=TClass]{ 
-\overline{\Gamma \vdash D} \\  
-\overline{\xt{m}'(\overline{\xt{p}:\tau_D''}):\tau_D' \in D \implies \xt{m}'(\overline{\xt{p}:\tau_C''}):\tau_C' \in C \wedge (\tau_C' <: \tau_D' \vee \tau_D' = \anyt) \wedge (\overline{\tau_D'' <: \tau_C'' \vee \tau_C'' = \anyt})}\\
-\overline{\xt{f}:\tau_D \in D \implies \xt{f}:\tau_C \in C \wedge (\tau_C <: \tau_D \vee \tau_D = \anyt)}\\
-\overline{\Gamma,\xt{this}:C,\overline{\xt{f}:\tau},\overline{\xt{p}:\tau''} \vdash e : \tau'}\\s
-}{\Gamma \vdash \texttt{class } C \texttt{ implements } \overline{D}\;\{\overline{\xt{f} : \tau}, \overline{\xt{m}(\overline{\xt{p}:\tau''}):\tau' = \{ e \}}\}}
+\bar{\Gamma \vdash D} \\  
+\bar{\xt{m}'(\bar{\xt{p}:\tau_D''}):\tau_D' \in D \implies \xt{m}'(\bar{\xt{p}:\tau_C''}):\tau_C' \in C \wedge (\tau_C' <: \tau_D' \vee \tau_D' = \anyt) \wedge (\bar{\tau_D'' <: \tau_C'' \vee \tau_C'' = \anyt})}\\
+\bar{\xt{f}:\tau_D \in D \implies \xt{f}:\tau_C \in C \wedge (\tau_C <: \tau_D \vee \tau_D = \anyt)}\\
+\bar{\Gamma,\xt{this}:C,\bar{\xt{f}:\tau},\bar{\xt{p}:\tau''} \vdash e : \tau'}\\s
+}{\Gamma \vdash \texttt{class } C \texttt{ implements } \bar{D}\;\{\bar{\xt{f} : \tau}, \bar{\xt{m}(\bar{\xt{p}:\tau''}):\tau' = \{ e \}}\}}
 \end{mathpar}
 
 \subsection{Cast Insertion}
@@ -75,9 +98,9 @@ CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:
 \begin{mathpar}
 \inferrule*[]{\Gamma \vdash e \tlate e' : \tau' \\ \tau' \sim \tau}{\Gamma \vdash e\cast{\tau} \tlate e'\cast{\tau' \Rightarrow \tau} : \tau}
 
-\inferrule*[]{\Gamma \vdash e \tlate e' : \{\ldots, l(\overline{\tau}):\tau', \ldots\} \\ \overline{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \overline{\tau \sim \tau_a} \\ \overline{(\tau_a \Rightarrow{\tau}) = c}}{\Gamma \vdash e.l(\overline{e_a}) \tlate e.l(\overline{e_a'\cast{c}}) : \tau'}
+\inferrule*[]{\Gamma \vdash e \tlate e' : \{\ldots, l(\bar{\tau}):\tau', \ldots\} \\ \bar{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \bar{\tau \sim \tau_a} \\ \bar{(\tau_a \Rightarrow{\tau}) = c}}{\Gamma \vdash e.l(\bar{e_a}) \tlate e.l(\bar{e_a'\cast{c}}) : \tau'}
 
-\inferrule*[]{ \Gamma \vdash e \tlate e' : \anyt \\  \overline{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \anyt \Rightarrow \{l(\overline{\tau_a}):\anyt\} = c}{\Gamma \vdash e.l(\overline{e_a}) \tlate e'\cast{c}.l(\overline{e_a'}) : \anyt }
+\inferrule*[]{ \Gamma \vdash e \tlate e' : \anyt \\  \bar{\Gamma \vdash e_a \tlate e_a' : \tau_a} \\ \anyt \Rightarrow \{l(\bar{\tau_a}):\anyt\} = c}{\Gamma \vdash e.l(\bar{e_a}) \tlate e'\cast{c}.l(\bar{e_a'}) : \anyt }
 
 \inferrule*[]{\Gamma \vdash e_1 \tlate e_1' : \tau_1 \\ \tau_1 \sim \intt \\ \Gamma \vdash e_2\tlate e_2':\tau_2 \\ \Gamma \vdash e_3 \tlate e_3' : \tau_2}{\Gamma \vdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'\cast{\tau_1 \Rightarrow \intt}}{e_2'}{e_3'} : \tau_2} 
 
@@ -85,7 +108,7 @@ CF &::= \{\texttt{x}=v\ldots,\texttt{y}=\square,\texttt{z}=e,\ldots,\texttt{f(a:
 
 \inferrule*[]{x:\tau \in \Gamma}{\Gamma \vdash x \tlate x : \tau}
 
-\inferrule*[]{C=\{\overline{\xt{f}:\tau},\ldots\} \in \Gamma \\ \overline{\Gamma \vdash e \tlate e' : \tau'} \\ \overline{\tau \sim \tau'}}{\Gamma \vdash \xt{new } C(\overline{e}) \tlate \xt{new }C(\overline{e'\cast{\tau' \Rightarrow \tau}}) : C}
+\inferrule*[]{C=\{\bar{\xt{f}:\tau},\ldots\} \in \Gamma \\ \bar{\Gamma \vdash e \tlate e' : \tau'} \\ \bar{\tau \sim \tau'}}{\Gamma \vdash \xt{new } C(\bar{e}) \tlate \xt{new }C(\bar{e'\cast{\tau' \Rightarrow \tau}}) : C}
 \end{mathpar}
 
 
@@ -96,11 +119,11 @@ Expression reduction:
 \begin{mathpar}
 \inferrule*[]{ e,v \expreduce e',v'}{F[e],v \expreduce F[e'],v'}
 
-\inferrule*[]{\xt{class}\;C\{\overline{\xt{f}:\tau}, \overline{\xt{m}(\overline{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\overline{f=v},\overline{\xt{m}(\overline{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\overline{v}),\mu \expreduce a,\mu'}
+\inferrule*[]{\xt{class}\;C\{\bar{\xt{f}:\tau}, \bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}\\\mu'=\mu(a\mapsto\{\bar{f=v},\bar{\xt{m}(\bar{\xt{p}:\tau}):\tau' = e}\}) }{ \xt{new }C(\bar{v}),\mu \expreduce a,\mu'}
 
-\inferrule*[]{ \mu[a\mapsto \{\ldots,\xt{m}(\overline{\xt{p}\cast{c}})=e\}] }{ a.\xt{m}(\overline{v}),\mu \expreduce a!\xt{m}(\overline{v\cast{c}})}
+\inferrule*[]{ \mu[a\mapsto \{\ldots,\xt{m}(\bar{\xt{p}\cast{c}})=e\}] }{ a.\xt{m}(\bar{v}),\mu \expreduce a!\xt{m}(\bar{v\cast{c}})}
 
-\inferrule*[]{a\mapsto \{\ldots,\xt{m}(\overline{\xt{p}\cast{c}})=e\}]}{a!\xt{m}(\overline{v}) \expreduce [a/\xt{this}][\overline{v/\xt{p}}]e,\mu}
+\inferrule*[]{a\mapsto \{\ldots,\xt{m}(\bar{\xt{p}\cast{c}})=e\}]}{a!\xt{m}(\bar{v}) \expreduce [a/\xt{this}][\bar{v/\xt{p}}]e,\mu}
 
 \inferrule*[]{ \mu[a\mapsto\{\ldots,\xt{f}=v,\ldots\}] }{a.f,\mu \expreduce v,\mu}
 
@@ -134,12 +157,12 @@ Cast reduction:
  = \tau}{ a\cast{\tau'},\cstctx \castreduce a,\cstctx}
 
 \inferrule*[]{
-	v = \{\overline{\xt{f} = v'}, \overline{\xt{m}(\overline{\xt{p}}) = e}\}\\
-	c = \{\overline{\xt{f}:c_f},\overline{\xt{m}(\overline{c_p}):c_m}\}
+	v = \{\bar{\xt{f} = v'}, \bar{\xt{m}(\bar{\xt{p}}) = e}\}\\
+	c = \{\bar{\xt{f}:c_f},\bar{\xt{m}(\bar{c_p}):c_m}\}
 }{
-	v\cast{c},\cstctx \castreduce \{\overline{\xt{f} = v\cast{c_f}}, \overline{
-\xt{m}(\overline{\xt{ip}}) = \texttt{this}.\xt{m'}(\overline{\xt{ip}\cast{c_p}}),
-\xt{m'}(\overline{\xt{p}}) = e\cast{c_m}
+	v\cast{c},\cstctx \castreduce \{\bar{\xt{f} = v\cast{c_f}}, \bar{
+\xt{m}(\bar{\xt{ip}}) = \texttt{this}.\xt{m'}(\bar{\xt{ip}\cast{c_p}}),
+\xt{m'}(\bar{\xt{p}}) = e\cast{c_m}
 }\}
 }
 \end{mathpar}
@@ -177,7 +200,7 @@ Cast to coersion compilation
 
 \inferrule*[]{}{\anyt \Rightarrow I = I?}
 
-\inferrule*[]{}{\{\overline{\xt{f}:\tau_1}, \overline{\xt{m}(\overline{\xt{p}:\tau_1''}):\tau_1'} \} \Rightarrow \{\overline{\xt{f}:\tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_2''}):\tau_2'} \} = \{\overline{\xt{f}:\tau_1\Rightarrow\tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_2'' \Rightarrow \tau_1''}) : \tau_1' \Rightarrow \tau_2'}\}}
+\inferrule*[]{}{\{\bar{\xt{f}:\tau_1}, \bar{\xt{m}(\bar{\xt{p}:\tau_1''}):\tau_1'} \} \Rightarrow \{\bar{\xt{f}:\tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_2''}):\tau_2'} \} = \{\bar{\xt{f}:\tau_1\Rightarrow\tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_2'' \Rightarrow \tau_1''}) : \tau_1' \Rightarrow \tau_2'}\}}
 \end{mathpar}
 
 Meet
@@ -188,6 +211,6 @@ Meet
 
 \inferrule*[]{}{\anyt \sqcap \tau = \tau}
 
-\inferrule*[]{}{\{\overline{\xt{f}:\tau_1}, \overline{\xt{m}(\overline{\xt{p}:\tau_1''}):\tau_1'} \}\sqcap \{\overline{\xt{f}:\tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_2''}):\tau_2'} \} = \{\overline{\xt{f}:\tau_2 \sqcap \tau_2}, \overline{\xt{m}(\overline{\xt{p}:\tau_1'' \sqcap \tau_2''}):\tau_1' \sqcap \tau_2'} \}}
+\inferrule*[]{}{\{\bar{\xt{f}:\tau_1}, \bar{\xt{m}(\bar{\xt{p}:\tau_1''}):\tau_1'} \}\sqcap \{\bar{\xt{f}:\tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_2''}):\tau_2'} \} = \{\bar{\xt{f}:\tau_2 \sqcap \tau_2}, \bar{\xt{m}(\bar{\xt{p}:\tau_1'' \sqcap \tau_2''}):\tau_1' \sqcap \tau_2'} \}}
 \end{mathpar}
 \end{document}

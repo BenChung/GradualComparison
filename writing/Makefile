@@ -1,6 +1,9 @@
 all:
 	pdflatex main.tex
 
+siek:
+	pdflatex seik-mod && open seik-mod.pdf
+
 no:
 	bibtex main
 	pdflatex main.tex
