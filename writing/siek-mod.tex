@@ -44,11 +44,11 @@ Syntax:
 e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
-v &::= k \B  \{\bar{\f=v},\bar{\m (\bar x)=e}\} \B  v\cast{I \coerce \any}\\
+v &::= k \B a \B  v\cast{I \coerce \any}\\
 I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
-cv &::= v \B  v\cast{\t \coerce \t} \B  \{\bar{\f=cv},\bar{ \MVAL\m{\bar x}e }\}\\
-\s &::= \emptyset \B  \s( a \is v )\\
-\sc &::= \emptyset \B  \sc( a \is cv )\\
+cv &::= v \B  v\cast{\t \coerce \t}\\
+\s &::= \emptyset \B  \s( a \is \{\bar{\f=v},\bar{\m (\bar x)=e}\} )\\
+\sc &::= \emptyset \B  \sc( a \is  \{\bar{\f=cv},\bar{ \MVAL\m{\bar x}e }\} )\\
 F &::=    \square.\m(\bar e) 
    \B 	  \square.\f 
    \B 	  \square.\f  = e
@@ -212,8 +212,6 @@ Expression reduction:
 \begin{mathpar}
 \inferrule*[right=CRF]{ e,\sc \creduce e',\sc'}{F[e],\sc \creduce F[e'],\sc'}
 
-\inferrule*[right=CRCF]{ e,\sc\creduce e',\sc' }{ CF[e],\sc \creduce CF[e'],\sc'}
-
 \inferrule*[right=CREmpty]{ } { v\cast{\t \coerce \t},\sc \creduce v,\sc}
  
 \inferrule*[right=CRChain]{ I \sim I' }{ v\cast{I \coerce \any}\cast{\any \coerce I'},\sc \creduce v\cast{I \coerce I'},\sc}
@@ -228,19 +226,22 @@ Expression reduction:
 \s(a) = v : \t \\ \t \sqcap \t'
  = \t}{ a\cast{\t'},\sc \creduce a,\sc}
 
+\end{mathpar}
 
+\subsection{Heap reduction}
+\newcommand{\heapreduce}{\rightharpoonup}
+\begin{mathpar}
+\inferrule*[right=HRCF]{ e,\sc\creduce e',\sc' }{ CF[e],\sc \heapreduce CF[e'],\sc'}
 
-\inferrule*[right=CRObj]{
+\inferrule*[right=HRObj]{
        \t = \{ \bar{ \f : \t_1}, \bar{\m (\bar{ x:\t_1''}):\t_1'} \}\\
        \t' = \{ \bar{ \f : \t_2}, \bar{\m (\bar{ x:\t_2''}):\t_2'} \}\\
-	v = \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\\
         v' =    \{\bar{\f= v'\cast{\t_1\coerce\t_2}}, 
      \bar{\m (\bar x) = \this.\m'(\bar{ x \cast{\t_2''\coerce\t_1''}}), \m'(\bar x) = e\cast{\t_1'\coerce \t_2'}}\}
 }{
-   v\cast{\t\coerce\t'},\sc \creduce v',\sc
+   \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\cast{\t\coerce\t'},\sc \heapreduce v',\sc
 }
 \end{mathpar}
-
 State reduction:
 \begin{mathpar}
 \inferrule*[]{ e,\sc\creduce e',\sc' }{ e,\sc \longrightarrow e',\sc'}
@@ -249,7 +250,7 @@ State reduction:
 
  \inferrule*[]{
  	\sc(a) = cv : \t\\
- 	cv,\sc \creduce cv',\sc'\\
+ 	cv,\sc \heapreduce cv',\sc'\\
  	\sc'(a)_{rtti} = \t\\
  }{
  	e,\sc \longrightarrow e,\sc'(a \is cv' : \t)
@@ -257,7 +258,7 @@ State reduction:
 
  \inferrule*[]{
  	\sc(a) = cv : \t\\
- 	cv,\sc \creduce cv',\sc'\\
+ 	cv,\sc \heapreduce cv',\sc'\\
  	\sc'(a)_{rtti} \neq \t\\
  }{
  	e,\sc \longrightarrow e,\sc'
