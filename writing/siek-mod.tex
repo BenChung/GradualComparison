@@ -44,11 +44,13 @@ Syntax:
 e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
-v &::= k \B a \B  v\cast{I \coerce \any}\\
 I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
+v &::= k \B a \B  v\cast{I \coerce \any}\\
 cv &::= v \B  v\cast{\t \coerce \t}\\
-\s &::= \emptyset \B  \s( a \is \{\bar{\f=v},\bar{\m (\bar x)=e}\} )\\
-\sc &::= \emptyset \B  \sc( a \is  \{\bar{\f=cv},\bar{ \MVAL\m{\bar x}e }\} )\\
+\mathit{o} &::= \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\\
+\mathit{co} &::= o \B o\cast{c}\\
+\s &::= \emptyset \B  \s( a \is o )\\
+\sc &::= \emptyset \B  \sc( a \is  co )\\
 F &::=    \square.\m(\bar e) 
    \B 	  \square.\f 
    \B 	  \square.\f  = e
@@ -236,10 +238,10 @@ Expression reduction:
 \inferrule*[right=HRObj]{
        \t = \{ \bar{ \f : \t_1}, \bar{\m (\bar{ x:\t_1''}):\t_1'} \}\\
        \t' = \{ \bar{ \f : \t_2}, \bar{\m (\bar{ x:\t_2''}):\t_2'} \}\\
-        v' =    \{\bar{\f= v'\cast{\t_1\coerce\t_2}}, 
+        o' =    \{\bar{\f= v'\cast{\t_1\coerce\t_2}}, 
      \bar{\m (\bar x) = \this.\m'(\bar{ x \cast{\t_2''\coerce\t_1''}}), \m'(\bar x) = e\cast{\t_1'\coerce \t_2'}}\}
 }{
-   \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\cast{\t\coerce\t'},\sc \heapreduce v',\sc
+   \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\cast{\t\coerce\t'},\sc \heapreduce o',\sc
 }
 \end{mathpar}
 State reduction:
@@ -249,16 +251,16 @@ State reduction:
 \inferrule*[]{ e,\s\ereduce e',\sc }{ e,\s \longrightarrow e',\sc}
 
  \inferrule*[]{
- 	\sc(a) = cv : \t\\
- 	cv,\sc \heapreduce cv',\sc'\\
+ 	\sc(a) = co : \t\\
+ 	co,\sc \heapreduce co',\sc'\\
  	\sc'(a)_{rtti} = \t\\
  }{
- 	e,\sc \longrightarrow e,\sc'(a \is cv' : \t)
+ 	e,\sc \longrightarrow e,\sc'(a \is co' : \t)
  }
 
  \inferrule*[]{
- 	\sc(a) = cv : \t\\
- 	cv,\sc \heapreduce cv',\sc'\\
+ 	\sc(a) = co : \t\\
+ 	co,\sc \heapreduce co',\sc'\\
  	\sc'(a)_{rtti} \neq \t\\
  }{
  	e,\sc \longrightarrow e,\sc'
