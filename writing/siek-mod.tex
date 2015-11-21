@@ -47,8 +47,8 @@ e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + 
 I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
 v &::= k \B a \B  v\cast{I \coerce \any}\\
 cv &::= v \B  v\cast{\t \coerce \t}\\
-\mathit{o} &::= \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\\
-\mathit{co} &::= o \B o\cast{c}\\
+\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e}\}\\
+\mathit{co} &::= o \B o\cast{\t \coerce \t}\\
 \s &::= \emptyset \B  \s( a \is o )\\
 \sc &::= \emptyset \B  \sc( a \is  co )\\
 F &::=    \square.\m(\bar e) 
@@ -126,59 +126,57 @@ F &::=    \square.\m(\bar e)
 \subsection{Cast Insertion}
 
 \begin{mathpar}
-\inferrule*[]{
+\inferrule*[right=CICast]{
   \Gdash e \tlate e':\t' \\ 
   \t'\sim\t
 }{
-  \Gdash e\cast{\t}\tlate e'\cast{\t'\coerce\t}:\t
+  \Gdash e\cast{\t} \tlate e'\cast{\t}:\t
 }
 
-\inferrule*[]{
+\inferrule*[right=CICall1]{
   \Gdash e \tlate e':\{\ldots \MTYPE\m{\bar \t}{\t''} \ldots\} \\ 
   \bar{\Gdash e' \tlate e'' : \t'} \\ 
   \bar{\t \sim \t'} \\ 
-  \bar{(\t' \coerce{\t}) = c}
 }{
-  \Gdash e.\m(\bar{e'}) \tlate e.\m(\bar{e''\cast{c}}):\t''
+  \Gdash e.\m(\bar{e'}) \tlate e.\m(\bar{e''\cast{\t'}}):\t''
 }
 
-\inferrule*[]{ 
+\inferrule*[right=CICallAny]{ 
   \Gdash e \tlate e'':\any \\  
   \bar{\Gdash e' \tlate e''':\t'} \\ 
-  \any \coerce \{\m(\bar{\t'}):\any\} = c
 }{
-  \Gdash e.\m(\bar{e'}) \tlate e''\cast{c}.\m(\bar{e'''}) : \any
+  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}) : \any
 }
 
-\inferrule*[]{
+\inferrule*[right=CIIf]{
   \Gdash e_1 \tlate e_1' : \t_1 \\ 
   \t_1 \sim \int \\ 
   \Gdash e_2\tlate e_2':\t_2 \\ 
   \Gdash e_3 \tlate e_3' : \t_2
 }{
-  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'\cast{\t_1 \coerce \int}}{e_2'}{e_3'} : \t_2
+  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'\cast{\int}}{e_2'}{e_3'} : \t_2
 } 
 
-\inferrule*[]{
+\inferrule*[right=CIPlus]{
   \Gdash e_1 \tlate e_1':\t_1 \\ 
   \Gdash e_2 \tlate e_2' : \t_2 \\ 
   \t_1 \sim \int \\ 
   \t_2 \sim \int 
 }{
-  \Gdash e_1 + e_2 \tlate e_1'\cast{\t_1 \coerce \int} + e_2' \cast{\t_2 \coerce \int}:\int 
+  \Gdash e_1 + e_2 \tlate e_1'\cast{\int} + e_2' \cast{\int}:\int 
 }
 
-\inferrule*[]{
+\inferrule*[right=CIVar]{
   x:\t \in \G
 }{
   \Gdash x \tlate x : \t
 }
 
-\inferrule*[]
-      {C=\{\bar{\f :\t},\ldots\} \in \G \\ 
+\inferrule*[right=CINew]
+      {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
        \bar{\Gdash e \tlate e' : \t'} \\ 
         \bar{\t \sim \t'}}
-      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{e'\cast{\t' \coerce \t}}} : C}
+      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{e'\cast{\t}}} : \C}
 \end{mathpar}
 
 
