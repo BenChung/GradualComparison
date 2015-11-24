@@ -38,6 +38,7 @@
 \newcommand{\MVAL}[3] { #1( #2 ) = #3}
 \newcommand{\Gdash}{\G\vdash}
 
+
 Syntax:
 \begin{align*}
 \t &::= \any \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
@@ -45,12 +46,12 @@ e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + 
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
 I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
-v &::= k \B a \B  v\cast{I \coerce \any}\\
-cv &::= v \B  v\cast{\t \coerce \t}\\
-\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e}\}\\
-\mathit{co} &::= o \B o\cast{\t \coerce \t}\\
-\s &::= \emptyset \B  \s( a \is o )\\
-\sc &::= \emptyset \B  \sc( a \is  co )\\
+v &::= k \B a \B  v\cast{\any}\\
+cv &::= v \B  v\cast{\t}\\
+\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
+\mathit{co} &::= o \B o\cast{\t}\\
+\s &::= \emptyset \B  \s( a \is o : \t )\\
+\sc &::= \emptyset \B  \sc( a \is  co : \t )\\
 F &::=    \square.\m(\bar e) 
    \B 	  \square.\f 
    \B 	  \square.\f  = e
@@ -60,7 +61,7 @@ F &::=    \square.\m(\bar e)
    \B     \square + e 
    \B      v + \square\\
 &\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\mathit{CF} &::= \{\f=v\ldots,\f'=\square,\f''=cv,\ldots\}\\
+\mathit{CF} &::= \{\f=v\ldots,\f'=\square,\f''=cv,\ldots\B\t\}\\
 \end{align*}
 
 \begin{mathpar}
@@ -184,98 +185,74 @@ F &::=    \square.\m(\bar e)
 
 
 
-Expression reduction:
+Reduction:
 
 \begin{mathpar}
 \inferrule*[right=EFrame]{ e,v \ereduce e',v'}{F[e],v \ereduce F[e'],v'}
 
 \inferrule*[right=ENew]{
      \class \; \C  \{\bar{\f : \t}, \bar{ \m (\bar{x:\t}) : \t' = e}\} \\
-     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x :\t}):\t' = e}\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
+     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x :\t}):\t' = e \B \t}\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
 
-\inferrule*[right=EInv]{a\is \{\ldots,\m(\bar x)=e\}, \ldots]}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
+\inferrule*[right=EInv]{a\is \{\ldots,\m(\bar x)=e \B \t\}, \ldots]}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
 
-\inferrule*[right=EField]{ \s[a\is\{\ldots,\f =v,\ldots\}] }{a.\f,\s \ereduce v,\s}
+\inferrule*[right=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}
 
-\inferrule*[right=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\}] }{a.\f = v,\s \ereduce v,\s'}
+\inferrule*[right=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\t\}] }{a.\f = v,\s \ereduce v,\s'}
 
 \inferrule*[right=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\s \ereduce e_1,\s }
 
 \inferrule*[right=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\s \ereduce e_2,\s }
 
 \inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
+
+\inferrule*[right=ECast]{ e\cast{\tau},\s \creduce e',\s' }{ e\cast{\tau},\s \ereduce e',\s'}
 \end{mathpar}
 
 
 \subsection{Cast reduction}
 
+\newcommand{\heapreduce}{\rightharpoonup}
 \begin{mathpar}
 \inferrule*[right=CRF]{ e,\sc \creduce e',\sc'}{F[e],\sc \creduce F[e'],\sc'}
 
-\inferrule*[right=CREmpty]{ } { v\cast{\t \coerce \t},\sc \creduce v,\sc}
+\inferrule*[right=CREmpty]{\vdash v : \tau' \\ \tau' \sim \t} { v\cast{\t},\sc \creduce v,\sc}
  
-\inferrule*[right=CRChain]{ I \sim I' }{ v\cast{I \coerce \any}\cast{\any \coerce I'},\sc \creduce v\cast{I \coerce I'},\sc}
+\inferrule*[right=CRChain]{ v\cast{I},\sc \creduce v',\sc' }{ v\cast{\any}\cast{I},\sc \creduce v',\sc'}
 
 \inferrule*[right=CRRef1]{
   \sc(a) = v : \t \\ 
   \t \sqcap \t' = \t''\\
   \t'' \neq \t\\
-}{ a\cast{\t'},\sc \creduce a,\sc(a\is v \cast{\t \coerce \t''})}
+  v\cast{\t''},\sc \heapreduce v',\sc'\\
+}{ a\cast{\t'},\sc \creduce a,\sc'(a\is v')}
 
 \inferrule*[right=CRRef2]{
 \s(a) = v : \t \\ \t \sqcap \t'
  = \t}{ a\cast{\t'},\sc \creduce a,\sc}
 
+\inferrule*[right=CRHeap]{
+  \sc(a) = co : \t\\
+  co,\sc \heapreduce co',\sc'\\
+  \sc'(a)_{rtti} = \t\\
+ }{
+  e,\sc \creduce e,\sc'(a \is co' : \t)
+ }
 \end{mathpar}
 
 \subsection{Heap reduction}
-\newcommand{\heapreduce}{\rightharpoonup}
 \begin{mathpar}
 \inferrule*[right=HRCF]{ e,\sc\creduce e',\sc' }{ CF[e],\sc \heapreduce CF[e'],\sc'}
 
 \inferrule*[right=HRObj]{
        \t = \{ \bar{ \f : \t_1}, \bar{\m (\bar{ x:\t_1''}):\t_1'} \}\\
        \t' = \{ \bar{ \f : \t_2}, \bar{\m (\bar{ x:\t_2''}):\t_2'} \}\\
-        o' =    \{\bar{\f= v'\cast{\t_1\coerce\t_2}}, 
-     \bar{\m (\bar x) = \this.\m'(\bar{ x \cast{\t_2''\coerce\t_1''}}), \m'(\bar x) = e\cast{\t_1'\coerce \t_2'}}\}
+       \overline{v'\cast{\t_2},\sc \creduce v'',\sc'}\\
+        o' =    \{\bar{\f= v''}, 
+     \bar{\m (\bar x) = \this.\m'(\bar{ x \cast{\t_1''}}), \m'(\bar x) = e\cast{\t_2'}}\}
 }{
-   \{\bar{\f=v'}, \bar{\m(\bar x) = e}\}\cast{\t\coerce\t'},\sc \heapreduce o',\sc
+   \{\bar{\f=v'}, \bar{\m(\bar x) = e} \B \t\}\cast{\t'},\sc \heapreduce o',\sc
 }
-\end{mathpar}
-State reduction:
-\begin{mathpar}
-\inferrule*[]{ e,\sc\creduce e',\sc' }{ e,\sc \longrightarrow e',\sc'}
-
-\inferrule*[]{ e,\s\ereduce e',\sc }{ e,\s \longrightarrow e',\sc}
-
- \inferrule*[]{
- 	\sc(a) = co : \t\\
- 	co,\sc \heapreduce co',\sc'\\
- 	\sc'(a)_{rtti} = \t\\
- }{
- 	e,\sc \longrightarrow e,\sc'(a \is co' : \t)
- }
-
- \inferrule*[]{
- 	\sc(a) = co : \t\\
- 	co,\sc \heapreduce co',\sc'\\
- 	\sc'(a)_{rtti} \neq \t\\
- }{
- 	e,\sc \longrightarrow e,\sc'
- }
-\end{mathpar}
-
-Cast to coersion compilation
-\begin{mathpar}
-\inferrule*[]{}{\int \coerce \int = \iota}
-
-\inferrule*[]{}{\str \coerce \str = \iota}
-
-\inferrule*[]{}{I \coerce \any = I!}
-
-\inferrule*[]{}{\any \coerce I = I?}
-
-\inferrule*[]{}{\{\bar{\f :\t_1}, \bar{\m (\bar{\xt{p}:\t_1''}):\t_1'} \} \coerce \{\bar{\f :\t_2}, \bar{\m (\bar{\xt{p}:\t_2''}):\t_2'} \} = \{\bar{\f :\t_1\coerce\t_2}, \bar{\m (\bar{\xt{p}:\t_2'' \coerce \t_1''}) : \t_1' \coerce \t_2'}\}}
 \end{mathpar}
 
 Meet
