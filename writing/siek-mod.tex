@@ -1,5 +1,5 @@
 \documentclass{report}
-\usepackage{mathpartir,amsmath,amssymb,xspace}
+\usepackage{mathpartir,amsmath,amssymb,xspace,listings}
 \begin{document}
 \newcommand{\class}{\ensuremath{\xt{class}}\xspace}
 \newcommand{\G}{\Gamma}
@@ -39,6 +39,7 @@
 \newcommand{\Gdash}{\G\vdash}
 
 
+
 Syntax:
 \begin{align*}
 \t &::= \any \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
@@ -60,8 +61,8 @@ F &::=    \square.\m(\bar e)
    \B     \ifthenelse{\square}{e}{e} 
    \B     \square + e 
    \B      v + \square\\
+   \B     \square\cast{\tau}\\
 &\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\mathit{CF} &::= \{\f=v\ldots,\f'=\square,\f''=cv,\ldots\B\t\}\\
 \end{align*}
 
 \begin{mathpar}
@@ -192,9 +193,9 @@ Reduction:
 
 \inferrule*[right=ENew]{
      \class \; \C  \{\bar{\f : \t}, \bar{ \m (\bar{x:\t}) : \t' = e}\} \\
-     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x :\t}):\t' = e \B \t}\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
+     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x :\t}):\t' = e \B \C}\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
 
-\inferrule*[right=EInv]{a\is \{\ldots,\m(\bar x)=e \B \t\}, \ldots]}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
+\inferrule*[right=EInv]{a\is \{\ldots,\m(\bar x)=e, \ldots \B \t\}}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
 
 \inferrule*[right=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}
 
@@ -206,54 +207,28 @@ Reduction:
 
 \inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
 
-\inferrule*[right=ECast]{ e\cast{\tau},\s \creduce e',\s' }{ e\cast{\tau},\s \ereduce e',\s'}
+\inferrule*[right=ECast]{ \s' = \text{red}(\s, v, \t) }{ v\cast{\t},\s \ereduce v,\s'}
 \end{mathpar}
-
 
 \subsection{Cast reduction}
 
-\newcommand{\heapreduce}{\rightharpoonup}
-\begin{mathpar}
-\inferrule*[right=CRF]{ e,\sc \creduce e',\sc'}{F[e],\sc \creduce F[e'],\sc'}
-
-\inferrule*[right=CREmpty]{\vdash v : \tau' \\ \tau' \sim \t} { v\cast{\t},\sc \creduce v,\sc}
- 
-\inferrule*[right=CRChain]{ v\cast{I},\sc \creduce v',\sc' }{ v\cast{\any}\cast{I},\sc \creduce v',\sc'}
-
-\inferrule*[right=CRRef1]{
-  \sc(a) = v : \t \\ 
-  \t \sqcap \t' = \t''\\
-  \t'' \neq \t\\
-  v\cast{\t''},\sc \heapreduce v',\sc'\\
-}{ a\cast{\t'},\sc \creduce a,\sc'(a\is v')}
-
-\inferrule*[right=CRRef2]{
-\s(a) = v : \t \\ \t \sqcap \t'
- = \t}{ a\cast{\t'},\sc \creduce a,\sc}
-
-\inferrule*[right=CRHeap]{
-  \sc(a) = co : \t\\
-  co,\sc \heapreduce co',\sc'\\
-  \sc'(a)_{rtti} = \t\\
- }{
-  e,\sc \creduce e,\sc'(a \is co' : \t)
- }
-\end{mathpar}
-
-\subsection{Heap reduction}
-\begin{mathpar}
-\inferrule*[right=HRCF]{ e,\sc\creduce e',\sc' }{ CF[e],\sc \heapreduce CF[e'],\sc'}
-
-\inferrule*[right=HRObj]{
-       \t = \{ \bar{ \f : \t_1}, \bar{\m (\bar{ x:\t_1''}):\t_1'} \}\\
-       \t' = \{ \bar{ \f : \t_2}, \bar{\m (\bar{ x:\t_2''}):\t_2'} \}\\
-       \overline{v'\cast{\t_2},\sc \creduce v'',\sc'}\\
-        o' =    \{\bar{\f= v''}, 
-     \bar{\m (\bar x) = \this.\m'(\bar{ x \cast{\t_1''}}), \m'(\bar x) = e\cast{\t_2'}}\}
-}{
-   \{\bar{\f=v'}, \bar{\m(\bar x) = e} \B \t\}\cast{\t'},\sc \heapreduce o',\sc
-}
-\end{mathpar}
+\begin{lstlisting}[escapeinside={(*}{*)}]
+red((*$\sigma, a, \t$*))
+  if ((*$\tau$*)==(*rtti*)(a)) return (*$\sigma$*)
+  else
+    (*$\t'$*) = (*$\text{rtti}$*)(a)(*$\sqcap\;\t$*) 
+    (*$\text{rtti }$*)(a) = (*$\t'$*)
+    (*$\sigma'$*) = (*$\sigma$*)
+    for f=v in fields(a)
+      (*$f : \t_f \in$*)fields((*$\tau'$*))
+      (*$\sigma'$*) = red((*$\sigma'$*),v,(*$\t_f$*))
+    define (*$\{\overline{f:\t_f}, \overline{\xt{m}(\overline{\t_p}):\t_m}\}$*) = (*$\t'$*)
+    define (*$\{\overline{f=v}, \overline{\xt{m}(\overline{\xt{p}}) = e}\}$*) = (*$\s$*)(a)
+    return (*$\sigma'[a\is\{
+      \overline{f=\xt{v}}, 
+      \overline{\xt{m}(\overline{\xt{p}}) = \xt{this.m'}(\overline{\xt{p}\cast{\tau_p}})\cast{\tau_m}},
+      \overline{\xt{m'}(\overline{\xt{p}}) = e}\} \B \t']$*)
+\end{lstlisting}
 
 Meet
 \begin{mathpar}
