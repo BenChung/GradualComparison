@@ -207,30 +207,23 @@ Reduction:
 
 \inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
 
-\inferrule*[right=ECast]{ \s' = \text{red}(\s, v, \t) }{ v\cast{\t},\s \ereduce v,\s'}
+\inferrule*[right=ECast]{ \s' = \text{cast}(\s, v, \t) }{ v\cast{\t},\s \ereduce v,\s'}
 \end{mathpar}
 
 \subsection{Cast reduction}
 
 \begin{lstlisting}[escapeinside={(*}{*)}]
-red((*$\sigma, a, \t$*))
-  if ((*$\tau$*)==(*rtti*)(a)) return (*$\sigma$*)
-  else
-    (*$\t'$*) = (*$\text{rtti}$*)(a)(*$\sqcap\;\t$*) 
-    (*$\text{rtti }$*)(a) = (*$\t'$*)
-    (*$\sigma'$*) = (*$\sigma$*)
-    for f=v in fields(a)
-      (*$f : \t_f \in$*)fields((*$\tau'$*))
-      (*$\sigma'$*) = red((*$\sigma'$*),v,(*$\t_f$*))
-    define (*$\{\overline{f:\t_f}, \overline{\xt{m}(\overline{\t_p}):\t_m}\}$*) = (*$\t'$*)
-    define (*$\{\overline{f=v}, \overline{\xt{m}(\overline{\xt{p}}) = e}\}$*) = (*$\s$*)(a)
-    return (*$\sigma'[a\is\{
-      \overline{f=\xt{v}}, 
-      \overline{\xt{m}(\overline{\xt{p}}) = \xt{this.m'}(\overline{\xt{p}\cast{\tau_p}})\cast{\tau_m}},
-      \overline{\xt{m'}(\overline{\xt{p}}) = e}\} \B \t']$*)
+cast((*$\sigma, v, \t$*))
+  (*$\sigma$*) iff type((*$v$*),(*$\sigma$*)) = type((*$v$*),(*$\sigma$*)) (*$\sqcap$*) (*$\t$*)
+  (*$\sigma_{n+1}[a\is O]$*) iff (*$v = a$*)
+    (*$\sigma(a) = \left.\left<v_1,\ldots,v_N \right|_\t^C\right>$*)
+    (*$\t'' = \t \coerce \t \sqcap \t'$*)
+    (*$\sigma_2 = $*)cast (*$(\sigma, v_1,$*)ftype((*$\t''$, 1))*)
+    (*$\vdots$*)
+    (*$\sigma_{n+1} = $*)cast (*$(\sigma_n, v_n,$*)ftype((*$\t''$, n))*)
 \end{lstlisting}
 
-Meet
+\subsection{Meet}
 \begin{mathpar}
 \inferrule*[]{}{\t \sqcap \t = \t}
 
