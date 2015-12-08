@@ -48,11 +48,8 @@ e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
 I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
 v &::= k \B a \B  v\cast{\any}\\
-cv &::= v \B  v\cast{\t}\\
 \mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
-\mathit{co} &::= o \B o\cast{\t}\\
 \s &::= \emptyset \B  \s( a \is o : \t )\\
-\sc &::= \emptyset \B  \sc( a \is  co : \t )\\
 F &::=    \square.\m(\bar e) 
    \B     \square.\f
    \B     \square.\f = e
@@ -100,16 +97,16 @@ F &::=    \square.\m(\bar e)
 }{ \Gdash e+e':\int}
 
 \inferrule*[right=TField]{ 
-  \Gdash \xt{this}:\{\ldots\f:\t\ldots\}
+  \Gdash e:\{\ldots\f:\t\ldots\}
 }{ 
-  \Gdash \xt{this}.\f:\t
+  \Gdash e.\f:\t
 }
 
 \inferrule*[right=TAssign]{
   \Gdash e : \t\\ 
-  \Gdash \xt{this}:\{\ldots\f:\t\ldots\}
+  \Gdash e':\{\ldots\f:\t\ldots\}
 }{ 
-  \Gdash \xt{this}.\f = e:\t
+  \Gdash e'.\f = e:\t
 }
 
 \inferrule*[right=TNew]{
@@ -122,7 +119,7 @@ F &::=    \square.\m(\bar e)
 \inferrule*[right=TCast]{
   \Gdash e:\t'
 }{
-  \Gdash e\cast{\t}}
+  \Gdash \cast{\t}e}
 
 \inferrule*[right=TClass]{ 
   \bar{\Gdash D} \\  
@@ -140,7 +137,7 @@ F &::=    \square.\m(\bar e)
   \Gdash e \tlate e':\t' \\ 
   \t'\sim\t
 }{
-  \Gdash e\cast{\t} \tlate e'\cast{\t}:\t
+  \Gdash \cast{\t} e\tlate \cast{\t}e':\t
 }
 
 \inferrule*[right=CICall1]{
@@ -148,7 +145,7 @@ F &::=    \square.\m(\bar e)
   \bar{\Gdash e' \tlate e'' : \t'} \\ 
   \bar{\t \sim \t'} \\ 
 }{
-  \Gdash e.\m(\bar{e'}) \tlate e.\m(\bar{e''\cast{\t'}}):\t''
+  \Gdash e.\m(\bar{e'}) \tlate e.\m(\bar{\cast{\t'}e''}):\t''
 }
 
 \inferrule*[right=CICallAny]{ 
@@ -164,7 +161,7 @@ F &::=    \square.\m(\bar e)
   \Gdash e_2\tlate e_2':\t_2 \\ 
   \Gdash e_3 \tlate e_3' : \t_2
 }{
-  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'\cast{\int}}{e_2'}{e_3'} : \t_2
+  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{\cast{\int}e_1'}{e_2'}{e_3'} : \t_2
 } 
 
 \inferrule*[right=CIPlus]{
@@ -173,7 +170,7 @@ F &::=    \square.\m(\bar e)
   \t_1 \sim \int \\ 
   \t_2 \sim \int 
 }{
-  \Gdash e_1 + e_2 \tlate e_1'\cast{\int} + e_2' \cast{\int}:\int 
+  \Gdash e_1 + e_2 \tlate \cast{\int}e_1' + \cast{\int}e_2' :\int 
 }
 
 \inferrule*[right=CIVar]{
@@ -186,7 +183,7 @@ F &::=    \square.\m(\bar e)
       {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
        \bar{\Gdash e \tlate e' : \t'} \\ 
         \bar{\t \sim \t'}}
-      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{e'\cast{\t}}} : \C}
+      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{\cast{\t}e'}} : \C}
 \end{mathpar}
 
 
@@ -215,7 +212,7 @@ Reduction:
 
 \inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
 
-\inferrule*[right=ECast]{ \s' = \text{cast}(\s, v, \t) }{ v\cast{\t},\s \ereduce v,\s'}
+\inferrule*[right=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}v,\s \ereduce v,\s'}
 \end{mathpar}
 
 \subsection{Cast reduction}

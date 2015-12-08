@@ -6,7 +6,8 @@
 \renewcommand{\int}{\texttt{int}}
 \newcommand{\coerce}{\Rightarrow} %% arrow used in coercions
 \newcommand{\str}{\texttt{str}}
-\newcommand{\any}{\texttt{any}}   %% any type
+\newcommand{\any}{\texttt{dyn}}   %% dyn type
+\newcommand{\dyn}{\texttt{dyn}}   %% dyn type
 \newcommand{\this}{\texttt{this}}
 \newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
 \newcommand{\cast}[1]{\langle #1\rangle} 
@@ -42,17 +43,13 @@
 
 Syntax:
 \begin{align*}
-\t &::= \any \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
+\t &::= \dyn \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
 e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
 I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
-v &::= k \B a \B  v\cast{\any}\\
-cv &::= v \B  v\cast{\t}\\
-\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
-\mathit{co} &::= o \B o\cast{\t}\\
+v &::= k \B a\\
 \s &::= \emptyset \B  \s( a \is o : \t )\\
-\sc &::= \emptyset \B  \sc( a \is  co : \t )\\
 F &::=    \square.\m(\bar e) 
    \B 	  \square.\f 
    \B 	  \square.\f  = e
@@ -70,7 +67,7 @@ F &::=    \square.\m(\bar e)
 
 \inferrule*[right=SubClass]{\class~\C~\implements~\D}{ \C <: \xt{D} }
 
-\inferrule*[right=SubAny]{ }{\t <: \any}
+\inferrule*[right=Subdyn]{ }{\t <: \dyn}
 \end{mathpar}
 
 
@@ -99,7 +96,7 @@ Class well-formedness
 
 \inferrule*[right=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}
 
-\inferrule*[right=TApp]{\bar{\Gdash e_i : \t_i \vee \Gdash e_i : \any} \\ \Gdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gdash e.\m(\bar{e_i}) : \t'}
+\inferrule*[right=TApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gdash e.\m(\bar{e_i}) : \t'}
 
 \inferrule*[right=TIf]{ 
      \Gdash e:\int\\ 
@@ -113,18 +110,17 @@ Class well-formedness
   \Gdash e':\int
 }{ \Gdash e+e':\int}
 
-%\inferrule*[right=TNew]{
-%  \xt{this}:\t' \in \G\\
-%  \bar{\Gdash e:\t} \\ 
-%  \G(\C) = \{\bar{\f:\t} \ldots\}
-%}{
-%  \Gdash \NEW \C{\bar e}:\C
-%}
+\inferrule*[right=TNew]{
+  \bar{\Gdash e:\t} \\ 
+  \G(\C) = \{\bar{\f:\t} \ldots\}
+}{
+  \Gdash \NEW \C{\bar e}:\C
+}
 
 \inferrule*[right=TCast]{
   \Gdash e:\t'
 }{
-  \Gdash e\cast{\t} : \t}
+  \Gdash \cast{\t}e : \t}
 
 \inferrule*[right=TTypedClass]{ 
   \bar{\Gdash D} \\  
@@ -138,15 +134,21 @@ Class well-formedness
 
 \inferrule*[right=TUntypedClass]{ 
   \bar{\Gdash D} \\  
-  \bar{\MTYPE{\m'}{\bar{x:\any}}{\any} \in\D \implies \MTYPE{\m'}{\bar{x:\any}}{\any}\in\C }\\
-  \bar{\f:\any \in\D \implies \f:\any \in\C}\\
+  {\MTYPE{\m'}{\bar{x:\dyn}}{\dyn} \in\D \implies \MTYPE{\m'}{\bar{x:\dyn}}{\dyn}\in\C }\\
+  {\f:\dyn \in\D \implies \f:\dyn \in\C}\\
  }{
-  \Gdash \CLASS \C{\bar\D}{\bar{\f:\any},\bar{\MDEF\m{\bar{x:\any}}{\any}e}}
+  \Gdash \CLASS \C{\bar\D}{\bar{\f:\dyn},\bar{\MDEF\m{\bar{x:\dyn}}{\dyn}e}}
   } % TODO: UNTYPED VERSION
 \end{mathpar}
 
-\section{Dynamic semantics:}
+\section{Dynamic Cast Insertion}
+\begin{mathpar}
+\inferrule*{ }{\NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v}}
 
+\inferrule*{ }{e \tlate e}
+\end{mathpar}
+
+\section{Dynamic semantics:}
 
 Reduction:
 
@@ -155,10 +157,7 @@ Reduction:
 
 \inferrule*[right=ENew]{
      \class \; \C  \{\bar{\f : \t}, \bar{ \m (\bar{x:\t}) : \t' = e}\} \\
-     getters = \bar{\xt{get\_}\f():\t = a\xt{.get\_f}()\cast{\t}}\\
-     setters = \bar{\xt{set\_}\f(\xt{x}) = a\xt{.set\_f}(\xt{x}\cast{\t})\cast{\t}}\\
-     meths = \bar{\m(\bar{x})=a.\m(\bar{x\cast{\t}})\cast{\t'}}\\
-     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x}) = e} \B \C\}, a' \is \{getters, setters, meths\}) }{ \NEW \C {\bar v},\s \ereduce a',\s'}
+     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x}) = e} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
 
 \inferrule*[right=EInv]{a\is \{\ldots,\m(\bar x)=e, \ldots \B \t\}}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
 
@@ -178,6 +177,6 @@ Reduction:
 getters = \bar{\xt{get\_}\f():\t = a\xt{.get\_f}()\cast{\t}}\\
 setters = \bar{\xt{set\_}\f(\xt{x}) = a\xt{.set\_f}(\xt{x}\cast{\t})\cast{\t}}\\
 meths = \bar{\m(\bar{x})=a.\m(\bar{x\cast{\t}})\cast{\t'}}\\
-\s' = \s[a' \is \{getters, setters, meths\}] }{ a\cast{\C},\s \ereduce a',\s'}
+\s' = \s[a' \is \{getters, setters, meths\}] }{ \cast{\C}a,\s \ereduce a',\s'}
 \end{mathpar}
 \end{document}
