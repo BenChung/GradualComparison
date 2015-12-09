@@ -81,10 +81,12 @@ F &::=    \square.\m(\bar e)
 
 \inferrule*[right=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}
 
-\inferrule*[right=TApp]{\bar{\Gdash e_i : \t_i \vee \Gdash e_i : \any} \\ \Gdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gdash e.\m(\bar{e_i}) : \t'}
+\inferrule*[right=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}
+
+\inferrule*[right=TApp]{\Gdash e_i : \t_i \\ \Gdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gdash e.\m(\bar{e_i}) : \t'}
 
 \inferrule*[right=TIf]{ 
-     \Gdash e:\int \vee \Gdash e:\any \\ 
+     \Gdash e:\int \\ 
      \Gdash \t \\  %%??
      \Gdash e':\t \\ 
      \Gdash e'':\t

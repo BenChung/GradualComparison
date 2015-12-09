@@ -6,8 +6,7 @@
 \renewcommand{\int}{\texttt{int}}
 \newcommand{\coerce}{\Rightarrow} %% arrow used in coercions
 \newcommand{\str}{\texttt{str}}
-\newcommand{\any}{\texttt{dyn}}   %% dyn type
-\newcommand{\dyn}{\texttt{dyn}}   %% dyn type
+\newcommand{\any}{\texttt{any}}   %% any type
 \newcommand{\this}{\texttt{this}}
 \newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
 \newcommand{\cast}[1]{\langle #1\rangle} 
@@ -39,56 +38,43 @@
 \newcommand{\MVAL}[3] { #1( #2 ) = #3}
 \newcommand{\Gdash}{\G\vdash}
 
-% fields through wrapper based on name
+
 
 Syntax:
 \begin{align*}
-\t &::= \dyn \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
-e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
+\t &::= \any \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
+e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
 I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
-v &::= k \B a\\
+v &::= k \B a \B  v\cast{\any}\\
 \mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
 \s &::= \emptyset \B  \s( a \is o : \t )\\
 F &::=    \square.\m(\bar e) 
-   \B 	  \square.\f 
-   \B 	  \square.\f  = e
-   \B     v.\f  = \square
+   \B     \square.\f
+   \B     \square.\f = e
+   \B     a.\f = \square
    \B     v.\m(\bar v,\square, \bar e) 
    \B     \ifthenelse{\square}{e}{e} 
    \B     \square + e 
    \B      v + \square\\
    &\B     \square\cast{\tau}
-   \B \NEW  \C {\bar{v},\square,\bar{e}}\\
+\B \NEW  \C {\bar{v},\square,\bar{e}}\\
 \end{align*}
 
 \begin{mathpar}
 \inferrule*[right=SubRefl]{ }{ \t <: \t }
 
-\inferrule*[right=SubClass]{\class~\C~\implements~\D}{ \C <: \xt{D} }
+\inferrule*[right=SubClass]{\class~\C~\implements~\D}{ \xt{!C} <: \xt{!D} }
 
-\inferrule*[right=Subdyn]{ }{\t <: \dyn}
-\end{mathpar}
+\inferrule*[right=SubWeak]{ \xt{!C} <: \xt{!D} }{ \C <: \xt{D}}
 
-
-Class well-formedness
-
-\begin{mathpar}
-\inferrule{\G \vdash \t}{\G\vdash\f:\t}
-
-\inferrule{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
-
-\inferrule{f:\t \in fields(\G)}{\G \vdash f():\t = \xt{this}.f}
-
-\inferrule{f:\t \not\in fields(\G) \\ \G \vdash e : \t}{\G \vdash f():\t = e}
-
-\inferrule{f:\t \in fields(\G)}{\G \vdash f!(\xt{x}:\t):\t = (\xt{this}.f=\xt{x})}
-
-\inferrule{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
+\inferrule*[right=SubInj]{ }{ \xt{!C} <: \C}
 \end{mathpar}
 
 \begin{mathpar}
+\inferrule*[right=TCons]{ \tau \sim \tau' \\ \G \vdash e : \t }{\G \vdash e : \t'}
+
 \inferrule*[right=TVar]{\G(x) = A }{\G \vdash x : A}
 
 \inferrule*[right=TStr]{ }{\Gdash string : \str}
@@ -97,10 +83,12 @@ Class well-formedness
 
 \inferrule*[right=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}
 
+\inferrule*[right=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}
+
 \inferrule*[right=TApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gdash e.\m(\bar{e_i}) : \t'}
 
 \inferrule*[right=TIf]{ 
-     \Gdash e:\int\\ 
+     \Gdash e:\int \\
      \Gdash e':\t \\ 
      \Gdash e'':\t
 }{ 
@@ -111,45 +99,113 @@ Class well-formedness
   \Gdash e':\int
 }{ \Gdash e+e':\int}
 
+\inferrule*[right=TUField]{ 
+  \Gdash e:\any
+}{ 
+  \Gdash e.\f:\any
+}
+
+\inferrule*[right=TField]{ 
+  \Gdash e:\{\ldots\f:\t\ldots\}
+}{ 
+  \Gdash e.\f:\t
+}
+
+\inferrule*[right=TUAssign]{
+  \Gdash e : \t\\ 
+  \Gdash e':\any
+}{ 
+  \Gdash e'.\f = e:\any
+}
+
+\inferrule*[right=TAssign]{
+  \Gdash e : \t\\ 
+  \Gdash e':\{\ldots\f:\t\ldots\}
+}{ 
+  \Gdash e'.\f = e:\t
+}
+
 \inferrule*[right=TNew]{
   \bar{\Gdash e:\t} \\ 
-  \G(\C) = \{\bar{\f:\t} \ldots\}
+  \G(\C) = \{\ldots \bar{\f:\t} \ldots\}
 }{
-  \Gdash \NEW \C{\bar e}:\C
+  \Gdash \NEW \C{\bar e}:\xt{!C}
 }
 
 \inferrule*[right=TCast]{
   \Gdash e:\t'
 }{
-  \Gdash \cast{\t}e : \t}
+  \Gdash \cast{\t}e}
 
-\inferrule*[right=TTypedClass]{ 
+\inferrule*[right=TClass]{ 
   \bar{\Gdash D} \\  
-  {\MTYPE{\m'}{\bar{x:\t''}}{\t'} \in\D \implies \MTYPE{\m'}{\bar{x:\t''}}{\t'}\in\C }\\
-  {\f:\t \in\D \implies \f:\t \in\C}\\
-  {\bar{\Gdash \f:\t}}\\
-  {\bar{\Gdash \MDEF\m{\bar{x:\t''}}{\t'}e}}
+  \bar{\MTYPE{\m'}{\bar{x:\t''}}{\t'} \in\D \implies \MTYPE{\m'}{\bar{x:\t''}}{\t'}\in\C }\\
+  \bar{\G,\this:\C,\bar{x:\t''} \vdash e:\t'}
  }{
   \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
-  }  % TODO: LESS HORRIFYING
-
-\inferrule*[right=TUntypedClass]{ 
-  \bar{\Gdash D} \\  
-  {\MTYPE{\m'}{\bar{x:\dyn}}{\dyn} \in\D \implies \MTYPE{\m'}{\bar{x:\dyn}}{\dyn}\in\C }\\
-  {\f:\dyn \in\D \implies \f:\dyn \in\C}\\
- }{
-  \Gdash \CLASS \C{\bar\D}{\bar{\f:\dyn},\bar{\MDEF\m{\bar{x:\dyn}}{\dyn}e}}
-  } % TODO: UNTYPED VERSION
+  }
 \end{mathpar}
 
-\section{Dynamic Cast Insertion}
+\subsection{Cast Insertion}
+
 \begin{mathpar}
-\inferrule*{ }{\NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v}}
+\inferrule*[right=CICast]{
+  \Gdash e \tlate e':\t' \\ 
+  \t'\sim\t
+}{
+  \Gdash \cast{\t} e\tlate \cast{\t}e':\t
+}
 
-\inferrule*{ }{e \tlate e}
+\inferrule*[right=CICall1]{
+  \Gdash e \tlate e':\{\ldots \MTYPE\m{\bar \t}{\t''} \ldots\} \\ 
+  \bar{\Gdash e' \tlate e'' : \t'} \\ 
+  \bar{\t \sim \t'} \\ 
+}{
+  \Gdash e.\m(\bar{e'}) \tlate e.\m(\bar{\cast{\t'}e''}):\t''
+}
+
+\inferrule*[right=CICallAny]{ 
+  \Gdash e \tlate e'':\any \\  
+  \bar{\Gdash e' \tlate e''':\t'} \\ 
+}{
+  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}) : \any
+}
+
+\inferrule*[right=CIIf]{
+  \Gdash e_1 \tlate e_1' : \t_1 \\ 
+  \t_1 \sim \int \\ 
+  \Gdash e_2\tlate e_2':\t_2 \\ 
+  \Gdash e_3 \tlate e_3' : \t_2
+}{
+  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{\cast{\int}e_1'}{e_2'}{e_3'} : \t_2
+} 
+
+\inferrule*[right=CIPlus]{
+  \Gdash e_1 \tlate e_1':\t_1 \\ 
+  \Gdash e_2 \tlate e_2' : \t_2 \\ 
+  \t_1 \sim \int \\ 
+  \t_2 \sim \int 
+}{
+  \Gdash e_1 + e_2 \tlate \cast{\int}e_1' + \cast{\int}e_2' :\int 
+}
+
+\inferrule*[right=CIVar]{
+  x:\t \in \G
+}{
+  \Gdash x \tlate x : \t
+}
+
+\inferrule*[right=CINew]
+      {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
+       \bar{\Gdash e \tlate e' : \t'} \\ 
+        \bar{\t \sim \t'}}
+      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{\cast{\t}e'}} : \C}
 \end{mathpar}
+
 
 \section{Dynamic semantics:}
+
+
 
 Reduction:
 
@@ -172,12 +228,30 @@ Reduction:
 
 \inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
 
-\inferrule*[right=ECast]{ 
-\CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}\\
-\s(a) = \{\bar{\f}, \bar{\m(\bar{x}) = e}\}\\
-getters = \bar{\xt{get\_}\f():\t = a\xt{.get\_f}()\cast{\t}}\\
-setters = \bar{\xt{set\_}\f(\xt{x}) = a\xt{.set\_f}(\xt{x}\cast{\t})\cast{\t}}\\
-meths = \bar{\m(\bar{x})=a.\m(\bar{x\cast{\t}})\cast{\t'}}\\
-\s' = \s[a' \is \{getters, setters, meths\}] }{ \cast{\C}a,\s \ereduce a',\s'}
+\inferrule*[right=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}v,\s \ereduce v,\s'}
+\end{mathpar}
+
+\subsection{Cast reduction}
+
+\begin{lstlisting}[escapeinside={(*}{*)}]
+cast((*$\sigma, v, \t$*))
+  (*$\sigma$*) iff type((*$v$*),(*$\sigma$*)) = type((*$v$*),(*$\sigma$*)) (*$\sqcap$*) (*$\t$*)
+  (*$\sigma_{n+1}[a\is O]$*) iff (*$v = a$*)
+    (*$\sigma(a) = \left.\left<v_1,\ldots,v_N \right|_\t^C\right>$*)
+    (*$\t'' = \t \coerce \t \sqcap \t'$*)
+    (*$\sigma_2 = $*)cast (*$(\sigma, v_1,$*)ftype((*$\t''$, 1))*)
+    (*$\vdots$*)
+    (*$\sigma_{n+1} = $*)cast (*$(\sigma_n, v_n,$*)ftype((*$\t''$, n))*)
+\end{lstlisting}
+
+\subsection{Meet}
+\begin{mathpar}
+\inferrule*[]{}{\t \sqcap \t = \t}
+
+\inferrule*[]{}{\t \sqcap \any = \t}
+
+\inferrule*[]{}{\any \sqcap \t = \t}
+
+\inferrule*[]{}{\{\bar{\f :\t_1}, \bar{\m (\bar{\xt{p}:\t_1''}):\t_1'} \}\sqcap \{\bar{\f :\t_2}, \bar{\m (\bar{\xt{p}:\t_2''}):\t_2'} \} = \{\bar{\f :\t_2 \sqcap \t_2}, \bar{\m (\bar{\xt{p}:\t_1'' \sqcap \t_2''}):\t_1' \sqcap \t_2'} \}}
 \end{mathpar}
 \end{document}
