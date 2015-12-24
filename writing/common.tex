@@ -1,0 +1,165 @@
+
+\newcommand{\class}{\ensuremath{\xt{class}}\xspace}
+\newcommand{\G}{\Gamma}
+\renewcommand{\int}{\texttt{int}}
+\newcommand{\coerce}{\Rightarrow} %% arrow used in coercions
+\newcommand{\str}{\texttt{str}}
+\newcommand{\any}{\texttt{any}}   %% any type
+\newcommand{\this}{\texttt{this}}
+\newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
+\newcommand{\cast}[1]{\langle #1\rangle} 
+\newcommand{\xt}[1]{\texttt{#1}}
+\newcommand{\creduce}{\longrightarrow_{cr}}  %% reduction
+\newcommand{\ereduce}{\longrightarrow_{e}}   %%  reduction
+\newcommand{\stepsto}{\longrightarrow}        %% reduction
+\newcommand{\intv}[1]{\xt{int}[#1]}
+\newcommand{\strv}[1]{\xt{str}[#1]}
+\newcommand{\tlate}{\rightsquigarrow}
+\newcommand{\s}{\sigma}
+\renewcommand{\sc}{\mu}
+\renewcommand{\t}{\tau}
+\newcommand{\B}{\ensuremath{~|~}\xspace}
+\newcommand{\new}{\ensuremath{\texttt{new}}\xspace}
+\newcommand{\NEW}[2]{\ensuremath{  \new ~ #1 ( #2 )}\xspace}
+\renewcommand{\bar}[1]{\ensuremath{\overline{ #1} }\xspace}
+\newcommand{\m}{\ensuremath{\xt{m}}\xspace}
+\newcommand{\f}{\ensuremath{\xt{f}}\xspace}
+\newcommand{\C}{\ensuremath{\xt{C}}\xspace}
+\newcommand{\D}{\ensuremath{\xt{D}}\xspace}
+\newcommand{\is}{\mapsto}
+%% Cast syntax??
+\newcommand{\cl}{\mathit{cl}\xspace}
+\newcommand{\implements}{\xt{implements}\xspace}
+\newcommand{\CLASS}[3]{ \ensuremath{  \xt{class}~#1~\implements~#2\;\{ #3 \}}\xspace} 
+\newcommand{\MDEF}[4] { #1( #2 ):#3 = #4}
+\newcommand{\MTYPE}[3] { #1( #2 ):#3}
+\newcommand{\MVAL}[3] { #1( #2 ) = #3}
+\newcommand{\Gdash}{\G\vdash}
+\renewcommand{\TirNameStyle}[1]{\footnotesize\textsc{#1}}
+
+\newcommand{\syntax}{
+\begin{align*}
+\t &::= \any \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
+e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
+&\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
+\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
+I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
+v &::= k \B a \B  v\cast{\any}\\
+\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
+\s &::= \emptyset \B  \s( a \is o : \t )\\
+F &::=    \square.\m(\bar e) 
+   \B     \square.\f
+   \B     \square.\f = e
+   \B     a.\f = \square
+   \B     v.\m(\bar v,\square, \bar e) 
+   \B     \ifthenelse{\square}{e}{e} 
+   \B     \square + e 
+   \B      v + \square\\
+   &\B     \square\cast{\tau}
+\B \NEW  \C {\bar{v},\square,\bar{e}}\\
+\end{align*}}
+
+\newcommand{\TVar}{\inferrule*[right=TVar]{\G(x) = A }{\G \vdash x : A}}
+\newcommand{\TStr}{\inferrule*[right=TStr]{ }{\Gdash string : \str}}
+\newcommand{\TInt}{\inferrule*[right=TInt]{ }{\Gdash int : \int}}
+\newcommand{\TSub}{\inferrule*[right=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}}
+
+\newcommand{\TUApp}{\inferrule*[right=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}}
+\newcommand{\TApp}{\inferrule*[right=TApp]{ \Gdash e : \C \\ \m(\bar{\t'_i}):\t' \in \C \\ \Gdash e_i : \t_i}{\Gdash e.\m(\bar{e_i}) : \t'}}
+\newcommand{\TIf}{\inferrule*[right=TIf]{ 
+     \Gdash e:\int \\ 
+     \Gdash e':\t \\ 
+     \Gdash e'':\t
+}{ 
+     \Gdash \ifthenelse{e}{e'}{e''} : \t}}
+\newcommand{\TPlus}{\inferrule*[right=TPlus]{ 
+  \Gdash e:\int \\ \
+  \Gdash e':\int
+}{ \Gdash e+e':\int}}
+
+
+
+\newcommand{\TNew}{\inferrule*[right=TNew]{
+  \bar{\Gdash e:\t} \\ 
+  \{\ldots \bar{\f:\t} \ldots\} = fields(\C)\\
+}{
+  \Gdash \NEW \C{\bar e}:\C
+}}
+
+\newcommand{\TCast}{\inferrule*[right=TCast]{
+  \Gdash e:\t'
+}{
+  \Gdash \cast{\t}e}}
+
+
+\newcommand{\CICast}{\inferrule*[right=CICast]{
+  \Gdash e \tlate e':\t' \\ 
+  \t'\sim\t
+}{
+  \Gdash \cast{\t} e\tlate \cast{\t}e':\t
+}}
+
+\newcommand{\CICall}{\inferrule*[right=CICall1]{
+  \Gdash e \tlate e':\{\ldots \MTYPE\m{\bar \t}{\t''} \ldots\} \\ 
+  \bar{\Gdash e' \tlate e'' : \t'} \\ 
+  \bar{\t \sim \t'} \\ 
+}{
+  \Gdash e.\m(\bar{e'}) \tlate e.\m(\bar{\cast{\t'}e''}):\t''
+}}
+
+\newcommand{\CICallAny}{\inferrule*[right=CICallAny]{ 
+  \Gdash e \tlate e'':\any \\  
+  \bar{\Gdash e' \tlate e''':\t'} \\ 
+}{
+  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}) : \any
+}}
+
+\newcommand{\CIIf}{\inferrule*[right=CIIf]{
+  \Gdash e_1 \tlate e_1' : \t_1 \\ 
+  \t_1 \sim \int \\ 
+  \Gdash e_2\tlate e_2':\t_2 \\ 
+  \Gdash e_3 \tlate e_3' : \t_2
+}{
+  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{\cast{\int}e_1'}{e_2'}{e_3'} : \t_2
+} }
+
+\newcommand{\CIPlus}{\inferrule*[right=CIPlus]{
+  \Gdash e_1 \tlate e_1':\t_1 \\ 
+  \Gdash e_2 \tlate e_2' : \t_2 \\ 
+  \t_1 \sim \int \\ 
+  \t_2 \sim \int 
+}{
+  \Gdash e_1 + e_2 \tlate \cast{\int}e_1' + \cast{\int}e_2' :\int 
+}}
+
+\newcommand{\CIVar}{\inferrule*[right=CIVar]{
+  x:\t \in \G
+}{
+  \Gdash x \tlate x : \t
+}}
+
+\newcommand{\CINew}{\inferrule*[right=CINew]
+      {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
+       \bar{\Gdash e \tlate e' : \t'} \\ 
+        \bar{\t \sim \t'}}
+      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{\cast{\t}e'}} : \C}}
+
+
+\newcommand{\EFrame}{\inferrule*[right=EFrame]{ e,v \ereduce e',v'}{F[e],v \ereduce F[e'],v'}}
+
+\newcommand{\ENew}{\inferrule*[right=ENew]{
+     \bar{\f : \t} \in \C \\
+     \s'=\s(a\is\{\bar{\f=v} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}}
+
+\newcommand{\EInv}{\inferrule*[right=EInv]{a\is \{\ldots \B \C\} \\ \m(\bar x)=e \in \C}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}}
+
+\newcommand{\EField}{\inferrule*[right=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}}
+
+\newcommand{\EAssign}{\inferrule*[right=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\t\}] }{a.\f = v,\s \ereduce v,\s'}}
+
+\newcommand{\EIfZ}{\inferrule*[right=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\s \ereduce e_1,\s }}
+
+\newcommand{\EIfNZ}{\inferrule*[right=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\s \ereduce e_2,\s }}
+
+\newcommand{\EPlus}{\inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}}
+
