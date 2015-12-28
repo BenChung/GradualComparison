@@ -1,9 +1,12 @@
 \documentclass{report}
 \usepackage{mathpartir,amsmath,amssymb,xspace,listings}
-
+\lstset{
+    escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
+}
 
 \input{common}
 
+\newcommand{\spec}{\vartriangleright}
 \begin{document}
 
 Syntax:
@@ -119,12 +122,25 @@ Reduction:
 \end{mathpar}
 \subsection{Meet}
 \begin{mathpar}
-\inferrule*[]{}{\t \sqcap \t = \t}
+\inferrule*[]{}{\t \spec \t = \t}
 
-\inferrule*[]{}{\t \sqcap \any = \t}
+\inferrule*[]{}{\t \spec \any = \t}
 
-\inferrule*[]{}{\any \sqcap \t = \t}
+\inferrule*[]{}{\any \spec \t = \t}
 
-\inferrule*[]{}{\{\bar{\f :\t_1}, \bar{\m (\bar{\xt{p}:\t_1''}):\t_1'} \}\sqcap \{\bar{\f :\t_2}, \bar{\m (\bar{\xt{p}:\t_2''}):\t_2'} \} = \{\bar{\f :\t_2 \sqcap \t_2}, \bar{\m (\bar{\xt{p}:\t_1'' \sqcap \t_2''}):\t_1' \sqcap \t_2'} \}}
+\inferrule*[]{}{A \spec B = A \Rightarrow B}
 \end{mathpar}
+
+\begin{lstlisting}
+classMeet(A,B)
+  A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
+  B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
+  return class A(*@$\Rightarrow$@*)B {
+    (*@\bar{\f:\t_A\spec\t_B}@*),
+    (*@\bar{m(\bar{x:\t''_A\spec\t''_B}):\t'_A\spec\t'_B = \cast{\t'_A\spec\t'_B}\this.m'(\bar{\cast{\t''_A\spec\t''_B}x})}@*),
+    (*@\bar{m'(\bar{x:\t''_A}):\t'_A = e_A}@*)
+  }
+\end{lstlisting}
+
+classMeet is applied to every string of classes, in left-to-right order
 \end{document}
