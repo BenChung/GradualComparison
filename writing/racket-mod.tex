@@ -1,68 +1,13 @@
 \documentclass{report}
 \usepackage{mathpartir,amsmath,amssymb,xspace,listings}
 \begin{document}
-\newcommand{\class}{\ensuremath{\xt{class}}\xspace}
-\newcommand{\G}{\Gamma}
-\renewcommand{\int}{\texttt{int}}
-\newcommand{\coerce}{\Rightarrow} %% arrow used in coercions
-\newcommand{\str}{\texttt{str}}
-\newcommand{\any}{\texttt{dyn}}   %% dyn type
+\input{common}
 \newcommand{\dyn}{\texttt{dyn}}   %% dyn type
-\newcommand{\this}{\texttt{this}}
-\newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
-\newcommand{\cast}[1]{\langle #1\rangle} 
-\newcommand{\xt}[1]{\texttt{#1}}
-\newcommand{\creduce}{\longrightarrow_{cr}}  %% reduction
-\newcommand{\ereduce}{\longrightarrow_{e}}   %%  reduction
-\newcommand{\stepsto}{\longrightarrow}        %% reduction
-\newcommand{\intv}[1]{\xt{int}[#1]}
-\newcommand{\strv}[1]{\xt{str}[#1]}
-\newcommand{\tlate}{\rightsquigarrow}
-\newcommand{\s}{\sigma}
-\renewcommand{\sc}{\mu}
-\renewcommand{\t}{\tau}
-\newcommand{\B}{\ensuremath{~|~}\xspace}
-\newcommand{\new}{\ensuremath{\texttt{new}}\xspace}
-\newcommand{\NEW}[2]{\ensuremath{  \new ~ #1 ( #2 )}\xspace}
-\renewcommand{\bar}[1]{\ensuremath{\overline{ #1} }\xspace}
-\newcommand{\m}{\ensuremath{\xt{m}}\xspace}
-\newcommand{\f}{\ensuremath{\xt{f}}\xspace}
-\newcommand{\C}{\ensuremath{\xt{C}}\xspace}
-\newcommand{\D}{\ensuremath{\xt{D}}\xspace}
-\newcommand{\is}{\mapsto}
-%% Cast syntax??
-\newcommand{\cl}{\mathit{cl}\xspace}
-\newcommand{\implements}{\xt{implements}\xspace}
-\newcommand{\CLASS}[3]{ \ensuremath{  \xt{class}~#1~\implements~#2\;\{ #3 \}}\xspace} 
-\newcommand{\MDEF}[4] { #1( #2 ):#3 = #4}
-\newcommand{\MTYPE}[3] { #1( #2 ):#3}
-\newcommand{\MVAL}[3] { #1( #2 ) = #3}
-\newcommand{\Gdash}{\G\vdash}
 
 % fields through wrapper based on name
 
 Syntax:
-\begin{align*}
-\t &::= \dyn \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
-e &::= k \B  e.\m(\bar{e}) \B e.\f  \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
-&\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
-\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
-I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
-v &::= k \B a\\
-\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
-\s &::= \emptyset \B  \s( a \is o : \t )\\
-F &::=    \square.\m(\bar e) 
-   \B 	  \square.\f 
-   \B 	  \square.\f  = e
-   \B     v.\f  = \square
-   \B     v.\m(\bar v,\square, \bar e) 
-   \B     \ifthenelse{\square}{e}{e} 
-   \B     \square + e 
-   \B      v + \square\\
-   &\B     \square\cast{\tau}
-   \B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\end{align*}
-
+\syntax
 \begin{mathpar}
 \inferrule*[right=SubRefl]{ }{ \t <: \t }
 
@@ -89,39 +34,29 @@ Class well-formedness
 \end{mathpar}
 
 \begin{mathpar}
-\inferrule*[right=TVar]{\G(x) = A }{\G \vdash x : A}
+\TVar 
 
-\inferrule*[right=TStr]{ }{\Gdash string : \str}
+\TStr
 
-\inferrule*[right=TInt]{ }{\Gdash int : \int}
+\TInt
 
 \inferrule*[right=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}
 
-\inferrule*[right=TApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gdash e.\m(\bar{e_i}) : \t'}
+\TApp
 
-\inferrule*[right=TIf]{ 
-     \Gdash e:\int\\ 
-     \Gdash e':\t \\ 
-     \Gdash e'':\t
-}{ 
-     \Gdash \ifthenelse{e}{e'}{e''} : \t}
+\TIf
 
-\inferrule*[right=TPlus]{ 
-  \Gdash e:\int \\ \
-  \Gdash e':\int
-}{ \Gdash e+e':\int}
+\TPlus
 
 \inferrule*[right=TNew]{
   \bar{\Gdash e:\t} \\ 
-  \G(\C) = \{\bar{\f:\t} \ldots\}
+  \{\ldots \bar{\f:\t} \ldots\} = fields(\C)\\
+  typed(\C)
 }{
   \Gdash \NEW \C{\bar e}:\C
 }
 
-\inferrule*[right=TCast]{
-  \Gdash e:\t'
-}{
-  \Gdash \cast{\t}e : \t}
+\TCast
 
 \inferrule*[right=TTypedClass]{ 
   \bar{\Gdash D} \\  
@@ -146,7 +81,23 @@ Class well-formedness
 \begin{mathpar}
 \inferrule*{ }{\NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v}}
 
-\inferrule*{ }{e \tlate e}
+\inferrule*{e\tlate e_t \\ \bar{e' \tlate e'_t} }{e(\bar{e'}) \tlate e_t(\bar{e_t'})}
+
+\inferrule*{\bar{e\tlate e_t}}{\NEW \C {\bar e} \tlate \NEW\C{\bar{e_t}}}
+
+\inferrule*{e \tlate e_t \\ e' \tlate e_t'}{e+e' \tlate e_t + e_t'}
+
+\inferrule*{e \tlate e' \\
+e_1 \tlate e_1' \\
+e_2 \tlate e_2'}{\ifthenelse{e}{e_1}{e_2}\tlate\ifthenelse{e'}{e_1'}{e_2'}}
+
+\inferrule*{e \tlate e_t}{\cast{\t}e \tlate \cast{\t}e_t}
+
+\inferrule{e\tlate e_t}{e.\f \tlate e_t.\f}
+
+\inferrule{e\tlate e_t \\ e'\tlate e_t'}{e.\f = e' \tlate e_t.\f = e_t'}
+
+\inferrule{}{e \tlate e }
 \end{mathpar}
 
 \section{Dynamic semantics:}
@@ -180,4 +131,14 @@ setters = \bar{\xt{set\_}\f(\xt{x}) = a\xt{.set\_f}(\xt{x}\cast{\t})\cast{\t}}\\
 meths = \bar{\m(\bar{x})=a.\m(\bar{x\cast{\t}})\cast{\t'}}\\
 \s' = \s[a' \is \{getters, setters, meths\}] }{ \cast{\C}a,\s \ereduce a',\s'}
 \end{mathpar}
+\begin{lstlisting}
+wrapper(A)
+  A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
+  return class #A {
+    (*@\xt{orig}:\xt{A}@*),
+    (*@$\bar{m(\bar{x:\dyn}):\dyn = \cast{\t'_A}\xt{orig}.m(\bar{\cast{\t''_A}v})}$@*)
+  }
+\end{lstlisting}
+
+For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{#A}$ that ensures the type invariants on A.
 \end{document}

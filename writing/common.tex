@@ -36,16 +36,17 @@
 \newcommand{\MVAL}[3] { #1( #2 ) = #3}
 \newcommand{\Gdash}{\G\vdash}
 \renewcommand{\TirNameStyle}[1]{\footnotesize\textsc{#1}}
-
+\lstset{
+    escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
+}
 \newcommand{\syntax}{
 \begin{align*}
-\t &::= \any \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
+\t &::= \any \B \str \B  \int \B \C\\
 e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
-I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
-v &::= k \B a \B  v\cast{\any}\\
-\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
+v &::= k \B a\\
+\mathit{o} &::= \{\bar{\f=v} \B \C\}\\
 \s &::= \emptyset \B  \s( a \is o : \t )\\
 F &::=    \square.\m(\bar e) 
    \B     \square.\f
