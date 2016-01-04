@@ -2,7 +2,6 @@
 \usepackage{mathpartir,amsmath,amssymb,xspace,listings}
 \begin{document}
 \input{common}
-\newcommand{\dyn}{\texttt{dyn}}   %% dyn type
 
 % fields through wrapper based on name
 
@@ -13,7 +12,7 @@ Syntax:
 
 \inferrule*[right=SubClass]{\class~\C~\implements~\D}{ \C <: \xt{D} }
 
-\inferrule*[right=Subdyn]{ }{\t <: \dyn}
+\inferrule*[right=Subdyn]{ }{\t <: \any}
 \end{mathpar}
 
 
@@ -70,34 +69,28 @@ Class well-formedness
 
 \inferrule*[right=TUntypedClass]{ 
   \bar{\Gdash D} \\  
-  {\MTYPE{\m'}{\bar{x:\dyn}}{\dyn} \in\D \implies \MTYPE{\m'}{\bar{x:\dyn}}{\dyn}\in\C }\\
-  {\f:\dyn \in\D \implies \f:\dyn \in\C}\\
+  {\MTYPE{\m'}{\bar{x:\any}}{\any} \in\D \implies \MTYPE{\m'}{\bar{x:\any}}{\any}\in\C }\\
+  {\f:\any \in\D \implies \f:\any \in\C}\\
  }{
-  \Gdash \CLASS \C{\bar\D}{\bar{\f:\dyn},\bar{\MDEF\m{\bar{x:\dyn}}{\dyn}e}}
+  \Gdash \CLASS \C{\bar\D}{\bar{\f:\any},\bar{\MDEF\m{\bar{x:\any}}{\any}e}}
   } % TODO: UNTYPED VERSION
 \end{mathpar}
 
 \section{Dynamic Cast Insertion}
+
 \begin{mathpar}
-\inferrule*{ }{\NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v}}
+\CICast
 
-\inferrule*{e\tlate e_t \\ \bar{e' \tlate e'_t} }{e(\bar{e'}) \tlate e_t(\bar{e_t'})}
+\CICallAny
 
-\inferrule*{\bar{e\tlate e_t}}{\NEW \C {\bar e} \tlate \NEW\C{\bar{e_t}}}
+\CIIf
 
-\inferrule*{e \tlate e_t \\ e' \tlate e_t'}{e+e' \tlate e_t + e_t'}
+\CIPlus
 
-\inferrule*{e \tlate e' \\
-e_1 \tlate e_1' \\
-e_2 \tlate e_2'}{\ifthenelse{e}{e_1}{e_2}\tlate\ifthenelse{e'}{e_1'}{e_2'}}
+\CIVar
 
-\inferrule*{e \tlate e_t}{\cast{\t}e \tlate \cast{\t}e_t}
+\inferrule*{ }{\Gdash \NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v} : \any}
 
-\inferrule{e\tlate e_t}{e.\f \tlate e_t.\f}
-
-\inferrule{e\tlate e_t \\ e'\tlate e_t'}{e.\f = e' \tlate e_t.\f = e_t'}
-
-\inferrule{}{e \tlate e }
 \end{mathpar}
 
 \section{Dynamic semantics:}
@@ -105,13 +98,21 @@ e_2 \tlate e_2'}{\ifthenelse{e}{e_1}{e_2}\tlate\ifthenelse{e'}{e_1'}{e_2'}}
 Reduction:
 
 \begin{mathpar}
-\inferrule*[right=EFrame]{ e,v \ereduce e',v'}{F[e],v \ereduce F[e'],v'}
+\EFrame
 
-\inferrule*[right=ENew]{
-     \class \; \C  \{\bar{\f : \t}, \bar{ \m (\bar{x:\t}) : \t' = e}\} \\
-     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x}) = e} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
+\ENew
 
-\inferrule*[right=EInv]{a\is \{\ldots,\m(\bar x)=e, \ldots \B \t\}}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
+\EInv
+
+\EField
+
+\EAssign
+
+\EIfZ
+
+\EIfNZ
+
+\EPlus
 
 \inferrule*[right=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}
 
@@ -123,22 +124,18 @@ Reduction:
 
 \inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
 
-\inferrule*[right=ECast]{ 
-\CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}\\
-\s(a) = \{\bar{\f}, \bar{\m(\bar{x}) = e}\}\\
-getters = \bar{\xt{get\_}\f():\t = a\xt{.get\_f}()\cast{\t}}\\
-setters = \bar{\xt{set\_}\f(\xt{x}) = a\xt{.set\_f}(\xt{x}\cast{\t})\cast{\t}}\\
-meths = \bar{\m(\bar{x})=a.\m(\bar{x\cast{\t}})\cast{\t'}}\\
-\s' = \s[a' \is \{getters, setters, meths\}] }{ \cast{\C}a,\s \ereduce a',\s'}
+\inferrule*[right=ECast]{
+\s' = \s[a' \is \{\xt{orig} = a \B \xt{\#}\C\}] }{ \cast{\C}a,\s \ereduce a',\s'}
 \end{mathpar}
 \begin{lstlisting}
 wrapper(A)
   A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
   return class #A {
     (*@\xt{orig}:\xt{A}@*),
-    (*@$\bar{m(\bar{x:\dyn}):\dyn = \cast{\t'_A}\xt{orig}.m(\bar{\cast{\t''_A}v})}$@*)
+    (*@\xt{orig():\xt{A} = this.orig}@*),
+    (*@$\bar{m(\bar{x:\any}):\any = \cast{\t'_A}\xt{this.orig()}.m(\bar{\cast{\t''_A}v})}$@*)
   }
 \end{lstlisting}
 
-For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{#A}$ that ensures the type invariants on A.
+For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ that ensures the type invariants on A.
 \end{document}
