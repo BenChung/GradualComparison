@@ -1,5 +1,5 @@
 \documentclass{report}
-\usepackage{mathpartir,amsmath,amssymb,xspace,listings}
+\usepackage{mathpartir,amsmath,amssymb,xspace,listings,fullpage}
 \begin{document}
 \input{common}
 
@@ -32,10 +32,10 @@ Class well-formedness
 \inferrule{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
 \end{mathpar}
 
+Typing
+
 \begin{mathpar}
 \TVar 
-
-\TStr
 
 \TInt
 
@@ -79,22 +79,15 @@ Class well-formedness
 \section{Dynamic Cast Insertion}
 
 \begin{mathpar}
-\inferrule*[right=CICast]{
-  \Gdash e \tlate e':\t' 
-}{
-  \Gdash \cast{\t} e\tlate \cast{\t}e':\any
-}
+\inferrule*[lab=CIAny]{ \Gdash e \tlate e' : \any }{\Gdash e \tlate e' : \tau}
+
+\CICast
 
 \CICallAny
 
 \CIIf
 
-\inferrule*[right=CIPlus]{
-  \Gdash e_1 \tlate e_1':\t_1 \\ 
-  \Gdash e_2 \tlate e_2' : \t_2 \\ 
-}{
-  \Gdash e_1 + e_2 \tlate \cast{\int}e_1' + \cast{\int}e_2' :\any 
-}
+\CIPlus
 
 \CIVar
 
