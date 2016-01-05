@@ -1,5 +1,5 @@
 \documentclass{report}
-\usepackage{mathpartir,amsmath,amssymb,xspace,listings}
+\usepackage{mathpartir,amsmath,amssymb,xspace,listings,fullpage}
 
 
 \input{common}
@@ -11,12 +11,23 @@ Syntax:
 
 \syntax
 
+Specialization relation:
+
 \begin{mathpar}
-\inferrule*[right=TCons]{ \tau \sim \tau' \\ \G \vdash e : \t }{\G \vdash e : \t'}
+\inferrule*[lab=CNSym]{ }{\tau \sqsubseteq \tau}
+
+\inferrule*[lab=CNCons]{ }{\any \sqsubseteq \tau}
+
+\inferrule*[lab=CNClass]{\CLASS\C{\xt{D}}{\ldots}}{D \sqsubseteq C}
+\end{mathpar}
+
+
+Typing rules:
+
+\begin{mathpar}
+\inferrule*[lab=TCons]{ \tau \sim \tau' \\ \G \vdash e : \t }{\G \vdash e : \t'}
 
 \TVar 
-
-\TStr
 
 \TInt
 
@@ -32,7 +43,7 @@ Syntax:
 
 \TCast
 
-\inferrule*[right=TClass]{ 
+\inferrule*[lab=TClass]{ 
   \bar{\G \vdash \f : \t}\\
   \bar{\G \vdash \MTYPE{\m}{\bar{x:\t''}}{\t'} = e} \\ 
   \f:\t \in \xt{D} \implies \f:\t' \in \C \wedge \t' \sqsubseteq \t\\
@@ -45,27 +56,28 @@ Syntax:
 \subsection{Class well-formedness}
 
 \begin{mathpar}
-\inferrule*[right=WFField]{\G \vdash \t}{\G\vdash\f:\t}
+\inferrule*[lab=WFField]{\G \vdash \t}{\G\vdash\f:\t}
 
-\inferrule*[right=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
+\inferrule*[lab=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
 
-\inferrule*[right=WFSelfGet]{f:\t \in fields(\G)}{\G \vdash f():\t = \xt{this}.f}
+\inferrule*[lab=WFSelfGet]{f:\t \in fields(\G)}{\G \vdash f():\t = \xt{this}.f}
 
-\inferrule*[right=WFDelGet]{f:\t \not\in fields(\G) \\ \G \vdash e : \t}{\G \vdash f():\t = e}
+\inferrule*[lab=WFDelGet]{f:\t \not\in fields(\G) \\ \G \vdash e : \t}{\G \vdash f():\t = e}
 
-\inferrule*[right=WFSelfSet]{f:\t \in fields(\G)}{\G \vdash f!(\xt{x}:\t):\t = (\xt{this}.f=\xt{x})}
+\inferrule*[lab=WFSelfSet]{f:\t \in fields(\G)}{\G \vdash f!(\xt{x}:\t):\t = (\xt{this}.f=\xt{x})}
 
-\inferrule*[right=WFDelSet]{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
+\inferrule*[lab=WFDelSet]{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
 \end{mathpar}
 
 \subsection{Cast Insertion}
 
 \begin{mathpar}
-\inferrule*[right=CICons]{
+\inferrule*[lab=CICons]{
   \Gdash e \tlate e' : \t \\
   \t \sim \t'\\
+  \t \neq \t'
 }{
-  \Gdash e \tlate e' : \t'
+  \Gdash e \tlate \cast{\t'}e' : \t'
 }
 
 \CICast
@@ -108,7 +120,7 @@ Reduction:
 
 \EPlus
 
-\inferrule*[right=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}a,\s \ereduce a,\s'}
+\inferrule*[lab=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}a,\s \ereduce a,\s'}
 
 \ECastInt
 \end{mathpar}
@@ -116,14 +128,12 @@ Reduction:
 \subsection{Casting}
 
 \begin{mathpar}
-\inferrule*[right=CClass]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C \neq \C \sqcap \xt{D} \\ \s' = \s[a \is \{\bar{\f = v} \B \C \sqcap \xt{D}\}]\\
-\f:\t \in \C \sqcap \xt{D} \\ \bar{\sigma'' = \text{cast}(\s', v, \t)}}{\text{cast}(\s, a, \xt{D}) = \s''}
+\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C \neq \C \spec \xt{D} \\ \s' = \s[a \is \{\bar{\f = v} \B \C \spec \xt{D}\}]\\
+\f:\t \in \C \spec \xt{D} \implies \sigma'' = \text{cast}(\s', v, \t)}{\text{cast}(\s, a, \xt{D}) = \s''}
 
-\inferrule*[right=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \sqcap \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
+\inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
 
-\inferrule*[right=CInt]{ }{\text{cast}(\s,\xt{int}[n],\xt{\int}) = \s}
-
-\inferrule*[right=CStr]{ }{\text{cast}(\s,\xt{str}[n],\xt{\str}) = \s}
+\inferrule*[lab=CInt]{ }{\text{cast}(\s,\xt{int}[n],\xt{\int}) = \s}
 \end{mathpar}
 \subsection{Meet}
 \begin{mathpar}
@@ -134,6 +144,8 @@ Reduction:
 \inferrule*[]{}{\any \spec \t = \t}
 
 \inferrule*[]{}{A \spec B = A \Rightarrow B}
+
+\inferrule*[]{}{\bar{B} \Rightarrow A \Rightarrow \bar{C} \spec A = \bar{B} \Rightarrow A \Rightarrow \bar{C}}
 \end{mathpar}
 
 \begin{lstlisting}
