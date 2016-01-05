@@ -65,7 +65,7 @@ Class well-formedness
   {\bar{\Gdash \MDEF\m{\bar{x:\t''}}{\t'}e}}
  }{
   \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
-  }  % TODO: LESS HORRIFYING
+  }  
 
 \inferrule*[right=TUntypedClass]{ 
   \bar{\Gdash D} \\  
@@ -73,19 +73,28 @@ Class well-formedness
   {\f:\any \in\D \implies \f:\any \in\C}\\
  }{
   \Gdash \CLASS \C{\bar\D}{\bar{\f:\any},\bar{\MDEF\m{\bar{x:\any}}{\any}e}}
-  } % TODO: UNTYPED VERSION
+  } 
 \end{mathpar}
 
 \section{Dynamic Cast Insertion}
 
 \begin{mathpar}
-\CICast
+\inferrule*[right=CICast]{
+  \Gdash e \tlate e':\t' 
+}{
+  \Gdash \cast{\t} e\tlate \cast{\t}e':\any
+}
 
 \CICallAny
 
 \CIIf
 
-\CIPlus
+\inferrule*[right=CIPlus]{
+  \Gdash e_1 \tlate e_1':\t_1 \\ 
+  \Gdash e_2 \tlate e_2' : \t_2 \\ 
+}{
+  \Gdash e_1 + e_2 \tlate \cast{\int}e_1' + \cast{\int}e_2' :\any 
+}
 
 \CIVar
 
@@ -114,18 +123,10 @@ Reduction:
 
 \EPlus
 
-\inferrule*[right=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}
-
-\inferrule*[right=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\t\}] }{a.\f = v,\s \ereduce v,\s'}
-
-\inferrule*[right=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\s \ereduce e_1,\s }
-
-\inferrule*[right=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\s \ereduce e_2,\s }
-
-\inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
-
-\inferrule*[right=ECast]{
+\inferrule*[right=ECastRef]{
 \s' = \s[a' \is \{\xt{orig} = a \B \xt{\#}\C\}] }{ \cast{\C}a,\s \ereduce a',\s'}
+
+\ECastInt
 \end{mathpar}
 \begin{lstlisting}
 wrapper(A)
