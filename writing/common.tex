@@ -159,3 +159,21 @@ F &::=    \square.\m(\bar e)
 \newcommand{\EPlus}{\inferrule*[lab=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}}
 
 \newcommand{\ECastInt}{\inferrule*[lab=ECastInt]{ }{ \cast{\int}\intv{n},\s \ereduce \intv{n},\s'}}
+
+\newcommand{\wellformedness}{
+\subsection{Class well-formedness}
+
+\begin{mathpar}
+\inferrule*[lab=WFField]{\G \vdash \t}{\G\vdash\f:\t}
+
+\inferrule*[lab=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
+
+\inferrule*[lab=WFSelfGet]{f:\t \in fields(\G)}{\G \vdash f():\t = \xt{this}.f}
+
+\inferrule*[lab=WFDelGet]{f:\t \not\in fields(\G) \\ \G \vdash e : \t}{\G \vdash f():\t = e}
+
+\inferrule*[lab=WFSelfSet]{f:\t \in fields(\G)}{\G \vdash f!(\xt{x}:\t):\t = (\xt{this}.f=\xt{x})}
+
+\inferrule*[lab=WFDelSet]{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
+\end{mathpar}
+}

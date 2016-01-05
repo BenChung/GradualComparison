@@ -53,21 +53,7 @@ Typing rules:
   }
 \end{mathpar}
 
-\subsection{Class well-formedness}
-
-\begin{mathpar}
-\inferrule*[lab=WFField]{\G \vdash \t}{\G\vdash\f:\t}
-
-\inferrule*[lab=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
-
-\inferrule*[lab=WFSelfGet]{f:\t \in fields(\G)}{\G \vdash f():\t = \xt{this}.f}
-
-\inferrule*[lab=WFDelGet]{f:\t \not\in fields(\G) \\ \G \vdash e : \t}{\G \vdash f():\t = e}
-
-\inferrule*[lab=WFSelfSet]{f:\t \in fields(\G)}{\G \vdash f!(\xt{x}:\t):\t = (\xt{this}.f=\xt{x})}
-
-\inferrule*[lab=WFDelSet]{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
-\end{mathpar}
+\wellformedness
 
 \subsection{Cast Insertion}
 
