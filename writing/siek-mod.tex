@@ -18,7 +18,7 @@ Specialization relation:
 
 \inferrule*[lab=CNCons]{ }{\any \sqsubseteq \tau}
 
-\inferrule*[lab=CNClass]{\CLASS\C{\xt{D}}{\ldots}}{D \sqsubseteq C}
+\inferrule*[lab=CNClass]{\CLASS\C{\xt{D}}{\ldots}}{C \sqsubseteq D}
 \end{mathpar}
 
 
@@ -40,8 +40,6 @@ Typing rules:
 \TPlus
 
 \TNew
-
-\TCast
 
 \inferrule*[lab=TClass]{ 
   \bar{\G \vdash \f : \t}\\
@@ -65,8 +63,6 @@ Typing rules:
 }{
   \Gdash e \tlate \cast{\t'}e' : \t'
 }
-
-\CICast
 
 \CICall
 
@@ -107,8 +103,6 @@ Reduction:
 \EPlus
 
 \inferrule*[lab=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}a,\s \ereduce a,\s'}
-
-\ECastInt
 \end{mathpar}
 
 \subsection{Casting}
@@ -129,16 +123,16 @@ Reduction:
 
 \inferrule*[]{}{\any \spec \t = \t}
 
-\inferrule*[]{}{A \spec B = A \Rightarrow B}
+\inferrule*[]{}{A \spec B = A,B}
 
-\inferrule*[]{}{\bar{B} \Rightarrow A \Rightarrow \bar{C} \spec A = \bar{B} \Rightarrow A \Rightarrow \bar{C}}
+\inferrule*[]{}{\bar{B,}A\bar{,C} \spec A = \bar{B,}A\bar{,C}}
 \end{mathpar}
 
 \begin{lstlisting}
 classMeet(A,B)
   A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
   B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
-  return class A(*@$\Rightarrow$@*)B {
+  return class A,B {
     (*@\bar{\f:\t_A\spec\t_B}@*),
     (*@\bar{m(\bar{x:\t''_A\spec\t''_B}):\t'_A\spec\t'_B = \cast{\t'_A\spec\t'_B}\this.m'(\bar{\cast{\t''_A\spec\t''_B}x})}@*),
     (*@\bar{m'(\bar{x:\t''_A}):\t'_A = e_A}@*)
