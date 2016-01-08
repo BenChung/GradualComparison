@@ -39,9 +39,10 @@
 \lstset{
     escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
 }
-\newcommand{\syntax}{
+\newcommand{\types}{\any \B \int \B \C}
+\newcommand{\syntax}[1]{
 \begin{align*}
-\t &::= \any \B \int \B \C\\
+\t &::= \types\\
 e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
@@ -57,7 +58,7 @@ F &::=    \square.\m(\bar e)
    \B     \square + e 
    \B      v + \square\\
    &\B     \square\cast{\tau}
-\B \NEW  \C {\bar{v},\square,\bar{e}}\\
+\B \NEW  \C {\bar{v},\square,\bar{e}}\\#1
 \end{align*}}
 
 \newcommand{\TVar}{\inferrule*[lab=TVar]{\G(x) = A }{\G \vdash x : A}}

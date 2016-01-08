@@ -9,7 +9,7 @@
 
 Syntax:
 
-\syntax
+\syntax{}
 
 Specialization relation:
 
@@ -17,8 +17,6 @@ Specialization relation:
 \inferrule*[lab=CNSym]{ }{\tau \sqsubseteq \tau}
 
 \inferrule*[lab=CNCons]{ }{\any \sqsubseteq \tau}
-
-\inferrule*[lab=CNClass]{\CLASS\C{\xt{D}}{\ldots}}{C \sqsubseteq D}
 \end{mathpar}
 
 
@@ -123,16 +121,16 @@ Reduction:
 
 \inferrule*[]{}{\any \spec \t = \t}
 
-\inferrule*[]{}{A \spec B = A,B}
+\inferrule*[]{}{A \spec B = A.B}
 
-\inferrule*[]{}{\bar{B,}A\bar{,C} \spec A = \bar{B,}A\bar{,C}}
+\inferrule*[]{}{\bar{B.}A\bar{.C} \spec A = \bar{B.}A\bar{.C}}
 \end{mathpar}
 
 \begin{lstlisting}
 classMeet(A,B)
   A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
   B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
-  return class A,B {
+  return class A.B {
     (*@\bar{\f:\t_A\spec\t_B}@*),
     (*@\bar{m(\bar{x:\t''_A\spec\t''_B}):\t'_A\spec\t'_B = \cast{\t'_A\spec\t'_B}\this.m'(\bar{\cast{\t''_A\spec\t''_B}x})}@*),
     (*@\bar{m'(\bar{x:\t''_A}):\t'_A = e_A}@*)
