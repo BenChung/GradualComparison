@@ -40,14 +40,17 @@
     escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
 }
 \newcommand{\types}{\any \B \int \B \C}
+\newcommand{\context}{\G &::= \cdot \B x : \tau~\G\\}
+\newcommand{\objform}{\mathit{o} &::= \{\bar{\f=v} \B \C\}\\}
 \newcommand{\syntax}[1]{
 \begin{align*}
 \t &::= \types\\
 e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
 &\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
+\context
 v &::= k \B a\\
-\mathit{o} &::= \{\bar{\f=v} \B \C\}\\
+\objform
 \s &::= \emptyset \B  \s( a \is o : \t )\\
 F &::=    \square.\m(\bar e) 
    \B     \square.\f

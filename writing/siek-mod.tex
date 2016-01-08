@@ -3,12 +3,12 @@
 
 
 \input{common}
-
 \newcommand{\spec}{\vartriangleright}
 \begin{document}
 
 Syntax:
 
+\renewcommand{\objform}{\mathit{o} &::= \{\bar{\f=v} \B \C,\bar{\xt{A}}\}\\}
 \syntax{}
 
 Specialization relation:
@@ -86,13 +86,15 @@ Reduction:
 \begin{mathpar}
 \EFrame
 
-\ENew
+\inferrule*[lab=ENew]{
+     \bar{\f : \t} \in \C \\
+     \s'=\s(a\is\{\bar{\f=v} \B \C,\C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
 
-\EInv
+\inferrule*[lab=EInv]{a\is \{\ldots \B \C,\ldots\} \\ \m(\bar x)=e \in \C}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
 
-\EField
+\inferrule*[lab=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\C,\ldots\}] }{a.\f,\s \ereduce v,\s}
 
-\EAssign
+\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\C,\ldots\}] }{a.\f = v,\s \ereduce v,\s'}
 
 \EIfZ
 
@@ -106,10 +108,10 @@ Reduction:
 \subsection{Casting}
 
 \begin{mathpar}
-\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C \neq \C \spec \xt{D} \\ \s' = \s[a \is \{\bar{\f = v} \B \C \spec \xt{D}\}]\\
-\f:\t \in \C \spec \xt{D} \implies \sigma'' = \text{cast}(\s', v, \t)}{\text{cast}(\s, a, \xt{D}) = \s''}
+\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v} \B \C,\bar{\xt{A}}\}] \\ \C \neq \bar{\xt{A}} \spec \xt{D} \\ \s' = \s[a \is \{\bar{\f = v} \B \bar{\xt{A}} \spec \xt{D},\bar{\xt{A}},\xt{D}\}]\\
+\f:\t \in \bar{\xt{A}} \spec \xt{D} \implies \sigma'' = \text{cast}(\s', v, \t)}{\text{cast}(\s, a, \xt{D}) = \s''}
 
-\inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
+\inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C,\bar{\xt{A}}\}] \\ \C = \bar{\xt{A}} \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
 
 \inferrule*[lab=CInt]{ }{\text{cast}(\s,\xt{int}[n],\xt{\int}) = \s}
 \end{mathpar}
@@ -121,16 +123,16 @@ Reduction:
 
 \inferrule*[]{}{\any \spec \t = \t}
 
-\inferrule*[]{}{A \spec B = A.B}
+\inferrule*[]{B \not\in \bar{A}}{\bar{A} \spec B = \bar{A}B}
 
-\inferrule*[]{}{\bar{B.}A\bar{.C} \spec A = \bar{B.}A\bar{.C}}
+\inferrule*[]{B \in \bar{A}}{\bar{A} \spec B = \bar{A}}
 \end{mathpar}
 
 \begin{lstlisting}
 classMeet(A,B)
   A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
   B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
-  return class A.B {
+  return class AB {
     (*@\bar{\f:\t_A\spec\t_B}@*),
     (*@\bar{m(\bar{x:\t''_A\spec\t''_B}):\t'_A\spec\t'_B = \cast{\t'_A\spec\t'_B}\this.m'(\bar{\cast{\t''_A\spec\t''_B}x})}@*),
     (*@\bar{m'(\bar{x:\t''_A}):\t'_A = e_A}@*)
