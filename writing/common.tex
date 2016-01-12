@@ -41,27 +41,25 @@
 }
 \newcommand{\types}{\any \B \int \B \C}
 \newcommand{\context}{\G &::= \cdot \B x : \tau~\G\\}
-\newcommand{\objform}{\mathit{o} &::= \{\bar{\f=v} \B \C\}\\}
-\newcommand{\syntax}[1]{
+\newcommand{\syntax}{
 \begin{align*}
 \t &::= \types\\
 e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
-&\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
-\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
+&\B \xt{x}\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
+\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
 \context
 v &::= k \B a\\
-\objform
-\s &::= \emptyset \B  \s( a \is o )\\
-F &::=    \square.\m(\bar e) 
-   \B     \square.\f
+\s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \C\} )\\
+F &::=    \square.\f
    \B     \square.\f = e
-   \B     a.\f = \square
+   \B     a.\f = \square    
+   \B     \square.\m(\bar e) 
    \B     v.\m(\bar v,\square, \bar e) 
    \B     \ifthenelse{\square}{e}{e} 
    \B     \square + e 
    \B      v + \square\\
    &\B     \square\cast{\tau}
-\B \NEW  \C {\bar{v},\square,\bar{e}}\\#1
+\B \NEW  \C {\bar{v},\square,\bar{e}}\\
 \end{align*}}
 
 \newcommand{\TVar}{\inferrule*[lab=TVar]{\G(x) = A }{\G \vdash x : A}}

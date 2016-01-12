@@ -7,14 +7,20 @@
 \begin{document}
 
 Syntax:
-\syntax{}
+\syntax
 
-Specialization relation:
+Consistency:
 
 \begin{mathpar}
-\inferrule*[lab=CNSym]{ }{\tau \sqsubseteq \tau}
+\inferrule*[lab=CNSym]{ }{\tau \sim \tau}
 
-\inferrule*[lab=CNCons]{ }{\any \sqsubseteq \tau}
+\inferrule*[lab=CNCons1]{ }{\any \sim \tau}
+
+\inferrule*[lab=CNCons2]{ }{\tau \sim \any}
+
+\inferrule*[lab=CNSub1]{\CLASS \C {\bar{\xt{D}}} {\ldots}}{\C \sim \xt{D}}
+
+\inferrule*[lab=CNSub2]{\CLASS \C {\bar{\xt{D}}} {\ldots}}{\xt{D} \sim \C}
 \end{mathpar}
 
 
@@ -40,14 +46,23 @@ Typing rules:
 \inferrule*[lab=TClass]{ 
   \bar{\G \vdash \f : \t}\\
   \bar{\G \vdash \MTYPE{\m}{\bar{x:\t''}}{\t'} = e} \\ 
-  \f:\t \in \xt{D} \implies \f:\t' \in \C \wedge \t' \sqsubseteq \t\\
-  \MTYPE{\m}{\bar{x:\t_D''}}{\t_D'}\in \xt{D} \implies \MTYPE{\m}{\bar{x:\t_C''}}{\t_C'} \in \C \wedge \t_C' \sqsubseteq \t_D' \wedge \bar{\t_C'' \sqsubseteq \t_D''}\\
+  \f:\t \in \xt{D} \implies \f:\t \in \C \vee \t = \any\\
+  \MTYPE{\m}{\bar{x:\t_D''}}{\t_D'}\in \xt{D} \implies \MTYPE{\m}{\bar{x:\t_C''}}{\t_C'} \in \C \wedge (\t_C' = \t_D' \vee \t_D' = \any) \wedge \bar{(\t_C'' = \t_D'' \vee \t_D'' = \any)}\\
  }{
   \Gdash \CLASS \C{\xt{D}}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
   }
 \end{mathpar}
 
 \wellformedness
+
+\newcommand{\cicast}{\hookrightarrow}
+
+\begin{mathpar}
+\inferrule*[]{\Gdash e : \C \\ \CLASS \C {\bar{\xt{D}}} {\ldots}}{\Gdash e \cicast e' : \xt{D}}
+
+
+\inferrule*[]{\Gdash e : \xt{D} \\ \CLASS \C {\bar{\xt{D}}} {\ldots}}{\Gdash e \cicast \cast{\xt{C}}e' : \C}
+\end{mathpar}
 
 \subsection{Cast Insertion}
 
