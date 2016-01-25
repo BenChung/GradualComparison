@@ -18,16 +18,41 @@ Consistency:
 
 \inferrule*[lab=CNCons2]{ }{\tau \sim \any}
 
-\inferrule*[lab=CNSub1]{\CLASS \C {\bar{\xt{D}}} {\ldots}}{\C \sim \xt{D}}
-
-\inferrule*[lab=CNSub2]{\CLASS \C {\bar{\xt{D}}} {\ldots}}{\xt{D} \sim \C}
+\inferrule*[lab=CNSub1]{
+  \CLASS \C {\ldots} {\bar{f:\t_C},\bar{m(\bar{\xt{x}:\t_C''}):\t_C'=e}} \\
+  \CLASS {\xt{D}} {\ldots} {\bar{f:\t_D},\bar{m(\bar{\xt{x}:\t_D''}):\t_D'=e}} \\
+  \bar{\t_C \sim \t_D}\\
+  \bar{\t_C' \sim \t_D'}\\
+  \bar{\t_C'' \sim \t_D''}}{\C \sim \xt{D}}
 \end{mathpar}
 
+Subtyping:
+
+\begin{mathpar}
+\inferrule*[lab=SClass]{
+  \CLASS \C {\bar{\xt{D}}} {\ldots}
+}{\C <: \xt{D}}
+\end{mathpar}
+
+
+Consistent Subtyping:
+
+\begin{mathpar}
+\inferrule*[lab=CSSim]{ }{ \t \lesssim \t }
+
+\inferrule*[lab=CSSub]{\C <: \xt{D}}{ \C \lesssim \xt{D} }
+
+\inferrule*[lab=CSCons]{ \t \sim \t'}{\t \lesssim \t'}
+
+\inferrule*[lab=CSTrans]{ \t \lesssim \t' \\ \t' \lesssim \t''}{\t \lesssim \t''}
+\end{mathpar}
 
 Typing rules:
 
 \begin{mathpar}
-\inferrule*[lab=TCons]{ \tau \sim \tau' \\ \G \vdash e : \t }{\G \vdash e : \t'}
+\inferrule*[lab=TCons]{ \tau' \sim \tau \\ \G \vdash e : \t' }{\G \vdash e : \t}
+
+\TSub
 
 \TVar 
 
@@ -43,11 +68,13 @@ Typing rules:
 
 \TNew
 
+\TCast
+
 \inferrule*[lab=TClass]{ 
   \bar{\G \vdash \f : \t}\\
   \bar{\G \vdash \MTYPE{\m}{\bar{x:\t''}}{\t'} = e} \\ 
-  \f:\t \in \xt{D} \implies \f:\t \in \C \vee \t = \any\\
-  \MTYPE{\m}{\bar{x:\t_D''}}{\t_D'}\in \xt{D} \implies \MTYPE{\m}{\bar{x:\t_C''}}{\t_C'} \in \C \wedge (\t_C' = \t_D' \vee \t_D' = \any) \wedge \bar{(\t_C'' = \t_D'' \vee \t_D'' = \any)}\\
+  \f:\t \in \xt{D} \implies \f:\t \in \C\\
+  \MTYPE{\m}{\bar{x:\t''}}{\t'}\in \xt{D} \implies \MTYPE{\m}{\bar{x:\t''}}{\t'} \in \C\\
  }{
   \Gdash \CLASS \C{\xt{D}}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
   }
@@ -55,26 +82,21 @@ Typing rules:
 
 \wellformedness
 
-\newcommand{\cicast}{\hookrightarrow}
+\subsection{Analytic Cast Insertion}
 
 \begin{mathpar}
-\inferrule*[]{\Gdash e : \C \\ \CLASS \C {\bar{\xt{D}}} {\ldots}}{\Gdash e \cicast e' : \xt{D}}
+\inferrule*[lab=CIIDown]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{e}{\C}{\cast{\C}e'}}
 
+\inferrule*[lab=CIIUp]{\Gdash e \tlate e' : \C \\ \C <: \xt{D}}{\CICAST{e}{\xt{D}}{e'}}
 
-\inferrule*[]{\Gdash e : \xt{D} \\ \CLASS \C {\bar{\xt{D}}} {\ldots}}{\Gdash e \cicast \cast{\xt{C}}e' : \C}
+\inferrule*[lab=CIICons]{\Gdash e \tlate e' : \t' \\ \t \lesssim \t' \\ \t \neq \t' }{\CICAST{e}{\t}{\cast{\t}e'}}
+
+\inferrule*[lab=CIIId]{\Gdash e \tlate e' : \t}{\CICAST{e}{\t}{e'}}
 \end{mathpar}
 
-\subsection{Cast Insertion}
+\subsection{Synthetic Cast Insertion}
 
 \begin{mathpar}
-\inferrule*[lab=CICons]{
-  \Gdash e \tlate e' : \t \\
-  \t \sim \t'\\
-  \t \neq \t'
-}{
-  \Gdash e \tlate \cast{\t'}e' : \t'
-}
-
 \CICall
 
 \CICallAny
@@ -87,6 +109,7 @@ Typing rules:
 
 \CINew
 
+\CICast
 \end{mathpar}
 
 
@@ -124,9 +147,11 @@ Reduction:
 \s' = \s[a \is \{\bar{\f = v} \B \C \spec \xt{D}\}]\\
 \f:\t \in \C\spec \xt{D} \implies \sigma'' = \text{cast}(\s', v, \t)}{\text{cast}(\s, a, \xt{D}) = \s''}
 
-\inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C,\bar{\xt{A}}\}] \\ \C = \bar{\xt{A}} \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
+\inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
 
 \inferrule*[lab=CInt]{ }{\text{cast}(\s,\xt{int}[n],\xt{\int}) = \s}
+
+\inferrule*[lab=CSub]{\s[a \is \{\bar{\f = v} \B \C\}]}{\text{cast}(\s, a, \C) = \s}
 \end{mathpar}
 \subsection{Meet}
 \begin{mathpar}
@@ -152,9 +177,9 @@ classMeet(A,B)
   }
 \end{lstlisting}
 
-Define $types(C) = \{A_1,\ldots,A_n\}$ such that $classMeet(A_1,classMeet(\ldots, A_n)) = C$
+Define $types(C) = \{A_1,\ldots,A_n\}$ such that $classMeet(classMeet(A_1,A_2)\ldots,A_n) = C$
 
 Define $gen(C, B) = classMeet(C,B)$
 
-classMeet is applied to every string of classes, in left-to-right order
+classMeet is applied to every string of classes $C_1,\ldots,C_n$.
 \end{document}

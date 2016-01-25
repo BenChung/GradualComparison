@@ -15,6 +15,8 @@
 \newcommand{\intv}[1]{\xt{int}[#1]}
 \newcommand{\strv}[1]{\xt{str}[#1]}
 \newcommand{\tlate}{\rightsquigarrow}
+\newcommand{\cicast}{\hookrightarrow}
+\newcommand{\CICAST}[3]{\Gdash #1\cicast #3 \Leftarrow #2 }
 \newcommand{\s}{\sigma}
 \renewcommand{\sc}{\mu}
 \renewcommand{\t}{\tau}
@@ -40,15 +42,15 @@
     escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
 }
 \newcommand{\types}{\any \B \int \B \C}
-\newcommand{\context}{\G &::= \cdot \B x : \tau~\G\\}
+\newcommand{\context}{\G &::= \cdot \B \xt{x} : \tau~\G\\}
 \newcommand{\syntax}{
 \begin{align*}
 \t &::= \types\\
-e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
-&\B \xt{x}\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
+e &::= n \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
+&\B \xt{x}\B \NEW \C {\bar{e}} \B  \cast{\t}e\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
 \context
-v &::= k \B a\\
+v &::= n \B a\\
 \s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \C\} )\\
 F &::=    \square.\f
    \B     \square.\f = e
@@ -58,12 +60,12 @@ F &::=    \square.\f
    \B     \ifthenelse{\square}{e}{e} 
    \B     \square + e 
    \B      v + \square\\
-   &\B     \square\cast{\tau}
+   &\B     \cast{\tau}\square
 \B \NEW  \C {\bar{v},\square,\bar{e}}\\
 \end{align*}}
 
 \newcommand{\TVar}{\inferrule*[lab=TVar]{\G(x) = A }{\G \vdash x : A}}
-\newcommand{\TInt}{\inferrule*[lab=TInt]{ }{\Gdash \intv{n} : \int}}
+\newcommand{\TInt}{\inferrule*[lab=TInt]{ }{\Gdash {n} : \int}}
 \newcommand{\TSub}{\inferrule*[lab=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}}
 
 \newcommand{\TUApp}{\inferrule*[lab=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}}
@@ -103,7 +105,7 @@ F &::=    \square.\f
 \newcommand{\CICall}{\inferrule*[lab=CICall]{
   \Gdash e \tlate e':\C\\
   \MTYPE\m{\bar\t}{\t'} \in \C \\
-  \bar{\Gdash e' \tlate e'' : \t} 
+  \bar{\CICAST{e'}{\t}{e''}} 
 }{
   \Gdash e.\m(\bar{e'}) \tlate e'.\m(\bar{e''}):\t
 }}
@@ -116,7 +118,7 @@ F &::=    \square.\f
 }}
 
 \newcommand{\CIIf}{\inferrule*[lab=CIIf]{
-  \Gdash e_1 \tlate e_1' : \int \\ 
+  \CICAST{e_1'}{\int}{e_1''}\\ 
   \Gdash e_2\tlate e_2':\t_2 \\ 
   \Gdash e_3 \tlate e_3' : \t_2
 }{
@@ -124,8 +126,8 @@ F &::=    \square.\f
 } }
 
 \newcommand{\CIPlus}{\inferrule*[lab=CIPlus]{
-  \Gdash e_1 \tlate e_1':\int \\ 
-  \Gdash e_2 \tlate e_2' : \int \\ 
+  \CICAST{e_1}{\int}{e_1'}\\ 
+  \CICAST{e_2}{\int}{e_2'}\\ 
 }{
   \Gdash e_1 + e_2 \tlate e_1' + e_2' :\int 
 }}
@@ -138,7 +140,7 @@ F &::=    \square.\f
 
 \newcommand{\CINew}{\inferrule*[lab=CINew]
       {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
-       \bar{\Gdash e \tlate e' : \t}}
+       \bar{\CICAST{e}{\t}{e'}}}
       {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{e'}} : \C}}
 
 
@@ -154,13 +156,13 @@ F &::=    \square.\f
 
 \newcommand{\EAssign}{\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\t\}] }{a.\f = v,\s \ereduce v,\s'}}
 
-\newcommand{\EIfZ}{\inferrule*[lab=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\s \ereduce e_1,\s }}
+\newcommand{\EIfZ}{\inferrule*[lab=EIfZ]{ }{ \ifthenelse{{0}}{e_1}{e_2},\s \ereduce e_1,\s }}
 
-\newcommand{\EIfNZ}{\inferrule*[lab=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\s \ereduce e_2,\s }}
+\newcommand{\EIfNZ}{\inferrule*[lab=EIfNZ]{n\neq 0}{ \ifthenelse{{n}}{e_1}{e_2},\s \ereduce e_2,\s }}
 
-\newcommand{\EPlus}{\inferrule*[lab=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}}
+\newcommand{\EPlus}{\inferrule*[lab=EPlus]{ n_1 + n_2 = n_3 }{ {n_1} + {n_2},\s \ereduce \intv{n_3},\s}}
 
-\newcommand{\ECastInt}{\inferrule*[lab=ECastInt]{ }{ \cast{\int}\intv{n},\s \ereduce \intv{n},\s'}}
+\newcommand{\ECastInt}{\inferrule*[lab=ECastInt]{ }{ \cast{\int}{n},\s \ereduce {n},\s'}}
 
 \newcommand{\wellformedness}{
 \subsection{Class well-formedness}

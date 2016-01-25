@@ -1,66 +1,12 @@
 \documentclass{report}
-\usepackage{mathpartir,amsmath,amssymb,xspace,listings}
+\usepackage{mathpartir,amsmath,amssymb,xspace,listings,fullpage}
 \begin{document}
-\newcommand{\class}{\ensuremath{\xt{class}}\xspace}
-\newcommand{\G}{\Gamma}
-\renewcommand{\int}{\texttt{int}}
-\newcommand{\coerce}{\Rightarrow} %% arrow used in coercions
-\newcommand{\str}{\texttt{str}}
-\newcommand{\any}{\texttt{any}}   %% any type
-\newcommand{\this}{\texttt{this}}
-\newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
-\newcommand{\cast}[1]{\langle #1\rangle} 
-\newcommand{\xt}[1]{\texttt{#1}}
-\newcommand{\creduce}{\longrightarrow_{cr}}  %% reduction
-\newcommand{\ereduce}{\longrightarrow_{e}}   %%  reduction
-\newcommand{\stepsto}{\longrightarrow}        %% reduction
-\newcommand{\intv}[1]{\xt{int}[#1]}
-\newcommand{\strv}[1]{\xt{str}[#1]}
-\newcommand{\tlate}{\rightsquigarrow}
-\newcommand{\s}{\sigma}
-\renewcommand{\sc}{\mu}
-\renewcommand{\t}{\tau}
-\newcommand{\B}{\ensuremath{~|~}\xspace}
-\newcommand{\new}{\ensuremath{\texttt{new}}\xspace}
-\newcommand{\NEW}[2]{\ensuremath{  \new ~ #1 ( #2 )}\xspace}
-\renewcommand{\bar}[1]{\ensuremath{\overline{ #1} }\xspace}
-\newcommand{\m}{\ensuremath{\xt{m}}\xspace}
-\newcommand{\f}{\ensuremath{\xt{f}}\xspace}
-\newcommand{\C}{\ensuremath{\xt{C}}\xspace}
-\newcommand{\D}{\ensuremath{\xt{D}}\xspace}
-\newcommand{\is}{\mapsto}
-%% Cast syntax??
-\newcommand{\cl}{\mathit{cl}\xspace}
-\newcommand{\implements}{\xt{implements}\xspace}
-\newcommand{\CLASS}[3]{ \ensuremath{  \xt{class}~#1~\implements~#2\;\{ #3 \}}\xspace} 
-\newcommand{\MDEF}[4] { #1( #2 ):#3 = #4}
-\newcommand{\MTYPE}[3] { #1( #2 ):#3}
-\newcommand{\MVAL}[3] { #1( #2 ) = #3}
-\newcommand{\Gdash}{\G\vdash}
+\input{common}
 
 
 
 Syntax:
-\begin{align*}
-\t &::= \any \B  \str \B  \int \B  \{\bar{\f :\t},\bar{\m (\bar{\t}):\t}\}\\
-e &::= k \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
-&\B x\B \NEW \C {\bar{e}} \B  e\cast{\t}\\
-\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{x :\t}}{\t'}{e} } } \\
-I &::= \str \B  \int \B  \{\bar{\f :I},\bar{\m (\bar{I}):I}\}\\
-v &::= k \B a \B  v\cast{\any}\\
-\mathit{o} &::= \{\bar{\f=v}, \bar{\m(\bar x) = e} \B \t\}\\
-\s &::= \emptyset \B  \s( a \is o : \t )\\
-F &::=    \square.\m(\bar e) 
-   \B     \square.\f
-   \B     \square.\f = e
-   \B     a.\f = \square
-   \B     v.\m(\bar v,\square, \bar e) 
-   \B     \ifthenelse{\square}{e}{e} 
-   \B     \square + e 
-   \B      v + \square\\
-   &\B     \square\cast{\tau}
-\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\end{align*}
+\syntax{}
 
 \begin{mathpar}
 \inferrule*[right=SubRefl]{ }{ \t <: \t }
@@ -72,73 +18,29 @@ F &::=    \square.\m(\bar e)
 \inferrule*[right=SubInj]{ }{ \xt{!C} <: \C}
 \end{mathpar}
 
+Typing:
+
 \begin{mathpar}
-\inferrule*[right=TCons]{ \tau \sim \tau' \\ \G \vdash e : \t }{\G \vdash e : \t'}
 
-\inferrule*[right=TVar]{\G(x) = A }{\G \vdash x : A}
+\TSub
 
-\inferrule*[right=TStr]{ }{\Gdash string : \str}
+\TVar 
 
-\inferrule*[right=TInt]{ }{\Gdash int : \int}
+\TInt
 
-\inferrule*[right=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}
+\TUApp
 
-\inferrule*[right=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}
+\TApp
 
-\inferrule*[right=TApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \{\ldots, \m(\bar{\t'_i}):\t', \ldots\}}{\Gdash e.\m(\bar{e_i}) : \t'}
+\TIf
 
-\inferrule*[right=TIf]{ 
-     \Gdash e:\int \\
-     \Gdash e':\t \\ 
-     \Gdash e'':\t
-}{ 
-     \Gdash \ifthenelse{e}{e'}{e''} : \t}
+\TPlus
 
-\inferrule*[right=TPlus]{ 
-  \Gdash e:\int \\ \
-  \Gdash e':\int
-}{ \Gdash e+e':\int}
+\TNew
 
-\inferrule*[right=TUField]{ 
-  \Gdash e:\any
-}{ 
-  \Gdash e.\f:\any
-}
-
-\inferrule*[right=TField]{ 
-  \Gdash e:\{\ldots\f:\t\ldots\}
-}{ 
-  \Gdash e.\f:\t
-}
-
-\inferrule*[right=TUAssign]{
-  \Gdash e : \t\\ 
-  \Gdash e':\any
-}{ 
-  \Gdash e'.\f = e:\any
-}
-
-\inferrule*[right=TAssign]{
-  \Gdash e : \t\\ 
-  \Gdash e':\{\ldots\f:\t\ldots\}
-}{ 
-  \Gdash e'.\f = e:\t
-}
-
-\inferrule*[right=TNew]{
-  \bar{\Gdash e:\t} \\ 
-  \G(\C) = \{\ldots \bar{\f:\t} \ldots\}
-}{
-  \Gdash \NEW \C{\bar e}:\xt{!C}
-}
-
-\inferrule*[right=TCast]{
-  \Gdash e:\t'
-}{
-  \Gdash \cast{\t}e}
+\TCast
 
 \inferrule*[right=TClass]{ 
-  \bar{\Gdash D} \\  
   \bar{\MTYPE{\m'}{\bar{x:\t''}}{\t'} \in\D \implies \MTYPE{\m'}{\bar{x:\t''}}{\t'}\in\C }\\
   \bar{\G,\this:\C,\bar{x:\t''} \vdash e:\t'}
  }{
