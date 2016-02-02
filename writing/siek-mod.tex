@@ -32,19 +32,21 @@ Subtyping:
 \inferrule*[lab=SClass]{
   \CLASS \C {\bar{\xt{D}}} {\ldots}
 }{\C <: \xt{D}}
+
+\inferrule*[lab=STrans]{
+  \C <: \xt{D} \\ \xt{D} <: \xt{E}
+}{\C <: \xt{E}}
 \end{mathpar}
 
 
 Consistent Subtyping:
 
 \begin{mathpar}
-\inferrule*[lab=CSSim]{ }{ \t \lesssim \t }
+\inferrule*[lab=CSSub]{\C <: \xt{D}}{ \C \lesssim \xt{D}}
 
-\inferrule*[lab=CSSub]{\C <: \xt{D}}{ \C \lesssim \xt{D} }
+\inferrule*[lab=CSCons]{\tau \sim \tau'}{\tau \lesssim \tau'}
 
-\inferrule*[lab=CSCons]{ \t \sim \t'}{\t \lesssim \t'}
-
-\inferrule*[lab=CSTrans]{ \t \lesssim \t' \\ \t' \lesssim \t''}{\t \lesssim \t''}
+\inferrule*[lab=CSTrans]{\tau_1 \lesssim \tau_2 \\ \tau_2 \lesssim \tau_3}{\tau_1 \lesssim \tau_3}
 \end{mathpar}
 
 Typing rules:
@@ -89,7 +91,7 @@ Typing rules:
 
 \inferrule*[lab=CIIUp]{\Gdash e \tlate e' : \C \\ \C <: \xt{D}}{\CICAST{e}{\xt{D}}{e'}}
 
-\inferrule*[lab=CIICons]{\Gdash e \tlate e' : \t' \\ \t \lesssim \t' \\ \t \neq \t' }{\CICAST{e}{\t}{\cast{\t}e'}}
+\inferrule*[lab=CIICons]{\Gdash e \tlate e' : \t' \\ \t' \lesssim \t \\ \t \neq \t' }{\CICAST{e}{\t}{\cast{\t}e'}}
 
 \inferrule*[lab=CIIId]{\Gdash e \tlate e' : \t}{\CICAST{e}{\t}{e'}}
 \end{mathpar}
@@ -181,5 +183,5 @@ Define $types(C) = \{A_1,\ldots,A_n\}$ such that $classMeet(classMeet(A_1,A_2)\l
 
 Define $gen(C, B) = classMeet(C,B)$
 
-classMeet is applied to every string of classes $C_1,\ldots,C_n$.
+classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \lesssim C_i$ for $i=2,\ldots,n$.
 \end{document}
