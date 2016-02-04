@@ -168,14 +168,30 @@ Reduction:
 \inferrule*[]{B \in types(C)}{C \spec B = C}
 \end{mathpar}
 
+Define $fieldType(A,B,f) = \left\{\begin{array}{lcl}
+\t_A \spec \t_B &:& f:\t_A \in fields(A) \wedge f:\t_B\in fields(B)\\
+\t_A &:& f:\t_A \in fields(A) 
+\end{array}\right.$
+
+and $argType(A,B,m,x) = \left\{\begin{array}{lcl}
+\t''_A \spec \t''_B &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) \wedge \\
+&&m(\ldots,x:\t''_B,\ldots):\t'_B \in methods(B)\\
+\t''_A &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) 
+\end{array}\right.$
+
+and $retType(A,B,m) = \left\{\begin{array}{lcl}
+\t'_A \spec \t'_B &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) \wedge \\
+&&m(\ldots,x:\t''_B,\ldots):\t'_B \in methods(B)\\
+\t'_A &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) 
+\end{array}\right.$
 \begin{lstlisting}
 classMeet(A,B)
   A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
   B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
   return class AB {
-    (*@\bar{\f:\t_A\spec\t_B}@*),
-    (*@\bar{m(\bar{x:\t''_A\spec\t''_B}):\t'_A\spec\t'_B = \cast{\t'_A\spec\t'_B}\this.m'(\bar{\cast{\t''_A\spec\t''_B}x})}@*),
-    (*@\bar{m'(\bar{x:\t''_A}):\t'_A = e_A}@*)
+    (*@\bar{\f:fieldType(A,B,\f)}@*),
+    (*@\bar{f():fieldType(A,B,\f) = \xt{this}.f}@*),
+    (*@\bar{m(\bar{argType(A,B,m,x)}):retType(A,B,m) = \cast{retType(A,B,m)}\this.m'(\bar{\cast{argType(A,B,m,x)}x})}@*)
   }
 \end{lstlisting}
 
@@ -184,4 +200,6 @@ Define $types(C) = \{A_1,\ldots,A_n\}$ such that $classMeet(classMeet(A_1,A_2)\l
 Define $gen(C, B) = classMeet(C,B)$
 
 classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \lesssim C_i$ for $i=2,\ldots,n$.
+
+%TODO: Add helper that takes C,B, and the field/method name and produces the correct type for that field/method
 \end{document}

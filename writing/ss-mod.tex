@@ -51,57 +51,17 @@ Typing:
 \subsection{Cast Insertion}
 
 \begin{mathpar}
-\inferrule*[right=CICast]{
-  \Gdash e \tlate e':\t' \\ 
-  \t'\sim\t
-}{
-  \Gdash \cast{\t} e\tlate \cast{\t}e':\t
-}
+\CICast
 
-\inferrule*[right=CICall1]{
-  \Gdash e \tlate e':\{\ldots \MTYPE\m{\bar \t}{\t''} \ldots\} \\ 
-  \bar{\Gdash e' \tlate e'' : \t'} \\ 
-  \bar{\t \sim \t'} \\ 
-}{
-  \Gdash e.\m(\bar{e'}) \tlate e.\m(\bar{\cast{\t'}e''}):\t''
-}
+\CICall
 
-\inferrule*[right=CICallAny]{ 
-  \Gdash e \tlate e'':\any \\  
-  \bar{\Gdash e' \tlate e''':\t'} \\ 
-}{
-  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}) : \any
-}
+\CIIf
 
-\inferrule*[right=CIIf]{
-  \Gdash e_1 \tlate e_1' : \t_1 \\ 
-  \t_1 \sim \int \\ 
-  \Gdash e_2\tlate e_2':\t_2 \\ 
-  \Gdash e_3 \tlate e_3' : \t_2
-}{
-  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{\cast{\int}e_1'}{e_2'}{e_3'} : \t_2
-} 
+\CIPlus
 
-\inferrule*[right=CIPlus]{
-  \Gdash e_1 \tlate e_1':\t_1 \\ 
-  \Gdash e_2 \tlate e_2' : \t_2 \\ 
-  \t_1 \sim \int \\ 
-  \t_2 \sim \int 
-}{
-  \Gdash e_1 + e_2 \tlate \cast{\int}e_1' + \cast{\int}e_2' :\int 
-}
+\CIVar
 
-\inferrule*[right=CIVar]{
-  x:\t \in \G
-}{
-  \Gdash x \tlate x : \t
-}
-
-\inferrule*[right=CINew]
-      {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
-       \bar{\Gdash e \tlate e' : \t'} \\ 
-        \bar{\t \sim \t'}}
-      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{\cast{\t}e'}} : \C}
+\CINew
 \end{mathpar}
 
 
