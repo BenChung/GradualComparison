@@ -8,24 +8,22 @@
 Syntax:
 \syntax{}
 \begin{mathpar}
-\inferrule*[right=SubRefl]{ }{ \t <: \t }
+\inferrule*[lab=SubRefl]{ }{ \t <: \t }
 
-\inferrule*[right=SubClass]{\class~\C~\implements~\D}{ \C <: \xt{D} }
-
-\inferrule*[right=Subdyn]{ }{\t <: \any}
+\inferrule*[lab=SubClass]{\class~\C~\implements~\D}{ \C <: \xt{D} }
 \end{mathpar}
 
 
 \wellformedness
 
-Typing
+\subsection{Typing}
 
 \begin{mathpar}
 \TVar 
 
 \TInt
 
-\inferrule*[right=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}
+\inferrule*[lab=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}
 
 \TApp
 
@@ -33,7 +31,7 @@ Typing
 
 \TPlus
 
-\inferrule*[right=TNew]{
+\inferrule*[lab=TNew]{
   \bar{\Gdash e:\t} \\ 
   \{\ldots \bar{\f:\t} \ldots\} = fields(\C)\\
   typed(\C)
@@ -43,7 +41,7 @@ Typing
 
 \TCast
 
-\inferrule*[right=TTypedClass]{ 
+\inferrule*[lab=TTypedClass]{ 
   \bar{\Gdash D} \\  
   {\MTYPE{\m'}{\bar{x:\t''}}{\t'} \in\D \implies \MTYPE{\m'}{\bar{x:\t''}}{\t'}\in\C }\\
   {\f:\t \in\D \implies \f:\t \in\C}\\
@@ -53,7 +51,7 @@ Typing
   \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
   }  
 
-\inferrule*[right=TUntypedClass]{ 
+\inferrule*[lab=TUntypedClass]{ 
   \bar{\Gdash D} \\  
   {\MTYPE{\m'}{\bar{x:\any}}{\any} \in\D \implies \MTYPE{\m'}{\bar{x:\any}}{\any}\in\C }\\
   {\f:\any \in\D \implies \f:\any \in\C}\\
@@ -83,7 +81,9 @@ Typing
 
 \CIVar
 
-\inferrule*{ }{\Gdash \NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v} : \any}
+\inferrule*[lab=CTypedClass]{typed(\C)}{\Gdash \NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v} : \any}
+
+\inferrule*[lab=CUntypedClass]{ }{\Gdash \NEW \C {\bar v} \tlate \NEW\C{\bar v} : \any}
 
 \end{mathpar}
 
@@ -108,7 +108,7 @@ Reduction:
 
 \EPlus
 
-\inferrule*[right=ECastRef]{
+\inferrule*[lab=ECastRef]{
 \s' = \s[a' \is \{\xt{orig} = a \B \xt{\#}\C\}] }{ \cast{\C}a,\s \ereduce a',\s'}
 
 \ECastInt

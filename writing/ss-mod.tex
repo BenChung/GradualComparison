@@ -9,13 +9,13 @@ Syntax:
 \syntax{}
 
 \begin{mathpar}
-\inferrule*[right=SubRefl]{ }{ \t <: \t }
+\inferrule*[lab=SubRefl]{ }{ \t <: \t }
 
-\inferrule*[right=SubClass]{\class~\C~\implements~\D}{ \xt{!C} <: \xt{!D} }
+\inferrule*[lab=SubClass]{\class~\C~\implements~\D}{ \xt{!C} <: \xt{!D} }
 
-\inferrule*[right=SubWeak]{ \xt{!C} <: \xt{!D} }{ \C <: \xt{D}}
+\inferrule*[lab=SubWeak]{ \xt{!C} <: \xt{!D} }{ \C <: \xt{D}}
 
-\inferrule*[right=SubInj]{ }{ \xt{!C} <: \C}
+\inferrule*[lab=SubInj]{ }{ \xt{!C} <: \C}
 \end{mathpar}
 
 Typing:
@@ -23,6 +23,8 @@ Typing:
 \begin{mathpar}
 
 \TSub
+
+\inferrule*[lab=TCInj]{\Gamma \vdash e : \tau' \\ \tau' = \any \vee \tau = \any \vee \tau' <: \tau }{ \Gamma \vdash e : \tau}
 
 \TVar 
 
@@ -47,8 +49,20 @@ Typing:
   \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
   }
 \end{mathpar}
+\subsection{Analytic Cast Insertion}
 
-\subsection{Cast Insertion}
+\begin{mathpar}
+\inferrule*[lab=CIIInsert]{\Gdash e \tlate e' : \any }{\CICAST{e}{\t}{\cast{\t}e'}}
+
+\inferrule*[lab=CIISub]{\Gdash e \tlate e' : \xt{D} \\ \xt{D} <: \C}{\CICAST{e}{\C}{e'}}
+
+\inferrule*[lab=CIISuper]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{\cast{\C}e}{\C}{e'}}
+
+\inferrule*[lab=CIIAny]{\Gdash e \tlate e' : \tau}{\CICAST{e}{\any}{e'}}
+\end{mathpar}
+
+
+\subsection{Synthetic Cast Insertion}
 
 \begin{mathpar}
 \CICast
@@ -67,53 +81,30 @@ Typing:
 
 \section{Dynamic semantics:}
 
-
-
-Reduction:
+\subsection{Reduction}
 
 \begin{mathpar}
-\inferrule*[right=EFrame]{ e,v \ereduce e',v'}{F[e],v \ereduce F[e'],v'}
+\EFrame
 
-\inferrule*[right=ENew]{
-     \class \; \C  \{\bar{\f : \t}, \bar{ \m (\bar{x:\t}) : \t' = e}\} \\
-     \s'=\s(a\is\{\bar{\f=v},\bar{ \m (\bar{x}) = e} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}
+\ENew
 
-\inferrule*[right=EInv]{a\is \{\ldots,\m(\bar x)=e, \ldots \B \t\}}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}
+\EInv
 
-\inferrule*[right=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}
+\EField
 
-\inferrule*[right=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\t\}] }{a.\f = v,\s \ereduce v,\s'}
+\EAssign
 
-\inferrule*[right=EIfZ]{ }{ \ifthenelse{\intv{0}}{e_1}{e_2},\s \ereduce e_1,\s }
+\EIfZ
 
-\inferrule*[right=EIfNZ]{n\neq 0}{ \ifthenelse{\intv{n}}{e_1}{e_2},\s \ereduce e_2,\s }
+\EIfNZ
 
-\inferrule*[right=EPlus]{ n_1 + n_2 = n_3 }{ \intv{n_1} + \intv{n_2},\s \ereduce \intv{n_3},\s}
+\EPlus
 
-\inferrule*[right=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}v,\s \ereduce v,\s'}
+\inferrule*[lab=ECastClass]{ \s[a\is\{\ldots\B\xt{D}\}] \\ \xt{D} <: \C }{ \cast{\C}a,\s \ereduce a,\s}
+
+\inferrule*[lab=ECastInt]{ }{ \cast{\int}n,\s \ereduce n,\s}
+
+\inferrule*[lab=ECastAny]{ }{ \cast{\any}v,\s \ereduce v,\s}
 \end{mathpar}
 
-\subsection{Cast reduction}
-
-\begin{lstlisting}[escapeinside={(*}{*)}]
-cast((*$\sigma, v, \t$*))
-  (*$\sigma$*) iff type((*$v$*),(*$\sigma$*)) = type((*$v$*),(*$\sigma$*)) (*$\sqcap$*) (*$\t$*)
-  (*$\sigma_{n+1}[a\is O]$*) iff (*$v = a$*)
-    (*$\sigma(a) = \left.\left<v_1,\ldots,v_N \right|_\t^C\right>$*)
-    (*$\t'' = \t \coerce \t \sqcap \t'$*)
-    (*$\sigma_2 = $*)cast (*$(\sigma, v_1,$*)ftype((*$\t''$, 1))*)
-    (*$\vdots$*)
-    (*$\sigma_{n+1} = $*)cast (*$(\sigma_n, v_n,$*)ftype((*$\t''$, n))*)
-\end{lstlisting}
-
-\subsection{Meet}
-\begin{mathpar}
-\inferrule*[]{}{\t \sqcap \t = \t}
-
-\inferrule*[]{}{\t \sqcap \any = \t}
-
-\inferrule*[]{}{\any \sqcap \t = \t}
-
-\inferrule*[]{}{\{\bar{\f :\t_1}, \bar{\m (\bar{\xt{p}:\t_1''}):\t_1'} \}\sqcap \{\bar{\f :\t_2}, \bar{\m (\bar{\xt{p}:\t_2''}):\t_2'} \} = \{\bar{\f :\t_2 \sqcap \t_2}, \bar{\m (\bar{\xt{p}:\t_1'' \sqcap \t_2''}):\t_1' \sqcap \t_2'} \}}
-\end{mathpar}
 \end{document}

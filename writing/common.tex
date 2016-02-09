@@ -69,7 +69,7 @@ F &::=    \square.\f
 \newcommand{\TSub}{\inferrule*[lab=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}}
 
 \newcommand{\TUApp}{\inferrule*[lab=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}}
-\newcommand{\TApp}{\inferrule*[lab=TApp]{ \Gdash e : \C \\ \m(\bar{\t'_i}):\t' \in \C \\ \Gdash e_i : \t_i}{\Gdash e.\m(\bar{e_i}) : \t'}}
+\newcommand{\TApp}{\inferrule*[lab=TApp]{ \Gdash e : \C \\ \m(\bar{\t'}):\t'' \in \C \\ \Gdash e': \t'}{\Gdash e.\m(\bar{e'}) : \t''}}
 \newcommand{\TIf}{\inferrule*[lab=TIf]{ 
      \Gdash e:\int \\ 
      \Gdash e':\t \\ 
@@ -172,12 +172,8 @@ F &::=    \square.\f
 
 \inferrule*[lab=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
 
-\inferrule*[lab=WFSelfGet]{f:\t \in fields(\G)}{\G \vdash f():\t = \xt{this}.f}
+\inferrule*[lab=WFSelfGet]{\f:\t \in fields(\G)}{\G \vdash \f():\t = \xt{this}.\f}
 
-\inferrule*[lab=WFDelGet]{f:\t \not\in fields(\G) \\ \G \vdash e : \t}{\G \vdash f():\t = e}
-
-\inferrule*[lab=WFSelfSet]{f:\t \in fields(\G)}{\G \vdash f!(\xt{x}:\t):\t = (\xt{this}.f=\xt{x})}
-
-\inferrule*[lab=WFDelSet]{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
+\inferrule*[lab=WFSelfSet]{\f:\t \in fields(\G)}{\G \vdash \f!(\xt{x}:\t):\t = (\xt{this}.\f=\xt{x})}
 \end{mathpar}
 }
