@@ -28,6 +28,7 @@
 \newcommand{\f}{\ensuremath{\xt{f}}\xspace}
 \newcommand{\C}{\ensuremath{\xt{C}}\xspace}
 \newcommand{\D}{\ensuremath{\xt{D}}\xspace}
+\renewcommand{\d}{\ensuremath{\xt{d}}}
 \newcommand{\is}{\mapsto}
 %% Cast syntax??
 \newcommand{\cl}{\mathit{cl}\xspace}
@@ -46,9 +47,10 @@
 \newcommand{\syntax}{
 \begin{align*}
 \t &::= \types\\
-e &::= n \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
-&\B \xt{x}\B \NEW \C {\bar{e}} \B  \cast{\t}e\\
-\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
+e &::= n \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e} \\
+&\B e + e\B \xt{x}\B \NEW \C {\bar{e}} \B  \cast{\t}e\\
+\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{d}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
+d &::= \m \B \f \B f!\\
 \context
 v &::= n \B a\\
 \s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \C\} )\\
@@ -56,8 +58,8 @@ F &::=    \square.\f
    \B     \square.\f = e
    \B     a.\f = \square    
    \B     \square.\m(\bar e) 
-   \B     v.\m(\bar v,\square, \bar e) 
-   \B     \ifthenelse{\square}{e}{e} 
+   \B     v.\m(\bar v,\square, \bar e) \\
+   &\B     \ifthenelse{\square}{e}{e} 
    \B     \square + e 
    \B      v + \square\\
    &\B     \cast{\tau}\square
@@ -163,6 +165,8 @@ F &::=    \square.\f
 \newcommand{\EPlus}{\inferrule*[lab=EPlus]{ n_1 + n_2 = n_3 }{ {n_1} + {n_2},\s \ereduce \intv{n_3},\s}}
 
 \newcommand{\ECastInt}{\inferrule*[lab=ECastInt]{ }{ \cast{\int}{n},\s \ereduce {n},\s'}}
+
+\newcommand{\ECastAny}{\inferrule*[lab=ECastAny]{ }{ \cast{\any}v,\s \ereduce v,\s}}
 
 \newcommand{\wellformedness}{
 \subsection{Class well-formedness}

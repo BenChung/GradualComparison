@@ -1,6 +1,6 @@
-\documentclass{llncs}
+\documentclass{sigplanconf}
 \usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure}
-\usepackage{graphicx,wrapfig,array,multirow,mathpartir}
+\usepackage{graphicx,wrapfig,array,multirow,mathpartir,mathpartir,amsmath,amssymb}
 
 \newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
  \hypersetup{colorlinks=true,
@@ -19,7 +19,6 @@
 \newcommand{\Ruby}{\lang{Ruby}\xspace}
 \newcommand{\Groovy}{\lang{Groovy}\xspace}
 
-\renewcommand{\mapsto}{/}
 \newcommand{\NOTE}[3][NOTE]{\marginpar{\textcolor{#2}{\textbf{#1:}\scriptsize\sf#3}}}
 \newcommand{\TODO}[2][Unassigned]{\NOTE[#1]{black}{#2}}
 \newcommand{\FM}[1]{\NOTE[FM]{blue}{#1}}
@@ -60,10 +59,6 @@
 \newcommand{\kewclass}{\texttt{\textbf{class}}}
 \newcommand{\kewimplements}{\texttt{\textbf{implements}}}
 
-\newcommand{\class}[4]{\ensuremath\kewclass\; \texttt{#1}\; \kewimplements\; {#2} \;\{#3;\;#4\}}
-\newcommand{\field}[2]{\ensuremath \texttt{#1} : \texttt{#2}}
-\newcommand{\method}[4]{\ensuremath {\texttt{#1}}({#2}):\texttt{#3} \{\texttt{#4}\}}
-
 \newcommand{\ifabs}[3]{\kewif \; #1 \;\kewthen\; #2 \;\kewelse\; #3}
 \newcommand{\opplus}[2]{#1 + #2}
 \newcommand{\newclass}[2]{\kewnew\;\texttt{#1}(#2)}
@@ -72,15 +67,23 @@
 \newcommand{\intt}{\texttt{int}}
 \newcommand{\anyt}{\texttt{any}}
 \newcommand{\vbar}{\;|\;}
+\newcommand{\spec}{\vartriangleright}
 
+\input{common}
 
-\mainmatter
 %\titlerunning{\it Evaluating the Design of R}
 %\authorrunning{\it Morandat et al.}
 
-\title{The Design Space of Gradual Type Systems} \author{Ben and Jan}
-\institute{\begin{tabular}{ccc}Northeasern University \end{tabular}}
-\begin{document}\maketitle
+\begin{document}
+\title{The Design Space of Gradual Type Systems} 
+\authorinfo{Ben and Jan}{Northeastern University}{EMAILS}
+\maketitle
+
+
+\conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
+\copyrightyear{20yy}
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+\copyrightdoi{nnnnnnn.nnnnnnn}
 
 \begin{abstract}
 The popularity of dynamically typed languages has given rise to a cottage
@@ -195,12 +198,7 @@ than the more usual well-typed one.
 \section{Core Calculus}
 
 \begin{figure}
-\begin{align*}
-\texttt{d}&::= \class{C}{\overline{\texttt{D}}}{\overline{\field{f}{T}}}{\overline{\method{m}{\overline{\field{l}{T}}}{T}{e}}}\\
-\texttt{T} &::= \intt \vbar \strt \vbar \anyt \vbar \texttt{C} \vbar \texttt{!C}\\
-\texttt{e}&::= \texttt{f} \vbar \texttt{f} = \texttt{e} \vbar \texttt{l} \vbar \texttt{e.m}(\overline{\texttt{e}}) \vbar \texttt{const} \vbar 
-\ifabs{\texttt{e}}{\texttt{e}}{\texttt{e}} \vbar \opplus{\texttt{e}}{\texttt{e}} \vbar \newclass{\texttt{C}}{\overline{\texttt{e}}} \vbar \texttt{e}; \texttt{e}
-\end{align*}
+\syntax
 
 \caption{Abstract Syntax for the Core Calculus}
 \end{figure}
@@ -232,6 +230,364 @@ grammar by having get and set forms only involving labels.
 \section{Examples}
 
 
+\begin{figure}
+\begin{mathpar}
+\TVar
+
+\TInt
+
+\TSub
+
+\TUApp
+
+\TApp
+
+\TIf
+
+\TPlus
+
+\TNew
+
+\TCast
+\end{mathpar}
+\caption{Common Typing Rules}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+
+\CICast
+
+\CICall
+
+\CICallAny
+
+\CIIf
+
+\CIPlus
+
+\CIVar
+
+\CINew
+\end{mathpar}
+\caption{Common Synthetic Cast Insertion}
+\end{figure}
+
+
+\begin{figure}
+\begin{mathpar}
+
+\EFrame
+
+\ENew
+
+\EInv
+
+\EField
+
+\EAssign
+
+\EIfZ
+
+\EIfNZ
+
+\EPlus
+
+\ECastInt
+
+\ECastAny
+\end{mathpar}
+\caption{Common Evaluation}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=SClass]{
+  \CLASS \C {\bar{\xt{D}}} {\ldots}
+}{\C <: \xt{D}}
+
+\inferrule*[lab=STrans]{
+  \C <: \xt{D} \\ \xt{D} <: \xt{E}
+}{\C <: \xt{E}}
+\end{mathpar}
+\caption{Common Subtyping}
+\end{figure}
+
+\section{Monotonic Semantics}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=CNSym]{ }{\tau \sim \tau}
+
+\inferrule*[lab=CNCons1]{ }{\any \sim \tau}
+
+\inferrule*[lab=CNCons2]{ }{\tau \sim \any}
+
+\inferrule*[lab=CNSub1]{
+  \CLASS \C {\ldots} {\bar{f:\t_C},\bar{d(\bar{\xt{x}:\t_C''}):\t_C'=e}} \\
+  \CLASS {\xt{D}} {\ldots} {\bar{f:\t_D},\bar{d(\bar{\xt{x}:\t_D''}):\t_D'=e}} \\
+  \bar{\t_C \sim \t_D}\\
+  \bar{\t_C' \sim \t_D'}\\
+  \bar{\t_C'' \sim \t_D''}}{\C \sim \xt{D}}
+\end{mathpar}
+\caption{Consistency for the monotonic semantics}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=CSSub]{\C <: \xt{D}}{ \C \lesssim \xt{D}}
+
+\inferrule*[lab=CSCons]{\tau \sim \tau'}{\tau \lesssim \tau'}
+
+\inferrule*[lab=CSTrans]{\tau_1 \lesssim \tau_2 \\ \tau_2 \lesssim \tau_3}{\tau_1 \lesssim \tau_3}
+\end{mathpar}
+\caption{Consistent subtyping for the monotonic semantics}
+\end{figure}
+
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=TClass]{ 
+  \bar{\G \vdash \f : \t}\\
+  \bar{\G \vdash \MTYPE{\m}{\bar{x:\t''}}{\t'} = e} \\ 
+  \f:\t \in \xt{D} \implies \f:\t \in \C\\
+  \MTYPE{d}{\bar{x:\t''}}{\t'}\in \xt{D} \implies \MTYPE{d}{\bar{x:\t''}}{\t'} \in \C\\
+ }{
+  \Gdash \CLASS \C{\xt{D}}{\bar{\f:\t},\bar{\MDEF d{\bar{x:\t''}}{\t'}e}}
+  }
+\end{mathpar}
+\caption{Typing for the monotonic semantics}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=CIIDown]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{e}{\C}{\cast{\C}e'}}
+
+\inferrule*[lab=CIIUp]{\Gdash e \tlate e' : \C \\ \C <: \xt{D}}{\CICAST{e}{\xt{D}}{e'}}
+
+\inferrule*[lab=CIICons]{\Gdash e \tlate e' : \t' \\ \t' \lesssim \t \\ \t \neq \t' }{\CICAST{e}{\t}{\cast{\t}e'}}
+
+\inferrule*[lab=CIIId]{\Gdash e \tlate e' : \t}{\CICAST{e}{\t}{e'}}
+\end{mathpar}
+\caption{Analytic typing for monotonic semantics}
+\end{figure}
+
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}a,\s \ereduce a,\s'}
+\end{mathpar}
+\caption{Evaluation rules for the monotonic semantics}
+\end{figure}
+
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[]{}{\t \spec \t = \t}
+
+\inferrule*[]{}{\t \spec \any = \t}
+
+\inferrule*[]{}{\any \spec \t = \t}
+
+\inferrule*[]{B \not\in types(C)}{C \spec B = gen(C,B)}
+
+\inferrule*[]{B \in types(C)}{C \spec B = C}
+\end{mathpar}
+\caption{Meet function for the monotonic semantics}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v} \B \C\}] \\ 
+\C \neq \C \spec \xt{D} \\ 
+\s' = \s[a \is \{\bar{\f = v} \B \C \spec \xt{D}\}]\\
+\f:\t \in \C\spec \xt{D} \implies \sigma'' = \text{cast}(\s', v, \t)}{\text{cast}(\s, a, \xt{D}) = \s''}
+
+\inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
+
+\inferrule*[lab=CInt]{ }{\text{cast}(\s,\xt{int}[n],\xt{\int}) = \s}
+
+\inferrule*[lab=CSub]{\s[a \is \{\bar{\f = v} \B \C\}]}{\text{cast}(\s, a, \C) = \s}
+\end{mathpar}
+\caption{Casting in the monotonic system}
+\end{figure}
+
+
+\begin{figure}
+\begin{align*}
+&fieldType(A,B,f) = \\
+&\left\{\begin{array}{lcl}
+\t_A \spec \t_B &:& f:\t_A \in fields(A) \wedge f:\t_B\in fields(B)\\
+\t_A &:& f:\t_A \in fields(A) 
+\end{array}\right.\\
+&argType(A,B,m,x) =\\
+&\left\{\begin{array}{lcl}
+\t''_A \spec \t''_B &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) \wedge \\
+&&m(\ldots,x:\t''_B,\ldots):\t'_B \in methods(B)\\
+\t''_A &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) 
+\end{array}\right.\\
+&retType(A,B,m) = \\
+&\left\{\begin{array}{lcl}
+\t'_A \spec \t'_B &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) \wedge \\
+&&m(\ldots,x:\t''_B,\ldots):\t'_B \in methods(B)\\
+\t'_A &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) 
+\end{array}\right.
+\end{align*}
+\caption{Monotonic class generation helper functions}
+\end{figure}
+
+\begin{figure}
+\begin{lstlisting}
+classMeet(A,B)
+  A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
+  B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
+  return class AB {
+    (*@\bar{\f:fieldType(A,B,\f)}@*),
+    (*@\bar{f():fieldType(A,B,\f) = \xt{this}.f}@*),
+    (*@\bar{m(\bar{argType(A,B,m,x)}):retType(A,B,m) =}@*)
+    	(*@\bar{\cast{retType(A,B,m)}\this.m'(\bar{\cast{argType(A,B,m,x)}x})}@*)
+  }
+\end{lstlisting}
+\caption{Monotonic class meet function}
+\end{figure}
+
+Define $types(C) = \{A_1,\ldots,A_n\}$ such that $classMeet(classMeet(A_1,A_2)\ldots,A_n) = C$
+
+Define $gen(C, B) = classMeet(C,B)$
+
+classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \lesssim C_i$ for $i=2,\ldots,n$.
+
+\section{Wrapper Semantics}
+
+
+\begin{figure}
+\begin{mathpar}
+
+\inferrule*[lab=TNew]{
+  \bar{\Gdash e:\t} \\ 
+  \{\ldots \bar{\f:\t} \ldots\} = fields(\C)\\
+  typed(\C)
+}{
+  \Gdash \NEW \C{\bar e}:\C
+}
+
+
+\inferrule*[lab=TTypedClass]{ 
+  \bar{\Gdash D} \\  
+  {\MTYPE{\m'}{\bar{x:\t''}}{\t'} \in\D \implies \MTYPE{\m'}{\bar{x:\t''}}{\t'}\in\C }\\
+  {\f:\t \in\D \implies \f:\t \in\C}\\
+  {\bar{\Gdash \f:\t}}\\
+  {\bar{\Gdash \MDEF\m{\bar{x:\t''}}{\t'}e}}
+ }{
+  \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
+  }  
+
+\inferrule*[lab=TUntypedClass]{ 
+  \bar{\Gdash D} \\  
+  {\MTYPE{\m'}{\bar{x:\any}}{\any} \in\D \implies \MTYPE{\m'}{\bar{x:\any}}{\any}\in\C }\\
+  {\f:\any \in\D \implies \f:\any \in\C}\\
+ }{
+  \Gdash \CLASS \C{\bar\D}{\bar{\f:\any},\bar{\MDEF\m{\bar{x:\any}}{\any}e}}
+  } 
+\end{mathpar}
+\caption{Wrapper typing rules}
+\end{figure}
+
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=CIIUni]{ }{\CICAST{e}{\t}{e}}
+\end{mathpar}
+\caption{Analytic cast insertion for the wrapper semantics}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=CTypedClass]{typed(\C)}{\Gdash \NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v} : \any}
+
+\inferrule*[lab=CUntypedClass]{ }{\Gdash \NEW \C {\bar v} \tlate \NEW\C{\bar v} : \any}
+\end{mathpar}
+\caption{Analytic cast insertion for the wrapper semantics}
+\end{figure}
+
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=ECastRef]{
+\s' = \s[a' \is \{\xt{orig} = a \B \xt{\#}\C\}] }{ \cast{\C}a,\s \ereduce a',\s'}
+\end{mathpar}
+\caption{Evaluation for the wrapper semantics}
+\end{figure}
+
+\begin{figure}
+
+\begin{lstlisting}
+wrapper(A)
+  A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
+  return class #A {
+    (*@\xt{orig}:\xt{A}@*),
+    (*@\xt{orig():\xt{A} = this.orig}@*),
+    (*@$\bar{m(\bar{x:\any}):\any = \cast{\t'_A}\xt{this.orig()}.m(\bar{\cast{\t''_A}v})}$@*)
+  }
+\end{lstlisting}
+
+For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ that ensures the type invariants on A.
+\caption{Wrapper generation for wrapper semantics}
+\end{figure}
+
+\section{Optional Semantics}
+
+\begin{figure}
+
+\begin{mathpar}
+\inferrule*[lab=SubRefl]{ }{ \t <: \t }
+
+\inferrule*[lab=SubClass]{\class~\C~\implements~\D}{ \xt{!C} <: \xt{!D} }
+
+\inferrule*[lab=SubWeak]{ \xt{!C} <: \xt{!D} }{ \C <: \xt{D}}
+
+\inferrule*[lab=SubInj]{ }{ \xt{!C} <: \C}
+\end{mathpar}
+
+\caption{Optional typing subtyping semantics}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=TCInj]{\Gamma \vdash e : \tau' \\ \tau' = \any \vee \tau = \any \vee \tau' <: \tau }{ \Gamma \vdash e : \tau}
+
+\inferrule*[right=TClass]{ 
+  \bar{\MTYPE{\m'}{\bar{x:\t''}}{\t'} \in\D \implies \MTYPE{\m'}{\bar{x:\t''}}{\t'}\in\C }\\
+  \bar{\G,\this:\C,\bar{x:\t''} \vdash e:\t'}
+ }{
+  \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
+  }
+\end{mathpar}
+
+\caption{Optional typing typing}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=CIIInsert]{\Gdash e \tlate e' : \any }{\CICAST{e}{\t}{\cast{\t}e'}}
+
+\inferrule*[lab=CIISub]{\Gdash e \tlate e' : \xt{D} \\ \xt{D} <: \C}{\CICAST{e}{\C}{e'}}
+
+\inferrule*[lab=CIISuper]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{\cast{\C}e}{\C}{e'}}
+
+\inferrule*[lab=CIIAny]{\Gdash e \tlate e' : \tau}{\CICAST{e}{\any}{e'}}
+\end{mathpar}
+
+\caption{Optional typing analytic cast insertion}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=ECastClass]{ \s[a\is\{\ldots\B\xt{D}\}] \\ \xt{D} <: \C }{ \cast{\C}a,\s \ereduce a,\s}
+\end{mathpar}
+
+\caption{Optional typing evaluation}
+\end{figure}
 
 \section{Conclusion}
 
