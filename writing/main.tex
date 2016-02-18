@@ -371,6 +371,7 @@ grammar by having get and set forms only involving labels.
 
 
 \begin{figure}
+\opdef{$\t_1 \spec \t_2 = \t_3$}{$\tau_1$ specialized with $\tau_2$ produces type $\tau_3$}
 \begin{mathpar}
 \inferrule*[]{}{\t \spec \t = \t}
 
@@ -382,10 +383,7 @@ grammar by having get and set forms only involving labels.
 
 \inferrule*[]{B \in types(C)}{C \spec B = C}
 \end{mathpar}
-\caption{Meet function for the monotonic semantics}
-\end{figure}
-
-\begin{figure}
+\opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
 \inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v} \B \C\}] \\ 
 \C \neq \C \spec \xt{D} \\ 
@@ -422,22 +420,19 @@ grammar by having get and set forms only involving labels.
 \t'_A &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) 
 \end{array}\right.
 \end{align*}
-\caption{Monotonic class generation helper functions}
-\end{figure}
 
-\begin{figure}
 \begin{lstlisting}
 classMeet(A,B)
   A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
   B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
   return class AB {
     (*@\bar{\f:fieldType(A,B,\f)}@*),
-    (*@\bar{f():fieldType(A,B,\f) = \xt{this}.f}@*),
+    (*@\bar{\f():fieldType(A,B,\f) = \xt{this}.\f}@*),
     (*@\bar{m(\bar{argType(A,B,m,x)}):retType(A,B,m) =}@*)
     	(*@\bar{\cast{retType(A,B,m)}\this.m'(\bar{\cast{argType(A,B,m,x)}x})}@*)
   }
 \end{lstlisting}
-\caption{Monotonic class meet function}
+\caption{Monotonic helper functions}
 \end{figure}
 
 Define $types(C) = \{A_1,\ldots,A_n\}$ such that 
@@ -452,6 +447,7 @@ classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \les
 
 
 \begin{figure}
+\opdef{$\Gamma\vdash e : \t$}{$e$ has type $\t$ in context $\G$}
 \begin{mathpar}
 
 \inferrule*[lab=TNew]{
@@ -461,7 +457,6 @@ classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \les
 }{
   \Gdash \NEW \C{\bar e}:\C
 }
-
 
 \inferrule*[lab=TTypedClass]{ 
   \bar{\Gdash D} \\  
@@ -481,18 +476,11 @@ classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \les
   \Gdash \CLASS \C{\bar\D}{\bar{\f:\any},\bar{\MDEF\m{\bar{x:\any}}{\any}e}}
   } 
 \end{mathpar}
-\caption{Wrapper typing rules}
-\end{figure}
-
-
-\begin{figure}
+\opdef{$\CICAST{e}{\t}{e'}$}{$e$ translates to $e'$ ensuring type $\t$ in context $\G$}
 \begin{mathpar}
 \inferrule*[lab=CIIUni]{ }{\CICAST{e}{\t}{e}}
 \end{mathpar}
-\caption{Analytic cast insertion for the wrapper semantics}
-\end{figure}
-
-\begin{figure}
+\opdef{$\CICAST{e}{\t}{e'}$}{$e$ translates to $e'$ producing type $\t$ in context $\G$}
 \begin{mathpar}
 \inferrule*[lab=CTypedClass]{typed(\C)}{\Gdash \NEW \C {\bar v} \tlate \cast{\C}\NEW\C{\bar v} : \any}
 
@@ -503,6 +491,7 @@ classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \les
 
 
 \begin{figure}
+\opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
 \inferrule*[lab=ECastRef]{
 \s' = \s[a' \is \{\xt{orig} = a \B \xt{\#}\C\}] }{ \cast{\C}a,\s \ereduce a',\s'}
@@ -530,6 +519,7 @@ For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ tha
 
 \begin{figure}
 
+\opdef{$\t <: \t'$}{$\t$ is a subtype of $\t'$}
 \begin{mathpar}
 \inferrule*[lab=SubRefl]{ }{ \t <: \t }
 
@@ -539,11 +529,7 @@ For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ tha
 
 \inferrule*[lab=SubInj]{ }{ \xt{!C} <: \C}
 \end{mathpar}
-
-\caption{Optional typing subtyping semantics}
-\end{figure}
-
-\begin{figure}
+\opdef{$\Gamma\vdash e : \t$}{$e$ has type $\t$ in context $\G$}
 \begin{mathpar}
 \inferrule*[lab=TCInj]{\Gamma \vdash e : \tau' \\ \tau' = \any \vee \tau = \any \vee \tau' <: \tau }{ \Gamma \vdash e : \tau}
 
@@ -554,11 +540,7 @@ For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ tha
   \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
   }
 \end{mathpar}
-
-\caption{Optional typing typing}
-\end{figure}
-
-\begin{figure}
+\opdef{$\CICAST{e}{\t}{e'}$}{$e$ translates to $e'$ ensuring type $\t$ in context $\G$}
 \begin{mathpar}
 \inferrule*[lab=CIIInsert]{\Gdash e \tlate e' : \any }{\CICAST{e}{\t}{\cast{\t}e'}}
 
@@ -569,10 +551,11 @@ For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ tha
 \inferrule*[lab=CIIAny]{\Gdash e \tlate e' : \tau}{\CICAST{e}{\any}{e'}}
 \end{mathpar}
 
-\caption{Optional typing analytic cast insertion}
+\caption{Optional typing statics}
 \end{figure}
 
 \begin{figure}
+\opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
 \inferrule*[lab=ECastClass]{ \s[a\is\{\ldots\B\xt{D}\}] \\ \xt{D} <: \C }{ \cast{\C}a,\s \ereduce a,\s}
 \end{mathpar}
