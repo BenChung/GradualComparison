@@ -1,5 +1,5 @@
 \documentclass{sigplanconf}
-\usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure}
+\usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure, framed}
 \usepackage{graphicx,wrapfig,array,multirow,mathpartir,mathpartir,amsmath,amssymb}
 
 \newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
@@ -68,6 +68,8 @@
 \newcommand{\anyt}{\texttt{any}}
 \newcommand{\vbar}{\;|\;}
 \newcommand{\spec}{\vartriangleright}
+
+\newcommand{\opdef}[2]{\framebox[1.1\width]{#1} ~ #2\\}
 
 \input{common}
 
@@ -231,6 +233,17 @@ grammar by having get and set forms only involving labels.
 
 
 \begin{figure}
+\opdef{$\t <: \t'$}{$\t$ is a subtype of $\t'$}
+\begin{mathpar}
+\inferrule*[lab=SClass]{
+  \CLASS \C {\bar{\xt{D}}} {\ldots}
+}{\C <: \xt{D}}
+
+\inferrule*[lab=STrans]{
+  \C <: \xt{D} \\ \xt{D} <: \xt{E}
+}{\C <: \xt{E}}
+\end{mathpar}
+\opdef{$\Gamma\vdash e : \t$}{$e$ has type $\t$ in context $\G$}
 \begin{mathpar}
 \TVar
 
@@ -250,17 +263,14 @@ grammar by having get and set forms only involving labels.
 
 \TCast
 \end{mathpar}
-\caption{Common Typing Rules}
-\end{figure}
-
-\begin{figure}
+\opdef{$\Gdash e \tlate e' : \t$}{$e$ translates to $e'$ producing type $\t$ in context $\G$}
+\opdef{$\CICAST{e}{\t}{e'}$}{$e$ translates to $e'$ ensuring type $\t$ in context $\G$}
 \begin{mathpar}
-
 \CICast
 
-\CICall
-
 \CICallAny
+
+\CICall
 
 \CIIf
 
@@ -270,13 +280,13 @@ grammar by having get and set forms only involving labels.
 
 \CINew
 \end{mathpar}
-\caption{Common Synthetic Cast Insertion}
+\caption{Common Statics}
 \end{figure}
 
 
 \begin{figure}
+\opdef{$e,\s \ereduce e',\s'$}{$e$ with heap $\s$ evaluates to $e'$ and $\s$ in one step}
 \begin{mathpar}
-
 \EFrame
 
 \ENew
@@ -297,25 +307,13 @@ grammar by having get and set forms only involving labels.
 
 \ECastAny
 \end{mathpar}
-\caption{Common Evaluation}
-\end{figure}
-
-\begin{figure}
-\begin{mathpar}
-\inferrule*[lab=SClass]{
-  \CLASS \C {\bar{\xt{D}}} {\ldots}
-}{\C <: \xt{D}}
-
-\inferrule*[lab=STrans]{
-  \C <: \xt{D} \\ \xt{D} <: \xt{E}
-}{\C <: \xt{E}}
-\end{mathpar}
-\caption{Common Subtyping}
+\caption{Common Dynamics}
 \end{figure}
 
 \section{Monotonic Semantics}
 
 \begin{figure}
+\opdef{$\tau \sim \tau'$}{$\tau$ is compatible with $\tau'$}
 \begin{mathpar}
 \inferrule*[lab=CNSym]{ }{\tau \sim \tau}
 
@@ -330,10 +328,7 @@ grammar by having get and set forms only involving labels.
   \bar{\t_C' \sim \t_D'}\\
   \bar{\t_C'' \sim \t_D''}}{\C \sim \xt{D}}
 \end{mathpar}
-\caption{Consistency for the monotonic semantics}
-\end{figure}
-
-\begin{figure}
+\opdef{$\tau \sim \tau'$}{$\tau$ is subtype compatible with $\tau'$}
 \begin{mathpar}
 \inferrule*[lab=CSSub]{\C <: \xt{D}}{ \C \lesssim \xt{D}}
 
@@ -341,11 +336,12 @@ grammar by having get and set forms only involving labels.
 
 \inferrule*[lab=CSTrans]{\tau_1 \lesssim \tau_2 \\ \tau_2 \lesssim \tau_3}{\tau_1 \lesssim \tau_3}
 \end{mathpar}
-\caption{Consistent subtyping for the monotonic semantics}
+\caption{Monotonic operators}
 \end{figure}
 
 
 \begin{figure}
+\opdef{$\Gamma\vdash e : \t$}{$e$ has type $\t$ in context $\G$}
 \begin{mathpar}
 \inferrule*[lab=TClass]{ 
   \bar{\G \vdash \f : \t}\\
@@ -356,10 +352,7 @@ grammar by having get and set forms only involving labels.
   \Gdash \CLASS \C{\xt{D}}{\bar{\f:\t},\bar{\MDEF d{\bar{x:\t''}}{\t'}e}}
   }
 \end{mathpar}
-\caption{Typing for the monotonic semantics}
-\end{figure}
-
-\begin{figure}
+\opdef{$\CICAST{e}{\t}{e'}$}{$e$ translates to $e'$ ensuring type $\t$ in context $\G$}
 \begin{mathpar}
 \inferrule*[lab=CIIDown]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{e}{\C}{\cast{\C}e'}}
 
@@ -369,11 +362,7 @@ grammar by having get and set forms only involving labels.
 
 \inferrule*[lab=CIIId]{\Gdash e \tlate e' : \t}{\CICAST{e}{\t}{e'}}
 \end{mathpar}
-\caption{Analytic typing for monotonic semantics}
-\end{figure}
-
-
-\begin{figure}
+\opdef{$e,\s \ereduce e',\s'$}{$e$ with heap $\s$ evaluates to $e'$ and $\s$ in one step}
 \begin{mathpar}
 \inferrule*[lab=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}a,\s \ereduce a,\s'}
 \end{mathpar}
@@ -451,7 +440,9 @@ classMeet(A,B)
 \caption{Monotonic class meet function}
 \end{figure}
 
-Define $types(C) = \{A_1,\ldots,A_n\}$ such that $classMeet(classMeet(A_1,A_2)\ldots,A_n) = C$
+Define $types(C) = \{A_1,\ldots,A_n\}$ such that 
+
+$classMeet(classMeet(A_1,A_2)\ldots,A_n) = C$
 
 Define $gen(C, B) = classMeet(C,B)$
 
