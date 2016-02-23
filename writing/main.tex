@@ -1,6 +1,6 @@
 \documentclass{sigplanconf}
 \usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure, framed}
-\usepackage{graphicx,wrapfig,array,multirow,mathpartir,mathpartir,amsmath,amssymb}
+\usepackage{graphicx,wrapfig,array,multirow,mathpartir,amsmath,amssymb}
 
 \newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
  \hypersetup{colorlinks=true,
@@ -243,9 +243,11 @@ grammar by having get and set forms only involving labels.
   \C <: \xt{D} \\ \xt{D} <: \xt{E}
 }{\C <: \xt{E}}
 \end{mathpar}
-\opdef{$\Gamma\vdash e : \t$}{$e$ has type $\t$ in context $\G$}
+\opdef{$\S;\Gamma\vdash e : \t$}{$e$ has type $\t$ in context $\G$ with heap $\S$}
 \begin{mathpar}
 \TVar
+
+\TRef
 
 \TInt
 
@@ -285,9 +287,11 @@ grammar by having get and set forms only involving labels.
 
 
 \begin{figure}
-\opdef{$e,\s \ereduce e',\s'$}{$e$ with heap $\s$ evaluates to $e'$ and $\s$ in one step}
+\opdef{$e,\s \ereduce r,\s'$}{$e$ with heap $\s$ evaluates to $r$ and $\s$ in one step}
 \begin{mathpar}
 \EFrame
+
+\inferrule*[lab=EFrameCastError]{ e,\s \ereduce \casterror,\s'}{F[e],\s \ereduce \casterror,\s'}
 
 \ENew
 
@@ -306,6 +310,8 @@ grammar by having get and set forms only involving labels.
 \ECastInt
 
 \ECastAny
+
+\inferrule*[lab=ECastError]{ }{\cast{\t}v,\s \ereduce \casterror,\s}
 \end{mathpar}
 \caption{Common Dynamics}
 \end{figure}

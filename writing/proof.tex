@@ -1,0 +1,96 @@
+\documentclass{report}
+\usepackage{fullpage,mathpartir,amsmath,amssymb,listings,amsthm,xspace}
+
+
+\input{common}
+
+\newtheorem{thm}{Theorem}
+\begin{document}
+
+\section{Common case analysis}
+\begin{thm} 
+\label{castv}For any $v$ and $\t$ s.t. $\Gdash \t$, then there is a $v'$ such that $\cast{\t}v,\s \ereduce v',\s'$ or $\cast{\t}v,\s \ereduce \casterror,\s'$\end{thm}
+\begin{proof}
+Follows by definition of casting over all systems.
+\end{proof}
+
+
+\begin{thm} 
+\label{cisnd}If $\Gdash e \tlate e' : \t$ or $\CICAST{e}{\t}{e'}$ then $\Gdash e' : \t$\end{thm}
+\begin{proof}
+Proceed on mutual rule induction over the derivation.
+\begin{tabbing}
+Case \=CICast:\\
+\> Therefore, we know that $e' = \cast{\t}e''$, and by TCast $\Gdash \cast{\t}e'' : \t$\\
+Case CICallAny:\\
+\> By the IH, $\Gdash e'' : \any$ and $\bar{\Gdash e''' : \t'}$.\\
+\> Therefore, by TUApp, $\Gdash e''.\m(\bar{e'''}) : \any$\\
+Case CICall:\\
+\> By the IH, $\Gdash e' : \C$ and $\bar{\Gdash e''' : \t}$\\
+\> By TApp, $\Gdash e''.\m(\bar{e'''}) : \t$.\\
+Case CIIf:\\
+\> By the IH, $\Gdash e_1'' : \int$, $\Gdash e_2' : \t_2$, and $\Gdash e_3' : \t_2$.\\
+\> Therefore, by TIf, $\Gdash \ifthenelse{e_1'}{e_2'}{e_3'} : \t_2$\\
+Case CIPlus:\\
+\> By the IH, $\Gdash e_1' : \int$ and $\Gdash e_2' : \int$.\\
+\> Therefore, by TPlus, $\Gdash e_1' + e_2' : \int$.\\
+Case CIVar:\\
+\> By TVar, $\Gdash x:\t$\\
+Case CINew:\\
+\> By the IH, $\Gdash e' : \t$.\\
+\> Then, by TNew, $\Gdash \NEW\C{\bar{e'}} : \C$ \\
+Analytic cast insertion uses are covered in the proof for each system.\\
+\end{tabbing}
+\end{proof}
+
+
+\section{Monotonic}
+
+\begin{proof}
+
+Extension of theorem~\ref{cisnd}.
+\begin{tabbing}
+Case \=CIIDown:\\
+\> By CICast, $\Gdash \cast{\C}e' : \C$\\
+Case CIIUp:\\
+\> By the IH, $\Gdash e' : \C$\\
+\> By TSub, $\Gdash e' : \xt{D}$\\
+Case CIICons:\\
+\> By CICast, $\Gdash \cast{\t}e' : \t$\\
+Case CIID:\\
+\> Trivial.\\
+\end{tabbing}
+\end{proof}
+
+\begin{thm} Soundness: If $\S;\cdot \vdash e : \t$ and $\S \vdash \s$ then either
+\begin{itemize}
+\item $e$ value
+\item $e = \casterror$
+\item $e,\s \ereduce e',\s'$ where $\S';\cdot \vdash e' : \t$ and $\S' \vdash \s'$ and [TODO HEAP TYPE RELATION] for some $e'$, $\s'$ and $\S'$
+\end{itemize}
+\end{thm}
+
+\begin{proof}
+Proceed by induction on the rule used to derive $\S;\cdot \vdash e : \t$.
+\begin{tabbing}
+Case \=TVar\\
+\> We can exclude TVar as $\cdot$ does not contain any $x$.\\
+Case TRef\\
+\> $a$ is a value, therefore the theorem holds. \\
+Case TInt\\
+\> $n$ is a value, therefore the theorem holds. \\
+Case TSub\\
+\> We apply the induction hypothesis on $\GSdash e : \t'$, then the theorem holds trivially.\\
+\> Note that induction is well-founded because the type is getting smaller. \\
+Case TUApp\\
+\> 
+Case TApp\\
+Case TIf\\
+Case TPlus\\
+Case TNew\\
+Case TCast\\
+\end{tabbing}
+\end{proof}
+\section{Typed Racket}
+\section{Strongscript}
+\end{document}

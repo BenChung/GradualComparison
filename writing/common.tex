@@ -39,11 +39,14 @@
 \newcommand{\MVAL}[3] { #1( #2 ) = #3}
 \newcommand{\Gdash}{\G\vdash}
 \renewcommand{\TirNameStyle}[1]{\footnotesize\textsc{#1}}
+\renewcommand{\S}{\Sigma}
+\newcommand{\GSdash}{\S;\G\vdash}
 \lstset{
     escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
 }
 \newcommand{\types}{\any \B \int \B \C}
 \newcommand{\context}{\G &::= \cdot \B \xt{x} : \tau~\G\\}
+\newcommand{\casterror}{\text{casterror}}
 \newcommand{\syntax}{
 \begin{align*}
 \t &::= \types\\
@@ -51,6 +54,7 @@ e &::= n \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e} \\
 &\B e + e\B \xt{x}\B \NEW \C {\bar{e}} \B  \cast{\t}e\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{d}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
 d &::= \m \B \f \B f!\\
+r &::= e \B \casterror \\
 \context
 v &::= n \B a\\
 \s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \C\} )\\
@@ -66,36 +70,38 @@ F &::=    \square.\f
 \B \NEW  \C {\bar{v},\square,\bar{e}}\\
 \end{align*}}
 
-\newcommand{\TVar}{\inferrule*[lab=TVar]{\G(x) = A }{\G \vdash x : A}}
-\newcommand{\TInt}{\inferrule*[lab=TInt]{ }{\Gdash {n} : \int}}
-\newcommand{\TSub}{\inferrule*[lab=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}}
 
-\newcommand{\TUApp}{\inferrule*[lab=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}}
-\newcommand{\TApp}{\inferrule*[lab=TApp]{ \Gdash e : \C \\ \m(\bar{\t'}):\t'' \in \C \\ \Gdash e': \t'}{\Gdash e.\m(\bar{e'}) : \t''}}
+\newcommand{\TVar}{\inferrule*[lab=TVar]{\G(x) = A }{\GSdash x : A}}
+\newcommand{\TRef}{\inferrule*[lab=TRef]{\S(a) = \t }{\GSdash a : \t}}
+\newcommand{\TInt}{\inferrule*[lab=TInt]{ }{\GSdash {n} : \int}}
+\newcommand{\TSub}{\inferrule*[lab=TSub]{\GSdash e : \t' \\ \t' <: \t}{\GSdash e : \t}}
+
+\newcommand{\TUApp}{\inferrule*[lab=TUApp]{\bar{\GSdash e_i : \t_i} \\ \GSdash e : \any}{\GSdash e.\m(\bar{e_i}) : \any}}
+\newcommand{\TApp}{\inferrule*[lab=TApp]{ \GSdash e : \C \\ \m(\bar{\t'}):\t'' \in \C \\ \GSdash e': \t'}{\GSdash e.\m(\bar{e'}) : \t''}}
 \newcommand{\TIf}{\inferrule*[lab=TIf]{ 
-     \Gdash e:\int \\ 
-     \Gdash e':\t \\ 
-     \Gdash e'':\t
+     \GSdash e:\int \\ 
+     \GSdash e':\t \\ 
+     \GSdash e'':\t
 }{ 
-     \Gdash \ifthenelse{e}{e'}{e''} : \t}}
+     \GSdash \ifthenelse{e}{e'}{e''} : \t}}
 \newcommand{\TPlus}{\inferrule*[lab=TPlus]{ 
-  \Gdash e:\int \\ \
-  \Gdash e':\int
-}{ \Gdash e+e':\int}}
+  \GSdash e:\int \\ \
+  \GSdash e':\int
+}{ \GSdash e+e':\int}}
 
 
 
 \newcommand{\TNew}{\inferrule*[lab=TNew]{
-  \bar{\Gdash e:\t} \\ 
+  \bar{\GSdash e:\t} \\ 
   \{\ldots \bar{\f:\t} \ldots\} = fields(\C)\\
 }{
-  \Gdash \NEW \C{\bar e}:\C
+  \GSdash \NEW \C{\bar e}:\C
 }}
 
 \newcommand{\TCast}{\inferrule*[lab=TCast]{
-  \Gdash e:\t'
+  \GSdash e:\t'
 }{
-  \Gdash \cast{\t}e}}
+  \GSdash \cast{\t}e}}
 
 
 \newcommand{\CICast}{\inferrule*[lab=CICast]{
@@ -105,11 +111,11 @@ F &::=    \square.\f
 }}
 
 \newcommand{\CICall}{\inferrule*[lab=CICall]{
-  \Gdash e \tlate e':\C\\
+  \Gdash e \tlate e'':\C\\
   \MTYPE\m{\bar\t}{\t'} \in \C \\
-  \bar{\CICAST{e'}{\t}{e''}} 
+  \bar{\CICAST{e'}{\t}{e'''}} 
 }{
-  \Gdash e.\m(\bar{e'}) \tlate e'.\m(\bar{e''}):\t
+  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}):\t
 }}
 
 \newcommand{\CICallAny}{\inferrule*[lab=CICallAny]{ 
@@ -141,8 +147,8 @@ F &::=    \square.\f
 }}
 
 \newcommand{\CINew}{\inferrule*[lab=CINew]
-      {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
-       \bar{\CICAST{e}{\t}{e'}}}
+      {\bar{\CICAST{e}{\t}{e'}}\\
+  \{\ldots \bar{\f:\t} \ldots\} = fields(\C)}
       {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{e'}} : \C}}
 
 
