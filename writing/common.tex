@@ -46,15 +46,15 @@
 }
 \newcommand{\types}{\any \B \int \B \C}
 \newcommand{\context}{\G &::= \cdot \B \xt{x} : \tau~\G\\}
-\newcommand{\casterror}{\text{casterror}}
+\newcommand{\error}{\text{error}}
 \newcommand{\syntax}{
 \begin{align*}
 \t &::= \types\\
 e &::= n \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e} \\
 &\B e + e\B \xt{x}\B \NEW \C {\bar{e}} \B  \cast{\t}e\\
+r &::= e \B \error\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{d}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
 d &::= \m \B \f \B f!\\
-r &::= e \B \casterror \\
 \context
 v &::= n \B a\\
 \s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \C\} )\\
@@ -76,7 +76,7 @@ F &::=    \square.\f
 \newcommand{\TInt}{\inferrule*[lab=TInt]{ }{\GSdash {n} : \int}}
 \newcommand{\TSub}{\inferrule*[lab=TSub]{\GSdash e : \t' \\ \t' <: \t}{\GSdash e : \t}}
 
-\newcommand{\TUApp}{\inferrule*[lab=TUApp]{\bar{\GSdash e_i : \t_i} \\ \GSdash e : \any}{\GSdash e.\m(\bar{e_i}) : \any}}
+\newcommand{\TUApp}{\inferrule*[lab=TUApp]{\GSdash e : \any \\ \bar{\GSdash e' : \t}}{\GSdash e.\m(\bar{e'}) : \any}}
 \newcommand{\TApp}{\inferrule*[lab=TApp]{ \GSdash e : \C \\ \m(\bar{\t'}):\t'' \in \C \\ \GSdash e': \t'}{\GSdash e.\m(\bar{e'}) : \t''}}
 \newcommand{\TIf}{\inferrule*[lab=TIf]{ 
      \GSdash e:\int \\ 

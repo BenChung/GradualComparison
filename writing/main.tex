@@ -287,11 +287,11 @@ grammar by having get and set forms only involving labels.
 
 
 \begin{figure}
-\opdef{$e,\s \ereduce r,\s'$}{$e$ with heap $\s$ evaluates to $r$ and $\s$ in one step}
+\opdef{$e,\s \ereduce e',\s'$}{$e$ with heap $\s$ evaluates to $r$ and $\s$ in one step}
 \begin{mathpar}
 \EFrame
 
-\inferrule*[lab=EFrameCastError]{ e,\s \ereduce \casterror,\s'}{F[e],\s \ereduce \casterror,\s'}
+\inferrule*[lab=EFrameError]{ e,\s \ereduce \error,\s'}{F[e],\s \ereduce \error,\s'}
 
 \ENew
 
@@ -311,10 +311,27 @@ grammar by having get and set forms only involving labels.
 
 \ECastAny
 
-\inferrule*[lab=ECastError]{ }{\cast{\t}v,\s \ereduce \casterror,\s}
+\inferrule*[lab=ECastError]{ }{ \cast{\t}e,\s \ereduce \error,\s'}
+
+\inferrule*[lab=EInvError]{v = n \vee (v = a \wedge \s[a \is \{\ldots | \C\}] \wedge \m \not\in meths(\C))}{ v.\m(\bar{v'}),\s \ereduce \error,\s'}
 \end{mathpar}
 \caption{Common Dynamics}
 \end{figure}
+
+\begin{figure}
+
+\begin{mathpar}
+\inferrule*[lab=WFField]{\G \vdash \t}{\G\vdash\f:\t}
+
+\inferrule*[lab=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
+
+\inferrule*[lab=WFSelfGet]{\f:\t \in fields(\G)}{\G \vdash \f():\t = \xt{this}.\f}
+
+\inferrule*[lab=WFSelfSet]{\f:\t \in fields(\G)}{\G \vdash \f!(\xt{x}:\t):\t = (\xt{this}.\f=\xt{x})}
+\end{mathpar}
+\caption{Class well-formedness}
+\end{figure}
+
 
 \section{Monotonic Semantics}
 

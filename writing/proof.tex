@@ -14,6 +14,14 @@
 Follows by definition of casting over all systems.
 \end{proof}
 
+\begin{thm}
+\label{canonforms}If $\Sigma;\cdot \vdash v : \t$ and for some $\s$ s.t. $\Sigma \vdash \s$, then one of the following cases applies:
+\begin{itemize}
+\item If $\t = \int$, then $v = n$ for some $n$
+\item If $\t = \C$, then $v = a$ and $\s[a \is \{\ldots | \C \}$
+\item If $\t = \any$ then either $v = n$ for some $n$ or $v = a$ and $\s[a \is \{\ldots | \C \}$
+\end{itemize}
+\end{thm}
 
 \begin{thm} 
 \label{cisnd}If $\Gdash e \tlate e' : \t$ or $\CICAST{e}{\t}{e'}$ then $\Gdash e' : \t$\end{thm}
@@ -62,11 +70,16 @@ Case CIID:\\
 \end{tabbing}
 \end{proof}
 
-\begin{thm} Soundness: If $\S;\cdot \vdash e : \t$ and $\S \vdash \s$ then either
+\begin{thm}$\GSdash \CLASS \C{\xt{D}}{\bar{\f:\t},\bar{\MDEF d{\bar{x:\t''}}{\t'}e}}$ then $\bar{\Sigma;\Gamma,\bar{x:\t''} \vdash e : \t'}$\end{thm}
+\begin{proof}
+Follows by class wellformedness.
+\end{proof}
+
+\begin{thm} Progress and preservation: If $\S;\cdot \vdash e : \t$ and $\S \vdash \s$ then one of the following holds
 \begin{itemize}
 \item $e$ value
-\item $e = \casterror$
-\item $e,\s \ereduce e',\s'$ where $\S';\cdot \vdash e' : \t$ and $\S' \vdash \s'$ and [TODO HEAP TYPE RELATION] for some $e'$, $\s'$ and $\S'$
+\item $e,\s \ereduce \error,\s'$ for some $\s'$
+\item $e,\s \ereduce e',\s'$ where $\S';\cdot \vdash e' : \t$ and $\S' \vdash \s'$ for some $e'$, $\s'$ and $\S'$
 \end{itemize}
 \end{thm}
 
@@ -83,7 +96,22 @@ Case TSub\\
 \> We apply the induction hypothesis on $\GSdash e : \t'$, then the theorem holds trivially.\\
 \> Note that induction is well-founded because the type is getting smaller. \\
 Case TUApp\\
-\> 
+\> First,\= we apply the IH to the receiver $e_r$ and case analyze on the result.\\
+\> \> Case \=$e_r$ is $F[\cast{\t}e'']$ and $\S;\cdot \vdash e'' : \t'$ where $\t' \not\lesssim \t$:\\
+\> \> \> By the definition of frames $e_r.\m(\bar{e'})$ is of the form $F[\cast{\t}e'']$, therefore the theorem holds.\\
+\> \> Case $e_r$ is $F[v.\m(\bar{e''})]$ and either $v = n$ or $v = a$ with $\s[a\mapsto \{ \ldots | \C \}]$ and $\m \not\in meths(\C)$:\\
+\> \> \> By the definition of frames $e_r.\m(\bar{e'})$ is of the form $F[v.\m(\bar{e''})]$, therefore the theorem holds.\\
+\> \> Case $e_r,\s \ereduce e_r',\s'$ where $\S';\cdot \vdash e_r' : \t$ and $\S' \vdash \s'$ for some $e_r'$, $\s'$ and $\S'$\\
+\> \> \> $e = F[e_r]$ as TUApp applied and by definition of frames, so we apply EFrame to find that\\
+\> \> \> $F[e_r],\s \ereduce F[e_r'],\s'$ with the above definitions, choosing the new $e'$ to be $F[e_r']$, and the others as specified.\\
+\> \> \> Theorem holds.\\
+\> \> Case $e'$ value:\\
+\> Case analyze on $\t$.\\
+\> \> Case $\t = \int$\\
+\> \> \> $e = F[v.\m(\bar{e})]$ by construction and $v = n$, we get stuck and the theorem holds.\\
+\> \> Case $\t = \any$\\
+\> \> \> \\
+\> \> Case $\t = \C$\\
 Case TApp\\
 Case TIf\\
 Case TPlus\\
