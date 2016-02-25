@@ -9,7 +9,7 @@
 
 \section{Common case analysis}
 \begin{thm} 
-\label{castv}For any $v$ and $\t$ s.t. $\Gdash \t$, then there is a $v'$ such that $\cast{\t}v,\s \ereduce v',\s'$ or $\cast{\t}v,\s \ereduce \casterror,\s'$\end{thm}
+\label{castv}For any $v$ and $\t$ s.t. $\Gdash \t$, then there is a $v'$ such that $\cast{\t}v,\s \ereduce v',\s'$ or $\cast{\t}v,\s \ereduce \error,\s'$\end{thm}
 \begin{proof}
 Follows by definition of casting over all systems.
 \end{proof}
@@ -99,13 +99,13 @@ Case TUApp\\
 \> First,\= we apply the IH to the receiver $e_r$ and case analyze on the result.\\
 \> \> Case \=$e_r,\s \ereduce \error,\s'$ for some $\s'$\\
 \> \> \> By EFrameError (as $e = F[e_r]$), $e,\s \ereduce \error,\s'$.\\
-\> \> Case $e_r,\s \ereduce \e_r',\s'$ for some $\s'$\\
+\> \> Case $e_r,\s \ereduce e'_r,\s'$ for some $\s'$\\
 \> \> \> By EFrame, $F[e_r],\s \ereduce F[e_r'],\s'$, and $e = F[e_r]$.\\
 \> \> Case $e_r$ value.\\
 \> We then apply the IH to each argument derivation $\Sigma;\cdot \vdash e' : \t$ and case analyze:\\
 \> \> Case $e',\s \ereduce \error,\s'$ for some $\s'$\\
 \> \> \> By EFrameError (as $e = F[e_r]$), $e,\s \ereduce \error,\s'$.\\
-\> \> Case $e',\s \ereduce \e'',\s'$ for some $\s'$\\
+\> \> Case $e',\s \ereduce e'',\s'$ for some $\s'$\\
 \> \> \> By EFrame, $F[e_r],\s \ereduce F[e''],\s'$, and $e = F[e'']$.\\
 \> \> Case $e'$ value.\\
 \> \> \> Continue onto next argument until all arguments are values. \\
@@ -114,11 +114,32 @@ Case TUApp\\
 \> \> Case $e_r$ number \\
 \> \> \> Apply EInvError to find that $e_r.\m(\bar{e'}),\s \ereduce \error,\s$.\\
 \> \> Case $e_r$ reference \\
-\> \> \> If \=$e_r$ reference, by canonical forms $\s[e_r \is \{\ldots \B \C \}]$. Case analyze on $\m \in meths(\C)$\\
-\> \> \> \> Case \=$\m \not\in meths(\C)$ \\
-\> \> \> \> \> If $\m \not\in meths(\C)$ then $e_r.\m(\bar{e'}),\s \ereduce \error,\s$ by EInvError.\\
-\> \> \> \> Case $\m \in meths(\C)$ \\
+\> \> \> If \=$e_r$ reference, by canonical forms $\s[e_r \is \{\ldots \B \C \}]$.\\
+\> \> \> Define $\bar{\t'}$ such that $\bar{\S,\cdot \vdash e' : \t'}$\\
+\> \> \> Case analyze on $\m(\bar{x}) \in meths(\C)$\\
+\> \> \> \> Case \=$\m(\bar{x}) \not\in meths(\C)$ \\
+\> \> \> \> \> $e_r.\m(\bar{e'}),\s \ereduce \error,\s$ by EInvError.\\
+\> \> \> \> Case $\m(\bar{x}) \in meths(\C)$ \\
+\> \> \> \> \> Therefore, $\m(\bar{x}) = e_m \in \C$ for some $e_m$\\
+\> \> \> \> \> Apply EInv to find that $e_r.\m(\bar{e'}),\s \ereduce [e_r/\xt{this}][\bar{e'/x}]e_m,\s$ \\
 Case TApp\\
+\> We apply the IH to the receiver typing judgment $\S';\cdot \vdash e_r : \C$ and case analyze:\\
+\> \> Case \=$e_r,\s \ereduce \error,\s'$ for some $\s'$\\
+\> \> \> By EFrameError (as $e = F[e_r]$), $e,\s \ereduce \error,\s'$.\\
+\> \> Case $e_r,\s \ereduce e_r',\s'$ for some $\s'$\\
+\> \> \> By EFrame, $F[e_r],\s \ereduce F[e_r'],\s'$, and $e = F[e_r]$.\\
+\> \> Case $e_r$ value.\\
+\> We then apply the IH to each argument derivation $\Sigma;\cdot \vdash e' : \t'$ and case analyze:\\
+\> \> Case $e',\s \ereduce \error,\s'$ for some $\s'$\\
+\> \> \> By EFrameError (as $e = F[e_r]$), $e,\s \ereduce \error,\s'$.\\
+\> \> Case $e',\s \ereduce e'',\s'$ for some $\s'$\\
+\> \> \> By EFrame, $F[e_r],\s \ereduce F[e''],\s'$, and $e = F[e'']$.\\
+\> \> Case $e'$ value.\\
+\> \> \> Continue onto next argument until all arguments are values. \\
+\> Now, we know that $e_r$ value and every $e'$ value.\\
+\> By canonical forms, we know that $\s[e_r \is \{ \ldots \B \C\}]$\\
+\> By inversion, we know that $\m(\bar{x}) = e \in \C$\\
+\> Therefore, we apply EInv to find that $e_r.\m(\bar{e'}),\s \ereduce [e_r/\xt{this}][\bar{e'/x}]e_m,\s$ \\
 Case TIf\\
 Case TPlus\\
 Case TNew\\
