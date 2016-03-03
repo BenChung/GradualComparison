@@ -31,8 +31,7 @@ Proceed on mutual rule induction over the derivation.
 Case \=CICast:\\
 \> Therefore, we know that $e' = \cast{\t}e''$, and by TCast $\Gdash \cast{\t}e'' : \t$\\
 Case CICallAny:\\
-\> By the IH, $\Gdash e'' : \any$ and $\bar{\Gdash e''' : \t'}$.\\
-\> Therefore, by TUApp, $\Gdash e''.\m(\bar{e'''}) : \any$\\
+\> TODO\\
 Case CICall:\\
 \> By the IH, $\Gdash e' : \C$ and $\bar{\Gdash e''' : \t}$\\
 \> By TApp, $\Gdash e''.\m(\bar{e'''}) : \t$.\\
@@ -95,7 +94,7 @@ Case TInt\\
 Case TSub\\
 \> We apply the induction hypothesis on $\GSdash e : \t'$, then the theorem holds trivially.\\
 \> Note that induction is well-founded because the type is getting smaller. \\
-Case TUApp\\
+Case TSApp\\
 \> First,\= we apply the IH to the receiver $e_r$ and case analyze on the result.\\
 \> \> Case \=$e_r,\s \ereduce \error,\s'$ for some $\s'$\\
 \> \> \> By EFrameError (as $e = F[e_r]$), $e,\s \ereduce \error,\s'$.\\
@@ -112,13 +111,14 @@ Case TUApp\\
 \> Now, we know that $e_r$ value and every $e'$ value.\\
 \> By canonical forms, we know that $e_r$ is either a number $n$ or a reference $a$. We then case analyze:\\
 \> \> Case $e_r$ number \\
-\> \> \> Apply EInvError to find that $e_r.\m(\bar{e'}),\s \ereduce \error,\s$.\\
+\> \> \> Therefore, we have $(\scast{\m}n).\m(\bar{e})$\\
+\> \> \> By EFrame and EMethCastError, $(\scast{\m}n).\m(\bar{e}),\s \ereduce \error,\s$\\
 \> \> Case $e_r$ reference \\
 \> \> \> If \=$e_r$ reference, by canonical forms $\s[e_r \is \{\ldots \B \C \}]$.\\
 \> \> \> Define $\bar{\t'}$ such that $\bar{\S,\cdot \vdash e' : \t'}$\\
 \> \> \> Case analyze on $\m(\bar{x}) \in meths(\C)$\\
 \> \> \> \> Case \=$\m(\bar{x}) \not\in meths(\C)$ \\
-\> \> \> \> \> $e_r.\m(\bar{e'}),\s \ereduce \error,\s$ by EInvError.\\
+\> \> \> \> \>  By EFrame and EMethCastError, $(\scast{\m}a).\m(\bar{e}),\s \ereduce \error,\s$\\
 \> \> \> \> Case $\m(\bar{x}) \in meths(\C)$ \\
 \> \> \> \> \> Therefore, $\m(\bar{x}) = e_m \in \C$ for some $e_m$\\
 \> \> \> \> \> Apply EInv to find that $e_r.\m(\bar{e'}),\s \ereduce [e_r/\xt{this}][\bar{e'/x}]e_m,\s$ \\
