@@ -34,7 +34,7 @@
 %% Cast syntax??
 \newcommand{\cl}{\mathit{cl}\xspace}
 \newcommand{\implements}{\xt{implements}\xspace}
-\newcommand{\CLASS}[3]{ \ensuremath{  \xt{class}~#1~\implements~#2\;\{ #3 \}}\xspace} 
+\newcommand{\CLASS}[3]{ \ensuremath{  \xt{class}~#1\;\{ #3 \}}\xspace} 
 \newcommand{\MDEF}[4] { #1( #2 ):#3 = #4}
 \newcommand{\MTYPE}[3] { #1( #2 ):#3}
 \newcommand{\MVAL}[3] { #1( #2 ) = #3}
@@ -45,7 +45,7 @@
 \lstset{
     escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
 }
-\newcommand{\types}{\any \B \int \B \C}
+\newcommand{\types}{\any \B \int \B \{\bar{\m(\bar{\t}):\t}\}}
 \newcommand{\context}{\G &::= \cdot \B \xt{x} : \tau~\G\\}
 \newcommand{\error}{\text{error}}
 \newcommand{\syntax}{
@@ -55,10 +55,10 @@ e &::= n \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e} \\
 &\B e + e\B \xt{x}\B \NEW \C {\bar{e}} \B  \cast{\t}e \B \scast{\m}e\\
 r &::= e \B \error\\
 \cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{d}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
-d &::= \m \B \f \B f!\\
+d &::= \m \B \f \B \f!\\
 \context
 v &::= n \B a\\
-\s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \C\} )\\
+\s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \t\} )\\
 F &::=    \square.\f
    \B     \square.\f = e
    \B     a.\f = \square    
@@ -79,7 +79,7 @@ F &::=    \square.\f
 \newcommand{\TSub}{\inferrule*[lab=TSub]{\GSdash e : \t' \\ \t' <: \t}{\GSdash e : \t}}
 
 \newcommand{\TUApp}{\inferrule*[lab=TUApp]{\GSdash e_r : \any \\ \bar{\GSdash e' : \t}}{\GSdash e_r.\m(\bar{e'}) : \any}}
-\newcommand{\TApp}{\inferrule*[lab=TApp]{ \GSdash e_r : \C \\ \m(\bar{\t'}):\t'' \in \C \\ \GSdash e': \t'}{\GSdash e_r.\m(\bar{e'}) : \t''}}
+\newcommand{\TApp}{\inferrule*[lab=TApp]{ \GSdash e_r : \{ \ldots, \m(\bar{\t'}):\t'', \ldots \}\\ \bar{\GSdash e': \t'}}{\GSdash e_r.\m(\bar{e'}) : \t''}}
 \newcommand{\TIf}{\inferrule*[lab=TIf]{ 
      \GSdash e:\int \\ 
      \GSdash e':\t \\ 
@@ -95,7 +95,7 @@ F &::=    \square.\f
 
 \newcommand{\TNew}{\inferrule*[lab=TNew]{
   \bar{\GSdash e:\t} \\ 
-  \{\ldots \bar{\f:\t} \ldots\} = fields(\C)\\
+  \bar{\f:\t} = fields(\C)\\
 }{
   \GSdash \NEW \C{\bar e}:\C
 }}
@@ -103,7 +103,7 @@ F &::=    \square.\f
 \newcommand{\TCast}{\inferrule*[lab=TCast]{
   \GSdash e:\t'
 }{
-  \GSdash \cast{\t}e}}
+  \GSdash \cast{\t}e : \t}}
 
 
 \newcommand{\CICast}{\inferrule*[lab=CICast]{
@@ -113,18 +113,17 @@ F &::=    \square.\f
 }}
 
 \newcommand{\CICall}{\inferrule*[lab=CICall]{
-  \Gdash e \tlate e'':\C\\
-  \MTYPE\m{\bar\t}{\t'} \in \C \\
+  \Gdash e \tlate e'':\{\MTYPE\m{\bar\t}{\t'},\ldots\}\\
   \bar{\CICAST{e'}{\t}{e'''}} 
 }{
-  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}):\t
+  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}):\t'
 }}
 
 \newcommand{\CICallAny}{\inferrule*[lab=CICallAny]{ 
   \Gdash e \tlate e'':\any \\  
   \bar{\Gdash e' \tlate e''':\t'} \\ 
 }{
-  \Gdash e.\m(\bar{e'}) \tlate (\scast{\m_u}e'').\m_u(\bar{e'''}) : \any
+  \Gdash e.\m(\bar{e'}) \tlate (\cast{\{\m(\bar{\t'}),\ldots\}}e'').\m_u(\bar{e'''}) : \any
 }}
 
 \newcommand{\CIIf}{\inferrule*[lab=CIIf]{
@@ -157,14 +156,13 @@ F &::=    \square.\f
 \newcommand{\EFrame}{\inferrule*[lab=EFrame]{ e,\s \ereduce e',\s'}{F[e],\s \ereduce F[e'],\s'}}
 
 \newcommand{\ENew}{\inferrule*[lab=ENew]{
-     \bar{\f : \t} \in \C \\
      \s'=\s(a\is\{\bar{\f=v} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}}
 
-\newcommand{\EInv}{\inferrule*[lab=EInv]{a\is \{\ldots \B \C\} \\ \m(\bar x)=e \in \C}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}}
+\newcommand{\EInv}{\inferrule*[lab=EInv]{a\is \{\m(\bar x)=e,\ldots\B \t\}}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}}
 
-\newcommand{\EField}{\inferrule*[lab=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}}
+\newcommand{\EField}{\inferrule*[lab=EField]{ \s[a\is\{\f =v,\ldots\B \t\}] }{a.\f,\s \ereduce v,\s}}
 
-\newcommand{\EAssign}{\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\t\}] }{a.\f = v,\s \ereduce v,\s'}}
+\newcommand{\EAssign}{\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\f =v,\ldots\B \t\}] }{a.\f = v,\s \ereduce v,\s'}}
 
 \newcommand{\EIfZ}{\inferrule*[lab=EIfZ]{ }{ \ifthenelse{{0}}{e_1}{e_2},\s \ereduce e_1,\s }}
 

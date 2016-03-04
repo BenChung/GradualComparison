@@ -235,9 +235,13 @@ grammar by having get and set forms only involving labels.
 \begin{figure}
 \opdef{$\t <: \t'$}{$\t$ is a subtype of $\t'$}
 \begin{mathpar}
-\inferrule*[lab=SClass]{
-  \CLASS \C {\bar{\xt{D}}} {\ldots}
-}{\C <: \xt{D}}
+\inferrule*[lab=SWidth]{
+}{\{\bar{\m(\bar{\t_1''}):\t_1'},\bar{\m'(\bar{\t_2''}):\t_2'}\}<: \{\bar{\m(\bar{\t_1''}):\t_1'}\}}
+
+\inferrule*[lab=SDepth]{
+	\bar{\t_2 <: \t_1} \\
+	\bar{\t_1' <: \t_2'}
+}{\{\bar{\m(\bar{\t_1''}):\t_1'}\}<: \{\bar{\m(\bar{\t_2''}):\t_2'}\}}
 
 \inferrule*[lab=STrans]{
   \C <: \xt{D} \\ \xt{D} <: \xt{E}
@@ -252,8 +256,6 @@ grammar by having get and set forms only involving labels.
 \TInt
 
 \TSub
-
-\inferrule*[lab=TSApp]{\GSdash e_r : \any \\ \bar{\GSdash e : \tau'}}{\GSdash (\scast{\m}e_r).\m(\bar{e}) : \any}
 
 \TApp
 
@@ -312,10 +314,6 @@ grammar by having get and set forms only involving labels.
 \ECastAny
 
 \inferrule*[lab=ECastError]{ }{ \cast{\t}e,\s \ereduce \error,\s}
-
-\inferrule*[lab=EMethCast]{v = a \wedge \s[a \is \{\ldots | \C\}] \wedge \m \in meths(\C)}{ \{\m\}v,\s \ereduce v,\s}
-
-\inferrule*[lab=EMethCastError]{ }{ \{\m\}v,\s \ereduce \error,\s}
 \end{mathpar}
 \caption{Common Dynamics}
 \end{figure}
@@ -347,11 +345,9 @@ grammar by having get and set forms only involving labels.
 \inferrule*[lab=CNCons2]{ }{\tau \sim \any}
 
 \inferrule*[lab=CNSub1]{
-  \CLASS \C {\ldots} {\bar{f:\t_C},\bar{d(\bar{\xt{x}:\t_C''}):\t_C'=e}} \\
-  \CLASS {\xt{D}} {\ldots} {\bar{f:\t_D},\bar{d(\bar{\xt{x}:\t_D''}):\t_D'=e}} \\
-  \bar{\t_C \sim \t_D}\\
-  \bar{\t_C' \sim \t_D'}\\
-  \bar{\t_C'' \sim \t_D''}}{\C \sim \xt{D}}
+  \bar{\t_1 \sim \t_2}\\
+  \bar{\t_2' \sim \t_2'}\\
+  \bar{\t_2'' \sim \t_2''}}{\{\bar{\f_1:\t_1},\bar{\m_1(\t_1''):\t_1'}\} \sim \{\bar{\f_2:\t_2},\bar{\m_2(\t_2''):\t_2'}\}}
 \end{mathpar}
 \opdef{$\tau \sim \tau'$}{$\tau$ is subtype compatible with $\tau'$}
 \begin{mathpar}
@@ -405,9 +401,7 @@ grammar by having get and set forms only involving labels.
 
 \inferrule*[]{}{\any \spec \t = \t}
 
-\inferrule*[]{B \not\in types(C)}{C \spec B = gen(C,B)}
-
-\inferrule*[]{B \in types(C)}{C \spec B = C}
+\inferrule*[]{\bar{\t_1 \spec \t_2 = \t_3} \\ \bar{\t_1' \spec \t_2' = \t_3'}}{\{\bar{\m(\bar{\t_1'}):\t_1},\bar{\m'}\} \spec \{\bar{\m(\bar{\t_2'}):\t_2}\} = \{\bar{\m(\bar{\t_3'}):\t_3},\bar{\m'}\}}
 \end{mathpar}
 \opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
