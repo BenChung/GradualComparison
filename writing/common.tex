@@ -45,7 +45,7 @@
 \lstset{
     escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
 }
-\newcommand{\types}{\any \B \int \B \{\bar{\m(\bar{\t}):\t}\}}
+\newcommand{\types}{\any \B \int \B \{\bar{f:\t},\bar{\m(\bar{\t}):\t}\}}
 \newcommand{\context}{\G &::= \cdot \B \xt{x} : \tau~\G\\}
 \newcommand{\error}{\text{error}}
 \newcommand{\syntax}{
@@ -68,7 +68,6 @@ F &::=    \square.\f
    \B     \square + e 
    \B      v + \square\\
    &\B     \cast{\tau}\square
-   \B \scast{\m}\square
 \B \NEW  \C {\bar{v},\square,\bar{e}}\\
 \end{align*}}
 
@@ -156,13 +155,13 @@ F &::=    \square.\f
 \newcommand{\EFrame}{\inferrule*[lab=EFrame]{ e,\s \ereduce e',\s'}{F[e],\s \ereduce F[e'],\s'}}
 
 \newcommand{\ENew}{\inferrule*[lab=ENew]{
-     \s'=\s(a\is\{\bar{\f=v} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}}
+     \s'=\s(a\is\{\bar{\f:\t=v} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}}
 
 \newcommand{\EInv}{\inferrule*[lab=EInv]{a\is \{\m(\bar x)=e,\ldots\B \t\}}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}}
 
-\newcommand{\EField}{\inferrule*[lab=EField]{ \s[a\is\{\f =v,\ldots\B \t\}] }{a.\f,\s \ereduce v,\s}}
+\newcommand{\EField}{\inferrule*[lab=EField]{ \s[a\is\{\f:\t=v,\ldots\B \t\}] }{a.\f,\s \ereduce v,\s}}
 
-\newcommand{\EAssign}{\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\f =v,\ldots\B \t\}] }{a.\f = v,\s \ereduce v,\s'}}
+\newcommand{\EAssign}{\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\f:\t=v,\ldots\B \t\}] }{a.\f = v,\s \ereduce v,\s'}}
 
 \newcommand{\EIfZ}{\inferrule*[lab=EIfZ]{ }{ \ifthenelse{{0}}{e_1}{e_2},\s \ereduce e_1,\s }}
 
