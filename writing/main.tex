@@ -410,14 +410,15 @@ grammar by having get and set forms only involving labels.
 \end{mathpar}
 \opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
-\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v} \B \t\}] \\ 
+\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v},\bar{\m(\bar{x}) = e},\bar{\m_o} \B \t\}] \\ 
 \t \neq \t \spec \t' \\ 
-\s' = \s[a \is \{\bar{\f = v} \B \t \spec \t'\}]\\
+\bar{\m(\bar{\t_a}):\t_r} \in \t \spec \t'\\
+\s' = \s[a \is \\\{\bar{\f = v},\bar{\m'(\bar{x})=e},\bar{\m(\bar{x})=\cast{\t_r}\xt{this}.\m'(\bar{\cast{\t_a}x})},\bar{\m_o} \B \t \spec \t'\}]\\
 \f:\t'' \in \t\spec \t' \implies \sigma'' = \text{cast}(\s', v, \t'')}{\text{cast}(\s, a, \t') = \s''}
 
 \inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
 
-\inferrule*[lab=CInt]{ }{\text{cast}(\s,\xt{int}[n],\xt{\int}) = \s}
+\inferrule*[lab=CInt]{ }{\text{cast}(\s,n,\xt{\int}) = \s}
 
 \inferrule*[lab=CSub]{\s[a \is \{\bar{\f = v} \B \C\}]}{\text{cast}(\s, a, \C) = \s}
 \end{mathpar}
