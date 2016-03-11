@@ -376,9 +376,9 @@ grammar by having get and set forms only involving labels.
 
 \opdef{$\CICAST{e}{\t}{e'}$}{$e$ translates to $e'$ ensuring type $\t$ in context $\G$}
 \begin{mathpar}
-\inferrule*[lab=CIIDown]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{e}{\C}{\cast{\C}e'}}
+\inferrule*[lab=CIIDown]{\Gdash e \tlate e' : \t' \\ \t <: \t'}{\CICAST{e}{\t}{\cast{\t'}e'}}
 
-\inferrule*[lab=CIIUp]{\Gdash e \tlate e' : \C \\ \C <: \xt{D}}{\CICAST{e}{\xt{D}}{e'}}
+\inferrule*[lab=CIIUp]{\Gdash e \tlate e' : \t' \\ \t' <: \t}{\CICAST{e}{\t}{e'}}
 
 \inferrule*[lab=CIICons]{\Gdash e \tlate e' : \t' \\ \t' \lesssim \t \\ \t \neq \t' }{\CICAST{e}{\t}{\cast{\t}e'}}
 
@@ -410,10 +410,10 @@ grammar by having get and set forms only involving labels.
 \end{mathpar}
 \opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
-\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v},\bar{\m(\bar{x}) = e},\bar{\m_o} \B \t\}] \\ 
+\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v},\bar{\f() = \xt{this}.\f},\bar{d(\bar{x}) = e},\bar{d'} \B \t\}] \\ 
 \t \neq \t \spec \t' \\ 
-\bar{\m(\bar{\t_a}):\t_r} \in \t \spec \t'\\
-\s' = \s[a \is \\\{\bar{\f = v},\bar{\m'(\bar{x})=e},\bar{\m(\bar{x})=\cast{\t_r}\xt{this}.\m'(\bar{\cast{\t_a}x})},\bar{\m_o} \B \t \spec \t'\}]\\
+\bar{d(\bar{\t_a}):\t_r} \in \t \spec \t'\\ \bar{\f():\t_f} \in \t \spec \t' \\
+\s' = \s[a \is \\\{\bar{\f = v},\bar{\f():\t_f = \xt{this}.\f},\bar{d(\bar{x})=\cast{\t_r}\xt{this}.\m'(\bar{\cast{\t_a}x})},\\\bar{d'} \B \t \spec \t'\}]\\
 \f:\t'' \in \t\spec \t' \implies \sigma'' = \text{cast}(\s', v, \t'')}{\text{cast}(\s, a, \t') = \s''}
 
 \inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
@@ -480,58 +480,56 @@ classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \les
 \opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
 \inferrule*[lab=ECastRef]{
-\s' = \s[a' \is \{\xt{orig} = a \B \xt{\#}\C\}] }{ \cast{\C}a,\s \ereduce a',\s'}
+\s[a \is \{\ldots\B \t'\}] \\
+\bar{p(\bar{x:\t_a}):\t_r \in \t \wedge p \in \t'} \\
+\s' = \s[a' \is \{\xt{orig} = a, \bar{p(\bar{x}) = \cast{\t_r}\xt{this.orig.}p(\bar{\cast{\t_a}x})} \B \t'\}] }{ \cast{\t}a,\s \ereduce a',\s'}
 \end{mathpar}
 \caption{Evaluation for the wrapper semantics}
-\end{figure}
-
-\begin{figure}
-
-\begin{lstlisting}
-wrapper(A)
-  A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
-  return class #A {
-    (*@\xt{orig}:\xt{A}@*),
-    (*@\xt{orig():\xt{A} = this.orig}@*),
-    (*@$\bar{m(\bar{x:\any}):\any = \cast{\t'_A}\xt{this.orig()}.m(\bar{\cast{\t''_A}v})}$@*)
-  }
-\end{lstlisting}
-
-For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ that ensures the type invariants on A.
-\caption{Wrapper generation for wrapper semantics}
 \end{figure}
 
 \section{Optional Semantics}
 
 \begin{figure}
 
+\begin{align*}
+b &::= \int \B \{\bar{\f:\t}, \bar{p(\bar{\t}:\t}\}\\
+\t &::= \any \B b \B !b\
+\end{align*}
 \opdef{$\t <: \t'$}{$\t$ is a subtype of $\t'$}
 \begin{mathpar}
-\inferrule*[lab=SubRefl]{ }{ \t <: \t }
+\inferrule*[lab=SRefl]{ }{ \t <: \t }
 
-\inferrule*[lab=SubClass]{\class~\C~\implements~\D}{ \xt{!C} <: \xt{!D} }
+\inferrule*[lab=SWidth]{
+}{!\{\bar{\m(\bar{\t_1''}):\t_1'},\bar{\m'(\bar{\t_2''}):\t_2'}\}<: !\{\bar{\m(\bar{\t_1''}):\t_1'}\}}
 
-\inferrule*[lab=SubWeak]{ \xt{!C} <: \xt{!D} }{ \C <: \xt{D}}
+\inferrule*[lab=SDepth]{
+	\bar{\t_2 <: \t_1} \\
+	\bar{\t_1' <: \t_2'}
+}{!\{\bar{\m(\bar{\t_1''}):\t_1'}\}<: !\{\bar{\m(\bar{\t_2''}):\t_2'}\}}
 
-\inferrule*[lab=SubInj]{ }{ \xt{!C} <: \C}
+\inferrule*[lab=SubWeak]{ !b <: !b' }{ b <: b' }
+
+\inferrule*[lab=SubInj]{ }{ !b <: b}
 \end{mathpar}
 \opdef{$\Gamma\vdash e : \t$}{$e$ has type $\t$ in context $\G$}
 \begin{mathpar}
 \inferrule*[lab=TCInj]{\Gamma \vdash e : \tau' \\ \tau' = \any \vee \tau = \any \vee \tau' <: \tau }{ \Gamma \vdash e : \tau}
 
 \inferrule*[right=TClass]{ 
-  \bar{\G,\this:\C,\bar{x:\t''} \vdash e:\t'}
+  \bar{\G,\this:\{\bar{\f:\t}, \bar{p(\bar{\t''}):\t'}\},\bar{x:\t''} \vdash e:\t'}
  }{
-  \Gdash \CLASS \C{\bar\D}{\bar{\f},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
+  \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF p {\bar{x:\t''}}{\t'}e}}
   }
 \end{mathpar}
 \opdef{$\CICAST{e}{\t}{e'}$}{$e$ translates to $e'$ ensuring type $\t$ in context $\G$}
 \begin{mathpar}
-\inferrule*[lab=CIIInsert]{\Gdash e \tlate e' : \any }{\CICAST{e}{\t}{\cast{\t}e'}}
+\inferrule*[lab=CIIStrong]{\Gdash e \tlate e' : \any }{\CICAST{e}{!b}{\cast{!b}e'}}
 
-\inferrule*[lab=CIISub]{\Gdash e \tlate e' : \xt{D} \\ \xt{D} <: \C}{\CICAST{e}{\C}{e'}}
+\inferrule*[lab=CIIWeak]{\Gdash e \tlate e' : \any }{\CICAST{e}{b}{\cast{b}e'}}
 
-\inferrule*[lab=CIISuper]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{\cast{\C}e}{\C}{e'}}
+\inferrule*[lab=CIISub]{\Gdash e \tlate e' : \t' \\ \t' <: \t}{\CICAST{e}{\t}{e'}}
+
+\inferrule*[lab=CIISuper]{\Gdash e \tlate e' : \t' \\ \t' <: \t}{\CICAST{e}{\t}{\cast{\t}e'}}
 
 \inferrule*[lab=CIIAny]{\Gdash e \tlate e' : \tau}{\CICAST{e}{\any}{e'}}
 \end{mathpar}
@@ -542,7 +540,7 @@ For every typed class $\xt{A}$, we run $wrapper(\xt{A})$ to get a $\xt{\#A}$ tha
 \begin{figure}
 \opdef{$\sigma' = \text{cast}(\s, v, \t)$}{Casting $v$ in $\s$ to type $\t$ produces heap $\s'$}
 \begin{mathpar}
-\inferrule*[lab=ECastClass]{ \s[a\is\{\ldots\B\xt{D}\}] \\ \xt{D} <: \C }{ \cast{\C}a,\s \ereduce a,\s}
+\inferrule*[lab=ECastClass]{ \s[a\is\{\ldots\B\t'\}] \\ \t' <: \t }{ \cast{\t}a,\s \ereduce a,\s}
 \end{mathpar}
 
 \caption{Optional typing evaluation}
