@@ -192,13 +192,27 @@ while still providing similar functionality. However, this approach is less
 generic than wrapper-based systems, as the monotonic constraint is much stronger
 than the more usual well-typed one.
 
-\section{Core Calculus}
+\section{Common Core Calculus}
 
-\begin{figure}
+A common core calculus is used to compare the various gradual type
+systems. This common core is an imperative object-based system with
+structural subtyping.  Figure~\ref{syn} summarize the syntax of this small
+language where \x ranges over variables, \f ranges over field names, \m can
+be either a plain method name \d, a field getter \f, or a field setter \fb,
+\C and \D range over class names. We use the overbad notation to denote a
+possibly empty sequence. In the common core, a class is defined as by a set
+of fields, \bar\f, with distinct names and a set of method definitions,
+\bar\m. An instance of class is constructed by the expression \NEW\C{\bar\e}
+where each argument is used to initialize the corresponding field. Fields
+are encapsulated and can only be accessed and updated in the corresponding
+getter and setter from the \this variable.  Expressions include variable
+access, field access and update, method invocation, object creation, and
+two kinds of casts.
+
+\begin{figure}[!h]
 \begin{minipage}{3cm}
 \begin{tabular}{ll}
-\e &::= \\
-   &\B \x \\
+\e &::=  \x \\
    &\B \e.\f \\
    &\B \e.\f=\e\\
    &\B \e.\m(\e) \\
