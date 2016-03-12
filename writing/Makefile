@@ -9,7 +9,7 @@ no:
 	pdflatex main.tex
 
 jan:
-	pdflatex main; open main.pdf
+	pdflatex main && open main.pdf
 
 halfclean:
 	rm -f *.log *.aux *.bbl *.blg *~

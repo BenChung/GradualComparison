@@ -51,18 +51,15 @@
 \newcommand{\Figure}[1]{Fig.~\ref{#1}\xspace}
 \newcommand{\figref}[1]{Fig.~\ref{fig:#1}\xspace}
 \newcommand{\tabref}[1]{Table~\ref{tab:#1}\xspace}
-
 \newcommand{\kewif}{\texttt{\textbf{if}}}
 \newcommand{\kewthen}{\texttt{\textbf{then}}}
 \newcommand{\kewelse}{\texttt{\textbf{else}}}
 \newcommand{\kewnew}{\texttt{\textbf{new}}}
 \newcommand{\kewclass}{\texttt{\textbf{class}}}
 \newcommand{\kewimplements}{\texttt{\textbf{implements}}}
-
 \newcommand{\ifabs}[3]{\kewif \; #1 \;\kewthen\; #2 \;\kewelse\; #3}
 \newcommand{\opplus}[2]{#1 + #2}
 \newcommand{\newclass}[2]{\kewnew\;\texttt{#1}(#2)}
-
 \newcommand{\strt}{\texttt{str}}
 \newcommand{\intt}{\texttt{int}}
 \newcommand{\anyt}{\texttt{any}}
@@ -78,9 +75,8 @@
 
 \begin{document}
 \title{The Design Space of Gradual Type Systems} 
-\authorinfo{Ben and Jan}{Northeastern University}{EMAILS}
+\authorinfo{Benjamin Chung, Jan Vitek}{Northeastern University}{}
 \maketitle
-
 
 \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
 \copyrightyear{20yy}
@@ -96,7 +92,6 @@ able to guarantee vary greatly from one language to another. This paper
 compares some of the main design choices by embedding them into one common
 core calculus representative of dynamic object-oriented languages such as
 Python, TypeScript or Ruby.
-
 \end{abstract} 
 
 \section{Introduction}
@@ -200,9 +195,28 @@ than the more usual well-typed one.
 \section{Core Calculus}
 
 \begin{figure}
-\syntax
-
-\caption{Abstract Syntax for the Core Calculus}
+\begin{minipage}{3cm}
+\begin{tabular}{ll}
+\e &::= \\
+   &\B \x \\
+   &\B \e.\f \\
+   &\B \e.\f=\e\\
+   &\B \e.\m(\e) \\
+   &\B \NEW\C{\bar{\e}}\\
+   &\B \cast{\t}\e \\
+   &\B \scast{\m}\e
+\end{tabular}
+\end{minipage}
+\begin{minipage}{3cm}
+\begin{tabular}{ll}
+\cl &::= \\
+  &\CLASS \C {\bar\D}{\bar{\NT\f\t} ~~ \bar{\MDEF\m{\NT\x\t}\t\e}}\\
+\\
+\t &::= ~ \any \\
+   &\B \{ \bar{\NT{\m(\t)}\t}\}\\
+\end{tabular}
+\end{minipage}
+\caption{Abstract Syntax for the Core Calculus}\label{syn}
 \end{figure}
 
 The core calculus is a simple object based system, including classes and 
@@ -293,7 +307,7 @@ grammar by having get and set forms only involving labels.
 \begin{mathpar}
 \EFrame
 
-\inferrule*[lab=EFrameError]{ e,\s \ereduce \error,\s'}{F[e],\s \ereduce \error,\s'}
+\inferrule*[lab=EFrameError]{ e,\s \ereduce \err,\s'}{F[e],\s \ereduce \err,\s'}
 
 \ENew
 
@@ -313,7 +327,7 @@ grammar by having get and set forms only involving labels.
 
 \ECastAny
 
-\inferrule*[lab=ECastError]{ }{ \cast{\t}e,\s \ereduce \error,\s}
+\inferrule*[lab=ECastError]{ }{ \cast{\t}e,\s \ereduce \err,\s}
 \end{mathpar}
 \caption{Common Dynamics}
 \end{figure}
