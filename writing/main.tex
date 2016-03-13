@@ -143,6 +143,8 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
 \newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
 \newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
 \newcommand{\inc}{\M{\in}}
+\newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
+\newcommand{\Bind}[2]{\M{#1 \is #2}}
 
 \begin{figure*}
 \begin{tabular}{l|@{~~~~~~~~}l}
@@ -156,7 +158,7 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
   \ReduceA {\F[\ep 1]}{\sp 1}{\F[\ep 2]}{\sp 2}
 }
 \CondRule{E2}{
-     \sp 2 = \Heap{\sp 1}{ {\ap 1}\is\Obj{\b{\Fdef\f\t\a}}\C\C\}}
+     \sp 2 = \Heap{\sp 1}{ \Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}\C\C\}}}
 }{ 
     \ReduceA{ \New\C{\b\a} }{\sp 1}{\ap 1}{\sp 2}
 }
@@ -171,7 +173,7 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
   \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
 }
 \CondRule{E4}{
-     \sp 2 = \Heap{\sp 1}{\a\is \Obj{\dots \Fdef\f\t{\ap 1}\dots}\t\C}
+     \sp 2 = \Heap{\sp 1}{\Bind\a{\Update{\sp 1(\a)}\f {\ap 1}}}
 }{
      \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
 }
@@ -194,7 +196,7 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
 \begin{minipage}{4cm}
 \begin{tabular}{l@{}l}
 \s &::= \empty \\
-\Alt{  \Heap\s{\a \is \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}} } \\
+\Alt{  \Heap\s{\Bind{\a\Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}}} } \\
 \F &::=    \Get\square\f \\
    \Alt{    \Set\square\f\e}
    \Alt{    \Set\a\f\square    }
