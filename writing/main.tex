@@ -145,6 +145,8 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
 \newcommand{\inc}{\M{\in}}
 \newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
 \newcommand{\Bind}[2]{\M{#1 \is #2}}
+\newcommand{\NotSub}{\M{\not<:}}
+\newcommand{\Sub}{\M{<:}}
 
 \begin{figure*}
 \begin{tabular}{l|@{~~~~~~~~}l}
@@ -181,14 +183,20 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
 { 
    \ReduceA{ \Cast\any\a}\s \a\s
 }
+\CondRule{E7}{
+  \s(a) = \Obj{\dots}{\tp 2}\C ~and~ \tp 2 \NotSub \tp 1
+}{ 
+    \ReduceA{\Cast{\tp 1}\a}\s\err\s
+}
+\CondRule{E7}{
+  \s(a) = \Obj{\dots}{\tp 2}\C ~and~ \tp 2 \Sub \tp 1
+}{ 
+    \ReduceA{\Cast{\tp 1}\a}\s\a\s
+}
 \CondRule{E6}{
     \Reduce\e{\sp 1}\err{\sp 2}
 }{
     \ReduceA{\F[\e]}{\sp1}\err{\sp 2}
-}
-\NoCondRule{E7}
-{ 
-    \ReduceA{\Cast\t\e}\s\err\s
 }
 \end{tabular}
 \end{minipage}
