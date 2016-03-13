@@ -65,6 +65,21 @@
 \renewcommand{\b}[1]{\M{\overline{#1}}}
 \newcommand{\opdef}[2]{\framebox[1.1\width]{#1} ~ #2\\}
 
+\newcommand{\CondRule}[3]{ #3 & {if} #2 &\small #1\\}
+\newcommand{\NoCondRule}[2]{ #2 &           &\small #1\\}
+\newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
+\newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
+\newcommand{\inc}{\M{\in}}
+\newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
+\newcommand{\Bind}[2]{\M{#1 \is #2}}
+\newcommand{\NotSub}{\M{\not<:}}
+\newcommand{\Sub}{\M{<:}}
+\newcommand{\classofis}[2]{\M{\xt{classof}(#1)=#2}}
+\newcommand{\typeofis}[2]{\M{\xt{typeof}(#1)=#2}}
+\newcommand{\classof}[1]{\M{\xt{classof}(#1)}}
+\newcommand{\typeof}[1]{\M{\xt{typeof}(#1)}}
+\newcommand{\Sel}[2]{\M{#1(#2)}}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -130,23 +145,23 @@ interface. For type annotations, we use the name of classes, ranged over by
 classes.
 
 
-
 The dynamic semantics evaluates expression extended with object references,
 denoted \a, and errors, denoted \err, together with a heap \s mapping
-references to object values. Object values contain all fields, methods and a
-type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}. 
+references to object values. Object values contain all fields, methods, a
+type, and a class; they are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\C}. The
+class is used for locating methods and the type is used for type casts. The
+need for keeping them separate will become clear later.
+
+The semantics uses evaluation context \M{\F[\e]}.
+
+Selecting an object from the heap is written \Sel\s\a, while a heap is
+extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\t\C}}.
 
 
+For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have 
+\classofis{\Sel\s\a}\C and \typeofis{\Sel\s\a}\t.
 
-\newcommand{\CondRule}[3]{ #3 & {if} #2 &\small #1\\}
-\newcommand{\NoCondRule}[2]{ #2 &           &\small #1\\}
-\newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
-\newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
-\newcommand{\inc}{\M{\in}}
-\newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
-\newcommand{\Bind}[2]{\M{#1 \is #2}}
-\newcommand{\NotSub}{\M{\not<:}}
-\newcommand{\Sub}{\M{<:}}
+
 
 \begin{figure*}
 \begin{tabular}{l|@{~~~~~~~~}l}
@@ -165,17 +180,17 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
     \ReduceA{ \New\C{\b\a} }{\sp 1}{\ap 1}{\sp 2}
 }
 \CondRule{E3}{
-    \s(\a) = \Obj{\dots}\t\C ~and~\Mdef\m\x{\tp 1}{\tp 2}\e\inc \C
+     \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
 }{
    \ReduceA{ \Call\a\m{\ap 1}}\s{[\a/\this~{\ap 1}/\x]\e}\s
 }
 \CondRule{E3}{ 
-     \Fdef\f\t{\ap 1}\inc\s(\a)
+     \Fdef\f\t{\ap 1}\inc \Sel\s\a
 }{
   \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
 }
 \CondRule{E4}{
-     \sp 2 = \Heap{\sp 1}{\Bind\a{\Update{\sp 1(\a)}\f {\ap 1}}}
+     \sp 2 = \Heap{\sp 1}{\Bind\a{\Update{\Sel{\sp 1}\a}\f {\ap 1}}}
 }{
      \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
 }
@@ -184,12 +199,12 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
    \ReduceA{ \Cast\any\a}\s \a\s
 }
 \CondRule{E6}{
-  \s(a) = \Obj{\dots}{\tp 2}\C ~and~ \tp 2 \Sub \tp 1
+  \typeof{\Sel\s\a} \Sub \tp 1
 }{ 
     \ReduceA{\Cast{\tp 1}\a}\s\a\s
 }
 \CondRule{E7}{
-  \s(a) = \Obj{\dots}{\tp 2}\C ~and~ \tp 2 \NotSub \tp 1
+  \typeof{\Sel\s\a} \NotSub \tp 1
 }{ 
     \ReduceA{\Cast{\tp 1}\a}\s\err\s
 }
