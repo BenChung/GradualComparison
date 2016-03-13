@@ -134,7 +134,7 @@ classes.
 The dynamic semantics evaluates expression extended with object references,
 denoted \a, and errors, denoted \err, together with a heap \s mapping
 references to object values. Object values contain all fields, methods and a
-type, and are denoted \Obj{\b{\Fdef\f\t\a}}\t{\t}. 
+type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}. 
 
 
 
@@ -142,13 +142,14 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}\t{\t}.
 \newcommand{\NoCondRule}[2]{ #2 &           &\small #1\\}
 \newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
 \newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
+\newcommand{\inc}{\M{\in}}
 
 \begin{figure*}
 \begin{tabular}{l|@{~~~~~~~~}l}
 \begin{minipage}{11cm}
 \opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
 
-\begin{tabular}{@{}l@{}l@{\,}l@{\,}l}
+\begin{tabular}{@{}l@{}l@{~}l@{~}l}
 \CondRule{E1}{ 
   \Reduce {\ep 1}{\sp 1}{\ep 2}{\sp 2}
 }{
@@ -160,12 +161,12 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}\t{\t}.
     \ReduceA{ \New\C{\b\a} }{\sp 1}{\ap 1}{\sp 2}
 }
 \CondRule{E3}{
-    \s(\a) = \Obj{\dots}\t\C ~~ \C has \Mdef\m\x{\tp 1}{\tp 2}\e
+    \s(\a) = \Obj{\dots}\t\C ~and~\Mdef\m\x{\tp 1}{\tp 2}\e\inc \C
 }{
-   \ReduceA{ \Call\a\m{\ap 1}}{\s}{  [\a/\this][{\ap 1}/\x]\e } {\s }
+   \ReduceA{ \Call\a\m{\ap 1}}\s{[\a/\this~{\ap 1}/\x]\e}\s
 }
 \CondRule{E3}{ 
-      \s(\a) = \Obj{ \dots\Fdef\f\t{\ap 1}\dots }{\tp 1}{\C}
+     \Fdef\f\t{\ap 1}\inc\s(\a)
 }{
   \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
 }
