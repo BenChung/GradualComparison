@@ -183,17 +183,17 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
 { 
    \ReduceA{ \Cast\any\a}\s \a\s
 }
+\CondRule{E6}{
+  \s(a) = \Obj{\dots}{\tp 2}\C ~and~ \tp 2 \Sub \tp 1
+}{ 
+    \ReduceA{\Cast{\tp 1}\a}\s\a\s
+}
 \CondRule{E7}{
   \s(a) = \Obj{\dots}{\tp 2}\C ~and~ \tp 2 \NotSub \tp 1
 }{ 
     \ReduceA{\Cast{\tp 1}\a}\s\err\s
 }
-\CondRule{E7}{
-  \s(a) = \Obj{\dots}{\tp 2}\C ~and~ \tp 2 \Sub \tp 1
-}{ 
-    \ReduceA{\Cast{\tp 1}\a}\s\a\s
-}
-\CondRule{E6}{
+\CondRule{E8}{
     \Reduce\e{\sp 1}\err{\sp 2}
 }{
     \ReduceA{\F[\e]}{\sp1}\err{\sp 2}
@@ -204,7 +204,7 @@ type, and are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}.
 \begin{minipage}{4cm}
 \begin{tabular}{l@{}l}
 \s &::= \empty \\
-\Alt{  \Heap\s{\Bind{\a\Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}}} } \\
+\Alt{  \Heap\s{\Bind\a{\Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}}} } \\
 \F &::=    \Get\square\f \\
    \Alt{    \Set\square\f\e}
    \Alt{    \Set\a\f\square    }
