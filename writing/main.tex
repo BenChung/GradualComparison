@@ -1,8 +1,5 @@
 \documentclass[preprint]{sigplanconf}
-\usepackage{xspace,listings,url,subfigure, framed, mathpartir, amssymb}
-
-\usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure, framed}
-\usepackage{graphicx,wrapfig,array,multirow,mathpartir,amsmath,amssymb}
+\usepackage{xspace,listings,url,subfigure,framed,amssymb,mathpartir}
 
 \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
 \copyrightyear{20yy}
@@ -10,6 +7,9 @@
 \copyrightdoi{nnnnnnn.nnnnnnn}
 
 %%% Metavariables %%%%%%%%%%%%%%%%%%%
+\newcommand{\fd}{\M{\xt{fd}}}
+\newcommand{\md}{\M{\xt{md}}}
+\newcommand{\mt}{\M{\xt{mt}}}
 \newcommand{\m}{\M{\xt{m}}}
 \newcommand{\e}{\M{\xt{e}}}
 \newcommand{\n}{\M{\xt{n}}}
@@ -26,19 +26,21 @@
 \newcommand{\err}{\M{\bt{err}}}
 \renewcommand{\d}{\M{\xt{d}}}
 \newcommand{\s}{\M{\sigma}}
+\newcommand{\fv}{\M{\xt{fv}}}
 \renewcommand{\a}{\M{\xt a}}
 \newcommand{\F}{\M{\xt F}}
 \newcommand{\tp}[1]{\M{ \t_{#1} }}
 \newcommand{\ep}[1]{\M{ \e_{#1} }}
 \newcommand{\ap}[1]{\M{ \a_{#1} }}
+\renewcommand{\mp}[1]{\M{ \m_{#1} }}
 \renewcommand{\sp}[1]{\M{ \s_{#1} }}
-\renewcommand{\empty}{\M{\cdot}}
+\newcommand{\none}{\M{\cdot}}
 %% Keywords %%%%%%%%%%%%%%%%%%
 \newcommand{\new}{\M{\bt{new}}}
 \newcommand{\class}{\M{\bt{class}}}
 %% Expressions %%%%%%%%%%%%%%%%%%%%
 \newcommand{\Get}[2]{\M{#1.#2}}
-\newcommand{\Set}[3]{\M{#1.#2=#3}}
+\newcommand{\Set}[3]{\M{#1.#2:=#3}}
 \newcommand{\Call}[3]{\M{#1.#2(#3)}}
 \newcommand{\New}[2]{\M{\new\;#1({#2})}}
 \newcommand{\Cast}[2]{\M{\langle{#1}\rangle{#2}}}
@@ -47,7 +49,9 @@
 \newcommand{\Type}[1]{\M{\{ #1 \}}}
 \newcommand{\HT}[2]{\M{{#1}\!:{#2}}}
 %% Classes %%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\Mdef}[5]{\M{ \HT { #1( \HT{#2}{#3})}{#4}={#5}}}
+\newcommand{\Mdef}[5]{\M{ \HT { #1( \b{\HT{#2}{#3}})}{#4}={#5}}}
+\newcommand{\SMdef}[5]{\M{ \HT { #1!( \HT{#2}{#3})}{#4}= {#5}}}
+\newcommand{\GMdef}[3]{\M{ \HT { #1()}{#2}={#3}}}
 \newcommand{\Ftype}[2]{\M{ \HT{#1}{#2} }}
 \newcommand{\Fdef}[3]{\M{ \HT{#1}{#2}={#3} }}
 \newcommand{\Mtype}[3]{\M{ \HT { #1( #2 )}{#3}}}
@@ -65,8 +69,8 @@
 \renewcommand{\b}[1]{\M{\overline{#1}}}
 \newcommand{\opdef}[2]{\framebox[1.1\width]{#1} ~ #2\\}
 
-\newcommand{\CondRule}[3]{ #3 & {if} #2 &\small #1\\}
-\newcommand{\NoCondRule}[2]{ #2 &           &\small #1\\}
+\newcommand{\CondRule}[3]{ #3 & {if} #2 \\}
+\newcommand{\NoCondRule}[2]{ #2 &       \\}
 \newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
 \newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
 \newcommand{\inc}{\M{\in}}
@@ -80,6 +84,10 @@
 \newcommand{\typeof}[1]{\M{\xt{typeof}(#1)}}
 \newcommand{\Sel}[2]{\M{#1(#2)}}
 
+\newcommand{\EnvType}[4]{ \M{#1 \vdash_{#2} #3 : #4}}
+\newcommand{\HasType}[3]{ \M{#1 (#2) = #3}}
+\newcommand{\E}{\M{\Gamma}}
+\newcommand{\Es}{\E ~\s}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -107,7 +115,7 @@ Python, TypeScript or Ruby.
 
 A common core calculus is used to compare the various gradual type
 systems. This common core is an imperative object-based system with
-structural subtyping.  Figure~\ref{syn} summarize the syntax of this small
+structural subtyping. Figure~\ref{syn} summarize the syntax of this small
 language where \x ranges over variables, \f ranges over field names, \m can
 be either a plain method name \d, a field getter \f, or a field setter \fb,
 \C and \D range over class names. We use the overbad notation to denote a
@@ -120,24 +128,29 @@ getter and setter from the \this variable.  Expressions include variable
 access, field access and update, method invocation, object creation, and
 type casts.
 
-\begin{figure}[!h]
-\begin{minipage}{3cm}\begin{tabular}{ll}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[!h]\begin{minipage}{3cm}\begin{tabular}{l@{~~~}l}
 \e &::=  \x \\
    \Alt{ \Get\e\f }
    \Alt{ \Set\e\f\e }
-   \Alt{ \Call\e\m\e }
+   \Alt{ \Call\e\m{\b\e} }
    \Alt{ \New\C{\b\e} }
    \Alt{ \Cast\t\e }
-\end{tabular}\end{minipage}\begin{minipage}{3cm}\begin{tabular}{ll}
-\c &::= \\
-  &\Class \C {\b{\Ftype\f\t}} {\b{\Mdef\m\x\t\t\e}} \\
-\\
+\end{tabular}\end{minipage}\begin{minipage}{3cm}\begin{tabular}{l@{~~~}l}
+\fd &::= 
+    \Ftype\f\t   \\
+\md &::=
+    \Mdef\m\x\t\t\e \\
+\c &::= \Class \C {\b{\fd}}{\b{\md} } \\
+\mt &::= \Mtype\m\t\t\\
 \t &::= ~ \any \\
-   \Alt{ \Type{  \b{ \Mtype\m\t\t } } }
-\\
+   \Alt{ \Type{  \b{ \mt } } }
 \end{tabular}\end{minipage}
 \caption{Abstract Syntax for the Core Calculus}\label{syn}
 \end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%% END OF SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Our types are structural and only account for the methods in an object's
 interface. For type annotations, we use the name of classes, ranged over by
@@ -161,8 +174,13 @@ extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\t\C}}.
 For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have 
 \classofis{\Sel\s\a}\C and \typeofis{\Sel\s\a}\t.
 
+We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
+definition and \Fdef\f\t\a\inc\Obj{\dots}\t\C to express the selection of a
+field. Lastly a field of an object can be update with the notation
+\Update{\Obj{\dots}\t\C}\f\a.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}
 \begin{tabular}{l|@{~~~~~~~~}l}
 \begin{minipage}{11cm}
@@ -182,7 +200,7 @@ For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have
 \CondRule{E3}{
      \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
 }{
-   \ReduceA{ \Call\a\m{\ap 1}}\s{[\a/\this~{\ap 1}/\x]\e}\s
+   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{[\a/\this~\b{{\ap 1}/\x}]\e}\s
 }
 \CondRule{E3}{ 
      \Fdef\f\t{\ap 1}\inc \Sel\s\a
@@ -213,25 +231,179 @@ For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have
 }{
     \ReduceA{\F[\e]}{\sp1}\err{\sp 2}
 }
-\end{tabular}
-\end{minipage}
-&
-\begin{minipage}{4cm}
-\begin{tabular}{l@{}l}
-\s &::= \empty \\
-\Alt{  \Heap\s{\Bind\a{\Obj{\b{\Fdef\f\t\a}}{\tp 1}{\tp 2}}} } \\
+\end{tabular}\end{minipage}&
+%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{minipage}{4cm}\begin{tabular}{l@{~~}l}
+\fv &::= \Fdef\f\t\a \\
+\s &::= \none \\
+\Alt{  \Heap\s{\Bind\a{\Obj{\b{\fv}}} } } 
 \F &::=    \Get\square\f \\
    \Alt{    \Set\square\f\e}
    \Alt{    \Set\a\f\square    }
    \Alt{    \Call\square\m\e}
-   \Alt{    \Call\a\m\square }
+   \Alt{    \Call\a\m{\b\a\,\square\,\b\e}}
     \Alt{   \Cast\t\square }
    \Alt{   \New\C{\b \a\,\square\,\b\e}}
 \end{tabular}
-\end{minipage}
-\end{tabular}
-\caption{Common Dynamics}
+\end{minipage}\end{tabular}
+\caption{Common Core Calculus Dynamic Semantics.}
 \end{figure*}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+\opdef{\tp 1 \Sub \tp 2 }{\tp 1 is a subtype of \tp 2}
+\begin{mathpar}
+\inferrule{}{\t\Sub\t}
+
+\inferrule{}{\t \Sub \Type{} }
+
+\inferrule{
+    \t \Sub \Type{\b{ \mt } } \\
+     \Mtype{\mp1}{\b{\tp{31}}}{\tp{32}} \inc \t \\
+    \tp{12} \Sub \tp{32} \\    
+    \b{\tp{31} \Sub \tp{11}}
+}{
+   \t \Sub \Type{\Mtype{\mp 1}{\b{\tp{11}}}{\tp{12}} ~ \b{\mt} \, } 
+}
+\end{mathpar}
+\caption{Subtyping}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% TYPE RULES FOR COMMON CORE CALCULUS %%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+\opdef{\EnvType\Es\C\e\t}{\e has type \t in environment \E, heap \s and class \C}
+\begin{mathpar}
+\inferrule{
+    \HasType{\Sel\E\x}\x\t 
+ }{
+   \EnvType\Es\C\x\t
+}
+
+\inferrule{
+   \typeofis{\Sel\s\a}\t 
+}{
+   \EnvType\Es\C\a\t
+}
+
+\inferrule{
+   \EnvType\Es\C\e{\tp 1} \\ \tp 1 \Sub \t
+ }{
+   \EnvType\Es\C\e\t 
+}   
+
+\inferrule{
+   \EnvType\Es\C{\ep 1}\any \\ \b{\EnvType\Es\C{\ep 2}\t }
+}{
+   \EnvType\Es\C{\Call{\ep 1}\m{\b{\ep 2}}}\any
+}
+
+\inferrule{
+   \EnvType\Es\C{\ep 1}\t  \\  \Mtype\m{\tp 3}{\tp 4}\inc \t  \\  \b{\EnvType\Es\C{\ep 2}{\tp 3}}
+}{
+    \EnvType\Es\C{\Call{\ep 1}\m{\b{\ep 2}}}{\tp 2}
+}    
+
+\inferrule{
+  \b{\EnvType\Es\D\e\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+}{
+  \EnvType\Es\D{\New\C{\b\e}}\C
+}
+
+\inferrule{
+  \EnvType\Es\C\e{\tp 2}
+}{
+   \EnvType\Es\C{\Cast{\tp 1}\e}{\tp 1}
+}
+
+\inferrule{
+  \Ftype\f{\t} \inc \classof{\Sel\s\a}
+}{ 
+ \EnvType\Es\C{\Get\a\f}{\t}
+}
+
+\inferrule{
+    \Ftype\f\t \inc \C
+}{
+    \EnvType\Es\C{\Get\this\f}\t
+}
+
+\inferrule{
+  \EnvType\Es\C\e{\tp1} \\
+  \Ftype\f{\tp2}\inc\C \\
+  \tp1 \Sub \tp2
+}{ 
+    \EnvType\Es\C{\Set\this\f\e}{\tp1} 
+}
+
+\inferrule{
+  \EnvType\Es\C\e{\tp1} \\
+  \Ftype\f{\tp2}\inc\classof{\Sel\s\a}\\
+  \tp1 \Sub \tp2
+}{ 
+    \EnvType\Es\C{\Set\a\f\e}{\tp1} 
+}
+\end{mathpar}
+\caption{Common Typing}
+\end{figure}
+
+\newcommand{\WF}[2]{\M{\vdash_{#1} #2}}
+\begin{figure}
+\begin{mathpar}
+
+\inferrule{
+    \EnvType{\this:\C,\x:\tp1~\none}\C\e{\tp2}
+}{
+    \WF\C{\Mdef\d\x{\tp1}{\tp2}\e}
+}
+
+\inferrule{
+    \Ftype\f\t \inc \C 
+}{   
+	\WF\C{\GMdef\f\t{\Get\this\f}}
+}
+
+\inferrule{
+    \Ftype\f\t \inc \C 
+}{ 
+     \WF\C{\SMdef\f\x\t\t{\Set\this\f\x}}
+}
+
+\inferrule{
+	\M{\forall} \Mdef\m\x{\tp1}{\tp2}\e \inc \C ~\B~
+       \WF\C{ \Mdef\m\x{\tp1}{\tp2}\e }
+}{ 
+	\WF\C{ \Class \C {\b{\fd}} {\b{\md}} }
+}
+\end{mathpar}
+\caption{Class well-formedness}
+\end{figure}
+
+\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 : #4}
+\begin{figure}
+\begin{mathpar}
+\inferrule*[lab=ACI1]{\HasType\E\x\t}{\GenCast{\E}{\x}{\x}{\t}}
+
+\inferrule*[lab=ACI2]{\HasType\E\x\t}{\GenCast{\E}{\Get\e\f}{\x}{\t}}
+
+\inferrule*[lab=ACI3]{\HasType\E\x\t}{\GenCast{\E}{\Set\e\f\e}{\x}{\t}}
+
+\inferrule*[lab=ACI4]{
+	\GenCast{\E}{\e}{\e'}{\t} \\
+	\Mtype\m{\tp 1}{\tp 2} \inc \t
+}{
+	\GenCast{\E}{\Call\e\m\e}{\x}{\t}
+}
+
+\inferrule*[lab=ACI5]{\HasType\E\x\t}{\GenCast{\E}{\New\C{\b\e}}{\x}{\t}}
+
+\inferrule*[lab=ACI6]{\HasType\E\x\t}{\GenCast{\E}{\Cast\t\e}{\x}{\t}}
+\end{mathpar}
+\caption{Cast insertion}
+\end{figure}
 
 
 \end{document}

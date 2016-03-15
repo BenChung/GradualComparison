@@ -12,7 +12,7 @@ jan:
 	pdflatex main && open main.pdf
 
 halfclean:
-	rm -f *.log *.aux *.bbl *.blg *~
+	rm -f *.log *.aux *.bbl *.blg *~  *.out  *#  .#*
 
 clean: halfclean
 	rm -f main.pdf
