@@ -7,6 +7,30 @@
 \newtheorem{thm}{Theorem}
 \begin{document}
 
+\begin{mathpar}
+
+
+\inferrule{
+  \Ftype\f{\t} \inc \classof{\Sel\s\a}
+}{ 
+ \EnvType\Es\C\d{\Get\a\f}{\t}
+}
+
+\inferrule{
+  \EnvType\Es\C\e{\tp1} \\
+  \Ftype\f{\tp2}\inc\classof{\Sel\s\a}\\
+  \tp1 \Sub \tp2
+}{ 
+    \EnvType\Es\C{\Set\a\f\e}{\tp1} 
+}
+
+\inferrule{
+   \typeofis{\Sel\s\a}\t 
+}{
+   \EnvType\Es\C\a\t
+}
+\end{mathpar}
+
 \section{Common case analysis}
 \begin{thm} 
 \label{castv}For any $v$ and $\t$ s.t. $\Gdash \t$, then there is a $v'$ such that $\cast{\t}v,\s \ereduce v',\s'$ or $\cast{\t}v,\s \ereduce \error,\s'$\end{thm}

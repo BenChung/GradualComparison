@@ -1,8 +1,11 @@
 \documentclass[preprint]{sigplanconf}
-\usepackage{xspace,listings,url,subfigure,framed,amssymb,mathpartir,
+\usepackage{xspace,listings,url,subfigure,framed,amssymb,mathpartir,hyperref,
             stmaryrd % double brackets llbracket
 }
 \newcommand{\rn}[1]{#1}
+\newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
+
+
 
 \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
 \copyrightyear{20yy}
@@ -97,26 +100,96 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 \title{Designing Gradual Types for Objects} 
-\authorinfo{Benjamin Chung, Jan Vitek}{Northeastern University}{}
+\authorinfo{}{}{} % Annon : Benjamin Chung, Jan Vitek}{Northeastern University}{}
 \maketitle
 
 \begin{abstract}
 The popularity of dynamically typed languages has given rise to a cottage
-industry of incremental type systems. These type systems allow developers
-to annotate their code with types and to feel better about the correctness
-of their code.  The exact properties that these incremental type systems are
-able to guarantee vary greatly from one language to another. This paper
-compares some of the main design choices by embedding them into one common
-core calculus representative of dynamic object-oriented languages such as
-Python, TypeScript or Ruby.
+industry of type systems that provide various degrees of assurance
+while allowing some code to remain free of type annotations. 
+The motivation underlying these new type systems is that they give
+programmers a way to incrementally migrate a code base from untyped
+to typed.  It is becoming increasingly clear that the design of these
+type systems must carefully consider issues such expressiveness of the 
+annotation language, granularity of type regions, and performance overheads
+of any associated run-time checks.  This paper focuses on gradual types for 
+object-oriented languages and attempts to explain some of the key design 
+dimensions and trade-offs of three implemented gradual types systems.
+This is achieved by embedding the different design into a core calculus
+that is broadly representative of dynamic languages such as Python, JavaScript
+and Ruby.
 \end{abstract} 
 
 \section{Introduction}
+Well-typed programs go wrong every day. Short of programming with a proof assistant, 
+our programs will remain replete with errors that lead to undesirable outcomes. 
+The question that face language designers is what classes of errors are frequent 
+enough that it makes sense to try to catch in the programming language itself,
+and how much linguistic machinery to expose to end-users for that purpose. 
+At one end of the spectrum, some of the most popular languages of the day 
+entirely rely on dynamic checks to catch errors while the program is  being 
+evaluated. Most statically typed languages stake  another point in the design space. 
+They expose a set of type annotations that programmers have to use and, in  return, 
+these languages ensure that many errors are ruled out ahead of time.
+
+Gradual typing attempts to merge both world-views by allowing developers to
+add annotations to their code in an incremental manner, with the promise that
+the rewards in error prevention are commensurate to the effort invested in
+devising the right annotations. Adding type annotations has other benefits,
+by making programmer intent explicit, they play the role of a simple machine-checked
+documentation to annotated code fragments.  Moreover, there is an expectation that
+by providing additional information about a code fragment's intended  usage,
+compilers  may be able to generate more efficient code.
+
+The goal of this paper is to explore the design space of gradual  type systems
+for object-oriented programming languages. Our goal is to expose the main forces
+that are influencing the design of practical systems, and to provide some advice
+for the next generation of gradually typed object-oriented languages. To achieve
+this goal we have designed a very basic object-based language that supports
+statically typed as well as dynamically typed  code fragments. On top of this
+common core, we then build models of several practical gradual type systems and
+explain their differences. While our work focuses on formalism, we are careful
+to discuss the practical considerations based on our experience working with
+implemented systems.
+
+The fundamental property that a sound type system for a statically typed object-based 
+language will guarantee is that an expression of the form  \xt{x.m(y)} does not
+result in, to borrow Smalltalk terminology, a \emph{message not understood} error.
+That is to say that the method being invoked exists in its receiver object.
+Even when statically typed, most languages make an exception for the \xt{null} or 
+\xt{undefined} reference, thus the above expression may still fail at run-time as the 
+test whether variable \xt{x} is bound to an  object is deferred to execution.
+
+The most important decision involved in the design of a gradual type system lies 
+in the precise definition of \emph{soundness} and the choice of static and dynamic
+mechanisms employed to enforce it. It it interesting to observe the variety of
+subtly different design choices that have been adopted in different languages. 
+One of the key difference is what it means for a variable \xt{x} to be of type
+\xt{T}. In a traditional statically typed language, \xt{x} would refer to
+either an instance of the class denoted by \xt{T} or one of its sub-classes.
+In this case, we say that \xt{T} is a \emph{concrete} type. In some proposals a
+variable \xt{x} of type \xt{T} can refer to an instance of any class, we say
+that \xt{T} is an \emph{unconstrained} type. Lastly, \xt{x} may refer to any
+value but the language implementation will ensure that the value behaves
+as if it was of type \xt{T}, we call this a \emph{promised} type.
+
+While statically typed languages such as Scala only offer concrete types
+and dynamically typed languages like Python have a single, implicit,
+unconstrained type, gradually typed language have experimented  with 
+various combinations.  C\# has concrete typed but also support a single
+unconstrained type \xt{dyn}~\cite{}. Thorn~\cite{} and StrongScript~\cite{}
+both support concrete types as well as unconstrained types. Languages
+such as Hack~\cite{} support only unconstrained types.  Finally Reticulated 
+Python~\cite{} and Typed Racket~\cite{} support promised types.
+
+
 
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{A Common Core}
+\section{A Common Core for Gradually Typed Objects}
+
+
 
 A common core calculus is used to compare the various gradual type
 systems. This common core is an imperative object-based system with
@@ -183,6 +256,23 @@ We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
 definition and \Fdef\f\t\a\inc\Obj{\dots}\t\C to express the selection of a
 field. Lastly a field of an object can be update with the notation
 \Update{\Obj{\dots}\t\C}\f\a.
+
+
+\subsection{Dynamic Semantics}
+
+We use a typical small-step operational semantics with a heap. Each step steps an expression and a heap to a result and a new heap, where a result can either be a new expression or an error. Errors halt execution, and can be lifted through execution frames.
+
+\subsection{Typing}
+
+As an object-oriented calculus, our type system has subtyping. We use a structural subtyping mechanism which supports with, depth, and reordering. 
+
+Each class in our system must be well-formed, as described in Figure 4. Each method must typecheck against the named arguments, producing the result type. Our type system has two major issues: it does not provide any guarantees about the type of the arguments to an untyped method, and it does not mention getters and setters at all.
+
+To fill these holes, we use class translation, which performs 2 major tasks:
+\begin{itemize}
+\item Generating accessor methods, to enable user code to retreive and modify field values.
+\item Generating wrapper methods, that take all $\*$ arguments and use casts to ensure that the values that they were passed are correct. 
+\end{itemize}
 
 % TODOS:
 % $ should not be a valid character in a method name <- explain in text
@@ -252,7 +342,7 @@ field. Lastly a field of an object can be update with the notation
 \begin{minipage}{4cm}\begin{tabular}{l@{~~}l}
 \fv &::= \Fdef\f\t\a \\
 \s &::= \none \\
-\Alt{  \Heap\s{\Bind\a{\Obj{\b{\fv}}} } } 
+\Alt{  \Heap\s{\Bind\a{\Obj{\b{\fv}}{\t}{\C}}} } 
 \F &::=    \Get\square\f \\
    \Alt{    \Set\square\f\e}
    \Alt{    \Set\a\f\square    }
@@ -333,7 +423,7 @@ field. Lastly a field of an object can be update with the notation
 
 \IRule{W7}{
 	\M{\forall} \Mdef\m\x{\tp1}{\tp2}\e \inc \b\md ~\B~
-       \EnvType{\this:\C,\x:\tp1}\e{\tp2}
+       \EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2}
 }{ 
 	\Class \C {\b{\fd}} {\b{\md}}  ~~ WF
 }
@@ -343,7 +433,7 @@ field. Lastly a field of an object can be update with the notation
 %%%%%%%%%%%%%%%%%%%%%%%%% WELLFORMDNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\TransClass}[2]{\M{ #1 \hookrightarrow #2 }}
-\newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #2 ~ #3 }}
+\newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #3 : #4 }}
 \newcommand{\mdp}[1]{\M{\md_{#1}}}
 \newcommand{\setter}[1]{\M{\llbracket #1  \rrbracket}_{\xt{set}}}
 \newcommand{\getter}[1]{\M{\llbracket #1  \rrbracket_{\xt{get}}}}
@@ -355,10 +445,10 @@ field. Lastly a field of an object can be update with the notation
 \opdef{\EnvType\E\e\t}{\e has type \t in environment \E}
 \begin{mathpar}
 \IRule{}{
-      \TransExp\E\e{\ep2}\any\\
-     \b{\TransExp\E{\ep1}{\ep3}{\t3}}
+      \TransExp\E\e{\ep 2}\any\\
+     \b{\TransExp\E{\ep 1}{\ep 3}{\tp 3}}
  }{
-    \TransExp\E{\Call\e\m{\b{\ep1}}} {\Call{\ep2}{\Dyn{\m}}{\b{\ep3}}} \any
+    \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\Dyn{\m}}{\b{\ep 3}}} \any
 }   
 
 \IRule{}{
@@ -382,7 +472,7 @@ field. Lastly a field of an object can be update with the notation
 }{
   \getter{\Ftype\f\t} \equiv   \GMdef\m\t{\Get\this\f}
 }
-
+ 
 \IRule{}{
 }{
   \setter{\Ftype\f\t} \equiv   \SMdef\m\x\t\t{\Set\this\f\x}
@@ -390,9 +480,9 @@ field. Lastly a field of an object can be update with the notation
 
 \newcommand{\union}{\M{\cup}}
 \IRule{}{
- \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} ~~ \b{\dynamic\md} ~~ \b{\invoke\md}
+ \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\dynamic{\mdp1}} ~~ \b{\invoke{\mdp1}}
 }{ 
-	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp1}} }
+	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
 }
 \end{mathpar}
 \caption{Translations}
@@ -400,69 +490,251 @@ field. Lastly a field of an object can be update with the notation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+\subsection{Type soundness:}
+Theorem 1: Type translation. If $\EnvType\E\e\t$ and $\TransExp\E\e{\e'}\t$ then $\EnvType{\E ~ \cdot}{\e'}\t$.
 
+Theorem 2: Progress. If $\EnvType{\Es}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression or $\e' ~ \err$.
 
-\newcommand{\GenCast}[6]{#1 \vdash_{#2}^{#3} #4 \hookrightarrow #5 \Rightarrow #6}
-\newcommand{\AnaCast}[6]{#1 \vdash_{#2}^{#3} #4 \rightsquigarrow #5 \Leftarrow #6}
+Theorem 3: Preservation. If $\s,\e \rightarrow \s',\e'$ and $\EnvType{\Es}{\e}{\t}$ then $\EnvType{\E~\s'}{\e'}{\t}$.
+
+For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
+
+\newcommand{\casts}[1]{\llbracket #1 \rrbracket_{\xt{casts}}}
+\newcommand{\fcast}[1]{\M{\llbracket #1 \rrbracket_{\xt{force}}}}
+\newcommand{\wrapper}[1]{\M{\llbracket #1  \rrbracket}_{\xt{wrap}}}
 \begin{figure}
 \begin{mathpar}
-\IRule{A1}{\HasType\E\x\t}{\GenCast\E\C\d\x\x\t}
+\IRule{}{ }{
+	\wrapper{\Mtype\m{\b{\tp1}}{\tp2}} \equiv \Mdef\m{x}{\any}{\any}{\Cast{\any}{\xt{this}.\xt{orig}.\m(\b{\Cast{\tp1}x})}}
+}
 
-\IRule{A2}{ }{\GenCast{\E}{\C}\f{\Get\this\f}{\Get\this\f}{\t}}
+\IRule{}{
+	\b{\md=\wrapper{\mt}}
+}{
+	\wrapper{\{\b{\mt}\}} \equiv \Class\C{~\xt{orig}:\t,\b{\md}}
+}
 
-\IRule{A3}{\Ftype\f\t \inc \C \\ \AnaCast\E\C{\f!}{\e_1}{\e_2}{\t}}{\GenCast{\E}{\C}{\f!}{\Set\this\f{\e_1}}{\Set\this\f{\e_1}}{\t}}
+\IRule{}{
+      \TransExp\E\e{\ep 2}\any\\
+     \b{\TransExp\E{\ep 1}{\ep 3}{\tp 3}} \\
+     \b{\tp 4 \equiv \wrapper{\tp 3}}
+ }{
+    \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\m}{\b{\New{\tp 4}{\ep 3}}}} \any
+}   
+
+\IRule{}{
+ \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\fcast{\mdp1}}
+}{ 
+	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
+}
+
+\IRule{TRW1}{
+	\M{\forall} \Mdef\m\x{\tp1}{\tp2}\e \inc \b\md ~\B~ \b{\tp1 \equiv \any} \wedge \tp2 \equiv \any \\ \wedge ~ \casts{\e} \cup \{\any\} = \{\any\} \wedge
+   	\EnvType{\this:\C,\b{\x:\any}}\e{\any}
+}{ 
+	\Class \C {\b{\fd}} {\b{\md}}  ~~ WF
+}
+
+\IRule{TRW2}{
+	\M{\forall} \Mdef\m\x{\tp1}{\tp2}\e \inc \b\md ~\B~ \b{\tp1 \not\equiv \any} \wedge \tp2 \not\equiv \any \\\wedge~ \casts{\e} \cap \{\any\} = \emptyset \wedge
+       \EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2}
+}{ 
+	\Class \C {\b{\fd}} {\b{\md}}  ~~ WF
+}
+\end{mathpar}
+\caption{Class well-formedness for Typed Racket}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%% Monotonic Statics
+\newcommand{\stcons}[2]{#1\lesssim #2}
+
+\begin{figure}
+\begin{mathpar}
+\IRule{CS1}{ }{\stcons{\t}{\t}}
+
+\IRule{CS2}{ }{\stcons{\any}{\t}}
+
+\IRule{CS3}{ }{\stcons{\t}{\any}}
+
+\IRule{CS4}{ \tp 1 \Sub \tp 2 }{\stcons{\tp 1}{\tp 2}}
+
+\IRule{CS5}{
+	\stcons{\tp3}{\tp1} \\
+    \stcons{\tp2}{\tp4} \\
+    \stcons{\Type{\b{\md_1} ~ \b{\md_2}}}{\Type{\b{\md_3} ~ \b{\md_4}}}
+}{\stcons{\Type{\b{\md_1} ~ \Mtype\m{\tp1}{\tp2}~ \b{\md_2}}}{\Type{\b{\md_3} ~ \Mtype\m{\tp3}{\tp4} ~ \b{\md_4}}}}
+\end{mathpar}
+\caption{Consistent Subtyping}
+\end{figure}
+
+\newcommand{\meet}[2]{#1\sqcap #2}
+\newcommand{\refine}[2]{#1\vartriangleright #2}
+\begin{figure}
+\begin{mathpar}
+\IRule{M1}{ }{\meet{\t}{\any} \equiv \t}
+
+\IRule{M2}{ }{\meet{\any}{\t} \equiv \t}
+
+\IRule{M3}{ }{\meet{\t}{\t} \equiv \t}
+
+\IRule{M4}{
+	\b{\meet{\tp3}{\tp1}  \equiv \tp5} \\
+    \meet{\tp2}{\tp4} \equiv \tp6\\
+    \meet{\Type{\b{\md_1}}}{\Type{\b{\md_2}}} \equiv \Type{\b{\md_3}} 
+}{\meet{\Type{\Mtype\m{\b{\tp1}}{\tp2}~ \b{\md_1}}}{\Type{\Mtype\m{\b{\tp5}}{\tp6} ~ \b{\md_3}}}}
+\end{mathpar}
+\caption{Meet for the monotonic system}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\IRule{M1}{\EnvType\E\e{\tp2} \\ \stcons{\tp2}{\tp1} }{\EnvType\E\e{\tp1}}
+\end{mathpar}
+\caption{Monotonic typing}
+\end{figure}
+
+
+\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
+\newcommand{\AnaCast}[4]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
+\begin{figure}
+\begin{mathpar}
+\IRule{A1}{\HasType\E\x\t}{\GenCast\E\x\x\t}
 
 \IRule{A4}{
-	\GenCast{\E}{\C}\d{\e_1}{\e_2}{\t_1} \\
+	\GenCast{\E}{\e_1}{\e_2}{\t_1} \\
 	\Mtype\m{\b{\tp 2}}{\tp 3} \inc \t_1\\
-	\b{\AnaCast{\E}{\C}\d{\e_3}{\e_4}{\tp 2}} \\
+	\b{\AnaCast{\E}{\e_3}{\e_4}{\tp 2}} \\
 }{
-	\GenCast{\E}{\C}\d{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m}{\b{\e_4}}}{\tp 3}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m}{\b{\e_4}}}{\tp 3}
 }
 
 \IRule{A5}{
-	\GenCast{\E}{\C}\d{\e_1}{\e_1'}{\any} \\
-	\b{\AnaCast{\E}{\C}\d{\e_2}{\e_2'}{\any}} \\
+	\GenCast{\E}{\e_1}{\e_1'}{\any} \\
+	\b{\AnaCast{\E}{\e_2}{\e_2'}{\any}} \\
 }{
-	\GenCast{\E}{\C}\d{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_1'}{\m\$}{\b{\e_2'}}}{\any}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_1'}{\Dyn\m}{\b{\e_2'}}}{\any}
 }
 
 \IRule{A6}{
-  \b{\AnaCast\E\C\d{\e_1}{\e_2}\t} \\ 
+  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\E}{\C}\d{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 
 \IRule{A7}{
-	\GenCast{\E}{\C}\d{\e_1}{\e_2}{\t_2}
-}{\GenCast{\E}{\C}\d{\Cast{\tp 1}{\e_1}}{\Cast{\t_1}{\e_2}}{\tp 1}}
+	\GenCast{\E}{\e_1}{\e_2}{\t_2}
+}{\GenCast{\E}{\Cast{\tp 1}{\e_1}}{\Cast{\t_1}{\e_2}}{\tp 1}}
 \end{mathpar}
-\caption{Cast insertion}
+\caption{Synthetic cast insertion}
 \end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\IRule{AA1}{\GenCast{\E}{\ep1}{\ep2}{\t}}{\AnaCast\E{\ep1}{\ep2}\t}
+
+\IRule{AA2}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ {\tp2} \Sub {\tp1}}{\AnaCast\E{\ep1}{\ep2}{\tp1}}
+
+\IRule{AA3}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ \stcons{\tp2}{\tp1}}{\AnaCast\E{\ep1}{\Cast{\tp1}{\ep2}}{\tp1}}
+
+\IRule{AA4}{
+	\AnaCast{\E}{\e_1}{\e_1'}{\Type{\Mtype\m{\b{\tp2}}{\tp1}}} \\
+	\b{\GenCast{\E}{\e_2}{\e_2'}{\tp2}} \\
+}{
+	\AnaCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_1'}{\m}{\b{\e_2'}}}{\tp1}
+}
+\end{mathpar}
+\caption{Analytic cast insertion}
+\end{figure}
+
+
+\newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
+\begin{figure}
+For every type \t in the program, assign an index $i$ from $1$ through $n$. Then for every set of types $\t_{l_1}$ through $\t_{l_i}$ where $\stcons{\t_{l_1}}{\stcons{\ldots}{\t_{l_i}}}$, take $\t_{l_1,\ldots,l_i} = \meet{\t_{l_1}}{\meet{\ldots}{\t_{l_i}}}$.
+
+	For each $\t_{l_1,\ldots,l_i}$, we generate a class $\Class{\C_{l_1,\ldots,l_i}}{~\b{\md}}$ where $\md = \Mdef\m\x{\b{\tp1}}{\tp2}\e$ 
+
+\begin{mathpar}
+\IRule{}{
+	\AnaCast{\b{\x:{\tp1}}}{\ep1}{\ep2}{\tp2}
+}{
+	\inscast{\Mdef\d\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef\d\x{\tp1}{\tp2}{\ep2}
+}
+
+\IRule{}{
+ \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\inscast{\mdp1}}  ~~ \b{\dynamic{\mdp1}}
+}{ 
+	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
+}
+\end{mathpar}
+\caption{Monotonic translation}
+\end{figure}
+
+\section{Appendix}
+
 
 \section{Appendix}
 \begin{figure}
 \begin{mathpar}
-\IRule{}{
-  \Ftype\f{\t} \inc \classof{\Sel\s\a}
-}{ 
- \EnvType\Es\C\f{\Get\a\f}{\t}
+\IRule{W1}{
+    \HasType\Es\x\t
+ }{
+   \EnvType\s\x\t
+}
+
+\IRule{W2}{
+   \EnvType\Es\e{\tp 1} \\ \tp 1 \Sub \t
+ }{
+   \EnvType\Es\e\t 
+}   
+
+\IRule{W3}{
+   \EnvType\Es\e\any \\ \b{\EnvType\E{\ep1}\t }
+}{
+   \EnvType\Es{\Call\e\m{\b{\ep1}}}\any
+}
+
+\IRule{W4}{
+   \EnvType\Es\e{\tp1} \\ \Mtype\m{\b{\tp2}}\t\inc \tp1  \\  \b{\EnvType\E{\ep1}{\tp 2}}
+}{
+    \EnvType\Es{\Call\e\m{\b{\ep1}}}\t
+}    
+
+\IRule{W5}{
+  \b{\EnvType\Es\e\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+}{
+  \EnvType\Es{\New\C{\b\e}}\C
+}
+
+\IRule{W6}{
+  \EnvType\Es\e{\tp1}
+}{
+   \EnvType\Es{\Cast\t\e}\t
 }
 
 \IRule{}{
-  \EnvType\Es\C\f\e{\tp1} \\
-  \Ftype{\f!}{\tp2}\inc\classof{\Sel\s\a}\\
+  \Ftype\f{\t} \inc \classof{\Sel\s\a}
+}{ 
+ \EnvType\Es{\Get\a\f}{\t}
+}
+
+\IRule{}{
+  \EnvType\Es\e{\tp1} \\
+  \Ftype{\f}{\tp2}\inc\classof{\Sel\s\a}\\
   \tp1 \Sub \tp2
 }{ 
-    \EnvType\Es\C{\f!}{\Set\a\f\e}{\tp1} 
+    \EnvType\Es{\Set\a\f\e}{\tp1} 
 }
 
 \IRule{}{
    \typeofis{\Sel\s\a}\t 
 }{
-   \EnvType\Es\C\a\t
+   \EnvType\Es\a\t
 }
 \end{mathpar}
 \caption{Runtime typing rules}
 \end{figure}
-\end{document}
 
+\bibliographystyle{plain}
+\bibliography{bib/compactdoi}
+\end{document}
