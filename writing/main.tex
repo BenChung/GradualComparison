@@ -70,7 +70,7 @@
 \newcommand{\Alt}[1]{ &\B #1 \\}
 \newcommand{\B}{\M{~|~}}
 \newcommand{\M}[1]{\ensuremath{#1}\xspace}
-\newcommand{\xt}[1]{\sf{#1}}
+\newcommand{\xt}[1]{{\sf{#1}}\xspace}
 \newcommand{\bt}[1]{\xt{\bf #1}}
 \renewcommand{\b}[1]{\M{\overline{#1}}}
 \newcommand{\opdef}[2]{\framebox[1.1\width]{#1} ~ #2\\}
@@ -99,7 +99,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-\title{Designing Gradual Types for Objects} 
+\title{Designing Gradual Types for Objects
+\vspace{-1cm}} 
 \authorinfo{}{}{} % Annon : Benjamin Chung, Jan Vitek}{Northeastern University}{}
 \maketitle
 
@@ -127,56 +128,54 @@ undesirable outcomes.  The question that face language designers is what
 classes of errors are frequent enough that it makes sense to try to catch in
 the programming language itself, and how much linguistic machinery to expose
 to end-users for that purpose.  At one end of the spectrum, some of the most
-popular languages of the day entirely rely on dynamic checks to catch errors
-while the program is being evaluated. Most statically typed languages stake
-another point in the design space.  They expose a set of type annotations
-that programmers have to use and, in return, these languages ensure that
-many errors are ruled out ahead of time.
+popular languages of the day rely solely on dynamic checks to catch errors
+as the program runs. Towards the other end, statically typed languages
+expose a set of type annotations that programmers have to use in their code
+and, in return, these languages ensure that many errors are ruled entirely.
 
-Gradual typing attempts to merge both world-views by allowing developers to
-add annotations to their code in an incremental manner, with the promise
-that the rewards in error prevention are commensurate to the effort invested
-in devising the right annotations. Adding type annotations has other
-benefits, by making programmer intent explicit, they play the role of a
-simple machine-checked documentation to annotated code fragments.  Moreover,
-there is an expectation that by providing additional information about a
-code fragment's intended usage, compilers may be able to generate more
-efficient code.
+Gradual typing attempts to merge both of these world-views by allowing
+developers to add annotations in an incremental manner, with the promise of
+rewards in error prevention commensurate to the effort invested in selecting
+where to put annotations. Types have other benefits, by making programmer
+intent explicit, they play the role of simple machine-checked documentation,
+and they also have the potential of providing useful information for
+the compiler to generate efficient code.
 
-The goal of this paper is to explore the design space of gradual type
-systems for object-oriented programming languages. Our goal is to expose the
-main forces that are influencing the design of practical systems, and to
-provide some advice for the next generation of gradually typed
-object-oriented languages. To achieve this goal we have designed a very
-basic object-based language that supports statically typed as well as
-dynamically typed code fragments. On top of this common core, we then build
-models of several practical gradual type systems and explain their
-differences. While our work focuses on formalism, we are careful to discuss
-the practical considerations based on our experience working with
-implemented systems.
+This paper explores the design space of gradual type systems for
+object-oriented languages. We aim to expose the main forces influencing the
+design of practical systems, and to provide advice for the next generation
+of gradually typed languages. To this end, we have designed a minimialistic
+object-based language that supports statically and dynamically typed code
+fragments. On top of this common core, we then build models of several
+practical gradual type systems and illustrate their differences in terms of
+catching errors. While our work has a formal flavor, we are careful to
+discuss the practical implications of different choices in the light of
+our experience with the implementation of several gradually typed systems.
 
-The fundamental property that a sound type system for a statically typed
-object-based language will guarantee is that an expression of the form
-\xt{x.m(y)} does not result in, to borrow Smalltalk terminology, a
-\emph{message not understood} error.  That is to say that the method being
-invoked exists in its receiver object.  Even when statically typed, most
-languages make an exception for the \xt{null} or \xt{undefined} reference,
-thus the above expression may still fail at run-time as the test whether
-variable \xt{x} is bound to an object is deferred to execution.
+The fundamental property that a type system object-based language should
+guarantee is that an expression of the form 
+\vspace{-1mm}\[ \xt{x.m(y)} \]
 
-The most important decision involved in the design of a gradual type system
-lies in the precise definition of \emph{soundness} and the choice of static
-and dynamic mechanisms employed to enforce it. It it interesting to observe
-the variety of subtly different design choices that have been adopted in
-different languages.  One of the key difference is what it means for a
-variable \xt{x} to be of type \xt{T}. In a traditional statically typed
-language, \xt{x} would refer to either an instance of the class denoted by
-\xt{T} or one of its sub-classes.  In this case, we say that \xt{T} is a
-\emph{concrete} type. In some proposals a variable \xt{x} of type \xt{T} can
-refer to an instance of any class, we say that \xt{T} is an
-\emph{unconstrained} type. Lastly, \xt{x} may refer to any value but the
-language implementation will ensure that the value behaves as if it was of
-type \xt{T}, we call this a \emph{promised} type.
+\vspace{-1mm}\noindent does not result in, to borrow Smalltalk terminology,
+a \emph{message not understood} error.  That is to say, method \xt{m} exists
+in the object bound to variable \xt{x}. Many static type systems only
+provide a partial guarantee as they make an exception for \xt{null} or
+\xt{undefined} references; the call may fail as the test whether \xt{x} is
+bound to an object is deferred to execution.
+
+At the heart of the design of a gradual type system lies the choice of
+definition of \emph{soundness} and the static and dynamic mechanisms
+employed to enforce it. It it interesting to observe the variety of subtly
+different design choices that have been adopted in different languages.  One
+of the key difference is what it means for a variable \xt{x} to be of type
+\xt{T}. In a traditional statically typed language, \xt{x} would refer to
+either an instance of the class denoted by \xt{T} or one of its sub-classes.
+In this case, we say that \xt{T} is a \emph{concrete} type. In some
+proposals a variable \xt{x} of type \xt{T} can refer to an instance of any
+class, we say that \xt{T} is an \emph{unconstrained} type. Lastly, \xt{x}
+may refer to any value but the language implementation will ensure that the
+value behaves as if it was of type \xt{T}, we call this a \emph{promised}
+type.
 
 While statically typed languages such as Scala only offer concrete types and
 dynamically typed languages like Python have a single, implicit,
