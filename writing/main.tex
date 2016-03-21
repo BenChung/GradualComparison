@@ -718,20 +718,25 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 \end{mathpar}
 \caption{Monotonic Dynamic Semantics.}
 \end{figure}
-\begin{figure}
-\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
 
-$\t = \ldots \B ^*{\Type{\Mtype\m\t\t}}$
+\newcommand{\Weak}{\hspace{0.1em}^*\hspace{-0.1em}}
+\newcommand{\WType}[1]{\Weak\Type{#1}}
+\begin{figure}
+$\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 
 \begin{mathpar}
-
-\IRule{AA4}{
-	\GenCast{\E}{\ep1}{\ep2}{\tp2}
+\IRule{STS1}{
 }{
-	\AnaCast{\E}{\ep1}{\ep2}{^*\tp1}
+	\tp1 \Sub \Weak\tp1
+}
+
+\IRule{AASC1}{
+	\GenCast{\E}{\ep1}{\ep2}{\Weak\tp2}
+}{
+	\AnaCast{\E}{\ep1}{\Cast{\tp1}{\ep2}}{\tp1}
 }
 \end{mathpar}
-\caption{Strongscript.}
+\caption{Strongscript}
 \end{figure}
 
 
