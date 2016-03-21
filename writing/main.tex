@@ -35,6 +35,7 @@
 \newcommand{\fv}{\M{\xt{fv}}}
 \renewcommand{\a}{\M{\xt a}}
 \newcommand{\F}{\M{\xt F}}
+\newcommand{\T}{\M{\xt T}}
 \newcommand{\tp}[1]{\M{ \t_{#1} }}
 \newcommand{\ep}[1]{\M{ \e_{#1} }}
 \newcommand{\ap}[1]{\M{ \a_{#1} }}
@@ -158,24 +159,23 @@ guarantee is that an expression of the form
 
 \vspace{-1mm}\noindent does not result in, to borrow Smalltalk terminology,
 a \emph{message not understood} error.  That is to say, method \xt{m} exists
-in the object bound to variable \xt{x}. Many static type systems only
+in the object bound to variable \x. Many static type systems only
 provide a partial guarantee as they make an exception for \xt{null} or
-\xt{undefined} references; the call may fail as the test whether \xt{x} is
+\xt{undefined} references; the call may fail as the test whether \x is
 bound to an object is deferred to execution.
 
 At the heart of the design of a gradual type system lies the choice of
 definition of \emph{soundness} and the static and dynamic mechanisms
-employed to enforce it. It it interesting to observe the variety of subtly
-different design choices that have been adopted in different languages.  One
-of the key difference is what it means for a variable \xt{x} to be of type
-\xt{T}. In a traditional statically typed language, \xt{x} would refer to
-either an instance of the class denoted by \xt{T} or one of its sub-classes.
-In this case, we say that \xt{T} is a \emph{concrete} type. In some
-proposals a variable \xt{x} of type \xt{T} can refer to an instance of any
-class, we say that \xt{T} is an \emph{unconstrained} type. Lastly, \xt{x}
-may refer to any value but the language implementation will ensure that the
-value behaves as if it was of type \xt{T}, we call this a \emph{promised}
-type.
+employed to enforce it. The literature is ripe with proposals with subtly
+different properties and mechanisms.  One key distinction is what it means
+for a variable \x to be of type \T. In a traditional statically typed
+language, \x will refer to either an instance of the class denoted by \T or
+one of its sub-classes; we say that \T is a \emph{concrete type}. In some
+proposals, a variable \x of type \T can refer to an instance of any class,
+in this case we say that \T is \emph{unconstrained type}. Lastly, in some
+systems \x is allowed to refer to any value but the language implementation
+will ensure that the value behaves as if it was of type \T, we call this a
+\emph{promised type}.
 
 While statically typed languages such as Scala only offer concrete types and
 dynamically typed languages like Python have a single, implicit,
