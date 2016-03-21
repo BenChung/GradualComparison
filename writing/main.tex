@@ -652,10 +652,22 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 
 \newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
+\newcommand{\adapt}[1]{\M{\llbracket #1 \rrbracket_{\xt{adapt}}}}
 \begin{figure}
-For every type \t in the program, assign an index $i$ from $1$ through $n$. Then for every set of types $\t_{l_1}$ through $\t_{l_i}$ where $\stcons{\t_{l_1}}{\stcons{\ldots}{\t_{l_i}}}$, take $\t_{l_1,\ldots,l_i} = \meet{\t_{l_1}}{\meet{\ldots}{\t_{l_i}}}$.
 
-	For each $\t_{l_1,\ldots,l_i}$, we generate a class $\Class{\C_{l_1,\ldots,l_i}}{~\b{\md}}$ where $\md = \Mdef\m\x{\b{\tp1}}{\tp2}\e$ 
+Index every type $\t$ in the source of the program with an index $i$ (denoted $\t^i$). Then, for every class $\C$ and every $i$ where $\stcons\c{\t^i}$, we can generate a most specific type as $\t' \equiv \meet\C{\t^i}$. We then produce a wrapper class $\C^i$ such that
+\begin{mathpar}
+\IRule{}{
+}{
+\adapt{\Mdef\m\x{\tp1}{\tp2}\e, \Mtype\m{\b{\tp3}}{\tp4}} \equiv \\ \Mdef \m\x\any{\meet{\tp2}{\tp4}}{\xt{this}.\m'(\b{\Cast{\meet{\tp1}{\tp3}}{x}})},\\
+\Mdef {\m'}\x{\meet{\tp1}{\tp3}}{\meet{\tp2}{\tp4}}{\Cast{\meet{\tp2}{\tp4}}\e},	
+}
+
+\IRule{}{
+	\Mtype\m{\b{\tp1}}{\tp2}
+}{\Class{\C_i}{\b{\md_2}}{}}
+\end{mathpar}
+
 
 \begin{mathpar}
 \IRule{}{
