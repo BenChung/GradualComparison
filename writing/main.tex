@@ -686,6 +686,30 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 \caption{Monotonic translation}
 \end{figure}
 
+
+\begin{figure}
+\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
+
+\begin{mathpar}
+\IRule{}{
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}{\tp2}\C\}}} \\
+	\tp2 \not\equiv \meet{\tp1}{\tp2} \\
+	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}{\meet{\tp1}{\tp2}}{\refine{\C}{\tp1}}}}
+}{
+	\Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
+}
+
+\IRule{}{
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}{\tp2}\C\}}} \\
+	\tp2 \equiv \meet{\tp1}{\tp2} \\
+}{
+	\Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp1}
+}
+\end{mathpar}
+\caption{Common Core Calculus Dynamic Semantics.}
+\end{figure}
+
+
 \section{Appendix}
 
 
