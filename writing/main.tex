@@ -638,9 +638,11 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \IRule{AA2}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ {\tp2} \Sub {\tp1}}{\AnaCast\E{\ep1}{\ep2}{\tp1}}
 
-\IRule{AA3}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ \stcons{\tp2}{\tp1}}{\AnaCast\E{\ep1}{\Cast{\tp1}{\ep2}}{\tp1}}
+\IRule{AA3}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ \stcons{\tp2}{\tp1}}{\AnaCast\E{\ep1}{{\ep2}}{\tp1}}
 
-\IRule{AA4}{
+\IRule{AA4}{\GenCast{\E}{\ep1}{\ep2}{\tp1}}{\AnaCast\E{\ep1}{\Cast{\tp1}{\ep2}}{\any}}
+
+\IRule{AA5}{
 	\AnaCast{\E}{\e_1}{\e_1'}{\Type{\Mtype\m{\b{\tp2}}{\tp1}}} \\
 	\b{\GenCast{\E}{\e_2}{\e_2'}{\tp2}} \\
 }{
@@ -728,6 +730,19 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 \IRule{STS1}{
 }{
 	\tp1 \Sub \Weak\tp1
+}
+
+\IRule{STS2}{
+	\tp1 \Sub \tp2
+}{
+	\Weak\tp1 \Sub \Weak\tp2
+}
+
+\IRule{A5}{
+	\GenCast{\E}{\e_1}{\e_1'}{\Weak\tp1} \\
+	\b{\AnaCast{\E}{\e_2}{\e_2'}{\any}} \\
+}{
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_1'}{\Dyn\m}{\b{\e_2'}}}{\any}
 }
 
 \IRule{AASC1}{
