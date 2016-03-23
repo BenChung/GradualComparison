@@ -210,8 +210,51 @@ were omitted. The result is an imperative class-based system that does not
 support inheritance. The calculus adopts a very simple structural type
 system with concrete types and a single unconstrained type.
 
-The common core allows programs to be written with type
+The common core allows writing traditional object-oriented examples such as
+a typed \xt{Point} class.\footnote{For our examples we use integers and
+  common arithmetic operations even if they are not in core calculus.}
 
+%%% FIXME: formatting
+\begin{verbatim}
+class Point {
+  x : Int
+  y : Int
+  addx( v : Int ) : Int {
+       this.x!( this.x() + v )
+  }
+  addy( v : Int ) : Int {
+       this.y!( this.y() + v )
+  }
+}
+\end{verbatim}
+
+The type system ensures that, if \xt{pt} is declared to be of type
+\xt{Point}, an operation such as \xt{pt.addx(42)} will not get stuck.  As
+this small language requires all variables to be initialized, there checking
+for \xt{null} is not needed as it likely would in a full fledged language.
+
+The language also supports a single unconstrained type, denote \any (pronounced
+dyn), thus one could write the following method
+
+%%% FIXME: formatting
+\begin{verbatim}
+  mkPt( u : * ) : Point {
+      new Point( u.x() 
+                 (<Point> u).y() )
+  }
+\end{verbatim}
+
+This method will accept an instance of any class and will return a new
+\xt{Point}. At run-time, the code will get stuck if the dynamic cast
+\xt{\Cast{\xt{Point}}{\xt{u}}} fails. If \x is a declared of type \any, an
+expression such as \xt{u.x()} will fail if the object bound to \xt{u} does
+not have a getter \xt{x()}.
+
+
+For brevity we use annotate variables with nominal types, but in the
+calculus this is merely shorthand for writing the set of methods suported 
+by the class. Assignment to fields is performed by automatically generated
+getter and setter methods.
 
 The syntax of the common core appears in figure~\ref{syn}.  \x ranges
 over variables, \f ranges over field names, \m can be either a plain method
