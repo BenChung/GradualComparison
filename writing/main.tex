@@ -201,22 +201,29 @@ promised types.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Common Core for Gradually Typed Objects}
 
+This section introduces the small object calculus we use to illustrate the
+differences between the three gradual type systems.  The calculus was
+carefully designed to act as a common core on top of which gradual type
+systems can grafted with relative ease. As usual in such exercises, we aimed
+for minimality, language features not directly required for our development
+were omitted. The result is an imperative class-based system that does not
+support inheritance. The calculus adopts a very simple structural type
+system with concrete types and a single unconstrained type.
+
+The common core allows programs to be written with type
 
 
-A common core calculus is used to compare the various gradual type
-systems. This common core is an imperative object-based system with
-structural subtyping. Figure~\ref{syn} summarize the syntax of this small
-language where \x ranges over variables, \f ranges over field names, \m can
-be either a plain method name \d, a field getter \f, or a field setter \fb,
-\C and \D range over class names. We use the overbar notation to denote a
-possibly empty sequence. In the common core, a class is defined as by a set
-of fields, \b\f, with distinct names and a set of method definitions,
-\b\m. An instance of class is constructed by the expression \New\C{\b\e} where
-each argument is used to initialize the corresponding field. Fields are
-encapsulated and can only be accessed and updated in the corresponding
-getter and setter from the \this variable.  Expressions include variable
-access, field access and update, method invocation, object creation, and
-type casts.
+The syntax of the common core appears in figure~\ref{syn}.  \x ranges
+over variables, \f ranges over field names, \m can be either a plain method
+name \d, a field getter \f, or a field setter \fb, \C and \D range over
+class names. We use the overbar notation to denote a possibly empty
+sequence. In the common core, a class is defined as by a set of fields,
+\b\f, with distinct names and a set of method definitions, \b\m. An instance
+of class is constructed by the expression \New\C{\b\e} where each argument
+is used to initialize the corresponding field. Fields are encapsulated and
+can only be accessed and updated in the corresponding getter and setter from
+the \this variable.  Expressions include variable access, field access and
+update, method invocation, object creation, and type casts.
 
 
 
