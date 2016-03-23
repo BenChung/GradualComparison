@@ -179,7 +179,7 @@ Lemma 1: Substitution. If $\EnvType{\E,\b{\x:\t} ~ \s}{\e}{\t}$ and $\b{\EnvType
 
 TODO.
 
-Theorem 2: Progress. If $\EnvType{~\s}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression or $\e' ~ \err$.
+Theorem 2: Progress and preservation. If $\EnvType{~\s}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression and $\EnvType{~\s}{\e'}{\t}$ or $\e' ~ \err$.
 
 Proof by rule induction on $\EnvType{\cdot~\s}{\e}{\t}$.
 \begin{tabbing}
@@ -192,22 +192,43 @@ Case \=RW3 \\
 \> If $\e$ expression but not value, then the theorem holds through the frame evaluation rule. \\
 \> If $\e~\err$, then by frame error evaluation we produce $\err$ and the theorem holds. \\
 \> If $\e$ value, then repeat for each of the arguments in left to right, following by the frame evaluation rule. \\
-\> Let $v$ be $\e$ and $v_1,\ldots,v_i$ be the results of stepping each of the $e_1$s.\\
-\> Case \=analyze \=on if $v$ has $\Dyn\m$\\
-\> \> $\Dyn\m \not\in \classof{\s(v)}$\\
+\> Let $a$ be $\e$ and $a_1,\ldots,a_i$ be the results of stepping each of the $e_1$s.\\
+\> Case \=analyze \=on if $a$ has $\Dyn\m$\\
+\> \> $\Dyn\m \not\in \classof{\s(a)}$\\
 \> \> \> By the 4th evaluation rule, $\s,e \rightarrow \s,\err$.\\
-\> \> $\Dyn\m \in \classof{\s(v)}$\\
+\> \> $\Dyn\m \in \classof{\s(a)}$\\
 \> \> \> Because $\Dyn\m$ is a generated method, we know that it is of the form $\Mdef{\Dyn\m}\x\any{\any}\e_m$.\\
-\> \> \> We also know that $\EnvType{\s~\b{\x:\any}}{\e_m}\any$\\
+\> \> \> We also know that $\EnvType{\b{\x:\any}~\s}{\e_m}\any$\\
+\> \> \> By weakening we know that $\EnvType{\this:\C,\b{\x:\any}~\s}{\e_m}\any$\\
+\> \> \> By substitution, $\EnvType{\cdot~\s}{\e_m[\this/v,\b{x/a_i}]}{\any}$\\
+\> \> \> Therefore, the theorem holds. \\
 Case \=RW4 \\
+\> By the IH on $\EnvType\Es\e\any$, either $\e$ some expression or $\e$ err. \\
+\> If $\e$ expression but not value, then the theorem holds through the frame evaluation rule. \\
+\> If $\e~\err$, then by frame error evaluation we produce $\err$ and the theorem holds. \\
+\> If $\e$ value, then repeat for each of the arguments in left to right, following by the frame evaluation rule. \\
+\> Let $a$ be $\e$ and $\b{a_1}$ be the results of stepping each of the $\b{e_1}$s.\\
+\> We know by inversion that $\Mtype\m{\tp2}{\t}\in\tp1$ so by canonical forms $\Mdef\m\x{\tp2}\t\e \in \s(a)$. \\
+\> By class wellformedness, we have that $\EnvType{\b{x:\tp2}~\s}\e\t$.\\
+\> Since we know that $\EnvType{\cdot~\s}{a_1}{\tp2}$ by inversion, we know that $\EnvType{\cdot~\s}{\e[\b{x/a_1}]}\t$ by substitution.\\
+\> Therefore, the theorem holds. \\
 Case \=RW5 \\
+\> Apply the IH to each of the argument $\b{\e_1}$ left-to-right. If any are unevaluated, continue by frames.\\
+\> If any produce err, then step out to err based on the frame err rule.\\
+\> Therefore, all arguments $\b{e_1}$ are evaluated to the values $\b{a_1}$.\\
+\> By inversion we know that $\b{\EnvType{\cdot~\s}{a_1}{\t}}$.\\
+\> Then consider some $\ap2$ and an extended heap $\sp 2 = \Heap{\s}{ \Bind{\ap 2}{\Obj{\b{\Fdef\f\t\a_1}}\C\C\}}}$.\\
+\> By RW9 $\EnvType{\cdot~\sp2}{\ap2}{\C}$ so the theorem holds.\\
 Case \=RW6 \\
+\> Apply IH to inversion, if $\e~\err$ then we err by frame evaluation, or if $e$ steps then we step.\\
+\> If $\e$ value then let it be denoted $\a$.\\
+\> If $\t$ is $\any$, then we step to $\e$ and the theorem holds trivially.\\
+\> Otherwise, if $\typeof{\s(a)} \Sub \t$, then we step to $\a$ and the theorem holds (by RW9 and RW2).\\
+\> If $\typeof{\s(a)}\not\Sub\t$, then we step to $\err$ and the theorem holds.\\
 Case \=RW7 \\
 Case \=RW8 \\
 Case \=RW9 \\
 \end{tabbing}
-
-Theorem 3: Preservation. If $\s,\e \rightarrow \s',\e'$ and $\EnvType{\Es}{\e}{\t}$ then $\EnvType{\E~\s'}{\e'}{\t}$.
 
 For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
 
