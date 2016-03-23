@@ -138,14 +138,14 @@
 }
 
 \IRule{RW7}{
-  \Ftype\f{\t} \inc \classof{\Sel\s\a}
+  \Ftype\f{\t}=\a \inc {\Sel\s\a}
 }{ 
  \EnvType\Es{\Get\a\f}{\t}
 }
 
 \IRule{RW8}{
   \EnvType\Es\e{\tp1} \\
-  \Ftype{\f}{\tp2}\inc\classof{\Sel\s\a}\\
+  \Fdef{\f}{\tp2}{\ap1}\inc{\Sel\s\a}\\
   \tp1 \Sub \tp2
 }{ 
     \EnvType\Es{\Set\a\f\e}{\tp1} 
@@ -179,7 +179,11 @@ Lemma 1: Substitution. If $\EnvType{\E,\b{\x:\t} ~ \s}{\e}{\t}$ and $\b{\EnvType
 
 TODO.
 
-Theorem 2: Progress and preservation. If $\EnvType{~\s}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression and $\EnvType{~\s}{\e'}{\t}$ or $\e' ~ \err$.
+Lemma 2: Soundness of heap typing: if $\Heap{\s}{\Bind{\a}{\Obj{\Fdef\f\t{\ap1}}{\tp1}\C}}$ then $\EnvType{\s~\cdot}{\ap1}{\t}$.
+
+TODO.
+
+Theorem 2: Progress and preservation. If $\EnvType{~\s}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression and $\EnvType{~\s}{\e'}{\t}$, $\e' ~ \err$, or $\e = \a$ for some $\a$.
 
 Proof by rule induction on $\EnvType{\cdot~\s}{\e}{\t}$.
 \begin{tabbing}
@@ -226,8 +230,18 @@ Case \=RW6 \\
 \> Otherwise, if $\typeof{\s(a)} \Sub \t$, then we step to $\a$ and the theorem holds (by RW9 and RW2).\\
 \> If $\typeof{\s(a)}\not\Sub\t$, then we step to $\err$ and the theorem holds.\\
 Case \=RW7 \\
+\> By inversion, $\Ftype\f\t={\ap1}\in\s(a)$\\
+\> Therefore, $\s,\Get\a\f\rightarrow\s,\ap1$ and by soundess of heap typing, $\EnvType{\cdot~\s}{\ap1}{\t}$. Theorem holds.\\
 Case \=RW8 \\
+\> Apply the IH to the result of inversion to find that $\e$ either steps to $\err$ or is an expression. \\
+\> If $\e~\err$, then we step to $\err$ by frame rule.\\
+\> If $\s,\e\rightarrow{\sp1},\e'$ then we step by the frame rule.\\
+\> If $\e$ is some address $\ap2$, then continue.\\
+\> By inversion we know that $\Fdef\f{\tp2}{\ap1}\in\s(a)$.\\
+\> Define $\sp2 = \Heap{\sp 1}{\Bind\a{\Update{\Sel{\sp 1}\a}\f {\ap 1}}}$\\
+\> Therefore, $\s,\Set\a\f\e\rightarrow \sp2,\e$ and $\EnvType{\cdot~\sp2}{\e}{\tp1}$.\\
 Case \=RW9 \\
+\> $\e$ is some value $\a$, therefore the theorem holds.\\
 \end{tabbing}
 
 For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
