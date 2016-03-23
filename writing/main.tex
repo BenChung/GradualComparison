@@ -98,6 +98,14 @@
 \newcommand{\E}{\M{\Gamma}}
 \newcommand{\Es}{\E ~\s}
 
+\newcommand{\TransClass}[2]{\M{ #1 \hookrightarrow #2 }}
+\newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #3 : #4 }}
+\newcommand{\mdp}[1]{\M{\md_{#1}}}
+\newcommand{\setter}[1]{\M{\llbracket #1  \rrbracket}_{\xt{set}}}
+\newcommand{\getter}[1]{\M{\llbracket #1  \rrbracket_{\xt{get}}}}
+\newcommand{\dynamic}[1]{\M{\llbracket #1  \rrbracket_{\xt{dyn}}}}
+\newcommand{\invoke}[1]{\M{\llbracket #1 \rrbracket_{\xt{inv}}}}
+\newcommand{\Dyn}[1]{\M{#1^{\any} }}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 \title{Designing Gradual Types for Objects
@@ -436,14 +444,6 @@ To fill these holes, we use class translation, which performs 2 major tasks:
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%% WELLFORMDNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\newcommand{\TransClass}[2]{\M{ #1 \hookrightarrow #2 }}
-\newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #3 : #4 }}
-\newcommand{\mdp}[1]{\M{\md_{#1}}}
-\newcommand{\setter}[1]{\M{\llbracket #1  \rrbracket}_{\xt{set}}}
-\newcommand{\getter}[1]{\M{\llbracket #1  \rrbracket_{\xt{get}}}}
-\newcommand{\dynamic}[1]{\M{\llbracket #1  \rrbracket_{\xt{dyn}}}}
-\newcommand{\invoke}[1]{\M{\llbracket #1 \rrbracket_{\xt{inv}}}}
-\newcommand{\Dyn}[1]{\M{#1^{\any} }}
 %%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
 \opdef{\EnvType\E\e\t}{\e has type \t in environment \E}
@@ -754,72 +754,6 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 \caption{Strongscript}
 \end{figure}
 
-
-\section{Appendix}
-
-
-\section{Appendix}
-\begin{figure}
-\begin{mathpar}
-\IRule{W1}{
-    \HasType\Es\x\t
- }{
-   \EnvType\s\x\t
-}
-
-\IRule{W2}{
-   \EnvType\Es\e{\tp 1} \\ \tp 1 \Sub \t
- }{
-   \EnvType\Es\e\t 
-}   
-
-\IRule{W3}{
-   \EnvType\Es\e\any \\ \b{\EnvType\E{\ep1}\t }
-}{
-   \EnvType\Es{\Call\e\m{\b{\ep1}}}\any
-}
-
-\IRule{W4}{
-   \EnvType\Es\e{\tp1} \\ \Mtype\m{\b{\tp2}}\t\inc \tp1  \\  \b{\EnvType\E{\ep1}{\tp 2}}
-}{
-    \EnvType\Es{\Call\e\m{\b{\ep1}}}\t
-}    
-
-\IRule{W5}{
-  \b{\EnvType\Es\e\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-}{
-  \EnvType\Es{\New\C{\b\e}}\C
-}
-
-\IRule{W6}{
-  \EnvType\Es\e{\tp1}
-}{
-   \EnvType\Es{\Cast\t\e}\t
-}
-
-\IRule{}{
-  \Ftype\f{\t} \inc \classof{\Sel\s\a}
-}{ 
- \EnvType\Es{\Get\a\f}{\t}
-}
-
-\IRule{}{
-  \EnvType\Es\e{\tp1} \\
-  \Ftype{\f}{\tp2}\inc\classof{\Sel\s\a}\\
-  \tp1 \Sub \tp2
-}{ 
-    \EnvType\Es{\Set\a\f\e}{\tp1} 
-}
-
-\IRule{}{
-   \typeofis{\Sel\s\a}\t 
-}{
-   \EnvType\Es\a\t
-}
-\end{mathpar}
-\caption{Runtime typing rules}
-\end{figure}
 
 \bibliographystyle{plain}
 \bibliography{../bib/compactdoi}
