@@ -244,10 +244,37 @@ Case \=RW9 \\
 \> $\e$ is some value $\a$, therefore the theorem holds.\\
 \end{tabbing}
 
+Theorem 4, soundness: For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
+
+
+\section{Typed Racket}
+
+
+Theorem 1: Type translation. If $\EnvType\E\e\t$ then $\TransExp\E\e{\e'}\t$ and $\EnvType{\E ~ \cdot}{\e'}\t$.
+
+Proof: By rule induction on $\EnvType\E\e\t$. For other rules than W3, the theorem holds trivially, for W3 we present the proof
+
+\begin{tabbing}
+Case \=W3 \\
+\> By IH, $\TransExp\E\e{\ep2}\any$ and $\EnvType\Es{\ep2}\any$.\\
+\> By IH, for every $\ep1$, $\TransExp\E{\ep1}{\ep3}\t$ and $\EnvType\Es{\ep3}\t$.\\
+\> As $\TransExp\E\e{\ep2}\any$, $\TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\Dyn{\m}}{\b{\ep 3}}} \any$\\
+\> Therefore, we apply RW3 and $\EnvType\Es{\Call{\ep 2}{\Dyn{\m}}{\b{\ep 3}}} \any$ and the theorem holds.\\
+\end{tabbing}
+
+Lemma 1: Substitution. If $\EnvType{\E,\b{\x:\t} ~ \s}{\e}{\t}$ and $\b{\EnvType{~\s}{\a}{\t}}$ then $\EnvType{\Es}{\e[\b{\x/\a}]}{\t}$
+
+TODO.
+
+Lemma 2: Soundness of heap typing: if $\Heap{\s}{\Bind{\a}{\Obj{\Fdef\f\t{\ap1}}{\tp1}\C}}$ then $\EnvType{\s~\cdot}{\ap1}{\t}$.
+
+TODO.
+
+Theorem 2: Progress and preservation. If $\EnvType{~\s}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression and $\EnvType{~\s}{\e'}{\t}$, $\e' ~ \err$, or $\e = \a$ for some $\a$.
+
 For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
 
 
-\section{Monotonic}
-\section{Typed Racket}
 \section{Strongscript}
+\section{Monotonic}
 \end{document}
