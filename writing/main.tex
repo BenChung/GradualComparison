@@ -600,57 +600,14 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \end{figure}
 
 
-%%%%%%%%%%%%%%%% Monotonic Statics
-\newcommand{\stcons}[2]{#1\lesssim #2}
 
-\begin{figure}
-\begin{mathpar}
-\IRule{CS1}{ }{\stcons{\t}{\t}}
-
-\IRule{CS2}{ }{\stcons{\any}{\t}}
-
-\IRule{CS3}{ }{\stcons{\t}{\any}}
-
-\IRule{CS4}{ \tp 1 \Sub \tp 2 }{\stcons{\tp 1}{\tp 2}}
-
-\IRule{CS5}{
-	\stcons{\tp3}{\tp1} \\
-    \stcons{\tp2}{\tp4} \\
-    \stcons{\Type{\b{\md_1} ~ \b{\md_2}}}{\Type{\b{\md_3} ~ \b{\md_4}}}
-}{\stcons{\Type{\b{\md_1} ~ \Mtype\m{\tp1}{\tp2}~ \b{\md_2}}}{\Type{\b{\md_3} ~ \Mtype\m{\tp3}{\tp4} ~ \b{\md_4}}}}
-\end{mathpar}
-\caption{Consistent Subtyping}
-\end{figure}
-
-\newcommand{\meet}[2]{#1\sqcap #2}
-\newcommand{\refine}[2]{#1\vartriangleright #2}
-\begin{figure}
-\begin{mathpar}
-\IRule{M1}{ }{\meet{\t}{\any} \equiv \t}
-
-\IRule{M2}{ }{\meet{\any}{\t} \equiv \t}
-
-\IRule{M3}{ }{\meet{\t}{\t} \equiv \t}
-
-\IRule{M4}{
-	\b{\meet{\tp3}{\tp1}  \equiv \tp5} \\
-    \meet{\tp2}{\tp4} \equiv \tp6\\
-    \meet{\Type{\b{\md_1}}}{\Type{\b{\md_2}}} \equiv \Type{\b{\md_3}} 
-}{\meet{\Type{\Mtype\m{\b{\tp1}}{\tp2}~ \b{\md_1}}}{\Type{\Mtype\m{\b{\tp5}}{\tp6} ~ \b{\md_3}}}}
-\end{mathpar}
-\caption{Meet for the monotonic system}
-\end{figure}
-
-\begin{figure}
-\begin{mathpar}
-\IRule{M1}{\EnvType\E\e{\tp2} \\ \stcons{\tp2}{\tp1} }{\EnvType\E\e{\tp1}}
-\end{mathpar}
-\caption{Monotonic typing}
-\end{figure}
-
-
+\newcommand{\Weak}{\hspace{0.1em}^*\hspace{-0.1em}}
+\newcommand{\WType}[1]{\Weak\Type{#1}}
 \newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
 \newcommand{\AnaCast}[4]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
+
+
+
 \begin{figure}
 \begin{mathpar}
 \IRule{A1}{\HasType\E\x\t}{\GenCast\E\x\x\t}
@@ -682,19 +639,13 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \caption{Synthetic cast insertion}
 \end{figure}
 
+One of the issues inherent to the Strongscript approach (and is apparent in the common core as well) is that a strict interpretation of the static type system causes the programmer to have to write a very large number of ``obvious'' casts, breaking untyped code and seemingly-sensible typed code. We can solve this by havin gh the compilation process insert the types for the programmer, which we describe using a cast insertion system.
+
+Our cast insertion approach is based on a birdirectional type system [TODO: CITE ME], where each expression either \emph{synthesizes}, or inherently makes, a type, or is \emph{analyzed} against a type where the type system checks to make sure that the expression still ``works'' under the given type. This approach has been used for a number of other tasks, including inferring types to select sub-languages [TODO: CITE ME], infer types for higher rank languages [TODO: CITE ME]. In our case, they allow us to simply specify in an extensible manner where to insert casts.
+
+
 \begin{figure}
-\begin{mathpar}
-\IRule{AA1}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\  {\tp2} \Sub {\tp1}}{\AnaCast\E{\ep1}{\ep2}{\tp1}}
 
-\IRule{AA2}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ \tp2 \not\Sub \tp1 \\ \stcons{\tp2}{\tp1}}{\AnaCast\E{\ep1}{{\Cast{\tp1}{\ep2}}}{\tp1}}
-\end{mathpar}
-\caption{Analytic cast insertion}
-\end{figure}
-
-
-\newcommand{\Weak}{\hspace{0.1em}^*\hspace{-0.1em}}
-\newcommand{\WType}[1]{\Weak\Type{#1}}
-\begin{figure}
 $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 
 \begin{mathpar}
@@ -725,8 +676,76 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 \caption{Strongscript}
 \end{figure}
 
+\clearpage
+\newpage
 
 \section{Monotonic}
+
+%%%%%%%%%%%%%%%% Monotonic Statics
+\newcommand{\stcons}[2]{#1\lesssim #2}
+
+\begin{figure}[h]
+\begin{mathpar}
+\IRule{CS1}{ }{\stcons{\t}{\t}}
+
+\IRule{CS2}{ }{\stcons{\any}{\t}}
+
+\IRule{CS3}{ }{\stcons{\t}{\any}}
+
+\IRule{CS4}{ \tp 1 \Sub \tp 2 }{\stcons{\tp 1}{\tp 2}}
+
+\IRule{CS5}{
+	\stcons{\tp3}{\tp1} \\
+    \stcons{\tp2}{\tp4} \\
+    \stcons{\Type{\b{\md_1} ~ \b{\md_2}}}{\Type{\b{\md_3} ~ \b{\md_4}}}
+}{\stcons{\Type{\b{\md_1} ~ \Mtype\m{\tp1}{\tp2}~ \b{\md_2}}}{\Type{\b{\md_3} ~ \Mtype\m{\tp3}{\tp4} ~ \b{\md_4}}}}
+\end{mathpar}
+\caption{Consistent Subtyping}
+\end{figure}
+
+The key static difference between the monotonic semantics and the other systems we have considered is the consistent subtyping relationship. Traditional subtyping can be thought of as if a value satisfies one type, then it will satisfy any supertype of that type. Consistent subtyping encapsulates both this notion and the new idea of consistency. Consistency for objects means that two types have static type information that does not conflict - e.g. $\Type{\Ftype\f\any}$ could very well be able to replace $\Type{\Ftype\f\C}$, though we are unable to tell statically. Consistency allows us to interchange these types, inserting a cast where required.
+
+Subtype consistency combines the two properties. Subtyping lets us add and remove fields from a type, and consistency allows us to make the type we are going to more or less dynamic. Going by the above intuition, a value of type $\any$ could work with any other type and vice versa, and clearly two identical types are compatible. The most complex case is when we have two class types, both with the same method $\m$, which we resolve by ensuring that $\m$ has parameters and return types that are consistent and continuing on through the rest of the class.
+
+\newcommand{\meet}[2]{#1\sqcap #2}
+\newcommand{\refine}[2]{#1\vartriangleright #2}
+\begin{figure}{h}
+\opdef{$\meet{\tp1}{\tp2} \equiv \tp3$}{The most specific type common to $\tp1$ and $\tp2$ is $\tp3$}
+\begin{mathpar}
+\IRule{M1}{ }{\meet{\t}{\any} \equiv \t}
+
+\IRule{M2}{ }{\meet{\any}{\t} \equiv \t}
+
+\IRule{M3}{ }{\meet{\t}{\t} \equiv \t}
+
+\IRule{M4}{
+	\b{\meet{\tp3}{\tp1}  \equiv \tp5} \\
+    \meet{\tp2}{\tp4} \equiv \tp6\\
+    \meet{\Type{\b{\md_1}}}{\Type{\b{\md_2}}} \equiv \Type{\b{\md_3}} 
+}{\meet{\Type{\Mtype\m{\b{\tp1}}{\tp2}~ \b{\md_1}}}{\Type{\Mtype\m{\b{\tp5}}{\tp6} ~ \b{\md_3}}}}
+\end{mathpar}
+\caption{Meet for the monotonic system}
+\end{figure}
+
+This idea leads us into the core of the monotonic idea. Under this system, if we have a field of some given type $\t$, we do not know if the value of that field is truly of the expected type (since the class could have been cast to one where that field is $\any$ and the field updated), and therefore have to check the value of $\f$ at every point it is used. The solution used by the monotonic approach is to ensure that if a type is given to a field, then that type is never violated.
+
+Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Ftype{\xt{g}}\C}$ and $\Type{\Ftype\f\C, \Ftype{\xt{g}}\any}$, as neither has static typing information that would rule out a value that satisfied the other type. However, if we have a value that satsfied both, we would end up with a type that had neither type exactly - we would have $\Type{\Ftype\f\C, \Ftype{\xt{g}}\C}$.
+
+\begin{figure}
+\begin{mathpar}
+\IRule{M1}{\EnvType\E\e{\tp2} \\ \stcons{\tp2}{\tp1} }{\EnvType\E\e{\tp1}}
+\end{mathpar}
+\caption{Monotonic typing}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\IRule{AA1}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\  {\tp2} \Sub {\tp1}}{\AnaCast\E{\ep1}{\ep2}{\tp1}}
+
+\IRule{AA2}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ \tp2 \not\Sub \tp1 \\ \stcons{\tp2}{\tp1}}{\AnaCast\E{\ep1}{{\Cast{\tp1}{\ep2}}}{\tp1}}
+\end{mathpar}
+\caption{Analytic cast insertion}
+\end{figure}
 
 
 \newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
