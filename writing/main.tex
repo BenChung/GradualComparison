@@ -345,10 +345,36 @@ To fill these holes, we use class translation, which performs 2 major tasks:
 \newtheorem{definition}{Definition}
 \newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
 
-\begin{definition} A class \C is well formed, written \WF\C, iff for all 
-methods \Mdef\m\x{\tp1}{\tp2}\e defined in \C, we have
-\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2}.
+A program consists of an expression and an implicit class table which holds
+definitions for all the classes that can be used in the program.
+
+We will require that the class table be, first, \emph{well formed}, and,
+then, \emph{completed}.  A well formed class table is made up of classes
+that are well-typed and where no special methods have been used.  A well
+formed table is completed by adding setter and getter methods, synthesizing
+dynamic methods and specializing calls with dynamic receivers.
+
+\begin{definition} A class table is well-formed if for every class \C  in
+the class table, every method \Mdef\d\x{\tp1}{\tp2}\e in \C is such that
+\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2} holds.
 \end{definition}
+
+Note that a well-formed class table does not have setter, getter, or dynamic
+methods. Furthermore there are no occurrence of dynamic calls.
+
+The completion process extends each class definition with getter, setters,
+dynamic methods, and specializes dynamic calls.
+
+\begin{definition} A class table is completed if for every 
+ \Class \C {\b{\Ftype\f\t}} {\b{\md}} in the class table: for every field
+ \Ftype\f\t\inc\C, we add the setter \SMdef\f\x\t\t{\Set\this\f\x} and the
+ getter \GMdef\f\t{\Get\this\f} to \C; for ever method definition
+ \Mdef\d\x\t{\tp1}\e\inc\C, a dynamic method \Mdef{\Dyn\d}\x\any\any{
+   \Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C and the body \e of
+ \m is replaced by  \ep1 where \TransClass\e{\ep1}.
+\end{definition}
+
+I am aware that the last bit of the definitin is wrong. Will fix.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -427,10 +453,6 @@ methods \Mdef\m\x{\tp1}{\tp2}\e defined in \C, we have
 \caption{Common Core Calculus Dynamic Semantics.}
 \end{figure*}
 
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
 \opdef{\tp 1 \Sub \tp 2 }{\tp 1 is a subtype of \tp 2}
@@ -508,33 +530,6 @@ methods \Mdef\m\x{\tp1}{\tp2}\e defined in \C, we have
     \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\Dyn{\m}}{\b{\ep 3}}} \any
 }   
 
-\IRule{}{
-  \TransExp{\this:\C,\x:\tp1}\e{\ep1}{\tp2}
-}{
-   \invoke{\Mdef\d\x\t{\tp1}\e  } \equiv  \Mdef\d\x\t{\tp1}{\ep1}
-}    
-
-\IRule{}{
-}{
-   \dynamic{\Mdef\d\x\t{\tp1}\e} \equiv  \Mdef{\Dyn\d}\x\any\any{ \Cast\any{\Call\this\d{\b{\Cast\t\x }} }}
-}
-
-\IRule{}{
-}{
-  \getter{\Ftype\f\t} \equiv   \GMdef\m\t{\Get\this\f}
-}
- 
-\IRule{}{
-}{
-  \setter{\Ftype\f\t} \equiv   \SMdef\m\x\t\t{\Set\this\f\x}
-}
-
-\newcommand{\union}{\M{\cup}}
-\IRule{}{
- \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\dynamic{\mdp1}} ~~ \b{\invoke{\mdp1}}
-}{ 
-	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
-}
 \end{mathpar}
 \caption{Translations}
 \end{figure}
