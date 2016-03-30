@@ -643,6 +643,9 @@ One of the issues inherent to the Strongscript approach (and is apparent in the 
 
 Our cast insertion approach is based on a birdirectional type system [TODO: CITE ME], where each expression either \emph{synthesizes}, or inherently makes, a type, or is \emph{analyzed} against a type where the type system checks to make sure that the expression still ``works'' under the given type. This approach has been used for a number of other tasks, including inferring types to select sub-languages [TODO: CITE ME], infer types for higher rank languages [TODO: CITE ME]. In our case, they allow us to simply specify in an extensible manner where to insert casts.
 
+Synthetic cast insertion is closer to a traditional type system, as it produces types from terms in a similar manner. However, instead of having non algorithmic cases where types are known (for example, in the arguments to a typed function), the synthetic cast insertion judgment defers to the analytic cast insertion mechanism with the known type. Importantly for us, the basic semantics of the static type system does not change between any of the type systems under consideration, and as a result the synthetic cases are not changed by any of the systems.
+
+Analytic cast insertion ensures that an expression is of a given type. We use analytic cast insertion when a type is known for an expression and we want to force that expression to be of the correct type, which we do by inserting the appropriate cast. The actual details of analytic cast insertion vary depending on the system under consideration (most notably, the monotonic semantics has a notion of consistency that differs from the other two systems).
 
 \begin{figure}
 
@@ -707,6 +710,16 @@ The key static difference between the monotonic semantics and the other systems 
 
 Subtype consistency combines the two properties. Subtyping lets us add and remove fields from a type, and consistency allows us to make the type we are going to more or less dynamic. Going by the above intuition, a value of type $\any$ could work with any other type and vice versa, and clearly two identical types are compatible. The most complex case is when we have two class types, both with the same method $\m$, which we resolve by ensuring that $\m$ has parameters and return types that are consistent and continuing on through the rest of the class.
 
+
+\begin{figure}{h}
+\begin{mathpar}
+\IRule{M1}{\EnvType\E\e{\tp2} \\ \stcons{\tp2}{\tp1} }{\EnvType\E\e{\tp1}}
+\end{mathpar}
+\caption{Monotonic typing}
+\end{figure}
+
+Adding this to our static type system is simple. We just introduce the rule that allows types to be converted via $\stcons{}{}$. The details of how to make the dynamics work with this static addition will be covered later.
+
 \newcommand{\meet}[2]{#1\sqcap #2}
 \newcommand{\refine}[2]{#1\vartriangleright #2}
 \begin{figure}{h}
@@ -729,14 +742,7 @@ Subtype consistency combines the two properties. Subtyping lets us add and remov
 
 This idea leads us into the core of the monotonic idea. Under this system, if we have a field of some given type $\t$, we do not know if the value of that field is truly of the expected type (since the class could have been cast to one where that field is $\any$ and the field updated), and therefore have to check the value of $\f$ at every point it is used. The solution used by the monotonic approach is to ensure that if a type is given to a field, then that type is never violated.
 
-Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Ftype{\xt{g}}\C}$ and $\Type{\Ftype\f\C, \Ftype{\xt{g}}\any}$, as neither has static typing information that would rule out a value that satisfied the other type. However, if we have a value that satsfied both, we would end up with a type that had neither type exactly - we would have $\Type{\Ftype\f\C, \Ftype{\xt{g}}\C}$.
-
-\begin{figure}
-\begin{mathpar}
-\IRule{M1}{\EnvType\E\e{\tp2} \\ \stcons{\tp2}{\tp1} }{\EnvType\E\e{\tp1}}
-\end{mathpar}
-\caption{Monotonic typing}
-\end{figure}
+Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Ftype{\xt{g}}\C}$ and $\Type{\Ftype\f\C, \Ftype{\xt{g}}\any}$, as neither has static typing information that would rule out a value that satisfied the other type. However, if we have a value that satisfied both, we would end up with a type that had neither type exactly - we would have $\Type{\Ftype\f\C, \Ftype{\xt{g}}\C}$. This is the key to the monotonic system - we never throw away any type information away. If, at any point in the program, we have an object with some specialized (e.g. not all $\dyn$) type, then those type assumptions will never be violated. As a result, we can ensure that no get operation will need to be checked.
 
 \begin{figure}
 \begin{mathpar}
