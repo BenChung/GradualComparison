@@ -341,6 +341,16 @@ To fill these holes, we use class translation, which performs 2 major tasks:
 % c translates to c with $ <- explain in text
 % Figure 2 sigma <- not sure?
 
+
+\newtheorem{definition}{Definition}
+\newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
+
+\begin{definition} A class \C is well formed, written \WF\C, iff for all 
+methods \Mdef\m\x{\tp1}{\tp2}\e defined in \C, we have
+\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2}.
+\end{definition}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}
 \begin{tabular}{l|@{~~~~~~~~}l}
@@ -482,13 +492,6 @@ To fill these holes, we use class translation, which performs 2 major tasks:
 }{
    \EnvType\E{\Cast\t\e}\t
 }
-
-\IRule{W7}{
-	\M{\forall} \Mdef\m\x{\tp1}{\tp2}\e \inc \b\md ~\B~
-       \EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2}
-}{ 
-	\Class \C {\b{\fd}} {\b{\md}}  ~~ WF
-}
 \end{mathpar}
 \caption{Class well-formedness}
 \end{figure}
@@ -504,12 +507,6 @@ To fill these holes, we use class translation, which performs 2 major tasks:
  }{
     \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\Dyn{\m}}{\b{\ep 3}}} \any
 }   
-
-\IRule{}{
-   \EnvType\E{\ep 1}\any \\ \b{\EnvType\E{\ep 2}\t }
-}{
-   \EnvType\E{\Call{\ep 1}\m{\b{\ep 2}}}\any
-}
 
 \IRule{}{
   \TransExp{\this:\C,\x:\tp1}\e{\ep1}{\tp2}
@@ -639,9 +636,21 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \caption{Synthetic cast insertion}
 \end{figure}
 
-One of the issues inherent to the Strongscript approach (and is apparent in the common core as well) is that a strict interpretation of the static type system causes the programmer to have to write a very large number of ``obvious'' casts, breaking untyped code and seemingly-sensible typed code. We can solve this by havin gh the compilation process insert the types for the programmer, which we describe using a cast insertion system.
+One of the issues inherent to the Strongscript approach (and is apparent in
+the common core as well) is that a strict interpretation of the static type
+system causes the programmer to have to write a very large number of
+``obvious'' casts, breaking untyped code and seemingly-sensible typed
+code. We can solve this by havin gh the compilation process insert the types
+for the programmer, which we describe using a cast insertion system.
 
-Our cast insertion approach is based on a birdirectional type system [TODO: CITE ME], where each expression either \emph{synthesizes}, or inherently makes, a type, or is \emph{analyzed} against a type where the type system checks to make sure that the expression still ``works'' under the given type. This approach has been used for a number of other tasks, including inferring types to select sub-languages [TODO: CITE ME], infer types for higher rank languages [TODO: CITE ME]. In our case, they allow us to simply specify in an extensible manner where to insert casts.
+Our cast insertion approach is based on a birdirectional type
+system~\cite{}, where each expression either \emph{synthesizes}, or
+inherently makes, a type, or is \emph{analyzed} against a type where the
+type system checks to make sure that the expression still ``works'' under
+the given type. This approach has been used for a number of other tasks,
+including inferring types to select sub-languages~\cite{}, infer
+types for higher rank languages~\cite{}. In our case, they allow us
+to simply specify in an extensible manner where to insert casts.
 
 Synthetic cast insertion is closer to a traditional type system, as it produces types from terms in a similar manner. However, instead of having non algorithmic cases where types are known (for example, in the arguments to a typed function), the synthetic cast insertion judgment defers to the analytic cast insertion mechanism with the known type. Importantly for us, the basic semantics of the static type system does not change between any of the type systems under consideration, and as a result the synthetic cases are not changed by any of the systems.
 
@@ -742,7 +751,7 @@ Adding this to our static type system is simple. We just introduce the rule that
 
 This idea leads us into the core of the monotonic idea. Under this system, if we have a field of some given type $\t$, we do not know if the value of that field is truly of the expected type (since the class could have been cast to one where that field is $\any$ and the field updated), and therefore have to check the value of $\f$ at every point it is used. The solution used by the monotonic approach is to ensure that if a type is given to a field, then that type is never violated.
 
-Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Ftype{\xt{g}}\C}$ and $\Type{\Ftype\f\C, \Ftype{\xt{g}}\any}$, as neither has static typing information that would rule out a value that satisfied the other type. However, if we have a value that satisfied both, we would end up with a type that had neither type exactly - we would have $\Type{\Ftype\f\C, \Ftype{\xt{g}}\C}$. This is the key to the monotonic system - we never throw away any type information away. If, at any point in the program, we have an object with some specialized (e.g. not all $\dyn$) type, then those type assumptions will never be violated. As a result, we can ensure that no get operation will need to be checked.
+Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Ftype{\xt{g}}\C}$ and $\Type{\Ftype\f\C, \Ftype{\xt{g}}\any}$, as neither has static typing information that would rule out a value that satisfied the other type. However, if we have a value that satisfied both, we would end up with a type that had neither type exactly - we would have $\Type{\Ftype\f\C, \Ftype{\xt{g}}\C}$. This is the key to the monotonic system - we never throw away any type information away. If, at any point in the program, we have an object with some specialized (e.g. not all $\any$) type, then those type assumptions will never be violated. As a result, we can ensure that no get operation will need to be checked.
 
 \begin{figure}
 \begin{mathpar}
