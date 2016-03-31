@@ -512,21 +512,55 @@ I am aware that the last bit of the definitin is wrong. Will fix.
    \EnvType\E{\Cast\t\e}\t
 }
 \end{mathpar}
-\caption{Class well-formedness}
+\caption{Typing rules for the common core}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%% WELLFORMDNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
-\opdef{\EnvType\E\e\t}{\e has type \t in environment \E}
+\opdef{\TransExp\E{\ep1}{\ep 2}\t}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
-\IRule{}{
+\IRule{T1}{
       \TransExp\E\e{\ep 2}\any\\
      \b{\TransExp\E{\ep 1}{\ep 3}{\tp 3}}
  }{
     \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\Dyn{\m}}{\b{\ep 3}}} \any
 }   
 
+\IRule{T2}{
+  \HasType\E\x\t
+}{
+  \TransExp{\E}{\x}{\x}{\t}
+}
+
+\IRule{T3}{
+  \TransExp{\E}{\ep1}{\ep3}{\tp1} \\
+  \Mtype\m{\b{\tp2}} \in \tp1\\
+  \b{\TransExp{\E}{\ep2}{\ep4}{\tp1}}
+}{
+  \TransExp{\E}{\Call{\ep1}\m{\b{\ep2}}}{\Call{\ep3}\m{\b{\ep4}}}{\t}
+}
+
+\IRule{T4}{
+  \b{\TransExp\E{\ep1}{\ep2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+}{
+  \TransExp\E{\New\C{\b{\ep1}}}{\New\C{\b{\ep2}}}\C
+}
+
+\IRule{T5}{
+  \TransExp\E{\ep1}{\ep2}{\tp1}
+}{
+   \TransExp\E{\Cast\t{\ep1}}{\Cast\t{\ep2}}\t
+}
+
+
+\IRule{T6}{
+  \TransExp\E{\ep1}{\ep2}{\tp2}\\
+  \tp2 \Sub \tp1\\
+}{
+   \TransExp\E{\ep1}{\ep2}{\tp1}
+}
 \end{mathpar}
 \caption{Translations}
 \end{figure}
