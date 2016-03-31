@@ -32,7 +32,6 @@
 \newcommand{\err}{\M{\bt{err}}}
 \renewcommand{\d}{\M{\xt{d}}}
 \newcommand{\s}{\M{\sigma}}
-\newcommand{\fv}{\M{\xt{fv}}}
 \renewcommand{\a}{\M{\xt a}}
 \newcommand{\F}{\M{\xt F}}
 \newcommand{\T}{\M{\xt T}}
@@ -56,13 +55,13 @@
 \newcommand{\Type}[1]{\M{\{ #1 \}}}
 \newcommand{\HT}[2]{\M{{#1}\!:{#2}}}
 %% Classes %%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\Mdef}[5]{\M{ \HT { #1( \b{\HT{#2}{#3}})}{#4}={#5}}}
+\newcommand{\Mdef}[5]{\M{ \HT { #1( \b{\HT{#2}{#3}})}{#4}~ \{\, {#5} \,\} }}
 \newcommand{\SMdef}[5]{\M{ \HT { #1!( \HT{#2}{#3})}{#4}= {#5}}}
 \newcommand{\GMdef}[3]{\M{ \HT { #1()}{#2}={#3}}}
 \newcommand{\Ftype}[2]{\M{ \HT{#1}{#2} }}
 \newcommand{\Fdef}[3]{\M{ \HT{#1}{#2}={#3} }}
 \newcommand{\Mtype}[3]{\M{ \HT { #1( #2 )}{#3}}}
-\newcommand{\Class}[3]{\M{\bt{class}\;#1\{ #2 ~ #3 \}}}
+\newcommand{\Class}[3]{\M{\bt{class}\;#1\,\{\, #2 ~ #3\, \}}}
 %%% Dynamics %%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\is}{\M{\mapsto}}
 \newcommand{\Obj}[3]{ \M{\{ #1 \}^{#2}_{#3}}}
@@ -301,7 +300,7 @@ classes.
 The dynamic semantics evaluates expression extended with object references,
 denoted \a, and errors, denoted \err, together with a heap \s mapping
 references to object values. Object values contain all fields, methods, a
-type, and a class; they are denoted \Obj{\b{\Fdef\f\t\a}}{\tp 1}{\C}. The
+type, and a class; they are denoted \Obj{\b\a}\t\C. The
 class is used for locating methods and the type is used for type casts. The
 need for keeping them separate will become clear later.
 
@@ -366,7 +365,7 @@ The completion process extends each class definition with getter, setters,
 dynamic methods, and specializes dynamic calls.
 
 \begin{definition} A class table is completed if for every 
- \Class \C {\b{\Ftype\f\t}} {\b{\md}} in the class table: for every field
+ \Class \C {\b{\fd}} {\b{\md}} in the class table: for every field
  \Ftype\f\t\inc\C, we add the setter \SMdef\f\x\t\t{\Set\this\f\x} and the
  getter \GMdef\f\t{\Get\this\f} to \C; for ever method definition
  \Mdef\d\x\t{\tp1}\e\inc\C, a dynamic method \Mdef{\Dyn\d}\x\any\any{
@@ -382,7 +381,6 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \begin{tabular}{l|@{~~~~~~~~}l}
 \begin{minipage}{11cm}
 \opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
-
 \begin{tabular}{@{}l@{}l@{~}l@{~}l}
 \CondRule{E1}{ 
   \Reduce {\ep 1}{\sp 1}{\ep 2}{\sp 2}
@@ -390,9 +388,9 @@ I am aware that the last bit of the definitin is wrong. Will fix.
   \ReduceA {\F[\ep 1]}{\sp 1}{\F[\ep 2]}{\sp 2}
 }
 \CondRule{E2}{
-     \sp 2 = \Heap{\sp 1}{ \Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}\C\C\}}}
+     \sp2 = \Heap{\sp1}{\Bind{\ap1}{\Obj{\b\a}\C\C\}}}
 }{ 
-    \ReduceA{ \New\C{\b\a} }{\sp 1}{\ap 1}{\sp 2}
+    \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
 }
 \CondRule{E3}{
      \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
@@ -438,9 +436,8 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \end{tabular}\end{minipage}&
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{minipage}{4cm}\begin{tabular}{l@{~~}l}
-\fv &::= \Fdef\f\t\a \\
 \s &::= \none \\
-\Alt{  \Heap\s{\Bind\a{\Obj{\b{\fv}}{\t}{\C}}} } 
+\Alt{  \Heap\s{\Bind\a{\Obj{\b\a}{\t}{\C}}} } 
 \F &::=    \Get\square\f \\
    \Alt{    \Set\square\f\e}
    \Alt{    \Set\a\f\square    }
@@ -800,9 +797,9 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 
 \begin{mathpar}
 \IRule{}{
-	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}{\tp2}\C\}}} \\
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}{\tp2}\C\}}} \\
 	\tp2 \not\equiv \meet{\tp1}{\tp2} \\
-	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}{\meet{\tp1}{\tp2}}{\refine{\C}{\tp1}}}} \\
+	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}{\meet{\tp1}{\tp2}}{\refine{\C}{\tp1}}}} \\
 	\f:\t'_i \in \meet{\tp1}{\tp2}\\
 	\s'_1 = \castfn\a{\t'_1}{\sp2} \\ \ldots \\ \s'_n = \castfn\a{\t'_n}{\s'_{n-1}}\\
 }{
@@ -811,7 +808,7 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 % \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 
 \IRule{}{
-	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b{\Fdef\f\t\a}}{\tp2}\C\}}} \\
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}{\tp2}\C\}}} \\
 	\tp2 \equiv \meet{\tp1}{\tp2} \\
 }{
 	\castfn{\ap1}{\tp1}{\sp1} \equiv \s'_n\\
