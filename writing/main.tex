@@ -375,42 +375,62 @@ dynamic methods, and specializes dynamic calls.
 
 I am aware that the last bit of the definitin is wrong. Will fix.
 
+\newcommand{\bind}[4]{\M{\xt{bind}(#1, #2, #3,#4)}}
+\[ 
+\bind{\sp1}{\ap1}{\Obj{\b\a}\t\C}\s \equiv
+  \s=   \Heap{\sp1}{\Bind{\ap1}{\Obj{\b\a}\t\C\}}}
+\]
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\dispatch}[5]{\M{\xt{dispatch}(#1,#2,#3,#4,#5)}}
+
+\[
+  \dispatch\s{\a}\m{\b\x}\e \equiv   \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
+\]
+\newcommand{\readfield}[4]{\M{\xt{read}(#1,#2,#3,#4)}}
+\[
+ \readfield\s\a\f{\ap1}
+     \equiv \Fdef\f\t{\ap 1}\inc \Sel\s\a
+\]
+\newcommand{\setfield}[5]{\M{\xt{write}(#1,#2,#3,#4,#5)}}
+\[
+ \setfield\s\a\f{\ap1}{\sp1}
+     \equiv \sp1=\Fdef\f\t{\ap 1}\inc \Sel\s\a
+\]
+
+%%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}
 \begin{tabular}{l|@{~~~~~~~~}l}
 \begin{minipage}{11cm}
 \opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
 \begin{tabular}{@{}l@{}l@{~}l@{~}l}
-\CondRule{E1}{ 
+\CondRule{E1}{ %% e -> e'
   \Reduce {\ep 1}{\sp 1}{\ep 2}{\sp 2}
 }{
   \ReduceA {\F[\ep 1]}{\sp 1}{\F[\ep 2]}{\sp 2}
 }
-\CondRule{E2}{
-     \sp2 = \Heap{\sp1}{\Bind{\ap1}{\Obj{\b\a}\C\C\}}}
+\CondRule{E2}{ %% new C -> a
+ \bind{\sp1}{\ap1}{\Obj{\b\a}\C\C}{\sp2}
 }{ 
     \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
 }
-\CondRule{E3}{
-     \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
+\CondRule{E3}{ %% a.m -> e
+  \dispatch\s{\a}\m{\b\x}\e
 }{
    \ReduceA{\Call\a\m{\b{\ap 1}}}\s{[\a/\this~\b{{\ap 1}/\x}]\e}\s
 }
 
 \CondRule{E3}{
-     \Mdef\m\x{\tp 1}{\tp 2}\e\M{\not\in} \classof{\Sel\s\a}
+ \xt{not}   \dispatch\s{\a}\m{\b\x}\e
 }{
    \ReduceA{\Call\a\m{\b{\ap 1}}}\s{\err}\s
 }
-
 \CondRule{E3}{ 
-     \Fdef\f\t{\ap 1}\inc \Sel\s\a
+     \readfield\s\a\f{\ap1}
 }{
   \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
 }
 \CondRule{E4}{
-     \sp 2 = \Heap{\sp 1}{\Bind\a{\Update{\Sel{\sp 1}\a}\f {\ap 1}}}
+     \setfield\s\a\f{\ap1}{\sp2}
 }{
      \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
 }
