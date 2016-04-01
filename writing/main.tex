@@ -33,7 +33,6 @@
 \renewcommand{\d}{\M{\xt{d}}}
 \newcommand{\s}{\M{\sigma}}
 \renewcommand{\a}{\M{\xt a}}
-\newcommand{\F}{\M{\xt F}}
 \newcommand{\T}{\M{\xt T}}
 \newcommand{\tp}[1]{\M{ \t_{#1} }}
 \newcommand{\ep}[1]{\M{ \e_{#1} }}
@@ -66,6 +65,14 @@
 \newcommand{\is}{\M{\mapsto}}
 \newcommand{\Obj}[3]{ \M{\{ #1 \}^{#2}_{#3}}}
 \newcommand{\Heap}[2]{\M{ #1[ #2 ] }}
+
+\newcommand{\alloc}[4]{\M{#1,#2  = \xt{alloc}(#3, #4)}}
+\newcommand{\dispatch}[5]{\M{#1,#2 = \xt{dispatch}(#3,#4,#5)}}
+\newcommand{\notdispatch}[5]{\M{#1,#2 \not = \xt{dispatch}(#3,#4,#5)}}
+\newcommand{\readfield}[4]{\M{#1 = \xt{readfield}(#2,#3,#4)}}
+\newcommand{\setfield}[5]{\M{#1 = \xt{writefield}(#2,#3,#4,#5)}}
+
+
 %% Formatting %%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\Alt}[1]{ &\B #1 \\}
 \newcommand{\B}{\M{~|~}}
@@ -105,6 +112,31 @@
 \newcommand{\dynamic}[1]{\M{\llbracket #1  \rrbracket_{\xt{dyn}}}}
 \newcommand{\invoke}[1]{\M{\llbracket #1 \rrbracket_{\xt{inv}}}}
 \newcommand{\Dyn}[1]{\M{#1^{\any} }}
+
+\newcommand{\Ctx}[1]{\M{\xt{E}[#1]}}
+
+\newcommand{\casts}[1]{\llbracket #1 \rrbracket_{\xt{casts}}}
+\newcommand{\fcast}[1]{\M{\llbracket #1 \rrbracket_{\xt{force}}}}
+\newcommand{\wrapper}[1]{\M{\llbracket #1  \rrbracket}_{\xt{wrap}}}
+
+\newtheorem{definition}{Definition}
+\newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
+
+
+\newcommand{\Weak}{\hspace{0.1em}^*\hspace{-0.1em}}
+\newcommand{\WType}[1]{\Weak\Type{#1}}
+\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
+\newcommand{\AnaCast}[4]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
+
+
+\newcommand{\stcons}[2]{#1\lesssim #2}
+\newcommand{\meet}[2]{#1\sqcap #2}
+\newcommand{\refine}[2]{#1\vartriangleright #2}
+\newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
+\newcommand{\adapt}[1]{\M{\llbracket #1 \rrbracket_{\xt{adapt}}}}
+\newcommand{\castfn}[3]{\text{cast}(#1,#2,#3)}
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 \title{Designing Gradual Types for Objects
@@ -270,20 +302,20 @@ update, method invocation, object creation, and type casts.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure}[!h]\begin{minipage}{3cm}\begin{tabular}{l@{~~~}l}
+\begin{figure}[!h]\center\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \e &::=  \x \\
    \Alt{ \Get\e\f }
    \Alt{ \Set\e\f\e }
    \Alt{ \Call\e\m{\b\e} }
    \Alt{ \New\C{\b\e} }
    \Alt{ \Cast\t\e }
-\end{tabular}\end{minipage}\begin{minipage}{3cm}\begin{tabular}{l@{~~~}l}
+\end{tabular}\end{minipage}\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \fd &::= 
     \Ftype\f\t   \\
 \md &::=
     \Mdef\m\x\t\t\e \\
 \c &::= \Class \C {\b{\fd}}{\b{\md} } \\
-\mt &::= \Mtype\m\t\t\\
+\mt &::= \Mtype\m{\b\t}\t\\
 \t &::= ~ \any \\
    \Alt{ \Type{  \b{ \mt } } }
 \end{tabular}\end{minipage}
@@ -304,7 +336,7 @@ type, and a class; they are denoted \Obj{\b\a}\t\C. The
 class is used for locating methods and the type is used for type casts. The
 need for keeping them separate will become clear later.
 
-The semantics uses evaluation context \M{\F[\e]}.
+The semantics uses evaluation context \Ctx\e.
 
 Selecting an object from the heap is written \Sel\s\a, while a heap is
 extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\t\C}}.
@@ -341,9 +373,6 @@ To fill these holes, we use class translation, which performs 2 major tasks:
 % Figure 2 sigma <- not sure?
 
 
-\newtheorem{definition}{Definition}
-\newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
-
 A program consists of an expression and an implicit class table which holds
 definitions for all the classes that can be used in the program.
 
@@ -375,23 +404,17 @@ dynamic methods, and specializes dynamic calls.
 
 I am aware that the last bit of the definitin is wrong. Will fix.
 
-\newcommand{\alloc}[4]{\M{#1,#2  = \xt{alloc}(#3, #4)}}
-\newcommand{\dispatch}[5]{\M{#1,#2 = \xt{dispatch}(#3,#4,#5)}}
-\newcommand{\notdispatch}[5]{\M{#1,#2 \not = \xt{dispatch}(#3,#4,#5)}}
-\newcommand{\readfield}[4]{\M{#1 = \xt{readfield}(#2,#3,#4)}}
-\newcommand{\setfield}[5]{\M{#1 = \xt{writefield}(#2,#3,#4,#5)}}
-
 
 %%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure*}
-\begin{tabular}{l|@{~~~~~~~~}l}
-\begin{minipage}{11cm}
-\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
+\begin{figure}
+
+\begin{minipage}{8cm}
+\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep1 \sp1 evaluates to \ep2 \sp2 or \err in a step}\\[-1mm]
 \begin{tabular}{@{}l@{}l@{~}l@{~}l}
 \CondRule{E1}{ %% e -> e'
   \Reduce {\ep 1}{\sp 1}{\ep 2}{\sp 2}
 }{
-  \ReduceA {\F[\ep 1]}{\sp 1}{\F[\ep 2]}{\sp 2}
+  \ReduceA {\Ctx{\ep1}}{\sp 1}{\Ctx{\ep2}}{\sp 2}
 }
 \CondRule{E2}{ %% new C -> a
    \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C\C}
@@ -407,7 +430,7 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \CondRule{E3}{
    \notdispatch{\b\x}\e\s\a\m
 }{
-   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{\err}\s
+   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{\err}{}
 }
 \CondRule{E3}{ 
      \readfield{\ap1}\s\a\f
@@ -431,29 +454,30 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \CondRule{E7}{
   \typeof{\Sel\s\a} \NotSub \tp 1
 }{ 
-    \ReduceA{\Cast{\tp 1}\a}\s\err\s
+    \ReduceA{\Cast{\tp 1}\a}\s\err{}
 }
 \CondRule{E8}{
-    \Reduce\e{\sp 1}\err{\sp 2}
+    \Reduce\e{\sp 1}\err{}
 }{
-    \ReduceA{\F[\e]}{\sp1}\err{\sp 2}
+    \ReduceA{\Ctx\e}{\sp1}\err{}
 }
-\end{tabular}\end{minipage}&
+\end{tabular}\end{minipage}
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{minipage}{4cm}\begin{tabular}{l@{~~}l}
-\s &::= \none \\
-\Alt{  \Heap\s{\Bind\a{\Obj{\b\a}{\t}{\C}}} } 
-\F &::=    \Get\square\f \\
-   \Alt{    \Set\square\f\e}
-   \Alt{    \Set\a\f\square    }
-   \Alt{    \Call\square\m\e}
-   \Alt{    \Call\a\m{\b\a\,\square\,\b\e}}
-    \Alt{   \Cast\t\square }
-   \Alt{   \New\C{\b \a\,\square\,\b\e}}
+\\[3mm]
+\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
+\s &::= ~~\none & \B ~~
+  \Heap\s{\Bind\a{\Obj{\b\a}{\t}{\C}}} \\[2mm]
+\xt{E} &::=    \Get\square\f &\B~
+       \Set\square\f\e   ~\B~
+       \Set\a\f\square   ~\B~  
+       \Call\square\m\e  ~\B~
+      \Call\a\m{\b\a\,\square\,\b\e} \\
+ &\B~     \Cast\t\square  &\B~
+      \New\C{\b \a\,\square\,\b\e}
 \end{tabular}
-\end{minipage}\end{tabular}
+\end{minipage}
 \caption{Common Core Calculus Dynamic Semantics.}
-\end{figure*}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
@@ -581,9 +605,7 @@ Theorem 3: Preservation. If $\s,\e \rightarrow \s',\e'$ and $\EnvType{\Es}{\e}{\
 
 For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
 
-\newcommand{\casts}[1]{\llbracket #1 \rrbracket_{\xt{casts}}}
-\newcommand{\fcast}[1]{\M{\llbracket #1 \rrbracket_{\xt{force}}}}
-\newcommand{\wrapper}[1]{\M{\llbracket #1  \rrbracket}_{\xt{wrap}}}
+
 \begin{figure}
 \begin{mathpar}
 \IRule{}{ }{
@@ -627,12 +649,6 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \caption{Class well-formedness for Typed Racket}
 \end{figure}
 
-
-
-\newcommand{\Weak}{\hspace{0.1em}^*\hspace{-0.1em}}
-\newcommand{\WType}[1]{\Weak\Type{#1}}
-\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
-\newcommand{\AnaCast}[4]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
 
 
 
@@ -725,7 +741,6 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 \section{Monotonic}
 
 %%%%%%%%%%%%%%%% Monotonic Statics
-\newcommand{\stcons}[2]{#1\lesssim #2}
 
 \begin{figure}[h]
 \begin{mathpar}
@@ -760,8 +775,6 @@ Subtype consistency combines the two properties. Subtyping lets us add and remov
 
 Adding this to our static type system is simple. We just introduce the rule that allows types to be converted via $\stcons{}{}$. The details of how to make the dynamics work with this static addition will be covered later.
 
-\newcommand{\meet}[2]{#1\sqcap #2}
-\newcommand{\refine}[2]{#1\vartriangleright #2}
 \begin{figure}{h}
 \opdef{$\meet{\tp1}{\tp2} \equiv \tp3$}{The most specific type common to $\tp1$ and $\tp2$ is $\tp3$}
 \begin{mathpar}
@@ -794,8 +807,6 @@ Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Fty
 \end{figure}
 
 
-\newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
-\newcommand{\adapt}[1]{\M{\llbracket #1 \rrbracket_{\xt{adapt}}}}
 \begin{figure}
 
 Index every type $\t$ in the source of the program with an index $i$ (denoted $\t^i$). Then, for every class $\C$ and every $i$ where $\stcons\c{\t^i}$, we can generate a most specific type as $\t' \equiv \meet\C{\t^i}$. We then produce a wrapper class $\C^i$ such that
@@ -830,7 +841,6 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 \end{figure}
 
 
-\newcommand{\castfn}[3]{\text{cast}(#1,#2,#3)}
 \begin{figure}
 \opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
 
