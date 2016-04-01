@@ -375,26 +375,12 @@ dynamic methods, and specializes dynamic calls.
 
 I am aware that the last bit of the definitin is wrong. Will fix.
 
-\newcommand{\bind}[3]{\M{\xt{bind}(#1, #2, #3)}}
-\[ 
-\bind{\sp1}{\ap1}{\Obj{\b{\ap2}}\t\C} \equiv \Heap{\sp1}{\Bind{\ap1}{\Obj{\b{\ap2}}\t\C}}
-\]
+\newcommand{\alloc}[4]{\M{#1,#2  = \xt{alloc}(#3, #4)}}
+\newcommand{\dispatch}[5]{\M{#1,#2 = \xt{dispatch}(#3,#4,#5)}}
+\newcommand{\notdispatch}[5]{\M{#1,#2 \not = \xt{dispatch}(#3,#4,#5)}}
+\newcommand{\readfield}[4]{\M{#1 = \xt{readfield}(#2,#3,#4)}}
+\newcommand{\setfield}[5]{\M{#1 = \xt{writefield}(#2,#3,#4,#5)}}
 
-\newcommand{\dispatch}[4]{\M{\xt{dispatch}(#1,#2,#3,#4)}}
-
-\[
-  \dispatch\s{\a}\m{\b\x} \equiv \e \text{ if }  \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
-\]
-\newcommand{\readfield}[4]{\M{\xt{read}(#1,#2,#3,#4)}}
-\[
- \readfield\s\a\f{\ap1}
-     \equiv \Fdef\f\t{\ap 1}\inc \Sel\s\a
-\]
-\newcommand{\setfield}[5]{\M{\xt{write}(#1,#2,#3,#4,#5)}}
-\[
- \setfield\s\a\f{\ap1}{\sp1}
-     \equiv \sp1=\Fdef\f\t{\ap 1}\inc \Sel\s\a
-\]
 
 %%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}
@@ -408,28 +394,28 @@ I am aware that the last bit of the definitin is wrong. Will fix.
   \ReduceA {\F[\ep 1]}{\sp 1}{\F[\ep 2]}{\sp 2}
 }
 \CondRule{E2}{ %% new C -> a
- \sp2 = \bind{\sp1}{\ap1}{\Obj{\b\a}\C\C}
+   \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C\C}
 }{ 
     \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
 }
 \CondRule{E3}{ %% a.m -> e
-  \dispatch\s{\a}\m{\b\x}\e
+   \dispatch{\b\x}\e\s\a\m
 }{
    \ReduceA{\Call\a\m{\b{\ap 1}}}\s{[\a/\this~\b{{\ap 1}/\x}]\e}\s
 }
 
 \CondRule{E3}{
- \xt{not}   \dispatch\s{\a}\m{\b\x}\e
+   \notdispatch{\b\x}\e\s\a\m
 }{
    \ReduceA{\Call\a\m{\b{\ap 1}}}\s{\err}\s
 }
 \CondRule{E3}{ 
-     \readfield\s\a\f{\ap1}
+     \readfield{\ap1}\s\a\f
 }{
   \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
 }
 \CondRule{E4}{
-     \setfield\s\a\f{\ap1}{\sp2}
+     \setfield{\sp2}\s\a\f{\ap1}
 }{
      \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
 }
