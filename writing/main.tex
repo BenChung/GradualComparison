@@ -375,16 +375,15 @@ dynamic methods, and specializes dynamic calls.
 
 I am aware that the last bit of the definitin is wrong. Will fix.
 
-\newcommand{\bind}[4]{\M{\xt{bind}(#1, #2, #3,#4)}}
+\newcommand{\bind}[3]{\M{\xt{bind}(#1, #2, #3)}}
 \[ 
-\bind{\sp1}{\ap1}{\Obj{\b\a}\t\C}\s \equiv
-  \s=   \Heap{\sp1}{\Bind{\ap1}{\Obj{\b\a}\t\C\}}}
+\bind{\sp1}{\ap1}{\Obj{\b{\ap2}}\t\C} \equiv \Heap{\sp1}{\Bind{\ap1}{\Obj{\b{\ap2}}\t\C}}
 \]
 
-\newcommand{\dispatch}[5]{\M{\xt{dispatch}(#1,#2,#3,#4,#5)}}
+\newcommand{\dispatch}[4]{\M{\xt{dispatch}(#1,#2,#3,#4)}}
 
 \[
-  \dispatch\s{\a}\m{\b\x}\e \equiv   \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
+  \dispatch\s{\a}\m{\b\x} \equiv \e \text{ if }  \Mdef\m\x{\tp 1}{\tp 2}\e\inc \classof{\Sel\s\a}
 \]
 \newcommand{\readfield}[4]{\M{\xt{read}(#1,#2,#3,#4)}}
 \[
@@ -409,7 +408,7 @@ I am aware that the last bit of the definitin is wrong. Will fix.
   \ReduceA {\F[\ep 1]}{\sp 1}{\F[\ep 2]}{\sp 2}
 }
 \CondRule{E2}{ %% new C -> a
- \bind{\sp1}{\ap1}{\Obj{\b\a}\C\C}{\sp2}
+ \sp2 = \bind{\sp1}{\ap1}{\Obj{\b\a}\C\C}
 }{ 
     \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
 }
@@ -686,10 +685,10 @@ One of the issues inherent to the Strongscript approach (and is apparent in
 the common core as well) is that a strict interpretation of the static type
 system causes the programmer to have to write a very large number of
 ``obvious'' casts, breaking untyped code and seemingly-sensible typed
-code. We can solve this by havin gh the compilation process insert the types
+code. We can solve this by having the compilation process insert the types
 for the programmer, which we describe using a cast insertion system.
 
-Our cast insertion approach is based on a birdirectional type
+Our cast insertion approach is based on a bidirectional type
 system~\cite{}, where each expression either \emph{synthesizes}, or
 inherently makes, a type, or is \emph{analyzed} against a type where the
 type system checks to make sure that the expression still ``works'' under
