@@ -480,20 +480,32 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure}
-\opdef{\tp 1 \Sub \tp 2 }{\tp 1 is a subtype of \tp 2}
-\begin{mathpar}
-\IRule{S1}{}{\t\Sub\t}
+\newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
 
-\IRule{S2}{}{\t \Sub \Type{} }
+\begin{figure}
+\opdef{$\tp1 \Sub \tp2$}{\tp 1 is a subtype of \tp 2}
+\opdef{$\ESub{\Xi}{\tp1}{\tp2}$}{\tp 1 is a subtype of \tp 2 against environment $\Xi$}
+\begin{mathpar}
+\IRule{L1}{\ESub\emptyset{\tp1}{\tp2}}{\tp1 \Sub \tp2}
+
+\IRule{S1}{}{\ESub\Xi\t\t}
+
+\IRule{S2}{}{\ESub\Xi\t{\Type{}}}
 
 \IRule{S3}{
-    \t \Sub \Type{\b{ \mt } } \\
-     \Mtype\m{\b{\tp3}}{\tp4} \inc \t \\
-    \tp2 \Sub \tp4 \\    
-    \b{\tp3 \Sub \tp1}
+  \tp1 \leq \tp2 \in \Xi
 }{
-   \t \Sub \Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \, } 
+ \ESub{\Xi}{\tp1}{\tp2}  
+}
+
+\IRule{S4}{
+    \Xi' = \Xi,~{\t \leq \Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \,}} \\
+    \ESub{\Xi'}\t{\Type{\b{ \mt } }}\\
+     \Mtype\m{\b{\tp3}}{\tp4} \inc \t \\
+    \b{\ESub{\Xi'}{\tp3}{\tp1}} \\
+    \ESub{\Xi'}{\tp2}{\tp4} \\    
+}{
+   \ESub\Xi\t{\Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \,} } 
 }
 \end{mathpar}
 \caption{Subtyping}
