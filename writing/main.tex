@@ -492,6 +492,8 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 
 \IRule{S2}{}{\ESub\Xi\t{\Type{}}}
 
+\IRule{S3}{\text{Get type for C and D, recurse}}{\ESub\Xi\C{\xt{D}}}
+
 \IRule{S3}{
   \tp1 \leq \tp2 \in \Xi
 }{
@@ -620,8 +622,11 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \begin{figure}
 \begin{mathpar}
-\IRule{}{ }{
-	\wrapper{\Mtype\m{\b{\tp1}}{\tp2}} \equiv \Mdef\m{x}{\any}{\any}{\Cast{\any}{\xt{this}.\xt{orig}.\m(\b{\Cast{\tp1}x})}}
+\IRule{}{
+  \b{\C \equiv \wrapper{\tp1}}\\
+  \xt{D} \equiv \wrapper{\tp2}
+}{
+	\wrapper{\Mtype\m{\b{\tp1}}{\tp2}} \equiv \Mdef\m{x}{\any}{\any}{\Cast{\any}{\New{\xt{D}}{\xt{this}.\xt{orig}.\m(\New\C{\b{\Cast{\tp1}x}})}}}
 }
 
 \IRule{}{
@@ -633,9 +638,9 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \IRule{}{
       \TransExp\E\e{\ep 2}\any\\
      \b{\TransExp\E{\ep 1}{\ep 3}{\tp 3}} \\
-     \b{\tp 4 \equiv \wrapper{\tp 3}}
+     \b{\C \equiv \wrapper{\tp 3}}
  }{
-    \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\m}{\b{\New{\tp 4}{\ep 3}}}} \any
+    \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\m}{\b{\New{\tp 4}{\Cast{\C}{\ep 3}}}}} \any
 }   
 
 \IRule{}{
