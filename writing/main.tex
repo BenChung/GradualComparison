@@ -84,7 +84,7 @@
 
 \newcommand{\IRule}[3]{\inferrule*[lab={\tiny #1}]{#2}{#3}}
 %\newcommand{\IRule}[3]{\inferrule{#2}{#3}}    %% No label
-\newcommand{\CondRule}[3]{ #3 & {if} #2 \\}
+\newcommand{\CondRule}[3]{ #3 &~{\emph{if}} #2 \\}
 \newcommand{\NoCondRule}[2]{ #2 &       \\}
 \newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
 \newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
@@ -94,9 +94,9 @@
 \newcommand{\NotSub}{\M{\not<:}}
 \newcommand{\Sub}{\M{<:}}
 \newcommand{\classofis}[2]{\M{\xt{classof}(#1)=#2}}
-\newcommand{\typeofis}[2]{\M{\xt{typeof}(#1)=#2}}
+\newcommand{\typeofis}[3]{\M{\xt{typeof}(#1,#2)=#3}}
 \newcommand{\classof}[1]{\M{\xt{classof}(#1)}}
-\newcommand{\typeof}[1]{\M{\xt{typeof}(#1)}}
+\newcommand{\typeof}[2]{\M{\xt{typeof}(#1,#2)}}
 \newcommand{\Sel}[2]{\M{#1(#2)}}
 
 \newcommand{\EnvType}[3]{ \M{#1 \vdash #2 : #3}}
@@ -301,7 +301,7 @@ update, method invocation, object creation, and type casts.
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%% SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[!h]\center\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \e &::=  \x \\
    \Alt{ \Get\e\f }
@@ -321,7 +321,7 @@ update, method invocation, object creation, and type casts.
 \end{tabular}\end{minipage}
 \caption{Abstract Syntax for the Core Calculus}\label{syn}
 \end{figure}
-%%%%%%%%%%%%%%%%%%%%%%%% END OF SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% END OF SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Our types are structural and only account for the methods in an object's
 interface. For type annotations, we use the name of classes, ranged over by
@@ -343,7 +343,7 @@ extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\t\C}}.
 
 
 For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have 
-\classofis{\Sel\s\a}\C and \typeofis{\Sel\s\a}\t.
+\classofis{\Sel\s\a}\C and \typeofis\s\a\t.
 
 We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
 definition and \Fdef\f\t\a\inc\Obj{\dots}\t\C to express the selection of a
@@ -438,7 +438,7 @@ I am aware that the last bit of the definitin is wrong. Will fix.
   \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
 }
 \CondRule{E4}{
-     \setfield{\sp2}\s\a\f{\ap1}
+     \setfield{\sp2}{\sp1}\a\f{\ap1}
 }{
      \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
 }
@@ -447,12 +447,12 @@ I am aware that the last bit of the definitin is wrong. Will fix.
    \ReduceA{ \Cast\any\a}\s \a\s
 }
 \CondRule{E6}{
-  \typeof{\Sel\s\a} \Sub \tp 1
+  \typeof\s\a \Sub \tp 1
 }{ 
     \ReduceA{\Cast{\tp 1}\a}\s\a\s
 }
 \CondRule{E7}{
-  \typeof{\Sel\s\a} \NotSub \tp 1
+  \typeof\s\a \NotSub \tp 1
 }{ 
     \ReduceA{\Cast{\tp 1}\a}\s\err{}
 }
