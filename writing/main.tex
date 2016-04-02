@@ -649,6 +649,30 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \caption{Class well-formedness for Typed Racket}
 \end{figure}
 
+Typed Racket uses a much stricter definition of where $\any$ types can go, where every class is either fully typed or fully untyped. To describe this, we alter definition 1 and 2 to
+
+
+\begin{definition} A Typed Racket class table is well-formed if for every class \C  in
+the class table, every method is either of the form \Mdef\d\x{\tp1}{\tp2}\e for \tp1 and \tp2 not \any or \Mdef\d\x{\any}{\any}\e in \C and
+\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2} holds.
+\end{definition}
+
+Typed Racket uses wrappers to ensure that typed code type guarantees are not violated, and that untyped code follows the types that it is casted to. We generate these wrappers using the following mechanism.
+
+\begin{definition}
+Every place a type \Type{\mt} where $\mt=\Mtype\m{\b{\tp1}}{\tp2}$ flows from typed into untyped code, generate a wrapper $\Class{\C'}{~\xt{orig}:\t,\b{\md}}$ where $\md = \Mdef\m\x{\any}{\any}{\Cast{\any}{\xt{this}.\xt{orig}.\m(\b{\Cast{\tp1}x})}}$.
+\end{definition}
+
+To model Typed Racket, we then need to enforce the property that objects are wrapped at typed/untyped boundaries, and ensuring that untyped code cannot use typed code internally through casts. We do this by altering the completion process, giving us a new definition. We use the wrappers we generated using definition 4 to enforce the type guarantees
+
+\begin{definition} A class table is completed if for every 
+ \Class \C {\b{\fd}} {\b{\md}} in the class table: for every field
+ \Ftype\f\t\inc\C, we add the setter \SMdef\f\x\t\t{\Set\this\f\x} and the
+ getter \GMdef\f\t{\Get\this\f} to \C; for every method definition
+ \Mdef\d\x\t{\tp1}\e\inc\C, a dynamic method \Mdef{\Dyn\d}\x\any\any{
+   \Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C and the body \e of
+ \m is replaced by  \ep1 where \TransClass\e{\ep1}.
+\end{definition}
 
 
 
