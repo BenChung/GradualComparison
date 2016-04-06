@@ -1,11 +1,10 @@
 \documentclass[preprint]{sigplanconf}
-\usepackage{xspace,listings,url,subfigure,framed,amssymb,amsmath,mathpartir,hyperref,
+\usepackage{xspace,listings,url,subfigure,framed,amssymb,
+            amsmath,mathpartir,hyperref,
             stmaryrd % double brackets llbracket
 }
 \newcommand{\rn}[1]{#1}
 \newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
-
-
 
 \conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
 \copyrightyear{20yy}
@@ -65,7 +64,6 @@
 \newcommand{\is}{\M{\mapsto}}
 \newcommand{\Obj}[3]{ \M{\{ #1 \}^{#2}_{#3}}}
 \newcommand{\Heap}[2]{\M{ #1[ #2 ] }}
-
 \newcommand{\alloc}[4]{\M{#1,#2  = \xt{alloc}(#3, #4)}}
 \newcommand{\dispatch}[5]{\M{#1,#2 = \xt{dispatch}(#3,#4,#5)}}
 \newcommand{\notdispatch}[5]{\M{#1,#2 \not = \xt{dispatch}(#3,#4,#5)}}
@@ -670,8 +668,8 @@ Typed Racket uses a much stricter definition of where $\any$ types can go, where
 
 
 \begin{definition} A Typed Racket class table is well-formed if for every class \C  in
-the class table, every method is either of the form \Mdef\d\x{\tp1}{\tp2}\e for \tp1 and \tp2 not \any or \Mdef\d\x{\any}{\any}\e in \C and
-\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2} holds.
+the class table, every method is of the form \Mdef\d\x{\tp1}{\tp2}\e where
+\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2} holds in \C, and all types in \C are either $\any$ or all not $\any$
 \end{definition}
 
 Typed Racket uses wrappers to ensure that typed code type guarantees are not violated, and that untyped code follows the types that it is casted to. We generate these wrappers using the following mechanism.
@@ -681,14 +679,25 @@ Every place a type \Type{\mt} where $\mt=\Mtype\m{\b{\tp1}}{\tp2}$ flows from ty
 \end{definition}
 
 To model Typed Racket, we then need to enforce the property that objects are wrapped at typed/untyped boundaries, and ensuring that untyped code cannot use typed code internally through casts. We do this by altering the completion process, giving us a new definition. We use the wrappers we generated using definition 4 to enforce the type guarantees
-
-\begin{definition} A class table is completed if for every 
- \Class \C {\b{\fd}} {\b{\md}} in the class table: for every field
- \Ftype\f\t\inc\C, we add the setter \SMdef\f\x\t\t{\Set\this\f\x} and the
- getter \GMdef\f\t{\Get\this\f} to \C; for every method definition
- \Mdef\d\x\t{\tp1}\e\inc\C, a dynamic method \Mdef{\Dyn\d}\x\any\any{
-   \Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C and the body \e of
- \m is replaced by  \ep1 where \TransClass\e{\ep1}.
+\newpage
+\begin{definition} A Typed Racket class table is completed if for every 
+ \Class \C {\b{\fd}} {\b{\md}} in the class table: 
+ \begin{itemize}
+ \item for every type \Type{\b{\md}}, add a class \xt{D} such that 
+ \begin{itemize}
+ \item for every method $\Mtype\m{\tp1}{\tp2} \in \b{\md}$, generate a function in \xt{D} $\Mdef\m{x}{\any}{\any}{\Cast{\any}{\New{\xt{D}}{\xt{this}.\xt{orig}.\m(\New\C{\b{\Cast{\tp1}x}})}}}$
+ \end{itemize}
+ \item for every field \Ftype\f\t\inc\C, we add to \C:
+ \begin{itemize}
+ \item A setter \SMdef\f\x\t\t{\Set\this\f\x} 
+ \item A getter \GMdef\f\t{\Get\this\f}; 
+ \end{itemize}
+ \item For every method definition \Mdef\d\x\t{\tp1}\e\inc\C:
+ \begin{itemize}
+ \item A dynamic method \Mdef{\Dyn\d}\x\any\any{\Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C 
+ \item We replace the body \e of \m is replaced by \ep1 where \TransClass\e{\ep1}.
+ \end{itemize}
+ \end{itemize}
 \end{definition}
 
 
