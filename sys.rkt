@@ -3,7 +3,7 @@
 
 (define-language base
   (e ::= x (acc e f) (set e f e) (call e m e ...) (new C e ...) (cast t e))
-  (t ::= any (mt ...))
+  (t ::= any (mt ...) C)
   (mt ::= (m t ... t))
   (fd ::= (: f t))
   (md ::= (m (x t) ... t e))
@@ -22,6 +22,36 @@
   (res ::= (sigma p) err))
 
 
+(define-extended-language base-subtyping base
+  (xi ::= ((t t) ...)))
+
+(define-metafunction base
+  expand-once : c ... C -> t
+  [(expand-once c_1 ... (class C fd ... (m (x t_1) ... t_2 e) ...) c_2 ... C) ((m t_1 ... t_2) ...)])
+
+(define-judgment-form base-subtyping
+  #:mode (<= I I I I)
+  #:contract (<= (c ...) xi t t)
+  [------
+   (<= (c ...) xi t t)]
+  [------
+   (<= (c ...) ((t_i1 t_i2) ... (t_1 t_2) (t_f1 t_f2) ...) t_1 t_2)]
+  [(where C_1 t_1)
+   (where C_2 t_2)
+   (where ((t_i1 t_i2) ...) xi)
+   (<= (c ...) ((t_i1 t_i2) ... (C_1 C_2)) (expand-once c ... C_1) (expand-once c ... C_2))
+   -----
+   (<= (c ...) (name xi ((t_!_1 t_!_2) ...)) (name t_1 t_!_1) (name t_2 t_!_2))]
+  [-----
+   (<= (c ...) xi t ())]
+  [(where xi_p ((t_xi1 t_xi2) ... (t_n1 t_n2))) 
+   (<= (c ...) xi_p t_n1 (mt_e ...))
+   (<= (c ...) xi_p t_1 t_i1) ...
+   (<= (c ...) xi_p t_i2 t_2)
+   ------
+   (<= (c ...) ((t_xi1 t_xi2) ...) (name t_n1 (mt_1 ... (m t_1 ... t_2) mt_2 ...)) (name t_n2 ((m t_i1 ... t_i2) mt_e ...)))
+   ]
+  )
 
 (define-metafunction base-dynamics
   get-open : sigma -> a
@@ -56,7 +86,7 @@
              (memloc_1 ... (a (a_1 ...) t C) memloc_2 ...)
              a
              m
-             a_v ..._1) (subst-multi e (x ...) (a_v ...))
+             a_v ..._1) (subst-multi e (this x ...) (a a_v ...))
              ])
 
 (define-metafunction base-dynamics
@@ -66,6 +96,14 @@
     (memloc_1 ... (a (a_1 ..._1 a_v a_2 ..._2) t_2 C) memloc_2 ...)
     a f)
    a_v])
+
+(define-metafunction base-dynamics
+  write-helper : c ... sigma v f v -> sigma
+  [(write-helper
+    c_1 ... (class C fd_1 ..._1 (: f t_1) fd_2 ..._2 md ...) c_2 ...
+    (memloc_1 ... (a (a_1 ..._1 a_v a_2 ..._2) t_2 C) memloc_2 ...)
+    a f a_new)
+   (memloc_1 ... (a (a_1 ... a_new a_2 ...) t_2 C) memloc_2 ...)])
 
 (define b->
   (reduction-relation
@@ -82,8 +120,24 @@
    (--> (sigma_1 (c ... (in-hole E (acc v_1 f))))
         (sigma_1 (c ... (in-hole E v_2)))
         (where v_2 (read-helper c ... sigma_1 v_1 f)))
+   (--> (sigma_1 (c ... (in-hole E (set v_1 f v_2))))
+        (sigma_2 (c ... (in-hole E v_2)))
+        (where sigma_2 (write-helper c ... sigma_1 v_1 f v_2)))
+   (--> (sigma_1 (c ... (in-hole E (cast any v_1))))
+        (sigma_1 (c ... (in-hole E v_1))))
+   (--> ((memloc_1 ... (a (a_2 ...) t_2 C) memloc_2 ...) (c ... (in-hole E (cast t_1 a))))
+        (sigma_1 (c ... (in-hole E a)))
+        (judgment-holds (<= (c ...) () t_2 t_1)))
   ))
 
-(define testprog (term ((class foo (bar (x any) any x)) (new foo))))
+(define fooclass (term (class foo (bar (x any) any x))))
+(define foofooclass (term (class foo (bar (x foo) any x))))
+
+(define testprog (term (,fooclass (new foo))))
 (define testprog2 (term ((class foo (bar (x any) any x)) (call (new foo) bar 1))))
 (define testprog3 (term ((class foo (: bar any)) (class bar) (acc (new foo (new bar)) bar))))
+(define testprog4 (term ((class foo (: bar any)) (class bar) (set (new foo (new bar)) bar (new bar)))))
+(define testprog5 (term (
+                         (class foo
+                           )
+                         (class bar) (set (new foo (new bar)) bar (new bar)))))
