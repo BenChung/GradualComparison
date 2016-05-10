@@ -242,6 +242,25 @@
 (test-equal (judgment-holds (expression-type (,foofooclass) () (call (new foo) bar (new foo)) t) t) (term (dyn)))
 (test-equal (judgment-holds (expression-type (,fooclass) () (cast dyn (new foo)) t) t) (term (dyn)))
 
+(define-metafunction base
+  append-token : m string -> m
+  ((append-token m string) ,(string->symbol (string-append (symbol->string (term m)) (term string))))
+  )
+
+(define-judgment-form base
+  #:mode (translate-class I I O)
+  #:contract (translate-class (c ...) c c)
+  [(base-translate (c ...) ((x t_1) ...) e e_1 t_3) ...
+   -----
+   (translate-class (c ...)
+                      (class C (name fd (: f t)) ... (name md (m (x t_1) ... t_2 e)) ...)
+                      (class C fd ...
+                        (m (x t_1) ... t_2 e_1) ...
+                        (f t (acc this f)) ...
+                        ((append-token f "!") (arg t) t (set this f arg)) ...
+                        ((append-token m "*") (x dyn) ... dyn (cast dyn (call this m (cast t_1 x) ...))) ...))]
+  )
+
 (define-judgment-form base
   #:mode (base-translate I I I O O)
   #:contract (base-translate (c ...) gamma e e t)
@@ -250,13 +269,31 @@
   [(base-translate (c ...) gamma e_1 e_3 dyn)
    (base-translate (c ...) gamma e_2 e_4 t) ...
    ------
-   (base-translate (c ...) gamma (call e_1 m e_2 ...) (call e_3 m e_4 ...) dyn)]
+   (base-translate (c ...) gamma (call e_1 m e_2 ...) (call e_3 (append-token m "*") e_4 ...) dyn)]
   [(base-translate c gamma e_1 e_3 C)
    (base-translate c gamma e_2 e_4 t_av) ...
    (<= c () t_av t_a) ...
    -----
    (base-translate (name c (c_1 ... (class C fd ... md_1 ... (m (x t_a) ..._1 t_r e) md_2 ...) c_2 ...))
-                   gamma (call e_1 m e_2 ..._1) (call e_3 m e_4 ..._1) t_r)]
+                   gamma (call e_1 m e_2 ..._1) (call e_3 m e_4 ...) t_r)]
+  [(base-translate c gamma e e_1 t_a) ...
+   (<= c () t_a t) ...
+   ------
+   (base-translate (name c (c_1 ... (class C (: f t) ... md ...) c_2 ...)) gamma (new C e ...) (new C e_1 ...) C)]
+  [(base-translate (c ...) gamma e e_1 t_a)
+   ------
+   (base-translate (c ...) gamma (cast t e) (cast t e_1) t)]
   )
+
+(define barclass (term (class bar (: baz dyn))))
+(define dyncallclass (term (class bar (foo dyn (call (cast dyn (new bar)) foo)))))
+
+(test-equal
+ (judgment-holds (translate-class (,foofooclass) ,foofooclass c) c)
+ (term ((class foo (bar (x foo) dyn x) (bar* (x dyn) dyn (cast dyn (call this bar (cast foo x))))))))
+
+(test-equal
+ (judgment-holds (translate-class (,barclass) ,barclass c) c)
+ (term ((class bar (: baz dyn) (baz dyn (acc this baz)) (baz! (arg dyn) dyn (set this baz arg))))))
 
 (test-results)
