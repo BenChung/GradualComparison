@@ -140,8 +140,7 @@
         (where e_1 (dispatch c ... sigma_1 v_1 m v_2 ...)))
    (--> (sigma_1 (c ... (in-hole E (call v_1 m v_2 ...))))
          err
-         (side-condition (not (redex-can-do?
-                          ))))
+         (side-condition (not (redex-can-do? (lambda () (term (dispatch c ... sigma_1 v_1 m v_2 ...)))))))
    (--> (sigma_1 (c ... (in-hole E (acc v_1 f))))
         (sigma_1 (c ... (in-hole E v_2)))
         (where v_2 (read-helper c ... sigma_1 v_1 f)))
@@ -232,6 +231,32 @@
   [(expression-type c gamma e t_a) ...
    (<= c () t_a t_f) ...
    -------
-   (expression-type (name c (c_1 ... (class C (: f t_f) ..._1 md ...) c_2 ...)) gamma (new C e ...) C)])
+   (expression-type (name c (c_1 ... (class C (: f t_f) ..._1 md ...) c_2 ...)) gamma (new C e ...) C)]
+  [(expression-type (c ...) gamma e t_a) 
+   -------
+   (expression-type (c ...) gamma (cast t e) t)])
+
+(test-equal (judgment-holds (expression-type (,fooclass) () (new foo) t) t) (term (foo)))
+(test-equal (judgment-holds (expression-type (,fooclass) () (call (new foo) bar (new foo)) t) t) (term ()))
+(test-equal (judgment-holds (expression-type (,fooclass) () (call (cast dyn (new foo)) bar (new foo)) t) t) (term (dyn)))
+(test-equal (judgment-holds (expression-type (,foofooclass) () (call (new foo) bar (new foo)) t) t) (term (dyn)))
+(test-equal (judgment-holds (expression-type (,fooclass) () (cast dyn (new foo)) t) t) (term (dyn)))
+
+(define-judgment-form base
+  #:mode (base-translate I I I O O)
+  #:contract (base-translate (c ...) gamma e e t)
+  [-------
+   (base-translate (c ...) ((x_1 t_1) .... (x t) (x_2 t_2) ...) x x t)]
+  [(base-translate (c ...) gamma e_1 e_3 dyn)
+   (base-translate (c ...) gamma e_2 e_4 t) ...
+   ------
+   (base-translate (c ...) gamma (call e_1 m e_2 ...) (call e_3 m e_4 ...) dyn)]
+  [(base-translate c gamma e_1 e_3 C)
+   (base-translate c gamma e_2 e_4 t_av) ...
+   (<= c () t_av t_a) ...
+   -----
+   (base-translate (name c (c_1 ... (class C fd ... md_1 ... (m (x t_a) ..._1 t_r e) md_2 ...) c_2 ...))
+                   gamma (call e_1 m e_2 ..._1) (call e_3 m e_4 ..._1) t_r)]
+  )
 
 (test-results)
