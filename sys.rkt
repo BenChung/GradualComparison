@@ -24,31 +24,45 @@
 
 
 (define-extended-language base-subtyping base
-  (xi ::= ((t t) ...)))
+  (stp ::= (t t))
+  (xi ::= (stp ...)))
+
+
+(define-metafunction base
+  append-token : m string -> m
+  ((append-token m string) ,(string->symbol (string-append (symbol->string (term m)) (term string))))
+  )
+
 
 (define-metafunction base
   expand-once : c ... C -> t
-  [(expand-once c_1 ... (class C fd ... (m (x t_1) ... t_2 e) ...) c_2 ... C) ((m t_1 ... t_2) ...)])
+  [(expand-once c_1 ... (class C (: f t) ... (m (x t_1) ... t_2 e) ...) c_2 ... C) ((f t) ... ((append-token f "!") t t) ... (m t_1 ... t_2) ...)])
 
 (define-judgment-form base-subtyping
   #:mode (<= I I I I)
   #:contract (<= (c ...) xi t t)
   [------
-   (<= (c ...) xi t t)]
-  [------
    (<= (c ...) ((t_i1 t_i2) ... (t_1 t_2) (t_f1 t_f2) ...) t_1 t_2)]
-  [(where ((t_i1 t_i2) ...) xi)
-   (<= (c ...) ((t_i1 t_i2) ... (C_1 C_2)) (expand-once c ... C_1) (expand-once c ... C_2))
+  [(where stp_!_1 (t t))
+   ------
+   (<= (c ...) (stp_!_1 ...) t t)]
+  [(where stp_!_1 (C_1 t_2))
+   (<= (c ...) (stp ... (C_1 t_2)) (expand-once c ... C_1) t_2)
    -----
-   (<= (c ...) (name xi ((C_!_1 C_!_2) ...)) (name C_1 C_!_1) (name C_2 C_!_2))]
-  [-----
-   (<= (c ...) xi t ())]
-  [(where xi_p ((t_xi1 t_xi2) ... (t_n1 t_n2))) 
+   (<= (c ...) ((name stp stp_!_1) ...) C_1 t_2)]
+  [(where stp_!_1 (t_1 C_2))
+   (<= (c ...) (stp ... (t_1 C_2)) t_1 (expand-once c ... C_2))
+   -----
+   (<= (c ...) ((name stp stp_!_1) ...) t_1 C_2)]
+  [(where stp_!_1 (t ()))
+   -----
+   (<= (c ...) (stp_!_1 ...) t ())]
+  [(where xi_p (stp ... (t_n1 t_n2))) 
    (<= (c ...) xi_p t_n1 (mt_e ...))
    (<= (c ...) xi_p t_1 t_i1) ...
    (<= (c ...) xi_p t_i2 t_2)
    ------
-   (<= (c ...) ((t_xi1 t_xi2) ...) (name t_n1 (mt_1 ... (m t_1 ... t_2) mt_2 ...)) (name t_n2 ((m t_i1 ... t_i2) mt_e ...)))
+   (<= (c ...) ((name stp stp_!_1) ...) (name t_n1 (mt_1 ... (m t_1 ... t_2) mt_2 ...)) (name t_n2 ((m t_i1 ... t_i2) mt_e ...)))
    ]
   )
 
@@ -130,17 +144,16 @@
   (reduction-relation
    base-dynamics
    #:domain res
-   (--> (sigma (c ... (in-hole E err))) err)
    (--> (sigma_1 (c_1 ... (name ic (class C (: f t) ..._1 md ...)) c_2 ... (in-hole E (new C a ..._1))))
         (sigma_2 (c_1 ... ic c_2 ... (in-hole E a_1)))
         (where (sigma_2 a_1) (alloc sigma_1 a ... C C)))
-   (--> (side-condition (sigma_1 (c ... (in-hole E (call v_1 m v_2 ...))))
-                        (redex-can-do? (lambda () (term (dispatch c ... sigma_1 v_1 m v_2 ...)))))
+   (--> (sigma_1 (c ... (in-hole E (call v_1 m v_2 ...))))
         (sigma_1 (c ... (in-hole E e_1)))
+        (side-condition (redex-can-do? (lambda () (term (dispatch c ... sigma_1 v_1 m v_2 ...)))))
         (where e_1 (dispatch c ... sigma_1 v_1 m v_2 ...)))
    (--> (sigma_1 (c ... (in-hole E (call v_1 m v_2 ...))))
-         err
-         (side-condition (not (redex-can-do? (lambda () (term (dispatch c ... sigma_1 v_1 m v_2 ...)))))))
+        err
+        (side-condition (not (redex-can-do? (lambda () (term (dispatch c ... sigma_1 v_1 m v_2 ...)))))))
    (--> (sigma_1 (c ... (in-hole E (acc v_1 f))))
         (sigma_1 (c ... (in-hole E v_2)))
         (where v_2 (read-helper c ... sigma_1 v_1 f)))
@@ -217,12 +230,12 @@
    (expression-type (c ...) gamma e_2 t_2) ...
    -------
    (expression-type (c ...) gamma (call e_1 m e_2 ...) dyn)]
-  [(expression-type c gamma e_1 C_1)
-   (expression-type c gamma e_2 t_a2) ...
-   (<= c () t_a2 t_a) ...
+  [(expression-type (c ...) gamma e_1 C_1)
+   (where (mt_1 ... (m t_a ... t_r) mt_2 ...) (expand-once c ... C_1))
+   (expression-type (c ...) gamma e_2 t_a2) ...
+   (<= (c ...) () t_a2 t_a) ...
    -------
-   (expression-type (name c (c_1 ... (class C_1 fd ... md_1 ... (m (x t_a) ..._1 t_r e_3) md_2 ...) c_2 ...))
-                    gamma (call e_1 m e_2 ..._1) t_r)]
+   (expression-type (c ...) gamma (call e_1 m e_2 ..._1) t_r)]
   [(expression-type (c ...) gamma e_1 (mt_1 ... (m t_a ... t_r) mt_2 ...))
    (expression-type (c ...) gamma e_2 t_a2) ...
    (<= (c ...) () t_a2 t_a) ...
@@ -242,10 +255,13 @@
 (test-equal (judgment-holds (expression-type (,foofooclass) () (call (new foo) bar (new foo)) t) t) (term (dyn)))
 (test-equal (judgment-holds (expression-type (,fooclass) () (cast dyn (new foo)) t) t) (term (dyn)))
 
-(define-metafunction base
-  append-token : m string -> m
-  ((append-token m string) ,(string->symbol (string-append (symbol->string (term m)) (term string))))
-  )
+(define-judgment-form base
+  #:mode (translate-program I O)
+  #:contract (translate-program p p)
+  [(translate-class (c ...) c c_1) ...
+   (base-translate (c ...) () e e_1 t)
+   ----
+   (translate-program (c ... e) (c_1 ... e_1))])
 
 (define-judgment-form base
   #:mode (translate-class I I O)
@@ -295,5 +311,9 @@
 (test-equal
  (judgment-holds (translate-class (,barclass) ,barclass c) c)
  (term ((class bar (: baz dyn) (baz dyn (acc this baz)) (baz! (arg dyn) dyn (set this baz arg))))))
+
+(test-equal
+ (judgment-holds (translate-class (,dyncallclass) ,dyncallclass c) c)
+ (term ((class bar (foo dyn (call (cast dyn (new bar)) foo*)) (foo* dyn (cast dyn (call this foo)))))))
 
 (test-results)
