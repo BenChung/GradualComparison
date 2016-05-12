@@ -3,7 +3,8 @@
 
 (define-language base
   (e ::= x (acc e f) (set e f e) (call e m e ...) (new C e ...) (cast t e))
-  (t ::= dyn (mt ...) C)
+  (t ::= ct dyn)
+  (ct ::= (mt ...) C)
   (mt ::= (m t ... t))
   (fd ::= (: f t))
   (md ::= (m (x t) ... t e))
@@ -277,6 +278,13 @@
                         ((append-token m "*") (x dyn) ... dyn (cast dyn (call this m (cast t_1 x) ...))) ...))]
   )
 
+(define-language L
+  (e number
+     (e ...)))
+(define-metafunction L
+   replace-with-0 : e -> e
+   [(replace-with-0 (e ..._1)) ,(make-list (length (term (e ...))) 0)])
+
 (define-judgment-form base
   #:mode (base-translate I I I O O)
   #:contract (base-translate (c ...) gamma e e t)
@@ -285,12 +293,14 @@
   [(base-translate (c ...) gamma e_1 e_3 dyn)
    (base-translate (c ...) gamma e_2 e_4 t) ...
    ------
-   (base-translate (c ...) gamma (call e_1 m e_2 ...) (call e_3 (append-token m "*") e_4 ...) dyn)]
+   (base-translate (c ...) gamma (call e_1 m e_2 ..._1)
+                   (call (cast ((m ,@(make-list (length (term (e_2 ...))) (term dyn)) dyn)) e_3) (append-token m "*") e_4 ...) dyn)]
   [(base-translate c gamma e_1 e_3 C)
+   (where (mt_1 ... (m t_a ... t_r) mt_2 ...) (expand-once c C))
    (base-translate c gamma e_2 e_4 t_av) ...
    (<= c () t_av t_a) ...
    -----
-   (base-translate (name c (c_1 ... (class C fd ... md_1 ... (m (x t_a) ..._1 t_r e) md_2 ...) c_2 ...))
+   (base-translate (name c (c_i ...))
                    gamma (call e_1 m e_2 ..._1) (call e_3 m e_4 ...) t_r)]
   [(base-translate c gamma e e_1 t_a) ...
    (<= c () t_a t) ...
@@ -314,6 +324,81 @@
 
 (test-equal
  (judgment-holds (translate-class (,dyncallclass) ,dyncallclass c) c)
- (term ((class bar (foo dyn (call (cast dyn (new bar)) foo*)) (foo* dyn (cast dyn (call this foo)))))))
+ (term ((class bar (foo dyn (call (cast ((foo dyn)) (cast dyn (new bar))) foo*)) (foo* dyn (cast dyn (call this foo)))))))
+
+(define (base-eval program)
+  (car (apply-reduction-relation* b-> (term (() ,(car (judgment-holds (translate-program ,program p) p)))))))
+#| Typed Racket |#
+
+(define-metafunction base
+  wrap : t e -> e
+  ((wrap C e) (new (append-token C "*") e))
+  ((wrap (mt ...) e) e) #| TODO |#
+  ((wrap dyn e) e))
+
+(define-metafunction base
+  wrap-class : c -> c
+  ((wrap-class (class C fd ... (m (x t_a) ... t e) ...))
+   (class (append-token C "*") (: orig C)
+     (m (x dyn) ... dyn (cast dyn (wrap t (call (acc this orig) m (wrap t_a (cast t_a x)) ...)))) ...)))
+
+(define-extended-judgment-form base base-translate
+  #:mode (racket-translate I I I O O)
+  #:contract (racket-translate (c ...) gamma e e t)
+  [(racket-translate (c ...) gamma e_1 e_3 dyn)
+   (racket-translate (c ...) gamma e_2 e_4 t) ...
+   ------
+   (racket-translate (c ...) gamma (call e_1 m e_2 ...) (call e_3 m (wrap t e_4) ...) dyn)]
+  [(racket-translate c gamma e_1 e_3 C)
+   (where (mt_1 ... (m t_a ... t_r) mt_2 ...) (expand-once c C))
+   (racket-translate c gamma e_2 e_4 t_av) ...
+   (<= c () t_av t_a) ...
+   -----
+   (racket-translate (name c (c_i ...)) gamma (call e_1 m e_2 ..._1) (call e_3 m e_4 ...) t_r)]
+  )
+
+(define-judgment-form base
+  #:mode (translate-racket-class I I O)
+  #:contract (translate-racket-class (c ...) c c)
+  [(expression-type (c ...) ((x ct_1) ...) e t) ...
+   (<= (c ...) () t ct_2) ...
+   -----
+   (translate-racket-class (c ...)
+                      (class C (name fd (: f ct)) ... (name md (m (x ct_1) ... ct_2 e)) ...)
+                      (class C fd ...
+                        (m (x ct_1) ... ct_2 e) ...
+                        (f ct (acc this f)) ...
+                        ((append-token f "!") (arg ct) ct (set this f arg)) ...))]
+  [(racket-translate (c ...) ((x dyn) ...) e e_1 t) ...
+   (<= (c ...) () t dyn) ...
+   -----
+   (translate-racket-class (c ...)
+                      (class C (: f dyn) ... (m (x dyn) ... dyn e) ...)
+                      (class C (: f dyn) ...
+                        (m (x dyn) ... dyn e) ...
+                        (f dyn (acc this f)) ...
+                        ((append-token f "!") (arg dyn) dyn (set this f arg)) ...))]
+  )
+
+(define-judgment-form base
+  #:mode (translate-racket-program I O)
+  #:contract (translate-racket-program p p)
+  [(translate-racket-class (c ...) c c_1) ...
+   (racket-translate (c ...) () e e_1 t)
+   ----
+   (translate-racket-program (c ... e) (c_1 ... (wrap-class c_1) ... e_1))])
+
+
+(define (rkt-eval program)
+  (car (apply-reduction-relation* b-> (term (() ,(car (judgment-holds (translate-racket-program ,program p) p)))))))
+
+
+(define foorktclass (term (class foo (bar (x dyn) dyn x))))
+(test-equal (rkt-eval (term (,foorktclass (new foo)))) 1 #:equiv ctx-strip)
+
+(define factprog (term (
+                  (class foo (baz (inp foo) bar (new bar inp)))
+                  (class bar)
+                  )))
 
 (test-results)
