@@ -1,7 +1,6 @@
 \documentclass{beamer}
 \usepackage{graphicx}
-\usepackage{mathpartir,amssymb,
-            amsmath, stmaryrd, xspace}
+\usepackage{mathpartir,amssymb, amsmath, stmaryrd, xspace}
 
 \newcommand{\fd}{\M{\xt{fd}}}
 \newcommand{\md}{\M{\xt{md}}}
@@ -71,7 +70,7 @@
 \renewcommand{\b}[1]{\M{\overline{#1}}}
 \newcommand{\opdef}[2]{\framebox[1.1\width]{#1} ~ #2\\}
 
-\newcommand{\IRule}[3]{\inferrule*[lab={\tiny #1}]{#2}{#3}}
+\newcommand{\IRule}[3]{\inferrule*{#2}{#3}}
 %\newcommand{\IRule}[3]{\inferrule{#2}{#3}}    %% No label
 \newcommand{\CondRule}[3]{ #3 &~{\emph{if}} #2 \\}
 \newcommand{\NoCondRule}[2]{ #2 &       \\}
@@ -183,7 +182,7 @@
   		\item 1 year later ....
   	\end{itemize}
   \end{frame}
-  \section{Our System}
+  \section{Our Approach}
   \begin{frame}{Calculi}
   \center\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \e &::=  \x \\
@@ -202,5 +201,116 @@
 \t &::= ~ \any \\
    \Alt{ \Type{  \b{ \mt } } }
 \end{tabular}\end{minipage}
-  \end{frame}
+\end{frame}
+
+\newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
+\begin{frame}{Core System}
+
+\begin{itemize}
+\item Gradual typing systems are generally extremely similar, the differences are small.
+\item To avoid duplication, we use a common core system.
+\item Broadly similar to Gradual Typing for Objects, Siek and Taha 2007.
+\item Based on cast insertion, supports structural subtyping, uses the guarded semantics.
+\end{itemize}
+\end{frame}
+\begin{frame}{Static Typing}
+\begin{mathpar}
+\IRule{W3}{
+   \EnvType\E\e\any \\ \b{\EnvType\E{\ep1}\t }
+}{
+   \EnvType\E{\Call\e\m{\b{\ep1}}}\any
+}
+
+\IRule{W4}{
+   \EnvType\E\e{\tp1} \\ \Mtype\m{\b{\tp2}}\t\inc \tp1  \\  \b{\EnvType\E{\ep1}{\tp 2}}
+}{
+    \EnvType\E{\Call\e\m{\b{\ep1}}}\t
+} 
+\end{mathpar}
+\end{frame}
+\begin{frame}{Synthetic Cast Insertion}
+\begin{mathpar}
+
+\IRule{A4}{
+	\GenCast{\E}{\e_1}{\e_2}{\t_1} \\
+	\Mtype\m{\b{\tp 2}}{\tp 3} \inc \t_1\\
+	\b{\AnaCast{\E}{\e_3}{\e_4}{\tp 2}} \\
+}{
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m}{\b{\e_4}}}{\tp 3}
+}
+
+\IRule{A5}{
+	\GenCast{\E}{\e_1}{\e_3}{\any} \\
+	\b{\AnaCast{\E}{\e_2}{\e_4}{\any}} \\
+}{
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\Dyn\m}{\b{\any}}\any}}{\e_3}}{\Dyn\m}{\b{\e_4}}}{\any}
+}
+\end{mathpar}
+\centering
+\end{frame}
+\begin{frame}{Analytic Cast Insertion}
+\centering Typically a function of the specific system in question.
+\begin{mathpar}
+\IRule{AA1}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\  {\tp2} \Sub {\tp1}}{\AnaCast\E{\ep1}{\ep2}{\tp1}}
+
+\IRule{AA2}{\GenCast{\E}{\ep1}{\ep2}{\any}}{\AnaCast\E{\ep1}{{\Cast{\tp1}{\ep2}}}{\tp1}}
+\end{mathpar}
+\centering
+\end{frame}
+\begin{frame}{Class Translation}
+\begin{itemize}
+\item For every field $\f:\t$, add getter and setter methods $\f() : \t$ and $\f!(\t):\t$
+\item For every method $\m(\b{\t}):\t$ (including getters and setters), add a guard method $\Dyn\m(\b{\any}):\any$, that casts the inputs to the fully specified type and the output to $\any$.
+\end{itemize}
+\end{frame}
+\section{Strongscript}
+\begin{frame}{Types}
+Strongscript provides programmer control over the soundness guarantee.
+
+It adds a weak type
+\[
+\t ::= \ldots \B \Weak{\{\b{\mt}\}}
+\]
+
+Uses of this type are not strictly checked!
+\end{frame}
+\begin{frame}{Statics}
+\begin{mathpar}
+\IRule{STS1}{
+}{
+	\tp1 \Sub \Weak\tp1
+}
+
+\IRule{STS2}{
+	\tp1 \Sub \tp2
+}{
+	\Weak\tp1 \Sub \Weak\tp2
+}
+
+\IRule{A5}{
+	\GenCast{\E}{\e_1}{\e_1'}{\Weak\tp1} \\
+	\b{\AnaCast{\E}{\e_2}{\e_2'}{\any}} \\
+}{
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_1'}{\Dyn\m}{\b{\e_2'}}}{\any}
+}
+
+\IRule{AASC1}{
+	\GenCast{\E}{\ep1}{\ep2}{\Weak\tp2}
+}{
+	\AnaCast{\E}{\ep1}{\Cast{\tp1}{\ep2}}{\tp1}
+}
+\end{mathpar}
+\end{frame}
+\section{Typed Racket}
+\begin{frame}{Statics}
+Same types as the base, new type checking.
+
+We model module typing by requiring that a class be either fully untyped (no typed field or method declarations) or fully typed.
+
+Typed code is restricted from creating new instances of untyped classes.
+\end{frame}
+\begin{frame}
+Cast insertion is now only ran on the untyped code. 
+
+\end{frame}
 \end{document}
