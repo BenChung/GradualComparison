@@ -1,6 +1,6 @@
 \documentclass{beamer}
 \usepackage{graphicx}
-\usepackage{mathpartir,amssymb, amsmath, stmaryrd, xspace}
+\usepackage{mathpartir,amssymb, amsmath, stmaryrd, xspace, listings}
 
 \newcommand{\fd}{\M{\xt{fd}}}
 \newcommand{\md}{\M{\xt{md}}}
@@ -125,7 +125,7 @@
 
 
 \usetheme{metropolis}
-\title{On the Essence of Gradual Typing}
+\title{Gradual Typings for Objects}
 \date{\today}
 \author{Benjamin Chung, Jan Vitek}
 \institute{PRL, Northeastern University}
@@ -152,24 +152,6 @@
 	  \end{column}
 	\end{columns}
   \end{frame}
-  \begin{frame}{Oddities}
-  Gradual type systems make design decisions that might not be
-  \begin{itemize}
-  \item Easy to find
-  \item Simple to understand
-  \item Obvious to the end programmer
-  \end{itemize}
-  Choosing one would be a real challenge for a language designer.
-  \end{frame}
-  \begin{frame}{Oddities: Typed Racket}
-  
-  \end{frame}
-  \begin{frame}{Oddities: Reticulated Python (Monotonic)}
-  
-  \end{frame}
-  \begin{frame}{Oddities: Strongscript}
-  
-  \end{frame}
   \begin{frame}{Mismatches}
   	Gradual type systems and their languages are tightly coupled.
     \begin{columns}
@@ -191,14 +173,6 @@
 		\item Key details are completely obscured
 		\item Difficult to compare to one another
 	\end{itemize}
-  \end{frame}
-  \begin{frame}{Our mistake}
-  	\begin{itemize}
-  		\item We understand gradual typing, right?
-  		\item Porting some different approaches to one language can't be that hard, surely.
-  		\item It can't take that long to do, could be interesting.
-  		\item 1 year later ....
-  	\end{itemize}
   \end{frame}
   \section{Our Approach}
   \begin{frame}{Calculi}
@@ -281,6 +255,47 @@
 \item For every method $\m(\b{\t}):\t$ (including getters and setters), add a guard method $\Dyn\m(\b{\any}):\any$, that casts the inputs to the fully specified type and the output to $\any$.
 \end{itemize}
 \end{frame}
+\lstset{basicstyle=\scriptsize\ttfamily,breaklines=true}
+\begin{frame}[fragile]
+\frametitle{Example}
+\begin{lstlisting}
+class Int {
+	next : Int
+	add(other:Int):Int = //standin
+} 
+class Tuple {
+	x : *
+	y : *
+	total() : * = this.x().add(this.y())
+}
+
+new Tuple(new Int(new Int()), new Int()).total()
+\end{lstlisting}
+\end{frame}
+\begin{frame}[fragile]
+\frametitle{Example}
+\begin{lstlisting}
+class Int {
+	next : Int
+	next() : Int = this.next
+	next!(val : Int) : Int = this.next := val
+
+	add(other:Int):Int = //standin
+	*add(other:*):* = <*>this.add(<Int>other)
+} 
+class Tuple {
+	x : *
+	y : *
+	//snip
+	total() : * = 
+		(<{*add:* -> *}>(<{*x: -> *}>this).*x())
+			.*add((<{*y: -> *}>this).*y())
+	*total() : * = this.total()
+}
+
+new Tuple(new Int(new Int()), new Int()).total()
+\end{lstlisting}
+\end{frame}
 \section{Strongscript}
 \begin{frame}{Types}
 Strongscript provides programmer control over the soundness guarantee.
@@ -328,6 +343,23 @@ We model module typing by requiring that a class be either fully untyped (no typ
 Typed code is restricted from creating new instances of untyped classes.
 \end{frame}
 \begin{frame}
-Cast insertion is now only ran on the untyped code, with 
+Cast insertion is now only ran on the untyped code. One analytic rule:
+
+\begin{mathpar}
+\IRule{AASC1}{
+	\GenCast{\E}{\ep1}{\ep2}{\t} \\ \xt{C} \equiv \wrapper{\t}
+}{
+	\AnaCast{\E}{\ep1}{\Cast{\any}{\New{\xt{C}}{\ep2}}}{\any}
+}
+
+\end{mathpar}
+\end{frame}
+\section{Future Work}
+\begin{frame}{More Systems}
+We want to extend this work to include two additional semantics:
+\begin{itemize}
+\item Monotonic references [Siek et al, 2014]
+\item Transient semantics [Vitousek et al, 2014]
+\end{itemize}
 \end{frame}
 \end{document}
