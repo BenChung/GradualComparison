@@ -557,53 +557,50 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%% WELLFORMDNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+\begin{figure}
+\begin{mathpar}
+\IRule{A1}{\HasType\E\x\t}{\GenCast\E\x\x\t}
+
+\IRule{A4}{
+	\GenCast{\E}{\e_1}{\e_2}{\t_1} \\
+	\Mtype\m{\b{\tp 2}}{\tp 3} \inc \t_1\\
+	\b{\AnaCast{\E}{\e_3}{\e_4}{\tp 2}} \\
+}{
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m}{\b{\e_4}}}{\tp 3}
+}
+
+\IRule{A5}{
+	\GenCast{\E}{\e_1}{\e_3}{\any} \\
+	\b{\AnaCast{\E}{\e_2}{\e_4}{\any}} \\
+}{
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m^*}{\b{\any}}\any}}{\e_3}}{\Dyn\m}{\b{\e_4}}}{\any}
+}
+
+\IRule{A6}{
+  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+
+\IRule{A7}{
+	\GenCast{\E}{\e_1}{\e_2}{\t_2}
+}{\GenCast{\E}{\Cast{\tp 1}{\e_1}}{\Cast{\t_1}{\e_2}}{\tp 1}}
+\end{mathpar}
+\caption{Synthetic cast insertion}
+\end{figure}
+
 %%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
 \opdef{\TransExp\E{\ep1}{\ep 2}\t}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
-\IRule{T1}{
-      \TransExp\E\e{\ep 2}\any\\
-     \b{\TransExp\E{\ep 1}{\ep 3}{\tp 3}}
- }{
-    \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\Cast{\Type{\Mtype{\m^*}{\b{\any}}\any}}{\ep 2}}{\Dyn{\m}}{\b{\ep 3}}} \any
-}   
-
-\IRule{T2}{
-  \HasType\E\x\t
+\IRule{AASC2}{
+	\GenCast{\E}{\ep1}{\ep2}{\tp2} \\
+	\tp2 <: \tp1\\
 }{
-  \TransExp{\E}{\x}{\x}{\t}
-}
-
-\IRule{T3}{
-  \TransExp{\E}{\ep1}{\ep3}{\tp1} \\
-  \Mtype\m{\b{\tp2}} \in \tp1\\
-  \b{\TransExp{\E}{\ep2}{\ep4}{\tp1}}
-}{
-  \TransExp{\E}{\Call{\ep1}\m{\b{\ep2}}}{\Call{\ep3}\m{\b{\ep4}}}{\t}
-}
-
-\IRule{T4}{
-  \b{\TransExp\E{\ep1}{\ep2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-}{
-  \TransExp\E{\New\C{\b{\ep1}}}{\New\C{\b{\ep2}}}\C
-}
-
-\IRule{T5}{
-  \TransExp\E{\ep1}{\ep2}{\tp1}
-}{
-   \TransExp\E{\Cast\t{\ep1}}{\Cast\t{\ep2}}\t
-}
-
-
-\IRule{T6}{
-  \TransExp\E{\ep1}{\ep2}{\tp2}\\
-  \tp2 \Sub \tp1\\
-}{
-   \TransExp\E{\ep1}{\ep2}{\tp1}
+	\AnaCast{\E}{\ep1}{\ep2}{\tp1}
 }
 \end{mathpar}
-\caption{Translations}
+\caption{Analytic Cast Insertion}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -620,45 +617,24 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \begin{figure}
 \begin{mathpar}
-\IRule{}{
-  \b{\C \equiv \wrapper{\tp1}}\\
-  \xt{D} \equiv \wrapper{\tp2}
+\IRule{AASC1}{
+	\GenCast{\E}{\ep1}{\ep2}{\t} \\
+	\t \neq \any \\
+	\C = \wrapper{\t}
 }{
-	\wrapper{\Mtype\m{\b{\tp1}}{\tp2}} \equiv \Mdef\m{x}{\any}{\any}{\Cast{\any}{\New{\xt{D}}{\xt{this}.\xt{orig}.\m(\New\C{\b{\Cast{\tp1}x}})}}}
+	\AnaCast{\E}{\ep1}{\Cast{\any}{\New\C{\ep2}}}{\any}
 }
 
 \IRule{}{
-	\b{\md=\wrapper{\mt}}
+	\AnaCast{\b{\x:\t}}{\ep1}{\ep2}{\tp2}
 }{
-	\wrapper{\{\b{\mt}\}} \equiv \Class\C{~\xt{orig}:\t,\b{\md}}
+	\fcast{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef\m\x{\tp1}{\tp2}{\ep2}
 }
-
-\IRule{}{
-      \TransExp\E\e{\ep 2}\any\\
-     \b{\TransExp\E{\ep 1}{\ep 3}{\tp 3}} \\
-     \b{\C \equiv \wrapper{\tp 3}}
- }{
-    \TransExp\E{\Call\e\m{\b{\ep 1}}} {\Call{\ep 2}{\m}{\b{\New{\C}{{\ep 3}}}}} \any
-}   
 
 \IRule{}{
  \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\fcast{\mdp1}}
 }{ 
 	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
-}
-
-\IRule{TRW1}{
-	\M{\forall} \Mdef\m\x{\tp1}{\tp2}\e \inc \b\md ~\B~ \b{\tp1 \equiv \any} \wedge \tp2 \equiv \any \\ \wedge ~ \casts{\e} \cup \{\any\} = \{\any\} \wedge
-   	\EnvType{\this:\C,\b{\x:\any}}\e{\any}
-}{ 
-	\Class \C {\b{\fd}} {\b{\md}}  ~~ WF
-}
-
-\IRule{TRW2}{
-	\M{\forall} \Mdef\m\x{\tp1}{\tp2}\e \inc \b\md ~\B~ \b{\tp1 \not\equiv \any} \wedge \tp2 \not\equiv \any \\\wedge~ \casts{\e} \cap \{\any\} = \emptyset \wedge
-       \EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2}
-}{ 
-	\Class \C {\b{\fd}} {\b{\md}}  ~~ WF
 }
 \end{mathpar}
 \caption{Class well-formedness for Typed Racket}
@@ -699,39 +675,6 @@ To model Typed Racket, we then need to enforce the property that objects are wra
  \end{itemize}
  \end{itemize}
 \end{definition}
-
-
-
-\begin{figure}
-\begin{mathpar}
-\IRule{A1}{\HasType\E\x\t}{\GenCast\E\x\x\t}
-
-\IRule{A4}{
-	\GenCast{\E}{\e_1}{\e_2}{\t_1} \\
-	\Mtype\m{\b{\tp 2}}{\tp 3} \inc \t_1\\
-	\b{\AnaCast{\E}{\e_3}{\e_4}{\tp 2}} \\
-}{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m}{\b{\e_4}}}{\tp 3}
-}
-
-\IRule{A5}{
-	\GenCast{\E}{\e_1}{\e_1'}{\any} \\
-	\b{\AnaCast{\E}{\e_2}{\e_2'}{\any}} \\
-}{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m^*}{\b{\any}}\any}}{\e_1'}}{\Dyn\m}{\b{\e_2'}}}{\any}
-}
-
-\IRule{A6}{
-  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-
-\IRule{A7}{
-	\GenCast{\E}{\e_1}{\e_2}{\t_2}
-}{\GenCast{\E}{\Cast{\tp 1}{\e_1}}{\Cast{\t_1}{\e_2}}{\tp 1}}
-\end{mathpar}
-\caption{Synthetic cast insertion}
-\end{figure}
 
 One of the issues inherent to the Strongscript approach (and is apparent in
 the common core as well) is that a strict interpretation of the static type
