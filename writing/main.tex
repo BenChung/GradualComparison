@@ -123,8 +123,8 @@
 
 \newcommand{\Weak}{\hspace{0.1em}^*\hspace{-0.1em}}
 \newcommand{\WType}[1]{\Weak\Type{#1}}
-\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
-\newcommand{\AnaCast}[4]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
+\newcommand{\GenCast}[5]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
+\newcommand{\AnaCast}[5]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
 
 
 \newcommand{\stcons}[2]{#1\lesssim #2}
@@ -133,6 +133,8 @@
 \newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
 \newcommand{\adapt}[1]{\M{\llbracket #1 \rrbracket_{\xt{adapt}}}}
 \newcommand{\castfn}[3]{\text{cast}(#1,#2,#3)}
+
+\newcommand{\p}{\xt{p}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -512,49 +514,6 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \end{figure}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% WELLFORMEDNESS %%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure}
-\opdef{\EnvType\E\e\t}{\e has type \t in environment \E}
-\begin{mathpar}
-\IRule{W1}{
-    \HasType\E\x\t
- }{
-   \EnvType\E\x\t
-}
-
-\IRule{W2}{
-   \EnvType\E\e{\tp 1} \\ \tp 1 \Sub \t
- }{
-   \EnvType\E\e\t 
-}   
-
-\IRule{W3}{
-   \EnvType\E\e\any \\ \b{\EnvType\E{\ep1}\t }
-}{
-   \EnvType\E{\Call\e\m{\b{\ep1}}}\any
-}
-
-\IRule{W4}{
-   \EnvType\E\e{\tp1} \\ \Mtype\m{\b{\tp2}}\t\inc \tp1  \\  \b{\EnvType\E{\ep1}{\tp 2}}
-}{
-    \EnvType\E{\Call\e\m{\b{\ep1}}}\t
-}    
-
-\IRule{W5}{
-  \b{\EnvType\E\e\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-}{
-  \EnvType\E{\New\C{\b\e}}\C
-}
-
-\IRule{W6}{
-  \EnvType\E\e{\tp1}
-}{
-   \EnvType\E{\Cast\t\e}\t
-}
-\end{mathpar}
-\caption{Typing rules for the common core}
-\end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%% WELLFORMDNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -581,10 +540,6 @@ I am aware that the last bit of the definitin is wrong. Will fix.
   \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-
-\IRule{A7}{
-	\GenCast{\E}{\e_1}{\e_2}{\t_2}
-}{\GenCast{\E}{\Cast{\tp 1}{\e_1}}{\Cast{\t_1}{\e_2}}{\tp 1}}
 \end{mathpar}
 \caption{Synthetic cast insertion}
 \end{figure}
@@ -758,14 +713,6 @@ The key static difference between the monotonic semantics and the other systems 
 
 Subtype consistency combines the two properties. Subtyping lets us add and remove fields from a type, and consistency allows us to make the type we are going to more or less dynamic. Going by the above intuition, a value of type $\any$ could work with any other type and vice versa, and clearly two identical types are compatible. The most complex case is when we have two class types, both with the same method $\m$, which we resolve by ensuring that $\m$ has parameters and return types that are consistent and continuing on through the rest of the class.
 
-
-\begin{figure}{h}
-\begin{mathpar}
-\IRule{M1}{\EnvType\E\e{\tp2} \\ \stcons{\tp2}{\tp1} }{\EnvType\E\e{\tp1}}
-\end{mathpar}
-\caption{Monotonic typing}
-\end{figure}
-
 Adding this to our static type system is simple. We just introduce the rule that allows types to be converted via $\stcons{}{}$. The details of how to make the dynamics work with this static addition will be covered later.
 
 \begin{figure}{h}
@@ -781,7 +728,7 @@ Adding this to our static type system is simple. We just introduce the rule that
 	\b{\meet{\tp3}{\tp1}  \equiv \tp5} \\
     \meet{\tp2}{\tp4} \equiv \tp6\\
     \meet{\Type{\b{\md_1}}}{\Type{\b{\md_2}}} \equiv \Type{\b{\md_3}} 
-}{\meet{\Type{\Mtype\m{\b{\tp1}}{\tp2}~ \b{\md_1}}}{\Type{\Mtype\m{\b{\tp5}}{\tp6} ~ \b{\md_3}}}}
+}{\meet{\Type{\Mtype\m{\b{\tp1}}{\tp2}~ \b{\md_1}}}{\Type{\Mtype\m{\b{\tp3}}{\tp4} ~ \b{\md_2}}} \equiv \Type{\Mtype\m{\b{\tp5}}{\tp6} ~ \b{\md_3}}}
 \end{mathpar}
 \caption{Meet for the monotonic system}
 \end{figure}
