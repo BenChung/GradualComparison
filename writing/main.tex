@@ -136,6 +136,9 @@
 
 \newcommand{\p}{\xt{p}}
 
+\newcommand{\typed}[1]{\text{typed}(#1)}
+\newcommand{\untyped}[1]{\text{untyped}(#1)}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -549,10 +552,16 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \opdef{\TransExp\E{\ep1}{\ep 2}\t}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
 \IRule{AASC2}{
-	\GenCast{\E}{\ep1}{\ep2}{\tp2} \\
-	\tp2 <: \tp1\\
+  \GenCast{\E}{\ep1}{\ep2}{\tp2} \\
+  \tp2 <: \tp1\\
 }{
-	\AnaCast{\E}{\ep1}{\ep2}{\tp1}
+  \AnaCast{\E}{\ep1}{\ep2}{\tp1}
+}
+
+\IRule{AASC3}{
+  \GenCast{\E}{\ep1}{\ep2}{\any} \\
+}{
+  \AnaCast{\E}{\ep1}{\ep2}{\any}
 }
 \end{mathpar}
 \caption{Analytic Cast Insertion}
@@ -572,6 +581,18 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \begin{figure}
 \begin{mathpar}
+\IRule{TRNew1}{
+  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
+  \typed{\C}
+  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+
+\IRule{TRNew2}{
+  \b{\AnaCast\E{\e_1}{\e_2}\any} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
+  \untyped{\C}
+  }{\GenCast{\E}{\New\C{\b{\e}}}{\New\C{\b{\e}}}{\any}}
+
 \IRule{AASC1}{
 	\GenCast{\E}{\ep1}{\ep2}{\t} \\
 	\t \neq \any \\
@@ -587,7 +608,7 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 }
 
 \IRule{}{
- \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\fcast{\mdp1}}
+ \b{ \mdp1} \equiv \b{\md} ~~ \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\fcast{\mdp1}} \\ \typed{C} \vee \untyped{C}
 }{ 
 	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
 }
@@ -739,8 +760,6 @@ Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Fty
 
 \begin{figure}
 \begin{mathpar}
-\IRule{AA1}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\  {\tp2} \Sub {\tp1}}{\AnaCast\E{\ep1}{\ep2}{\tp1}}
-
 \IRule{AA2}{\GenCast{\E}{\ep1}{\ep2}{\tp 2} \\ \tp2 \not\Sub \tp1 \\ \stcons{\tp2}{\tp1}}{\AnaCast\E{\ep1}{{\Cast{\tp1}{\ep2}}}{\tp1}}
 \end{mathpar}
 \caption{Analytic cast insertion}
