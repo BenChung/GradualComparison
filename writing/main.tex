@@ -834,5 +834,44 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 
 \bibliographystyle{plain}
 \bibliography{../bib/compactdoi}
+
+
+\begin{figure}
+\opdef{\EnvType\E\e\t}{\e has type \t in environment \E}
+\begin{mathpar}
+\IRule{W1}{
+    \HasType\E\x\t
+ }{
+   \EnvType\E\x\t
+}
+
+\IRule{W2}{
+   \EnvType\E\e{\tp 1} \\ \tp 1 \Sub \t
+ }{
+   \EnvType\E\e\t 
+}   
+
+\IRule{W4}{
+   \EnvType\E\e{\tp1} \\ \Mtype\m{\b{\tp2}}\t\inc \tp1  \\  \b{\EnvType\E{\ep1}{\tp 2}}
+}{
+    \EnvType\E{\Call\e\m{\b{\ep1}}}\t
+}    
+
+\IRule{W5}{
+  \b{\EnvType\E\e\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+}{
+  \EnvType\E{\New\C{\b\e}}\C
+}
+
+\IRule{W6}{
+  \EnvType\E\e{\tp1}
+}{
+   \EnvType\E{\Cast\t\e}\t
+}
+\end{mathpar}
+\caption{Typing rules for the common core}
+\end{figure}
+
 \end{document}
 
