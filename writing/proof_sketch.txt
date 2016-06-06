@@ -1,0 +1,98 @@
+Base language well-typed translation:
+	if gamma |- e |-> e' => t, then gamma |- e' : t
+	if gamma |- e ~~> e' <= t, then gamma |- e' : t
+
+proof: by rule induction on typed translation judgment
+
+	
+
+progress & preservation: if emp s |- e : t then e -> e' and emp s |- e' :t
+							   or e value
+							   or e -> err
+
+proof: By rule induction on typing judgment.
+	case W1:
+		Not possible, empty environment.
+	case W2:
+		Apply IH to inversion. Trivial.
+	case W4:
+		By inversion,
+			1) emp s |- e : C
+			2) m(t2 ...) : t in C
+			3) {emp s |- e1 : t2} ...
+		Apply IH to 1.
+			if e -> e' then emp s |- e' : t1 
+				e.m(e1 ...) -> e'.m(e1 ...) by eval. rule 1
+				typing holds by W4
+			if e -> err
+				e.m(e1 ...) -> err by eval. rule 10
+			otherwise, if e value:
+		Apply IH to each element in 3 iteratively left-to-right. For each step:
+			if e1 -> e1' and emp s |- e1' : t2
+				e.m(... e1 ...) -> e.m(... e1' ...)
+				typing holds by W4
+			if e1 -> err
+				e.m(... e1 ...) -> err by eval. rule 10
+			otherwise, if all e1 value:
+		By canonical forms e must be of the form {f=v ...}_D^t where D <: C
+		By 2, m(t2 ...):t in C, and by (TODO LEMMA), a function m'(x:t2' ...):t'=e2 in D where (4.1) t2 <: t2' and (4.2) t' <: t, such that
+			this:D x:t2' ... |- e2 : t' 
+		5) By W2 on 3 and 4.1, {emp s |- e1 : t2'} ...
+		By substitution, emp s |- [e/this] [e1/x ...] e2 : t'
+		By eval. rule 3, e.m(e1 ...) -> [e/this] [e1/x ...] e2 : t' and by W2 on 4.2, this is well typed
+	case W5:
+		By inversion:
+			1) {emp s |- e : t} ...
+			2) exists class C { f : t ... md ...}
+		Apply IH to 1.
+			if e -> e' and emp s |- e' : t
+				new C(... e ...) -> new C(... e' ...) by eval. rule 1
+				typing holds by W5
+			if e -> err
+				new C(... e ...) -> err by eval. rule 10
+			otherwise, if every e value
+		Apply eval. rule 2, new C(e ...) s1 -> a s2 where s2,a = alloc(s1, e ...)
+		By definition of alloc, s2[a] |-> {f=e ...}_C^C
+		Therefore by W9 the result is well typed.
+	case W6:
+		Trivial by evaluation rules 8 and 9 as well as W2
+	case W7:
+		By inversion:
+			1) emp s |- e : C
+			2) f:t in C
+		By IH on 1:
+			if e -> e' and emp s |- e' : C
+				then emp s |- e'.f : t by W7 on 2 and assumption
+			if e -> err
+				then e.f -> err by rule
+			if e value:
+		By canonical forms, sigma(e) = {... f=a ...}_D^t where D <: C and t <: C
+		Likewise, emp s |- a : t
+		Therefore, e.f -> a by eval. rule 5 and emp s |- a : t by above.
+	case W8:
+		By inversion:
+			1) emp s |- e1 : C
+			2) f : t in C
+			3) emp s |- e2 : t
+		By IH on 1:
+			if e1 -> e1' and emp s |- e1' : C
+				then emp s |- e1' : C and e1.f := e2 -> e1'.f := e2 by eval. rule 1, and is well typed by W8 on above.
+			if e1 -> err
+				then e1.f := e2 -> err by evaluation rule 10
+			if e1 value then continue
+		By IH on 3:
+			if e2 -> e2' and emp s |- e2' : C
+				then emp s |- e2' : C and e1.f := e2 -> e1.f := e2' by eval. rule 1, and is well typed by W8 on above.
+			if e2 -> err
+				then e2.f := e2 -> err by evaluation rule 10
+			if e2 value then continue
+		If e1 value and e1 has type C, then by canonical forms s(e1) = {... f = a ...}_D^t where D <: C and t <: C
+		define s2 as s(e1) = {... f = e2 ...}_C^t
+		then emp s2 |- e1 : C by above and W9.
+		Therefore, s e1.f := e2 -> s2 e1 and emp s2 |- e1 : C
+	case W9:
+		a1 value.
+
+
+Soundness: follows trivially.
+
