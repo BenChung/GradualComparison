@@ -1,10 +1,28 @@
 Base language well-typed translation:
-	if gamma |- e |-> e' => t, then gamma |- e' : t
-	if gamma |- e ~~> e' <= t, then gamma |- e' : t
+	if gamma |- e |-> e' => t, then gamma emp |- e' : t
+	if gamma |- e ~~> e' <= t, then gamma emp |- e' : t
 
 proof: by rule induction on typed translation judgment
 
-	
+	case A1:
+		trivial.
+	case A4:
+		trivial.
+	case A5:
+		By IH, gamma emp |- e3 : *
+		By IH, gamma emp |- e4 : * ...
+		By W6, gamma emp |- <{m*(* ...) : *}>e3 : {m*(* ...) : *}
+		By W4, gamma emp |- <{m*(* ...) : *}>e3.m*(e4) : *
+	case A6:
+		trivial.
+
+	case AASC1:
+		By IH, gamma emp |- e2 : t2
+		By W2, gamma emp |- e2 : t1
+	case AASC3:
+		trivial.
+
+
 
 progress & preservation: if emp s |- e : t then e -> e' and emp s |- e' :t
 							   or e value
