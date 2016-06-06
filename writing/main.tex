@@ -114,14 +114,15 @@
 \newcommand{\Ctx}[1]{\M{\xt{E}[#1]}}
 
 \newcommand{\casts}[1]{\llbracket #1 \rrbracket_{\xt{casts}}}
-\newcommand{\fcast}[1]{\M{\llbracket #1 \rrbracket_{\xt{force}}}}
+\newcommand{\fcast}[1]{\M{\llbracket #1 \rrbracket_{\xt{translate}}}}
 \newcommand{\wrapper}[1]{\M{\llbracket #1  \rrbracket}_{\xt{wrap}}}
+\newcommand{\proxy}[1]{\M{\llbracket #1  \rrbracket}_{\xt{proxy}}}
 
 \newtheorem{definition}{Definition}
 \newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
 
 
-\newcommand{\Weak}{\hspace{0.1em}^*\hspace{-0.1em}}
+\newcommand{\Weak}{\text{\small?}\hspace{0.1em}}
 \newcommand{\WType}[1]{\Weak\Type{#1}}
 \newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
 \newcommand{\AnaCast}[4]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
@@ -522,7 +523,7 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 
 \begin{figure}
 \begin{mathpar}
-\IRule{A1}{\HasType\E\x\t}{\GenCast\E\x\x\t}
+\IRule{A1}{\HasType{\Es}\x\t}{\GenCast\E\x\x\t}
 
 \IRule{A4}{
 	\GenCast{\E}{\e_1}{\e_2}{\t_1} \\
@@ -566,11 +567,44 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 \end{mathpar}
 \caption{Analytic Cast Insertion}
 \end{figure}
+
+\begin{figure}
+\opdef{\TransExp\E{\ep1}{\ep 2}\t}{\ep1 translates to \ep2 in environment \E with type $\t$}
+\begin{mathpar}
+\IRule{CT1}{
+ \b{ \mdp1} \equiv \b{\fcast{\md}} ~~ \b{\setter\fd} ~~ \b{\getter\fd}\\  \b{\mdp2} \equiv \b{\mdp1} ~~ \b{\proxy{\mdp1}}
+}{ 
+  \TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
+}
+
+\IRule{}{
+  \AnaCast{\b{\x:\tp1}}{\ep1}{\ep2}{\tp2}
+}{
+  \fcast{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef\m\x{\tp1}{\tp2}{\ep2}
+}
+
+\IRule{}{
+}{
+  \getter{\f:\t} \equiv \m() : \t ~ \{ \this.\f \}
+}
+
+\IRule{}{
+}{
+  \setter{\f:\t} \equiv \m(\x:\t) : \t ~ \{ \this.\f=\x \}
+}
+
+\IRule{}{
+}{
+  \proxy{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef{\m'}\x{\any}{\any}{\Cast{\any}{\Call\this\m{\b{\Cast{\tp1}\x}}}}
+}
+\end{mathpar}
+\caption{Class Translation}
+\end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \subsection{Type soundness:}
-Theorem 1: Type translation. If $\EnvType\E\e\t$ and $\TransExp\E\e{\e'}\t$ then $\EnvType{\E ~ \cdot}{\e'}\t$.
+Theorem 1: Type translation. If $\EnvType{\Es}\e\t$ and $\TransExp\E\e{\e'}\t$ then $\EnvType{\E ~ \cdot}{\e'}\t$.
 
 Theorem 2: Progress. If $\EnvType{\Es}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression or $\e' ~ \err$.
 
@@ -591,26 +625,22 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
   \b{\AnaCast\E{\e_1}{\e_2}\any} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \untyped{\C}
-  }{\GenCast{\E}{\New\C{\b{\e}}}{\New\C{\b{\e}}}{\any}}
+  }{\GenCast{\E}{\New\C{\b{\ep1}}}{\New\C{\b{\ep2}}}{\any}}
 
 \IRule{AASC1}{
-	\GenCast{\E}{\ep1}{\ep2}{\t} \\
-	\t \neq \any \\
-	\C = \wrapper{\t}
+  \GenCast{\E}{\ep1}{\ep2}{\t} \\
+  \t \neq \any \\
+  \C = \wrapper{\t}
 }{
-	\AnaCast{\E}{\ep1}{\Cast{\any}{\New\C{\ep2}}}{\any}
+  \AnaCast{\E}{\ep1}{\Cast{\any}{\New\C{\ep2}}}{\any}
 }
 
-\IRule{}{
-	\AnaCast{\b{\x:\t}}{\ep1}{\ep2}{\tp2}
+\IRule{AASC2}{
+  \GenCast{\E}{\ep1}{\ep2}{\any} \\
+  \t \neq \any \\
+  \C = \wrapper{\t}
 }{
-	\fcast{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef\m\x{\tp1}{\tp2}{\ep2}
-}
-
-\IRule{}{
- \b{ \mdp1} \equiv \b{\md} ~~ \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\fcast{\mdp1}} \\ \typed{C} \vee \untyped{C}
-}{ 
-	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
+  \AnaCast{\E}{\ep1}{{\New\C{\ep2}}}{\t}
 }
 \end{mathpar}
 \caption{Class well-formedness for Typed Racket}
@@ -696,9 +726,15 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 }
 
 \IRule{AASC1}{
-	\GenCast{\E}{\ep1}{\ep2}{\Weak\tp2}
+  \GenCast{\E}{\ep1}{\ep2}{\Weak\tp2}
 }{
-	\AnaCast{\E}{\ep1}{\Cast{\tp1}{\ep2}}{\tp1}
+  \AnaCast{\E}{\ep1}{\Cast{\tp1}{\ep2}}{\tp1}
+}
+
+\IRule{AASC2}{
+  \GenCast{\E}{\ep1}{\ep2}{\tp2}
+}{
+  \AnaCast{\E}{\ep1}{\ep2}{\Weak\tp1}
 }
 \end{mathpar}
 \caption{Strongscript}
@@ -837,37 +873,59 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 
 
 \begin{figure}
-\opdef{\EnvType\E\e\t}{\e has type \t in environment \E}
+\opdef{\EnvType{\Es}\e\t}{\e has type \t in environment \E against heap \s}
 \begin{mathpar}
 \IRule{W1}{
-    \HasType\E\x\t
+    \HasType{\E}\x\t
  }{
-   \EnvType\E\x\t
+   \EnvType{\Es}\x\t
 }
 
 \IRule{W2}{
-   \EnvType\E\e{\tp 1} \\ \tp 1 \Sub \t
+   \EnvType{\Es}\e{\tp 1} \\ \tp 1 \Sub \t
  }{
-   \EnvType\E\e\t 
+   \EnvType{\Es}\e\t 
 }   
 
 \IRule{W4}{
-   \EnvType\E\e{\tp1} \\ \Mtype\m{\b{\tp2}}\t\inc \tp1  \\  \b{\EnvType\E{\ep1}{\tp 2}}
+   \EnvType{\Es}\e{\C} \\ \Mtype\m{\b{\tp2}}\t\inc \C  \\  \b{\EnvType{\Es}{\ep1}{\tp 2}}
 }{
-    \EnvType\E{\Call\e\m{\b{\ep1}}}\t
+    \EnvType{\Es}{\Call\e\m{\b{\ep1}}}\t
 }    
 
 \IRule{W5}{
-  \b{\EnvType\E\e\t} \\ 
+  \b{\EnvType{\Es}\e\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
 }{
-  \EnvType\E{\New\C{\b\e}}\C
+  \EnvType{\Es}{\New\C{\b\e}}\C
 }
 
 \IRule{W6}{
-  \EnvType\E\e{\tp1}
+  \EnvType{\Es}\e{\tp1}
 }{
-   \EnvType\E{\Cast\t\e}\t
+   \EnvType{\Es}{\Cast\t\e}\t
+}
+
+\IRule{W7}{
+  \EnvType{\Es}{\ep1}{\C} \\
+  \f : \t \in \C \\
+}{
+  \EnvType{\Es}{\Get\e\f}{\t}
+}
+
+\IRule{W8}{
+  \EnvType{\Es}{\ep1}{\C} \\
+  \f : \t \in \C \\
+  \EnvType{\Es}{\ep2}{\t}
+}{
+  \EnvType{\Es}{\Set{\ep1}\f{\ep2}}\t
+}
+
+\IRule{W9}{
+  \s(\ap1) = \Obj{\b{\f=\ap2}}{\tp1}{\C} \\ \b{\f:{\tp2} \in \C} \\ \b{\EnvType{\Es}{\ap2}{\tp2}} \\ 
+  \tp1 <: \C \\
+}{
+  \EnvType{\Es}{\ap1}\C
 }
 \end{mathpar}
 \caption{Typing rules for the common core}
