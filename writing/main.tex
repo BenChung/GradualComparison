@@ -117,6 +117,8 @@
 \newcommand{\fcast}[1]{\M{\llbracket #1 \rrbracket_{\xt{translate}}}}
 \newcommand{\wrapper}[1]{\M{\llbracket #1  \rrbracket}_{\xt{wrap}}}
 \newcommand{\proxy}[1]{\M{\llbracket #1  \rrbracket}_{\xt{proxy}}}
+\newcommand{\utw}[1]{\M{\llbracket #1  \rrbracket}_{\xt{untyped}}}
+\newcommand{\tw}[1]{\M{\llbracket #1  \rrbracket}_{\xt{typed}}}
 
 \newtheorem{definition}{Definition}
 \newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
@@ -642,6 +644,22 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 }{
   \AnaCast{\E}{\ep1}{{\New\C{\Cast{\t}{\ep2}}}}{\t}
 }
+
+\IRule{MTWrap}{
+}{
+  \tw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\tp1}{\t}{\Cast{\t}{\this.\xt{s}.\m(\b{\Cast{\any}{\x}})}}
+}
+
+\IRule{MTWrap}{
+}{
+  \utw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}
+}
+
+\IRule{TWrap}{
+  \Class\C{\xt{s} : \any}{\b{\wrapper{\mt}}}
+}{
+  \wrapper{\Type{\b{\mt}}} = \C
+}
 \end{mathpar}
 \caption{Translation for Typed Racket}
 \end{figure}
@@ -921,15 +939,15 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 }
 
 \IRule{W7}{
-  \EnvType{\Es}{\ep1}{\C} \\
-  \f : \t \in \C \\
+  \EnvType{\Es}{\ep1}{\tp1} \\
+  \f : \t \in \tp1 \\
 }{
   \EnvType{\Es}{\Get\e\f}{\t}
 }
 
 \IRule{W8}{
-  \EnvType{\Es}{\ep1}{\C} \\
-  \f : \t \in \C \\
+  \EnvType{\Es}{\ep1}{\tp1} \\
+  \f : \t \in \tp1 \\
   \EnvType{\Es}{\ep2}{\t}
 }{
   \EnvType{\Es}{\Set{\ep1}\f{\ep2}}\t
