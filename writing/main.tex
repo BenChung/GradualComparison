@@ -623,9 +623,9 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \IRule{TRNew2}{
   \b{\AnaCast\E{\e_1}{\e_2}\any} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
+  \Class \C {\b{\Ftype\f\any}} {\b{\md}} \\
   \untyped{\C}
-  }{\GenCast{\E}{\New\C{\b{\ep1}}}{\New\C{\b{\ep2}}}{\any}}
+  }{\GenCast{\E}{\New\C{\b{\ep1}}}{\Cast{\any}{\New\C{\b{\ep2}}}}{\any}}
 
 \IRule{AASC1}{
   \GenCast{\E}{\ep1}{\ep2}{\t} \\
@@ -640,7 +640,7 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
   \t \neq \any \\
   \C = \wrapper{\t}
 }{
-  \AnaCast{\E}{\ep1}{{\New\C{\ep2}}}{\t}
+  \AnaCast{\E}{\ep1}{{\New\C{\Cast{\t}{\ep2}}}}{\t}
 }
 \end{mathpar}
 \caption{Translation for Typed Racket}
@@ -719,10 +719,11 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 }
 
 \IRule{A5}{
-	\GenCast{\E}{\e_1}{\e_1'}{\Weak\tp1} \\
-	\b{\AnaCast{\E}{\e_2}{\e_2'}{\any}} \\
+	\GenCast{\E}{\e_1}{\e_3}{\Weak\tp1} \\
+	\Mtype{\m}{\tp2}{\tp3} \in \tp1 \\
+	\b{\AnaCast{\E}{\e_2}{\e_4}{\Weak\tp2}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_1'}{\Dyn\m}{\b{\e_2'}}}{\any}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m^*}{\b{\any}}\any}}{\e_3}}{\Dyn\m}{\b{\Cast\any{\e_4}}}}{\Weak\tp3}
 }
 
 \IRule{AASC1}{
@@ -738,6 +739,19 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 }
 \end{mathpar}
 \caption{Strongscript}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\IRule{A5}{
+	\GenCast{\E}{\e_1}{\e_3}{\tp1} \\
+	\Mtype{\m}{\tp2}{\tp3} \in \tp1 \\
+	\b{\AnaCast{\E}{\e_2}{\e_4}{\tp2}} \\
+}{
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Cast{\tp3}{(\Call{\e_3}{\m^*}{\b{\Cast{\any}{\e_2}}})}}{\tp3}
+}
+\end{mathpar}
+\caption{Transient}
 \end{figure}
 
 \clearpage
