@@ -32,10 +32,23 @@ proof: by rule induction on typed translation judgment
 	case TRNew2:
 		Trivial
 	case AASC1:
-		
+		Trivial
 	case AASC2:
+		Trivial
+
+Transient well-typed translation:
+	if gamma |- e |-> e' => t, then gamma emp |- e' : t
+	if gamma |- e ~~> e' <= t, then gamma emp |- e' : t
 
 
+proof: by rule induction on typed translation judgment
+	case A5:
+		By IH, gamma |- e3 : t1
+		By IH for every e4, gamma |- e4 : t2
+		Because m(t2 ...):t3 in t1, m*(* ...) : * must be in t1 by class translation.
+		By W6 on the above, gamma |- <*>e4 : * for every e4
+		By W4 on the above with m(* ...):* in t1, gamma |- e3.m*(e4 ...) : *
+		By W6 on above, gamma |- <t3>(e3.m*(e4 ...) : *) : t3
 
 progress & preservation: if emp s |- e : t then e -> e' and emp s |- e' :t
 							   or e value
@@ -126,4 +139,3 @@ proof: By rule induction on typing judgment.
 
 
 Soundness: follows trivially.
-
