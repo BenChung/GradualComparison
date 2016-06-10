@@ -632,7 +632,7 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \IRule{AASC1}{
   \GenCast{\E}{\ep1}{\ep2}{\t} \\
   \t \neq \any \\
-  \C = \wrapper{\t}
+  \C = \tw{\t}
 }{
   \AnaCast{\E}{\ep1}{\Cast{\any}{\New\C{\ep2}}}{\any}
 }
@@ -640,14 +640,14 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 \IRule{AASC2}{
   \GenCast{\E}{\ep1}{\ep2}{\any} \\
   \t \neq \any \\
-  \C = \wrapper{\t}
+  \C = \utw{\t}
 }{
   \AnaCast{\E}{\ep1}{{\New\C{\Cast{\t}{\ep2}}}}{\t}
 }
 
 \IRule{MTWrap}{
 }{
-  \tw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\tp1}{\t}{\Cast{\t}{\this.\xt{s}.\m^*(\b{\Cast{\any}{\x}})}}
+  \tw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\tp1}{\t}{\Cast{\t}{(\Cast{\Type{\Mtype{\m^*}{\b\any}{\any}}}{\this.\xt{s}}).\m^*(\b{\Cast{\any}{\x}})}}
 }
 
 \IRule{MUTWrap}{
@@ -656,9 +656,15 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 }
 
 \IRule{TWrap}{
-  \Class\C{\xt{s} : \any}{\b{\tw{\mt}} ~~ \b{\utw{\mt}}}
+  \Class\C{\xt{s} : \any}{\b{\tw{\mt}}}
 }{
-  \wrapper{\Type{\b{\mt}}} = \C
+  \tw{\Type{\b{\mt}}} = \C
+}
+
+\IRule{TUWrap}{
+  \Class\C{\xt{s} : \Type{\b{\mt}}}{\b{\utw{\mt}}}
+}{
+  \utw{\Type{\b{\mt}}} = \C
 }
 \end{mathpar}
 \caption{Translation for Typed Racket}
@@ -848,21 +854,6 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 \IRule{}{
 	\b{\adapt{\md_1, \t^i}} \equiv \md_2
 }{\TransClass{\Class\C{\b{\fd}}{\b{\md_1}}}{\Class{\C^i}{\b{\fd}}{\b{\md_2}}}}
-\end{mathpar}
-
-
-\begin{mathpar}
-\IRule{}{
-	\AnaCast{\b{\x:{\tp1}}}{\ep1}{\ep2}{\tp2}
-}{
-	\inscast{\Mdef\d\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef\d\x{\tp1}{\tp2}{\ep2}
-}
-
-\IRule{}{
- \b{ \mdp1} \equiv \b{\setter\fd} ~~ \b{\getter\fd} \\  \b{\mdp2} \equiv \b{\inscast{\mdp1}}  ~~ \b{\dynamic{\mdp1}}
-}{ 
-	\TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
-}
 \end{mathpar}
 \caption{Monotonic translation}
 \end{figure}
