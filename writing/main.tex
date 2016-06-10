@@ -647,16 +647,16 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \IRule{MTWrap}{
 }{
-  \tw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\tp1}{\t}{\Cast{\t}{\this.\xt{s}.\m(\b{\Cast{\any}{\x}})}}
+  \tw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\tp1}{\t}{\Cast{\t}{\this.\xt{s}.\m^*(\b{\Cast{\any}{\x}})}}
 }
 
-\IRule{MTWrap}{
+\IRule{MUTWrap}{
 }{
-  \utw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}
+  \utw{\Mtype{\m}{\b{\tp1}}\t} = \Mdef{\m^\xt{*}}\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}
 }
 
 \IRule{TWrap}{
-  \Class\C{\xt{s} : \any}{\b{\wrapper{\mt}}}
+  \Class\C{\xt{s} : \any}{\b{\tw{\mt}} ~~ \b{\utw{\mt}}}
 }{
   \wrapper{\Type{\b{\mt}}} = \C
 }
