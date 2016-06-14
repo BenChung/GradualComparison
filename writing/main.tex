@@ -772,7 +772,7 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 	\Mtype{\m}{\b{\tp2}}{\tp3} \in \tp1 \\
 	\b{\AnaCast{\E}{\e_2}{\e_4}{\tp2}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Cast{\tp3}{(\Call{\e_3}{\m^*}{\b{\Cast{\any}{\e_2}}})}}{\tp3}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Cast{\tp3}{(\Call{\e_3}{\m^*}{\b{\Cast{\any}{\e_4}}})}}{\tp3}
 }
 \end{mathpar}
 \caption{Transient}
@@ -952,6 +952,23 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 }
 \end{mathpar}
 \caption{Typing rules for the common core}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+\IRule{SW1}{
+    \EnvType{\Es}\e{\tp2}
+ }{
+   \EnvType{\Es}\e{\Weak{\tp1}}
+}
+
+\IRule{SW2}{
+    \EnvType{\Es}\e\any
+ }{
+   \EnvType{\Es}\e{\Weak\t}
+}   
+\end{mathpar}
+\caption{Strongscript typing extensions}
 \end{figure}
 
 \end{document}
