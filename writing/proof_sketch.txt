@@ -212,3 +212,30 @@ proof: By rule induction on typing judgment.
 		Case e -> err
 			trivial
 	Other cases same as base system.
+
+Meet consistent subtyping: if t meet t' = t'' and t <~ tp and t' <~ tp then t'' <~ tp
+
+Proof: trivial
+
+soundness of casting: if emp s |- a : t and cast(a,t',s) = s' then emp s' |- a : t
+
+proof: by rule induction on casts
+	
+
+progress & preservation for monotonic: if emp s |- e : t then s e -> s' e' and emp s' |- e' : t
+							   or e value
+							   or e -> err
+
+proof: By rule induction on typing judgment.
+
+	Everything other than cast has the same evaluation rule. Therefore, we focus only on casts.
+	case W6
+		if s e -> s' e' and emp s' |- e' : t
+			trivial
+		if e -> err
+			trivial
+		if e value
+			if e is a value, then e must be an address a
+			if no cast rule applies, then e -> err and theorem holds
+			otherwise, cast rule 3 must have applied, and t1 = t, a1 = a, and s1 = s
+

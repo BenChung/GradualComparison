@@ -810,7 +810,7 @@ Subtype consistency combines the two properties. Subtyping lets us add and remov
 
 Adding this to our static type system is simple. We just introduce the rule that allows types to be converted via $\stcons{}{}$. The details of how to make the dynamics work with this static addition will be covered later.
 
-\begin{figure}{h}
+\begin{figure}[h]
 \opdef{$\meet{\tp1}{\tp2} \equiv \tp3$}{The most specific type common to $\tp1$ and $\tp2$ is $\tp3$}
 \begin{mathpar}
 \IRule{M1}{ }{\meet{\t}{\any} \equiv \t}
@@ -867,7 +867,7 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}{\tp2}\C\}}} \\
 	\tp2 \not\equiv \meet{\tp1}{\tp2} \\
 	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}{\meet{\tp1}{\tp2}}{\refine{\C}{\tp1}}}} \\
-	\f:\t'_i \in \meet{\tp1}{\tp2}\\
+	\f:\t'_i \in \refine{\C}{\tp1}\\
 	\s'_1 = \castfn\a{\t'_1}{\sp2} \\ \ldots \\ \s'_n = \castfn\a{\t'_n}{\s'_{n-1}}\\
 }{
 	\castfn{\ap1}{\tp1}{\sp1} \equiv \s'_n\\
