@@ -863,25 +863,25 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 \opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
 
 \begin{mathpar}
-\IRule{}{
+\IRule{MS1}{
 	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}{\tp2}\C\}}} \\
 	\tp2 \not\equiv \meet{\tp1}{\tp2} \\
 	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}{\meet{\tp1}{\tp2}}{\refine{\C}{\tp1}}}} \\
-	\f:\t'_i \in \refine{\C}{\tp1}\\
+	\f():\t'_i \in \meet{\tp1}{\tp2}\\
 	\s'_1 = \castfn\a{\t'_1}{\sp2} \\ \ldots \\ \s'_n = \castfn\a{\t'_n}{\s'_{n-1}}\\
 }{
 	\castfn{\ap1}{\tp1}{\sp1} \equiv \s'_n\\
 }
 % \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 
-\IRule{}{
+\IRule{MS2}{
 	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}{\tp2}\C\}}} \\
 	\tp2 \equiv \meet{\tp1}{\tp2} \\
 }{
 	\castfn{\ap1}{\tp1}{\sp1} \equiv \s'_n\\
 }
 
-\IRule{}{
+\IRule{MSE}{
 	\sp2 = \castfn{\ap1}{\tp1}{\sp1}
 }{
 	\Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
