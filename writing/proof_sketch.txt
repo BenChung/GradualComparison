@@ -217,10 +217,37 @@ Meet consistent subtyping: if t meet t' = t'' and t <~ tp and t' <~ tp then t'' 
 
 Proof: trivial
 
-soundness of casting: if emp s |- a : t and cast(a,t',s) = s' then emp s' |- a : t
+soundness of casting: for every a1 and a2, if emp s |- a1 : t1 and cast(a2,t2,s) = s' then emp s' |- a1 : t1 and emp s' |- a2 : t2
 
 proof: by rule induction on casts
-	
+	case MS1
+		by inversion of W9, we know that
+			s[a1 |-> {f=a1' ...}_C^t1]
+			every f is such that f : t1' in C
+			and if f:t1' in C then emp s |- a1' : t1'
+			as well as that C <~ t1
+		by inversion of MS1, we know that
+			let tf be such that f():tf in {t2 meet t2'}
+			s1' = cast(a2',tf,s2)
+			s2' = cast(a2',tf,s1')
+			...
+			sn' = cast(a2',tf,s(n-1)') for every a2' tf pair
+			sn'[a2 |->{f=a2' ...}_{D}^{t2'}]
+			s'[a2 |->{f=a2' ...}_{D|>t2}^{t2 meet t2'}]
+		wts
+			emp sn' |- a1 : t1
+		and emp sn' |- a2 : t2
+
+		Begin by showing the first property:
+		sts 
+			emp sn' |- a1 : t1
+		sts
+			sn'[a1 |-> {f=a1' ...}_C1f^t1f]
+			every f is such that f() : t1f' in t1f
+			and if f():t1f' in t1f then emp s' |- a1' : t1f'
+			as well as that C1f <~ t1f
+		
+	case MS2
 
 progress & preservation for monotonic: if emp s |- e : t then s e -> s' e' and emp s' |- e' : t
 							   or e value

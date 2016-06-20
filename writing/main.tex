@@ -946,9 +946,9 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 
 \IRule{W9}{
   \s(\ap1) = \Obj{\b{\f=\ap2}}{\tp1}{\C} \\ \b{\f:{\tp2} \in \C} \\ \b{\EnvType{\Es}{\ap2}{\tp2}} \\ 
-  \tp1 <: \C \\
+  \C <: \tp1 \\
 }{
-  \EnvType{\Es}{\ap1}\C
+  \EnvType{\Es}{\ap1}{\tp1}
 }
 \end{mathpar}
 \caption{Typing rules for the common core}
@@ -969,6 +969,26 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 }   
 \end{mathpar}
 \caption{Strongscript typing extensions}
+\end{figure}
+
+\begin{figure}
+\begin{mathpar}
+
+\IRule{W2}{
+   \EnvType{\Es}\e{\tp 1} \\ \stcons{\tp1}{\t}
+ }{
+   \EnvType{\Es}\e\t 
+}   
+
+
+\IRule{W9}{
+  \s(\ap1) = \Obj{\b{\f=\ap2}}{\tp1}{\C} \\ \b{\f:{\tp2} \in \C} \\ \b{\EnvType{\Es}{\ap2}{\tp2}} \\ 
+  \stcons{\C}{\tp1} \\
+}{
+  \EnvType{\Es}{\ap1}{\tp1}
+}
+\end{mathpar}
+\caption{Monotonic typing extensions}
 \end{figure}
 
 \end{document}
