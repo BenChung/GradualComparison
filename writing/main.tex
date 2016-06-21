@@ -310,14 +310,14 @@ update, method invocation, object creation, and type casts.
 %%%%%%%%%%%%%%%%%%%%%%%% SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[!h]\center\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \e &::=  \x \\
-   \Alt{ \Get\e\f }
-   \Alt{ \Set\e\f\e }
+%   \Alt{ \Get\e\f }
+%   \Alt{ \Set\e\f\e }
    \Alt{ \Call\e\m{\b\e} }
    \Alt{ \New\C{\b\e} }
    \Alt{ \Cast\t\e }
-\end{tabular}\end{minipage}\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \fd &::= 
     \Ftype\f\t   \\
+\end{tabular}\end{minipage}\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \md &::=
     \Mdef\m\x\t\t\e \\
 \c &::= \Class \C {\b{\fd}}{\b{\md} } \\
@@ -532,14 +532,14 @@ I am aware that the last bit of the definitin is wrong. Will fix.
 	\Mtype\m{\b{\tp 2}}{\tp 3} \inc \t_1\\
 	\b{\AnaCast{\E}{\e_3}{\e_4}{\tp 2}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m}{\b{\e_4}}}{\tp 3}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m_\t}{\b{\e_4}}}{\tp 3}
 }
 
 \IRule{A5}{
 	\GenCast{\E}{\e_1}{\e_3}{\any} \\
 	\b{\AnaCast{\E}{\e_2}{\e_4}{\any}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m^*}{\b{\any}}\any}}{\e_3}}{\Dyn\m}{\b{\e_4}}}{\any}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b{\any}}\any}}{\e_3}}{\m_\xt{u}}{\b{\e_4}}}{\any}
 }
 
 \IRule{A6}{
@@ -647,7 +647,7 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \IRule{MTWrap}{
 }{
-  \tw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\tp1}{\t}{\Cast{\t}{(\Cast{\Type{\Mtype{\m^*}{\b\any}{\any}}}{\this.\xt{s}}).\m^*(\b{\Cast{\any}{\x}})}}
+  \tw{\Mtype\m{\b{\tp1}}\t} = \Mdef\m\x{\tp1}{\t}{\Cast{\t}{(\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\this.\xt{s}}).\m_\xt{u}(\b{\Cast{\any}{\x}})}}
 }
 
 \IRule{MUTWrap}{
@@ -747,7 +747,7 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 	\Mtype{\m}{\tp2}{\tp3} \in \tp1 \\
 	\b{\AnaCast{\E}{\e_2}{\e_4}{\Weak\tp2}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m^*}{\b{\any}}\any}}{\e_3}}{\Dyn\m}{\b{\Cast\any{\e_4}}}}{\Weak\tp3}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b{\any}}\any}}{\e_3}}{\m_\xt{u}}{\b{\Cast\any{\e_4}}}}{\Weak\tp3}
 }
 
 \IRule{AASC1}{
@@ -772,7 +772,7 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 	\Mtype{\m}{\b{\tp2}}{\tp3} \in \tp1 \\
 	\b{\AnaCast{\E}{\e_2}{\e_4}{\tp2}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Cast{\tp3}{(\Call{\e_3}{\m^*}{\b{\Cast{\any}{\e_4}}})}}{\tp3}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Cast{\tp3}{(\Call{\e_3}{\m_u}{\b{\Cast{\any}{\e_4}}})}}{\tp3}
 }
 \end{mathpar}
 \caption{Transient}
@@ -796,10 +796,11 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 \IRule{CS4}{ \tp 1 \Sub \tp 2 }{\stcons{\tp 1}{\tp 2}}
 
 \IRule{CS5}{
-	\stcons{\tp3}{\tp1} \\
+    \Mtype\m{\b{\tp1}}{\tp2} \in \t\\
+	\b{\stcons{\tp3}{\tp1}} \\
     \stcons{\tp2}{\tp4} \\
-    \stcons{\Type{\b{\md_1} ~ \b{\md_2}}}{\Type{\b{\md_3} ~ \b{\md_4}}}
-}{\stcons{\Type{\b{\md_1} ~ \Mtype\m{\tp1}{\tp2}~ \b{\md_2}}}{\Type{\b{\md_3} ~ \Mtype\m{\tp3}{\tp4} ~ \b{\md_4}}}}
+    \stcons{\t}{\Type{\b{\md}}}
+}{\stcons{\t}{\Type{\Mtype\m{\b{\tp3}}{\tp4} ~ \b{\md}}}}
 \end{mathpar}
 \caption{Consistent Subtyping}
 \end{figure}
@@ -858,7 +859,8 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 \caption{Monotonic translation}
 \end{figure}
 
-
+\newcommand{\Vect}[3]{\text{Vec}(#1,#2,#3)}
+\newcommand{\tv}{\xt{v}}
 \begin{figure}
 \opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
 
