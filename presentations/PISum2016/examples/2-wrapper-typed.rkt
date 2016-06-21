@@ -11,15 +11,11 @@
 (: Painter% Painter)
 (define Painter% (class object%
                    (define/public (draw color)
-                            (string-join (list "Pretty" color "picture")))
+                   (string-join (list "Pretty" color "picture")))
                    (super-new)))
 
-
 (define painter (make-object Painter%))
-
-
 (send painter draw "blue")
-
 
 (: test (-> (Instance Cowboy) Integer Integer))
 (define (test subj obj)
@@ -27,5 +23,5 @@
 
 (require/typed "2-untyped.rkt"
                [id (-> (Instance Painter) (Instance Cowboy))])
-
+3	       
 (test (id painter) 8)

@@ -3,9 +3,9 @@
 	@node 1-ss-ex.js
 	@rm 1-ss-ex.js
 2:
-	@/Applications/Racket\ v6.5/bin/racket 2-wrapper-typed.rkt || true
+	@racket 2-wrapper-typed.rkt || true
 3:
-	@/Applications/Racket\ v6.5/bin/racket 3* || true
+	@racket 3* || true
 4:
 	@python3 retpy/retic.py 4-transient-ex.py || true
 4m:
