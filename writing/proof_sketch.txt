@@ -247,17 +247,17 @@ proof: rule induction on casting
 		let f():tf in ts
 
 		proceed by induction on n:
-			IH2 exists v |= sn' /\ forall va |= sn', j < n, va(aj) <~ tj and va(a) <~ ts
+			IH2 exists v |= sn' /\ forall va |= sn', j <= n, va(aj) <~ tj and va(a) <~ ts
 			b.c. n = 0
 				let sn' = s2
 				let v' = v[a|-> ts]
 				v' |= sn' trivially
 				forall va |= sn', va(a) <~ ts as su'[a |-> {...}^ts_D]
 			i.s. n = k, sk = cast(ak,tk,s(k-1))
-				by IH2, (1) exists v |= s(k-1)' /\ (2) forall va |= s(k-1)', (3) forall j < k, va(aj) <~ tfj /\ va(a) <~ t meet tj
-				by IH1 on (1) and given, exists v2' |= sk' /\ sk'[ak|-> {...}^tk'_E] /\ tk' <~ tk
-				forall vb |= sk' by lemma 1, vb |= s(k-1) => forall i < k, vb(i) <~ ti /\ by (3) vb(a) <~ ts
-				by above, exists v' |= sk'
+				by IH2, (1) exists v |= s(k-1)' /\ (2) forall va |= s(k-1)', (3) forall j <= k, va(aj) <~ tfj /\ va(a) <~ t meet tj
+				by IH1 on (1) and given, (4) exists v2' |= sk' /\ sk'[ak|-> {...}^tk'_E] /\ tk' <~ tk
+				forall vb |= sk' by lemma 1, vb |= s(k-1) => forall i <= k, vb(i) <~ ti /\ by (3) vb(a) <~ ts
+				by (4), exists v' = v2' s.t. v' |= sk' 
 
 
 soundness of casting: for every a1 and a2, if emp s |- a1 : t1 and cast(a2,t2,s) = s' then emp s' |- a1 : t1 and emp s' |- a2 : t2
