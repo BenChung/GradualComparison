@@ -357,59 +357,89 @@ field. Lastly a field of an object can be update with the notation
 \Update{\Obj{\dots}\t\C}\f\a.
 
 
-\subsection{Dynamic Semantics}
+\section{Semantics}
 
-We use a typical small-step operational semantics with a heap. Each step steps an expression and a heap to a result and a new heap, where a result can either be a new expression or an error. Errors halt execution, and can be lifted through execution frames.
-
-\subsection{Typing}
-
-As an object-oriented calculus, our type system has subtyping. We use a structural subtyping mechanism which supports with, depth, and reordering. 
-
-Each class in our system must be well-formed, as described in Figure 4. Each method must typecheck against the named arguments, producing the result type. Our type system has two major issues: it does not provide any guarantees about the type of the arguments to an untyped method, and it does not mention getters and setters at all.
-
-To fill these holes, we use class translation, which performs 2 major tasks:
+We consider gradual typing systems as a combination of three components:
 \begin{itemize}
-\item Generating accessor methods, to enable user code to retreive and modify field values.
-\item Generating wrapper methods, that take all $\*$ arguments and use casts to ensure that the values that they were passed are correct. 
+\item \emph{A type-driven cast insertion system}, which ensures the 
+correctness of the code it produces, as well as providing the surfical
+type system. Cast insertion takes code that works directly with \any
+values and adds casts to ensure safety.
+\item \emph{An underlying type system}, which works on the target of
+cast insertion. The base type system prevents any \any values from
+being used without previously checking them, ensuring soundness.
+\item \emph{A dynamic semantics}, evaluating the result of translation,
+and allowing the code to be run.
 \end{itemize}
 
-% TODOS:
-% $ should not be a valid character in a method name <- explain in text
-% c translates to c with $ <- explain in text
-% Figure 2 sigma <- not sure?
+We then characterize our four gradual typing systems by constructing them
+within this common framework. However, the four systems in fact share a 
+considerable amount of their behaviour, as features such as variable typing
+remain the same across all four systems. To prevent needless duplication,
+we introduce a \emph{fifth}, \emph{core} gradual typing system, that provides
+a basis for us to modify. We will introduce the details of these stages in 
+a discussion of the core, then explore how the systems that we consider differ.
 
 
-A program consists of an expression and an implicit class table which holds
-definitions for all the classes that can be used in the program.
+\subsection{Cast Insertion}
 
-We will require that the class table be, first, \emph{well formed}, and,
-then, \emph{completed}.  A well formed class table is made up of classes
-that are well-typed and where no special methods have been used.  A well
-formed table is completed by adding setter and getter methods, synthesizing
-dynamic methods and specializing calls with dynamic receivers.
+The user-facing component of a gradual typing system is its type checker,
+or the surface type system, which is then complemented by a type-driven
+cast insertion mechanism ``behind the scenes''. In our approach, these two
+steps are combined into a cast insertion system.
 
-\begin{definition} A class table is well-formed if for every class \C  in
-the class table, every method \Mdef\d\x{\tp1}{\tp2}\e in \C is such that
-\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2} holds.
-\end{definition}
+Cast insertion is fundamentally \emph{type driven}. In our type system, it is
+required to have a cast whenever a type needs to be altered, and therefore in
+inserting casts we need to know every site where one type is required to be another.
+Our system handles this through an \emph{bidirectional cast insertion} system,
+introduced by (PIERCE AND TURNER CITEME).
 
-Note that a well-formed class table does not have setter, getter, or dynamic
-methods. Furthermore there are no occurrence of dynamic calls.
+Our choice comes from an observation about the nature of traditional bottom-up type
+systems. The fundamental building block is judgements of the form $\E \vdash \e : \t$, 
+which means that $\e$ inherently has type $\t$. For example, a type mismatch
+would look like trying to conclude a judgement $\E \vdash \e : \any$ when only
+$\E \vdash \e : \xt{int}$ holds.
 
-The completion process extends each class definition with getter, setters,
-dynamic methods, and specializes dynamic calls.
+Other systems have solved this problem through the introduction of nondeterministic
+rules such as subsumption, but nondeterminism in cast insertion creates problems
+where a single program can be typed in multiple different ways (EXAMPLE).
 
-\begin{definition} A class table is completed if for every 
- \Class \C {\b{\fd}} {\b{\md}} in the class table: for every field
- \Ftype\f\t\inc\C, we add the setter \SMdef\f\x\t\t{\Set\this\f\x} and the
- getter \GMdef\f\t{\Get\this\f} to \C; for ever method definition
- \Mdef\d\x\t{\tp1}\e\inc\C, a dynamic method \Mdef{\Dyn\d}\x\any\any{
-   \Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C and the body \e of
- \m is replaced by  \ep1 where \TransClass\e{\ep1}.
-\end{definition}
+To solve this problem, we use the aforementioned bidirectional cast insertion
+mechanism. In a bidirectional system, we have two judgements:
 
-I am aware that the last bit of the definitin is wrong. Will fix.
+\begin{itemize}
+\item The \emph{analytic} judgement $\E \vdash \e \Rightarrow \t$, which says that
+$\e$ inherently has type $\t$ against environment $\E$, equivalently to the
+traditional bottom-up type system.
+\item The \emph{synthetic} judgement $\E \vdash \e \Leftarrow \t$, which implies that
+$\e$ can potentially have type $\t$ against environment $\E$.
+\end{itemize}
 
+For example, consider the function call $\Call{\ep1}{\m}{\ep2}$. A bidirectional
+type system will begin with seeing what type $\ep1$ has, with the judgment $\E \vdash \ep1 \Rightarrow \t$.
+From this, the bidirectional type system will check what type the method $\m$ has in $\t$,
+ here denoted $\Mtype\m{\tp1}{\tp2} \in \t$, then ensure that the arguments make sense with that type.
+
+In a bottom-up type system, we would write $\E \vdash \ep2 : \tp1$, but, as commonly noted with subsumption,
+this can require the introduction of a nonalgorithmic rule to conclude this final judgment. Instead, in a 
+bidirectional type system, we can simply ensure that the type of $\ep2$ is consistent with $\tp1$ through the
+judgment $\E \vdash \ep2 \Leftarrow \tp2$.
+
+Finally, we will be able to conclude that $\E \vdash \Call{\ep1}{\m}{\ep2} \Rightarrow \tp2$. This is a
+synthetic judgement as $\tp2$ is the type that the expression can be known to have in the absence of any
+external information.
+
+To support cast insertion, we extend these basic type checking judgements with an output term, of the form 
+$\GenCast{\E}{\ep1}{\ep2}{\t}$ for the synthetic case and $\AnaCast{\E}{\ep1}{\ep2}{\t}$ for the analytic,
+case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the latter translates the same
+ensuring type $\t$.
+
+An important note in the construction of our bidirectional type system is that our handling of the key case,
+function application, is less specified than it could be. Other works in this area, including (DUNFIELD et al)
+use a third bidirectional judgment to handle function application, largely to handle the analytic case. If
+we are trying to typecheck a function call against some known type, then we can infer a type for the receiver
+by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
+is not required, as our type inference does not have strict specifity requirements. 
 
 %%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
