@@ -335,112 +335,6 @@ interface. For type annotations, we use the name of classes, ranged over by
 classes.
 
 
-The dynamic semantics evaluates expression extended with object references,
-denoted \a, and errors, denoted \err, together with a heap \s mapping
-references to object values. Object values contain all fields, methods, a
-type, and a class; they are denoted \Obj{\b\a}\t\C. The
-class is used for locating methods and the type is used for type casts. The
-need for keeping them separate will become clear later.
-
-The semantics uses evaluation context \Ctx\e.
-
-Selecting an object from the heap is written \Sel\s\a, while a heap is
-extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\t\C}}.
-
-
-For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have 
-\classofis{\Sel\s\a}\C and \typeofis\s\a\t.
-
-We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
-definition and \Fdef\f\t\a\inc\Obj{\dots}\t\C to express the selection of a
-field. Lastly a field of an object can be update with the notation
-\Update{\Obj{\dots}\t\C}\f\a.
-
-
-\section{Semantics}
-
-We consider gradual typing systems as a combination of three components:
-\begin{itemize}
-\item \emph{A type-driven cast insertion system}, which ensures the 
-correctness of the code it produces, as well as providing the surfical
-type system. Cast insertion takes code that works directly with \any
-values and adds casts to ensure safety.
-\item \emph{An underlying type system}, which works on the target of
-cast insertion. The base type system prevents any \any values from
-being used without previously checking them, ensuring soundness.
-\item \emph{A dynamic semantics}, evaluating the result of translation,
-and allowing the code to be run.
-\end{itemize}
-
-We then characterize our four gradual typing systems by constructing them
-within this common framework. However, the four systems in fact share a 
-considerable amount of their behaviour, as features such as variable typing
-remain the same across all four systems. To prevent needless duplication,
-we introduce a \emph{fifth}, \emph{core} gradual typing system, that provides
-a basis for us to modify. We will introduce the details of these stages in 
-a discussion of the core, then explore how the systems that we consider differ.
-
-
-\subsection{Cast Insertion}
-
-The user-facing component of a gradual typing system is its type checker,
-or the surface type system, which is then complemented by a type-driven
-cast insertion mechanism ``behind the scenes''. In our approach, these two
-steps are combined into a cast insertion system.
-
-Cast insertion is fundamentally \emph{type driven}. In our type system, it is
-required to have a cast whenever a type needs to be altered, and therefore in
-inserting casts we need to know every site where one type is required to be another.
-Our system handles this through an \emph{bidirectional cast insertion} system,
-introduced by (PIERCE AND TURNER CITEME).
-
-Our choice comes from an observation about the nature of traditional bottom-up type
-systems. The fundamental building block is judgements of the form $\E \vdash \e : \t$, 
-which means that $\e$ inherently has type $\t$. For example, a type mismatch
-would look like trying to conclude a judgement $\E \vdash \e : \any$ when only
-$\E \vdash \e : \xt{int}$ holds.
-
-Other systems have solved this problem through the introduction of nondeterministic
-rules such as subsumption, but nondeterminism in cast insertion creates problems
-where a single program can be typed in multiple different ways (EXAMPLE).
-
-To solve this problem, we use the aforementioned bidirectional cast insertion
-mechanism. In a bidirectional system, we have two judgements:
-
-\begin{itemize}
-\item The \emph{analytic} judgement $\E \vdash \e \Rightarrow \t$, which says that
-$\e$ inherently has type $\t$ against environment $\E$, equivalently to the
-traditional bottom-up type system.
-\item The \emph{synthetic} judgement $\E \vdash \e \Leftarrow \t$, which implies that
-$\e$ can potentially have type $\t$ against environment $\E$.
-\end{itemize}
-
-For example, consider the function call $\Call{\ep1}{\m}{\ep2}$. A bidirectional
-type system will begin with seeing what type $\ep1$ has, with the judgment $\E \vdash \ep1 \Rightarrow \t$.
-From this, the bidirectional type system will check what type the method $\m$ has in $\t$,
- here denoted $\Mtype\m{\tp1}{\tp2} \in \t$, then ensure that the arguments make sense with that type.
-
-In a bottom-up type system, we would write $\E \vdash \ep2 : \tp1$, but, as commonly noted with subsumption,
-this can require the introduction of a nonalgorithmic rule to conclude this final judgment. Instead, in a 
-bidirectional type system, we can simply ensure that the type of $\ep2$ is consistent with $\tp1$ through the
-judgment $\E \vdash \ep2 \Leftarrow \tp2$.
-
-Finally, we will be able to conclude that $\E \vdash \Call{\ep1}{\m}{\ep2} \Rightarrow \tp2$. This is a
-synthetic judgement as $\tp2$ is the type that the expression can be known to have in the absence of any
-external information.
-
-To support cast insertion, we extend these basic type checking judgements with an output term, of the form 
-$\GenCast{\E}{\ep1}{\ep2}{\t}$ for the synthetic case and $\AnaCast{\E}{\ep1}{\ep2}{\t}$ for the analytic,
-case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the latter translates the same
-ensuring type $\t$.
-
-An important note in the construction of our bidirectional type system is that our handling of the key case,
-function application, is less specified than it could be. Other works in this area, including (DUNFIELD et al)
-use a third bidirectional judgment to handle function application, largely to handle the analytic case. If
-we are trying to typecheck a function call against some known type, then we can infer a type for the receiver
-by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
-is not required, as our type inference does not have strict specifity requirements. 
-
 %%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
 
@@ -514,6 +408,126 @@ is not required, as our type inference does not have strict specifity requiremen
 \end{minipage}
 \caption{Common Core Calculus Dynamic Semantics.}
 \end{figure}
+
+The dynamic semantics evaluates expression extended with object references,
+denoted \a, and errors, denoted \err, together with a heap \s mapping
+references to object values. Object values contain all fields, methods, a
+type, and a class; they are denoted \Obj{\b\a}\t\C. The
+class is used for locating methods and the type is used for type casts. The
+need for keeping them separate will become clear later.
+
+The semantics uses evaluation context \Ctx\e.
+
+Selecting an object from the heap is written \Sel\s\a, while a heap is
+extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\t\C}}.
+
+
+For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have 
+\classofis{\Sel\s\a}\C and \typeofis\s\a\t.
+
+We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
+definition and \Fdef\f\t\a\inc\Obj{\dots}\t\C to express the selection of a
+field. Lastly a field of an object can be update with the notation
+\Update{\Obj{\dots}\t\C}\f\a.
+
+
+\section{Semantics}
+
+We consider gradual typing systems as a combination of three components:
+\begin{itemize}
+\item \emph{A type-driven cast insertion system}, which ensures the 
+correctness of the code it produces, as well as providing the surfical
+type system. Cast insertion takes code that works directly with \any
+values and adds casts to ensure safety.
+\item \emph{An underlying type system}, which works on the target of
+cast insertion. The base type system prevents any \any values from
+being used without previously checking them, ensuring soundness.
+\item \emph{A dynamic semantics}, evaluating the result of translation,
+and allowing the code to be run.
+\end{itemize}
+
+We then characterize our four gradual typing systems by constructing them
+within this common framework. However, the four systems in fact share a 
+considerable amount of their behaviour, as features such as variable typing
+remain the same across all four systems. To prevent needless duplication,
+we introduce a \emph{fifth}, \emph{core} gradual typing system, that provides
+a basis for us to modify. We will introduce the details of these stages in 
+a discussion of the core, then explore how the systems that we consider differ.
+
+\subsection{Cast Insertion}
+
+The user-facing component of a gradual typing system is its type checker,
+or the surface type system, which is then complemented by a type-driven
+cast insertion mechanism ``behind the scenes''. In our approach, these two
+steps are combined into a cast insertion system.
+
+Cast insertion is fundamentally \emph{type driven}. In our type system, it is
+required to have a cast whenever a type needs to be altered, and therefore in
+inserting casts we need to know every site where one type is required to be another.
+Our system handles this through an \emph{bidirectional cast insertion} system,
+introduced by (PIERCE AND TURNER CITEME).
+
+Our choice comes from an observation about the nature of traditional bottom-up type
+systems. The fundamental building block is judgements of the form $\E \vdash \e : \t$, 
+which means that $\e$ inherently has type $\t$. For example, a type mismatch
+would look like trying to conclude a judgement $\E \vdash \e : \any$ when only
+$\E \vdash \e : \xt{int}$ holds.
+
+Other systems have solved this problem through the introduction of nondeterministic
+rules such as subsumption, but nondeterminism in cast insertion creates problems
+where a single program can be typed in multiple different ways (EXAMPLE).
+
+To solve this problem, we use the aforementioned bidirectional cast insertion
+mechanism. In a bidirectional system, we have two judgements:
+
+\begin{itemize}
+\item The \emph{analytic} judgement $\E \vdash \e \Rightarrow \t$, which says that
+$\e$ inherently has type $\t$ against environment $\E$, equivalently to the
+traditional bottom-up type system.
+\item The \emph{synthetic} judgement $\E \vdash \e \Leftarrow \t$, which implies that
+$\e$ can potentially have type $\t$ against environment $\E$.
+\end{itemize}
+
+For example, consider the function call $\Call{\ep1}{\m}{\ep2}$. A bidirectional
+type system will begin with seeing what type $\ep1$ has, with the judgment $\E \vdash \ep1 \Rightarrow \t$.
+From this, the bidirectional type system will check what type the method $\m$ has in $\t$,
+ here denoted $\Mtype\m{\tp1}{\tp2} \in \t$, then ensure that the arguments make sense with that type.
+
+In a bottom-up type system, we would write $\E \vdash \ep2 : \tp1$, but, as commonly noted with subsumption,
+this can require the introduction of a nonalgorithmic rule to conclude this final judgment. Instead, in a 
+bidirectional type system, we can simply ensure that the type of $\ep2$ is consistent with $\tp1$ through the
+judgment $\E \vdash \ep2 \Leftarrow \tp2$.
+
+Finally, we will be able to conclude that $\E \vdash \Call{\ep1}{\m}{\ep2} \Rightarrow \tp2$. This is a
+synthetic judgement as $\tp2$ is the type that the expression can be known to have in the absence of any
+external information.
+
+To support cast insertion, we extend these basic type checking judgements with an output term, of the form 
+$\GenCast{\E}{\ep1}{\ep2}{\t}$ for the synthetic case and $\AnaCast{\E}{\ep1}{\ep2}{\t}$ for the analytic,
+case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the latter translates the same
+ensuring type $\t$.
+
+An important note in the construction of our bidirectional type system is that our handling of the key case,
+function application, is less specified than it could be. Other works in this area, including (DUNFIELD et al)
+use a third bidirectional judgment to handle function application, largely to handle the analytic case. If
+we are trying to typecheck a function call against some known type, then we can infer a type for the receiver
+by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
+is not required, as our type inference does not have strict specifity requirements. 
+
+\subsection{Class Translation}
+
+A key component of many gradual type systems is enabling checks for every field access or modification,
+ensuring type invariants about the heap. To enable these checks, we cannot expose ``raw'' field access
+and modification in our calculus, as otherwise these checks could be easily bypassed.
+
+As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
+setter methods in a phase we call \emph{class translation}, occuring at the same time as cast insertion.
+
+Class translation also provides another key component, insertion of guard methods. To ensure type safety
+for untyped call sites, we have to dynamically type check the argument. The guard methods, denoted 
+$\m_\xt{u}$, perform these checks in a call to the real underlying method, and are used in the cast insertion
+process.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
