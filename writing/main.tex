@@ -62,7 +62,7 @@
 \newcommand{\Class}[3]{\M{\bt{class}\;#1\,\{\, #2 ~ #3\, \}}}
 %%% Dynamics %%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\is}{\M{\mapsto}}
-\newcommand{\Obj}[3]{ \M{\{ #1 \}^{#2}_{#3}}}
+\newcommand{\Obj}[2]{ \M{\{ #1 \B {#2}\}}}
 \newcommand{\Heap}[2]{\M{ #1[ #2 ] }}
 \newcommand{\alloc}[4]{\M{#1,#2  = \xt{alloc}(#3, #4)}}
 \newcommand{\dispatch}[5]{\M{#1,#2 = \xt{dispatch}(#3,#4,#5)}}
@@ -121,6 +121,7 @@
 \newcommand{\tw}[1]{\M{\llbracket #1  \rrbracket}_{\xt{typed}}}
 
 \newtheorem{definition}{Definition}
+\newtheorem{thm}{Theorem}
 \newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
 
 
@@ -324,6 +325,7 @@ update, method invocation, object creation, and type casts.
 \mt &::= \Mtype\m{\b\t}\t\\
 \t &::= ~ \any \\
    \Alt{ \Type{  \b{ \mt } } }
+   \Alt\C \\
 \end{tabular}\end{minipage}
 \caption{Abstract Syntax for the Core Calculus}\label{syn}
 \end{figure}
@@ -347,7 +349,7 @@ classes.
   \ReduceA {\Ctx{\ep1}}{\sp 1}{\Ctx{\ep2}}{\sp 2}
 }
 \CondRule{E2}{ %% new C -> a
-   \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C\C}
+   \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C}
 }{ 
     \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
 }
@@ -396,7 +398,7 @@ classes.
 \\[3mm]
 \begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
 \s &::= ~~\none & \B ~~
-  \Heap\s{\Bind\a{\Obj{\b\a}{\t}{\C}}} \\[2mm]
+  \Heap\s{\Bind\a{\Obj{\b\a}{\t}}} \\[2mm]
 \xt{E} &::=    \Get\square\f &\B~
        \Set\square\f\e   ~\B~
        \Set\a\f\square   ~\B~  
@@ -412,47 +414,135 @@ classes.
 The dynamic semantics evaluates expression extended with object references,
 denoted \a, and errors, denoted \err, together with a heap \s mapping
 references to object values. Object values contain all fields, methods, a
-type, and a class; they are denoted \Obj{\b\a}\t\C. The
+type, and a class; they are denoted \Obj{\b\a}\C. The
 class is used for locating methods and the type is used for type casts. The
 need for keeping them separate will become clear later.
 
 The semantics uses evaluation context \Ctx\e.
 
 Selecting an object from the heap is written \Sel\s\a, while a heap is
-extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\t\C}}.
+extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\C}}.
 
 
-For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\t\C}, we have 
+For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\C}, we have 
 \classofis{\Sel\s\a}\C and \typeofis\s\a\t.
 
 We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
-definition and \Fdef\f\t\a\inc\Obj{\dots}\t\C to express the selection of a
+definition and \Fdef\f\t\a\inc\Obj{\dots}\C to express the selection of a
 field. Lastly a field of an object can be update with the notation
-\Update{\Obj{\dots}\t\C}\f\a.
+\Update{\Obj{\dots}\C}\f\a.
 
+\subsection{Core Type System}
 
-\section{Semantics}
+Using this dynamic semantics, we can then define a simple, sound, type system
+that ensures that well-typed programs will not get stuck, seen in figure~\ref{fig:basetyp}.
 
-We consider gradual typing systems as a combination of three components:
+Our basic type system is typical for calculi that support objects, notably including 
+subtyping. Subtyping in our system is defined in figure~\ref{fig:sub}, which
+defines a simple structual subtyping system with names (to provide for recursive types)
+and Amber-rule style support for recursive types. Notably, however, this system is not
+a \emph{gradual} type system, as it has no support for performing operations other than
+cast on any value of type $\any$.
+
+%TODO: Explain what's up with sigma
+
+To define a gradual type system based on this core type system, we use
+cast insertion to translate gradually typed code, where we can perform
+actions on values of type $\any$, into terms that typecheck against this
+stricter concrete semantics. 
+
+Soundness for this base system is typical, though with a carve-out for improper casts
+to fail:
+
+\begin{thm}
+If $\EnvType\Es\e\t$, then one of the following holds:
 \begin{itemize}
-\item \emph{A type-driven cast insertion system}, which ensures the 
-correctness of the code it produces, as well as providing the surfical
-type system. Cast insertion takes code that works directly with \any
-values and adds casts to ensure safety.
-\item \emph{An underlying type system}, which works on the target of
-cast insertion. The base type system prevents any \any values from
-being used without previously checking them, ensuring soundness.
-\item \emph{A dynamic semantics}, evaluating the result of translation,
-and allowing the code to be run.
+\item $\e \rightarrow \e'$ and $\EnvType\Es{\e'}\t$
+\item $\e \rightarrow \xt{v}$ and $\EnvType\Es{\xt{v}}\t$
+\item $\e$ is $\Cast{\t}{\e'}$ and $\e \rightarrow \err$
 \end{itemize}
+\end{thm}
 
-We then characterize our four gradual typing systems by constructing them
-within this common framework. However, the four systems in fact share a 
-considerable amount of their behaviour, as features such as variable typing
-remain the same across all four systems. To prevent needless duplication,
-we introduce a \emph{fifth}, \emph{core} gradual typing system, that provides
-a basis for us to modify. We will introduce the details of these stages in 
-a discussion of the core, then explore how the systems that we consider differ.
+A well typed program in this calculus can only go wrong at cast sites, and there it has
+a well defined error value - the system will never get stuck. We will go on to use this 
+property to show soundness in the gradual typing systems in question.
+\begin{figure}
+\opdef{\EnvType{\Es}\e\t}{\e has type \t in environment \E against heap \s}
+\begin{mathpar}
+\IRule{W1}{
+    \HasType{\E}\x\t
+ }{
+   \EnvType{\Es}\x\t
+}
+
+\IRule{W2}{
+   \EnvType{\Es}\e{\tp 1} \\ \tp 1 \Sub \t
+ }{
+   \EnvType{\Es}\e\t 
+}   
+
+\IRule{W4}{
+   \EnvType{\Es}\e{\C} \\ \Mtype\m{\b{\tp2}}\t\inc \C  \\  \b{\EnvType{\Es}{\ep1}{\tp 2}}
+}{
+    \EnvType{\Es}{\Call\e\m{\b{\ep1}}}\t
+}    
+
+\IRule{W5}{
+  \b{\EnvType{\Es}\e\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+}{
+  \EnvType{\Es}{\New\C{\b\e}}\C
+}
+
+\IRule{W6}{
+  \EnvType{\Es}\e{\tp1}
+}{
+   \EnvType{\Es}{\Cast\t\e}\t
+}
+
+\IRule{W7}{
+  \EnvType{\Es}{\ep1}{\tp1} \\
+  \f : \t \in \tp1 \\
+}{
+  \EnvType{\Es}{\Get\e\f}{\t}
+}
+
+\IRule{W8}{
+  \EnvType{\Es}{\ep1}{\tp1} \\
+  \f : \t \in \tp1 \\
+  \EnvType{\Es}{\ep2}{\t}
+}{
+  \EnvType{\Es}{\Set{\ep1}\f{\ep2}}\t
+}
+
+\IRule{W9}{
+  \s(\ap1) = \Obj{\b{\f=\ap2}}{\C} \\ \b{\f:{\tp2} \in \C} \\ \b{\EnvType{\Es}{\ap2}{\tp2}} \\ 
+}{
+  \EnvType{\Es}{\ap1}{\tp1}
+}
+\end{mathpar}
+\caption{Typing rules for the common core}
+\label{fig:basetyp}
+\end{figure}
+
+
+
+\section{Gradual Typing}
+Our characterization of gradual typing is \emph{gradual typing by translation},
+using an approach similar to that of (MEIJER ET AL CITEME), adding gradual
+types to an aforementioned underlying fully typed language. In this vein,
+we define our gradual typing extensions as \emph{cast insertion} phases.
+
+This approach lets us simply present the working mechanism of the type
+systems. For each of the systems in question, we present the cast insertion
+mechanism required to convert a gradually typed program into a fully typed
+program with casts respecting the guarantee of the gradual typing system in
+question, and demonstrating the workings of each system.
+
+However, the systems share a considerable amount of their basic semantics.
+To prevent needless duplication, we use a \emph{common core} of translation
+rules, which we then modify or extend to support the gradual typing system in
+question.
 
 \subsection{Cast Insertion}
 
@@ -508,7 +598,7 @@ case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the
 ensuring type $\t$.
 
 An important note in the construction of our bidirectional type system is that our handling of the key case,
-function application, is less specified than it could be. Other works in this area, including (DUNFIELD et al)
+function application, is less specified than it could be. Other works in this area, including (DUNFIELD \& KRISHNASWAMI CITEME)
 use a third bidirectional judgment to handle function application, largely to handle the analytic case. If
 we are trying to typecheck a function call against some known type, then we can infer a type for the receiver
 by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
@@ -542,15 +632,17 @@ process.
 
 \IRule{S2}{}{\ESub\Xi\t{\Type{}}}
 
-%\IRule{S3}{\text{Get type for C and D, recurse}}{\ESub\Xi\C{\xt{D}}}
+\IRule{S3}{\vdash \C : \tp2 \\ \ESub\Xi{\tp2}{\tp1}}{\ESub\Xi\C{\tp1}}
 
-\IRule{S3}{
+\IRule{S4}{\vdash \C : \tp2 \\ \ESub\Xi{\tp1}{\tp2}}{\ESub\Xi{\tp1}\C}
+
+\IRule{S5}{
   \tp1 \leq \tp2 \in \Xi
 }{
  \ESub{\Xi}{\tp1}{\tp2}  
 }
 
-\IRule{S4}{
+\IRule{S6}{
     \Xi' = \Xi,~{\t \leq \Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \,}} \\
     \ESub{\Xi'}\t{\Type{\b{ \mt } }}\\
      \Mtype\m{\b{\tp3}}{\tp4} \inc \t \\
@@ -561,6 +653,7 @@ process.
 }
 \end{mathpar}
 \caption{Subtyping}
+\label{fig:sub}
 \end{figure}
 
 
@@ -568,6 +661,7 @@ process.
 
 
 \begin{figure}
+\opdef{$\GenCast\E{\ep1}{\ep 2}\t$}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast\E\x\x\t}
 
@@ -576,7 +670,7 @@ process.
 	\Mtype\m{\b{\tp 2}}{\tp 3} \inc \t_1\\
 	\b{\AnaCast{\E}{\e_3}{\e_4}{\tp 2}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m_\t}{\b{\e_4}}}{\tp 3}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\e_3}{\m}{\b{\e_4}}}{\tp 3}
 }
 
 \IRule{A5}{
@@ -596,7 +690,7 @@ process.
 
 %%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
-\opdef{\TransExp\E{\ep1}{\ep 2}\t}{\ep1 translates to \ep2 in environment \E with type $\t$}
+\opdef{$\AnaCast\E{\ep1}{\ep 2}\t$}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
 \IRule{AASC2}{
   \GenCast{\E}{\ep1}{\ep2}{\tp2} \\
@@ -608,7 +702,7 @@ process.
 \IRule{AASC3}{
   \GenCast{\E}{\ep1}{\ep2}{\any} \\
 }{
-  \AnaCast{\E}{\ep1}{\ep2}{\any}
+  \AnaCast{\E}{\ep1}{\Cast\any{\ep2}}{\any}
 }
 \end{mathpar}
 \caption{Analytic Cast Insertion}
@@ -791,7 +885,7 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 	\Mtype{\m}{\tp2}{\tp3} \in \tp1 \\
 	\b{\AnaCast{\E}{\e_2}{\e_4}{\Weak\tp2}} \\
 }{
-	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b{\any}}\any}}{\e_3}}{\m_\xt{u}}{\b{\Cast\any{\e_4}}}}{\Weak\tp3}
+	\GenCast{\E}{\Call{\e_1}\m{\b{\e_2}}}{\Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b{\any}}\any}}{\e_3}}{\m_\xt{u}}{\b{\e_4}}}{\Weak\tp3}
 }
 
 \IRule{AASC1}{
@@ -803,7 +897,7 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 \IRule{AASC2}{
   \GenCast{\E}{\ep1}{\ep2}{\tp2}
 }{
-  \AnaCast{\E}{\ep1}{\ep2}{\Weak\tp1}
+  \AnaCast{\E}{\ep1}{\Cast{\any}{\ep2}}{\Weak\tp1}
 }
 \end{mathpar}
 \caption{Strongscript}
@@ -910,9 +1004,9 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 
 \begin{mathpar}
 \IRule{MS1}{
-	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}{\tp2}\C\}}} \\
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
 	\tp2 \not\equiv \meet{\tp1}{\tp2} \\
-	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}{\meet{\tp1}{\tp2}}{\refine{\C}{\tp1}}}} \\
+	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}{\refine{\C}{\tp1}}}} \\
 	\f():\t'_i \in \meet{\tp1}{\tp2}\\
 	\s'_1 = \castfn\a{\t'_1}{\sp2} \\ \ldots \\ \s'_n = \castfn\a{\t'_n}{\s'_{n-1}}\\
 }{
@@ -921,7 +1015,7 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 % \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 
 \IRule{MS2}{
-	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}{\tp2}\C\}}} \\
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
 	\tp2 \equiv \meet{\tp1}{\tp2} \\
 }{
 	\castfn{\ap1}{\tp1}{\sp1} \equiv \s'_n\\
@@ -940,102 +1034,6 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 \bibliographystyle{plain}
 \bibliography{../bib/compactdoi}
 
-
-\begin{figure}
-\opdef{\EnvType{\Es}\e\t}{\e has type \t in environment \E against heap \s}
-\begin{mathpar}
-\IRule{W1}{
-    \HasType{\E}\x\t
- }{
-   \EnvType{\Es}\x\t
-}
-
-\IRule{W2}{
-   \EnvType{\Es}\e{\tp 1} \\ \tp 1 \Sub \t
- }{
-   \EnvType{\Es}\e\t 
-}   
-
-\IRule{W4}{
-   \EnvType{\Es}\e{\C} \\ \Mtype\m{\b{\tp2}}\t\inc \C  \\  \b{\EnvType{\Es}{\ep1}{\tp 2}}
-}{
-    \EnvType{\Es}{\Call\e\m{\b{\ep1}}}\t
-}    
-
-\IRule{W5}{
-  \b{\EnvType{\Es}\e\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-}{
-  \EnvType{\Es}{\New\C{\b\e}}\C
-}
-
-\IRule{W6}{
-  \EnvType{\Es}\e{\tp1}
-}{
-   \EnvType{\Es}{\Cast\t\e}\t
-}
-
-\IRule{W7}{
-  \EnvType{\Es}{\ep1}{\tp1} \\
-  \f : \t \in \tp1 \\
-}{
-  \EnvType{\Es}{\Get\e\f}{\t}
-}
-
-\IRule{W8}{
-  \EnvType{\Es}{\ep1}{\tp1} \\
-  \f : \t \in \tp1 \\
-  \EnvType{\Es}{\ep2}{\t}
-}{
-  \EnvType{\Es}{\Set{\ep1}\f{\ep2}}\t
-}
-
-\IRule{W9}{
-  \s(\ap1) = \Obj{\b{\f=\ap2}}{\tp1}{\C} \\ \b{\f:{\tp2} \in \C} \\ \b{\EnvType{\Es}{\ap2}{\tp2}} \\ 
-  \C <: \tp1 \\
-}{
-  \EnvType{\Es}{\ap1}{\tp1}
-}
-\end{mathpar}
-\caption{Typing rules for the common core}
-\end{figure}
-
-\begin{figure}
-\begin{mathpar}
-\IRule{SW1}{
-    \EnvType{\Es}\e{\tp2}
- }{
-   \EnvType{\Es}\e{\Weak{\tp1}}
-}
-
-\IRule{SW2}{
-    \EnvType{\Es}\e\any
- }{
-   \EnvType{\Es}\e{\Weak\t}
-}   
-\end{mathpar}
-\caption{Strongscript typing extensions}
-\end{figure}
-
-\begin{figure}
-\begin{mathpar}
-
-\IRule{W2}{
-   \EnvType{\Es}\e{\tp 1} \\ \stcons{\tp1}{\t}
- }{
-   \EnvType{\Es}\e\t 
-}   
-
-
-\IRule{W9}{
-  \s(\ap1) = \Obj{\b{\f=\ap2}}{\tp1}{\C} \\ \b{\f:{\tp2} \in \C} \\ \b{\EnvType{\Es}{\ap2}{\tp2}} \\ 
-  \stcons{\C}{\tp1} \\
-}{
-  \EnvType{\Es}{\ap1}{\tp1}
-}
-\end{mathpar}
-\caption{Monotonic typing extensions}
-\end{figure}
 
 \end{document}
 
