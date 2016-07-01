@@ -558,9 +558,9 @@ Our system handles this through an \emph{bidirectional cast insertion} system,
 introduced by (PIERCE AND TURNER CITEME).
 
 Our choice comes from an observation about the nature of traditional bottom-up type
-systems. The fundamental building block is judgements of the form $\E \vdash \e : \t$, 
+systems. The fundamental building block is judgments of the form $\E \vdash \e : \t$, 
 which means that $\e$ inherently has type $\t$. For example, a type mismatch
-would look like trying to conclude a judgement $\E \vdash \e : \any$ when only
+would look like trying to conclude a judgment $\E \vdash \e : \any$ when only
 $\E \vdash \e : \xt{int}$ holds.
 
 Other systems have solved this problem through the introduction of nondeterministic
@@ -568,13 +568,13 @@ rules such as subsumption, but nondeterminism in cast insertion creates problems
 where a single program can be typed in multiple different ways (EXAMPLE).
 
 To solve this problem, we use the aforementioned bidirectional cast insertion
-mechanism. In a bidirectional system, we have two judgements:
+mechanism. In a bidirectional system, we have two judgments:
 
 \begin{itemize}
-\item The \emph{analytic} judgement $\E \vdash \e \Rightarrow \t$, which says that
+\item The \emph{analytic} judgment $\E \vdash \e \Rightarrow \t$, which says that
 $\e$ inherently has type $\t$ against environment $\E$, equivalently to the
 traditional bottom-up type system.
-\item The \emph{synthetic} judgement $\E \vdash \e \Leftarrow \t$, which implies that
+\item The \emph{synthetic} judgment $\E \vdash \e \Leftarrow \t$, which implies that
 $\e$ can potentially have type $\t$ against environment $\E$.
 \end{itemize}
 
@@ -584,17 +584,17 @@ From this, the bidirectional type system will check what type the method $\m$ ha
  here denoted $\Mtype\m{\tp1}{\tp2} \in \t$, then ensure that the arguments make sense with that type.
 
 In a bottom-up type system, we would write $\E \vdash \ep2 : \tp1$, but, as commonly noted with subsumption,
-this can require the introduction of a nonalgorithmic rule to conclude this final judgment. Instead, in a 
+this can require the introduction of a non algorithmic rule to conclude this final judgment. Instead, in a 
 bidirectional type system, we can simply ensure that the type of $\ep2$ is consistent with $\tp1$ through the
 judgment $\E \vdash \ep2 \Leftarrow \tp2$.
 
 Finally, we will be able to conclude that $\E \vdash \Call{\ep1}{\m}{\ep2} \Rightarrow \tp2$. This is a
-synthetic judgement as $\tp2$ is the type that the expression can be known to have in the absence of any
+synthetic judgment as $\tp2$ is the type that the expression can be known to have in the absence of any
 external information.
 
-To support cast insertion, we extend these basic type checking judgements with an output term, of the form 
+To support cast insertion, we extend these basic type checking judgments with an output term, of the form 
 $\GenCast{\E}{\ep1}{\ep2}{\t}$ for the synthetic case and $\AnaCast{\E}{\ep1}{\ep2}{\t}$ for the analytic,
-case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the latter translates the same
+case, where the former translates $\ep1$ to $\ep2$ producing type $\t$, and the latter translates the same
 ensuring type $\t$.
 
 An important note in the construction of our bidirectional type system is that our handling of the key case,
@@ -602,7 +602,7 @@ function application, is less specified than it could be. Other works in this ar
 use a third bidirectional judgment to handle function application, largely to handle the analytic case. If
 we are trying to typecheck a function call against some known type, then we can infer a type for the receiver
 by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
-is not required, as our type inference does not have strict specifity requirements. 
+is not required, as our type inference does not have strict specificity requirements. 
 
 \subsection{Class Translation}
 
@@ -611,7 +611,7 @@ ensuring type invariants about the heap. To enable these checks, we cannot expos
 and modification in our calculus, as otherwise these checks could be easily bypassed.
 
 As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
-setter methods in a phase we call \emph{class translation}, occuring at the same time as cast insertion.
+setter methods in a phase we call \emph{class translation}, occurring at the same time as cast insertion.
 
 Class translation also provides another key component, insertion of guard methods. To ensure type safety
 for untyped call sites, we have to dynamically type check the argument. The guard methods, denoted 
@@ -735,7 +735,7 @@ process.
 
 \IRule{}{
 }{
-  \proxy{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef{\m^*}\x{\any}{\any}{\Cast{\any}{\Call\this\m{\b{\Cast{\tp1}\x}}}}
+  \proxy{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef{\m_\xt{u}}\x{\any}{\any}{\Cast{\any}{\Call\this\m{\b{\Cast{\tp1}\x}}}}
 }
 \end{mathpar}
 \caption{Class Translation}
@@ -790,7 +790,7 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \IRule{MUTWrap}{
 }{
-  \utw{\Mtype{\m}{\b{\tp1}}\t} = \Mdef{\m^\xt{*}}\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}
+  \utw{\Mtype{\m}{\b{\tp1}}\t} = \Mdef{\m_\xt{u}}\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}
 }
 
 \IRule{TWrap}{
