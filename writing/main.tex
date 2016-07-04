@@ -613,11 +613,14 @@ and modification in our calculus, as otherwise these checks could be easily bypa
 As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
 setter methods in a phase we call \emph{class translation}, occurring at the same time as cast insertion.
 
-Class translation also provides another key component, insertion of guard methods. To ensure type safety
-for untyped call sites, we have to dynamically type check the argument. The guard methods, denoted 
-$\m_\xt{u}$, perform these checks in a call to the real underlying method, and are used in the cast insertion
-process.
+Another issue solved by class translation is that raised by calling a method on a dynamic receiver type.
+Consider the invocation $\Call{\e}{\m}{\e'}$ where $\EnvType{\Es}{\e}{\any}$ and $\EnvType{\Es}{\e'}{\any}$. 
+Now, suppose that we have a method on $\e$ $\m(\x:\C)$. Using casting, we can figure out that the method exists,
+and that the arity is correct, but there is no static way to know the argument types of $\m$ statically to 
+insert checks.
 
+Class translation solves this problem by creating a ``guard'' method $\m_\xt{u}$ that will have the same
+arity and a related name, but only has arguments of type $\any$.
 
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
