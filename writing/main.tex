@@ -604,24 +604,6 @@ we are trying to typecheck a function call against some known type, then we can 
 by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
 is not required, as our type inference does not have strict specificity requirements. 
 
-\subsection{Class Translation}
-
-A key component of many gradual type systems is enabling checks for every field access or modification,
-ensuring type invariants about the heap. To enable these checks, we cannot expose ``raw'' field access
-and modification in our calculus, as otherwise these checks could be easily bypassed.
-
-As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
-setter methods in a phase we call \emph{class translation}, occurring at the same time as cast insertion.
-
-Another issue solved by class translation is that raised by calling a method on a dynamic receiver type.
-Consider the invocation $\Call{\e}{\m}{\e'}$ where $\EnvType{\Es}{\e}{\any}$ and $\EnvType{\Es}{\e'}{\any}$. 
-Now, suppose that we have a method on $\e$ $\m(\x:\C)$. Using casting, we can figure out that the method exists,
-and that the arity is correct, but there is no static way to know the argument types of $\m$ statically to 
-insert checks.
-
-Class translation solves this problem by creating a ``guard'' method $\m_\xt{u}$ that will have the same
-arity and a related name, but only has arguments of type $\any$.
-
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
 
@@ -745,6 +727,52 @@ arity and a related name, but only has arguments of type $\any$.
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+\subsection{Class Translation}
+
+A key component of many gradual type systems is enabling checks for every field access or modification,
+ensuring type invariants about the heap. To enable these checks, we cannot expose ``raw'' field access
+and modification in our calculus, as otherwise these checks could be easily bypassed.
+
+As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
+setter methods in a phase we call \emph{class translation}, occurring at the same time as cast insertion.
+
+Another issue solved by class translation is that raised by calling a method on a dynamic receiver type.
+Consider the invocation $\Call{\e}{\m}{\e'}$ where $\EnvType{\Es}{\e}{\any}$ and $\EnvType{\Es}{\e'}{\any}$. 
+Now, suppose that we have a method on $\e$ $\m(\x:\C)$. Using casting, we can figure out that the method exists,
+and that the arity is correct, but there is no static way to know the argument types of $\m$ statically to 
+insert checks.
+
+Class translation solves this problem by creating a ``guard'' method $\m_\xt{u}$ that will have the same
+arity and a related name, but only has arguments of type $\any$.
+
+\subsection{Soundness}
+
+This gradual type system sits on top of the ``base'' type system, which is in turn sound. To show that
+the gradual type system is sound, we need to show that the terms produced by the translation steps are
+well typed, which then can be used with the soundness proof of the underlying base type system to show
+soundness of the system as a whole.
+
+Based on this reasoning, the following correctness theorem for translation is sufficient to demonstrate
+the soundness of the system.
+
+\begin{thm}
+If $\GenCast{\E}{\ep1}{\ep2}{\t}$ or $\AnaCast{\E}{\ep1}{\ep2}{\t}$ then $\EnvType{\E~\emptyset}{\ep2}{\t}$
+\end{thm}
+
+We can then use this correctness theorem to prove the overarching soundness theorem,
+
+\begin{thm}
+If $\GenCast{\E}{\ep1}{\ep2}{\t}$ or $\AnaCast{\E}{\ep1}{\ep2}{\t}$ then one of the the following holds
+\begin{itemize}
+\item $\ep2 \rightarrow \ep2'$ and $\EnvType\Es{\ep2'}\t$
+\item $\ep2 \rightarrow \xt{v}$ and $\EnvType\Es{\xt{v}}\t$
+\item $\ep2$ is $\Cast{\t}{\ep2'}$ and $\ep2 \rightarrow \err$
+\end{itemize}
+\end{thm}
+
+(APPENDIX REFERENCE)
 
 \subsection{Type soundness:}
 Theorem 1: Type translation. If $\EnvType{\Es}\e\t$ and $\TransExp\E\e{\e'}\t$ then $\EnvType{\E ~ \cdot}{\e'}\t$.
@@ -984,12 +1012,12 @@ Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Fty
 
 \begin{figure}
 
-Index every type $\t$ in the source of the program with an index $i$ (denoted $\t^i$). Then, for every class $\C$ and every $i$ where $\stcons\c{\t^i}$, we can generate a most specific type as $\t' \equiv \meet\C{\t^i}$. We then produce a wrapper class $\C^i$ such that
+Consider any type $\t$ in the program, then examine some class $\C$ such that $\vdash \C : \t'$ where $\meet{\tp1}{\tp2}= \t''$.
 \begin{mathpar}
 \IRule{}{
 \Mtype\m{\b{\tp3}}{\tp4} \in \t
 }{
-\adapt{\Mdef\m\x{\tp1}{\tp2}\e, \t} \equiv \\ \Mdef \m\x\any{\meet{\tp2}{\tp4}}{\xt{this}.\m'(\b{\Cast{\meet{\tp1}{\tp3}}{x}})},\\
+\adapt{\Mdef\m\x{\tp1}{\tp2}\e, \t} \equiv \\ \Mdef \m\x\any{\any}{\Cast{\any}{\xt{this}.\m'(\b{\Cast{\meet{\tp1}{\tp3}}{x}})}},\\
 \Mdef {\m'}\x{\meet{\tp1}{\tp3}}{\meet{\tp2}{\tp4}}{\Cast{\meet{\tp2}{\tp4}}\e},	
 }
 
