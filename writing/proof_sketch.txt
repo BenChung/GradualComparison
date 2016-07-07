@@ -48,17 +48,26 @@ proof: by rule induction on typed translation judgment
 	case AASC2:
 		Trivial
 
+Strongscript type equivalence:
+	?t == *
+	* == ?t
+	t == t otherwise
+
 Strongscript well-typed translation:
-	if gamma |- e |-> e' => t, then gamma emp |- e' : t
-	if gamma |- e ~~> e' <= t, then gamma emp |- e' : t
+	if gamma |- e |-> e' => t, then gamma emp |- e' : t' and t' == t
+	if gamma |- e ~~> e' <= t, then gamma emp |- e' : t' and t' == t
 
 proof:
 	case A5
-		By IH, gamma emp |- e3 : ?t1
-		By IH, gamma emp |- e4 : ?t2 ...
+		By IH, gamma emp |- e3 : t1' where t1' == ?t1
+		since t1' == ?t1 we know that t1' = * by inversion of equivalence
+
+		By IH, gamma emp |- e4 : t2' ...
+		since t2' == ?t2 we know that t2' = * by inversion of equivalence
+		
 		By W6, gamma emp |- <{m*(* ...) : *}>e3 : {m*(* ...) : *}
 		By W4, gamma emp |- <{m*(* ...) : *}>e3.m*(e4) : *
-		By SW2, gamma emp |- <(<{m*(* ...) : *}>e3) : t3
+		since * == ?t3 for any t3, the theorem holds.
 	case AASC1
 		trivial by IH and by W6
 	case AASC2
