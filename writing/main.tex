@@ -437,22 +437,18 @@ field. Lastly a field of an object can be update with the notation
 Using this dynamic semantics, we can then define a simple, sound, type system
 that ensures that well-typed programs will not get stuck, seen in figure~\ref{fig:basetyp}.
 
-Our basic type system is typical for calculi that support objects, notably including 
+Our basic type system is typical of calculi that support objects, notably including 
 subtyping. Subtyping in our system is defined in figure~\ref{fig:sub}, which
 defines a simple structual subtyping system with names (to provide for recursive types)
-and Amber-rule style support for recursive types. Notably, however, this system is not
-a \emph{gradual} type system, as it has no support for performing operations other than
-cast on any value of type $\any$.
+as well as the Amber rule to support recursive types. Notably, however, because there
+are no valid operations on $\any$ other than casting, this type system cannot be called
+a \emph{gradual} type system.
 
 %TODO: Explain what's up with sigma
 
-To define a gradual type system based on this core type system, we use
-cast insertion to translate gradually typed code, where we can perform
-actions on values of type $\any$, into terms that typecheck against this
-stricter concrete semantics. 
-
-Soundness for this base system is typical, though with a carve-out for improper casts
-to fail:
+Soundness for this base system is typical, though we define it through combining 
+the progress and preservation lemmas to enable a special case, whereby only casts
+can possibly fail.
 
 \begin{thm}
 If $\EnvType\Es\e\t$, then one of the following holds:
@@ -463,9 +459,10 @@ If $\EnvType\Es\e\t$, then one of the following holds:
 \end{itemize}
 \end{thm}
 
-A well typed program in this calculus can only go wrong at cast sites, and there it has
-a well defined error value - the system will never get stuck. We will go on to use this 
-property to show soundness in the gradual typing systems in question.
+This core, sound, completely typed calculus provides the requisite guarantee,
+that well typed programs will not get stuck, but does very little for gradual
+typing, as it requires that a programmer insert a large number of casts in order
+to interact with code of type $\any$.
 \begin{figure}
 \opdef{\EnvType{\Es}\e\t}{\e has type \t in environment \E against heap \s}
 \begin{mathpar}
@@ -521,16 +518,21 @@ property to show soundness in the gradual typing systems in question.
   \EnvType{\Es}{\ap1}{\tp1}
 }
 \end{mathpar}
-\caption{Typing rules for the common core}
+\caption{Typing rules for the base langauge}
 \label{fig:basetyp}
 \end{figure}
 
 
 
 \section{Gradual Typing}
+In order to extend the core calculus to enable programmers to write gradually
+typed code without having to insert a great number of casts manually, we
+use gradual type systems to add casts where required, presenting a unified gradual
+semantics to the programmer while relying on the core system for soundness.
+
 Our characterization of gradual typing is \emph{gradual typing by translation},
 using an approach similar to that of (MEIJER ET AL CITEME), adding gradual
-types to an aforementioned underlying fully typed language. In this vein,
+types to the underlying fully typed language. In this vein,
 we define our gradual typing extensions as \emph{cast insertion} phases.
 
 This approach lets us simply present the working mechanism of the type
@@ -598,11 +600,12 @@ case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the
 ensuring type $\t$.
 
 An important note in the construction of our bidirectional type system is that our handling of the key case,
-function application, is less specified than it could be. Other works in this area, including (DUNFIELD \& KRISHNASWAMI CITEME)
-use a third bidirectional judgment to handle function application, largely to handle the analytic case. If
-we are trying to typecheck a function call against some known type, then we can infer a type for the receiver
-by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
-is not required, as our type inference does not have strict specifity requirements. 
+function application, is less specific than it could be, as we ignore the analytic case. Other works in this 
+area, including (DUNFIELD \& KRISHNASWAMI CITEME) use a third bidirectional judgment to handle function 
+application, largely to handle the analytic case. If we are trying to typecheck a function call against some 
+known type, then we can infer a type for the receiver by using synthetic type checking on the arguments. 
+However, in our context, detailed handling of this case is not required, as our type inference does not 
+need to be as precise as it does for (DUNFIELD ET AL's) type inference.
 
 \subsection{Class Translation}
 
@@ -620,7 +623,9 @@ and that the arity is correct, but there is no static way to know the argument t
 insert checks.
 
 Class translation solves this problem by creating a ``guard'' method $\m_\xt{u}$ that will have the same
-arity and a related name, but only has arguments of type $\any$. 
+arity and a related name, but only has arguments of type $\any$. We then translate every call to a method
+$\m$ on an untyped receiver to a call to a call to $\m_\xt{u}$, which then does the approperiate type check
+before calling the typed method.
 
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
