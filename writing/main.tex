@@ -558,9 +558,9 @@ Our system handles this through an \emph{bidirectional cast insertion} system,
 introduced by (PIERCE AND TURNER CITEME).
 
 Our choice comes from an observation about the nature of traditional bottom-up type
-systems. The fundamental building block is judgments of the form $\E \vdash \e : \t$, 
+systems. The fundamental building block is judgements of the form $\E \vdash \e : \t$, 
 which means that $\e$ inherently has type $\t$. For example, a type mismatch
-would look like trying to conclude a judgment $\E \vdash \e : \any$ when only
+would look like trying to conclude a judgement $\E \vdash \e : \any$ when only
 $\E \vdash \e : \xt{int}$ holds.
 
 Other systems have solved this problem through the introduction of nondeterministic
@@ -568,13 +568,13 @@ rules such as subsumption, but nondeterminism in cast insertion creates problems
 where a single program can be typed in multiple different ways (EXAMPLE).
 
 To solve this problem, we use the aforementioned bidirectional cast insertion
-mechanism. In a bidirectional system, we have two judgments:
+mechanism. In a bidirectional system, we have two judgements:
 
 \begin{itemize}
-\item The \emph{analytic} judgment $\E \vdash \e \Rightarrow \t$, which says that
+\item The \emph{analytic} judgement $\E \vdash \e \Rightarrow \t$, which says that
 $\e$ inherently has type $\t$ against environment $\E$, equivalently to the
 traditional bottom-up type system.
-\item The \emph{synthetic} judgment $\E \vdash \e \Leftarrow \t$, which implies that
+\item The \emph{synthetic} judgement $\E \vdash \e \Leftarrow \t$, which implies that
 $\e$ can potentially have type $\t$ against environment $\E$.
 \end{itemize}
 
@@ -584,17 +584,17 @@ From this, the bidirectional type system will check what type the method $\m$ ha
  here denoted $\Mtype\m{\tp1}{\tp2} \in \t$, then ensure that the arguments make sense with that type.
 
 In a bottom-up type system, we would write $\E \vdash \ep2 : \tp1$, but, as commonly noted with subsumption,
-this can require the introduction of a non algorithmic rule to conclude this final judgment. Instead, in a 
+this can require the introduction of a nonalgorithmic rule to conclude this final judgment. Instead, in a 
 bidirectional type system, we can simply ensure that the type of $\ep2$ is consistent with $\tp1$ through the
 judgment $\E \vdash \ep2 \Leftarrow \tp2$.
 
 Finally, we will be able to conclude that $\E \vdash \Call{\ep1}{\m}{\ep2} \Rightarrow \tp2$. This is a
-synthetic judgment as $\tp2$ is the type that the expression can be known to have in the absence of any
+synthetic judgement as $\tp2$ is the type that the expression can be known to have in the absence of any
 external information.
 
-To support cast insertion, we extend these basic type checking judgments with an output term, of the form 
+To support cast insertion, we extend these basic type checking judgements with an output term, of the form 
 $\GenCast{\E}{\ep1}{\ep2}{\t}$ for the synthetic case and $\AnaCast{\E}{\ep1}{\ep2}{\t}$ for the analytic,
-case, where the former translates $\ep1$ to $\ep2$ producing type $\t$, and the latter translates the same
+case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the latter translates the same
 ensuring type $\t$.
 
 An important note in the construction of our bidirectional type system is that our handling of the key case,
@@ -602,7 +602,25 @@ function application, is less specified than it could be. Other works in this ar
 use a third bidirectional judgment to handle function application, largely to handle the analytic case. If
 we are trying to typecheck a function call against some known type, then we can infer a type for the receiver
 by using synthetic type checking on the arguments. However, in our context, detailed handling of this case
-is not required, as our type inference does not have strict specificity requirements. 
+is not required, as our type inference does not have strict specifity requirements. 
+
+\subsection{Class Translation}
+
+A key component of many gradual type systems is enabling checks for every field access or modification,
+ensuring type invariants about the heap. To enable these checks, we cannot expose ``raw'' field access
+and modification in our calculus, as otherwise these checks could be easily bypassed.
+
+As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
+setter methods in a phase we call \emph{class translation}, occuring at the same time as cast insertion.
+
+Another issue solved by class translation is that raised by calling a method on a dynamic receiver type.
+Consider the invocation $\Call{\e}{\m}{\e'}$ where $\EnvType{\Es}{\e}{\any}$ and $\EnvType{\Es}{\e'}{\any}$. 
+Now, suppose that we have a method on $\e$ $\m(\x:\C)$. Using casting, we can figure out that the method exists,
+and that the arity is correct, but there is no static way to know the argument types of $\m$ statically to 
+insert checks.
+
+Class translation solves this problem by creating a ``guard'' method $\m_\xt{u}$ that will have the same
+arity and a related name, but only has arguments of type $\any$. 
 
 %%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
@@ -720,59 +738,13 @@ is not required, as our type inference does not have strict specificity requirem
 
 \IRule{}{
 }{
-  \proxy{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef{\m_\xt{u}}\x{\any}{\any}{\Cast{\any}{\Call\this\m{\b{\Cast{\tp1}\x}}}}
+  \proxy{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef{\m^*}\x{\any}{\any}{\Cast{\any}{\Call\this\m{\b{\Cast{\tp1}\x}}}}
 }
 \end{mathpar}
 \caption{Class Translation}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-\subsection{Class Translation}
-
-A key component of many gradual type systems is enabling checks for every field access or modification,
-ensuring type invariants about the heap. To enable these checks, we cannot expose ``raw'' field access
-and modification in our calculus, as otherwise these checks could be easily bypassed.
-
-As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
-setter methods in a phase we call \emph{class translation}, occurring at the same time as cast insertion.
-
-Another issue solved by class translation is that raised by calling a method on a dynamic receiver type.
-Consider the invocation $\Call{\e}{\m}{\e'}$ where $\EnvType{\Es}{\e}{\any}$ and $\EnvType{\Es}{\e'}{\any}$. 
-Now, suppose that we have a method on $\e$ $\m(\x:\C)$. Using casting, we can figure out that the method exists,
-and that the arity is correct, but there is no static way to know the argument types of $\m$ statically to 
-insert checks.
-
-Class translation solves this problem by creating a ``guard'' method $\m_\xt{u}$ that will have the same
-arity and a related name, but only has arguments of type $\any$.
-
-\subsection{Soundness}
-
-This gradual type system sits on top of the ``base'' type system, which is in turn sound. To show that
-the gradual type system is sound, we need to show that the terms produced by the translation steps are
-well typed, which then can be used with the soundness proof of the underlying base type system to show
-soundness of the system as a whole.
-
-Based on this reasoning, the following correctness theorem for translation is sufficient to demonstrate
-the soundness of the system.
-
-\begin{thm}
-If $\GenCast{\E}{\ep1}{\ep2}{\t}$ or $\AnaCast{\E}{\ep1}{\ep2}{\t}$ then $\EnvType{\E~\emptyset}{\ep2}{\t}$
-\end{thm}
-
-We can then use this correctness theorem to prove the overarching soundness theorem,
-
-\begin{thm}
-If $\GenCast{\E}{\ep1}{\ep2}{\t}$ or $\AnaCast{\E}{\ep1}{\ep2}{\t}$ then one of the the following holds
-\begin{itemize}
-\item $\ep2 \rightarrow \ep2'$ and $\EnvType\Es{\ep2'}\t$
-\item $\ep2 \rightarrow \xt{v}$ and $\EnvType\Es{\xt{v}}\t$
-\item $\ep2$ is $\Cast{\t}{\ep2'}$ and $\ep2 \rightarrow \err$
-\end{itemize}
-\end{thm}
-
-(APPENDIX REFERENCE)
 
 \subsection{Type soundness:}
 Theorem 1: Type translation. If $\EnvType{\Es}\e\t$ and $\TransExp\E\e{\e'}\t$ then $\EnvType{\E ~ \cdot}{\e'}\t$.
@@ -821,7 +793,7 @@ For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ 
 
 \IRule{MUTWrap}{
 }{
-  \utw{\Mtype{\m}{\b{\tp1}}\t} = \Mdef{\m_\xt{u}}\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}
+  \utw{\Mtype{\m}{\b{\tp1}}\t} = \Mdef{\m^\xt{*}}\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}
 }
 
 \IRule{TWrap}{
@@ -1012,12 +984,12 @@ Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Fty
 
 \begin{figure}
 
-Consider any type $\t$ in the program, then examine some class $\C$ such that $\vdash \C : \t'$ where $\meet{\tp1}{\tp2}= \t''$.
+Index every type $\t$ in the source of the program with an index $i$ (denoted $\t^i$). Then, for every class $\C$ and every $i$ where $\stcons\c{\t^i}$, we can generate a most specific type as $\t' \equiv \meet\C{\t^i}$. We then produce a wrapper class $\C^i$ such that
 \begin{mathpar}
 \IRule{}{
 \Mtype\m{\b{\tp3}}{\tp4} \in \t
 }{
-\adapt{\Mdef\m\x{\tp1}{\tp2}\e, \t} \equiv \\ \Mdef \m\x\any{\any}{\Cast{\any}{\xt{this}.\m'(\b{\Cast{\meet{\tp1}{\tp3}}{x}})}},\\
+\adapt{\Mdef\m\x{\tp1}{\tp2}\e, \t} \equiv \\ \Mdef \m\x\any{\meet{\tp2}{\tp4}}{\xt{this}.\m'(\b{\Cast{\meet{\tp1}{\tp3}}{x}})},\\
 \Mdef {\m'}\x{\meet{\tp1}{\tp3}}{\meet{\tp2}{\tp4}}{\Cast{\meet{\tp2}{\tp4}}\e},	
 }
 
