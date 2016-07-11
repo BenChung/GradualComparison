@@ -235,6 +235,60 @@ Reticulated Python~\cite{siek14} and Typed Racket~\cite{tf-dls06} support
 promised types.
 
 
+\section{A Closer Look}
+%explanation..
+
+Gradual typing systems all share the same name, but have different means
+of operation, and a considerable amount of work has gone into determining
+how to best ensure type safety for gradual typed code, and how to expose
+the type safety guarantees to the programmer.
+
+We will look at four of the most interesting and representative type systems,
+namely Typed Racket, which demonstrates \emph{module-based} gradual typing,
+Strongscript, which provides the ability for a programmer to pick and choose
+how safe they want their code to be, as well as both the Transient and
+Monotonic semantics for Reticulated Python, which provide different means
+for dynamically ensuring type safety is maintained.
+
+\subsection{Strongscript}
+
+Strongscript is an extension of the unsound Typescript[CITEME], an optional
+type system for Javascript. Strongscript extends this unsound basis with
+sound types, while still accounting for unsound types.
+
+\begin{figure}
+Foo bar baz qux.
+\caption{TODO Strongscript example}
+\label{fig:ssex}
+\end{figure}
+
+Strongscript enables this specificity through the users choice of types. 
+Two kinds of type exist in Strongscript: the optional types, denoted $\t$
+(drawing on the Typescript syntax), and the concrete types, denoted $\t!$.
+
+In Typescript, and in Strongscript optional types, there is no static 
+soundness guarantee for optional types, but some properties are enforced.
+Consider a type $\C$ where $\C$ has the method $\m$ under type $\int \rightarrow \int$
+\subsection{Typed Racket}
+
+Typed Racket is an extension of Racket, adding types through the addition
+of a macro-based type checking system. Typed Racket is unique, however, in
+that it is the main proponent of so-called \emph{macro} gradual typing.
+
+The traditional means of motivating gradual typing is by thinking about
+a large and completely untyped corpus of untyped code, and then deciding
+to add types to all of this untyped code.
+
+\begin{figure}
+Foo bar baz qux.
+\caption{TODO Typed Racket example}
+\end{figure}
+
+\subsection{Transient}
+
+\subsection{Monotonic}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Common Core for Gradually Typed Objects}
