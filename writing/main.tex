@@ -322,7 +322,30 @@ checked at boundaries, and methods are effectively wrapped as they cross between
 
 \subsection{Reticulated Python}
 
+Reticulated Python is an extension of Python adding sound gradual types by Michael 
+Vitousek et al (CITEME), providing Python programmers with the ability to add types
+to their programs. Unlike the other languages we have examined here, though, Reticulated
+Python supports multiple different semantics for these types, providing different guarantees
+and imposing different restrictions.
+
+Three different gradual typing semantics are currently avaliable in Reticulated Python:
+transient, monotonic, and guarded. We focus on the former two, as the guarded semantics
+is broadly similar in practice to the Typed Racket wrapper approach.
+
 \subsubsection{Transient}
+
+In both the Strongscript and Typed Racket approaches, if you wrote a method (denoted $\m$ here)
+under type $\int \rightarrow \int$, you could be assured that you would only ever be called
+with an argument that was actually an int. To achieve this guarantee, the systems alternately
+performed inline runtime casts based on runtime type information and inserted wrappers to
+check that the types were respected \emph{before} an actual function call was made. Likewise,
+a function that was declared to return an int would always return an int, ensured either by
+wrapping or by adding casts inside of it.
+
+Transient takes the opposite perspective. Instead of the caller being responsible for
+checking the types on the arguments and the callee ensuring the return type is correct,
+the transient semantics for Reticulated Python has the callee enforce the types on the
+arguments and the caller enforce the type of the return value.
 
 \subsubsection{Monotonic}
 
