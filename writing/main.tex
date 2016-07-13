@@ -268,7 +268,31 @@ Two kinds of type exist in Strongscript: the optional types, denoted $\t$
 
 In Typescript, and in Strongscript optional types, there is no static 
 soundness guarantee for optional types, but some properties are enforced.
-Consider a type $\C$ where $\C$ has the method $\m$ under type $\int \rightarrow \int$
+Consider a type $\C$ where $\C$ has the identity method $\m$ under type 
+$\int \rightarrow \int$, using optional typing, and suppose we have an 
+instance of $\C$ called $\xt{c}$.
+
+The basic function call $\xt{c}.\m(2)$ is accepted by the compiler without
+complaint. However, the incorrect function call $\xt{c}.\m("foo")$ is rejected,
+since the type checker finds that a string is not compatible with an optional
+int. This works, however, if we cast $\xt{c}$ to $\any$ first - so the term
+$\Cast{\any}{\xt{c}}.\m("foo")$ goes through the type checker, and also works
+at runtime thanks to $\m$ being the identity.
+
+Differences appear when we compare this optionally typed $\m$ to a new concretely
+typed $\m\xt{!}$ under the type $\int! \rightarrow \int!$. The behaviour is 
+identical for the former two cases, but differs in the latter. While the 
+term $\Cast{\any}{\xt{c}}.\xt{\m!}("foo")$ still typechecks, it now causes a runtime
+error when it tries to evaluate the application, as the concrete type added a wrapper
+to ensure type correctness.
+
+In this manner, a programmer can use the strongscript types to control enforcement
+and the subsequent performance issues (CITEME TAKIAWA ET AL) in a gradually typed
+program. However, the guarantee of the optional types goes beyond that of the 
+star type - if the entire program is optionally typed modulo concrete types,
+then all of the optional types can be made into concrete types because the optional
+type checker has the same static restrictions on an optional type as the concrete 
+one does.
 \subsection{Typed Racket}
 
 Typed Racket is an extension of Racket, adding types through the addition
@@ -277,16 +301,30 @@ that it is the main proponent of so-called \emph{macro} gradual typing.
 
 The traditional means of motivating gradual typing is by thinking about
 a large and completely untyped corpus of untyped code, and then deciding
-to add types to all of this untyped code.
+to add types to all of this untyped code. The approach taken by Strongscript
+and others is to allow a programmer to do this task on a \emph{micro} level,
+where a programmer could add a single type to one of many arguments for
+one of many functions in a module, and that type would be enforced.
+
+In contrast, Typed Racket takes a \emph{macro} approach to gradual typing.
+Instead of adding a single type in this migration, Typed Racket has a programmer
+add types to an entire module. 
 
 \begin{figure}
 Foo bar baz qux.
 \caption{TODO Typed Racket example}
 \end{figure}
 
-\subsection{Transient}
+This construction, whereby every module is either entirely typed or entirely untyped
+allows Typed Racket to take a unique approach to enforcement, built around
+contracts CITEME applied at the points where modules interact. Types of values are
+checked at boundaries, and methods are effectively wrapped as they cross between modules.
 
-\subsection{Monotonic}
+\subsection{Reticulated Python}
+
+\subsubsection{Transient}
+
+\subsubsection{Monotonic}
 
 
 
