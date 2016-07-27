@@ -348,14 +348,50 @@ the transient semantics for Reticulated Python has the callee enforce the types 
 arguments and the caller enforce the type of the return value.
 
 \subsubsection{Monotonic}
+A key downfall of the approaches we discussed previously is that they
+cause performance impacts in fully-typed code, especially at heap access
+sites.The monotonic semantics for Reticulated Python aims to recover this,
+in exchange for a new dynamically-enforced guarantee.
 
+To see why the impact exists, consider the following code
 
+\begin{verbatim}
+function evil(x : *) : * {
+	x := "foo bar"
+}
 
+Ref<Int> a = Ref(3)
+evil(a)
+Int y = !x + 2
+\end{verbatim}
+
+If we stripped all checks from this code, we would end up with a stuck
+state, since we would be adding a string to an integer, despite statically
+typing the value of $\a$ as an integer, as we were able to assign to the
+underlying reference from an untyped context.
+
+The approaches discussed for Typed Racket and the transient semantics
+handle this case differently, but both require that the typed code perform
+a typecheck at the dereference of $\x$. Problematically, these checks
+have to be performed even in a fully typed program, because it is impossible
+to know which pointers have been exposed to dynamic code.
+
+The key feature of the monotonic semantics is that it imposes these checks 
+on the dynamic code - any dynamic reference has to respect the types imposed
+by a typed reference. In the above example, the monotonic semantics would
+produce an error when we tried to assign a string into $\x$ - despite the 
+static typing working out, because the reference has a type which is incompatible
+with our new type, monotonic will reject it at that point.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Common Core for Gradually Typed Objects}
 
+These type systems represent a cross section of approaches taken in defining
+gradual typing. However, they are all designed for and implemented on different
+underlying languages, creating difficulties in comparing them, and motivating
+our use of generalizations and text to describe them.
+
 This section introduces the small object calculus we use to illustrate the
-differences between the three gradual type systems.  The calculus was
+differences between the four gradual type systems.  The calculus was
 carefully designed to act as a common core on top of which gradual type
 systems can grafted with relative ease. As usual in such exercises, we aimed
 for minimality, language features not directly required for our development
