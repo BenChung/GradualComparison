@@ -178,7 +178,7 @@ to end-users for that purpose.  At one end of the spectrum, some of the most
 popular languages of the day rely solely on dynamic checks to catch errors
 as the program runs. Towards the other end, statically typed languages
 expose a set of type annotations that programmers have to use in their code
-and, in return, these languages ensure that many errors are ruled entirely.
+and, in return, these languages ensure that many errors are ruled out entirely.
 
 Gradual typing attempts to merge both of these world-views by allowing
 developers to add annotations in an incremental manner, with the promise of
@@ -235,32 +235,67 @@ Reticulated Python~\cite{siek14} and Typed Racket~\cite{tf-dls06} support
 promised types.
 
 
-\section{A Closer Look}
+\section{Inside the Cottages}
 %explanation..
 
-Gradual typing systems all share the same name, but have different means
-of operation, and a considerable amount of work has gone into determining
-how to best ensure type safety for gradual typed code, and how to expose
-the type safety guarantees to the programmer.
-
-We will look at four of the most interesting and representative type systems,
-namely Typed Racket, which demonstrates \emph{module-based} gradual typing,
-Strongscript, which provides the ability for a programmer to pick and choose
-how safe they want their code to be, as well as both the Transient and
-Monotonic semantics for Reticulated Python, which provide different means
-for dynamically ensuring type safety is maintained.
+In this paper, we will look at gradual type systems that present each of the
+above interpretations of gradual typing, some of which allow several at the 
+same time. We begin with a discussion of Strongscript, a extension of Typescript
+that provides \emph{concrete types} as well as \emph{unconstrained types}, then
+examine Typed Racket, providing \emph{promised types}, and finish with a
+discussion of two type systems avaliable for Reticulated Python, both offering
+a different perspective on \emph{promised types}. 
 
 \subsection{Strongscript}
 
-Strongscript is an extension of the unsound Typescript[CITEME], an optional
-type system for Javascript. Strongscript extends this unsound basis with
-sound types, while still accounting for unsound types.
+Strongscript is an evolution of Typescript, an industrial unsound optional
+typing approach for Javascript. Both Strongscript and Typescript aim to
+offer a method for Javascript programmers to migrate their dynamic code
+to typed code, but they differ in that Strongscript provides soundness.
 
-\begin{figure}
-Foo bar baz qux.
-\caption{TODO Strongscript example}
-\label{fig:ssex}
+Many Javascript programs cannot be readily typed CITEME, a problem 
+Typescript surmounts by using  \emph{unconstrained types}. In vanilla 
+Typescript, a function argument or variable declaring that it is of 
+type $\t$ means nothing - Typescript requries that you treat it as a 
+$\t$ in your function body, and the compiler will complain bitterly if 
+you do not, but there is no guarantee that a variable is actually of the type 
+it is declared to be.
+
+\begin{figure}[h]
+\begin{verbatim}
+function test(x:{y : ()=>number}) {
+	return x.y();
+}
+test({b:2})
+\end{verbatim}
+\caption{Typescript Example 1: Static type error}
+\label{fig:tsex1}
 \end{figure}
+
+This behaviour can be seen in figure~\ref{fig:tsex1}, we declare a function test that expects an 
+object that contains a simple function, which invokes the method \xt{y},
+with an expected numeric return value. We then attempt to call this function
+with an object that does not contain a method \xt{y}, which Typescript notices
+and rejects staically. So far so good - Typescript was able to find and prevent a dynamic error.
+
+
+\begin{figure}[h]
+\begin{verbatim}
+function test(x:{y : ()=>number}) {
+	return x.y();
+}
+var foo:any = {b:2}
+test(foo)
+\end{verbatim}
+\caption{Typescript Example 1: Dynamic type error}
+\label{fig:tsex2}
+\end{figure}
+
+However, in figure~\ref{fig:tsex2}, we see what is essentially the same code,
+but when we execute it, it produces a type error. The reason why is that
+we now pass our invalid object through a variable of the \any type present
+in Typescript, which is unchecked. As a result, we can call the test function
+with an invalid value, and we see a type error at the invocation site.
 
 Strongscript enables this specificity through the users choice of types. 
 Two kinds of type exist in Strongscript: the optional types, denoted $\t$
