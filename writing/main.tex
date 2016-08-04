@@ -330,20 +330,49 @@ type checker has the same static restrictions on an optional type as the concret
 one does.
 \subsection{Typed Racket}
 
-Typed Racket is an extension of Racket, adding types through the addition
-of a macro-based type checking system. Typed Racket is unique, however, in
-that it is the main proponent of so-called \emph{macro} gradual typing.
+Typed Racket is an extension of Racket, providing a type system to Racket programmers.
+Two interesting properties stand out from an examination of it: ``macro'' scale typing,
+where entire modules are typed at once, and its use of contracts to provide \emph{
+promised} types.
 
-The traditional means of motivating gradual typing is by thinking about
-a large and completely untyped corpus of untyped code, and then deciding
-to add types to all of this untyped code. The approach taken by Strongscript
-and others is to allow a programmer to do this task on a \emph{micro} level,
-where a programmer could add a single type to one of many arguments for
-one of many functions in a module, and that type would be enforced.
+Gradual typing is evokes images of programmers altering their programs to add more types.
+However, an important question arises about that mental picture: what does it mean to add
+types to a program?
 
-In contrast, Typed Racket takes a \emph{macro} approach to gradual typing.
-Instead of adding a single type in this migration, Typed Racket has a programmer
-add types to an entire module. 
+The answer taken by Strongscript and the other gradual typing systems we dicuss in this 
+paper is that programmers should be able to add a type anywhere one is syntactically
+valid. However, this idea is somewhat artifical - not many programmers will want to
+add a single type to a single function, and will instead add types in a kind of chunked
+fashion.
+
+The approach taken by Typed Racket is to allow programmers to type their programs one module
+at a time, where a module is some block of definitions that can be executed or imported
+by another module. This approach provides a more constrained way to add types to programs,
+and one that avoids having to reason about what it means to have a partially typed method,
+since in Typed Racket everything in a module is either fully typed or completely untypedd.
+
+Typed Racket is the first of the \emph{promised type} systems we will be discussing. Suppose
+that you have a variable $\x$ under type $\t$ where $\t$ has some method $\xt{f}$. Naturally, 
+you would expect to be able to call $\xt{f}$ (as \verb|(send x f)|), and would expect that 
+your type would guarantee that this function call would both work and return a value of the
+correct type.
+
+However, there are a number of places where this basic assumption is violated, as a concequence 
+of the enforcement approach taken by Typed Racket. The key concept is the idea of a \emph{
+  module boundary}. As mentioned earlier, a module can be either typed or untyped, and then
+typed and untyped modules can interact with each other. To perform this interaction, the
+typed module has to import the untyped module as if it were a typed module (in an explicit
+process).
+
+To look at an untyped module as a typed module, one has to ensure that the untyped code
+respects the type annotations. One approach would be to run the typechecker on the untyped
+code at runtime, but this is not feasible in most cases since the untyped code may not be
+well typed, or may need type constructs that cannot be inferred easily. Another approach is
+needed, a niche Typed Racket fills with contracts.
+
+The idea behind using contracts (CITEME Findler Fellisien) is that they allow the system
+to check the types on the values going into typed code from untyped code, and values
+flowing out of untyped code into typed code.
 
 \begin{figure}
 Foo bar baz qux.
