@@ -410,6 +410,30 @@ allows Typed Racket to take a unique approach to enforcement, built around
 contracts CITEME applied at the points where modules interact. Types of values are
 checked at boundaries, and methods are effectively wrapped as they cross between modules.
 
+The key drawback to this approach is that a wrapper cannot establish \emph{actual
+functionality} the same way that \emph{concrete} type systems can. Instead, wrapper
+or guard based systems like the Typed Racket approach can only prove that a given untyped
+function will \emph{act like} a typed function, up to cast errors.
+
+As a demonstration of this, consider figure~\ref{fig:tr2}. TODO
+
+\begin{figure}
+Foo bar baz qux.
+\caption{TODO Typed Racket example}
+\label{fig:tr2}
+\end{figure}
+
+However, the use of promised typing provides a major advantage: untyped code does not 
+need to be aware of types. In order to use a \emph{concrete} type system, even untyped
+code must exist in at least an inheritance hierarchy that can be reasoned about by the 
+runtime type checking system. As a result, promised typing can be used in languages that
+do not have class hierarchies. 
+
+While promised type systems can successfully type more code, they are limited in that
+they cannot absolutely establish type correctness across casts, unlike concrete type
+systems. As a result, errors occur when untyped code is used, rather than at the boundary
+crossing.
+
 \subsection{Reticulated Python}
 
 Reticulated Python is an extension of Python adding sound gradual types by Michael 
@@ -419,8 +443,22 @@ Python supports multiple different semantics for these types, providing differen
 and imposing different restrictions.
 
 Three different gradual typing semantics are currently avaliable in Reticulated Python:
-transient, monotonic, and guarded. We focus on the former two, as the guarded semantics
-is broadly similar in practice to the Typed Racket wrapper approach.
+transient, monotonic, and guarded. All three systems are promised typing approaches,
+checking to ensure that untyped code behaves as if it were typed from the perspective
+of a typed observer. However, the mechanism for achieving this differs in each case.
+
+A notable property about all three gradual typing systems for Reticulated Python is that
+they all support the \emph{gradual guarantee}. The details of the gradual guarantee will
+be explored later in REFME, but informally it can be stated as ``if it is possible to
+fully type a program, than any subset of those type annotations will still work.''
+
+\subsubsection{Guarded}
+
+The guarded semantics for Reticulated Python is broadly similar to the semantics of
+Typed Racket, as it uses wrappers to ensure that untyped code behaves as expected. 
+However, it differs in one key area: where Typed Racket expects typed and untyped 
+code to be in different compilation modules, the guarded semantics allows types
+to be added anywhere in the program.
 
 \subsubsection{Transient}
 
