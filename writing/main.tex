@@ -263,10 +263,13 @@ it is declared to be.
 
 \begin{figure}[h]
 \begin{verbatim}
-function test(x:{y : ()=>number}) {
-	return x.y();
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
+
+function test(x: A) {
+  return x.a();
 }
-test({b:2})
+test(new B())
 \end{verbatim}
 \caption{Typescript Example 1: Static type error}
 \label{fig:tsex1}
@@ -281,13 +284,16 @@ and rejects staically. So far so good - Typescript was able to find and prevent 
 
 \begin{figure}[h]
 \begin{verbatim}
-function test(x:{y : ()=>number}) {
-	return x.y();
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
+
+function test(x:A) {
+	return x.a();
 }
-var foo:any = {b:2}
-test(foo)
+var evil:any = new B()
+test(evil)
 \end{verbatim}
-\caption{Typescript Example 1: Dynamic type error}
+\caption{Typescript Example 2: Dynamic type error}
 \label{fig:tsex2}
 \end{figure}
 
@@ -297,37 +303,57 @@ we now pass our invalid object through a variable of the \any type present
 in Typescript, which is unchecked. As a result, we can call the test function
 with an invalid value, and we see a type error at the invocation site.
 
+This issue is one of \emph{soundness}, an important property Typescript does
+not have. Typescript provides no guarantee that a value inhabiting a type
+is actually of that type. Strongscript aims to fix this issue.
+
+However, a naive sound implementation would cause problems for developers.
+If Strongscript made every type sound, then performance would decrease (TAKIAWA ET AL),
+and programs would produce far more errors. As migrating code to Typescript
+is already considered difficult, this may have presented an unsurmountable 
+barrier to migration. Instead, Strongscript provides programmers with the 
+ability to choose if they want a soundness guarantee or not.
+
 Strongscript enables this specificity through the users choice of types. 
 Two kinds of type exist in Strongscript: the optional types, denoted $\t$
 (drawing on the Typescript syntax), and the concrete types, denoted $\t!$.
 
-In Typescript, and in Strongscript optional types, there is no static 
-soundness guarantee for optional types, but some properties are enforced.
-Consider a type $\C$ where $\C$ has the identity method $\m$ under type 
-$\int \rightarrow \int$, using optional typing, and suppose we have an 
-instance of $\C$ called $\xt{c}$.
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
 
-The basic function call $\xt{c}.\m(2)$ is accepted by the compiler without
-complaint. However, the incorrect function call $\xt{c}.\m("foo")$ is rejected,
-since the type checker finds that a string is not compatible with an optional
-int. This works, however, if we cast $\xt{c}$ to $\any$ first - so the term
-$\Cast{\any}{\xt{c}}.\m("foo")$ goes through the type checker, and also works
-at runtime thanks to $\m$ being the identity.
+function test(x : A!) {
+  return x.a();
+}
+var foo:any =  new B()
+test(foo)
+\end{verbatim}
+\caption{Strongscript Example 1: Dynamic type error}
+\label{fig:ssex}
+\end{figure}
 
-Differences appear when we compare this optionally typed $\m$ to a new concretely
-typed $\m\xt{!}$ under the type $\int! \rightarrow \int!$. The behaviour is 
-identical for the former two cases, but differs in the latter. While the 
-term $\Cast{\any}{\xt{c}}.\xt{\m!}("foo")$ still typechecks, it now causes a runtime
-error when it tries to evaluate the application, as the concrete type added a wrapper
-to ensure type correctness.
+In figure~\ref{fig:ssex}, we have the same program that caused typescript
+to miss a type error, but with one key change: now, instead of taking type
+$\xt{A}$, the function test takes type $\xt{A!}$, and therefore has a soundness
+requirement. However, Strongscript still cannot statically detect the error,
+as the use of the intermediate dynamic variable (simulating a more complex 
+dynamically typed program) stops the type checker from realizing that a type
+error is going to happen.
+
+To solve this problem, Strongscript dynamically checks that the argument
+is type correct. While we do not get a static type error, when we try to 
+run the program, we get a dynamic type error at line 8, where we try to 
+pass a B where an A is expected. 
 
 In this manner, a programmer can use the strongscript types to control enforcement
-and the subsequent performance issues (CITEME TAKIAWA ET AL) in a gradually typed
+and the resulting restrictions on code in a gradually typed
 program. However, the guarantee of the optional types goes beyond that of the 
 star type - if the entire program is optionally typed modulo concrete types,
 then all of the optional types can be made into concrete types because the optional
 type checker has the same static restrictions on an optional type as the concrete 
 one does.
+
 \subsection{Typed Racket}
 
 Typed Racket is an extension of Racket, adding types through the addition
