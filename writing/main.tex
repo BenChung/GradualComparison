@@ -1,7 +1,7 @@
 \documentclass[preprint]{sigplanconf}
 \usepackage{xspace,listings,url,subfigure,framed,amssymb,
             amsmath,mathpartir,hyperref,
-            stmaryrd % double brackets llbracket
+            stmaryrd, graphicx % double brackets llbracket
 }
 \newcommand{\rn}[1]{#1}
 \newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
@@ -142,6 +142,8 @@
 
 \newcommand{\typed}[1]{\text{typed}(#1)}
 \newcommand{\untyped}[1]{\text{untyped}(#1)}
+
+\newcommand{\includecode}[2][c]{\lstinputlisting[caption=#2, escapechar=, style=custom#1]{#2}<!---->}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -401,8 +403,19 @@ to check the types on the values going into typed code from untyped code, and va
 flowing out of untyped code into typed code.
 
 \begin{figure}
-Foo bar baz qux.
-\caption{TODO Typed Racket example}
+\immediate\write18{ls /usr}
+% to generate, run
+% racket format-racket.rkt ../examples/typed_racket/untyped1.rkt untyped-rkt1.pdf
+% racket format-racket.rkt ../examples/typed_racket/typed1.rkt typed-rkt1.pdf
+\includegraphics{untyped-rkt1.pdf}
+\caption{untyped1.rkt: a simple Racket file}
+\label{fig:ut1r}
+\end{figure}
+
+\begin{figure}
+\includegraphics{typed-rkt1.pdf}
+\caption{typed1.rkt: Typed Racket file using untyped1.rkt}
+\label{fig:t1r}
 \end{figure}
 
 This construction, whereby every module is either entirely typed or entirely untyped
@@ -447,11 +460,6 @@ transient, monotonic, and guarded. All three systems are promised typing approac
 checking to ensure that untyped code behaves as if it were typed from the perspective
 of a typed observer. However, the mechanism for achieving this differs in each case.
 
-A notable property about all three gradual typing systems for Reticulated Python is that
-they all support the \emph{gradual guarantee}. The details of the gradual guarantee will
-be explored later in REFME, but informally it can be stated as ``if it is possible to
-fully type a program, than any subset of those type annotations will still work.''
-
 \subsubsection{Guarded}
 
 The guarded semantics for Reticulated Python is broadly similar to the semantics of
@@ -459,6 +467,8 @@ Typed Racket, as it uses wrappers to ensure that untyped code behaves as expecte
 However, it differs in one key area: where Typed Racket expects typed and untyped 
 code to be in different compilation modules, the guarded semantics allows types
 to be added anywhere in the program.
+
+z
 
 \subsubsection{Transient}
 
