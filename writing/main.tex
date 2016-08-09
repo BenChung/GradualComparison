@@ -468,7 +468,91 @@ However, it differs in one key area: where Typed Racket expects typed and untype
 code to be in different compilation modules, the guarded semantics allows types
 to be added anywhere in the program.
 
-z
+\begin{figure}
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + 2
+class A2:
+  def a(a : Int) : Int:
+    return a + 2
+
+def test(a:A2):Int
+  return a.a(2) + 1
+
+test(A1())
+\end{verbatim}
+\label{fig:guard1}
+\end{figure}
+
+In figure~\ref{fig:guard1}, we see a correct program which runs successfully. Class A1
+is dynamically typed, and class A2 is fully statically typed, while the test method
+expects a statically typed instance of A2. We are then able to pass a dynamically typed
+instance of class A1 into this test method as the guarded semantics will insert a wrapper
+around A1 that makes sure it acts like an A2.
+
+To see this more clearly, we can modify the above example into figure~\ref{fig:guard2}. Here,
+A1 does not act like an A2 - when passed an argument, it will try and concatenate the string
+``foo'' onto the end, and will return a string (if it can). As a result, we know that this will
+produce an error, but the question is: where?
+
+\begin{figure}
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + "foo"
+class A2:
+  def a(a : Int) : Int:
+    return a + 2
+
+def test(a:A2):Int
+  return a.a(2) + 1
+
+test(A1())
+\end{verbatim}
+\label{fig:guard2}
+\end{figure}
+
+In this case, the error appears after the function A1.a returns, but before the value is passed
+back to the caller. A wrapper is added around A1 that checks that the return value is an instance
+of type int, and when it is not, an error is produced.
+
+The guarded semantics is one of the most intuitive of the systems we have covered - errors are 
+produced exactly when the value produced breaks the type guarantee. However, it suffers from the
+same issues as were identified in TAKIAWA ET AL 2015 CITEME for Typed Racket, with considerable
+``wrapper bloat'', caused when a value passes between typed and untyped code a large number of times.
+
+\begin{figure}
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + "foo"
+class A2:
+  def a(a : Int) : Int:
+    return a + 2
+
+def a1(a:A1):A1
+  return a
+
+def a2(a:A2):A2
+  return a
+
+a = A1()
+for i=1,1000:
+  a = a1(a2(a))
+\end{verbatim}
+\label{fig:guard3}
+\end{figure}
+
+This problem is illustrated in figure~\ref{fig:guard3}. The functions a1 and a2 act as casts to A1 and A2,
+respectively, and we apply each to the same value 1000 times, alternating between a1 and a2. The problem 
+here arises from the naive interpretation of wrapping, where each time we go from A1 to A2 we acquire a new
+weapper. At the end of this program, a call to a would go through 1000 different objects!
+
+While approaches to help simplify this particular problem exist, little progress has been made in eliminating
+it entirely, at least to acceptible levels. As a concequence, two other systems have been added in Reticulated
+Python that take a different perspective on the issue of how to ensure soundness, but at lower cost in memory
+and levels of indirection.
 
 \subsubsection{Transient}
 
