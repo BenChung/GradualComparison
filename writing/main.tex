@@ -253,15 +253,8 @@ a different perspective on \emph{promised types}.
 Strongscript is an evolution of Typescript, an industrial unsound optional
 typing approach for Javascript. Both Strongscript and Typescript aim to
 offer a method for Javascript programmers to migrate their dynamic code
-to typed code, but they differ in that Strongscript provides soundness.
-
-Many Javascript programs cannot be readily typed CITEME, a problem 
-Typescript surmounts by using  \emph{unconstrained types}. In vanilla 
-Typescript, a function argument or variable declaring that it is of 
-type $\t$ means nothing - Typescript requries that you treat it as a 
-$\t$ in your function body, and the compiler will complain bitterly if 
-you do not, but there is no guarantee that a variable is actually of the type 
-it is declared to be.
+to typed code, but to discuss Strongscript, we first need to explain where
+it came from in Typescript.
 
 \begin{figure}[h]
 \begin{verbatim}
@@ -277,12 +270,20 @@ test(new B())
 \label{fig:tsex1}
 \end{figure}
 
-This behaviour can be seen in figure~\ref{fig:tsex1}, we declare a function test that expects an 
+Figure~\ref{fig:tsex1} presents a simple typed program that is rejected by Typescript.
+In it, we declare a function, called test, that expects an 
 object that contains a simple function, which invokes the method \xt{y},
 with an expected numeric return value. We then attempt to call this function
 with an object that does not contain a method \xt{y}, which Typescript notices
-and rejects staically. So far so good - Typescript was able to find and prevent a dynamic error.
+and rejects statically. As a result, within the method, Typescript tells us that
+we obey the requirements placed upon us by the types.
 
+However, consider figure~\ref{fig:tsex2}, where we place the instance of B into
+an any-typed variable, then call test with that variable. Since the semantics of 
+this program are identical to the one above, one could expect that Typescript 
+would notice the issue and report a static error. When we run the Typescript
+compiler, the program goes through, and execution produces a ``message not 
+understood'' error at the site of the invocation.
 
 \begin{figure}[h]
 \begin{verbatim}
@@ -299,22 +300,24 @@ test(evil)
 \label{fig:tsex2}
 \end{figure}
 
-However, in figure~\ref{fig:tsex2}, we see what is essentially the same code,
-but when we execute it, it produces a type error. The reason why is that
-we now pass our invalid object through a variable of the \any type present
-in Typescript, which is unchecked. As a result, we can call the test function
-with an invalid value, and we see a type error at the invocation site.
-
 This issue is one of \emph{soundness}, an important property Typescript does
 not have. Typescript provides no guarantee that a value inhabiting a type
-is actually of that type. Strongscript aims to fix this issue.
+is actually of that type. This decision has two roots:
+\begin{itemize}
+\item Incorrect types do not create errors. Even if the program is ill-typed,
+yet ran before types were added, it will still run in typed configuration, 
+albeit while breaking the programmer's type-based intuition. This allows programs
+to be typed more easily.
+\item Not checking types at runtime incurs no runtime overhead. As discussed later,
+ensuring the type correctness of a program at runtime incurs a substantial performance
+penalty. By not having any runtime component, Typescript is able to have the same performance
+as Javascript does.
+\end{itemize}
 
-However, a naive sound implementation would cause problems for developers.
-If Strongscript made every type sound, then performance would decrease (TAKIAWA ET AL),
-and programs would produce far more errors. As migrating code to Typescript
-is already considered difficult, this may have presented an unsurmountable 
-barrier to migration. Instead, Strongscript provides programmers with the 
-ability to choose if they want a soundness guarantee or not.
+Simply adding soundness to all types would run straight into both of these
+issues, as it would cause running programs to stop working and would 
+also incur runtime overhead. As a result of these concerns, Strongscript
+provides programmers with a choice about if they want soundness.
 
 Strongscript enables this specificity through the users choice of types. 
 Two kinds of type exist in Strongscript: the optional types, denoted $\t$
@@ -348,7 +351,7 @@ is type correct. While we do not get a static type error, when we try to
 run the program, we get a dynamic type error at line 8, where we try to 
 pass a B where an A is expected. 
 
-In this manner, a programmer can use the strongscript types to control enforcement
+In this manner, a programmer can use the trongscript types to control enforcement
 and the resulting restrictions on code in a gradually typed
 program. However, the guarantee of the optional types goes beyond that of the 
 star type - if the entire program is optionally typed modulo concrete types,
@@ -358,26 +361,24 @@ one does.
 
 \subsection{Typed Racket}
 
-Typed Racket is an extension of Racket, providing a type system to Racket programmers.
-Two interesting properties stand out from an examination of it: ``macro'' scale typing,
-where entire modules are typed at once, and its use of contracts to provide \emph{
-promised} types.
-
-Gradual typing is evokes images of programmers altering their programs to add more types.
+Gradual typing evokes images of programmers altering their programs to add more types.
 However, an important question arises about that mental picture: what does it mean to add
 types to a program?
 
-The answer taken by Strongscript and the other gradual typing systems we dicuss in this 
+The answer taken by Strongscript and the other gradual typing systems we discuss in this 
 paper is that programmers should be able to add a type anywhere one is syntactically
-valid. However, this idea is somewhat artifical - not many programmers will want to
+valid. However, this idea is somewhat artificial - not many programmers will want to
 add a single type to a single function, and will instead add types in a kind of chunked
 fashion.
+
+Typed Racket is an extension of Racket, providing a type system to Racket programmers, requiring
+the programmer to type much more at a time, working on the level of \emph{modules}. 
 
 The approach taken by Typed Racket is to allow programmers to type their programs one module
 at a time, where a module is some block of definitions that can be executed or imported
 by another module. This approach provides a more constrained way to add types to programs,
 and one that avoids having to reason about what it means to have a partially typed method,
-since in Typed Racket everything in a module is either fully typed or completely untypedd.
+since in Typed Racket everything in a module is either fully typed or completely untyped.
 
 Typed Racket is the first of the \emph{promised type} systems we will be discussing. Suppose
 that you have a variable $\x$ under type $\t$ where $\t$ has some method $\xt{f}$. Naturally, 
@@ -385,7 +386,7 @@ you would expect to be able to call $\xt{f}$ (as \verb|(send x f)|), and would e
 your type would guarantee that this function call would both work and return a value of the
 correct type.
 
-However, there are a number of places where this basic assumption is violated, as a concequence 
+However, there are a number of places where this basic assumption is violated, as a consequence 
 of the enforcement approach taken by Typed Racket. The key concept is the idea of a \emph{
   module boundary}. As mentioned earlier, a module can be either typed or untyped, and then
 typed and untyped modules can interact with each other. To perform this interaction, the
@@ -393,7 +394,7 @@ typed module has to import the untyped module as if it were a typed module (in a
 process).
 
 To look at an untyped module as a typed module, one has to ensure that the untyped code
-respects the type annotations. One approach would be to run the typechecker on the untyped
+respects the type annotations. One approach would be to run the type checker on the untyped
 code at runtime, but this is not feasible in most cases since the untyped code may not be
 well typed, or may need type constructs that cannot be inferred easily. Another approach is
 needed, a niche Typed Racket fills with contracts.
