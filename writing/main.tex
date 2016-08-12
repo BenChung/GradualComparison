@@ -253,8 +253,8 @@ a different perspective on \emph{promised types}.
 Strongscript is an evolution of Typescript, an industrial unsound optional
 typing approach for Javascript. Both Strongscript and Typescript aim to
 offer a method for Javascript programmers to migrate their dynamic code
-to typed code, but to discuss Strongscript, we first need to explain where
-it came from in Typescript.
+to typed code, but to discuss Strongscript, we first need to explain its 
+basis in Typescript.
 
 \begin{figure}[h]
 \begin{verbatim}
@@ -429,11 +429,17 @@ functionality} the same way that \emph{concrete} type systems can. Instead, wrap
 or guard based systems like the Typed Racket approach can only prove that a given untyped
 function will \emph{act like} a typed function, up to cast errors.
 
-As a demonstration of this, consider figure~\ref{fig:tr2}. TODO
+As a demonstration of this, consider figure~\ref{fig:tr2}. Here we import the same
+untyped function, but instead of using the correct type annotation for the (untyped)
+identity function, we assert that it takes an integer and makes it into a string. This
+type annotation is clearly wrong, but Typed Racket has no way of checking that it is 
+correct when it is applied. Rather, we are allowed to use the \xt{id} function, and only
+find out that the type is wrong when it returns a number where we expected a string.
 
 \begin{figure}
-Foo bar baz qux.
-\caption{TODO Typed Racket example}
+% racket format-racket.rkt ../examples/typed_racket/typed2.rkt typed-rkt2.pdf
+\includegraphics{typed-rkt2.pdf}
+\caption{typed2.rkt: Invalid type annotation}
 \label{fig:tr2}
 \end{figure}
 
@@ -469,7 +475,7 @@ However, it differs in one key area: where Typed Racket expects typed and untype
 code to be in different compilation modules, the guarded semantics allows types
 to be added anywhere in the program.
 
-\begin{figure}
+\begin{figure}[h]
 \begin{verbatim}
 class A1:
   def a(a : Any) : Any:
@@ -525,7 +531,7 @@ produced exactly when the value produced breaks the type guarantee. However, it 
 same issues as were identified in TAKIAWA ET AL 2015 CITEME for Typed Racket, with considerable
 ``wrapper bloat'', caused when a value passes between typed and untyped code a large number of times.
 
-\begin{figure}
+\begin{figure}[h]
 \begin{verbatim}
 class A1:
   def a(a : Any) : Any:
@@ -572,6 +578,37 @@ Transient takes the opposite perspective. Instead of the caller being responsibl
 checking the types on the arguments and the callee ensuring the return type is correct,
 the transient semantics for Reticulated Python has the callee enforce the types on the
 arguments and the caller enforce the type of the return value.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + "foo"
+class A2:
+  def a(a : Int) : Int:
+    return a + 2
+
+def test(a:A2):Int
+  return a.a(2) + 1
+
+test(A1())
+\end{verbatim}
+\label{fig:trans1}
+\end{figure}
+
+To illustrate this, we will revisit the version of our code that broke the guarded semantics, repeated
+in figure~\ref{fig:trans1}. In the guarded semantics, we saw the program break in the wrapper around
+A1 that made sure it acted like an A2, which occured in the invocation of test on line 9. However,
+in the transient semantics, the error happens \emph{after} the invocation.
+
+While this approach completely avoids the problem identified in figure~\ref{fig:guard3}, it raises
+a new performance issue: this check cannot be statically removed. Any nominally typed variable can
+now no longer be statically trusted to respect its type, and as a result, every invocation must be checked for
+type safety. Therefore, the transient semantics will run into performance issues, if naievly implemented,
+as more types are added, contradicting the typical wisdom about types and performance. While a more sophisticated
+implementation may be able to avoid some of these checks, even better performance of typed code can be made possible
+by using a different type safety guarantee.
+
 
 \subsubsection{Monotonic}
 A key downfall of the approaches we discussed previously is that they
