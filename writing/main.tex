@@ -270,20 +270,18 @@ test(new B())
 \label{fig:tsex1}
 \end{figure}
 
-Figure~\ref{fig:tsex1} presents a simple typed program that is rejected by Typescript.
-In it, we declare a function, called test, that expects an 
-object that contains a simple function, which invokes the method \xt{y},
-with an expected numeric return value. We then attempt to call this function
-with an object that does not contain a method \xt{y}, which Typescript notices
-and rejects statically. As a result, within the method, Typescript tells us that
-we obey the requirements placed upon us by the types.
+Figure~\ref{fig:tsex1} presents a simple typed program that is statically 
+rejected by Typescript, where we try to call a non-existent method on an object,
+an issue which Typescript notices and rejects statically. Typescript did this
+by noticing that the type A is not compatible with the type B.
 
 However, consider figure~\ref{fig:tsex2}, where we place the instance of B into
 an any-typed variable, then call test with that variable. Since the semantics of 
-this program are identical to the one above, one could expect that Typescript 
-would notice the issue and report a static error. When we run the Typescript
-compiler, the program goes through, and execution produces a ``message not 
-understood'' error at the site of the invocation.
+this program are identical to the previous example, one could expect that Typescript 
+would notice the issue and report a static type error. When we run the Typescript
+compiler, the program is accepted by the compiler, and execution produces a ``message not 
+understood'' error at the  invocation site on line 5, inside the function where we expected
+to see no errors. 
 
 \begin{figure}[h]
 \begin{verbatim}
@@ -300,9 +298,13 @@ test(evil)
 \label{fig:tsex2}
 \end{figure}
 
-This issue is one of \emph{soundness}, an important property Typescript does
-not have. Typescript provides no guarantee that a value inhabiting a type
-is actually of that type. This decision has two roots:
+This issue goes undetected because Typescript \emph{only} checks the static
+compatibility of types. It was able to tell that an A is not a B, but cannot
+determine that the real value of \xt{evil} is incompatible with A. As a result,
+Typescript provides no guarantee that a value inhabiting a type is actually of
+that type, and therefore is unsound. The designers of Typescript made this choice
+for two major reasons CITEME:
+
 \begin{itemize}
 \item Incorrect types do not create errors. Even if the program is ill-typed,
 yet ran before types were added, it will still run in typed configuration, 
@@ -310,18 +312,24 @@ albeit while breaking the programmer's type-based intuition. This allows program
 to be typed more easily.
 \item Not checking types at runtime incurs no runtime overhead. As discussed later,
 ensuring the type correctness of a program at runtime incurs a substantial performance
-penalty. By not having any runtime component, Typescript is able to have the same performance
+penalty. By not having any runtime component, Typescript has the same performance
 as Javascript does.
 \end{itemize}
 
 Simply adding soundness to all types would run straight into both of these
 issues, as it would cause running programs to stop working and would 
-also incur runtime overhead. As a result of these concerns, Strongscript
-provides programmers with a choice about if they want soundness.
+also incur runtime overhead. Strongscript sets out to add soundness to
+Typescript, so it has to deal with these problems and coexist with this
+\emph{unconstrained} ecosystem, while simultaneously preventing the issue
+identified in figure~\ref{fig:tsex2}.
 
-Strongscript enables this specificity through the users choice of types. 
-Two kinds of type exist in Strongscript: the optional types, denoted $\t$
-(drawing on the Typescript syntax), and the concrete types, denoted $\t!$.
+To provide soundness while still avoiding compatibility problems with 
+Typescript, Strongscript provides programmers with a choice of type
+safety guarantee - a programmer can choose to write \emph{unconstrained}
+types (denoted $\t$, for compatibility with Typescript) or \emph{concrete}
+types (denoted $\t\xt{!}$), sidestepping both problems with a fully sound
+gradual typing system and devolving responsibility for the choice onto
+the programmer.
 
 \begin{figure}[h]
 \begin{verbatim}
@@ -331,80 +339,149 @@ class B { b() : string { return "b"; } }
 function test(x : A!) {
   return x.a();
 }
-var foo:any =  new B()
-test(foo)
+var evil:any = new B()
+test(evil)
 \end{verbatim}
-\caption{Strongscript Example 1: Dynamic type error}
+\caption{Strongscript: Dynamic type error}
 \label{fig:ssex}
 \end{figure}
 
-In figure~\ref{fig:ssex}, we have the same program that caused typescript
-to miss a type error, but with one key change: now, instead of taking type
+In figure~\ref{fig:ssex}, we have the same program that caused Typescript
+to have a runtime type error, but with one key change: now, instead of taking type
 $\xt{A}$, the function test takes type $\xt{A!}$, and therefore has a soundness
-requirement. However, Strongscript still cannot statically detect the error,
-as the use of the intermediate dynamic variable (simulating a more complex 
-dynamically typed program) stops the type checker from realizing that a type
-error is going to happen.
+requirement. Like Typescript, Strongscript cannot reason about the real value of
+evil statically - all it sees is that evil is of type $\any$, and something of type
+$\any$ \emph{could} work with something expecting type $\xt{A}$. As a result, this
+program is still allowed statically by Strongscript.
 
-To solve this problem, Strongscript dynamically checks that the argument
+To solve this problem and preserve type safety, Strongscript dynamically checks that the argument
 is type correct. While we do not get a static type error, when we try to 
 run the program, we get a dynamic type error at line 8, where we try to 
 pass a B where an A is expected. 
 
-In this manner, a programmer can use the trongscript types to control enforcement
-and the resulting restrictions on code in a gradually typed
-program. However, the guarantee of the optional types goes beyond that of the 
-star type - if the entire program is optionally typed modulo concrete types,
-then all of the optional types can be made into concrete types because the optional
-type checker has the same static restrictions on an optional type as the concrete 
-one does.
+In this manner, a programmer can use the Strongscript types to control enforcement
+and the resulting restrictions on code in a gradually typed program. However,
+Strongscript provides another interesting property that relates the \emph{unconstrained}
+and the \emph{concrete} types, illustrated in figure~\ref{fig:ssex}.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
+
+function test(x : A) {
+  return x.a();
+}
+var nice:A = new A()
+test(nice)
+\end{verbatim}
+\caption{Strongscript: Correct, unconstrained typed program}
+\label{fig:ssex2}
+\end{figure}
+
+Here, in figure~\ref{fig:ssex2}, we have modified the previous examples to execute correctly and typecheck
+successfully with only \emph{unconstrained} types. As a result, we can simply 
+transform it into the program seen in figure~\ref{fig:ssex3} and no errors, runtime
+or compile time, are produced.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
+
+function test(x : A) {
+  return x.a();
+}
+var nice:A = new A()
+test(nice)
+\end{verbatim}
+\caption{Strongscript: Correct, concretely typed program}
+\label{fig:ssex3}
+\end{figure}
+
+The last property we will discuss about Strongscript is its use of 
+\emph{concrete} types. Concrete gradual typing is based on \emph{type identity},
+rather than \emph{type compatibility}, a topic we will discuss in the context of
+Reticulated Python. To illustrate this, consider figure~\ref{fig:ssex4}.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : any { return 0; } }
+
+function test(x : !A) {
+  return x.a();
+}
+var undecided = new B()
+test(undecided)
+\end{verbatim}
+\caption{Strongscript: Concrete typing}
+\label{fig:ssex4}
+\end{figure}
+
+In this example, we have modified A and B such that if you pretended that B
+was an A (that is, if the function b was assumed to have a return type
+of number), then nothing would go wrong. As a result, it would be type
+safe (up to cast errors) to let B stand in for an A in the program.
+
+However, Strongscript will report an error on line 9, as instead of asking
+\emph{could} the program work, it expects the runtime types to line up exactly.
+This choice makes the type system very efficient - all that is required
+at the cast site is a simple tag check - but also means that you cannot simply
+add types alone to a Strongscript program when going from untyped to typed,
+changes to the code have to be made (in this case, we would have to type
+B and declare a subtyping relationship between A and B for the program to
+run without type errors).
+
+We will explore this topic in greater depth in our discussion of Reticulated
+Python, but this issue is why most sound gradual typing systems do not use
+concrete types, and rather use some variation on \emph{promised types}, 
+where an untyped value in a typed location is expected to \emph{act} as
+if it was typed, rather than actually being of that type. The rest of our
+discussion will be devoted to understanding the differences between these 
+systems, starting with Typed Racket.
 
 \subsection{Typed Racket}
 
-Gradual typing evokes images of programmers altering their programs to add more types.
-However, an important question arises about that mental picture: what does it mean to add
-types to a program?
+Typed Racket is an extension of Racket, designed to allow programmers to type
+their untyped Racket code. It differs in two key ways from Strongscript, using \emph{promised
+types}, as mentioned before, but also in where it allows
+programmers to add types in the first place. Gradual typing evokes images of 
+programmers altering their programs to add more types. However, an important question arises about 
+that mental picture: what does it mean to gradually add types to a program?
 
 The answer taken by Strongscript and the other gradual typing systems we discuss in this 
 paper is that programmers should be able to add a type anywhere one is syntactically
-valid. However, this idea is somewhat artificial - not many programmers will want to
-add a single type to a single function, and will instead add types in a kind of chunked
-fashion.
+valid. However, this idea is somewhat artificial - some programmers will add types
+slowly, one function at a time, while others will type whole compilation modules
+at a time.
 
-Typed Racket is an extension of Racket, providing a type system to Racket programmers, requiring
-the programmer to type much more at a time, working on the level of \emph{modules}. 
-
-The approach taken by Typed Racket is to allow programmers to type their programs one module
-at a time, where a module is some block of definitions that can be executed or imported
-by another module. This approach provides a more constrained way to add types to programs,
+The approach taken by Typed Racket is built around this latter style of gradual typing.
+Instead of adding types to individual functions, it allows programmers to type their 
+programs one module at a time, where each module is a separate compilation unit.
+This approach constrains the way that programmers can add types to programs,
 and one that avoids having to reason about what it means to have a partially typed method,
 since in Typed Racket everything in a module is either fully typed or completely untyped.
 
-Typed Racket is the first of the \emph{promised type} systems we will be discussing. Suppose
+Additionally, Typed Racket is the first of the \emph{promised type} systems we will be discussing. Suppose
 that you have a variable $\x$ under type $\t$ where $\t$ has some method $\xt{f}$. Naturally, 
 you would expect to be able to call $\xt{f}$ (as \verb|(send x f)|), and would expect that 
 your type would guarantee that this function call would both work and return a value of the
 correct type.
 
-However, there are a number of places where this basic assumption is violated, as a consequence 
-of the enforcement approach taken by Typed Racket. The key concept is the idea of a \emph{
-  module boundary}. As mentioned earlier, a module can be either typed or untyped, and then
-typed and untyped modules can interact with each other. To perform this interaction, the
-typed module has to import the untyped module as if it were a typed module (in an explicit
-process).
+However, there are a number of places where this basic assumption can be violated,
+as a result of the interaction of typed and untyped code. If the underlying value has
+no function \xt{f}, then this call will fail, but this would be a runtime type error,
+exactly the kind of problem that we wish to avoid.
 
-To look at an untyped module as a typed module, one has to ensure that the untyped code
-respects the type annotations. One approach would be to run the type checker on the untyped
-code at runtime, but this is not feasible in most cases since the untyped code may not be
-well typed, or may need type constructs that cannot be inferred easily. Another approach is
-needed, a niche Typed Racket fills with contracts.
-
-The idea behind using contracts (CITEME Findler Fellisien) is that they allow the system
+The solution to this problem comes from how Typed Racket controls the interaction between 
+modules, at the \emph{module boundaries}, where the system has to ensure that the untyped code
+respects the type annotations. To ensure that the type annotations are respected, Typed Racket uses
+ contracts. The idea behind using contracts (CITEME Findler Fellisien) is that they allow the system
 to check the types on the values going into typed code from untyped code, and values
 flowing out of untyped code into typed code.
 
-\begin{figure}
-\immediate\write18{ls /usr}
+\begin{figure}[h]
 % to generate, run
 % racket format-racket.rkt ../examples/typed_racket/untyped1.rkt untyped-rkt1.pdf
 % racket format-racket.rkt ../examples/typed_racket/typed1.rkt typed-rkt1.pdf
@@ -425,9 +502,10 @@ contracts CITEME applied at the points where modules interact. Types of values a
 checked at boundaries, and methods are effectively wrapped as they cross between modules.
 
 The key drawback to this approach is that a wrapper cannot establish \emph{actual
-functionality} the same way that \emph{concrete} type systems can. Instead, wrapper
+identity} the same way that \emph{concrete} type systems like Strongscript can. Instead, wrapper
 or guard based systems like the Typed Racket approach can only prove that a given untyped
-function will \emph{act like} a typed function, up to cast errors.
+function will \emph{act like} a typed function, up to cast errors, and have to be
+executed every time a value passes through a typed-untyped boundary.
 
 As a demonstration of this, consider figure~\ref{fig:tr2}. Here we import the same
 untyped function, but instead of using the correct type annotation for the (untyped)
@@ -436,7 +514,7 @@ type annotation is clearly wrong, but Typed Racket has no way of checking that i
 correct when it is applied. Rather, we are allowed to use the \xt{id} function, and only
 find out that the type is wrong when it returns a number where we expected a string.
 
-\begin{figure}
+\begin{figure}[h]
 % racket format-racket.rkt ../examples/typed_racket/typed2.rkt typed-rkt2.pdf
 \includegraphics{typed-rkt2.pdf}
 \caption{typed2.rkt: Invalid type annotation}
@@ -567,7 +645,7 @@ and levels of indirection.
 \subsubsection{Transient}
 
 In both the Strongscript and Typed Racket approaches, if you wrote a method (denoted $\m$ here)
-under type $\int \rightarrow \int$, you could be assured that you would only ever be called
+under type $\xt{int} \rightarrow \xt{int}$, you could be assured that you would only ever be called
 with an argument that was actually an int. To achieve this guarantee, the systems alternately
 performed inline runtime casts based on runtime type information and inserted wrappers to
 check that the types were respected \emph{before} an actual function call was made. Likewise,
