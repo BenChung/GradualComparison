@@ -450,7 +450,7 @@ crossing.
 
 \subsection{Reticulated Python}
 
-Reticulated Python is an extension of Python adding sound gradual types by Michael 
+Reticulated Python is an extension of Python adding sound gradual types by 
 Vitousek et al (CITEME), providing Python programmers with the ability to add types
 to their programs. Unlike the other languages we have examined here, though, Reticulated
 Python supports multiple different semantics for these types, providing different guarantees
@@ -483,6 +483,7 @@ def test(a:A2):Int
 
 test(A1())
 \end{verbatim}
+\caption{Guarded: a working program.}
 \label{fig:guard1}
 \end{figure}
 
@@ -497,7 +498,7 @@ A1 does not act like an A2 - when passed an argument, it will try and concatenat
 ``foo'' onto the end, and will return a string (if it can). As a result, we know that this will
 produce an error, but the question is: where?
 
-\begin{figure}
+\begin{figure}[h]
 \begin{verbatim}
 class A1:
   def a(a : Any) : Any:
@@ -511,6 +512,7 @@ def test(a:A2):Int
 
 test(A1())
 \end{verbatim}
+\caption{Guarded: A1 does not follow the types of A2, and therefore invocation fails.}
 \label{fig:guard2}
 \end{figure}
 
@@ -542,6 +544,7 @@ a = A1()
 for i=1,1000:
   a = a1(a2(a))
 \end{verbatim}
+\caption{Guarded: Adding a considerable number of wrappers.}
 \label{fig:guard3}
 \end{figure}
 
@@ -608,13 +611,14 @@ with our new type, monotonic will reject it at that point.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Common Core for Gradually Typed Objects}
 
-These type systems represent a cross section of approaches taken in defining
-gradual typing. However, they are all designed for and implemented on different
-underlying languages, creating difficulties in comparing them, and motivating
-our use of generalizations and text to describe them.
+We discussed a selection of representative gradual typing approaches, using
+in-language examples to motivate and explain their design decisions. However,
+this comparison had to be informal and superficial, with the differences 
+explained in prose. 
 
-This section introduces the small object calculus we use to illustrate the
-differences between the four gradual type systems.  The calculus was
+To help understand the differences between the approaches, we will use a 
+small object calculus and implementations of each of the four gradual 
+typing systems for that calculus. The calculus was
 carefully designed to act as a common core on top of which gradual type
 systems can grafted with relative ease. As usual in such exercises, we aimed
 for minimality, language features not directly required for our development
@@ -1247,9 +1251,7 @@ Synthetic cast insertion is closer to a traditional type system, as it produces 
 Analytic cast insertion ensures that an expression is of a given type. We use analytic cast insertion when a type is known for an expression and we want to force that expression to be of the correct type, which we do by inserting the appropriate cast. The actual details of analytic cast insertion vary depending on the system under consideration (most notably, the monotonic semantics has a notion of consistency that differs from the other two systems).
 
 \begin{figure}
-
 $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
-
 \begin{mathpar}
 \IRule{STS1}{
 }{
