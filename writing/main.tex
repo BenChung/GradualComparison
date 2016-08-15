@@ -657,6 +657,23 @@ checking the types on the arguments and the callee ensuring the return type is c
 the transient semantics for Reticulated Python has the callee enforce the types on the
 arguments and the caller enforce the type of the return value.
 
+To illustrate this, consider figure~\ref{fig:guard2}. If we look at the execution trace that produces
+the error, we find the following sequence of events happened:
+\begin{enumerate}
+\item Evaluate \verb|A1()| to value \xt{v}
+\item Wrap \xt{v} with wrapper \xt{A2W}, producing \xt{vw}
+\item Invoke \verb|test| with \xt{vw}
+\item Call \verb|a| with 2 on \xt{vw}
+\item \xt{A2W} checks that 2 is an integer
+\item Append 2 to the string ``foo'' inside \xt{A1.a}
+\item Return ``2foo'' 
+\item \xt{A2W} finds that ``2foo'' is not an integer, and errors.
+\end{enumerate}
+
+Likewise, in figure~\ref{fig:guard3}, we would end up with steps 5 and (a successful) step 8 repeated
+1000 times in the execution trace. However, we can ``bake in'' the checks added by \xt{A2W} into the
+program itself, resulting in figure~\ref{fig:trans1}.
+
 \begin{figure}[h]
 \begin{verbatim}
 class A1:
@@ -664,20 +681,34 @@ class A1:
     return a + "foo"
 class A2:
   def a(a : Int) : Int:
+    check(a, Int)
     return a + 2
 
 def test(a:A2):Int
-  return a.a(2) + 1
+  return check(a.a(2), Int) + 1
 
 test(A1())
 \end{verbatim}
+\caption{Transient: Type checks baked into source.}
 \label{fig:trans1}
 \end{figure}
 
-To illustrate this, we will revisit the version of our code that broke the guarded semantics, repeated
-in figure~\ref{fig:trans1}. In the guarded semantics, we saw the program break in the wrapper around
-A1 that made sure it acted like an A2, which occured in the invocation of test on line 9. However,
-in the transient semantics, the error happens \emph{after} the invocation.
+This embedding preserves the execution trace that we saw in the guarded semantics, but also completely
+avoids the problems inherent to having wrappers added at type transitions. However, while the transient
+semantics is able to preserve the execution trace, the site at which the error happens is somewhat different.
+
+In the guarded semantics, step 8 happened \emph{before} the function \verb|a| was able to return, and therefore
+the caller effectively never saw the wrong type. In the transient semantics, the caller is now responsible for 
+ensuring that the types of the values passed into it are correct, which has two key implications.
+
+The first is that the site where errors occur is now slightly different. When a function returns a value
+that does not match up with the type that it produces, that discrepancy is now noticed in the caller, instead
+of inside of the wrapper.
+
+This leads to the second implication of the transient semantics: all typed code now has to add type checks,
+as seen in \verb|A2.a| in figure~\ref{fig:trans1}. No typed code can trust any type, be that a type that
+is passed in (for the case where untyped code calls typed code), or a type returned from another function
+(as the other function could be untyped). 
 
 While this approach completely avoids the problem identified in figure~\ref{fig:guard3}, it raises
 a new performance issue: this check cannot be statically removed. Any nominally typed variable can
