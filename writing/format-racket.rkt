@@ -10,7 +10,9 @@
  #:args (input output)
  (values input output)))
 
-(define src (file->string inp))
+(current-code-font "CMU Typewriter Text")
+
+(define src (string-replace (file->string inp) "\r\n" "\n"))
 (define pic (codeblock-pict src))
 
 
@@ -18,6 +20,7 @@
        (for/list ([i (in-range 1 (+ (length (regexp-match* "\n" src)) 2))])
          ((current-code-tt) (number->string i)))))
 (define outpict (hc-append 5 lnums pic))
+
 
 (define psopts (new ps-setup%))
 (send psopts set-margin 0 0)
@@ -36,3 +39,4 @@
 (draw-pict outpict output 0 0)
 (send output end-page)
 (send output end-doc)
+
