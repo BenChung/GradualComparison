@@ -102,7 +102,7 @@
 \newcommand{\E}{\M{\Gamma}}
 \newcommand{\Es}{\E ~\s}
 
-\newcommand{\TransClass}[2]{\M{ #1 \hookrightarrow #2 }}
+\newcommand{\TransClass}[2]{\M{ #1 \rightharpoonup #2 }}
 \newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #3 : #4 }}
 \newcommand{\mdp}[1]{\M{\md_{#1}}}
 \newcommand{\setter}[1]{\M{\llbracket #1  \rrbracket}_{\xt{set}}}
@@ -812,7 +812,6 @@ This method will accept an instance of any class and will return a new
 expression such as \xt{u.x()} will fail if the object bound to \xt{u} does
 not have a getter \xt{x()}.
 
-
 For brevity we use annotate variables with nominal types, but in the
 calculus this is merely shorthand for writing the set of methods suported 
 by the class. Assignment to fields is performed by automatically generated
@@ -1065,6 +1064,20 @@ mechanism required to convert a gradually typed program into a fully typed
 program with casts respecting the guarantee of the gradual typing system in
 question, and demonstrating the workings of each system.
 
+To illustrate the operation of an example gradual typing system within this framework,
+we will show what happens to a program $p$, consisting of a list of classes $c \ldots$ and
+an expression $e$:
+\begin{itemize}
+\item For every $c$, we translate $c$ into $c'$ through the \emph{class translation}
+mechanism $\TransClass{c}{c'}$.
+\item For the entry point $e$, we translate $e$ to $e'$ through the \emph{cast insertion}
+judgment $\Gamma \vdash e \hookrightarrow e'$.
+\item The resulting program $p'$ composed of $c' \ldots$ and $e'$ is then well-typed with 
+respect to the common core's type system, which then means that the output is can be 
+executed without getting stuck.
+\end{itemize}
+
+
 However, the systems share a considerable amount of their basic semantics.
 To prevent needless duplication, we use a \emph{common core} of translation
 rules, which we then modify or extend to support the gradual typing system in
@@ -1156,32 +1169,32 @@ before calling the typed method.
 
 \begin{figure}
 \opdef{$\tp1 \Sub \tp2$}{\tp 1 is a subtype of \tp 2}
-\opdef{$\ESub{\Xi}{\tp1}{\tp2}$}{\tp 1 is a subtype of \tp 2 against environment $\Xi$}
+\opdef{$\ESub{\xt{H}}{\tp1}{\tp2}$}{\tp 1 is a subtype of \tp 2 against environment $\xt{H}$}
 \begin{mathpar}
 \IRule{L1}{\ESub\emptyset{\tp1}{\tp2}}{\tp1 \Sub \tp2}
 
-\IRule{S1}{}{\ESub\Xi\t\t}
+\IRule{S1}{}{\ESub\xt{H}\t\t}
 
-\IRule{S2}{}{\ESub\Xi\t{\Type{}}}
+\IRule{S2}{}{\ESub\xt{H}\t{\Type{}}}
 
-\IRule{S3}{\vdash \C : \tp2 \\ \ESub\Xi{\tp2}{\tp1}}{\ESub\Xi\C{\tp1}}
+\IRule{S3}{\vdash \C : \tp2 \\ \ESub\xt{H}{\tp2}{\tp1}}{\ESub\xt{H}\C{\tp1}}
 
-\IRule{S4}{\vdash \C : \tp2 \\ \ESub\Xi{\tp1}{\tp2}}{\ESub\Xi{\tp1}\C}
+\IRule{S4}{\vdash \C : \tp2 \\ \ESub\xt{H}{\tp1}{\tp2}}{\ESub\xt{H}{\tp1}\C}
 
 \IRule{S5}{
-  \tp1 \leq \tp2 \in \Xi
+  \tp1 \leq \tp2 \in \xt{H}
 }{
- \ESub{\Xi}{\tp1}{\tp2}  
+ \ESub{\xt{H}}{\tp1}{\tp2}  
 }
 
 \IRule{S6}{
-    \Xi' = \Xi,~{\t \leq \Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \,}} \\
-    \ESub{\Xi'}\t{\Type{\b{ \mt } }}\\
+    \xt{H}' = \xt{H},~{\t \leq \Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \,}} \\
+    \ESub{\xt{H}'}\t{\Type{\b{ \mt } }}\\
      \Mtype\m{\b{\tp3}}{\tp4} \inc \t \\
-    \b{\ESub{\Xi'}{\tp3}{\tp1}} \\
-    \ESub{\Xi'}{\tp2}{\tp4} \\    
+    \b{\ESub{\xt{H}'}{\tp3}{\tp1}} \\
+    \ESub{\xt{H}'}{\tp2}{\tp4} \\    
 }{
-   \ESub\Xi\t{\Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \,} } 
+   \ESub{\xt{H}}\t{\Type{\Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt} \,} } 
 }
 \end{mathpar}
 \caption{Subtyping}
