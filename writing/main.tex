@@ -757,14 +757,14 @@ with our new type, monotonic will reject it at that point.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Common Core for Gradually Typed Objects}
 
-We discussed a selection of representative gradual typing approaches, using
-in-language examples to motivate and explain their design decisions. However,
-this comparison had to be informal and superficial, with the differences 
-explained in prose. 
+We have examined a cross section of the common gradual typing approaches, using
+informal comparisons to illustrate their differences. However, this approach 
+creates difficulties for comprehension, as it obscures the key similarities and
+differences between the systems.
 
-To help understand the differences between the approaches, we will use a 
-small object calculus and implementations of each of the four gradual 
-typing systems for that calculus. The calculus was
+To help bridge this gap, we will use a 
+small object calculus and present versions of each of the four approaches
+that work with our calculus. The calculus was
 carefully designed to act as a common core on top of which gradual type
 systems can grafted with relative ease. As usual in such exercises, we aimed
 for minimality, language features not directly required for our development
@@ -772,8 +772,8 @@ were omitted. The result is an imperative class-based system that does not
 support inheritance. The calculus adopts a very simple structural type
 system with concrete types and a single unconstrained type.
 
-The common core allows writing traditional object-oriented examples such as
-a typed \xt{Point} class.\footnote{For our examples we use integers and
+This common core is focused on the basics of object functionality, with
+a simple example being a \xt{Point} class.\footnote{For our examples we use integers and
   common arithmetic operations even if they are not in core calculus.}
 
 %%% FIXME: formatting
@@ -941,11 +941,9 @@ type, and a class; they are denoted \Obj{\b\a}\C. The
 class is used for locating methods and the type is used for type casts. The
 need for keeping them separate will become clear later.
 
-The semantics uses evaluation context \Ctx\e.
-
-Selecting an object from the heap is written \Sel\s\a, while a heap is
-extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\C}}.
-
+The semantics uses evaluation context \Ctx\e, meaning that $\e$ is in the 
+hole of $\Ctx$. Selecting an object from the heap is written \Sel\s\a, 
+while a heap is extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\C}}.
 
 For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\C}, we have 
 \classofis{\Sel\s\a}\C and \typeofis\s\a\t.
@@ -957,21 +955,22 @@ field. Lastly a field of an object can be update with the notation
 
 \subsection{Core Type System}
 
-Using this dynamic semantics, we can then define a simple, sound, type system
-that ensures that well-typed programs will not get stuck, seen in figure~\ref{fig:basetyp}.
+As a basis for our gradual type system, we will use a simple static
+type system, ensuring that the program will not get stuck, but while
+simultaneously is entirely up-front and not gradual, shown in
+figure~\ref{fig:basetyp}.
 
-Our basic type system is typical of calculi that support objects, notably including 
+This basic type system is typical of calculi that support objects, notably including 
 subtyping. Subtyping in our system is defined in figure~\ref{fig:sub}, which
 defines a simple structual subtyping system with names (to provide for recursive types)
 as well as the Amber rule to support recursive types. Notably, however, because there
 are no valid operations on $\any$ other than casting, this type system cannot be called
-a \emph{gradual} type system.
+a \emph{gradual} type system, as a gradual type system should allow $\any$ typed-terms to
+coexist with fully typed ones.
 
-%TODO: Explain what's up with sigma
-
-Soundness for this base system is typical, though we define it through combining 
-the progress and preservation lemmas to enable a special case, whereby only casts
-can possibly fail.
+Soundness for this base system is typical. We combine the progress and preservation lemmas
+to come up with an aggregate small step soundness theorem, which we then extend with the
+typical cast failure carve-out to enable casts to fail without the program getting stuck.
 
 \begin{thm}
 If $\EnvType\Es\e\t$, then one of the following holds:
@@ -982,10 +981,8 @@ If $\EnvType\Es\e\t$, then one of the following holds:
 \end{itemize}
 \end{thm}
 
-This core, sound, completely typed calculus provides the requisite guarantee,
-that well typed programs will not get stuck, but does very little for gradual
-typing, as it requires that a programmer insert a large number of casts in order
-to interact with code of type $\any$.
+The proof of this theorem is simple and is included in the appendix.
+
 \begin{figure}
 \opdef{\EnvType{\Es}\e\t}{\e has type \t in environment \E against heap \s}
 \begin{mathpar}
