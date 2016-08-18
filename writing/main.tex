@@ -303,7 +303,7 @@ compatibility of types. It was able to tell that an A is not a B, but cannot
 determine that the real value of \xt{evil} is incompatible with A. As a result,
 Typescript provides no guarantee that a value inhabiting a type is actually of
 that type, and therefore is unsound. The designers of Typescript made this choice
-for two major reasons CITEME:
+for two major reasons:
 
 \begin{itemize}
 \item Incorrect types do not create errors. Even if the program is ill-typed,
@@ -477,7 +477,7 @@ exactly the kind of problem that we wish to avoid.
 The solution to this problem comes from how Typed Racket controls the interaction between 
 modules, at the \emph{module boundaries}, where the system has to ensure that the untyped code
 respects the type annotations. To ensure that the type annotations are respected, Typed Racket uses
- contracts. The idea behind using contracts (CITEME Findler Fellisien) is that they allow the system
+ contracts. The idea behind using contracts~\cite{findler-hof} that they allow the system
 to check the types on the values going into typed code from untyped code, and values
 flowing out of untyped code into typed code.
 
@@ -498,7 +498,7 @@ flowing out of untyped code into typed code.
 
 This construction, whereby every module is either entirely typed or entirely untyped
 allows Typed Racket to take a unique approach to enforcement, built around
-contracts CITEME applied at the points where modules interact. Types of values are
+contracts~\cite{tf-popl08} applied at the points where modules interact. Types of values are
 checked at boundaries, and methods are effectively wrapped as they cross between modules.
 
 The key drawback to this approach is that a wrapper cannot establish \emph{actual
@@ -535,7 +535,7 @@ crossing.
 \subsection{Reticulated Python}
 
 Reticulated Python is an extension of Python adding sound gradual types by 
-Vitousek et al (CITEME), providing Python programmers with the ability to add types
+Vitousek et al~\cite{designeval-python}, providing Python programmers with the ability to add types
 to their programs. Unlike the other languages we have examined here, though, Reticulated
 Python supports multiple different semantics for these types, providing different guarantees
 and imposing different restrictions.
@@ -606,7 +606,7 @@ of type int, and when it is not, an error is produced.
 
 The guarded semantics is one of the most intuitive of the systems we have covered - errors are 
 produced exactly when the value produced breaks the type guarantee. However, it suffers from the
-same issues as were identified in TAKIAWA ET AL 2015 CITEME for Typed Racket, with considerable
+same issues as were identified in~\cite{practical-gt} for Typed Racket, with considerable
 ``wrapper bloat'', caused when a value passes between typed and untyped code a large number of times.
 
 \begin{figure}[h]
@@ -1051,7 +1051,7 @@ use gradual type systems to add casts where required, presenting a unified gradu
 semantics to the programmer while relying on the core system for soundness.
 
 Our characterization of gradual typing is \emph{gradual typing by translation},
-using an approach similar to that of (MEIJER ET AL CITEME), adding gradual
+using an approach similar to that of~\cite{Bierman10}, adding gradual
 types to the underlying fully typed language. In this vein,
 we define our gradual typing extensions as \emph{cast insertion} phases.
 
@@ -1091,7 +1091,7 @@ Cast insertion is fundamentally \emph{type driven}. In our type system, it is
 required to have a cast whenever a type needs to be altered, and therefore in
 inserting casts we need to know every site where one type is required to be another.
 Our system handles this through an \emph{bidirectional cast insertion} system,
-introduced by (PIERCE AND TURNER CITEME).
+introduced by~\cite{lti-pierce}
 
 Our choice comes from an observation about the nature of traditional bottom-up type
 systems. The fundamental building block is judgements of the form $\E \vdash \e : \t$, 
@@ -1135,7 +1135,7 @@ ensuring type $\t$.
 
 An important note in the construction of our bidirectional type system is that our handling of the key case,
 function application, is less specific than it could be, as we ignore the analytic case. Other works in this 
-area, including (DUNFIELD \& KRISHNASWAMI CITEME) use a third bidirectional judgment to handle function 
+area, including~\cite{bidir-typing} use a third bidirectional judgment to handle function 
 application, largely to handle the analytic case. If we are trying to typecheck a function call against some 
 known type, then we can infer a type for the receiver by using synthetic type checking on the arguments. 
 However, in our context, detailed handling of this case is not required, as our type inference does not 
@@ -1233,7 +1233,6 @@ during the class translation phase.
 
 %%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
-\opdef{$\AnaCast\E{\ep1}{\ep 2}\t$}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
 \IRule{AASC2}{
   \GenCast{\E}{\ep1}{\ep2}{\tp2} \\
