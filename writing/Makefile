@@ -1,4 +1,4 @@
-all: 
+all: figures
 	pdflatex main.tex
 	bibtex main
 
@@ -9,7 +9,7 @@ no:
 	bibtex main
 	pdflatex main.tex
 
-jan:
+jan: figures
 	pdflatex main && open main.pdf
 
 halfclean:
@@ -18,3 +18,7 @@ halfclean:
 clean: halfclean
 	rm -f main.pdf
 
+figures:
+	racket format-racket.rkt ../examples/typed_racket/untyped1.rkt untyped-rkt1.pdf
+	racket format-racket.rkt ../examples/typed_racket/typed1.rkt typed-rkt1.pdf
+	racket format-racket.rkt ../examples/typed_racket/typed2.rkt typed-rkt2.pdf
