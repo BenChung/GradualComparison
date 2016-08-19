@@ -762,15 +762,11 @@ informal comparisons to illustrate their differences. However, this approach
 creates difficulties for comprehension, as it obscures the key similarities and
 differences between the systems.
 
-To help bridge this gap, we will use a 
-small object calculus and present versions of each of the four approaches
-that work with our calculus. The calculus was
-carefully designed to act as a common core on top of which gradual type
-systems can grafted with relative ease. As usual in such exercises, we aimed
-for minimality, language features not directly required for our development
-were omitted. The result is an imperative class-based system that does not
-support inheritance. The calculus adopts a very simple structural type
-system with concrete types and a single unconstrained type.
+To illustrate the differences, we will start with a fully statically typed language,
+then evolve it into a gradually typed language, using the approaches that we have
+discussed. For clarity, we use the simplest language possible, stripping all
+but the key components of an imperative class-based language away, using structural
+typing for compatibility with the gradual typing systems.
 
 This common core is focused on the basics of object functionality, with
 a simple example being a \xt{Point} class.\footnote{For our examples we use integers and
@@ -1055,31 +1051,6 @@ using an approach similar to that of~\cite{Bierman10}, adding gradual
 types to the underlying fully typed language. In this vein,
 we define our gradual typing extensions as \emph{cast insertion} phases.
 
-This approach lets us simply present the working mechanism of the type
-systems. For each of the systems in question, we present the cast insertion
-mechanism required to convert a gradually typed program into a fully typed
-program with casts respecting the guarantee of the gradual typing system in
-question, and demonstrating the workings of each system.
-
-To illustrate the operation of an example gradual typing system within this framework,
-we will show what happens to a program $p$, consisting of a list of classes $c \ldots$ and
-an expression $e$:
-\begin{itemize}
-\item For every $c$, we translate $c$ into $c'$ through the \emph{class translation}
-mechanism $\TransClass{c}{c'}$.
-\item For the entry point $e$, we translate $e$ to $e'$ through the \emph{cast insertion}
-judgment $\Gamma \vdash e \hookrightarrow e'$.
-\item The resulting program $p'$ composed of $c' \ldots$ and $e'$ is then well-typed with 
-respect to the common core's type system, which then means that the output is can be 
-executed without getting stuck.
-\end{itemize}
-
-
-However, the systems share a considerable amount of their basic semantics.
-To prevent needless duplication, we use a \emph{common core} of translation
-rules, which we then modify or extend to support the gradual typing system in
-question.
-
 \subsection{Cast Insertion}
 
 The user-facing component of a gradual typing system is its type checker,
@@ -1139,7 +1110,7 @@ area, including~\cite{bidir-typing} use a third bidirectional judgment to handle
 application, largely to handle the analytic case. If we are trying to typecheck a function call against some 
 known type, then we can infer a type for the receiver by using synthetic type checking on the arguments. 
 However, in our context, detailed handling of this case is not required, as our type inference does not 
-need to be as precise as it does for (DUNFIELD ET AL's) type inference.
+need to be as precise as it does for Dunfield and Krishnaswami's type inference.
 
 \subsection{Class Translation}
 
@@ -1171,13 +1142,13 @@ during the class translation phase.
 \begin{mathpar}
 \IRule{L1}{\ESub\emptyset{\tp1}{\tp2}}{\tp1 \Sub \tp2}
 
-\IRule{S1}{}{\ESub\xt{H}\t\t}
+\IRule{S1}{}{\ESub{\xt{H}}\t\t}
 
-\IRule{S2}{}{\ESub\xt{H}\t{\Type{}}}
+\IRule{S2}{}{\ESub{\xt{H}}\t{\Type{}}}
 
-\IRule{S3}{\vdash \C : \tp2 \\ \ESub\xt{H}{\tp2}{\tp1}}{\ESub\xt{H}\C{\tp1}}
+\IRule{S3}{\vdash \C : \tp2 \\ \ESub{\xt{H}}{\tp2}{\tp1}}{\ESub\xt{H}\C{\tp1}}
 
-\IRule{S4}{\vdash \C : \tp2 \\ \ESub\xt{H}{\tp1}{\tp2}}{\ESub\xt{H}{\tp1}\C}
+\IRule{S4}{\vdash \C : \tp2 \\ \ESub{\xt{H}}{\tp1}{\tp2}}{\ESub\xt{H}{\tp1}\C}
 
 \IRule{S5}{
   \tp1 \leq \tp2 \in \xt{H}
@@ -1283,6 +1254,19 @@ during the class translation phase.
 \caption{Class Translation}
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+At this point, we have defined a not-very-useful semantics for gradual typing, 
+with all of the key components but providing no additional functionality
+beyond what our original statically typed core. This semantics has us
+applying class translation, $\TransClass\C\C$, expression translation,
+$\GenCast\E\e\e\t$ and $\AnaCast\E\e\e\t$, a dynamic semantics $\e 
+\rightarrow \e$, and finally a subtyping relationship $\t <: \t$, defining the
+architecture that we will follow for the remainder of the languages.
+
+
+By following this structure, we can describe a semantics for our language
+with the 5-tuple $(\rightharpoonup, \hookrightarrow, \rightsquigarrow, <:, \rightarrow)$.
+The core would be defined as (TODO)
 
 
 \subsection{Type soundness:}
@@ -1521,18 +1505,18 @@ Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Fty
 
 \begin{figure}
 
-Index every type $\t$ in the source of the program with an index $i$ (denoted $\t^i$). Then, for every class $\C$ and every $i$ where $\stcons\c{\t^i}$, we can generate a most specific type as $\t' \equiv \meet\C{\t^i}$. We then produce a wrapper class $\C^i$ such that
+For every class $\C$ and every $\t$ where $\stcons\C\t$, we can generate a most specific type as $\t' \equiv \meet\C{\t^i}$. We then produce a wrapper class $\refine\C\t$ such that
 \begin{mathpar}
 \IRule{}{
-\Mtype\m{\b{\tp3}}{\tp4} \in \t
+\Mtype\m{\b{\tp3}}{\tp4} \in \t'
 }{
 \adapt{\Mdef\m\x{\tp1}{\tp2}\e, \t} \equiv \\ \Mdef \m\x\any{\meet{\tp2}{\tp4}}{\xt{this}.\m'(\b{\Cast{\meet{\tp1}{\tp3}}{x}})},\\
 \Mdef {\m'}\x{\meet{\tp1}{\tp3}}{\meet{\tp2}{\tp4}}{\Cast{\meet{\tp2}{\tp4}}\e},	
 }
 
 \IRule{}{
-	\b{\adapt{\md_1, \t^i}} \equiv \md_2
-}{\TransClass{\Class\C{\b{\fd}}{\b{\md_1}}}{\Class{\C^i}{\b{\fd}}{\b{\md_2}}}}
+	\b{\adapt{\md_1, \t}} \equiv \md_2
+}{\TransClass{\Class\C{\b{\fd}}{\b{\md_1}}}{\Class{\refine\C\t}{\b{\fd}}{\b{\md_2}}}}
 \end{mathpar}
 \caption{Monotonic translation}
 \end{figure}
@@ -1544,21 +1528,21 @@ Index every type $\t$ in the source of the program with an index $i$ (denoted $\
 
 \begin{mathpar}
 \IRule{MS1}{
-	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
-	\tp2 \not\equiv \meet{\tp1}{\tp2} \\
-	\sp2 = \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}{\refine{\C}{\tp1}}}} \\
-	\f():\t'_i \in \meet{\tp1}{\tp2}\\
-	\s'_1 = \castfn\a{\t'_1}{\sp2} \\ \ldots \\ \s'_n = \castfn\a{\t'_n}{\s'_{n-1}}\\
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}\C\}}} \\
+	\C \not\equiv \meet{\tp1}{\C} \\
+	\sp2 = \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}{\refine{\C}{\tp1}}}} \\
+	\Class{\refine{\C}{\tp1}}{\f():\t'_1,~ \ldots,~ \f():\t'_n \ldots} \\
+	\s'_1 = \castfn{\a_1'}{\t'_1}{\sp2} \\ \ldots \\ \s'_n = \castfn{\a_n'}{\t'_n}{\s'_{n-1}}\\
 }{
 	\castfn{\ap1}{\tp1}{\sp1} \equiv \s'_n\\
 }
 % \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 
 \IRule{MS2}{
-	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
-	\tp2 \equiv \meet{\tp1}{\tp2} \\
+	\Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
+	\C \equiv \meet{\tp1}{\C} \\
 }{
-	\castfn{\ap1}{\tp1}{\sp1} \equiv \s'_n\\
+	\castfn{\ap1}{\tp1}{\s} \equiv \s\\
 }
 
 \IRule{MSE}{
