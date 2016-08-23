@@ -84,8 +84,8 @@
 %\newcommand{\IRule}[3]{\inferrule{#2}{#3}}    %% No label
 \newcommand{\CondRule}[3]{ #3 &~{\emph{if}} #2 \\}
 \newcommand{\NoCondRule}[2]{ #2 &       \\}
-\newcommand{\Reduce}[5]{\M{ #1~#2 \rightarrow_#3 #4~#5}}
-\newcommand{\ReduceA}[5]{\M{ #1 ~ #2 } &  \M { \rightarrow_#3 #4 ~ #5}}
+\newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
+\newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
 \newcommand{\inc}{\M{\in}}
 \newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
 \newcommand{\Bind}[2]{\M{#1 \is #2}}
@@ -119,6 +119,8 @@
 \newcommand{\proxy}[1]{\M{\llbracket #1  \rrbracket}_{\xt{proxy}}}
 \newcommand{\utw}[1]{\M{\llbracket #1  \rrbracket}_{\xt{untyped}}}
 \newcommand{\tw}[1]{\M{\llbracket #1  \rrbracket}_{\xt{typed}}}
+
+\newcommand{\cast}[3]{\xt{cast}(#1, #2, #3)}
 
 \newtheorem{definition}{Definition}
 \newtheorem{thm}{Theorem}
@@ -860,57 +862,57 @@ classes.
 \begin{figure}
 
 \begin{minipage}{8cm}
-\opdef{\Reduce{\ep 1}{\sp 1}c{\ep 2}{\sp 2}}{\ep1 \sp1 evaluates to {\ep2} {\sp2} or \err in a step}\\[-1mm]
+\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep1 \sp1 evaluates to \ep2 \sp2 or \err in a step}\\[-1mm]
 \begin{tabular}{@{}l@{}l@{~}l@{~}l}
 \CondRule{E1}{ %% e -> e'
-  \Reduce {\ep 1}{\sp 1}{c}{\ep 2}{\sp 2}
+  \Reduce {\ep 1}{\sp 1}{\ep 2}{\sp 2}
 }{
-  \ReduceA {\Ctx{\ep1}}{\sp 1}c{\Ctx{\ep2}}{\sp 2}
+  \ReduceA {\Ctx{\ep1}}{\sp 1}{\Ctx{\ep2}}{\sp 2}
 }
 \CondRule{E2}{ %% new C -> a
    \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C}
 }{ 
-    \ReduceA{ \New\C{\b\a} }{\sp1}{c}{\ap1}{\sp 2}
+    \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
 }
 \CondRule{E3}{ %% a.m -> e
    \dispatch{\b\x}\e\s\a\m
 }{
-   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{c}{[\a/\this~\b{{\ap 1}/\x}]\e}\s
+   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{[\a/\this~\b{{\ap 1}/\x}]\e}\s
 }
 
 \CondRule{E3}{
    \notdispatch{\b\x}\e\s\a\m
 }{
-   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{c}{\err}{}
+   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{\err}{}
 }
 \CondRule{E3}{ 
      \readfield{\ap1}\s\a\f
 }{
-  \ReduceA{\Get\a\f}{\s}{c}{\ap 1}{\s}
+  \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
 }
 \CondRule{E4}{
      \setfield{\sp2}{\sp1}\a\f{\ap1}
 }{
-     \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{c}{\ap 1}{\sp 2}
+     \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
 }
 \NoCondRule{E5}
 { 
-   \ReduceA{ \Cast\any\a}\s{c} \a\s
+   \ReduceA{ \Cast\any\a}\s \a\s
 }
 \CondRule{E6}{
-  \typeof\s\a \Sub \tp 1
+  \cast{\a}{\t}{\sp1} = \sp2
 }{ 
-    \ReduceA{\Cast{\tp 1}\a}\s{c}\a\s
+    \ReduceA{\Cast{\tp 1}\a}{\sp1}\a{\sp2}
 }
 \CondRule{E7}{
-  \typeof\s\a \NotSub \tp 1
+  \cast{\a}{\t}{\sp1} = \err
 }{ 
-    \ReduceA{\Cast{\tp 1}\a}\s{c}\err{}
+    \ReduceA{\Cast{\tp 1}\a}\s\err{}
 }
 \CondRule{E8}{
-    \Reduce\e{\sp 1}c\err{}
+    \Reduce\e{\sp 1}\err{}
 }{
-    \ReduceA{\Ctx\e}{\sp1}{c}\err{}
+    \ReduceA{\Ctx\e}{\sp1}\err{}
 }
 \end{tabular}\end{minipage}
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1038,11 +1040,7 @@ The proof of this theorem is simple and is included in the appendix.
 \label{fig:basetyp}
 \end{figure}
 
-At this point, we have defined a complete (allbeit small) statically typed 
-language, with everything that is required to check and evaluate it, which 
-required a typing judgment, a subtyping relationship, and a dynamics. We can
-then describe a statically typed language as a triple of $(\vdash,<:,\rightarrow_c)$,
-fully specifying the semantics of the language.
+
 
 \section{Gradual Typing}
 In order to extend the core calculus to enable programmers to write gradually
@@ -1183,6 +1181,10 @@ during the class translation phase.
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast\E\x\x\t}
 
+\IRule{A2}{\GenCast\E{\ep1}{\ep2}{\C} \\ \f:\t \in \C }{\GenCast{\E}{\Get\e\f}{\Call{\e}\f{}}{\t}}
+
+\IRule{A3}{\GenCast\E{\ep1}{\ep3}{\C} \\ \GenCast\E{\ep2}{\ep4}{\tp1} \\ \f:\tp2 \in \C \\ \tp1 <: \tp2 }{\GenCast{\E}{\Set{\ep1}\f{\ep2}}{\Call{\ep3}{\xt{f!}}{\ep4}}{\tp2}}
+
 \IRule{A4}{
 	\GenCast{\E}{\e_1}{\e_2}{\t_1} \\
 	\Mtype\m{\b{\tp 2}}{\tp 3} \inc \t_1\\
@@ -1226,7 +1228,7 @@ during the class translation phase.
 \end{figure}
 
 \begin{figure}
-\opdef{\TransClass{\C_1}{\C_2}}{$\C_1$ translates to $\C_2$}
+\opdef{\TransExp\E{\ep1}{\ep 2}\t}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
 \IRule{CT1}{
  \b{ \mdp1} \equiv \b{\fcast{\md}} ~~ \b{\setter\fd} ~~ \b{\getter\fd}\\  \b{\mdp2} \equiv \b{\mdp1} ~~ \b{\proxy{\mdp1}}
@@ -1235,7 +1237,7 @@ during the class translation phase.
 }
 
 \IRule{}{
-  \AnaCast{\b{\x:\tp1}}{\ep1}{\ep2}{\tp2}
+  \AnaCast{\this:\C,\;\b{\x:\tp1}}{\ep1}{\ep2}{\tp2}
 }{
   \fcast{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef\m\x{\tp1}{\tp2}{\ep2}
 }
@@ -1528,7 +1530,7 @@ For every class $\C$ and every $\t$ where $\stcons\C\t$, we can generate a most 
 \newcommand{\Vect}[3]{\text{Vec}(#1,#2,#3)}
 \newcommand{\tv}{\xt{v}}
 \begin{figure}
-\opdef{\Reduce{\ep 1}{\sp 1}m{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
+\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep 1 with heap \sp 1 evaluates to \ep 2 and \sp 2 in a step}
 
 \begin{mathpar}
 \IRule{MS1}{
@@ -1552,7 +1554,7 @@ For every class $\C$ and every $\t$ where $\stcons\C\t$, we can generate a most 
 \IRule{MSE}{
 	\sp2 = \castfn{\ap1}{\tp1}{\sp1}
 }{
-	\Reduce{\Cast{\tp 1}{\ap1}}{\sp1}m{\ap1}{\sp2}
+	\Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 }
 \end{mathpar}
 \caption{Monotonic Dynamic Semantics.}
