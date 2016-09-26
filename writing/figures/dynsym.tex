@@ -1,0 +1,65 @@
+
+\begin{minipage}{8cm}
+\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep1 \sp1 evaluates to \ep2 \sp2 or \err in a step}\\[-1mm]
+\begin{tabular}{@{}l@{}l@{~}l@{~}l}
+\CondRule{E1}{ %% e -> e'
+  \Reduce {\ep 1}{\sp 1}{\ep 2}{\sp 2}
+}{
+  \ReduceA {\Ctx{\ep1}}{\sp 1}{\Ctx{\ep2}}{\sp 2}
+}
+\CondRule{E2}{ %% new C -> a
+   \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C}
+}{ 
+    \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
+}
+\CondRule{E3}{ %% a.m -> e
+   \dispatch{\b\x}\e\s\a\m
+}{
+   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{[\a/\this~\b{{\ap 1}/\x}]\e}\s
+}
+
+\CondRule{E3}{
+   \notdispatch{\b\x}\e\s\a\m
+}{
+   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{\err}{}
+}
+\CondRule{E3}{ 
+     \readfield{\ap1}\s\a\f
+}{
+  \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
+}
+\CondRule{E4}{
+     \setfield{\sp2}{\sp1}\a\f{\ap1}
+}{
+     \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
+}
+\CondRule{E5}{
+  \cast{\ap1}{\t}{\sp1} = \e, \sp2
+}{ 
+    \ReduceA{\Cast{\tp 1}{\ap1}}{\sp1}{\e}{\sp2}
+}
+\CondRule{E6}{
+  \cast{\a}{\t}{\sp1} = \err
+}{ 
+    \ReduceA{\Cast{\tp 1}\a}\s\err{}
+}
+\CondRule{E7}{
+    \Reduce\e{\sp 1}\err{}
+}{
+    \ReduceA{\Ctx\e}{\sp1}\err{}
+}
+\end{tabular}\end{minipage}
+%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\\[3mm]
+\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
+\s &::= ~~\none & \B ~~
+  \Heap\s{\Bind\a{\Obj{\b\a}{\t}}} \\[2mm]
+\xt{E} &::=    \Get\square\f &\B~
+       \Set\square\f\e   ~\B~
+       \Set\a\f\square   ~\B~  
+       \Call\square\m\e  ~\B~
+      \Call\a\m{\b\a\,\square\,\b\e} \\
+ &\B~     \Cast\t\square  &\B~
+      \New\C{\b \a\,\square\,\b\e}
+\end{tabular}
+\end{minipage}

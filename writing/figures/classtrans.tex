@@ -1,0 +1,28 @@
+\begin{mathpar}
+\IRule{CT1}{
+ \b{ \mdp1} \equiv \b{\fcast{\md, \C}} ~~ \b{\setter\fd} ~~ \b{\getter\fd}\\  \b{\mdp2} \equiv \b{\mdp1} ~~ \b{\proxy{\mdp1}}
+}{ 
+  \TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp2}} }
+}
+
+\IRule{}{
+  \AnaCast{\this:\C,\;\b{\x:\tp1}}{\ep1}{\ep2}{\tp2}
+}{
+  \fcast{\Mdef\m\x{\tp1}{\tp2}{\ep1}, \C} \equiv \Mdef\m\x{\tp1}{\tp2}{\ep2}
+}
+
+\IRule{}{
+}{
+  \getter{\f:\t} \equiv \m() : \t ~ \{ \this.\f \}
+}
+
+\IRule{}{
+}{
+  \setter{\f:\t} \equiv \m(\x:\t) : \t ~ \{ \this.\f=\x \}
+}
+
+\IRule{}{
+}{
+  \proxy{\Mdef\m\x{\tp1}{\tp2}{\ep1}} \equiv \Mdef{\m_\xt{u}}\x{\any}{\any}{\Cast{\any}{\Call\this\m{\b{\Cast{\tp1}\x}}}}
+}
+\end{mathpar}

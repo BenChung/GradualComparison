@@ -1,0 +1,258 @@
+\documentclass{report}
+\usepackage{xspace,listings,url,subfigure,framed,amssymb,
+            amsmath,mathpartir,hyperref,
+            stmaryrd, graphicx, fullpage % double brackets llbracket
+}
+\input{macros}
+\begin{document}
+\section{Strongscript}
+\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
+\e &::=  \x \\
+%   \Alt{ \Get\e\f }
+%   \Alt{ \Set\e\f\e }
+   \Alt{ \Call\e\m{\b\e} }
+   \Alt{ \New\C{\b\e} }
+   \Alt{ \Cast\t\e }
+   \Alt{ \a{} }
+\fd &::= 
+    \Ftype\f\t   \\
+\end{tabular}\end{minipage}\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
+\md &::=
+    \Mdef\m\x\t\t\e \\
+\c &::= \Class \C {\b{\fd}}{\b{\md} } \\
+\mt &::= \Mtype\m{\b\t}\t\\
+\E &::= \x : \t \\
+	\Alt{$\cdot$}
+\t &::= ~ \any \\
+   \Alt{ \Type{  \b{ \mt } } }
+   \Alt{ \Weak\Type{  \b{ \mt } } } \\
+\end{tabular}\end{minipage}
+
+\hrulefill
+
+\input{figures/dynsym.tex}
+
+\hrulefill
+
+\input{figures/basetype}
+
+\hrulefill
+\opdef{$\tp1 \Sub \tp2$}{\tp 1 is a subtype of \tp 2}
+\begin{mathpar}
+\IRule{S1}{}{\t \Sub \t}
+
+\IRule{S2}{}{\t \Sub {\Type{}}}
+
+\IRule{S3}{
+	\tp3 \Sub \tp1 \\
+	\tp2 \Sub \tp4 \\
+	\Type{\b{\mt_1} ~ \b{\mt_2}} \Sub \Type{\b{\mt_3}}
+}{
+   {\Type{\b{\mt_1} ~ \Mtype\m{\b{\tp1}}{\tp2} ~ \b{\mt_2} \,} } \Sub {\Type{\Mtype\m{\b{\tp3}}{\tp4} ~ \b{\mt_3} \,} } 
+}
+
+\IRule{S4}{}{\t \Sub \Weak\t}
+
+\IRule{S5}{\tp1 \Sub \tp2}{\Weak{\tp1} \Sub \Weak{\tp2}}
+\end{mathpar}
+
+\hrulefill
+
+\input{figures/syncast}
+
+\hrulefill
+
+\input{figures/anacast}
+
+\hrulefill
+
+\input{figures/classtrans}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Cast-Check}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}\s = \a, \s}
+
+\IRule{Cast-Optional}{ }{\cast\a{?\t}\s = \a, \s}
+
+\IRule{Cast-Any}{ }{\cast\a{\any}\s = \a, \s}
+
+\IRule{Cast-Error}{ }{\cast\a{\t}\s = \err}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Insert-Recv}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
+
+\IRule{Insert-Dyn}{\GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}}{\inv{\E}{\Call\ep1\m{\b{\ep2}}} = \Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3}}{\m}{\b{\ep4}}, \any}
+\end{mathpar}
+
+\section{Typed Racket}
+
+\input{figures/syntax.tex}
+
+\hrulefill
+
+\input{figures/dynsym.tex}
+
+\hrulefill
+
+\input{figures/basetype}
+
+\hrulefill
+
+\input{figures/subtyping}
+
+\hrulefill
+
+\input{figures/syncast}
+
+\hrulefill
+
+\input{figures/anacast}
+
+\hrulefill
+
+\input{figures/classtrans}
+
+\hrulefill
+
+\input{figures/trtrans}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Cast-Wrap}{\C = \wrapper{\t}}{\cast\a{\t}\s = \New\C\a, \s}
+
+\IRule{Cast-Any}{ }{\cast\a{\any}\s = \a, \s}
+
+\IRule{Cast-Error}{ }{\cast\a{\t}\s = \err}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Insert-Recv}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
+
+\IRule{Insert-Dyn}{\GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}}{\inv{\E}{\Call\ep1\m{\b{\ep2}}} = \Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3}}{\m}{\b{\ep4}}, \any}
+\end{mathpar}
+
+
+\section{Transient}
+
+
+\input{figures/syntax.tex}
+
+\hrulefill
+
+\input{figures/dynsym.tex}
+
+\hrulefill
+
+\input{figures/basetype}
+
+\hrulefill
+
+\input{figures/subtyping}
+
+\hrulefill
+
+\input{figures/syncast}
+
+\hrulefill
+
+\input{figures/anacast}
+
+\hrulefill
+
+\input{figures/classtrans}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Cast-Check}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}\s = \a, \s}
+
+\IRule{Cast-Any}{ }{\cast\a{\any}\s = \a, \s}
+
+\IRule{Cast-Error}{ }{\cast\a{\t}\s = \err}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Insert-Check}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\Call{\ep1}\m{\b{\ep2}} = \Cast{\tp1}{(\Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3}}{\m}{\b{\ep4}})}, \tp1}
+
+\IRule{Insert-Dyn}{\GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}}{\inv{\E}{\Call\ep1\m{\b{\ep2}}} = \Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3}}{\m}{\b{\ep4}}, \any}
+\end{mathpar}
+
+\section{Monotonic}
+
+
+\input{figures/syntax.tex}
+
+\hrulefill
+
+\input{figures/dynsym.tex}
+
+\hrulefill
+
+\input{figures/basetype}
+
+\hrulefill
+
+\input{figures/conssub}
+
+\hrulefill
+
+\input{figures/syncast}
+
+\hrulefill
+
+\input{figures/anacast}
+
+\hrulefill
+
+\input{figures/classtrans}
+
+\hrulefill
+
+\input{figures/monotrans}
+
+\hrulefill
+
+\input{figures/monomeet}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Cast-Mono1}{
+	\Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}\C\}}} \\
+	\C \not\equiv \meet{\tp1}{\C} \\
+	\sp2 = \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}{\refine{\C}{\tp1}}}} \\
+	\Class{\refine{\C}{\tp1}}{\f():\t'_1,~ \ldots,~ \f():\t'_n \ldots} \\
+	\s'_1 = \castfn{\a_1'}{\t'_1}{\sp2} \\ \ldots \\ \s'_n = \castfn{\a_n'}{\t'_n}{\s'_{n-1}}\\
+}{
+	\castfn{\ap1}{\tp1}{\sp1} = \ap1, \s'_n\\
+}
+% \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
+
+\IRule{Cast-Mono2}{
+	\Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
+	\C \equiv \meet{\tp1}{\C} \\
+}{
+	\castfn{\ap1}{\tp1}{\s} = \ap1,\s\\
+}
+
+\IRule{Cast-Error}{ }{\cast\a{\t}\s = \err}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Insert-Recv}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
+
+\IRule{Insert-Dyn}{\GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}}{\inv{\E}{\Call\ep1\m{\b{\ep2}}} = \Call{\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3}}{\m}{\b{\ep4}}, \any}
+\end{mathpar}
+
+\end{document}

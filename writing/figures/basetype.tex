@@ -1,0 +1,55 @@
+
+\opdef{\EnvType{\Es}\e\t}{\e has type \t in environment \E against heap \s}
+\begin{mathpar}
+\IRule{W1}{
+    \HasType{\E}\x\t
+ }{
+   \EnvType{\Es}\x\t
+}
+
+\IRule{W2}{
+   \EnvType{\Es}\e{\tp 1} \\ \tp 1 \Sub \t
+ }{
+   \EnvType{\Es}\e\t 
+}   
+
+\IRule{W4}{
+   \EnvType{\Es}\e{\t} \\ \Mtype\m{\b{\tp2}}{\tp3}\inc \t  \\  \b{\EnvType{\Es}{\ep1}{\tp 2}}
+}{
+    \EnvType{\Es}{\Call\e\m{\b{\ep1}}}{\tp3}
+}    
+
+\IRule{W5}{
+  \b{\EnvType{\Es}\e\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+}{
+  \EnvType{\Es}{\New\C{\b\e}}\C
+}
+
+\IRule{W6}{
+  \EnvType{\Es}\e{\tp1}
+}{
+   \EnvType{\Es}{\Cast\t\e}\t
+}
+
+\IRule{W7}{
+  \EnvType{\Es}{\ep1}{\tp1} \\
+  \f : \t \in \tp1 \\
+}{
+  \EnvType{\Es}{\Get\e\f}{\t}
+}
+
+\IRule{W8}{
+  \EnvType{\Es}{\ep1}{\tp1} \\
+  \f : \t \in \tp1 \\
+  \EnvType{\Es}{\ep2}{\t}
+}{
+  \EnvType{\Es}{\Set{\ep1}\f{\ep2}}\t
+}
+
+\IRule{W9}{
+  \s(\ap1) = \Obj{\b{\f=\ap2}}{\C} \\ \b{\f:{\tp2} \in \C} \\ \b{\EnvType{\Es}{\ap2}{\tp2}} \\ 
+}{
+  \EnvType{\Es}{\ap1}{\tp1}
+}
+\end{mathpar}
