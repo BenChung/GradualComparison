@@ -1,52 +1,46 @@
 
 \begin{minipage}{8cm}
-\opdef{\Reduce{\ep 1}{\sp 1}{\ep 2}{\sp 2}}{\ep1 \sp1 evaluates to \ep2 \sp2 or \err in a step}\\[-1mm]
+\opdef{\Reduce{\cb_1}{\ep 1}{\sp 1}{\cb_2}{\ep 2}{\sp 2}}{\ep1 \sp1 evaluates to \ep2 \sp2 or \err in a step}\\[-1mm]
 \begin{tabular}{@{}l@{}l@{~}l@{~}l}
 \CondRule{E1}{ %% e -> e'
-  \Reduce {\ep 1}{\sp 1}{\ep 2}{\sp 2}
+  \Reduce {\cb_1}{\ep 1}{\sp 1}{\cb_2}{\ep 2}{\sp 2}
 }{
-  \ReduceA {\Ctx{\ep1}}{\sp 1}{\Ctx{\ep2}}{\sp 2}
+  \ReduceA {\cb_1}{\Ctx{\ep1}}{\sp 1}{\cb_2}{\Ctx{\ep2}}{\sp 2}
 }
 \CondRule{E2}{ %% new C -> a
    \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C}
 }{ 
-    \ReduceA{ \New\C{\b\a} }{\sp1}{\ap1}{\sp 2}
+    \ReduceA{\b{\C_1}}{ \New{\C_2}{\b\a} }{\sp1}{\b{\C_1}}{\ap1}{\sp 2}
 }
 \CondRule{E3}{ %% a.m -> e
    \dispatch{\b\x}\e\s\a\m
 }{
-   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{[\a/\this~\b{{\ap 1}/\x}]\e}\s
-}
-
-\CondRule{E3}{
-   \notdispatch{\b\x}\e\s\a\m
-}{
-   \ReduceA{\Call\a\m{\b{\ap 1}}}\s{\err}{}
+   \ReduceA{\cb}{\s}{\Call\a\m{\b{\ap 1}}}{\cb}{[\a/\this~\b{{\ap 1}/\x}]\e}\s
 }
 \CondRule{E3}{ 
      \readfield{\ap1}\s\a\f
 }{
-  \ReduceA{\Get\a\f}{\s}{\ap 1}{\s}
+  \ReduceA{\cb}{\Get\a\f}{\s}{\cb}{\ap 1}{\s}
 }
 \CondRule{E4}{
      \setfield{\sp2}{\sp1}\a\f{\ap1}
 }{
-     \ReduceA{\Set\a\f{\ap 1}}{\sp 1}{\ap 1}{\sp 2}
+     \ReduceA{\cb}{\Set\a\f{\ap 1}}{\sp 1}{\cb}{\ap 1}{\sp 2}
 }
 \CondRule{E5}{
-  \cast{\ap1}{\t}{\sp1} = \e, \sp2
+  \cast{\ap1}{\t}{\sp1}{\cbp1} = \e, \sp2, \cbp2
 }{ 
-    \ReduceA{\Cast{\tp 1}{\ap1}}{\sp1}{\e}{\sp2}
+    \ReduceA{\cb_1}{\Cast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
 }
 \CondRule{E6}{
-  \cast{\a}{\t}{\sp1} = \err
+  \cast{\a}{\t}{\sp1}{\cb} = \err
 }{ 
-    \ReduceA{\Cast{\tp 1}\a}\s\err{}
+    \ReduceA{\cb}{\Cast{\tp 1}\a}\s\err{}{}
 }
 \CondRule{E7}{
-    \Reduce\e{\sp 1}\err{}
+    \Reduce{\cb}\e{\sp 1}\err{}{}
 }{
-    \ReduceA{\Ctx\e}{\sp1}\err{}
+    \ReduceA{\cb}{\Ctx\e}{\sp1}\err{}{}
 }
 \end{tabular}\end{minipage}
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,3 +57,4 @@
       \New\C{\b \a\,\square\,\b\e}
 \end{tabular}
 \end{minipage}
+

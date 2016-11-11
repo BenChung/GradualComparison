@@ -1,10 +1,11 @@
+%!TEX root = ../ss.tex
 \opdef{$\GenCast\E{\ep1}{\ep 2}\t$}{\ep1 translates to \ep2 in environment \E with type $\t$}
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast\E\x\x\t}
 
 \IRule{A2}{\GenCast\E{\ep1}{\ep2}{\C} \\ \f:\t \in \C }{\GenCast{\E}{\Get{\ep1}\f}{\Call{\ep2}\f{}}{\t}}
 
-\IRule{A3}{\GenCast\E{\ep1}{\ep3}{\C} \\ \GenCast\E{\ep2}{\ep4}{\tp1} \\ \f:\tp2 \in \C \\ \tp1 <: \tp2 }{\GenCast{\E}{\Set{\ep1}\f{\ep2}}{\Call{\ep3}{\xt{f!}}{\ep4}}{\tp2}}
+\IRule{A3}{\GenCast\E{\ep1}{\ep3}{\C} \\ \f:\tp1 \in \C \\ \AnaCast\E{\ep2}{\ep4}{\tp1}}{\GenCast{\E}{\Set{\ep1}\f{\ep2}}{\Call{\ep3}{\xt{f!}}{\ep4}}{\tp2}}
 
 \IRule{A4}{
 	\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \ep3, \t \\

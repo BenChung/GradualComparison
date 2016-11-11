@@ -24,6 +24,7 @@
 \newcommand{\tp}[1]{\M{ \t_{#1} }}
 \newcommand{\ep}[1]{\M{ \e_{#1} }}
 \newcommand{\ap}[1]{\M{ \a_{#1} }}
+\newcommand{\cbp}[1]{\M{ \b{\C_{#1}}}}
 \renewcommand{\mp}[1]{\M{ \m_{#1} }}
 \renewcommand{\sp}[1]{\M{ \s_{#1} }}
 \newcommand{\none}{\M{\cdot}}
@@ -72,8 +73,8 @@
 %\newcommand{\IRule}[3]{\inferrule{#2}{#3}}    %% No label
 \newcommand{\CondRule}[3]{ #3 &~{\emph{if}} #2 \\}
 \newcommand{\NoCondRule}[2]{ #2 &       \\}
-\newcommand{\Reduce}[4]{\M{ #1~#2 \rightarrow #3~#4}}
-\newcommand{\ReduceA}[4]{\M{ #1 ~ #2 } &  \M { \rightarrow #3 ~ #4}}
+\newcommand{\Reduce}[6]{\M{ #1~#2~#3 \rightarrow #4~#5~#6}}
+\newcommand{\ReduceA}[6]{\M{#1~#2~#3 } &  \M { \rightarrow #4 ~ #5~#6}}
 \newcommand{\inc}{\M{\in}}
 \newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
 \newcommand{\Bind}[2]{\M{#1 \is #2}}
@@ -93,22 +94,23 @@
 \newcommand{\TransClass}[2]{\M{ #1 \rightharpoonup #2 }}
 \newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #3 : #4 }}
 \newcommand{\mdp}[1]{\M{\md_{#1}}}
-\newcommand{\setter}[1]{\M{\llbracket #1  \rrbracket}_{\xt{set}}}
-\newcommand{\getter}[1]{\M{\llbracket #1  \rrbracket_{\xt{get}}}}
-\newcommand{\dynamic}[1]{\M{\llbracket #1  \rrbracket_{\xt{dyn}}}}
-\newcommand{\invoke}[1]{\M{\llbracket #1 \rrbracket_{\xt{inv}}}}
+\newcommand{\setter}[1]{\M{\xt{set}(#1)}}
+\newcommand{\getter}[1]{\M{\xt{get}(#1)}}
+\newcommand{\dynamic}[1]{\M{\xt{dyn}(#1)}}
+\newcommand{\invoke}[1]{\M{\xt{inv}(#1)}}
 \newcommand{\Dyn}[1]{\M{#1^{\any} }}
 
 \newcommand{\Ctx}[1]{\M{\xt{E}[#1]}}
 
-\newcommand{\casts}[1]{\llbracket #1 \rrbracket_{\xt{casts}}}
-\newcommand{\fcast}[1]{\M{\llbracket #1 \rrbracket_{\xt{translate}}}}
-\newcommand{\wrapper}[1]{\M{\llbracket #1  \rrbracket}_{\xt{wrap}}}
-\newcommand{\proxy}[1]{\M{\llbracket #1  \rrbracket}_{\xt{proxy}}}
-\newcommand{\utw}[1]{\M{\llbracket #1  \rrbracket}_{\xt{untyped}}}
-\newcommand{\tw}[1]{\M{\llbracket #1  \rrbracket}_{\xt{typed}}}
+\newcommand{\casts}[1]{\M{\xt{casts}(#1)}}
+\newcommand{\fcast}[1]{\M{\xt{translate}(#1)}}
+\newcommand{\wrapper}[1]{\M{\xt{wrap}(#1)}}
+\newcommand{\proxy}[1]{\M{\xt{proxy}(#1)}}
+\newcommand{\utw}[1]{\M{\xt{untyped}(#1)}}
+\newcommand{\tw}[1]{\M{\xt{typed}(#1)}}
+\newcommand{\spec}[1]{\M{\xt{spec}(#1)}}
 
-\newcommand{\cast}[3]{\xt{cast}(#1, #2, #3)}
+\newcommand{\cast}[4]{\xt{cast}(#1, #2, #3, #4)}
 
 \newtheorem{definition}{Definition}
 \newtheorem{thm}{Theorem}
@@ -117,8 +119,8 @@
 
 \newcommand{\Weak}{\text{\small?}\hspace{0.1em}}
 \newcommand{\WType}[1]{\Weak\Type{#1}}
-\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Rightarrow #4}
-\newcommand{\AnaCast}[4]{#1 \vdash #2 \rightsquigarrow #3 \Leftarrow #4}
+\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Uparrow #4 }
+\newcommand{\AnaCast}[4]{#1 \vdash #2 \Downarrow #4 \hookrightarrow #3}
 
 
 \newcommand{\stcons}[2]{#1\lesssim #2}
@@ -126,9 +128,10 @@
 \newcommand{\refine}[2]{#1\vartriangleright #2}
 \newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
 \newcommand{\adapt}[1]{\M{\llbracket #1 \rrbracket_{\xt{adapt}}}}
-\newcommand{\castfn}[3]{\text{cast}(#1,#2,#3)}
+\newcommand{\castfn}[4]{\text{cast}(#1,#2,#3,#4)}
 
 \newcommand{\p}{\xt{p}}
+\newcommand{\cb}{\b{\C}}
 
 \newcommand{\typed}[1]{\text{typed}(#1)}
 \newcommand{\untyped}[1]{\text{untyped}(#1)}
