@@ -95,10 +95,6 @@
 
 \hrulefill
 
-\input{figures/basetype}
-
-\hrulefill
-
 \input{figures/subtyping}
 
 \hrulefill
@@ -112,6 +108,10 @@
 
 \IRule{Has-Cons}{\stcons{\tp1}{\tp2}}{\MetaSub{\tp1}{\tp2}}
 \end{mathpar}
+\newpage 
+\hrulefill
+
+\input{figures/basetype}
 
 \hrulefill
 
@@ -128,6 +128,33 @@
 \hrulefill
 
 \input{figures/trtrans}
+
+\hrulefill
+
+\input{figures/monomeet}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Refine-Field}{
+  \b{\meet{\t}{\t'} = \t''}
+}{
+  \spec{\f:\t,\t'} = (\f():\t''=\this.\xt{f}),\\
+  (\f_\xt{u}():\any=\Cast{\any}{\this.\xt{f})},\\
+  (\f\xt{!}(\x : \t''):\t''=\this.\xt{f}=\x), \\
+  (\f\xt{!}_\xt{u}(\x : \any):\any=\Cast{\any}{\this.\xt{f}=\Cast{\any}{\x}})
+}
+
+\IRule{Refine-Method}{
+  \b{\meet{\tp1}{\tp1'} = \tp1''}\\
+  {\meet{\tp2}{\tp2'} = \tp2''}
+}{
+  \spec{\m(\b{\x:\tp1}):\tp2 = \e,\m(\b{\tp1'}):\tp2'} = 
+  (\m(\b{\x:\tp1''}):\tp2'' = \Cast{\tp2''}{\this.{\m'}(\Cast{\tp1}{\x})}), \\
+  (\m'(\b{\x:\tp1}):\tp2 = e), \\
+  (\m_\xt{u}(\b{\x:\any}):\any = \Cast{\any}{\this.{\m}(\Cast{\tp1''}{\x})})
+}
+\end{mathpar}
 
 \hrulefill
 
