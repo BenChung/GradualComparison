@@ -152,11 +152,11 @@
 \hrulefill
 
 \begin{mathpar}
-\IRule{Insert-Recv}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
+\IRule{Insert-Recv (eager cast)}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
 
 \IRule{Insert-Dyn}{\GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\Cast{(\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\ep4}}, \any}
 
-\IRule{Insert-Check}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Cast{\tp1}{(\Call{(\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\Cast{\any}{\ep4}}})}, \tp1}
+\IRule{Insert-Check (lazy cast)}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Cast{\tp1}{(\Call{(\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\Cast{\any}{\ep4}}})}, \tp1}
 \end{mathpar}
 
 \end{document}
