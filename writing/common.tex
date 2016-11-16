@@ -7,7 +7,7 @@
 \input{macros}
 \begin{document}
 
-\section{Wrapper}
+\section*{The One}
 
 \center\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \e &::=  \x \\
@@ -124,7 +124,7 @@
 \begin{mathpar}
 \IRule{Cast-Wrap}{\xt{D}\;\text{\emph{free}} \\ \s[\a \mapsto \{ \a' \ldots \B \C \}] \\ \cbp2 = \cbp1;\wrapper{\C \Rightarrow \t,\xt{D}}}{\cast\a{\t}{\xtns{b}}\s{\cbp1} = \New{\xt{D}}\a, \s, \cbp2}
 
-\IRule{Cast-Mono1}{
+\IRule{Cast-Mono1 (monotonic)}{
   \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}\C\}}} \\
   \C \not\equiv \meet{\tp1}{\C} \\
   \cb' = \cb;\spec{\Class{\C}{\b{\fd}}{\b{\md}}, \xt{D}, \meet{\tp1}{\C}} \\
@@ -135,16 +135,16 @@
 }
 % \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 
-\IRule{Cast-Mono2}{
+\IRule{Cast-Mono2 (monotonic)}{
   \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
   \C \equiv \meet{\tp1}{\C} \\
 }{
   \cast{\ap1}{\tp1}{\xtns{m}}{\s}\cb = \ap1,\s,\cb\\
 }
 
-\IRule{Cast-Check}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}{\xtns{c}}\s\cb = \a, \s, \cb}
+\IRule{Cast-Check (concrete)}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}{\xtns{c}}\s\cb = \a, \s, \cb}
 
-\IRule{Cast-Any}{ }{\cast\a{\any}{_}\s\cb = \a, \s, \cb}
+\IRule{Cast-Any (star)}{ }{\cast\a{\any}{_}\s\cb = \a, \s, \cb}
 
 \IRule{Cast-Error}{ }{\cast\a{\t}{_}\s\cb = \err}
 \end{mathpar}
