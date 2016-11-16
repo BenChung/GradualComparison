@@ -15,7 +15,7 @@
    \Alt{ \Set\e\f\e }
    \Alt{ \Call\e\m{\b\e} }
    \Alt{ \New\C{\b\e} }
-   \Alt{ \CastS\t\ts\e }
+   \Alt{ \Cast\t\e }
    \Alt{ \a{} }
 \fd &::= 
     \Ftype\f\t   \\
@@ -28,7 +28,6 @@
   \Alt{$\cdot$}
 \t &::= ~ \any \\
    \Alt{ \Type{  \b{ \mt } } }
-\ts&::= \xtns{b}\B\xtns{m}\B\xtns{c} %TODO fix spacing
 \end{tabular}\end{minipage}
 
 
@@ -63,14 +62,14 @@
      \ReduceA{\cb}{\Set\a\f{\ap 1}}{\sp 1}{\cb}{\ap 1}{\sp 2}
 }
 \CondRule{E5}{
-  \cast{\ap1}{\t}{\ts}{\sp1}{\cbp1} = \e, \sp2, \cbp2
+  \cast{\ap1}{\t}{\sp1}{\cbp1} = \e, \sp2, \cbp2
 }{ 
-    \ReduceA{\cb_1}{\CastS{\tp 1}{\ts}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
+    \ReduceA{\cb_1}{\Cast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
 }
 \CondRule{E6}{
-  \cast{\a}{\t}{\ts}{\sp1}{\cb} = \err
+  \cast{\a}{\t}{\sp1}{\cb} = \err
 }{ 
-    \ReduceA{\cb}{\CastS{\tp 1}\ts\a}\s\err{}{}
+    \ReduceA{\cb}{\Cast{\tp 1}\a}\s\err{}{}
 }
 \CondRule{E7}{
     \Reduce{\cb}\e{\sp 1}\err{}{}
@@ -97,18 +96,6 @@
 
 \input{figures/subtyping}
 
-\hrulefill
-
-\input{figures/conssub}
-
-\hrulefill
-
-\begin{mathpar}
-\IRule{No-Cons}{ \tp1 \Sub \tp2 }{\MetaSub{\tp1}{\tp2}}
-
-\IRule{Has-Cons}{\stcons{\tp1}{\tp2}}{\MetaSub{\tp1}{\tp2}}
-\end{mathpar}
-\newpage 
 \hrulefill
 
 \input{figures/basetype}
@@ -165,7 +152,7 @@
 \hrulefill
 
 \begin{mathpar}
-\IRule{Cast-Wrap}{\xt{D}\;\text{\emph{free}} \\ \s[\a \mapsto \{ \a' \ldots \B \C \}] \\ \cbp2 = \cbp1;\wrapper{\C \Rightarrow \t,\xt{D}}}{\cast\a{\t}{\xtns{b}}\s{\cbp1} = \New{\xt{D}}\a, \s, \cbp2}
+\IRule{Cast-Wrap}{\xt{D}\;\text{\emph{free}} \\ \s[\a \mapsto \{ \a' \ldots \B \C \}] \\ \cbp2 = \cbp1;\wrapper{\C \Rightarrow \t,\xt{D}}}{\cast\a{\t}\s{\cbp1} = \New{\xt{D}}\a, \s, \cbp2}
 
 \IRule{Cast-Mono1}{
   \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}\C\}}} \\
@@ -174,7 +161,7 @@
   \sp2 = \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}{\xt{D}}}} \\
   \s'_1 = \castfn{\a_1'}{\t'_1}{\sp2}{\cb'} \\ \ldots \\ \s'_n = \castfn{\a_n'}{\t'_n}{\s'_{n-1}}{\cb'}\\
 }{
-  \cast{\ap1}{\tp1}{\xtns{m}}{\sp1}\cb = \ap1, \s'_n, \cb'\\
+  \cast{\ap1}{\tp1}{\sp1}\cb = \ap1, \s'_n, \cb'\\
 }
 % \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 
@@ -182,14 +169,14 @@
   \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
   \C \equiv \meet{\tp1}{\C} \\
 }{
-  \cast{\ap1}{\tp1}{\xtns{m}}{\s}\cb = \ap1,\s,\cb\\
+  \cast{\ap1}{\tp1}{\s}\cb = \ap1,\s,\cb\\
 }
 
 \IRule{Cast-Check}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}{\xtns{c}}\s\cb = \a, \s, \cb}
 
-\IRule{Cast-Any}{ }{\cast\a{\any}{_}\s\cb = \a, \s, \cb}
+\IRule{Cast-Any}{ }{\cast\a{\any}\s\cb = \a, \s, \cb}
 
-\IRule{Cast-Error}{ }{\cast\a{\t}{_}\s\cb = \err}
+\IRule{Cast-Error}{ }{\cast\a{\t}\s\cb = \err}
 \end{mathpar}
 
 \hrulefill
@@ -201,5 +188,21 @@
 
 \IRule{Insert-Check}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Cast{\tp1}{(\Call{(\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\Cast{\any}{\ep4}}})}, \tp1}
 \end{mathpar}
+
+\section{Surface}
+
+
+
+\input{figures/conssub}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{No-Cons}{ \tp1 \Sub \tp2 }{\MetaSub{\tp1}{\tp2}}
+
+\IRule{Has-Cons}{\stcons{\tp1}{\tp2}}{\MetaSub{\tp1}{\tp2}}
+\end{mathpar}
+\newpage 
+\hrulefill
 
 \end{document}
