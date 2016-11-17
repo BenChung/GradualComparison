@@ -7,7 +7,7 @@
 \input{macros}
 \begin{document}
 
-\section{Wrapper}
+\section*{The One}
 
 \center\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \e &::=  \x \\
@@ -28,6 +28,7 @@
   \Alt{$\cdot$}
 \t &::= ~ \any \\
    \Alt{ \Type{  \b{ \mt } } }
+\ts&::= \xtns{b}\B\xtns{m}\B\xtns{c} %TODO fix spacing
 \end{tabular}\end{minipage}
 
 
@@ -62,12 +63,22 @@
      \ReduceA{\cb}{\Set\a\f{\ap 1}}{\sp 1}{\cb}{\ap 1}{\sp 2}
 }
 \CondRule{E5}{
-  \cast{\ap1}{\t}{\sp1}{\cbp1} = \e, \sp2, \cbp2
+  \cast{\ap1}{\t}{\sp1}{\cbp1}{b} = \e, \sp2, \cbp2
 }{ 
     \ReduceA{\cb_1}{\Cast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
 }
+\CondRule{E5}{
+  \cast{\ap1}{\t}{\sp1}{\cbp1}{m} = \e, \sp2, \cbp2
+}{ 
+    \ReduceA{\cb_1}{\mCast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
+}
+\CondRule{E5}{
+  \cast{\ap1}{\t}{\sp1}{\cbp1}{c} = \e, \sp2, \cbp2
+}{ 
+    \ReduceA{\cb_1}{\cCast{\tp 1}{\ap1}}{\sp1}{\cb_1}{\ap1}{\sp1}
+}
 \CondRule{E6}{
-  \cast{\a}{\t}{\sp1}{\cb} = \err
+  \cast{\a}{\t}{\sp1}{\cb}{\_} = \err
 }{ 
     \ReduceA{\cb}{\Cast{\tp 1}\a}\s\err{}{}
 }
@@ -102,21 +113,9 @@
 
 \hrulefill
 
-\input{figures/syncast}
+%\input{figures/trtrans}
 
-\hrulefill
-
-\input{figures/anacast}
-
-\hrulefill
-
-\input{figures/classtrans}
-
-\hrulefill
-
-\input{figures/trtrans}
-
-\hrulefill
+%\hrulefill
 
 \input{figures/monomeet}
 
@@ -137,8 +136,7 @@
   {\meet{\tp2}{\tp2'} = \tp2''}
 }{
   \spec{\m(\b{\x:\tp1}):\tp2 = \e,\m(\b{\tp1'}):\tp2'} = 
-  (\m(\b{\x:\tp1''}):\tp2'' = \Cast{\tp2''}{\this.{\m'}(\Cast{\tp1}{\x})}), \\
-  (\m'(\b{\x:\tp1}):\tp2 = e), \\
+  (\m(\b{\x:\tp1''}):\tp2'' = \Cast{\tp2''}{\e}), \\
   (\m_\xt{u}(\b{\x:\any}):\any = \Cast{\any}{\this.{\m}(\Cast{\tp1''}{\x})})
 }
 
@@ -152,46 +150,56 @@
 \hrulefill
 
 \begin{mathpar}
-\IRule{Cast-Wrap}{\xt{D}\;\text{\emph{free}} \\ \s[\a \mapsto \{ \a' \ldots \B \C \}] \\ \cbp2 = \cbp1;\wrapper{\C \Rightarrow \t,\xt{D}}}{\cast\a{\t}\s{\cbp1} = \New{\xt{D}}\a, \s, \cbp2}
+\IRule{Cast-Wrap}{\xt{D}\;\text{\emph{free}} \\ \s[\a \mapsto \{ \a' \ldots \B \C \}] \\ \cbp2 = \cbp1;\wrapper{\C \Rightarrow \t,\xt{D}}}{\cast\a{\t}\s{\cbp1}{\xt{b}} = \New{\xt{D}}\a, \s, \cbp2}
 
-\IRule{Cast-Mono1}{
+\IRule{Cast-Mono1 (monotonic)}{
   \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}\C\}}} \\
   \C \not\equiv \meet{\tp1}{\C} \\
   \cb' = \cb;\spec{\Class{\C}{\b{\fd}}{\b{\md}}, \xt{D}, \meet{\tp1}{\C}} \\
   \sp2 = \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}{\xt{D}}}} \\
   \s'_1 = \castfn{\a_1'}{\t'_1}{\sp2}{\cb'} \\ \ldots \\ \s'_n = \castfn{\a_n'}{\t'_n}{\s'_{n-1}}{\cb'}\\
 }{
-  \cast{\ap1}{\tp1}{\sp1}\cb = \ap1, \s'_n, \cb'\\
+  \cast{\ap1}{\tp1}{\sp1}\cb\m = \ap1, \s'_n, \cb'\\
 }
 % \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
 
-\IRule{Cast-Mono2}{
+\IRule{Cast-Mono2 (monotonic)}{
   \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
   \C \equiv \meet{\tp1}{\C} \\
 }{
-  \cast{\ap1}{\tp1}{\s}\cb = \ap1,\s,\cb\\
+  \cast{\ap1}{\tp1}{\s}\cb\m = \ap1,\s,\cb\\
 }
 
-\IRule{Cast-Check}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}{\xtns{c}}\s\cb = \a, \s, \cb}
+\IRule{Cast-Check (concrete)}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}\s\cb\c = \a, \s, \cb}
 
-\IRule{Cast-Any}{ }{\cast\a{\any}\s\cb = \a, \s, \cb}
+\IRule{Cast-Any (star)}{ }{\cast\a{\any}\s\cb{\_} = \a, \s, \cb}
 
-\IRule{Cast-Error}{ }{\cast\a{\t}\s\cb = \err}
+\IRule{Cast-Error}{ }{\cast\a{\t}\s\cb{\_} = \err}
 \end{mathpar}
 
 \hrulefill
 
 \begin{mathpar}
-\IRule{Insert-Recv}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
+\IRule{Insert-Recv (eager cast)}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
 
 \IRule{Insert-Dyn}{\GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\Cast{(\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\ep4}}, \any}
 
-\IRule{Insert-Check}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Cast{\tp1}{(\Call{(\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\Cast{\any}{\ep4}}})}, \tp1}
+\IRule{Insert-Check (lazy cast)}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Cast{\tp1}{(\Call{(\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\Cast{\any}{\ep4}}})}, \tp1}
 \end{mathpar}
 
-\section{Surface}
+\section{Addendum}
 
+\input{figures/syncast}
 
+\hrulefill
+
+\input{figures/anacast}
+
+\hrulefill
+
+\input{figures/classtrans}
+
+\hrulefill
 
 \input{figures/conssub}
 
@@ -202,7 +210,5 @@
 
 \IRule{Has-Cons}{\stcons{\tp1}{\tp2}}{\MetaSub{\tp1}{\tp2}}
 \end{mathpar}
-\newpage 
-\hrulefill
 
 \end{document}
