@@ -28,7 +28,6 @@
   \Alt{$\cdot$}
 \t &::= ~ \any \\
    \Alt{ \Type{  \b{ \mt } } }
-\ts&::= \xtns{b}\B\xtns{m}\B\xtns{c} %TODO fix spacing
 \end{tabular}\end{minipage}
 
 
@@ -75,7 +74,7 @@
 \CondRule{E5}{
   \cast{\ap1}{\t}{\sp1}{\cbp1}{c} = \e, \sp2, \cbp2
 }{ 
-    \ReduceA{\cb_1}{\cCast{\tp 1}{\ap1}}{\sp1}{\cb_1}{\ap1}{\sp1}
+    \ReduceA{\cb_1}{\cCast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
 }
 \CondRule{E6}{
   \cast{\a}{\t}{\sp1}{\cb}{\_} = \err
@@ -92,7 +91,7 @@
 \\[3mm]
 \begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
 \s &::= ~~\none & \B ~~
-  \Heap\s{\Bind\a{\Obj{\b\a}{\t}}} \\[2mm]
+  \Heap\s{\Bind\a{\Obj{\b\a}{\C}}} \\[2mm]
 \xt{E} &::=    \Get\square\f &\B~
        \Set\square\f\e   ~\B~
        \Set\a\f\square   ~\B~  
@@ -114,24 +113,15 @@
 
 \hrulefill
 
-%\input{figures/trtrans}
+\input{figures/trtrans}
 
-%\hrulefill
+\hrulefill
 
 \input{figures/monomeet}
 
 \hrulefill
 
 \begin{mathpar}
-\IRule{Refine-Field}{
-  \b{\meet{\t}{\t'} = \t''}
-}{
-  \spec{\f:\t,\t'} = (\f():\t''=\this.\xt{f}),\\
-  (\f_\xt{u}():\any=\Cast{\any}{\this.\xt{f})},\\
-  (\f\xt{!}(\x : \t''):\t''=\this.\xt{f}=\x), \\
-  (\f\xt{!}_\xt{u}(\x : \any):\any=\Cast{\any}{\this.\xt{f}=\Cast{\any}{\x}})
-}
-
 \IRule{Refine-Method}{
   \b{\meet{\tp1}{\tp1'} = \tp1''}\\
   {\meet{\tp2}{\tp2'} = \tp2''}
