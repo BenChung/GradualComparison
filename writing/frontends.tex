@@ -1,0 +1,152 @@
+%!TEX output_directory=pdfs
+\documentclass{report}
+\usepackage{xspace,listings,url,subfigure,framed,amssymb,
+            amsmath,mathpartir,hyperref,
+            stmaryrd, graphicx, fullpage % double brackets llbracket
+}
+\input{macros}
+\begin{document}
+
+\section{Behavioral}
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast\E\x\x\t}
+
+\IRule{A2}{
+    \GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\tp2):\tp3 \in \tp1 \\ \AnaCast{\E}{\ep2}{\ep4}{\tp2}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\Call{\ep3}\m{\ep4}}{\tp3}
+}
+
+\IRule{A3}{
+    \GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\Call{\ep3}\m{\ep4}}{\any}
+}
+
+\IRule{A4}{
+  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{AASC1}{
+  \GenCast{\E}{\ep1}{\ep2}{\tp2} \\
+  {\tp 2}\Sub{\tp1}\\
+}{
+  \AnaCast{\E}{\ep1}{\ep2}{\tp1}
+}
+
+\IRule{AASC2}{
+  \GenCast{\E}{\ep1}{\ep2}{\any} \\
+}{
+  \AnaCast{\E}{\ep1}{\Cast{\tp1}{\ep2}}{\tp1}
+}
+
+\IRule{AASC3}{
+  \GenCast{\E}{\ep1}{\ep2}{\t} \\ \t \neq \any
+}{
+  \AnaCast{\E}{\ep1}{\Cast\any{\ep2}}{\any}
+}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{CT1}{
+ \b{ \mdp1} = \b{\fcast{\md, \C}}
+}{ 
+  \TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp1}} }
+}
+
+\IRule{}{
+  \AnaCast{\this:\C,\;\b{\x:\tp1}}{\ep1}{\ep2}{\tp2}
+}{
+  \fcast{\Mdef\m\x{\tp1}{\tp2}{\ep1}, \C} = \Mdef\m\x{\tp1}{\tp2}{\ep2}
+}
+\end{mathpar}
+
+
+\section{Monotonic}
+
+\input{figures/conssub}
+
+\hrule
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast\E\x\x\t}
+
+\IRule{A2}{
+    \GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\tp2):\tp3 \in \tp1 \\ \tp2 ~ \text{static} \\ \AnaCast{\E}{\ep2}{\ep4}{\tp2}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\Call{\ep3}\m{\ep4}}{\tp3}
+}
+
+\IRule{A3}{
+    \GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\tp2):\tp3 \in \tp1 \\ \tp2 ~ \text{dynamic} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\Call{\ep3}{\m_\xtns{u}}{\ep4}}{\tp3}
+}
+
+\IRule{A4}{
+    \GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\Call{\ep3}{\m_\xtns{u}}{\ep4}}{\any}
+}
+
+\IRule{A5}{
+  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{AASC1}{
+  \GenCast{\E}{\ep1}{\ep2}{\tp2} \\
+  {\tp 2}\Sub{\tp1}\\
+}{
+  \AnaCast{\E}{\ep1}{\ep2}{\tp1}
+}
+
+\IRule{AASC2}{
+  \GenCast{\E}{\ep1}{\ep2}{\any} \\
+}{
+  \AnaCast{\E}{\ep1}{\mCast{\tp1}{\ep2}}{\tp1}
+}
+
+\IRule{AASC3}{
+  \GenCast{\E}{\ep1}{\ep2}{\t} \\ \t \neq \any
+}{
+  \AnaCast{\E}{\ep1}{\mCast\any{\ep2}}{\any}
+}
+
+\IRule{AASC4}{
+  \GenCast{\E}{\ep1}{\ep2}{\tp2} \\
+  \stcons{\tp 2}{\tp1}\\
+}{
+  \AnaCast{\E}{\ep1}{\mCast{\tp1}{\ep2}}{\tp1}
+}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{CT1}{
+ \b{ \mdp1} = \b{\fcast{\md, \C}}
+}{ 
+  \TransClass { \Class \C {\b{\fd}} {\b{\md}} }{  \Class \C {\b{\fd}} {\b{\mdp1}} }
+}
+
+\IRule{}{
+  \AnaCast{\this:\C,\;\b{\x:\tp1}}{\ep1}{\ep2}{\tp2}
+}{
+  \fcast{\Mdef\m\x{\tp1}{\tp2}{\ep1}, \C} = \Mdef\m\x{\tp1}{\tp2}{\ep2}
+}
+\end{mathpar}
+
+\end{document}
