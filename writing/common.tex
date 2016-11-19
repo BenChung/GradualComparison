@@ -2,8 +2,7 @@
 \documentclass{report}
 \usepackage{xspace,listings,url,subfigure,framed,amssymb,
             amsmath,mathpartir,hyperref,
-            stmaryrd, graphicx, fullpage % double brackets llbracket
-}
+            stmaryrd, graphicx, fullpage}
 \input{macros}
 \begin{document}
 
@@ -13,122 +12,355 @@
 \e &::=  \x \\
    \Alt{ \Get\e\f }
    \Alt{ \Set\e\f\e }
-   \Alt{ \Call\e\m{\b\e} }
+   \Alt{ \Call\e\m\e }
    \Alt{ \New\C{\b\e} }
-   \Alt{ \Cast\t\e }
-   \Alt{ \a{} }
-\fd &::= 
-    \Ftype\f\t   \\
+   \Alt{ \tCast\t\e }
+   \Alt{ \wCast\t\e }
+   \Alt{ \cCast\t\e }
+   \Alt{ \mCast\t\e }
+   \Alt{ \a }
 \end{tabular}\end{minipage}\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
 \md &::=
-    \Mdef\m\x\t\t\e \\
-\c &::= \Class \C {\b{\fd}}{\b{\md} } \\
-\mt &::= \Mtype\m{\b\t}\t\\
-\E &::= \x : \t \\
-  \Alt{$\cdot$}
-\t &::= ~ \any \\
-   \Alt{ \Type{  \b{ \mt } } }
+   \Mdef\m\x\t\t\e \\
+   \Alt{ \Mdef\f\x\t\t\e}
+   \Alt{ \Mdefz\f\t\e} 
+\k &::= \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+\mt &::= \Mtype\m\t\t\\
+   \Alt{ \Mtype\f\t\t}
+   \Alt{ \Mtype\f{}\t}
+\E &::= \Ftype\x\t  \B \none\\
+\t &::= ~ \any  \B   \Type{\b\mt} 
 \end{tabular}\end{minipage}
-
 
 \hrulefill
 
 \begin{minipage}{8cm}
-\opdef{\Reduce{\cb_1}{\ep 1}{\sp 1}{\cb_2}{\ep 2}{\sp 2}}{\ep1 \sp1 evaluates to \ep2 \sp2 or \err in a step}\\[-1mm]
+  \opdef{\Reduce \K\e\s \Kp\ep\sp}
+        {\e\s evaluates to \ep or \err in a step}\\[-1mm]
 \begin{tabular}{@{}l@{}l@{~}l@{~}l}
 \CondRule{E1}{ %% e -> e'
-  \Reduce {\cb_1}{\ep 1}{\sp 1}{\cb_2}{\ep 2}{\sp 2}
+  \Reduce \K\e\s \Kp\ep\sp
 }{
-  \ReduceA {\cb_1}{\Ctx{\ep1}}{\sp 1}{\cb_2}{\Ctx{\ep2}}{\sp 2}
+ \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
 }
 \CondRule{E2}{ %% new C -> a
-   \alloc{\sp2}{\ap1}{\sp1}{\Obj{\b\a}\C}
+   \alloc \sp\ap\s{\Obj{\b\a}\C}
 }{ 
-    \ReduceA{\b{\C_1}}{ \New{\C_2}{\b\a} }{\sp1}{\b{\C_1}}{\ap1}{\sp 2}
+    \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
 }
-\CondRule{E3}{ %% a.m -> e
-   \dispatch{\b\x}\e\s\a\m
+\CondRule{E3}{ %% a.m(a) -> e
+   \dispatch \x\e\s\a\m
 }{
-   \ReduceA{\cb}{\s}{\Call\a\m{\b{\ap 1}}}{\cb}{[\a/\this~\b{{\ap 1}/\x}]\e}\s
+   \ReduceA \K\s{\Call\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
-\CondRule{E3}{ 
-     \readfield{\ap1}\s\a\f
+\CondRule{E4}{ %% a.f(a) -> e
+   \dispatch \x\e\s\a\f
 }{
-  \ReduceA{\cb}{\Get\a\f}{\s}{\cb}{\ap 1}{\s}
+   \ReduceA \K\s{\Call\a\f\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
-\CondRule{E4}{
-     \setfield{\sp2}{\sp1}\a\f{\ap1}
+\CondRule{E5}{ %% a.f() -> e
+   \dispatch{\!}\e\s\a\f
 }{
-     \ReduceA{\cb}{\Set\a\f{\ap 1}}{\sp 1}{\cb}{\ap 1}{\sp 2}
+   \ReduceA \K\s{\Call\a\f{}} \K{[\a/\this]\e}\s
 }
-\CondRule{E5}{
-  \cast{\ap1}{\t}{\sp1}{\cbp1}{b} = \e, \sp2, \cbp2
-}{ 
-    \ReduceA{\cb_1}{\Cast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
-}
-\CondRule{E5}{
-  \cast{\ap1}{\t}{\sp1}{\cbp1}{m} = \e, \sp2, \cbp2
-}{ 
-    \ReduceA{\cb_1}{\mCast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
-}
-\CondRule{E5}{
-  \cast{\ap1}{\t}{\sp1}{\cbp1}{c} = \e, \sp2, \cbp2
-}{ 
-    \ReduceA{\cb_1}{\cCast{\tp 1}{\ap1}}{\sp1}{\cb_2}{\e}{\sp2}
-}
-\CondRule{E6}{
-  \cast{\a}{\t}{\sp1}{\cb}{\_} = \err
-}{ 
-    \ReduceA{\cb}{\Cast{\tp 1}\a}\s\err{}{}
+\CondRule{E6}{ 
+     \readfield \ap\s\a\f
+}{
+  \ReduceA \K{\Get\a\f}\s  \K\ap\s
 }
 \CondRule{E7}{
-    \Reduce{\cb}\e{\sp 1}\err{}{}
+     \setfield \sp\s\a\f\ap
 }{
-    \ReduceA{\cb}{\Ctx\e}{\sp1}\err{}{}
+     \ReduceA \K{\Set\a\f\ap}\s \K\ap\sp
+}
+\CondRule{E8}{
+  \cast \a\t\s\K{w}  \Kp\e\sp
+}{ 
+    \ReduceA  \K{\wCast \tp\a}\s \Kp\e\sp
+}
+\CondRule{E9}{
+  \cast \a\t\s\K\m  \Kp\e\sp
+}{ 
+    \ReduceA \K{\mCast\tp\a}\s \Kp\e\sp
+}
+\CondRule{E10}{
+  \cast \a\t\s\K c  \Kp\e\sp
+}{ 
+   \ReduceA \K{\cCast \tp\a}\s \Kp\e\sp
+}
+\CondRule{E11}{
+  \cast \a\t\s\K c  \Kp\e\sp
+}{ 
+   \ReduceA \K{\tCast \tp\a}\s \Kp\e\sp
+}
+\CondRule{E12}{
+ \cast \a\t\s\K\_  \K\err \s
+}{ 
+    \ReduceA \K{\wCast \tp\a}\s\K\err\s
+}
+\CondRule{E13}{
+    \Reduce \K\e\s\K\err\sp
+}{
+    \ReduceA \K{\Ctx\e}\s\K\err\sp
 }
 \end{tabular}\end{minipage}
+
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\\[3mm]
+~\\[3mm]
+
 \begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
-\s &::= ~~\none & \B ~~
-  \Heap\s{\Bind\a{\Obj{\b\a}{\C}}} \\[2mm]
-\xt{E} &::=    \Get\square\f &\B~
-       \Set\square\f\e   ~\B~
-       \Set\a\f\square   ~\B~  
-       \Call\square\m\e  ~\B~
-      \Call\a\m{\b\a\,\square\,\b\e} \\
- &\B~     \Cast\t\square  &\B~
-      \New\C{\b \a\,\square\,\b\e}
+\s &::= ~~\none ~~ \B ~~
+    \Heap\s{\Bind\a{\Obj{\b\a}\C}}\\[2mm]
+\E &::= \Get\square\f     ~\B~
+        \Set\square\f\e   ~\B~
+        \Set\a\f\square   ~\B~  
+        \Call\square\m\e   ~\B~
+       \Call\a\m{\square} \\
+   &\B~
+       \mCast\t\square  ~\B~
+       \wCast\t\square  ~\B~
+       \cCast\t\square \\ &\B~
+       \tCast\t\square  ~\B~
+       \New\C{\b \a\,\square\,\b\e}
 \end{tabular}
 \end{minipage}
 
-\hrulefill
-
-\input{figures/subtyping}
-
+~\\
 
 \hrulefill
 
-\input{figures/basetype}
+\opdef{$\t \Sub \tp$}{\t is a subtype of \tp}
+\begin{mathpar}
+\IRule{S-Ref}{
+}{
+  \t \Sub \t
+}
+
+\IRule{S-Top}{
+}{
+  \t \Sub {\Type{}}
+}
+
+\IRule{S-Rec}{
+  \t_1 \Sub \t_2 \\
+  \t_2' \Sub \t_1' \\
+  \Type{ \b{\mt_1}} \Sub \Type{\b{\mt_2}}
+}{
+  \Type{\Mtype\m{\t_1}{\t_1'}~\b{\mt_1}\,} \Sub
+  \Type{\Mtype\m{\t_2}{\t_2'}~\b{\mt_2}\,} 
+}
+
+
+\IRule{S-Rec-2}{
+  \t_1 \Sub \t_2 \\
+  \Type{ \b{\mt_1}} \Sub \Type{\b{\mt_2}}
+}{
+  \Type{\Mtype\f{}{\t_1}~\b{\mt_1}\,} \Sub
+  \Type{\Mtype\f{}{\t_2}~\b{\mt_2}\,} 
+}
+
+
+\IRule{S-Rec-3}{
+  \t_1 \Sub \t_2 \\
+  \t_2 \Sub \t_1 \\
+  \Type{ \b{\mt_1}} \Sub \Type{\b{\mt_2}}
+}{
+  \Type{\Mtype\f{\t_1}{\t_1}~\b{\mt_1}\,} \Sub
+  \Type{\Mtype\f{\t_2}{\t_2}~\b{\mt_2}\,} 
+}
+\end{mathpar}
+
 
 \hrulefill
 
-\input{figures/trtrans}
+\opdef{\EnvType\Es\e\t}{\e has type \t in environment \E against heap \s}
+\begin{mathpar}
+\IRule{W1}{
+   \HasType \E\x\t
+ }{
+   \EnvType \Es\x\t
+}
+
+\IRule{W2}{
+  \EnvType \Es\e\tp \\
+  \tp \Sub \t
+ }{
+   \EnvType \Es\e\t 
+}   
+
+\IRule{W3}{
+  \EnvType \Es\e\t \\
+  \Mtype \m\tp{\t_1}\inc \t  \\
+  \EnvType \Es\ep\tp
+}{
+  \EnvType \Es{\Call\e\m\ep}{\t_1}
+}    
+
+\IRule{W4}{
+  \b{\EnvType \Es\e\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b\md}
+}{
+  \EnvType \Es{\New\C{\b\e}}\C
+}
+
+\IRule{W5}{
+  \EnvType \Es\e\tp
+}{
+  \EnvType \Es{\tCast\t\e}\t
+}
+
+\IRule{W6}{
+  \EnvType \Es\e\tp
+}{
+  \EnvType \Es{\cCast\t\e}\t
+}
+
+\IRule{W7}{
+  \EnvType \Es\e\tp
+}{
+  \EnvType \Es{\mCast\t\e}\t
+}
+
+\IRule{W8}{
+  \EnvType \Es\e\tp
+}{
+   \EnvType \Es{\wCast\t\e}\t
+}
+
+\IRule{W9}{
+  \EnvType \Es\e\tp \\
+  \Mtype \f{}\t \in \tp
+}{
+  \EnvType \Es{\Get\e\f}\t
+}
+
+\IRule{W10}{
+  \EnvType \Es\e\t \\
+  \Mtype\f\tp\tp \in \t \\
+  \EnvType \Es\ep\tp
+}{
+  \EnvType \Es{\Set\e\f\ep}\tp
+}
+
+\IRule{W11}{
+  \s(\a) = \Obj{\b{\a_1}}\C 
+}{
+  \EnvType \Es\a\C
+}
+\end{mathpar}
+
 
 \hrulefill
 
-\input{figures/monomeet}
+\begin{mathpar}
+\IRule{Cast-Wrap}{
+  \D\;\mathit{free} \\
+  \Heap \s{\Bind \a{\Obj{\b\ap}\C} } \\
+  \Kp = \K\;\wrapper{\C \Rightarrow \t,\D}
+}{
+  \cast\a\t\s\K{b}  \Kp {\New \D\a} \s
+}
+
+\IRule{Cast-Mono1 (monotonic)}{
+  \Heap \s{\Bind \a{\Obj{\a_1 \dots \a_n}\C}} \\
+  \C \not\equiv \meet \t\C \\
+  \Kp = \K\;\spec{\Class\C{\b{\Ftype\f\t}}{\b\md}, \D, \meet \t\C} \\
+  \sp = \Heap \s{\Bind \a{\Obj{\b{\a_1}}\D}} \\
+  \s_1 = \castfn{\a_1}{\t_1}{\sp}\Kp \\ \ldots \\
+  \s_n = \castfn{\a_n}{\t_n}{\s_{n-1}}\Kp \\
+}{
+  \cast \a\t\s\K m   \Kp \a {\s_n}\\
+}
+
+
+\IRule{Cast-Mono2 (monotonic)}{
+  \Heap \s{\Bind \a{\Obj{\b{\a_1}}\C}} \\
+  \C \equiv \meet \t\C
+}{
+  \cast \a\t\s\K m  \K\a\s
+}
+
+\IRule{Cast-Check (concrete)}{
+  \Heap \s{\Bind \a{\Obj{\b{\a_1}}\C}} \\
+  \C <: \t
+}{
+  \cast \a\t\s\K c  \K\a\s
+}
+
+\IRule{Cast-Any (star)}{
+}{
+  \cast \a\any\s\K x   \K\a\s
+}
+
+\IRule{Cast-Error}{
+}{
+  \cast  \a\t\s\K{\_}  \K\err\_
+}
+\end{mathpar}
+
+
+\hrulefill
+
+
+\begin{mathpar}
+\IRule{UTWrap}{
+   \Class\C{\b{\Mdef\m\x{\tp1}{\tp2}\e}~\b{\Mdef{\m'_u}\x{\tp1}{\tp2}\e}}
+}{
+    \wrapper{\C\Rightarrow\any,\D} = \Class \D{\xt{s}:\C}{\b{\Mdef{\m_\xt{u}}\x{\any}\any{\cCast \any{\this.\xt{s}.\m(\b{\cCast{\tp1}{\x}})}}} ~ \b{\Mdef{\m'_u}\x{\tp1}{\tp2}{\xt{s}.\m'_u(\b{x})}}}
+}
+
+\IRule{TWrap}{
+	\Class\C{\b\fd}{\b\md} \\ 
+}{
+	\wrapper{\C\Rightarrow\{\b{\mt}\},\D} = \Class \D{\xt{s} : \C}{\tw{\b\md, \b\mt} ~ {\utw{\b\md, \b\mt}}}
+}
+
+\IRule{MTWrap}{
+}{
+  \tw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\Mtype\m{\b{\tp1}}{\tp2};\b{\mt}} = \Mdef{\m}\x{\tp1}{\tp2}{\cCast{\tp2}{\this.\xt{s}.{\m_\xt{u}(\b{\cCast{\any}{\x}})}}} ~ \tw{\b{\md},\b{\mt}}
+}
+
+\IRule{MUTWrap}{
+	\m \not\in\b{\mt}
+}{
+  \utw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\b{\mt}} = \Mdef{\m_\xt{u}}\x\any\any\e ~ \utw{\b{\md},\b{\mt}}
+}
+\end{mathpar}
+
+
+\hrulefill
+
+\opdef{
+  $\meet{\t_1}{\t_2} \equiv \t$
+}{
+  The most specific type common to $\t_1$ and $\t_2$ is $\t$
+}
+\begin{mathpar}
+\IRule{M1}{ }{\meet{\t}{\any} \equiv \t}
+
+\IRule{M2}{ }{\meet{\any}{\t} \equiv \t}
+
+\IRule{M3}{ }{\meet{\t}{\t} \equiv \t}
+
+\IRule{M4}{
+      \b{\meet{\t_3}{\t_1}  \equiv \t_5} \\
+    \meet{\t_2}{\t_4} \equiv \t_6\\
+    \meet{\Type{\b{\md_1}}}{\Type{\b{\md_2}}} \equiv \Type{\b{\md_3}} 
+}{
+  \meet{\Type{\Mtype\m{\t_1}{\t_2}~ \b{\md_1}}}{\Type{\Mtype\m{\t_3}{\t_4} ~ \b{\md_2}}} \equiv \Type{\Mtype\m{\b{\t_5}}{\t_6} ~ \b{\md_3}}
+}
+\end{mathpar}
 
 \hrulefill
 
 \begin{mathpar}
 \IRule{Refine-Method}{
-  \b{\meet{\tp1}{\tp1'} = \tp1''}\\
-  {\meet{\tp2}{\tp2'} = \tp2''}
+  \b{\meet{\t_1}{\t_1'} = \t_1''}\\
+  {\meet{\t_2}{\t_2'} = \t_2''}
 }{
-  \spec{\m(\b{\x:\tp1}):\tp2 = \e,\m(\b{\tp1'}):\tp2'} = 
-  (\m(\b{\x:\tp1''}):\tp2'' = \Cast{\tp2''}{\e}), \\
-  (\m_\xt{u}(\b{\x:\any}):\any = \Cast{\any}{\this.{\m}(\Cast{\tp1''}{\x})})
+  \spec{\m(\b{\x:\t_1}):\t_2 = \e,\m(\b{\t_1'}):\t_2'} = 
+  (\m(\b{\x:\t_1''}):\t_2'' = \cCast{\t_2''}{\e}), \\
+  (\m_\xt{u}(\b{\x:\any}):\any = \cCast{\any}{\this.{\m}(\cCast{\t_1''}{\x})})
 }
 
 \IRule{Refine-Class}{
@@ -138,46 +370,37 @@
 }
 \end{mathpar}
 
-\hrulefill
-
-\begin{mathpar}
-\IRule{Cast-Wrap}{\xt{D}\;\text{\emph{free}} \\ \s[\a \mapsto \{ \a' \ldots \B \C \}] \\ \cbp2 = \cbp1;\wrapper{\C \Rightarrow \t,\xt{D}}}{\cast\a{\t}\s{\cbp1}{\xt{b}} = \New{\xt{D}}\a, \s, \cbp2}
-
-\IRule{Cast-Mono1 (monotonic)}{
-  \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}\C\}}} \\
-  \C \not\equiv \meet{\tp1}{\C} \\
-  \cb' = \cb;\spec{\Class{\C}{\b{\fd}}{\b{\md}}, \xt{D}, \meet{\tp1}{\C}} \\
-  \sp2 = \Heap{\sp1}{\Bind{\ap 1}{\Obj{\a'_1,\ldots}{\xt{D}}}} \\
-  \s'_1 = \castfn{\a_1'}{\t'_1}{\sp2}{\cb'} \\ \ldots \\ \s'_n = \castfn{\a_n'}{\t'_n}{\s'_{n-1}}{\cb'}\\
-}{
-  \cast{\ap1}{\tp1}{\sp1}\cb\m = \ap1, \s'_n, \cb'\\
-}
-% \Reduce{\Cast{\tp 1}{\ap1}}{\sp1}{\ap1}{\sp2}
-
-\IRule{Cast-Mono2 (monotonic)}{
-  \Heap{\s}{\Bind{\ap 1}{\Obj{\b\a}\C\}}} \\
-  \C \equiv \meet{\tp1}{\C} \\
-}{
-  \cast{\ap1}{\tp1}{\s}\cb\m = \ap1,\s,\cb\\
-}
-
-\IRule{Cast-Check (concrete)}{\Heap\s{\Bind\a{\Obj{\a_1,\ldots}{\C}}} \\ \C <: \tp2 }{\cast\a{\tp2}\s\cb\c = \a, \s, \cb}
-
-\IRule{Cast-Any (star)}{ }{\cast\a{\any}\s\cb{\_} = \a, \s, \cb}
-
-\IRule{Cast-Error}{ }{\cast\a{\t}\s\cb{\_} = \err}
-\end{mathpar}
 
 \hrulefill
 
 \begin{mathpar}
-\IRule{Insert-Recv (eager cast)}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\ep3}{\m}{\b{\ep4}}, \tp3}
+\IRule{Insert-Recv (eager cast)}{
+  \GenCast \E{\e_1}{\e_3}{\t_1} \\
+  \m(\b{x : \t_2}):\t_3 \in \t_1 \\
+  \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
+}{
+  \inv \E{\Call{\e_1}\m{\b{\e_2}}} = \Call{\e_3}{\m}{\b{\e_4}}, \t_3
+}
 
-\IRule{Insert-Dyn}{\GenCast{\E}{\ep1}{\ep3}{\any} \\ \AnaCast{\E}{\ep2}{\ep4}{\any}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Call{\Cast{(\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\ep4}}, \any}
+\IRule{Insert-Dyn}{
+  \GenCast{\E}{\e_1}{\e_3}{\any} \\
+  \AnaCast{\E}{\e_2}{\e_4}{\any}
+}{
+  \inv \E{\Call{\e_1}\m{\b{\e_2}}} =
+  \Call{\cCast{(\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\e_4}}, \any
+}
 
-\IRule{Insert-Check (lazy cast)}{\GenCast{\E}{\ep1}{\ep3}{\tp1} \\ \m(\b{x : \tp2}):\tp3 \in \tp1 \\ \b{\AnaCast{\E}{\ep2}{\ep4}{\tp2}}}{\inv{\E}{\Call{\ep1}\m{\b{\ep2}}} = \Cast{\tp1}{(\Call{(\Cast{\Type{\Mtype{\m_\xt{u}}{\b\any}{\any}}}{\ep3})}{\m_\xt{u}}{\b{\Cast{\any}{\ep4}}})}, \tp1}
+\IRule{Insert-Check (lazy cast)}{
+  \GenCast \E{\e_1}{\e_3}{\t_1} \\
+  \m(\b{x : \t_2}):\t_3 \in \t_1 \\
+  \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
+}{
+  \inv{\E}{\Call{\e_1}\m{\b{\e_2}}} =
+  \cCast{\t_1}{(\Call{(\cCast{\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\cCast \any{\e_4}}})}, \t_1
+}
 \end{mathpar}
 
+\end{document}
 \section{Addendum}
 
 \input{figures/syncast}
@@ -197,9 +420,9 @@
 \hrulefill
 
 \begin{mathpar}
-\IRule{No-Cons}{ \tp1 \Sub \tp2 }{\MetaSub{\tp1}{\tp2}}
+\IRule{No-Cons}{ \t_1 \Sub \t_2 }{\MetaSub{\t_1}{\t_2}}
 
-\IRule{Has-Cons}{\stcons{\tp1}{\tp2}}{\MetaSub{\tp1}{\tp2}}
+\IRule{Has-Cons}{\stcons{\t_1}{\t_2}}{\MetaSub{\t_1}{\t_2}}
 \end{mathpar}
 
 \end{document}
