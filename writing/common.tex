@@ -22,11 +22,12 @@ only through the presence of the getter and setter methods. Method calls are
 denoted \Call\x\m\e.\footnote{The single argument limitation is purely to
   lighten the notation.} Following C\# 4.0~\cite{} the TL allows a dynamic
 type, denoted \any, and dynamically-typed method invocation, denoted
-\DynCall\x\m\e. A new object is created with a class name and a sequence of
-arguments given in the order of definition of fields, \New\C{\b\e}.
-Meta-variable \x ranges over argument names, \a over memory locations, \f
-over field names, \m over method names, \C over class names. The language
-has four different kinds of cast expressions (described below).
+\DynCall\x\m\e. Dynamically-typed method invocation treats all arguments as
+\any. A new object is created with a class name and a sequence of arguments
+given in the order of definition of fields, \New\C{\b\e}.  Meta-variable \x
+ranges over argument names, \a over memory locations, \f over field names,
+\m over method names, \C over class names. The language has four different
+kinds of cast expressions (described below).
 
 \begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}l}
 \e &::=  \x \\
@@ -53,8 +54,8 @@ evaluation contexts.  The context are deterministic. Program error is
 denoted by a stuck term. Meta-variable \k ranges over class definitions.
 The sematnics operate over an explicit class table, denoted \K, which is a
 sequence of class definitions. A heap, denoted \s, maps memory locations to
-objects. We use the notation \Heap\s{\Bind\a\Obj\C{\b\a}} to denote the heap
-\s extended by the binding of location \a to object \Obj\C{\b\a}.
+objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the heap
+\s extended by the binding of location \a to object \obj\C{\b\a}.
 
 
 \hrulefill
@@ -69,7 +70,7 @@ objects. We use the notation \Heap\s{\Bind\a\Obj\C{\b\a}} to denote the heap
  \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
 }
 \CondRule{E2}{ %% new C -> a
-   \alloc \sp\ap\s{\Obj{\b\a}\C}
+   \alloc \sp\ap\s{\obj\C{\b\a}}
 }{ 
     \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
 }
@@ -125,7 +126,7 @@ objects. We use the notation \Heap\s{\Bind\a\Obj\C{\b\a}} to denote the heap
 
 \begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
 \s &::= ~~\none ~~ \B ~~
-    \Heap\s{\Bind\a{\Obj{\b\a}\C}}\\[2mm]
+    \Heap\s{\Bind\a{\obj\C{\b\a}}}\\[2mm]
 \E &::= \Get\square\f     ~\B~
         \Set\square\f\e   ~\B~
         \Set\a\f\square   ~\B~  
@@ -258,7 +259,7 @@ objects. We use the notation \Heap\s{\Bind\a\Obj\C{\b\a}} to denote the heap
 }
 
 \IRule{W11}{
-  \s(\a) = \Obj{\b{\a_1}}\C 
+  \s(\a) = \obj\C{\b{\a_1}}
 }{
   \EnvType \Es\a\C
 }
@@ -270,17 +271,17 @@ objects. We use the notation \Heap\s{\Bind\a\Obj\C{\b\a}} to denote the heap
 \begin{mathpar}
 \IRule{Cast-Wrap}{
   \D\;\mathit{free} \\
-  \Heap \s{\Bind \a{\Obj{\b\ap}\C} } \\
+  \Heap \s{\Bind \a{\obj\C{\b\ap}} } \\
   \Kp = \K\;\wrapper{\C \Rightarrow \t,\D}
 }{
   \cast\a\t\s\K{b}  \Kp {\New \D\a} \s
 }
 
 \IRule{Cast-Mono1 (monotonic)}{
-  \Heap \s{\Bind \a{\Obj{\a_1 \dots \a_n}\C}} \\
+  \Heap \s{\Bind \a{\obj\C{\a_1 \dots \a_n}}} \\
   \C \not\equiv \meet \t\C \\
   \Kp = \K\;\spec{\Class\C{\b{\Ftype\f\t}}{\b\md}, \D, \meet \t\C} \\
-  \sp = \Heap \s{\Bind \a{\Obj{\b{\a_1}}\D}} \\
+  \sp = \Heap \s{\Bind \a{\obj\D{\b{\a_1}}}} \\
   \s_1 = \castfn{\a_1}{\t_1}{\sp}\Kp \\ \ldots \\
   \s_n = \castfn{\a_n}{\t_n}{\s_{n-1}}\Kp \\
 }{
@@ -289,14 +290,14 @@ objects. We use the notation \Heap\s{\Bind\a\Obj\C{\b\a}} to denote the heap
 
 
 \IRule{Cast-Mono2 (monotonic)}{
-  \Heap \s{\Bind \a{\Obj{\b{\a_1}}\C}} \\
+  \Heap \s{\Bind \a{\obj\C{\b{\a_1}}}} \\
   \C \equiv \meet \t\C
 }{
   \cast \a\t\s\K m  \K\a\s
 }
 
 \IRule{Cast-Check (concrete)}{
-  \Heap \s{\Bind \a{\Obj{\b{\a_1}}\C}} \\
+  \Heap \s{\Bind \a{\obj\C{\b{\a_1}}}} \\
   \C <: \t
 }{
   \cast \a\t\s\K c  \K\a\s
