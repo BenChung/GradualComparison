@@ -25,9 +25,10 @@ type, denoted \any, and dynamically-typed method invocation, denoted
 \DynCall\x\m\e. A new object is created with a class name and a sequence of
 arguments given in the order of definition of fields, \New\C{\b\e}.
 Meta-variable \x ranges over argument names, \a over memory locations, \f
-over field names, \m over method names, \C over class names.
+over field names, \m over method names, \C over class names. The language
+has four different kinds of cast expressions (described below).
 
-\center\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}l}
+\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}l}
 \e &::=  \x \\
    &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e    \\
    &\B \DynGet\e\f &\B \DynSet\e\f\e &\B \DynCall\e\m\e \\
@@ -46,6 +47,15 @@ over field names, \m over method names, \C over class names.
 \E &::= \Ftype\x\t  \B \none\\
 \t &::= ~ \any  \B   \Type{\b\mt} 
 \end{tabular}\end{minipage}
+
+The semantics of TL is defined by a small step operational semantics with
+evaluation contexts.  The context are deterministic. Program error is
+denoted by a stuck term. Meta-variable \k ranges over class definitions.
+The sematnics operate over an explicit class table, denoted \K, which is a
+sequence of class definitions. A heap, denoted \s, maps memory locations to
+objects. We use the notation \Heap\s{\Bind\a\Obj\C{\b\a}} to denote the heap
+\s extended by the binding of location \a to object \Obj\C{\b\a}.
+
 
 \hrulefill
 
