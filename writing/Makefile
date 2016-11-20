@@ -9,8 +9,8 @@ no:
 	bibtex main
 	pdflatex main.tex
 
-jan: figures
-	pdflatex main && open main.pdf
+jan: 
+	pdflatex common && open common.pdf
 
 halfclean:
 	rm -f *.log *.aux *.bbl *.blg *~  *.out  *#  .#*  *.fls

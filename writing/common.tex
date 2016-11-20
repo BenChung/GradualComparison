@@ -7,40 +7,42 @@
 
 \section*{Target Langage}
 
-The target language (TL) is a parred down statically typed object calculus. The
-calculus has non-recursive structural substyping\footnote{\bf I am not sure
-  that this is the right way to describe what we do -- check. JV} but no
-inheritance.\footnote{Structural subtyping is needed for type systems that
-  have a notion of ``consistency''. Inheritance does not add anything other
-  than code reuse.}  The calculus does not have null values.\footnote{Null
-  adds a source of error but otherwise should not be too interesting. We
-  should mention something about the type of null.} Fields are accessed by
-automicatlly providedd getter and setter methods.\footnote{This is because
-  we want an easy way to interpose on field access in wrappers.} Fields
-appear in type signatures only through the presence of the getter and setter
-methods. Following C\# 4.0~\cite{} the TL allows a dynamic type, denoted
-\any, and dynamically-typed method invocation, denoted 
+The target language (TL) is a parred down statically typed object
+calculus. The calculus has non-recursive structural substyping\footnote{\bf
+  I am not sure that this is the right way to describe what we do --
+  check. JV} but no inheritance.\footnote{Structural subtyping is needed for
+  type systems that have a notion of ``consistency''. Inheritance does not
+  add anything other than code reuse.}  The calculus does not have null
+values.\footnote{Null adds a source of error but otherwise should not be too
+  interesting. We should mention something about the type of null.} Fields
+are accessed by automicatlly providedd getter and setter methods, denoted
+\Get\x\f and \Set\x\f\e.\footnote{This is because we want an easy way to
+  interpose on field access in wrappers.} Fields appear in type signatures
+only through the presence of the getter and setter methods. Method calls are
+denoted \Call\x\m\e.\footnote{The single argument limitation is purely to
+  lighten the notation.} Following C\# 4.0~\cite{} the TL allows a dynamic
+type, denoted \any, and dynamically-typed method invocation, denoted
+\DynCall\x\m\e. A new object is created with a class name and a sequence of
+arguments given in the order of definition of fields, \New\C{\b\e}.
+Meta-variable \x ranges over argument names, \a over memory locations, \f
+over field names, \m over method names, \C over class names.
 
-\center\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
+\center\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}l}
 \e &::=  \x \\
-   \Alt{ \Get\e\f }
-   \Alt{ \Set\e\f\e }
-   \Alt{ \Call\e\m\e }
+   &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e    \\
+   &\B \DynGet\e\f &\B \DynSet\e\f\e &\B \DynCall\e\m\e \\
    \Alt{ \New\C{\b\e} }
-   \Alt{ \tCast\t\e }
-   \Alt{ \wCast\t\e }
-   \Alt{ \cCast\t\e }
-   \Alt{ \mCast\t\e }
+   &\B \tCast\t\e  &\B \wCast\t\e    &\B \cCast\t\e &\B  \mCast\t\e \\
    \Alt{ \a }
-\end{tabular}\end{minipage}\begin{minipage}{4cm}\begin{tabular}{l@{~~~}l}
-\md &::=
-   \Mdef\m\x\t\t\e \\
-   \Alt{ \Mdef\f\x\t\t\e}
-   \Alt{ \Mdefz\f\t\e} 
+\end{tabular}\end{minipage}
+~~
+\begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
 \k &::= \Class \C {\b{\Ftype\f\t}}{\b\md} \\
-\mt &::= \Mtype\m\t\t\\
-   \Alt{ \Mtype\f\t\t}
-   \Alt{ \Mtype\f{}\t}
+\end{tabular}
+\begin{tabular}{l@{~~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e \\
+    &\B  \Mdef\f\x\t\t\e ~\B~ \Mdefz\f\t\e \\
+\mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t \\
 \E &::= \Ftype\x\t  \B \none\\
 \t &::= ~ \any  \B   \Type{\b\mt} 
 \end{tabular}\end{minipage}
