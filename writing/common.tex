@@ -346,10 +346,40 @@ What does the wrap function do? In english.
 \C may be a wrapper or a user class. It may thus have fields or has the
 single \that field.
 
+
 Assume \t = \any.
 
+Assume \C is an untyped class
+
+Nothing more needs to be done.
+
+Assume \C is a typed class.
+
+For each method \m in \C add, a passthrough method in \D, and add an untyped method that calls the passthrough after behcasting arguments and returns.
+
+Field getter and setters are not changed because they are always invoked
+from a typed context.
+
+Assume \t = \Cp 
+
+Assume \C is an untyped class.
+
+Add all untyped methods from \C to \D as  passthrough. 
+
+For every typed method \m in \Cp,  if there is an untyped \m in \C, add a typed method \m to \D with a call to the underlying untyped method with behav casts on argument and return
+
+For methods \m in \Cp, such that there is no \m in \C, put a method that will cause a stuck state, e.g. a dyn call to \m.
+
+Assume \C is a typed class
+
+For every method \m occuring both in \C and \Cp, add a call with behcast
+
+For every method \m occuring only in \C, add it to \D, 
+
+For every method \m occuring only in \Cp
 
 
+{\bf context switching to another task... the above is broken too}
 
 
 
