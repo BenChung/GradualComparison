@@ -19,6 +19,7 @@
 \newcommand{\ep}  {{{\Mxt{e'}}}}
 \renewcommand{\sp}{{{\M{\s'}}}}
 \newcommand{\ap}  {\M{\a'}}
+\newcommand{\app}  {\M{\a''}}
 \newcommand{\tp}  {\M{ \t'}}
 \newcommand{\tpp}  {\M{ \t''}}
 \newcommand{\C}   {\Mxt C}
@@ -30,6 +31,7 @@
 \newcommand{\E}   {\M \Gamma}
 \newcommand{\any} {\M{\star}}
 \newcommand{\this}{\Mxt{this}}
+\newcommand{\that}{\Mxt{that}}
 \newcommand{\none}{\M{\cdot}}
 \newcommand{\D}   {\Mxt D}
 
@@ -52,6 +54,9 @@
 \newcommand{\obj}[2]   { \M{ #1\{#2\}}}
 \newcommand{\alloc}[4] {\M{#1\;#2  = \xt{alloc}(#3, #4)}}
 \newcommand{\cast}[8]  {\M{#6\;#7\;#8=\xtns{#5 cast}(#1, #2, #3, #4)}}
+\newcommand{\behcast}[7]  {\M{#5\;#6\;#7=\xtns{behcast}(#1, #2, #3, #4)}}
+\newcommand{\moncast}[6]  {\M{#5\;#6=\xtns{moncast}(#1, #2, #3, #4)}}
+
 \newcommand{\Alt}[1]   { &\B #1 \\}
 \newcommand{\B}        {\M{~|~}}
 \newcommand{\bang}     {\M{\xt{!}}}
@@ -71,6 +76,8 @@
 \newcommand{\Bind}[2]     {\M{#1 \mapsto #2}}
 
 \newcommand{\Sub}{\M{<:}}
+\newcommand{\names}[1]{\M{\xt{names}(#1)}}
+
 \newcommand{\ConsSub}{\M{\lesssim}}
 
 \newcommand{\CondRule}[3]{ #3 &~{\emph{if}} #2 \\}
@@ -91,7 +98,7 @@
 \newcommand{\AnaCast}[4]{#1 \vdash #2 \Downarrow #4 \hookrightarrow #3}
 \newcommand{\TransClass}[2]{\M{ #1 \rightharpoonup #2 }}
 \newcommand{\inv}[2]{\xt{invoke}(#1, #2)}
-\newcommand{\classof}[2]{\M{\xt{classof}(#1,#2)}}
+\newcommand{\classof}[3]{\M{\xt{classof}(#1,#2,#3)}}
 \newcommand{\In}{\M{\in}}
 
 \newcommand{\III}{}
@@ -114,43 +121,29 @@
 \newcommand{\NoCondRule}[2]{ #2 &       \\}
 \newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
 \newcommand{\NotSub}{\M{\not<:}}
-\newcommand{\classofis}[2]{\M{\xt{classof}(#1)=#2}}
 \newcommand{\typeofis}[3]{\M{\xt{typeof}(#1,#2)=#3}}
-
 \newcommand{\typeof}[2]{\M{\xt{typeof}(#1,#2)}}
 \newcommand{\Sel}[2]{\M{#1(#2)}}
 \newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #3 : #4 }}
 \newcommand{\mdp}[1]{\M{\md_{#1}}}
-\newcommand{\setter}[1]{\M{\xt{set}(#1)}}
-\newcommand{\getter}[1]{\M{\xt{get}(#1)}}
 \newcommand{\dynamic}[1]{\M{\xt{dyn}(#1)}}
 \newcommand{\invoke}[1]{\M{\xt{inv}(#1)}}
 \newcommand{\Dyn}[1]{\M{#1^{\any} }}
-\newcommand{\casts}[1]{\M{\xt{casts}(#1)}}
 \newcommand{\fcast}[1]{\M{\xt{translate}(#1)}}
 \newcommand{\proxy}[1]{\M{\xt{proxy}(#1)}}
-%\newtheorem{definition}{Definition}
-%\newtheorem{thm}{Theorem}
 \newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
 \newcommand{\Weak}{\text{\small?}\hspace{0.1em}}
 \newcommand{\WType}[1]{\Weak\Type{#1}}
-
-
 \newcommand{\stcons}[2]{#1\lesssim #2}
 \newcommand{\refine}[2]{#1\vartriangleright #2}
 \newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
 \newcommand{\adapt}[1]{\M{\llbracket #1 \rrbracket_{\xt{adapt}}}}
-
 \newcommand{\p}{\xt{p}}
 \newcommand{\cb}{\b{\C}}
 \newcommand{\typed}[1]{\text{typed}(#1)}
 \newcommand{\untyped}[1]{\text{untyped}(#1)}
 \newcommand{\includecode}[2][c]{\lstinputlisting[caption=#2, escapechar=, style=custom#1]{#2}<!---->}
-
 \newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
-\newcommand{\Vect}[3]{\text{Vec}(#1,#2,#3)}
 \newcommand{\tv}{\xt{v}}
 \newcommand{\ts}{\xt{ts}}
-\newcommand{\MetaSub}[2]{\xtns{Sub}(#1,#2)}
-
 }
