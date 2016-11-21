@@ -28,15 +28,22 @@ return value as \any. A new object is created with a class name and a
 sequence of arguments in the order of definition of fields, denoted
 \New\C{\b\e}.  Meta-variable \x ranges over argument names, \a over memory
 locations, \f over field names, \m over method names, \C over class
-names. The language has four different kinds of cast expressions (described
-below).
+names. The language has four different kinds of cast expressions: it has two
+structural casts and two generative casts. The structural subtype cast,
+denoted \SubCast\t\a, asserts that the object at location \a is of type
+\t.  The structural shallow cast, denoted \ShaCast\t\a, asserts that the
+object at location \a has methods with names matching those of \t. This does
+not make any guarantee about the type of arguments.  The generative
+behavioral cast, denoted \BehCast\t\a, will ensure that either \a behaves
+as a \t or that it get stuck. The generative monotonic cast, denoted
+\MonCast\t\a, is a behavioral cast that, in addition, imposes constraints
+on fields.
 
-\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}l}
+\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
 \e &::=  \x \\
-   &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e    \\
-   &\B \DynGet\e\f &\B \DynSet\e\f\e &\B \DynCall\e\m\e \\
+   &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
    &\B \New\C{\b\e} \\
-   &\B \tCast\t\e  &\B \wCast\t\e    &\B \cCast\t\e &\B  \mCast\t\e \\
+   &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
    &\B \a 
 \end{tabular}\end{minipage}
 ~~
@@ -67,13 +74,16 @@ stuck.\footnote{Intuitively we would expect that the program can only get
   stuck at dynamic calls or at structural casts. But generative casts add
   some complexity to that statement.}
 
-
 New object creation picks a fresh memory location \ap and binds it to the
 newly created. Operations on fields are require a typed receiver, for
 example in the expression \Get\this\f, \this is always of the type of the
-current class. Field access through a getter method, either works as
-follows, if the receiver's class has a getter method, that method is
-evaluated, otherwise the field corresponding the getter's name is updated.
+current class. Field access through a getter method, works as follows. If
+the receiver's class has a getter method, that method is evaluated,
+otherwise the field corresponding the getter's name is updated. Methods are
+segregated into typed method (methods whose argument is not \any) and
+untyped method (methods whose argument is \any). The former can be called by
+statically resolved method, the latter must be called by dynamically
+resolved methods.
 
 
 
@@ -118,25 +128,25 @@ evaluated, otherwise the field corresponding the getter's name is updated.
 }{
    \ReduceA \K\s{\DynCall\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
-\CondRule{E8}{
-  \cast \a\t\s\K{w}  \Kp\e\sp
-}{ 
-    \ReduceA  \K{\wCast \tp\a}\s \Kp\e\sp
-}
-\CondRule{E9}{
-  \cast \a\t\s\K\m  \Kp\e\sp
-}{ 
-    \ReduceA \K{\mCast\tp\a}\s \Kp\e\sp
-}
 \CondRule{E10}{
-  \cast \a\t\s\K c  \Kp\e\sp
+  \cast \a\t\s\K {sub}  \Kp\e\sp
 }{ 
-   \ReduceA \K{\cCast \tp\a}\s \Kp\e\sp
+   \ReduceA \K{\SubCast \tp\a}\s \Kp\e\sp
 }
 \CondRule{E11}{
-  \cast \a\t\s\K c  \Kp\e\sp
+  \cast \a\t\s\K {sha}  \Kp\e\sp
 }{ 
-   \ReduceA \K{\tCast \tp\a}\s \Kp\e\sp
+   \ReduceA \K{\ShaCast \tp\a}\s \Kp\e\sp
+}
+\CondRule{E8}{
+  \cast \a\t\s\K{beh}  \Kp\e\sp
+}{ 
+    \ReduceA  \K{\BehCast \tp\a}\s \Kp\e\sp
+}
+\CondRule{E9}{
+  \cast \a\t\s\K{mon}  \Kp\e\sp
+}{ 
+    \ReduceA \K{\MonCast\tp\a}\s \Kp\e\sp
 }
 \CondRule{E1}{ %% e -> e'
   \Reduce \K\e\s \Kp\ep\sp
@@ -155,21 +165,18 @@ evaluated, otherwise the field corresponding the getter's name is updated.
         \Call\square\m\e   ~\B~
         \Call\a\m{\square} \\
    &\B~
-        \DynGet\square\f   ~\B~
-        \DynSet\square\f\e   ~\B~
-        \DynSet\a\f\square   ~\B~        
         \DynCall\square\m\e   ~\B~
         \DynCall\a\m\square   ~\B~\\
    &\B~
-       \mCast\t\square  ~\B~
-       \wCast\t\square  ~\B~
-       \cCast\t\square \\ &\B~
-       \tCast\t\square  ~\B~
+       \SubCast\t\square  ~\B~
+       \ShaCast\t\square  ~\B~
+       \BehCast\t\square \\ &\B~
+       \MonCast\t\square  ~\B~
        \New\C{\b \a\,\square\,\b\e}
 \end{tabular}
 \end{minipage}
 
-~\\
+Types are represented by set of methods. 
 
 \hrulefill
 
@@ -215,6 +222,11 @@ evaluated, otherwise the field corresponding the getter's name is updated.
 \end{mathpar}
 
 
+Type checking is standard.
+
+Field accessor rules W3 and W4 require a typed receiver, since \any does
+not have any methods a receiver typed at \any will never typecheck.
+
 \hrulefill
 
 \opdef{\EnvType\Es\e\t}{\e has type \t in environment \E against heap \s}
@@ -234,59 +246,66 @@ evaluated, otherwise the field corresponding the getter's name is updated.
 
 \IRule{W3}{
   \EnvType \Es\e\t \\
-  \Mtype \m\tp{\t_1}\inc \t  \\
-  \EnvType \Es\ep\tp
+  \Mtype \f{}\tp \inc \t  
 }{
-  \EnvType \Es{\Call\e\m\ep}{\t_1}
+  \EnvType \Es{\Get\e\f}\tp
 }    
 
 \IRule{W4}{
+  \EnvType \Es\e\t \\
+  \Mtype \f\tp\tp \inc \t  \\
+  \EnvType \Es\ep\tp
+}{
+  \EnvType \Es{\Set\e\f\ep}\tp
+}    
+
+\IRule{W5}{
+  \EnvType \Es\e\t \\
+  \Mtype \m\tp\tpp\inc \t  \\
+  \EnvType \Es\ep\tp
+}{
+  \EnvType \Es{\Call\e\m\ep}\tpp
+}    
+
+\IRule{W6}{
+  \EnvType \Es\e\any \\
+  \EnvType \Es\ep\any
+}{
+  \EnvType \Es{\DynCall\e\m\ep}\any
+}    
+
+\IRule{W7}{
   \b{\EnvType \Es\e\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b\md}
 }{
   \EnvType \Es{\New\C{\b\e}}\C
 }
 
-\IRule{W5}{
-  \EnvType \Es\e\tp
-}{
-  \EnvType \Es{\tCast\t\e}\t
-}
-
-\IRule{W6}{
-  \EnvType \Es\e\tp
-}{
-  \EnvType \Es{\cCast\t\e}\t
-}
-
-\IRule{W7}{
-  \EnvType \Es\e\tp
-}{
-  \EnvType \Es{\mCast\t\e}\t
-}
-
 \IRule{W8}{
   \EnvType \Es\e\tp
 }{
-   \EnvType \Es{\wCast\t\e}\t
+  \EnvType \Es{\SubCast\t\e}\t
 }
 
 \IRule{W9}{
-  \EnvType \Es\e\tp \\
-  \Mtype \f{}\t \in \tp
+  \EnvType \Es\e\tp
 }{
-  \EnvType \Es{\Get\e\f}\t
+  \EnvType \Es{\ShaCast\t\e}\t
 }
 
 \IRule{W10}{
-  \EnvType \Es\e\t \\
-  \Mtype\f\tp\tp \in \t \\
-  \EnvType \Es\ep\tp
+  \EnvType \Es\e\tp
 }{
-  \EnvType \Es{\Set\e\f\ep}\tp
+  \EnvType \Es{\BehCast\t\e}\t
 }
 
 \IRule{W11}{
+  \EnvType \Es\e\tp
+}{
+   \EnvType \Es{\MonCast\t\e}\t
+}
+
+\IRule{W12}{
   \s(\a) = \obj\C{\b{\a_1}}
 }{
   \EnvType \Es\a\C
@@ -346,7 +365,7 @@ evaluated, otherwise the field corresponding the getter's name is updated.
 \IRule{UTWrap}{
    \Class\C{\b{\Mdef\m\x{\tp1}{\tp2}\e}~\b{\Mdef{\m'_u}\x{\tp1}{\tp2}\e}}
 }{
-    \wrapper{\C\Rightarrow\any,\D} = \Class \D{\xt{s}:\C}{\b{\Mdef{\m_\xt{u}}\x{\any}\any{\cCast \any{\this.\xt{s}.\m(\b{\cCast{\tp1}{\x}})}}} ~ \b{\Mdef{\m'_u}\x{\tp1}{\tp2}{\xt{s}.\m'_u(\b{x})}}}
+    \wrapper{\C\Rightarrow\any,\D} = \Class \D{\xt{s}:\C}{\b{\Mdef{\m_\xt{u}}\x{\any}\any{\SubCast \any{\this.\xt{s}.\m(\b{\SubCast{\tp1}{\x}})}}} ~ \b{\Mdef{\m'_u}\x{\tp1}{\tp2}{\xt{s}.\m'_u(\b{x})}}}
 }
 
 \IRule{TWrap}{
@@ -357,7 +376,7 @@ evaluated, otherwise the field corresponding the getter's name is updated.
 
 \IRule{MTWrap}{
 }{
-  \tw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\Mtype\m{\b{\tp1}}{\tp2};\b{\mt}} = \Mdef{\m}\x{\tp1}{\tp2}{\cCast{\tp2}{\this.\xt{s}.{\m_\xt{u}(\b{\cCast{\any}{\x}})}}} ~ \tw{\b{\md},\b{\mt}}
+  \tw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\Mtype\m{\b{\tp1}}{\tp2};\b{\mt}} = \Mdef{\m}\x{\tp1}{\tp2}{\SubCast{\tp2}{\this.\xt{s}.{\m_\xt{u}(\b{\SubCast{\any}{\x}})}}} ~ \tw{\b{\md},\b{\mt}}
 }
 
 \IRule{MUTWrap}{
@@ -399,8 +418,8 @@ evaluated, otherwise the field corresponding the getter's name is updated.
   {\meet{\t_2}{\t_2'} = \t_2''}
 }{
   \spec{\m(\b{\x:\t_1}):\t_2 = \e,\m(\b{\t_1'}):\t_2'} = 
-  (\m(\b{\x:\t_1''}):\t_2'' = \cCast{\t_2''}{\e}), \\
-  (\m_\xt{u}(\b{\x:\any}):\any = \cCast{\any}{\this.{\m}(\cCast{\t_1''}{\x})})
+  (\m(\b{\x:\t_1''}):\t_2'' = \SubCast{\t_2''}{\e}), \\
+  (\m_\xt{u}(\b{\x:\any}):\any = \SubCast{\any}{\this.{\m}(\SubCast{\t_1''}{\x})})
 }
 
 \IRule{Refine-Class}{
@@ -427,7 +446,7 @@ evaluated, otherwise the field corresponding the getter's name is updated.
   \AnaCast{\E}{\e_2}{\e_4}{\any}
 }{
   \inv \E{\Call{\e_1}\m{\b{\e_2}}} =
-  \Call{\cCast{(\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\e_4}}, \any
+  \Call{\SubCast{(\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\e_4}}, \any
 }
 
 \IRule{Insert-Check (lazy cast)}{
@@ -436,7 +455,7 @@ evaluated, otherwise the field corresponding the getter's name is updated.
   \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
 }{
   \inv{\E}{\Call{\e_1}\m{\b{\e_2}}} =
-  \cCast{\t_1}{(\Call{(\cCast{\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\cCast \any{\e_4}}})}, \t_1
+  \SubCast{\t_1}{(\Call{(\SubCast{\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\SubCast \any{\e_4}}})}, \t_1
 }
 \end{mathpar}
 
