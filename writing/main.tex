@@ -1,243 +1,1041 @@
-\documentclass{llncs}
-\usepackage{xspace,hyperref,times,amsmath,xspace,listings,url,subfigure}
-\usepackage{graphicx,wrapfig,array,multirow,mathpartir}
-
-\newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
- \hypersetup{colorlinks=true,
-   linkcolor=black,  citecolor=black,filecolor=magenta, urlcolor=black,
-   pdftitle={R}, pdfauthor={Morandat Hill Osvald Vitek},
-   pdfkeywords={Dynamic Languages, R, Reflection, Dynamic Analysis}}
-
-\newcommand{\rl}[1]{{{\small{[{\sc #1}]}}}\xspace}
-\newcommand{\lang}[1]{#1}% {\sf\scshape#1}\xspace}
-\newcommand{\JAVA}{\lang{Java}\xspace}
-\newcommand{\CommonLisp}{\lang{CommonLisp}\xspace}
-\newcommand{\Java}{\lang{Java}\xspace}
-\newcommand{\Scheme}{\lang{Scheme}\xspace}
-\newcommand{\JavaScript}{\lang{Java\-Script}\xspace}
-\newcommand{\Python}{\lang{Python}\xspace}
-\newcommand{\Ruby}{\lang{Ruby}\xspace}
-\newcommand{\Groovy}{\lang{Groovy}\xspace}
-
-\renewcommand{\mapsto}{/}
-\newcommand{\NOTE}[3][NOTE]{\marginpar{\textcolor{#2}{\textbf{#1:}\scriptsize\sf#3}}}
-\newcommand{\TODO}[2][Unassigned]{\NOTE[#1]{black}{#2}}
-\newcommand{\FM}[1]{\NOTE[FM]{blue}{#1}}
-\newcommand{\BH}[1]{\NOTE[BH]{magenta}{#1}}
-\newcommand{\JV}[1]{\NOTE[JV]{red}{#1}}
-\newcommand{\PROOF}[1]{#1}
-
-\newcommand{\NUM}[2][]{#2#1\xspace}
-\newcommand{\PC}[1]{#1\%\xspace}
-
-\def\NEEDNUMBER{XXX\xspace}
-\def\UrlFont{\fontfamily{cmtt}\selectfont}
-\lstset{tabsize=2,columns=flexible,%
-	basicstyle=\small\ttfamily,keywordstyle=\bfseries,%
-	commentstyle=\rmfamily\itshape,indexstyle=[1]\indexlst,%
-	showstringspaces=false,%
-	lineskip=1pt,
-	showspaces=false,belowcaptionskip=\baselineskip,framexleftmargin=5mm,%
-	texcl=true,xleftmargin=15pt, % make room for line numbers
-	breaklines=true,
-	breakatwhitespace=true,
-	escapeinside={(*}{*)},
+\documentclass[preprint]{sigplanconf}
+\usepackage{xspace,listings,url,subfigure,framed,amssymb,
+            amsmath,mathpartir,hyperref,
+            stmaryrd, graphicx % double brackets llbracket
 }
-\newcommand{\code}[1]{\lstinline[keywordstyle=]!#1!\xspace}
-\newcommand{\etal}{{\em et al.}}
-\def\cross{\ding{55}}\def\naive{na\"\i ve }
-\newcommand{\app}[1]{{\small\textsf{#1}}}
-\newcommand{\IGNORE}[1]{}\newcommand{\hide}[1]{}
-\newcommand{\Section}[1]{Sect.~\ref{#1}\xspace}
-\newcommand{\Figure}[1]{Fig.~\ref{#1}\xspace}
-\newcommand{\figref}[1]{Fig.~\ref{fig:#1}\xspace}
-\newcommand{\tabref}[1]{Table~\ref{tab:#1}\xspace}
+\newcommand{\rn}[1]{#1}
+\newcommand{\doi}[1]{doi:~\href{http://dx.doi.org/#1}{\Hurl{#1}}}
 
-\newcommand{\kewif}{\texttt{\textbf{if}}}
-\newcommand{\kewthen}{\texttt{\textbf{then}}}
-\newcommand{\kewelse}{\texttt{\textbf{else}}}
-\newcommand{\kewnew}{\texttt{\textbf{new}}}
-\newcommand{\kewclass}{\texttt{\textbf{class}}}
-\newcommand{\kewimplements}{\texttt{\textbf{implements}}}
+\input{macros}
 
-\newcommand{\class}[4]{\ensuremath\kewclass\; \texttt{#1}\; \kewimplements\; {#2} \;\{#3;\;#4\}}
-\newcommand{\field}[2]{\ensuremath \texttt{#1} : \texttt{#2}}
-\newcommand{\method}[4]{\ensuremath {\texttt{#1}}({#2}):\texttt{#3} \{\texttt{#4}\}}
-
-\newcommand{\ifabs}[3]{\kewif \; #1 \;\kewthen\; #2 \;\kewelse\; #3}
-\newcommand{\opplus}[2]{#1 + #2}
-\newcommand{\newclass}[2]{\kewnew\;\texttt{#1}(#2)}
-
-\newcommand{\strt}{\texttt{str}}
-\newcommand{\intt}{\texttt{int}}
-\newcommand{\anyt}{\texttt{any}}
-\newcommand{\vbar}{\;|\;}
+\conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
+\copyrightyear{20yy}
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+\copyrightdoi{nnnnnnn.nnnnnnn}
 
 
-\mainmatter
-%\titlerunning{\it Evaluating the Design of R}
-%\authorrunning{\it Morandat et al.}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\title{Designing Gradual Types for Objects
+\vspace{-1cm}} 
+\authorinfo{}{}{} % Annon : Benjamin Chung, Jan Vitek}{Northeastern University}{}
+\maketitle
 
-\title{The Design Space of Gradual Type Systems} \author{Ben and Jan}
-\institute{\begin{tabular}{ccc}Northeasern University \end{tabular}}
-\begin{document}\maketitle
-
-\begin{abstract}
-The popularity of dynamically typed languages has given rise to a cottage
-industry of incremental type systems. These type systems allow developpers
-to annotate their code with types and to feel better about the correctness
-of their code.  The exact properties that these incremental type systems are
-able to guarantee vary greatly from one language to another. This paper
-compares some of the main design choices by embedding them into one common
-core calculus representative of dynamic object-oriented languages such as
-Python, TypeScript or Ruby.
-
-\end{abstract} 
+%\begin{abstract}
+%The popularity of dynamically typed languages has given rise to a cottage
+%industry of type systems that provide various degrees of assurance
+%while allowing some code to remain free of type annotations. 
+%The motivation underlying these new type systems is that they give
+%programmers a way to incrementally migrate a code base from untyped
+%to typed.  It is becoming increasingly clear that the design of these
+%type systems must carefully consider issues such expressiveness of the 
+%annotation language, granularity of type regions, and performance overheads
+%of any associated run-time checks.  This paper focuses on gradual types for 
+%object-oriented languages and attempts to explain some of the key design 
+%dimensions and trade-offs of three implemented gradual types systems.
+%This is achieved by embedding the different design into a core calculus
+%that is broadly representative of dynamic languages such as Python, JavaScript
+%and Ruby.
+%\end{abstract} 
 
 \section{Introduction}
+Well-typed programs go wrong every day. Short of programming with a proof
+assistant, our programs will remain replete with errors that lead to
+undesirable outcomes.  The question that face language designers is what
+classes of errors are frequent enough that it makes sense to try to catch in
+the programming language itself, and how much linguistic machinery to expose
+to end-users for that purpose.  At one end of the spectrum, some of the most
+popular languages of the day rely solely on dynamic checks to catch errors
+as the program runs. Towards the other end, statically typed languages
+expose a set of type annotations that programmers have to use in their code
+and, in return, these languages ensure that many errors are ruled out entirely.
 
-The fundamental property a sound type system provides is the guarantee that an 
-expression such as 
-\begin{lstlisting}
-    x = y.m(z);
-\end{lstlisting}
-will not ``go wrong''. If the expression passes the typechecker and the
-variable \code{x} is declared to be of some type \code{T}, setting aside
-issues related to null pointers and non-termination, the result of
-\code{m()} will be of type \code{T}.  This is not the case in a dynamic
-language where the receiver \code{y} may lack the requested method, or may
-expect an argument of a different type, or may return a value that does not
-belong to type \code{T}.
+Gradual typing attempts to merge both of these world-views by allowing
+developers to add annotations in an incremental manner, with the promise of
+rewards in error prevention commensurate to the effort invested in selecting
+where to put annotations. Types have other benefits, by making programmer
+intent explicit, they play the role of simple machine-checked documentation,
+and they also have the potential of providing useful information for
+the compiler to generate efficient code.
 
-For any dynamic language, from the early days of Lisp to more recent times
-with JavaScript, there have been attempts to add annotations to document
-programmer expectations about the nature of values flowing through their
-code.  The motivation for burdening the language with these extra
-annotations have been either to provide hints for a just-in-time compiler or
-to help programmers catch errors early.
+This paper explores the design space of gradual type systems for
+object-oriented languages. We aim to expose the main forces influencing the
+design of practical systems, and to provide advice for the next generation
+of gradually typed languages. To this end, we have designed a minimialistic
+object-based language that supports statically and dynamically typed code
+fragments. On top of this common core, we then build models of several
+practical gradual type systems and illustrate their differences in terms of
+catching errors. While our work has a formal flavor, we are careful to
+discuss the practical implications of different choices in the light of
+our experience with the implementation of several gradually typed systems.
 
-\newcommand{\Opt}[1]{#1$^{?}$\xspace}
-\newcommand{\Con}[1]{#1$^{!}$\xspace}
-\newcommand{\Pro}[1]{#1$^{()}$\xspace}
-\newcommand{\dyn}{$\star$}
+The fundamental property that a type system object-based language should
+guarantee is that an expression of the form 
+\vspace{-1mm}\[ \xt{x.m(y)} \]
 
-In the last decade, the design space for these incremental annotations seems
-to have stabilized around three alternatives.  A number of systems offer
-\emph{optional types}, \Opt{T},
-\cite{PluggableTypes,Bracha93,typescript13,oopsla09} which provide local
-guarantees but do not prevent type errors at call boundaries. Other systems
-rely on \emph{promised types}, \Pro{T}, these type annotations are
-associated to the values that flow through the program and represent a
-promise that the value will either behave as if it was of that type, or that
-type error will be emitted~\cite{siek14,tf-popl08}.  Lastly, some systems
-offer \emph{concrete types} which provide the traditional soundness
-guarantees one would expect in a statically typed
-language~\cite{thorn,stongscript,csharp}. In addition all dynamic languages
-have the type dyn (\dyn) as the default type for all dynamically typed
-variables.
+\vspace{-1mm}\noindent does not result in, to borrow Smalltalk terminology,
+a \emph{message not understood} error.  That is to say, method \xt{m} exists
+in the object bound to variable \x. Many static type systems only
+provide a partial guarantee as they make an exception for \xt{null} or
+\xt{undefined} references; the call may fail as the test whether \x is
+bound to an object is deferred to execution.
 
-The design space of incremental type system is an interesting one as there
-are seemingly important trade-offs to be made in three different dimensions:
-expressiveness, assurance and performance.  By expressiveness, we mean how
-much of the legacy code base can be typed (and at what cost in terms of
-changes to the original programs).  By assurance, we mean what kinds of
-guarantees does the type system give to programmers. At its weakest, the
-type system can be little more than a machine-checked documentation, and at
-its strongest it can be equivalent to a sound statically typed language.
-Performance here refers to the additional runtime overheads that are caused
-by the extra checks that the language must perform to provide the
-aforementioned guarantees.
+At the heart of the design of a gradual type system lies the choice of
+definition of \emph{soundness} and the static and dynamic mechanisms
+employed to enforce it. The literature is ripe with proposals with subtly
+different properties and mechanisms.  One key distinction is what it means
+for a variable \x to be of type \T. In a traditional statically typed
+language, \x will refer to either an instance of the class denoted by \T or
+one of its sub-classes; we say that \T is a \emph{concrete type}. In some
+proposals, a variable \x of type \T can refer to an instance of any class,
+in this case we say that \T is \emph{unconstrained type}. Lastly, in some
+systems \x is allowed to refer to any value but the language implementation
+will ensure that the value behaves as if it was of type \T, we call this a
+\emph{promised type}.
 
-\newcommand{\name}{{\sf Gool}\xspace}
+While statically typed languages such as Scala only offer concrete types and
+dynamically typed languages like Python have a single, implicit,
+unconstrained type, gradually typed language have experimented with various
+combinations.  C\# has concrete typed but also support a single
+unconstrained type \xt{dyn}~\cite{Bierman10}. Thorn~\cite{popl10} and
+StrongScript~\cite{ecoop15} both support concrete types as well as
+unconstrained types. Languages such as Facebook's Hack and
+TypeScript~\cite{typescript13} support only unconstrained types.  Finally
+Reticulated Python~\cite{siek14} and Typed Racket~\cite{tf-dls06} support
+promised types.
 
-This paper elucidates the difference between different designs by setting
-them all in a common context. We have picked a simple class based
-object-oriented language, representative of the likes of Python, Ruby,
-TypeScript. Our core calculus, named \name for Gradual Object-oriented
-Language, is stateful, as mutation introduces additional challenges. \name
-is agnostic as to the nature of the subtyping relation (structural or
-nominal) as this seems to be an orthogonal design choice.
 
-\section{Related Work}
+\section{Inside the Cottages}
+%explanation..
 
-Typescript~\cite{typescript13} is an extension of Javascript, enabling existing 
-Javascript code to be typed without substantial changes. In order to do so, 
-Typescript uses an optional type system, only providing type guarantees within 
-local code, not across call boundaries. This approach eases the transition from
-Javascript to typed code, but the guarantees provided are very weak, only 
-ensuring type saftey in local contexts, restricting optimization as well as
-limiting the information provided by a type signature.
+In this paper, we will look at gradual type systems that present each of the
+above interpretations of gradual typing, some of which allow several at the 
+same time. We begin with a discussion of Strongscript, a extension of Typescript
+that provides \emph{concrete types} as well as \emph{unconstrained types}, then
+examine Typed Racket, providing \emph{promised types}, and finish with a
+discussion of two type systems avaliable for Reticulated Python, both offering
+a different perspective on \emph{promised types}. 
 
-The example of a concrete type sysetm we are considering in this work is
-Strongscript~\cite{stongscript}. Strongscript builds on lambda JS and 
-Typescript, strengthening the guarantees provided in the latter by providing
-\emph{concrete} types, represented by an excalmation mark. Within Strongscript,
-concrete types impose guarantess about the runtime values that they represent, 
-a stronger guarantee than that provided by Typescript, while still allowing
-programmers the flexibility of the Typescript approach, though with fewer
-guarantees.
+\subsection{Strongscript}
 
-Another approach is that taken by~\cite{seik-monotonic} (Seik Monotonic)
-This approach presents a system that takes a \emph{promised type} approach.
-Its novelty comes from a new approach to avoiding expensive and complex
-wrappers. Instead of ensuring that the type of references remain consistent
-by adding a wrapper, this approach works by ensuring that the type of values in
-the heap only get \emph{less} generic.
+Strongscript is an evolution of Typescript, an industrial unsound optional
+typing approach for Javascript. Both Strongscript and Typescript aim to
+offer a method for Javascript programmers to migrate their dynamic code
+to typed code, but to discuss Strongscript, we first need to explain its 
+basis in Typescript.
 
-Within this approach, references that were well-typed previously will always
-remain well-typed, as the new type is strictly less generic than the one that
-it had at the time that the reference was checked. By doing this, the monotonic
-approach can avoid many of the expensive checks that wrapper approaches incur, 
-while still providing similar functionality. However, this approach is less
-generic than wrapper-based systems, as the monotonic constraint is much stronger
-than the more usual well-typed one.
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
 
-\section{Core Calculus}
-
-\begin{figure}
-\begin{align*}
-\texttt{d}&::= \class{C}{\overline{\texttt{D}}}{\overline{\field{f}{T}}}{\overline{\method{m}{\overline{\field{l}{T}}}{T}{e}}}\\
-\texttt{T} &::= \intt \vbar \strt \vbar \anyt \vbar \texttt{C} \vbar \texttt{!C}\\
-\texttt{e}&::= \texttt{f} \vbar \texttt{f} = \texttt{e} \vbar \texttt{l} \vbar \texttt{e.m}(\overline{\texttt{e}}) \vbar \texttt{const} \vbar 
-\ifabs{\texttt{e}}{\texttt{e}}{\texttt{e}} \vbar \opplus{\texttt{e}}{\texttt{e}} \vbar \newclass{\texttt{C}}{\overline{\texttt{e}}} \vbar \texttt{e}; \texttt{e}
-\end{align*}
-
-\caption{Abstract Syntax for the Core Calculus}
+function test(x: A) {
+  return x.a();
+}
+test(new B())
+\end{verbatim}
+\caption{Typescript Example 1: Static type error}
+\label{fig:tsex1}
 \end{figure}
 
-The core calculus is a simple object based system, including classes and 
-restricted mutability. We have declarations $d$, which act as the high level 
-building blocks, types $\tau$, and expressions $e$. This construction is 
-similar to the core calculus in StrongScript, though with some major 
-modifications.
+Figure~\ref{fig:tsex1} presents a simple typed program that is statically 
+rejected by Typescript, where we try to call a non-existent method on an object,
+an issue which Typescript notices and rejects statically. Typescript did this
+by noticing that the type A is not compatible with the type B.
 
-In our calculus, a class is represented by a \emph{class declaration}, which 
-includes the nominal relationships between that class and its parents. Then, we 
-represent fields as labels with types, and notate methods as a label, a list 
-of typed parameters, a return type, and a method body. This construction models 
-many other object systems while remaining fairly trivial.
+However, consider figure~\ref{fig:tsex2}, where we place the instance of B into
+an any-typed variable, then call test with that variable. Since the semantics of 
+this program are identical to the previous example, one could expect that Typescript 
+would notice the issue and report a static type error. When we run the Typescript
+compiler, the program is accepted by the compiler, and execution produces a ``message not 
+understood'' error at the  invocation site on line 5, inside the function where we expected
+to see no errors. 
 
-Our types are modeled after those in StrongScript. In addition to the basic 
-types $\intt$ and $\strt$, we have the $\anyt$ type, representing a dynamic 
-value, as well as two kinds of class type. $C$ represents a weaker, optional, 
-class type with few guarantees. Only finding a $C$ implies very little about 
-the eventual value that is recieved at runtime. In contrast, however, $!C$ is 
-a concrete type, one with strong static guarantees that will hold at runtime. 
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
 
-Our expression grammar is fairly simple, with a few interesting components. 
-Mutability is expressed our system by altering fields, which are only 
-accessible from inside an object. This is expressed in our expression
-grammar by having get and set forms only involving labels. 
+function test(x:A) {
+	return x.a();
+}
+var evil:any = new B()
+test(evil)
+\end{verbatim}
+\caption{Typescript Example 2: Dynamic type error}
+\label{fig:tsex2}
+\end{figure}
 
-\section{Examples}
+This issue goes undetected because Typescript \emph{only} checks the static
+compatibility of types. It was able to tell that an A is not a B, but cannot
+determine that the real value of \xt{evil} is incompatible with A. As a result,
+Typescript provides no guarantee that a value inhabiting a type is actually of
+that type, and therefore is unsound. The designers of Typescript made this choice
+for two major reasons:
+
+\begin{itemize}
+\item Incorrect types do not create errors. Even if the program is ill-typed,
+yet ran before types were added, it will still run in typed configuration, 
+albeit while breaking the programmer's type-based intuition. This allows programs
+to be typed more easily.
+\item Not checking types at runtime incurs no runtime overhead. As discussed later,
+ensuring the type correctness of a program at runtime incurs a substantial performance
+penalty. By not having any runtime component, Typescript has the same performance
+as Javascript does.
+\end{itemize}
+
+Simply adding soundness to all types would run straight into both of these
+issues, as it would cause running programs to stop working and would 
+also incur runtime overhead. Strongscript sets out to add soundness to
+Typescript, so it has to deal with these problems and coexist with this
+\emph{unconstrained} ecosystem, while simultaneously preventing the issue
+identified in figure~\ref{fig:tsex2}.
+
+To provide soundness while still avoiding compatibility problems with 
+Typescript, Strongscript provides programmers with a choice of type
+safety guarantee - a programmer can choose to write \emph{unconstrained}
+types (denoted $\t$, for compatibility with Typescript) or \emph{concrete}
+types (denoted $\t\xt{!}$), sidestepping both problems with a fully sound
+gradual typing system and devolving responsibility for the choice onto
+the programmer.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
+
+function test(x : A!) {
+  return x.a();
+}
+var evil:any = new B()
+test(evil)
+\end{verbatim}
+\caption{Strongscript: Dynamic type error}
+\label{fig:ssex}
+\end{figure}
+
+In figure~\ref{fig:ssex}, we have the same program that caused Typescript
+to have a runtime type error, but with one key change: now, instead of taking type
+$\xt{A}$, the function test takes type $\xt{A!}$, and therefore has a soundness
+requirement. Like Typescript, Strongscript cannot reason about the real value of
+evil statically - all it sees is that evil is of type $\any$, and something of type
+$\any$ \emph{could} work with something expecting type $\xt{A}$. As a result, this
+program is still allowed statically by Strongscript.
+
+To solve this problem and preserve type safety, Strongscript dynamically checks that the argument
+is type correct. While we do not get a static type error, when we try to 
+run the program, we get a dynamic type error at line 8, where we try to 
+pass a B where an A is expected. 
+
+In this manner, a programmer can use the Strongscript types to control enforcement
+and the resulting restrictions on code in a gradually typed program. However,
+Strongscript provides another interesting property that relates the \emph{unconstrained}
+and the \emph{concrete} types, illustrated in figure~\ref{fig:ssex}.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
+
+function test(x : A) {
+  return x.a();
+}
+var nice:A = new A()
+test(nice)
+\end{verbatim}
+\caption{Strongscript: Correct, unconstrained typed program}
+\label{fig:ssex2}
+\end{figure}
+
+Here, in figure~\ref{fig:ssex2}, we have modified the previous examples to execute correctly and typecheck
+successfully with only \emph{unconstrained} types. As a result, we can simply 
+transform it into the program seen in figure~\ref{fig:ssex3} and no errors, runtime
+or compile time, are produced.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : string { return "b"; } }
+
+function test(x : A) {
+  return x.a();
+}
+var nice:A = new A()
+test(nice)
+\end{verbatim}
+\caption{Strongscript: Correct, concretely typed program}
+\label{fig:ssex3}
+\end{figure}
+
+The last property we will discuss about Strongscript is its use of 
+\emph{concrete} types. Concrete gradual typing is based on \emph{type identity},
+rather than \emph{type compatibility}, a topic we will discuss in the context of
+Reticulated Python. To illustrate this, consider figure~\ref{fig:ssex4}.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A { a() : number { return 0; } }
+class B { b() : any { return 0; } }
+
+function test(x : !A) {
+  return x.a();
+}
+var undecided = new B()
+test(undecided)
+\end{verbatim}
+\caption{Strongscript: Concrete typing}
+\label{fig:ssex4}
+\end{figure}
+
+In this example, we have modified A and B such that if you pretended that B
+was an A (that is, if the function b was assumed to have a return type
+of number), then nothing would go wrong. As a result, it would be type
+safe (up to cast errors) to let B stand in for an A in the program.
+
+However, Strongscript will report an error on line 9, as instead of asking
+\emph{could} the program work, it expects the runtime types to line up exactly.
+This choice makes the type system very efficient - all that is required
+at the cast site is a simple tag check - but also means that you cannot simply
+add types alone to a Strongscript program when going from untyped to typed,
+changes to the code have to be made (in this case, we would have to type
+B and declare a subtyping relationship between A and B for the program to
+run without type errors).
+
+We will explore this topic in greater depth in our discussion of Reticulated
+Python, but this issue is why most sound gradual typing systems do not use
+concrete types, and rather use some variation on \emph{promised types}, 
+where an untyped value in a typed location is expected to \emph{act} as
+if it was typed, rather than actually being of that type. The rest of our
+discussion will be devoted to understanding the differences between these 
+systems, starting with Typed Racket.
+
+\subsection{Typed Racket}
+
+Typed Racket is an extension of Racket, designed to allow programmers to type
+their untyped Racket code. It differs in two key ways from Strongscript, using \emph{promised
+types}, as mentioned before, but also in where it allows
+programmers to add types in the first place. Gradual typing evokes images of 
+programmers altering their programs to add more types. However, an important question arises about 
+that mental picture: what does it mean to gradually add types to a program?
+
+The answer taken by Strongscript and the other gradual typing systems we discuss in this 
+paper is that programmers should be able to add a type anywhere one is syntactically
+valid. However, this idea is somewhat artificial - some programmers will add types
+slowly, one function at a time, while others will type whole compilation modules
+at a time.
+
+The approach taken by Typed Racket is built around this latter style of gradual typing.
+Instead of adding types to individual functions, it allows programmers to type their 
+programs one module at a time, where each module is a separate compilation unit.
+This approach constrains the way that programmers can add types to programs,
+and one that avoids having to reason about what it means to have a partially typed method,
+since in Typed Racket everything in a module is either fully typed or completely untyped.
+
+Additionally, Typed Racket is the first of the \emph{promised type} systems we will be discussing. Suppose
+that you have a variable $\x$ under type $\t$ where $\t$ has some method $\xt{f}$. Naturally, 
+you would expect to be able to call $\xt{f}$ (as \verb|(send x f)|), and would expect that 
+your type would guarantee that this function call would both work and return a value of the
+correct type.
+
+However, there are a number of places where this basic assumption can be violated,
+as a result of the interaction of typed and untyped code. If the underlying value has
+no function \xt{f}, then this call will fail, but this would be a runtime type error,
+exactly the kind of problem that we wish to avoid.
+
+The solution to this problem comes from how Typed Racket controls the interaction between 
+modules, at the \emph{module boundaries}, where the system has to ensure that the untyped code
+respects the type annotations. To ensure that the type annotations are respected, Typed Racket uses
+ contracts. The idea behind using contracts~\cite{findler-hof} that they allow the system
+to check the types on the values going into typed code from untyped code, and values
+flowing out of untyped code into typed code.
+
+\begin{figure}[h]
+% to generate, run
+% racket format-racket.rkt ../examples/typed_racket/untyped1.rkt untyped-rkt1.pdf
+% racket format-racket.rkt ../examples/typed_racket/typed1.rkt typed-rkt1.pdf
+\includegraphics{untyped-rkt1.pdf}
+\caption{untyped1.rkt: a simple Racket file}
+\label{fig:ut1r}
+\end{figure}
+
+\begin{figure}
+\includegraphics{typed-rkt1.pdf}
+\caption{typed1.rkt: Typed Racket file using untyped1.rkt}
+\label{fig:t1r}
+\end{figure}
+
+This construction, whereby every module is either entirely typed or entirely untyped
+allows Typed Racket to take a unique approach to enforcement, built around
+contracts~\cite{tf-popl08} applied at the points where modules interact. Types of values are
+checked at boundaries, and methods are effectively wrapped as they cross between modules.
+
+The key drawback to this approach is that a wrapper cannot establish \emph{actual
+identity} the same way that \emph{concrete} type systems like Strongscript can. Instead, wrapper
+or guard based systems like the Typed Racket approach can only prove that a given untyped
+function will \emph{act like} a typed function, up to cast errors, and have to be
+executed every time a value passes through a typed-untyped boundary.
+
+As a demonstration of this, consider figure~\ref{fig:tr2}. Here we import the same
+untyped function, but instead of using the correct type annotation for the (untyped)
+identity function, we assert that it takes an integer and makes it into a string. This
+type annotation is clearly wrong, but Typed Racket has no way of checking that it is 
+correct when it is applied. Rather, we are allowed to use the \xt{id} function, and only
+find out that the type is wrong when it returns a number where we expected a string.
+
+\begin{figure}[h]
+% racket format-racket.rkt ../examples/typed_racket/typed2.rkt typed-rkt2.pdf
+\includegraphics{typed-rkt2.pdf}
+\caption{typed2.rkt: Invalid type annotation}
+\label{fig:tr2}
+\end{figure}
+
+However, the use of promised typing provides a major advantage: untyped code does not 
+need to be aware of types. In order to use a \emph{concrete} type system, even untyped
+code must exist in at least an inheritance hierarchy that can be reasoned about by the 
+runtime type checking system. As a result, promised typing can be used in languages that
+do not have class hierarchies. 
+
+While promised type systems can successfully type more code, they are limited in that
+they cannot absolutely establish type correctness across casts, unlike concrete type
+systems. As a result, errors occur when untyped code is used, rather than at the boundary
+crossing.
+
+\subsection{Reticulated Python}
+
+Reticulated Python is an extension of Python adding sound gradual types by 
+Vitousek et al~\cite{designeval-python}, providing Python programmers with the ability to add types
+to their programs. Unlike the other languages we have examined here, though, Reticulated
+Python supports multiple different semantics for these types, providing different guarantees
+and imposing different restrictions.
+
+Three different gradual typing semantics are currently avaliable in Reticulated Python:
+transient, monotonic, and guarded. All three systems are promised typing approaches,
+checking to ensure that untyped code behaves as if it were typed from the perspective
+of a typed observer. However, the mechanism for achieving this differs in each case.
+
+\subsubsection{Guarded}
+
+The guarded semantics for Reticulated Python is broadly similar to the semantics of
+Typed Racket, as it uses wrappers to ensure that untyped code behaves as expected. 
+However, it differs in one key area: where Typed Racket expects typed and untyped 
+code to be in different compilation modules, the guarded semantics allows types
+to be added anywhere in the program.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + 2
+class A2:
+  def a(a : Int) : Int:
+    return a + 2
+
+def test(a:A2):Int
+  return a.a(2) + 1
+
+test(A1())
+\end{verbatim}
+\caption{Guarded: a working program.}
+\label{fig:guard1}
+\end{figure}
+
+In figure~\ref{fig:guard1}, we see a correct program which runs successfully. Class A1
+is dynamically typed, and class A2 is fully statically typed, while the test method
+expects a statically typed instance of A2. We are then able to pass a dynamically typed
+instance of class A1 into this test method as the guarded semantics will insert a wrapper
+around A1 that makes sure it acts like an A2.
+
+To see this more clearly, we can modify the above example into figure~\ref{fig:guard2}. Here,
+A1 does not act like an A2 - when passed an argument, it will try and concatenate the string
+``foo'' onto the end, and will return a string (if it can). As a result, we know that this will
+produce an error, but the question is: where?
+
+\begin{figure}[h]
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + "foo"
+class A2:
+  def a(a : Int) : Int:
+    return a + 2
+
+def test(a:A2):Int
+  return a.a(2) + 1
+
+test(A1())
+\end{verbatim}
+\caption{Guarded: A1 does not follow the types of A2, and therefore invocation fails.}
+\label{fig:guard2}
+\end{figure}
+
+In this case, the error appears after the function A1.a returns, but before the value is passed
+back to the caller. A wrapper is added around A1 that checks that the return value is an instance
+of type int, and when it is not, an error is produced.
+
+The guarded semantics is one of the most intuitive of the systems we have covered - errors are 
+produced exactly when the value produced breaks the type guarantee. However, it suffers from the
+same issues as were identified in~\cite{practical-gt} for Typed Racket, with considerable
+``wrapper bloat'', caused when a value passes between typed and untyped code a large number of times.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + "foo"
+class A2:
+  def a(a : Int) : Int:
+    return a + 2
+
+def a1(a:A1):A1
+  return a
+
+def a2(a:A2):A2
+  return a
+
+a = A1()
+for i=1,1000:
+  a = a1(a2(a))
+\end{verbatim}
+\caption{Guarded: Adding a considerable number of wrappers.}
+\label{fig:guard3}
+\end{figure}
+
+This problem is illustrated in figure~\ref{fig:guard3}. The functions a1 and a2 act as casts to A1 and A2,
+respectively, and we apply each to the same value 1000 times, alternating between a1 and a2. The problem 
+here arises from the naive interpretation of wrapping, where each time we go from A1 to A2 we acquire a new
+weapper. At the end of this program, a call to a would go through 1000 different objects!
+
+While approaches to help simplify this particular problem exist, little progress has been made in eliminating
+it entirely, at least to acceptible levels. As a concequence, two other systems have been added in Reticulated
+Python that take a different perspective on the issue of how to ensure soundness, but at lower cost in memory
+and levels of indirection.
+
+\subsubsection{Transient}
+
+In both the Strongscript and Typed Racket approaches, if you wrote a method (denoted $\m$ here)
+under type $\xt{int} \rightarrow \xt{int}$, you could be assured that you would only ever be called
+with an argument that was actually an int. To achieve this guarantee, the systems alternately
+performed inline runtime casts based on runtime type information and inserted wrappers to
+check that the types were respected \emph{before} an actual function call was made. Likewise,
+a function that was declared to return an int would always return an int, ensured either by
+wrapping or by adding casts inside of it.
+
+Transient takes the opposite perspective. Instead of the caller being responsible for
+checking the types on the arguments and the callee ensuring the return type is correct,
+the transient semantics for Reticulated Python has the callee enforce the types on the
+arguments and the caller enforce the type of the return value.
+
+To illustrate this, consider figure~\ref{fig:guard2}. If we look at the execution trace that produces
+the error, we find the following sequence of events happened:
+\begin{enumerate}
+\item Evaluate \verb|A1()| to value \xt{v}
+\item Wrap \xt{v} with wrapper \xt{A2W}, producing \xt{vw}
+\item Invoke \verb|test| with \xt{vw}
+\item Call \verb|a| with 2 on \xt{vw}
+\item \xt{A2W} checks that 2 is an integer
+\item Append 2 to the string ``foo'' inside \xt{A1.a}
+\item Return ``2foo'' 
+\item \xt{A2W} finds that ``2foo'' is not an integer, and errors.
+\end{enumerate}
+
+Likewise, in figure~\ref{fig:guard3}, we would end up with steps 5 and (a successful) step 8 repeated
+1000 times in the execution trace. However, we can ``bake in'' the checks added by \xt{A2W} into the
+program itself, resulting in figure~\ref{fig:trans1}.
+
+\begin{figure}[h]
+\begin{verbatim}
+class A1:
+  def a(a : Any) : Any:
+    return a + "foo"
+class A2:
+  def a(a : Int) : Int:
+    check(a, Int)
+    return a + 2
+
+def test(a:A2):Int
+  return check(a.a(2), Int) + 1
+
+test(A1())
+\end{verbatim}
+\caption{Transient: Type checks baked into source.}
+\label{fig:trans1}
+\end{figure}
+
+This embedding preserves the execution trace that we saw in the guarded semantics, but also completely
+avoids the problems inherent to having wrappers added at type transitions. However, while the transient
+semantics is able to preserve the execution trace, the site at which the error happens is somewhat different.
+
+In the guarded semantics, step 8 happened \emph{before} the function \verb|a| was able to return, and therefore
+the caller effectively never saw the wrong type. In the transient semantics, the caller is now responsible for 
+ensuring that the types of the values passed into it are correct, which has two key implications.
+
+The first is that the site where errors occur is now slightly different. When a function returns a value
+that does not match up with the type that it produces, that discrepancy is now noticed in the caller, instead
+of inside of the wrapper.
+
+This leads to the second implication of the transient semantics: all typed code now has to add type checks,
+as seen in \verb|A2.a| in figure~\ref{fig:trans1}. No typed code can trust any type, be that a type that
+is passed in (for the case where untyped code calls typed code), or a type returned from another function
+(as the other function could be untyped). 
+
+While this approach completely avoids the problem identified in figure~\ref{fig:guard3}, it raises
+a new performance issue: this check cannot be statically removed. Any nominally typed variable can
+now no longer be statically trusted to respect its type, and as a result, every invocation must be checked for
+type safety. Therefore, the transient semantics will run into performance issues, if naievly implemented,
+as more types are added, contradicting the typical wisdom about types and performance. While a more sophisticated
+implementation may be able to avoid some of these checks, even better performance of typed code can be made possible
+by using a different type safety guarantee.
+
+
+\subsubsection{Monotonic}
+A key downfall of the approaches we discussed previously is that they
+cause performance impacts in fully-typed code, especially at heap access
+sites.The monotonic semantics for Reticulated Python aims to recover this,
+in exchange for a new dynamically-enforced guarantee.
+
+To see why the impact exists, consider the following code
+
+\begin{verbatim}
+function evil(x : *) : * {
+	x := "foo bar"
+}
+
+Ref<Int> a = Ref(3)
+evil(a)
+Int y = !x + 2
+\end{verbatim}
+
+If we stripped all checks from this code, we would end up with a stuck
+state, since we would be adding a string to an integer, despite statically
+typing the value of $\a$ as an integer, as we were able to assign to the
+underlying reference from an untyped context.
+
+The approaches discussed for Typed Racket and the transient semantics
+handle this case differently, but both require that the typed code perform
+a typecheck at the dereference of $\x$. Problematically, these checks
+have to be performed even in a fully typed program, because it is impossible
+to know which pointers have been exposed to dynamic code.
+
+The key feature of the monotonic semantics is that it imposes these checks 
+on the dynamic code - any dynamic reference has to respect the types imposed
+by a typed reference. In the above example, the monotonic semantics would
+produce an error when we tried to assign a string into $\x$ - despite the 
+static typing working out, because the reference has a type which is incompatible
+with our new type, monotonic will reject it at that point.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{A Common Core for Gradually Typed Objects}
+
+We have examined a cross section of the common gradual typing approaches, using
+informal comparisons to illustrate their differences. However, this approach 
+creates difficulties for comprehension, as it obscures the key similarities and
+differences between the systems.
+
+To illustrate the differences, we will start with a fully statically typed language,
+then evolve it into a gradually typed language, using the approaches that we have
+discussed. For clarity, we use the simplest language possible, stripping all
+but the key components of an imperative class-based language away, using structural
+typing for compatibility with the gradual typing systems.
+
+This common core is focused on the basics of object functionality, with
+a simple example being a \xt{Point} class.\footnote{For our examples we use integers and
+  common arithmetic operations even if they are not in core calculus.}
+
+%%% FIXME: formatting
+\begin{verbatim}
+class Point {
+  x : Int
+  y : Int
+  addx( v : Int ) : Int {
+       this.x!( this.x() + v )
+  }
+  addy( v : Int ) : Int {
+       this.y!( this.y() + v )
+  }
+}
+\end{verbatim}
+
+The type system ensures that, if \xt{pt} is declared to be of type
+\xt{Point}, an operation such as \xt{pt.addx(42)} will not get stuck.  As
+this small language requires all variables to be initialized, there checking
+for \xt{null} is not needed as it likely would in a full fledged language.
+
+The language also supports a single unconstrained type, denote \any (pronounced
+dyn), thus one could write the following method
+
+%%% FIXME: formatting
+\begin{verbatim}
+  mkPt( u : * ) : Point {
+      new Point( u.x() 
+                 (<Point> u).y() )
+  }
+\end{verbatim}
+
+This method will accept an instance of any class and will return a new
+\xt{Point}. At run-time, the code will get stuck if the dynamic cast
+\xt{\Cast{\xt{Point}}{\xt{u}}} fails. If \x is a declared of type \any, an
+expression such as \xt{u.x()} will fail if the object bound to \xt{u} does
+not have a getter \xt{x()}.
+
+For brevity we use annotate variables with nominal types, but in the
+calculus this is merely shorthand for writing the set of methods suported 
+by the class. Assignment to fields is performed by automatically generated
+getter and setter methods.
+
+The syntax of the common core appears in figure~\ref{syn}.  \x ranges
+over variables, \f ranges over field names, \m can be either a plain method
+name \d, a field getter \f, or a field setter \fb, \C and \D range over
+class names. We use the overbar notation to denote a possibly empty
+sequence. In the common core, a class is defined as by a set of fields,
+\b\f, with distinct names and a set of method definitions, \b\m. An instance
+of class is constructed by the expression \New\C{\b\e} where each argument
+is used to initialize the corresponding field. Fields are encapsulated and
+can only be accessed and updated in the corresponding getter and setter from
+the \this variable.  Expressions include variable access, field access and
+update, method invocation, object creation, and type casts.
 
 
 
-\section{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%% SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[!h]
+\input{figures/syntax.tex}
+\caption{Abstract Syntax for the Core Calculus}\label{syn}
+\end{figure}
+%%%%%%%%%%%%%%%%%%% END OF SYNTAX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Our types are structural and only account for the methods in an object's
+interface. For type annotations, we use the name of classes, ranged over by
+\C and \D, as shorthand for the set of methods defined in the respective
+classes.
+
+
+%%%%%%%%%%%%%%%%%%%%%% DYNAMIC SEMANTICS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+\input{figures/dynsym.tex}
+\caption{Common Core Calculus Dynamic Semantics.}
+\end{figure}
+
+The dynamic semantics evaluates expression extended with object references,
+denoted \a, and errors, denoted \err, together with a heap \s mapping
+references to object values. Object values contain all fields, methods, a
+type, and a class; they are denoted \Obj{\b\a}\C. The
+class is used for locating methods and the type is used for type casts. The
+need for keeping them separate will become clear later.
+
+The semantics uses evaluation context \Ctx\e, meaning that $\e$ is in the 
+hole of $\Ctx$. Selecting an object from the heap is written \Sel\s\a, 
+while a heap is extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\C}}.
+
+For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\C}, we have 
+\classofis{\Sel\s\a}\C and \typeofis\s\a\t.
+
+We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
+definition and \Fdef\f\t\a\inc\Obj{\dots}\C to express the selection of a
+field. Lastly a field of an object can be update with the notation
+\Update{\Obj{\dots}\C}\f\a.
+
+\subsection{Core Type System}
+
+As a basis for our gradual type system, we will use a simple static
+type system, ensuring that the program will not get stuck, but while
+simultaneously is entirely up-front and not gradual, shown in
+figure~\ref{fig:basetyp}.
+
+This basic type system is typical of calculi that support objects, notably including 
+subtyping. Subtyping in our system is defined in figure~\ref{fig:sub}, which
+defines a simple structual subtyping system with names (to provide for recursive types)
+as well as the Amber rule to support recursive types. Notably, however, because there
+are no valid operations on $\any$ other than casting, this type system cannot be called
+a \emph{gradual} type system, as a gradual type system should allow $\any$ typed-terms to
+coexist with fully typed ones.
+
+Soundness for this base system is typical. We combine the progress and preservation lemmas
+to come up with an aggregate small step soundness theorem, which we then extend with the
+typical cast failure carve-out to enable casts to fail without the program getting stuck.
+
+\begin{thm}
+If $\EnvType\Es\e\t$, then one of the following holds:
+\begin{itemize}
+\item $\e \rightarrow \e'$ and $\EnvType\Es{\e'}\t$
+\item $\e \rightarrow \xt{v}$ and $\EnvType\Es{\xt{v}}\t$
+\item $\e$ is $\Cast{\t}{\e'}$ and $\e \rightarrow \err$
+\end{itemize}
+\end{thm}
+
+The proof of this theorem is simple and is included in the appendix.
+
+\begin{figure}
+\input{figures/basetype}
+\caption{Typing rules for the base langauge}
+\label{fig:basetyp}
+\end{figure}
+
+
+\section{Gradual Typing}
+In order to extend the core calculus to enable programmers to write gradually
+typed code without having to insert a great number of casts manually, we
+use gradual type systems to add casts where required, presenting a unified gradual
+semantics to the programmer while relying on the core system for soundness.
+
+Our characterization of gradual typing is \emph{gradual typing by translation},
+using an approach similar to that of~\cite{Bierman10}, adding gradual
+types to the underlying fully typed language. In this vein,
+we define our gradual typing extensions as \emph{cast insertion} phases.
+
+\subsection{Cast Insertion}
+
+The user-facing component of a gradual typing system is its type checker,
+or the surface type system, which is then complemented by a type-driven
+cast insertion mechanism ``behind the scenes''. In our approach, these two
+steps are combined into a cast insertion system.
+
+Cast insertion is fundamentally \emph{type driven}. In our type system, it is
+required to have a cast whenever a type needs to be altered, and therefore in
+inserting casts we need to know every site where one type is required to be another.
+Our system handles this through an \emph{bidirectional cast insertion} system,
+introduced by~\cite{lti-pierce}
+
+Our choice comes from an observation about the nature of traditional bottom-up type
+systems. The fundamental building block is judgements of the form $\E \vdash \e : \t$, 
+which means that $\e$ inherently has type $\t$. For example, a type mismatch
+would look like trying to conclude a judgement $\E \vdash \e : \any$ when only
+$\E \vdash \e : \xt{int}$ holds.
+
+Other systems have solved this problem through the introduction of nondeterministic
+rules such as subsumption, but nondeterminism in cast insertion creates problems
+where a single program can be typed in multiple different ways (EXAMPLE).
+
+To solve this problem, we use the aforementioned bidirectional cast insertion
+mechanism. In a bidirectional system, we have two judgements:
+
+\begin{itemize}
+\item The \emph{analytic} judgement $\E \vdash \e \Rightarrow \t$, which says that
+$\e$ inherently has type $\t$ against environment $\E$, equivalently to the
+traditional bottom-up type system.
+\item The \emph{synthetic} judgement $\E \vdash \e \Leftarrow \t$, which implies that
+$\e$ can potentially have type $\t$ against environment $\E$.
+\end{itemize}
+
+For example, consider the function call $\Call{\ep1}{\m}{\ep2}$. A bidirectional
+type system will begin with seeing what type $\ep1$ has, with the judgment $\E \vdash \ep1 \Rightarrow \t$.
+From this, the bidirectional type system will check what type the method $\m$ has in $\t$,
+ here denoted $\Mtype\m{\tp1}{\tp2} \in \t$, then ensure that the arguments make sense with that type.
+
+In a bottom-up type system, we would write $\E \vdash \ep2 : \tp1$, but, as commonly noted with subsumption,
+this can require the introduction of a nonalgorithmic rule to conclude this final judgment. Instead, in a 
+bidirectional type system, we can simply ensure that the type of $\ep2$ is consistent with $\tp1$ through the
+judgment $\E \vdash \ep2 \Leftarrow \tp2$.
+
+Finally, we will be able to conclude that $\E \vdash \Call{\ep1}{\m}{\ep2} \Rightarrow \tp2$. This is a
+synthetic judgement as $\tp2$ is the type that the expression can be known to have in the absence of any
+external information.
+
+To support cast insertion, we extend these basic type checking judgements with an output term, of the form 
+$\GenCast{\E}{\ep1}{\ep2}{\t}$ for the synthetic case and $\AnaCast{\E}{\ep1}{\ep2}{\t}$ for the analytic,
+case, where the former translates $\ep1$ to $\ep2$ producting type $\t$, and the latter translates the same
+ensuring type $\t$.
+
+An important note in the construction of our bidirectional type system is that our handling of the key case,
+function application, is less specific than it could be, as we ignore the analytic case. Other works in this 
+area, including~\cite{bidir-typing} use a third bidirectional judgment to handle function 
+application, largely to handle the analytic case. If we are trying to typecheck a function call against some 
+known type, then we can infer a type for the receiver by using synthetic type checking on the arguments. 
+However, in our context, detailed handling of this case is not required, as our type inference does not 
+need to be as precise as it does for Dunfield and Krishnaswami's type inference.
+
+\subsection{Class Translation}
+
+A key component of many gradual type systems is enabling checks for every field access or modification,
+ensuring type invariants about the heap. To enable these checks, we cannot expose ``raw'' field access
+and modification in our calculus, as otherwise these checks could be easily bypassed.
+
+As a result, we expose no typing judgment for field manipulation, and instead auto-generate getter and 
+setter methods in a phase we call \emph{class translation}, occuring at the same time as cast insertion.
+
+Another issue solved by class translation is that raised by calling a method on a dynamic receiver type.
+Consider the invocation $\Call{\e}{\m}{\e'}$ where $\EnvType{\Es}{\e}{\any}$ and $\EnvType{\Es}{\e'}{\any}$. 
+Now, suppose that we have a method on $\e$ $\m(\x:\C)$. Using casting, we can figure out that the method exists,
+and that the arity is correct, but there is no static way to know the argument types of $\m$ statically to 
+insert checks.
+
+Class translation solves this problem by creating a ``guard'' method $\m_\xt{u}$ that will have the same
+arity and a related name, but only has arguments of type $\any$. We then translate every call to a method
+$\m$ on an untyped receiver to a call to a call to $\m_\xt{u}$, which then does the approperiate type check
+before calling the typed method. Likewise, method reads and writes are protected by getters and setters added
+during the class translation phase.
+
+%%%%%%%%%%%%%%%%%%%%%%%% SUBTYPING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}
+\input{figures/subtyping}
+\caption{Subtyping}
+\label{fig:sub}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%% WELLFORMDNESS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{figure}
+\input{figures/syncast}
+\caption{Synthetic cast insertion}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+\input{figures/anacast}
+\caption{Analytic Cast Insertion}
+\end{figure}
+
+\begin{figure}
+\input{figures/classtrans}
+\caption{Class Translation}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+At this point, we have defined a not-very-useful semantics for gradual typing, 
+with all of the key components but providing no additional functionality
+beyond what our original statically typed core. This semantics has us
+applying class translation, $\TransClass\C\C$, expression translation,
+$\GenCast\E\e\e\t$ and $\AnaCast\E\e\e\t$, a dynamic semantics $\e 
+\rightarrow \e$, and finally a subtyping relationship $\t <: \t$, defining the
+architecture that we will follow for the remainder of the languages.
+
+
+By following this structure, we can describe a semantics for our language
+with the 5-tuple $(\rightharpoonup, \hookrightarrow, \rightsquigarrow, <:, \rightarrow)$.
+The core would be defined as (TODO)
+
+
+\subsection{Type soundness:}
+Theorem 1: Type translation. If $\EnvType{\Es}\e\t$ and $\TransExp\E\e{\e'}\t$ then $\EnvType{\E ~ \cdot}{\e'}\t$.
+
+Theorem 2: Progress. If $\EnvType{\Es}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$ for $\e'$ expression or $\e' ~ \err$.
+
+Theorem 3: Preservation. If $\s,\e \rightarrow \s',\e'$ and $\EnvType{\Es}{\e}{\t}$ then $\EnvType{\E~\s'}{\e'}{\t}$.
+
+For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
+
+
+\begin{figure}
+\input{figures/trtrans}
+\caption{Translation for Typed Racket}
+\end{figure}
+
+Typed Racket uses a much stricter definition of where $\any$ types can go, where every class is either fully typed or fully untyped. To describe this, we alter definition 1 and 2 to
+
+
+\begin{definition} A Typed Racket class table is well-formed if for every class \C  in
+the class table, every method is of the form \Mdef\d\x{\tp1}{\tp2}\e where
+\EnvType{\this:\C,\b{\x:\tp1}}\e{\tp2} holds in \C, and all types in \C are either $\any$ or all not $\any$
+\end{definition}
+
+Typed Racket uses wrappers to ensure that typed code type guarantees are not violated, and that untyped code follows the types that it is casted to. We generate these wrappers using the following mechanism.
+
+\begin{definition}
+Every place a type \Type{\mt} where $\mt=\Mtype\m{\b{\tp1}}{\tp2}$ flows from typed into untyped code, generate a wrapper $\Class{\C'}{~\xt{orig}:\t,\b{\md}}$ where $\md = \Mdef\m\x{\any}{\any}{\Cast{\any}{\xt{this}.\xt{orig}.\m(\b{\Cast{\tp1}x})}}$.
+\end{definition}
+
+To model Typed Racket, we then need to enforce the property that objects are wrapped at typed/untyped boundaries, and ensuring that untyped code cannot use typed code internally through casts. We do this by altering the completion process, giving us a new definition. We use the wrappers we generated using definition 4 to enforce the type guarantees
+\newpage
+\begin{definition} A Typed Racket class table is completed if for every 
+ \Class \C {\b{\fd}} {\b{\md}} in the class table: 
+ \begin{itemize}
+ \item for every type \Type{\b{\md}}, add a class \xt{D} such that 
+ \begin{itemize}
+ \item for every method $\Mtype\m{\tp1}{\tp2} \in \b{\md}$, generate a function in \xt{D} $\Mdef\m{x}{\any}{\any}{\Cast{\any}{\New{\xt{D}}{\xt{this}.\xt{orig}.\m(\New\C{\b{\Cast{\tp1}x}})}}}$
+ \end{itemize}
+ \item for every field \Ftype\f\t\inc\C, we add to \C:
+ \begin{itemize}
+ \item A setter \SMdef\f\x\t\t{\Set\this\f\x} 
+ \item A getter \GMdef\f\t{\Get\this\f}; 
+ \end{itemize}
+ \item For every method definition \Mdef\d\x\t{\tp1}\e\inc\C:
+ \begin{itemize}
+ \item A dynamic method \Mdef{\Dyn\d}\x\any\any{\Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C 
+ \item We replace the body \e of \m is replaced by \ep1 where \TransClass\e{\ep1}.
+ \end{itemize}
+ \end{itemize}
+\end{definition}
+
+One of the issues inherent to the Strongscript approach (and is apparent in
+the common core as well) is that a strict interpretation of the static type
+system causes the programmer to have to write a very large number of
+``obvious'' casts, breaking untyped code and seemingly-sensible typed
+code. We can solve this by having the compilation process insert the types
+for the programmer, which we describe using a cast insertion system.
+
+Our cast insertion approach is based on a bidirectional type
+system~\cite{}, where each expression either \emph{synthesizes}, or
+inherently makes, a type, or is \emph{analyzed} against a type where the
+type system checks to make sure that the expression still ``works'' under
+the given type. This approach has been used for a number of other tasks,
+including inferring types to select sub-languages~\cite{}, infer
+types for higher rank languages~\cite{}. In our case, they allow us
+to simply specify in an extensible manner where to insert casts.
+
+Synthetic cast insertion is closer to a traditional type system, as it produces types from terms in a similar manner. However, instead of having non algorithmic cases where types are known (for example, in the arguments to a typed function), the synthetic cast insertion judgment defers to the analytic cast insertion mechanism with the known type. Importantly for us, the basic semantics of the static type system does not change between any of the type systems under consideration, and as a result the synthetic cases are not changed by any of the systems.
+
+Analytic cast insertion ensures that an expression is of a given type. We use analytic cast insertion when a type is known for an expression and we want to force that expression to be of the correct type, which we do by inserting the appropriate cast. The actual details of analytic cast insertion vary depending on the system under consideration (most notably, the monotonic semantics has a notion of consistency that differs from the other two systems).
+
+\begin{figure}
+$\t = \ldots \B {\WType{\Mtype\m\t\t}}$
+\caption{Strongscript}
+\end{figure}
+
+\begin{figure}
+\input{figures/transtrans}
+\caption{Transient}
+\end{figure}
+
+\clearpage
+\newpage
+
+\section{Monotonic}
+
+%%%%%%%%%%%%%%%% Monotonic Statics
+
+\begin{figure}[h]
+\input{figures/conssub}
+\caption{Consistent Subtyping}
+\end{figure}
+
+The key static difference between the monotonic semantics and the other systems we have considered is the consistent subtyping relationship. Traditional subtyping can be thought of as if a value satisfies one type, then it will satisfy any supertype of that type. Consistent subtyping encapsulates both this notion and the new idea of consistency. Consistency for objects means that two types have static type information that does not conflict - e.g. $\Type{\Ftype\f\any}$ could very well be able to replace $\Type{\Ftype\f\C}$, though we are unable to tell statically. Consistency allows us to interchange these types, inserting a cast where required.
+
+Subtype consistency combines the two properties. Subtyping lets us add and remove fields from a type, and consistency allows us to make the type we are going to more or less dynamic. Going by the above intuition, a value of type $\any$ could work with any other type and vice versa, and clearly two identical types are compatible. The most complex case is when we have two class types, both with the same method $\m$, which we resolve by ensuring that $\m$ has parameters and return types that are consistent and continuing on through the rest of the class.
+
+Adding this to our static type system is simple. We just introduce the rule that allows types to be converted via $\stcons{}{}$. The details of how to make the dynamics work with this static addition will be covered later.
+
+\begin{figure}[h]
+\input{figures/monomeet}
+\caption{Meet for the monotonic system}
+\end{figure}
+
+This idea leads us into the core of the monotonic idea. Under this system, if we have a field of some given type $\t$, we do not know if the value of that field is truly of the expected type (since the class could have been cast to one where that field is $\any$ and the field updated), and therefore have to check the value of $\f$ at every point it is used. The solution used by the monotonic approach is to ensure that if a type is given to a field, then that type is never violated.
+
+Consistency allows us to convert between, for example, $\Type{\Ftype\f\any, \Ftype{\xt{g}}\C}$ and $\Type{\Ftype\f\C, \Ftype{\xt{g}}\any}$, as neither has static typing information that would rule out a value that satisfied the other type. However, if we have a value that satisfied both, we would end up with a type that had neither type exactly - we would have $\Type{\Ftype\f\C, \Ftype{\xt{g}}\C}$. This is the key to the monotonic system - we never throw away any type information away. If, at any point in the program, we have an object with some specialized (e.g. not all $\any$) type, then those type assumptions will never be violated. As a result, we can ensure that no get operation will need to be checked.
+
+
+\begin{figure}
+
+For every class $\C$ and every $\t$ where $\stcons\C\t$, we can generate a most specific type as $\t' \equiv \meet\C{\t^i}$. We then produce a wrapper class $\refine\C\t$ such that
+
+\input{figures/monotrans}
+\caption{Monotonic translation}
+\end{figure}
+
+\begin{figure}
+\input{figures/casts}
+\end{figure}
+
+
+\begin{figure}
+\input{figures/castins}
+\end{figure}
+
 
 \bibliographystyle{plain}
+\bibliography{../bib/compactdoi}
 
-\bibliography{bib/compactdoi}
+
 \end{document}
-
 

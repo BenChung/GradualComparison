@@ -1,0 +1,110 @@
+\documentclass{report}
+\usepackage{mathpartir,amsmath,amssymb,xspace,listings,fullpage}
+\begin{document}
+\input{common}
+
+
+
+Syntax:
+\syntax{}
+
+\begin{mathpar}
+\inferrule*[lab=SubRefl]{ }{ \t <: \t }
+
+\inferrule*[lab=SubClass]{\class~\C~\implements~\D}{ \xt{!C} <: \xt{!D} }
+
+\inferrule*[lab=SubWeak]{ \xt{!C} <: \xt{!D} }{ \C <: \xt{D}}
+
+\inferrule*[lab=SubInj]{ }{ \xt{!C} <: \C}
+\end{mathpar}
+
+Typing:
+
+\begin{mathpar}
+
+\TSub
+
+\inferrule*[lab=TCInj]{\Gamma \vdash e : \tau' \\ \tau' = \any \vee \tau = \any \vee \tau' <: \tau }{ \Gamma \vdash e : \tau}
+
+\TVar 
+
+\TInt
+
+\TUApp
+
+\TApp
+
+\TIf
+
+\TPlus
+
+\TNew
+
+\TCast
+
+\inferrule*[right=TClass]{ 
+  \bar{\MTYPE{\m'}{\bar{x:\t''}}{\t'} \in\D \implies \MTYPE{\m'}{\bar{x:\t''}}{\t'}\in\C }\\
+  \bar{\G,\this:\C,\bar{x:\t''} \vdash e:\t'}
+ }{
+  \Gdash \CLASS \C{\bar\D}{\bar{\f:\t},\bar{\MDEF\m{\bar{x:\t''}}{\t'}e}}
+  }
+\end{mathpar}
+\subsection{Analytic Cast Insertion}
+
+\begin{mathpar}
+\inferrule*[lab=CIIInsert]{\Gdash e \tlate e' : \any }{\CICAST{e}{\t}{\cast{\t}e'}}
+
+\inferrule*[lab=CIISub]{\Gdash e \tlate e' : \xt{D} \\ \xt{D} <: \C}{\CICAST{e}{\C}{e'}}
+
+\inferrule*[lab=CIISuper]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{\cast{\C}e}{\C}{e'}}
+
+\inferrule*[lab=CIIAny]{\Gdash e \tlate e' : \tau}{\CICAST{e}{\any}{e'}}
+\end{mathpar}
+
+
+\subsection{Synthetic Cast Insertion}
+
+\begin{mathpar}
+\CICast
+
+\CICall
+
+\CIIf
+
+\CIPlus
+
+\CIVar
+
+\CINew
+\end{mathpar}
+
+
+\section{Dynamic semantics:}
+
+\subsection{Reduction}
+
+\begin{mathpar}
+\EFrame
+
+\ENew
+
+\EInv
+
+\EField
+
+\EAssign
+
+\EIfZ
+
+\EIfNZ
+
+\EPlus
+
+\inferrule*[lab=ECastClass]{ \s[a\is\{\ldots\B\xt{D}\}] \\ \xt{D} <: \C }{ \cast{\C}a,\s \ereduce a,\s}
+
+\inferrule*[lab=ECastInt]{ }{ \cast{\int}n,\s \ereduce n,\s}
+
+\inferrule*[lab=ECastAny]{ }{ \cast{\any}v,\s \ereduce v,\s}
+\end{mathpar}
+
+\end{document}

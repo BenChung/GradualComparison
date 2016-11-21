@@ -1,0 +1,149 @@
+%% Formatting
+\newcommand{\M}[1]{\ensuremath{#1}\xspace}
+\newcommand{\xt}[1]{{\sf{#1}}}
+\newcommand{\bt}[1]{\xt{\bf #1}}
+\renewcommand{\b}[1]{\M{\overline{#1}}}
+\newcommand{\Mxt}[1]{\M{\xt{#1}}}
+\newcommand{\Mbt}[1]{\M{\bt{#1}}}
+
+%% Variables
+\newcommand{\x}   {\Mxt x}
+\newcommand{\e}   {\Mxt e}
+\newcommand{\m}   {\Mxt m}
+\newcommand{\s}   {\M{\sigma}}
+\renewcommand{\t} {\Mxt t}
+\renewcommand{\a} {\Mxt a}
+\newcommand{\K}   {\Mxt K}
+\renewcommand{\k} {\Mxt k}
+\newcommand{\Kp}  {{\Mxt{K'}}}
+\newcommand{\ep}  {{{\Mxt{e'}}}}
+\renewcommand{\sp}{{{\M{\s'}}}}
+\newcommand{\ap}  {\M{\a'}}
+\newcommand{\app}  {\M{\a''}}
+\newcommand{\tp}  {\M{ \t'}}
+\newcommand{\tpp}  {\M{ \t''}}
+\newcommand{\C}   {\Mxt C}
+\newcommand{\Cp}  {\Mxt{C'}}
+\newcommand{\fd}  {\Mxt{fd}}
+\newcommand{\md}  {\Mxt{md}}
+\newcommand{\mt}  {\Mxt{mt}}
+\newcommand{\f}   {\Mxt f}
+\newcommand{\E}   {\M \Gamma}
+\newcommand{\any} {\M{\star}}
+\newcommand{\this}{\Mxt{this}}
+\newcommand{\that}{\Mxt{that}}
+\newcommand{\none}{\M{\cdot}}
+\newcommand{\D}   {\Mxt D}
+
+\newcommand{\Get}[2]   {\M{#1.#2()}}
+\newcommand{\Set}[3]   {\M{#1.#2(#3)}}
+\newcommand{\Call}[3]  {\M{#1.#2(#3)}}
+\newcommand{\DynCall}[3]  {\M{#1@#2(#3)}}
+
+\newcommand{\New}[2]   {\M{\new\;#1(#2)}}
+\newcommand{\SubCast}[2]{\M{<{#1}>\;{#2}}}
+\newcommand{\ShaCast}[2]{\M{\prec #1 \succ #2}}
+\newcommand{\MonCast}[2]{\M{\triangleleft\; #1 \triangleright #2}}
+\newcommand{\BehCast}[2]{\M{\blacktriangleleft #1 \blacktriangleright #2}}
+\newcommand{\new}      {\M{\bt{new}}}
+\newcommand{\HT}[2]    {\M{{#1}\!:{#2}}}
+\newcommand{\Mdef}[5]  {\M{ \HT{ #1( \HT{#2}{#3})}{#4}~\{\,{#5}\,\}}}
+\newcommand{\Mdefz}[3] {\M{ \HT{ #1()}{#2}~\{\,{#3}\,\}}}
+\newcommand{\Ctx}[1]   {\M{\xt{E}[#1]}}
+\newcommand{\Obj}[2]   { \M{ #2\{#1\}}}
+\newcommand{\obj}[2]   { \M{ #1\{#2\}}}
+\newcommand{\alloc}[4] {\M{#1\;#2  = \xt{alloc}(#3, #4)}}
+\newcommand{\cast}[8]  {\M{#6\;#7\;#8=\xtns{#5 cast}(#1, #2, #3, #4)}}
+\newcommand{\behcast}[7]  {\M{#5\;#6\;#7=\xtns{behcast}(#1, #2, #3, #4)}}
+\newcommand{\moncast}[6]  {\M{#5\;#6=\xtns{moncast}(#1, #2, #3, #4)}}
+
+\newcommand{\Alt}[1]   { &\B #1 \\}
+\newcommand{\B}        {\M{~|~}}
+\newcommand{\bang}     {\M{\xt{!}}}
+
+\newcommand{\dispatch}[5] {\M{#1\;#2 = \xt{disp}(#3,#4,#5)}}
+\newcommand{\readfield}[4]{\M{#1 = \xt{read}(#2,#3,#4)}}
+\newcommand{\setfield}[5] {\M{#1 = \xt{write}(#2,#3,#4,#5)}}
+\newcommand{\Reduce}[6]   {\M{{#1}~{#2}~{#3} \rightarrow {#4}~{#5}~{#6}}}
+\newcommand{\ReduceA}[6]  {\M{#1~#2~#3 } & \M{\rightarrow #4~#5~#6}}
+\newcommand{\Class}[3]    {\M{\bt{class}\;#1\,\{\,#2~#3\,\}}}
+\newcommand{\Ftype}[2]    {\M{ \HT{#1}{#2} }}
+\newcommand{\Mtype}[3]    {\M{ \HT{#1(#2)}{#3}}}
+\newcommand{\Type}[1]     {\M{\{#1\}}}
+
+\newcommand{\opdef}[2]    {\framebox[1.1\width]{#1} ~ #2\\}
+\newcommand{\Heap}[2]     {\M{ #1[#2] }}
+\newcommand{\Bind}[2]     {\M{#1 \mapsto #2}}
+
+\newcommand{\Sub}{\M{<:}}
+\newcommand{\names}[1]{\M{\xt{names}(#1)}}
+
+\newcommand{\ConsSub}{\M{\lesssim}}
+
+\newcommand{\CondRule}[3]{ #3 &~{\emph{if}} #2 \\}
+\newcommand{\EnvType}[3]{ \M{#1 \vdash #2 : #3}}
+\newcommand{\Es}{\E ~\s}
+\newcommand{\tw}[1]{\M{\xt{typed}(#1)}}
+\newcommand{\IRule}[3]{\inferrule*[lab={\tiny #1}]{#2}{#3}}
+\newcommand{\HasType}[3]{ \M{#1 (#2) = #3}}
+\newcommand{\inc}{\M{\in}}
+\newcommand{\wrapper}[1]{\M{\xt{wrap}(#1)}}
+\newcommand{\xtns}[1]{{\sf{#1}}}
+\newcommand{\utw}[1]{\M{\xt{untyped}(#1)}}
+\newcommand{\meet}[2]{#1\sqcap #2}
+\newcommand{\spec}[1]{\M{\xt{spec}(#1)}}
+
+\newcommand{\castfn}[4]{\text{cast}(#1,#2,#3,#4)}
+\newcommand{\GenCast}[4]{#1 \vdash #2 \hookrightarrow #3 \Uparrow #4 }
+\newcommand{\AnaCast}[4]{#1 \vdash #2 \Downarrow #4 \hookrightarrow #3}
+\newcommand{\TransClass}[2]{\M{ #1 \rightharpoonup #2 }}
+\newcommand{\inv}[2]{\xt{invoke}(#1, #2)}
+\newcommand{\classof}[3]{\M{\xt{classof}(#1,#2,#3)}}
+\newcommand{\In}{\M{\in}}
+
+\newcommand{\III}{}
+\III{
+
+\newcommand{\n}{\M{\xt{n}}}
+\renewcommand{\d}{\M{\xt{d}}}
+\renewcommand{\r}{\M{\xt{r}}}
+\newcommand{\fb}{\M{\xt{f!}}}
+\renewcommand{\c}{\M{\xt{c}}}
+\renewcommand{\d}{\M{\xt{d}}}
+\newcommand{\T}{\M{\xt T}}
+\newcommand{\cbp}[1]{\M{ \b{\C_{#1}}}}
+\renewcommand{\mp}[1]{\M{ \m_{#1} }}
+\newcommand{\class}{\M{\bt{class}}}
+\newcommand{\SMdef}[5]{\M{ \HT { #1!( \HT{#2}{#3})}{#4}= {#5}}}
+\newcommand{\GMdef}[3]{\M{ \HT { #1()}{#2}={#3}}}
+\newcommand{\Fdef}[3]{\M{ \HT{#1}{#2}={#3} }}
+\newcommand{\notdispatch}[5]{\M{#1,#2 \not = \xt{dispatch}(#3,#4,#5)}}
+\newcommand{\NoCondRule}[2]{ #2 &       \\}
+\newcommand{\Update}[3]{\M{#1[ #2 := #3]}}
+\newcommand{\NotSub}{\M{\not<:}}
+\newcommand{\typeofis}[3]{\M{\xt{typeof}(#1,#2)=#3}}
+\newcommand{\typeof}[2]{\M{\xt{typeof}(#1,#2)}}
+\newcommand{\Sel}[2]{\M{#1(#2)}}
+\newcommand{\TransExp}[4]{\M{ #1 \vdash #2 \hookrightarrow #3 : #4 }}
+\newcommand{\mdp}[1]{\M{\md_{#1}}}
+\newcommand{\dynamic}[1]{\M{\xt{dyn}(#1)}}
+\newcommand{\invoke}[1]{\M{\xt{inv}(#1)}}
+\newcommand{\Dyn}[1]{\M{#1^{\any} }}
+\newcommand{\fcast}[1]{\M{\xt{translate}(#1)}}
+\newcommand{\proxy}[1]{\M{\xt{proxy}(#1)}}
+\newcommand{\WF}[1]{\ensuremath{\xt{WF}(#1)}\xspace}
+\newcommand{\Weak}{\text{\small?}\hspace{0.1em}}
+\newcommand{\WType}[1]{\Weak\Type{#1}}
+\newcommand{\stcons}[2]{#1\lesssim #2}
+\newcommand{\refine}[2]{#1\vartriangleright #2}
+\newcommand{\inscast}[1]{\M{\llbracket #1 \rrbracket_{\xt{ins}}}}
+\newcommand{\adapt}[1]{\M{\llbracket #1 \rrbracket_{\xt{adapt}}}}
+\newcommand{\p}{\xt{p}}
+\newcommand{\cb}{\b{\C}}
+\newcommand{\typed}[1]{\text{typed}(#1)}
+\newcommand{\untyped}[1]{\text{untyped}(#1)}
+\newcommand{\includecode}[2][c]{\lstinputlisting[caption=#2, escapechar=, style=custom#1]{#2}<!---->}
+\newcommand{\ESub}[3]{#1 \vdash #2 \leq #3}
+\newcommand{\tv}{\xt{v}}
+\newcommand{\ts}{\xt{ts}}
+}

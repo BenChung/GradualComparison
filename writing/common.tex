@@ -1,183 +1,540 @@
+%!TEX output_directory=pdfs
+\documentclass[a4paper,UKenglish,final]{lipics}
+\usepackage{xspace,listings,url,framed,amssymb,
+            amsmath,mathpartir,hyperref,stmaryrd, graphicx}
+\input{macros}
+\begin{document}
 
-\newcommand{\class}{\ensuremath{\xt{class}}\xspace}
-\newcommand{\G}{\Gamma}
-\renewcommand{\int}{\texttt{int}}
-\newcommand{\coerce}{\Rightarrow} %% arrow used in coercions
-\newcommand{\str}{\texttt{str}}
-\newcommand{\any}{\texttt{any}}   %% any type
-\newcommand{\this}{\texttt{this}}
-\newcommand{\ifthenelse}[3]{\texttt{if }#1\texttt{ then }#2\texttt{ else }#3}
-\newcommand{\cast}[1]{\langle #1\rangle} 
-\newcommand{\xt}[1]{\texttt{#1}}
-\newcommand{\creduce}{\longrightarrow_{cr}}  %% reduction
-\newcommand{\ereduce}{\longrightarrow_{e}}   %%  reduction
-\newcommand{\stepsto}{\longrightarrow}        %% reduction
-\newcommand{\intv}[1]{\xt{int}[#1]}
-\newcommand{\strv}[1]{\xt{str}[#1]}
-\newcommand{\tlate}{\rightsquigarrow}
-\newcommand{\cicast}{\hookrightarrow}
-\newcommand{\CICAST}[3]{\Gdash #1\cicast #3 \Leftarrow #2 }
-\newcommand{\s}{\sigma}
-\renewcommand{\sc}{\mu}
-\renewcommand{\t}{\tau}
-\newcommand{\B}{\ensuremath{~|~}\xspace}
-\newcommand{\new}{\ensuremath{\texttt{new}}\xspace}
-\newcommand{\NEW}[2]{\ensuremath{  \new ~ #1 ( #2 )}\xspace}
-\renewcommand{\bar}[1]{\ensuremath{\overline{ #1} }\xspace}
-\newcommand{\m}{\ensuremath{\xt{m}}\xspace}
-\newcommand{\f}{\ensuremath{\xt{f}}\xspace}
-\newcommand{\C}{\ensuremath{\xt{C}}\xspace}
-\newcommand{\D}{\ensuremath{\xt{D}}\xspace}
-\newcommand{\is}{\mapsto}
-%% Cast syntax??
-\newcommand{\cl}{\mathit{cl}\xspace}
-\newcommand{\implements}{\xt{implements}\xspace}
-\newcommand{\CLASS}[3]{ \ensuremath{  \xt{class}~#1~\implements~#2\;\{ #3 \}}\xspace} 
-\newcommand{\MDEF}[4] { #1( #2 ):#3 = #4}
-\newcommand{\MTYPE}[3] { #1( #2 ):#3}
-\newcommand{\MVAL}[3] { #1( #2 ) = #3}
-\newcommand{\Gdash}{\G\vdash}
-\renewcommand{\TirNameStyle}[1]{\footnotesize\textsc{#1}}
-\lstset{
-    escapeinside={(*@}{@*)},          % if you want to add LaTeX within your code
-}
-\newcommand{\types}{\any \B \int \B \C}
-\newcommand{\context}{\G &::= \cdot \B \xt{x} : \tau~\G\\}
-\newcommand{\syntax}{
-\begin{align*}
-\t &::= \types\\
-e &::= n \B  e.\m(\bar{e}) \B e.\f \B e.\f  = e \B  \ifthenelse{e}{e}{e}\B e + e \\
-&\B \xt{x}\B \NEW \C {\bar{e}} \B  \cast{\t}e\\
-\cl &::= \CLASS \C {\bar \D} { \bar{ \f : \t }, ~ \bar{ \MDEF{\m}{\bar{\xt{x} :\t}}{\t'}{e} } } \\
-\context
-v &::= n \B a\\
-\s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \C\} )\\
-F &::=    \square.\f
-   \B     \square.\f = e
-   \B     a.\f = \square    
-   \B     \square.\m(\bar e) 
-   \B     v.\m(\bar v,\square, \bar e) 
-   \B     \ifthenelse{\square}{e}{e} 
-   \B     \square + e 
-   \B      v + \square\\
-   &\B     \cast{\tau}\square
-\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\end{align*}}
+\section*{Target Langage}
 
-\newcommand{\TVar}{\inferrule*[lab=TVar]{\G(x) = A }{\G \vdash x : A}}
-\newcommand{\TInt}{\inferrule*[lab=TInt]{ }{\Gdash {n} : \int}}
-\newcommand{\TSub}{\inferrule*[lab=TSub]{\Gdash e : \t' \\ \t' <: \t}{\Gdash e : \t}}
+The target language (TL) is built around a parred down statically typed
+object calculus. The calculus has non-recursive structural
+substyping\footnote{\bf I am not sure that this is the right way to describe
+  what we have -- check it is. JV} without inheritance.\footnote{Structural
+  subtyping is needed for type systems that have a notion of
+  ``consistency''. Inheritance does not add anything other than code reuse.}
+The calculus does not have null values.\footnote{Null adds a source of error
+  but otherwise should not be too interesting. We should mention what is the
+  type of null.} Fields are accessed by automatically provided getter and
+setter methods, respectively denoted \Get\x\f and \Set\x\f\e.\footnote{This
+  is because we want an easy way to interpose on field access in wrappers.}
+Fields appear in type signatures only through the presence of the getter and
+setter methods. Method calls are denoted \Call\x\m\e.\footnote{The single
+  argument limitation is purely to lighten the notation.} Following C\#
+4.0~\cite{} the TL allows a dynamic type, denoted \any, and
+dynamically-typed method invocation, denoted
+\DynCall\x\m\e. Dynamically-typed method invocation treats arguments and
+return value as \any. A new object is created with a class name and a
+sequence of arguments in the order of definition of fields, denoted
+\New\C{\b\e}.  Meta-variable \x ranges over argument names, \a over memory
+locations, \f over field names, \m over method names, \C over class
+names. The language has four different kinds of cast expressions: it has two
+structural casts and two generative casts. The structural subtype cast,
+denoted \SubCast\t\a, asserts that the object at location \a is of type
+\t.  The structural shallow cast, denoted \ShaCast\t\a, asserts that the
+object at location \a has methods with names matching those of \t. This does
+not make any guarantee about the type of arguments.  The generative
+behavioral cast, denoted \BehCast\t\a, will ensure that either \a behaves
+as a \t or that it get stuck. The generative monotonic cast, denoted
+\MonCast\t\a, is a behavioral cast that, in addition, imposes constraints
+on fields.
 
-\newcommand{\TUApp}{\inferrule*[lab=TUApp]{\bar{\Gdash e_i : \t_i} \\ \Gdash e : \any}{\Gdash e.\m(\bar{e_i}) : \any}}
-\newcommand{\TApp}{\inferrule*[lab=TApp]{ \Gdash e : \C \\ \m(\bar{\t'_i}):\t' \in \C \\ \Gdash e_i : \t_i}{\Gdash e.\m(\bar{e_i}) : \t'}}
-\newcommand{\TIf}{\inferrule*[lab=TIf]{ 
-     \Gdash e:\int \\ 
-     \Gdash e':\t \\ 
-     \Gdash e'':\t
+\this is a distinguished variable name that denotes the current object.
+\that is a distinguished field name that denotes the target of a wrapper.
+
+\D is a meta-variable used to range over dynamically generated class names.
+
+\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
+\e &::=  \x &\B \this &\B \that \\
+   &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
+   &\B \New\C{\b\e} \\
+   &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
+   &\B \a 
+\end{tabular}\end{minipage}
+~~
+\begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
+\k &::= \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+\end{tabular}
+\begin{tabular}{l@{~~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e \\
+    &\B  \Mdef\f\x\t\t\e ~\B~ \Mdefz\f\t\e \\
+\mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t \\
+\E  &::= \Ftype\x\t  \B \none\\
+\t  &::= ~ \any  \B   \Type{\b\mt}  \\
+\s  &::= ~~\none ~~ \B ~~
+    \Heap\s{\Bind\a{\obj\C{\b\a}}}
+\end{tabular}\end{minipage}
+
+The semantics of TL is defined by a small step operational semantics with
+evaluation contexts.  The context are deterministic. Program error is
+denoted by a stuck term. Meta-variable \k ranges over class definitions.
+The semantics operate over an explicit class table, denoted \K, which is a
+sequence of class definitions. A heap, denoted \s, maps memory locations to
+objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
+heap \s extended by the binding of location \a to object \obj\C{\b\a}.  A
+configuration \K\e\s evaluates in one step to a new configuration, denoted
+\Reduce \K\e\s \Kp\ep\sp. Execution terminate if \ep\xspace is a value, \a,
+or if there is no applicable reduction, in which case the program is
+stuck.\footnote{Intuitively we would expect that the program can only get
+  stuck at dynamic calls or at structural casts. But generative casts add
+  some complexity to that statement.}
+
+New object creation picks a fresh memory location \ap and binds it to the
+newly created. Operations on fields are require a typed receiver, for
+example in the expression \Get\this\f, \this is always of the type of the
+current class. Field access through a getter method, works as follows. If
+the receiver's class has a getter method, that method is evaluated,
+otherwise the field corresponding the getter's name is updated. Methods are
+segregated into typed method (methods whose argument is not \any) and
+untyped method (methods whose argument is \any). The former can be called by
+statically resolved method, the latter must be called by dynamically
+resolved methods.
+
+The auxilliary function names return the list of function names in a class
+or type, functions that have \any as return values are prefixed with the
+symbol \any.
+
+
+\hrulefill
+
+\begin{minipage}{8cm}
+  \opdef{\Reduce \K\e\s \Kp\ep\sp}
+        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
+\begin{tabular}{@{}l@{}l@{~}l@{~}l}
+\CondRule{E2}{ %% new C -> a
+   \sp = \Heap\s{\Bind\ap{\obj\C{\b\a}}} $\wedge ~$ \ap fresh
 }{ 
-     \Gdash \ifthenelse{e}{e'}{e''} : \t}}
-\newcommand{\TPlus}{\inferrule*[lab=TPlus]{ 
-  \Gdash e:\int \\ \
-  \Gdash e':\int
-}{ \Gdash e+e':\int}}
-
-
-
-\newcommand{\TNew}{\inferrule*[lab=TNew]{
-  \bar{\Gdash e:\t} \\ 
-  \{\ldots \bar{\f:\t} \ldots\} = fields(\C)\\
+    \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
+}
+\CondRule{E5}{ %% a.f() -> e
+    \Mdefz\f\t\e \In \classof\a\s\K
 }{
-  \Gdash \NEW \C{\bar e}:\C
-}}
-
-\newcommand{\TCast}{\inferrule*[lab=TCast]{
-  \Gdash e:\t'
+   \ReduceA \K\s{\Get\a\f} \K{[\a/\this]\e}\s
+}
+\CondRule{E4}{ %% a.f(a) -> e
+    \Mdef\f\x\t\t\e \In \classof\a\s\K
 }{
-  \Gdash \cast{\t}e}}
-
-
-\newcommand{\CICast}{\inferrule*[lab=CICast]{
-  \Gdash e \tlate e':\t' 
+   \ReduceA \K\s{\Set\a\f\ap} \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E6}{  %% a.f() -> e
+  \readfield \ap\s\a\f
 }{
-  \Gdash \cast{\t} e\tlate \cast{\t}e':\t
-}}
-
-\newcommand{\CICall}{\inferrule*[lab=CICall]{
-  \Gdash e \tlate e':\C\\
-  \MTYPE\m{\bar\t}{\t'} \in \C \\
-  \bar{\CICAST{e'}{\t}{e''}} 
+  \ReduceA \K{\Get\a\f}\s  \K\ap\s
+}
+\CondRule{E7}{ %% a.f(e) -> e
+  \setfield \sp\s\a\f\ap
 }{
-  \Gdash e.\m(\bar{e'}) \tlate e'.\m(\bar{e''}):\t
-}}
-
-\newcommand{\CICallAny}{\inferrule*[lab=CICallAny]{ 
-  \Gdash e \tlate e'':\any \\  
-  \bar{\Gdash e' \tlate e''':\t'} \\ 
+  \ReduceA \K{\Set\a\f\ap}\s \K\ap\sp
+}
+\CondRule{E3}{ %% a.m(a) -> e
+  \Mdef\m\x\t\tp\e \In \classof\a\s\K $\wedge~ \t \not= \any$
 }{
-  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}) : \any
-}}
-
-\newcommand{\CIIf}{\inferrule*[lab=CIIf]{
-  \CICAST{e_1'}{\int}{e_1''}\\ 
-  \Gdash e_2\tlate e_2':\t_2 \\ 
-  \Gdash e_3 \tlate e_3' : \t_2
+ \ReduceA \K\s{\Call\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E3}{ %% a@m(a) -> e
+    \Mdef\m\x\any\any\e \In \classof\a\s\K
 }{
-  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'}{e_2'}{e_3'} : \t_2
-} }
-
-\newcommand{\CIPlus}{\inferrule*[lab=CIPlus]{
-  \CICAST{e_1}{\int}{e_1'}\\ 
-  \CICAST{e_2}{\int}{e_2'}\\ 
+  \ReduceA \K\s{\DynCall\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E10}{  %% Subtypecast
+  \classof\a\s\K \Sub \t
+}{ 
+  \ReduceA \K{\SubCast \tp\a}\s \K\a\s
+}
+\CondRule{E11}{
+ \names{\classof\a\s\K}  $\supseteq$  \names\t
+}{ 
+  \ReduceA \K{\ShaCast \tp\a}\s \K\a\s
+}
+\CondRule{E8}{
+  \behcast \a\t\s\K  \Kp\ap\sp
+}{ 
+  \ReduceA  \K{\BehCast \tp\a}\s \Kp\ap\sp
+}
+\CondRule{E9}{
+  \moncast \a\t\s\K  \Kp\sp
+}{ 
+  \ReduceA \K{\MonCast\tp\a}\s \Kp\a\sp
+}
+\CondRule{E1}{ %% e -> e'
+  \Reduce \K\e\s \Kp\ep\sp
 }{
-  \Gdash e_1 + e_2 \tlate e_1' + e_2' :\int 
-}}
+ \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
+}
+\end{tabular}\end{minipage}
 
-\newcommand{\CIVar}{\inferrule*[lab=CIVar]{
-  x:\t \in \G
+%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+~\\[3mm]
+
+\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
+\E &::= \Get\square\f     ~\B~
+        \Set\square\f\e   ~\B~
+        \Set\a\f\square   ~\B~  
+        \Call\square\m\e   ~\B~
+        \Call\a\m{\square} \\
+   &\B~
+        \DynCall\square\m\e   ~\B~
+        \DynCall\a\m\square   ~\B~\\
+   &\B~
+       \SubCast\t\square  ~\B~
+       \ShaCast\t\square  ~\B~
+       \BehCast\t\square \\ &\B~
+       \MonCast\t\square  ~\B~
+       \New\C{\b \a\,\square\,\b\e}
+\end{tabular}
+\end{minipage}
+
+Types are represented by set of methods. 
+
+\hrulefill
+
+\opdef{$\t \Sub \tp$}{\t is a subtype of \tp}
+\begin{mathpar}
+\IRule{SRef}{
 }{
-  \Gdash x \tlate x : \t
-}}
+  \t \Sub \t
+}
 
-\newcommand{\CINew}{\inferrule*[lab=CINew]
-      {\C=\{\bar{\f :\t},\ldots\} \in \G \\ 
-       \bar{\CICAST{e}{\t}{e'}}}
-      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{e'}} : \C}}
+\IRule{STop}{
+}{
+  \t \Sub {\Type{}}
+}
+
+\IRule{SRec}{
+ \mt\Sub\mt'\\
+  \Type{ \b{\mt_1}} \Sub \Type{\b{\mt_2}}
+}{
+  \Type{\mt~\b{\mt_1}\,} \Sub
+  \Type{\mt'~\b{\mt_2}\,} 
+}
+
+\IRule{SMeth}{
+  \t_1 \Sub \t_2 \\   \t_2' \Sub \t_1' 
+}{
+  \Mtype\m{\t_1}{\t_1'} \Sub \Mtype\m{\t_2}{\t_2'}
+}
 
 
-\newcommand{\EFrame}{\inferrule*[lab=EFrame]{ e,v \ereduce e',v'}{F[e],v \ereduce F[e'],v'}}
+\IRule{SFd1}{
+}{
+  \Mtype\f{}\t \Sub  \Mtype\f{}\t
+}
 
-\newcommand{\ENew}{\inferrule*[lab=ENew]{
-     \bar{\f : \t} \in \C \\
-     \s'=\s(a\is\{\bar{\f=v} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}}
+\IRule{SFd2}{
+}{
+  \Mtype\f\t\t \Sub \Mtype\f\t\t
+}
+\end{mathpar}
 
-\newcommand{\EInv}{\inferrule*[lab=EInv]{a\is \{\ldots \B \C\} \\ \m(\bar x)=e \in \C}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}}
 
-\newcommand{\EField}{\inferrule*[lab=EField]{ \s[a\is\{\ldots,\f =v,\ldots\B\t\}] }{a.\f,\s \ereduce v,\s}}
+Type checking is standard.
 
-\newcommand{\EAssign}{\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\ldots,\f =v,\ldots\B\t\}] }{a.\f = v,\s \ereduce v,\s'}}
+Field accessor rules W3 and W4 require a typed receiver, since \any does
+not have any methods a receiver typed at \any will never typecheck.
 
-\newcommand{\EIfZ}{\inferrule*[lab=EIfZ]{ }{ \ifthenelse{{0}}{e_1}{e_2},\s \ereduce e_1,\s }}
+Shallow casts, W9, do not change the type of the expression. We are casting
+to the name of \t not to \t.  In practice that means that all expression
+types in Transient will drift towards \any.
 
-\newcommand{\EIfNZ}{\inferrule*[lab=EIfNZ]{n\neq 0}{ \ifthenelse{{n}}{e_1}{e_2},\s \ereduce e_2,\s }}
+\hrulefill
 
-\newcommand{\EPlus}{\inferrule*[lab=EPlus]{ n_1 + n_2 = n_3 }{ {n_1} + {n_2},\s \ereduce \intv{n_3},\s}}
+\opdef{\EnvType\Es\e\t}{\e has type \t in environment \E against heap \s}
+\begin{mathpar}
+\IRule{W1}{
+   \HasType \E\x\t
+ }{
+   \EnvType \Es\x\t
+}
 
-\newcommand{\ECastInt}{\inferrule*[lab=ECastInt]{ }{ \cast{\int}{n},\s \ereduce {n},\s'}}
+\IRule{W2}{
+  \EnvType \Es\e\tp \\
+  \tp \Sub \t
+ }{
+   \EnvType \Es\e\t 
+}   
 
-\newcommand{\wellformedness}{
-\subsection{Class well-formedness}
+\IRule{W3}{
+  \EnvType \Es\e\t \\
+  \Mtype \f{}\tp \inc \t  
+}{
+  \EnvType \Es{\Get\e\f}\tp
+}    
+
+\IRule{W4}{
+  \EnvType \Es\e\t \\
+  \Mtype \f\tp\tp \inc \t  \\
+  \EnvType \Es\ep\tp
+}{
+  \EnvType \Es{\Set\e\f\ep}\tp
+}    
+
+\IRule{W5}{
+  \EnvType \Es\e\t \\
+  \Mtype \m\tp\tpp\inc \t  \\
+  \EnvType \Es\ep\tp
+}{
+  \EnvType \Es{\Call\e\m\ep}\tpp
+}    
+
+\IRule{W6}{
+  \EnvType \Es\e\any \\
+  \EnvType \Es\ep\any
+}{
+  \EnvType \Es{\DynCall\e\m\ep}\any
+}    
+
+\IRule{W7}{
+  \b{\EnvType \Es\e\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b\md}
+}{
+  \EnvType \Es{\New\C{\b\e}}\C
+}
+
+\IRule{W8}{
+  \EnvType \Es\e\tp
+}{
+  \EnvType \Es{\SubCast\t\e}\t
+}
+
+\IRule{W9}{
+  \EnvType \Es\e\tp
+}{
+  \EnvType \Es{\ShaCast\t\e}\any  %%!!!  not \t !!!
+}
+
+\IRule{W10}{
+  \EnvType \Es\e\tp
+}{
+  \EnvType \Es{\BehCast\t\e}\t
+}
+
+\IRule{W11}{
+  \EnvType \Es\e\tp
+}{
+   \EnvType \Es{\MonCast\t\e}\t
+}
+
+\IRule{W12}{
+  \s(\a) = \obj\C{\b{\a_1}}
+}{
+  \EnvType \Es\a\C
+}
+\end{mathpar}
+
+\section{Generative Casts}
+
+\subsection{Behavioral}
+
+
+
+\hrulefill
 
 \begin{mathpar}
-\inferrule*[lab=WFField]{\G \vdash \t}{\G\vdash\f:\t}
-
-\inferrule*[lab=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
-
-\inferrule*[lab=WFSelfGet]{f:\t \in fields(\G)}{\G \vdash f():\t = \xt{this}.f}
-
-\inferrule*[lab=WFDelGet]{f:\t \not\in fields(\G) \\ \G \vdash e : \t}{\G \vdash f():\t = e}
-
-\inferrule*[lab=WFSelfSet]{f:\t \in fields(\G)}{\G \vdash f!(\xt{x}:\t):\t = (\xt{this}.f=\xt{x})}
-
-\inferrule*[lab=WFDelSet]{f:\t \not\in fields(\G) \\ \G,\xt{x}:\t \vdash e : \t}{\G \vdash f!(\xt{x}:\t):\t = e}
-\end{mathpar}
+\IRule{Cast-Wrap}{
+  \D\;\mathit{fresh} \\
+  \ap\;\mathit{fresh} \\
+  \obj\C{\b{\a_1}} = \s(\a) \\
+  \sp = \Heap \s{\Bind \ap{\obj\D{\a}} } \\
+  \Kp = \K\;\wrapper{\C,\t,\D}
+}{
+  \behcast\a\t\s\K  \Kp\ap\sp
 }
+\end{mathpar}
+
+What does the wrap function do? In english.
+
+\C may be a wrapper or a user class. It may thus have fields or has the
+single \that field.
+
+
+Assume \t = \any.
+
+Assume \C is an untyped class
+
+Nothing more needs to be done.
+
+Assume \C is a typed class.
+
+For each method \m in \C add, a passthrough method in \D, and add an untyped method that calls the passthrough after behcasting arguments and returns.
+
+Field getter and setters are not changed because they are always invoked
+from a typed context.
+
+Assume \t = \Cp 
+
+Assume \C is an untyped class.
+
+Add all untyped methods from \C to \D as  passthrough. 
+
+For every typed method \m in \Cp,  if there is an untyped \m in \C, add a typed method \m to \D with a call to the underlying untyped method with behav casts on argument and return
+
+For methods \m in \Cp, such that there is no \m in \C, put a method that will cause a stuck state, e.g. a dyn call to \m.
+
+Assume \C is a typed class
+
+For every method \m occuring both in \C and \Cp, add a call with behcast
+
+For every method \m occuring only in \C, add it to \D, 
+
+For every method \m occuring only in \Cp
+
+
+{\bf context switching to another task... the above is broken too}
+
+
+
+\hrulefill
+
+
+\begin{mathpar}
+\IRule{UTWrap}{
+   \Class\C{\b{\Mdef\m\x\t\tp\e}~\b{\Mdef{\m'_u}\x\t\tp\e}}
+}{
+  \wrapper{\C,\any,\D} = \Class \D{ \that:\C }
+   {\b{\Mdef{\m_u}\x\any\any{\BehCast \any{\this.\that.\m(\b{\BehCast\t\x})}}} ~
+    \b{\Mdef{\m'_u}\x\t\tp{\that.\m'_u(\b\x)}}}
+}
+
+\IRule{TWrap}{
+	\Class\C{\b\fd}{\b\md} \\ 
+}{
+	\wrapper{\C\Rightarrow\{\b{\mt}\},\D} = \Class \D{\xt{s} : \C}{\tw{\b\md, \b\mt} ~ {\utw{\b\md, \b\mt}}}
+}
+
+\IRule{MTWrap}{
+}{
+  \tw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\Mtype\m{\b{\tp1}}{\tp2};\b{\mt}} = \Mdef{\m}\x{\tp1}{\tp2}{\SubCast{\tp2}{\this.\xt{s}.{\m_\xt{u}(\b{\SubCast{\any}{\x}})}}} ~ \tw{\b{\md},\b{\mt}}
+}
+
+\IRule{MUTWrap}{
+	\m \not\in\b{\mt}
+}{
+  \utw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\b{\mt}} = \Mdef{\m_\xt{u}}\x\any\any\e ~ \utw{\b{\md},\b{\mt}}
+}
+\end{mathpar}
+
+
+\subsection{Monotone}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Cast-Mono1 (monotonic)}{
+  \Heap \s{\Bind \a{\obj\C{\a_1 \dots \a_n}}} \\
+  \C \not\equiv \meet \t\C \\
+  \Kp = \K\;\spec{\Class\C{\b{\Ftype\f\t}}{\b\md}, \D, \meet \t\C} \\
+  \sp = \Heap \s{\Bind \a{\obj\D{\b{\a_1}}}} \\
+  \s_1 = \castfn{\a_1}{\t_1}{\sp}\Kp \\ \ldots \\
+  \s_n = \castfn{\a_n}{\t_n}{\s_{n-1}}\Kp \\
+}{
+  \moncast \a\t\s\K   \Kp {\s_n}\\
+}
+
+\IRule{Cast-Mono2 (monotonic)}{
+  \Heap \s{\Bind \a{\obj\C{\b{\a_1}}}} \\
+  \C \equiv \meet \t\C
+}{
+  \moncast \a\t\s\K  \K\s
+}
+\end{mathpar}
+
+
+
+\hrulefill
+
+\opdef{
+  $\meet{\t_1}{\t_2} \equiv \t$
+}{
+  The most specific type common to $\t_1$ and $\t_2$ is $\t$
+}
+\begin{mathpar}
+\IRule{M1}{ }{\meet{\t}{\any} \equiv \t}
+
+\IRule{M2}{ }{\meet{\any}{\t} \equiv \t}
+
+\IRule{M3}{ }{\meet{\t}{\t} \equiv \t}
+
+\IRule{M4}{
+      \b{\meet{\t_3}{\t_1}  \equiv \t_5} \\
+    \meet{\t_2}{\t_4} \equiv \t_6\\
+    \meet{\Type{\b{\md_1}}}{\Type{\b{\md_2}}} \equiv \Type{\b{\md_3}} 
+}{
+  \meet{\Type{\Mtype\m{\t_1}{\t_2}~ \b{\md_1}}}{\Type{\Mtype\m{\t_3}{\t_4} ~ \b{\md_2}}} \equiv \Type{\Mtype\m{\b{\t_5}}{\t_6} ~ \b{\md_3}}
+}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Refine-Method}{
+  \b{\meet{\t_1}{\t_1'} = \t_1''}\\
+  {\meet{\t_2}{\t_2'} = \t_2''}
+}{
+  \spec{\m(\b{\x:\t_1}):\t_2 = \e,\m(\b{\t_1'}):\t_2'} = 
+  (\m(\b{\x:\t_1''}):\t_2'' = \SubCast{\t_2''}{\e}), \\
+  (\m_\xt{u}(\b{\x:\any}):\any = \SubCast{\any}{\this.{\m}(\SubCast{\t_1''}{\x})})
+}
+
+\IRule{Refine-Class}{
+  \b{\meet{\t}{\t'} = \t''}
+}{
+  \spec{\Class{\C}{\b{\f : \t}}{\b{\md}}, \xt{D}, \{\b{\f():\t'},\b{\mt}\}} = \Class{\D}{\b{\f : \t''}}{\b{\spec{\f:\t,\t'}},\b{\spec{\md,\mt}}}
+}
+\end{mathpar}
+
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Insert-Recv (eager cast)}{
+  \GenCast \E{\e_1}{\e_3}{\t_1} \\
+  \m(\b{x : \t_2}):\t_3 \in \t_1 \\
+  \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
+}{
+  \inv \E{\Call{\e_1}\m{\b{\e_2}}} = \Call{\e_3}{\m}{\b{\e_4}}, \t_3
+}
+
+\IRule{Insert-Dyn}{
+  \GenCast{\E}{\e_1}{\e_3}{\any} \\
+  \AnaCast{\E}{\e_2}{\e_4}{\any}
+}{
+  \inv \E{\Call{\e_1}\m{\b{\e_2}}} =
+  \Call{\SubCast{(\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\e_4}}, \any
+}
+
+\IRule{Insert-Check (lazy cast)}{
+  \GenCast \E{\e_1}{\e_3}{\t_1} \\
+  \m(\b{x : \t_2}):\t_3 \in \t_1 \\
+  \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
+}{
+  \inv{\E}{\Call{\e_1}\m{\b{\e_2}}} =
+  \SubCast{\t_1}{(\Call{(\SubCast{\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\SubCast \any{\e_4}}})}, \t_1
+}
+\end{mathpar}
+
+\end{document}
+\section{Addendum}
+
+\input{figures/syncast}
+
+\hrulefill
+
+\input{figures/anacast}
+
+\hrulefill
+
+\input{figures/classtrans}
+
+\hrulefill
+
+\input{figures/conssub}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{No-Cons}{ \t_1 \Sub \t_2 }{\MetaSub{\t_1}{\t_2}}
+
+\IRule{Has-Cons}{\stcons{\t_1}{\t_2}}{\MetaSub{\t_1}{\t_2}}
+\end{mathpar}
+
+\end{document}

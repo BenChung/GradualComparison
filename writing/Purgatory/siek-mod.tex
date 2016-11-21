@@ -1,0 +1,205 @@
+\documentclass{report}
+\usepackage{mathpartir,amsmath,amssymb,xspace,listings,fullpage}
+
+
+\input{common}
+\newcommand{\spec}{\vartriangleright}
+\begin{document}
+
+Syntax:
+\syntax
+
+Consistency:
+
+\begin{mathpar}
+\inferrule*[lab=CNSym]{ }{\tau \sim \tau}
+
+\inferrule*[lab=CNCons1]{ }{\any \sim \tau}
+
+\inferrule*[lab=CNCons2]{ }{\tau \sim \any}
+
+\inferrule*[lab=CNSub1]{
+  \CLASS \C {\ldots} {\bar{f:\t_C},\bar{d(\bar{\xt{x}:\t_C''}):\t_C'=e}} \\
+  \CLASS {\xt{D}} {\ldots} {\bar{f:\t_D},\bar{d(\bar{\xt{x}:\t_D''}):\t_D'=e}} \\
+  \bar{\t_C \sim \t_D}\\
+  \bar{\t_C' \sim \t_D'}\\
+  \bar{\t_C'' \sim \t_D''}}{\C \sim \xt{D}}
+\end{mathpar}
+
+Subtyping:
+
+\begin{mathpar}
+\inferrule*[lab=SClass]{
+  \CLASS \C {\bar{\xt{D}}} {\ldots}
+}{\C <: \xt{D}}
+
+\inferrule*[lab=STrans]{
+  \C <: \xt{D} \\ \xt{D} <: \xt{E}
+}{\C <: \xt{E}}
+\end{mathpar}
+
+
+Consistent Subtyping:
+
+\begin{mathpar}
+\inferrule*[lab=CSSub]{\C <: \xt{D}}{ \C \lesssim \xt{D}}
+
+\inferrule*[lab=CSCons]{\tau \sim \tau'}{\tau \lesssim \tau'}
+
+\inferrule*[lab=CSTrans]{\tau_1 \lesssim \tau_2 \\ \tau_2 \lesssim \tau_3}{\tau_1 \lesssim \tau_3}
+\end{mathpar}
+
+Typing rules:
+
+\begin{mathpar}
+\inferrule*[lab=TCons]{ \tau' \sim \tau \\ \G \vdash e : \t' }{\G \vdash e : \t}
+
+\TSub
+
+\TVar 
+
+\TInt
+
+\TUApp
+
+\TApp
+
+\TIf
+
+\TPlus
+
+\TNew
+
+\TCast
+
+\inferrule*[lab=TClass]{ 
+  \bar{\G \vdash \f : \t}\\
+  \bar{\G \vdash \MTYPE{\m}{\bar{x:\t''}}{\t'} = e} \\ 
+  \f:\t \in \xt{D} \implies \f:\t \in \C\\
+  \MTYPE{d}{\bar{x:\t''}}{\t'}\in \xt{D} \implies \MTYPE{d}{\bar{x:\t''}}{\t'} \in \C\\
+ }{
+  \Gdash \CLASS \C{\xt{D}}{\bar{\f:\t},\bar{\MDEF d{\bar{x:\t''}}{\t'}e}}
+  }
+\end{mathpar}
+
+\wellformedness
+
+\subsection{Analytic Cast Insertion}
+
+\begin{mathpar}
+\inferrule*[lab=CIIDown]{\Gdash e \tlate e' : \xt{D} \\ \C <: \xt{D}}{\CICAST{e}{\C}{\cast{\C}e'}}
+
+\inferrule*[lab=CIIUp]{\Gdash e \tlate e' : \C \\ \C <: \xt{D}}{\CICAST{e}{\xt{D}}{e'}}
+
+\inferrule*[lab=CIICons]{\Gdash e \tlate e' : \t' \\ \t' \lesssim \t \\ \t \neq \t' }{\CICAST{e}{\t}{\cast{\t}e'}}
+
+\inferrule*[lab=CIIId]{\Gdash e \tlate e' : \t}{\CICAST{e}{\t}{e'}}
+\end{mathpar}
+
+\subsection{Synthetic Cast Insertion}
+
+\begin{mathpar}
+\CICall
+
+\CICallAny
+
+\CIIf
+
+\CIPlus
+
+\CIVar
+
+\CINew
+
+\CICast
+\end{mathpar}
+
+
+\section{Dynamic semantics:}
+
+
+
+Reduction:
+
+\begin{mathpar}
+\EFrame
+
+\ENew
+
+\EInv
+
+\EField
+
+\EAssign
+
+\EIfZ
+
+\EIfNZ
+
+\EPlus
+
+\inferrule*[lab=ECast]{ \s' = \text{cast}(\s, v, \t) }{ \cast{\t}a,\s \ereduce a,\s'}
+\end{mathpar}
+
+\subsection{Casting}
+
+\begin{mathpar}
+\inferrule*[lab=CClass]{\s[a \is \{\bar{\f = v} \B \C\}] \\ 
+\C \neq \C \spec \xt{D} \\ 
+\s' = \s[a \is \{\bar{\f = v} \B \C \spec \xt{D}\}]\\
+\f:\t \in \C\spec \xt{D} \implies \sigma'' = \text{cast}(\s', v, \t)}{\text{cast}(\s, a, \xt{D}) = \s''}
+
+\inferrule*[lab=CCycle]{\s[a \is \{\bar{\f = v} \B \C\}] \\ \C = \C \spec \xt{D}}{\text{cast}(\s, a, \xt{D}) = \s}
+
+\inferrule*[lab=CInt]{ }{\text{cast}(\s,\xt{int}[n],\xt{\int}) = \s}
+
+\inferrule*[lab=CSub]{\s[a \is \{\bar{\f = v} \B \C\}]}{\text{cast}(\s, a, \C) = \s}
+\end{mathpar}
+\subsection{Meet}
+\begin{mathpar}
+\inferrule*[]{}{\t \spec \t = \t}
+
+\inferrule*[]{}{\t \spec \any = \t}
+
+\inferrule*[]{}{\any \spec \t = \t}
+
+\inferrule*[]{B \not\in types(C)}{C \spec B = gen(C,B)}
+
+\inferrule*[]{B \in types(C)}{C \spec B = C}
+\end{mathpar}
+
+Define $fieldType(A,B,f) = \left\{\begin{array}{lcl}
+\t_A \spec \t_B &:& f:\t_A \in fields(A) \wedge f:\t_B\in fields(B)\\
+\t_A &:& f:\t_A \in fields(A) 
+\end{array}\right.$
+
+and $argType(A,B,m,x) = \left\{\begin{array}{lcl}
+\t''_A \spec \t''_B &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) \wedge \\
+&&m(\ldots,x:\t''_B,\ldots):\t'_B \in methods(B)\\
+\t''_A &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) 
+\end{array}\right.$
+
+and $retType(A,B,m) = \left\{\begin{array}{lcl}
+\t'_A \spec \t'_B &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) \wedge \\
+&&m(\ldots,x:\t''_B,\ldots):\t'_B \in methods(B)\\
+\t'_A &:& m(\ldots,{x:\t''_A},\ldots):\t'_A\in methods(A) 
+\end{array}\right.$
+\begin{lstlisting}
+classMeet(A,B)
+  A = class A {(*@\bar{\f_A:\t_A},\bar{m(\bar{x:\t''_A}):\t'_A = e_A}@*)}
+  B = class B {(*@\bar{\f_B:\t_B},\bar{m(\bar{x:\t''_B}):\t'_B = e_B}@*)}
+  return class AB {
+    (*@\bar{\f:fieldType(A,B,\f)}@*),
+    (*@\bar{f():fieldType(A,B,\f) = \xt{this}.f}@*),
+    (*@\bar{m(\bar{argType(A,B,m,x)}):retType(A,B,m) = \cast{retType(A,B,m)}\this.m'(\bar{\cast{argType(A,B,m,x)}x})}@*)
+  }
+\end{lstlisting}
+
+Define $types(C) = \{A_1,\ldots,A_n\}$ such that $classMeet(classMeet(A_1,A_2)\ldots,A_n) = C$
+
+Define $gen(C, B) = classMeet(C,B)$
+
+classMeet is applied to every string of classes $C_1,\ldots,C_n$ where $C_1 \lesssim C_i$ for $i=2,\ldots,n$.
+
+%TODO: Add helper that takes C,B, and the field/method name and produces the correct type for that field/method
+\end{document}
