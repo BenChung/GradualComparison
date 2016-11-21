@@ -39,8 +39,13 @@ as a \t or that it get stuck. The generative monotonic cast, denoted
 \MonCast\t\a, is a behavioral cast that, in addition, imposes constraints
 on fields.
 
+\this is a distinguished variable name that denotes the current object.
+\that is a distinguished field name that denotes the target of a wrapper.
+
+\D is a meta-variable used to range over dynamically generated class names.
+
 \begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
-\e &::=  \x \\
+\e &::=  \x &\B \this &\B \that \\
    &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
    &\B \New\C{\b\e} \\
    &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
@@ -89,6 +94,7 @@ The auxilliary function names return the list of function names in a class
 or type, functions that have \any as return values are prefixed with the
 symbol \any.
 
+
 \hrulefill
 
 \begin{minipage}{8cm}
@@ -101,12 +107,12 @@ symbol \any.
     \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
 }
 \CondRule{E5}{ %% a.f() -> e
-    \Mdefz\f\t\e \In \classof\s\a 
+    \Mdefz\f\t\e \In \classof\a\s\K
 }{
    \ReduceA \K\s{\Get\a\f} \K{[\a/\this]\e}\s
 }
 \CondRule{E4}{ %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \classof\s\a 
+    \Mdef\f\x\t\t\e \In \classof\a\s\K
 }{
    \ReduceA \K\s{\Set\a\f\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
@@ -121,22 +127,22 @@ symbol \any.
   \ReduceA \K{\Set\a\f\ap}\s \K\ap\sp
 }
 \CondRule{E3}{ %% a.m(a) -> e
-  \Mdef\m\x\t\tp\e \In \classof\s\a $\wedge~ \t \not= \any$
+  \Mdef\m\x\t\tp\e \In \classof\a\s\K $\wedge~ \t \not= \any$
 }{
  \ReduceA \K\s{\Call\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E3}{ %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \classof\s\a
+    \Mdef\m\x\any\any\e \In \classof\a\s\K
 }{
   \ReduceA \K\s{\DynCall\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E10}{  %% Subtypecast
-  \classof\s\a \Sub \t
+  \classof\a\s\K \Sub \t
 }{ 
   \ReduceA \K{\SubCast \tp\a}\s \K\a\s
 }
 \CondRule{E11}{
- \names{\classof\s\a}  $\supseteq$  \names\t
+ \names{\classof\a\s\K}  $\supseteq$  \names\t
 }{ 
   \ReduceA \K{\ShaCast \tp\a}\s \K\a\s
 }
