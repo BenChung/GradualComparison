@@ -7,35 +7,37 @@
 
 \section*{Target Langage}
 
-The target language (TL) is a parred down statically typed object
-calculus. The calculus has non-recursive structural substyping\footnote{\bf
-  I am not sure that this is the right way to describe what we do --
-  check. JV} but no inheritance.\footnote{Structural subtyping is needed for
-  type systems that have a notion of ``consistency''. Inheritance does not
-  add anything other than code reuse.}  The calculus does not have null
-values.\footnote{Null adds a source of error but otherwise should not be too
-  interesting. We should mention something about the type of null.} Fields
-are accessed by automicatlly providedd getter and setter methods, denoted
-\Get\x\f and \Set\x\f\e.\footnote{This is because we want an easy way to
-  interpose on field access in wrappers.} Fields appear in type signatures
-only through the presence of the getter and setter methods. Method calls are
-denoted \Call\x\m\e.\footnote{The single argument limitation is purely to
-  lighten the notation.} Following C\# 4.0~\cite{} the TL allows a dynamic
-type, denoted \any, and dynamically-typed method invocation, denoted
-\DynCall\x\m\e. Dynamically-typed method invocation treats all arguments as
-\any. A new object is created with a class name and a sequence of arguments
-given in the order of definition of fields, \New\C{\b\e}.  Meta-variable \x
-ranges over argument names, \a over memory locations, \f over field names,
-\m over method names, \C over class names. The language has four different
-kinds of cast expressions (described below).
+The target language (TL) is built around a parred down statically typed
+object calculus. The calculus has non-recursive structural
+substyping\footnote{\bf I am not sure that this is the right way to describe
+  what we have -- check it is. JV} without inheritance.\footnote{Structural
+  subtyping is needed for type systems that have a notion of
+  ``consistency''. Inheritance does not add anything other than code reuse.}
+The calculus does not have null values.\footnote{Null adds a source of error
+  but otherwise should not be too interesting. We should mention what is the
+  type of null.} Fields are accessed by automatically provided getter and
+setter methods, respectively denoted \Get\x\f and \Set\x\f\e.\footnote{This
+  is because we want an easy way to interpose on field access in wrappers.}
+Fields appear in type signatures only through the presence of the getter and
+setter methods. Method calls are denoted \Call\x\m\e.\footnote{The single
+  argument limitation is purely to lighten the notation.} Following C\#
+4.0~\cite{} the TL allows a dynamic type, denoted \any, and
+dynamically-typed method invocation, denoted
+\DynCall\x\m\e. Dynamically-typed method invocation treats arguments and
+return value as \any. A new object is created with a class name and a
+sequence of arguments in the order of definition of fields, denoted
+\New\C{\b\e}.  Meta-variable \x ranges over argument names, \a over memory
+locations, \f over field names, \m over method names, \C over class
+names. The language has four different kinds of cast expressions (described
+below).
 
 \begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}l}
 \e &::=  \x \\
    &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e    \\
    &\B \DynGet\e\f &\B \DynSet\e\f\e &\B \DynCall\e\m\e \\
-   \Alt{ \New\C{\b\e} }
+   &\B \New\C{\b\e} \\
    &\B \tCast\t\e  &\B \wCast\t\e    &\B \cCast\t\e &\B  \mCast\t\e \\
-   \Alt{ \a }
+   &\B \a 
 \end{tabular}\end{minipage}
 ~~
 \begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
@@ -45,14 +47,16 @@ kinds of cast expressions (described below).
 \md &::= \Mdef\m\x\t\t\e \\
     &\B  \Mdef\f\x\t\t\e ~\B~ \Mdefz\f\t\e \\
 \mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t \\
-\E &::= \Ftype\x\t  \B \none\\
-\t &::= ~ \any  \B   \Type{\b\mt} 
+\E  &::= \Ftype\x\t  \B \none\\
+\t  &::= ~ \any  \B   \Type{\b\mt}  \\
+\s  &::= ~~\none ~~ \B ~~
+    \Heap\s{\Bind\a{\obj\C{\b\a}}}
 \end{tabular}\end{minipage}
 
 The semantics of TL is defined by a small step operational semantics with
 evaluation contexts.  The context are deterministic. Program error is
 denoted by a stuck term. Meta-variable \k ranges over class definitions.
-The sematnics operate over an explicit class table, denoted \K, which is a
+The semantics operate over an explicit class table, denoted \K, which is a
 sequence of class definitions. A heap, denoted \s, maps memory locations to
 objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
 heap \s extended by the binding of location \a to object \obj\C{\b\a}.  A
@@ -63,7 +67,15 @@ stuck.\footnote{Intuitively we would expect that the program can only get
   stuck at dynamic calls or at structural casts. But generative casts add
   some complexity to that statement.}
 
-{\bf JV: there is funny business with typed and untyped getter and setter methods. I am not sure this quite works.}
+
+New object creation picks a fresh memory location \ap and binds it to the
+newly created. Operations on fields are require a typed receiver, for
+example in the expression \Get\this\f, \this is always of the type of the
+current class. Field access through a getter method, either works as
+follows, if the receiver's class has a getter method, that method is
+evaluated, otherwise the field corresponding the getter's name is updated.
+
+
 
 \hrulefill
 
@@ -71,55 +83,40 @@ stuck.\footnote{Intuitively we would expect that the program can only get
   \opdef{\Reduce \K\e\s \Kp\ep\sp}
         {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
 \begin{tabular}{@{}l@{}l@{~}l@{~}l}
-\CondRule{E1}{ %% e -> e'
-  \Reduce \K\e\s \Kp\ep\sp
-}{
- \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
-}
 \CondRule{E2}{ %% new C -> a
    \sp = \Heap\s{\Bind\ap{\obj\C{\b\a}}} $\wedge ~$ \ap fresh
 }{ 
     \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
+}
+\CondRule{E5}{ %% a.f() -> e
+    \Mdefz\f\t\e \In \classof\s\a 
+}{
+   \ReduceA \K\s{\Get\a\f} \K{[\a/\this]\e}\s
+}
+\CondRule{E4}{ %% a.f(a) -> e
+    \Mdef\f\x\t\t\e \In \classof\s\a 
+}{
+   \ReduceA \K\s{\Set\a\f\ap} \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E6}{  %% a.f() -> e
+     \readfield \ap\s\a\f
+}{
+  \ReduceA \K{\Get\a\f}\s  \K\ap\s
+}
+\CondRule{E7}{ %% a.f(e) -> e
+     \setfield \sp\s\a\f\ap
+}{
+     \ReduceA \K{\Set\a\f\ap}\s \K\ap\sp
 }
 \CondRule{E3}{ %% a.m(a) -> e
     \Mdef\m\x\t\tp\e \In \classof\s\a $\wedge~ \t \not= \any$
 }{
    \ReduceA \K\s{\Call\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
-\CondRule{E4}{ %% a.f(a) -> e
-    \Mdef\f\x\t\tp\e \In \classof\s\a $\wedge~ \t \not= \any$
-}{
-   \ReduceA \K\s{\Call\a\f\ap} \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E5}{ %% a.f() -> e
-    \Mdefz\f\t\e \In \classof\s\a $\wedge~ \t \not= \any$
-}{
-   \ReduceA \K\s{\Call\a\f{}} \K{[\a/\this]\e}\s
-}
-\CondRule{E3}{ %% a.m(a) -> e
+\CondRule{E3}{ %% a@m(a) -> e
     \Mdef\m\x\any\any\e \In \classof\s\a
 }{
    \ReduceA \K\s{\DynCall\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E4}{ %% a.f(a) -> e
-    \Mdef\f\x\any\any\e \In \classof\s\a 
-}{
-   \ReduceA \K\s{\DynCall\a\f\ap} \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E5}{ %% a.f() -> e
-    \Mdefz\f\any\e \In \classof\s\a 
-}{
-   \ReduceA \K\s{\DynCall\a\f{}} \K{[\a/\this]\e}\s
-}
-\CondRule{E6}{ 
-     \readfield \ap\s\a\f
-}{
-  \ReduceA \K{\Get\a\f}\s  \K\ap\s
-}
-\CondRule{E7}{
-     \setfield \sp\s\a\f\ap
-}{
-     \ReduceA \K{\Set\a\f\ap}\s \K\ap\sp
 }
 \CondRule{E8}{
   \cast \a\t\s\K{w}  \Kp\e\sp
@@ -141,19 +138,28 @@ stuck.\footnote{Intuitively we would expect that the program can only get
 }{ 
    \ReduceA \K{\tCast \tp\a}\s \Kp\e\sp
 }
+\CondRule{E1}{ %% e -> e'
+  \Reduce \K\e\s \Kp\ep\sp
+}{
+ \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
+}
 \end{tabular}\end{minipage}
 
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ~\\[3mm]
 
 \begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
-\s &::= ~~\none ~~ \B ~~
-    \Heap\s{\Bind\a{\obj\C{\b\a}}}\\[2mm]
 \E &::= \Get\square\f     ~\B~
         \Set\square\f\e   ~\B~
         \Set\a\f\square   ~\B~  
         \Call\square\m\e   ~\B~
-       \Call\a\m{\square} \\
+        \Call\a\m{\square} \\
+   &\B~
+        \DynGet\square\f   ~\B~
+        \DynSet\square\f\e   ~\B~
+        \DynSet\a\f\square   ~\B~        
+        \DynCall\square\m\e   ~\B~
+        \DynCall\a\m\square   ~\B~\\
    &\B~
        \mCast\t\square  ~\B~
        \wCast\t\square  ~\B~
