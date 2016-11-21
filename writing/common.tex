@@ -325,6 +325,8 @@ types in Transient will drift towards \any.
 
 \subsection{Behavioral}
 
+
+
 \hrulefill
 
 \begin{mathpar}
@@ -338,6 +340,49 @@ types in Transient will drift towards \any.
   \behcast\a\t\s\K  \Kp\ap\sp
 }
 \end{mathpar}
+
+What does the wrap function do? In english.
+
+\C may be a wrapper or a user class. It may thus have fields or has the
+single \that field.
+
+Assume \t = \any.
+
+
+
+
+
+
+\hrulefill
+
+
+\begin{mathpar}
+\IRule{UTWrap}{
+   \Class\C{\b{\Mdef\m\x\t\tp\e}~\b{\Mdef{\m'_u}\x\t\tp\e}}
+}{
+  \wrapper{\C,\any,\D} = \Class \D{ \that:\C }
+   {\b{\Mdef{\m_u}\x\any\any{\BehCast \any{\this.\that.\m(\b{\BehCast\t\x})}}} ~
+    \b{\Mdef{\m'_u}\x\t\tp{\that.\m'_u(\b\x)}}}
+}
+
+\IRule{TWrap}{
+	\Class\C{\b\fd}{\b\md} \\ 
+}{
+	\wrapper{\C\Rightarrow\{\b{\mt}\},\D} = \Class \D{\xt{s} : \C}{\tw{\b\md, \b\mt} ~ {\utw{\b\md, \b\mt}}}
+}
+
+\IRule{MTWrap}{
+}{
+  \tw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\Mtype\m{\b{\tp1}}{\tp2};\b{\mt}} = \Mdef{\m}\x{\tp1}{\tp2}{\SubCast{\tp2}{\this.\xt{s}.{\m_\xt{u}(\b{\SubCast{\any}{\x}})}}} ~ \tw{\b{\md},\b{\mt}}
+}
+
+\IRule{MUTWrap}{
+	\m \not\in\b{\mt}
+}{
+  \utw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\b{\mt}} = \Mdef{\m_\xt{u}}\x\any\any\e ~ \utw{\b{\md},\b{\mt}}
+}
+\end{mathpar}
+
 
 \subsection{Monotone}
 
@@ -363,34 +408,6 @@ types in Transient will drift towards \any.
 }
 \end{mathpar}
 
-
-\hrulefill
-
-
-\begin{mathpar}
-\IRule{UTWrap}{
-   \Class\C{\b{\Mdef\m\x{\tp1}{\tp2}\e}~\b{\Mdef{\m'_u}\x{\tp1}{\tp2}\e}}
-}{
-    \wrapper{\C\Rightarrow\any,\D} = \Class \D{\xt{s}:\C}{\b{\Mdef{\m_\xt{u}}\x{\any}\any{\SubCast \any{\this.\xt{s}.\m(\b{\SubCast{\tp1}{\x}})}}} ~ \b{\Mdef{\m'_u}\x{\tp1}{\tp2}{\xt{s}.\m'_u(\b{x})}}}
-}
-
-\IRule{TWrap}{
-	\Class\C{\b\fd}{\b\md} \\ 
-}{
-	\wrapper{\C\Rightarrow\{\b{\mt}\},\D} = \Class \D{\xt{s} : \C}{\tw{\b\md, \b\mt} ~ {\utw{\b\md, \b\mt}}}
-}
-
-\IRule{MTWrap}{
-}{
-  \tw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\Mtype\m{\b{\tp1}}{\tp2};\b{\mt}} = \Mdef{\m}\x{\tp1}{\tp2}{\SubCast{\tp2}{\this.\xt{s}.{\m_\xt{u}(\b{\SubCast{\any}{\x}})}}} ~ \tw{\b{\md},\b{\mt}}
-}
-
-\IRule{MUTWrap}{
-	\m \not\in\b{\mt}
-}{
-  \utw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\b{\mt}} = \Mdef{\m_\xt{u}}\x\any\any\e ~ \utw{\b{\md},\b{\mt}}
-}
-\end{mathpar}
 
 
 \hrulefill
