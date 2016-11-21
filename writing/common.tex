@@ -141,12 +141,12 @@ symbol \any.
   \ReduceA \K{\ShaCast \tp\a}\s \K\a\s
 }
 \CondRule{E8}{
-  \cast \a\t\s\K{beh}  \Kp\ap\sp
+  \behcast \a\t\s\K  \Kp\ap\sp
 }{ 
   \ReduceA  \K{\BehCast \tp\a}\s \Kp\ap\sp
 }
 \CondRule{E9}{
-  \cast \a\t\s\K{mon}  \Kp{}\sp
+  \moncast \a\t\s\K  \Kp\sp
 }{ 
   \ReduceA \K{\MonCast\tp\a}\s \Kp\a\sp
 }
@@ -315,23 +315,29 @@ types in Transient will drift towards \any.
 }
 \end{mathpar}
 
-\section{Casts}
+\section{Generative Casts}
 
-
-
-
+\subsection{Behavioral}
 
 \hrulefill
 
 \begin{mathpar}
 \IRule{Cast-Wrap}{
-  \D\;\mathit{free} \\
-  \Heap \s{\Bind \a{\obj\C{\b\ap}} } \\
-  \Kp = \K\;\wrapper{\C \Rightarrow \t,\D}
+  \D\;\mathit{fresh} \\
+  \ap\;\mathit{fresh} \\
+  \obj\C{\b{\a_1}} = \s(\a) \\
+  \sp = \Heap \s{\Bind \ap{\obj\D{\a}} } \\
+  \Kp = \K\;\wrapper{\C,\t,\D}
 }{
-  \cast\a\t\s\K{b}  \Kp {\New \D\a} \s
+  \behcast\a\t\s\K  \Kp\ap\sp
 }
+\end{mathpar}
 
+\subsection{Monotone}
+
+\hrulefill
+
+\begin{mathpar}
 \IRule{Cast-Mono1 (monotonic)}{
   \Heap \s{\Bind \a{\obj\C{\a_1 \dots \a_n}}} \\
   \C \not\equiv \meet \t\C \\
@@ -340,17 +346,15 @@ types in Transient will drift towards \any.
   \s_1 = \castfn{\a_1}{\t_1}{\sp}\Kp \\ \ldots \\
   \s_n = \castfn{\a_n}{\t_n}{\s_{n-1}}\Kp \\
 }{
-  \cast \a\t\s\K m   \Kp \a {\s_n}\\
+  \moncast \a\t\s\K   \Kp {\s_n}\\
 }
-
 
 \IRule{Cast-Mono2 (monotonic)}{
   \Heap \s{\Bind \a{\obj\C{\b{\a_1}}}} \\
   \C \equiv \meet \t\C
 }{
-  \cast \a\t\s\K m  \K\a\s
+  \moncast \a\t\s\K  \K\s
 }
-
 \end{mathpar}
 
 
