@@ -49,7 +49,9 @@ on fields.
    &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
    &\B \New\C{\b\e} \\
    &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
-   &\B \a 
+   &\B \a \\ 
+\M{M} &::= ~~\none ~~ \B \b{\t \Sub \t} \\
+\M{N} &::= ~~\none ~~ \B \b\mt     
 \end{tabular}\end{minipage}
 ~~
 \begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
@@ -59,9 +61,10 @@ on fields.
 \md &::= \Mdef\m\x\t\t\e \\
     &\B  \Mdef\f\x\t\t\e ~\B~ \Mdefz\f\t\e \\
 \mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t  \\
-    &\B  $\mu$\ta.\mt \\
+%     &\B  $\mu$\ta.\mt \\
 \E  &::= \Ftype\x\t  \B \none\\
-\t  &::= ~ \any  \B   \Type{\b\mt} \B \ta \\
+\t  &::= ~ \any  \B   \Type{\b\mt} \\ 
+% \B \ta \\
 \s  &::= ~~\none ~~ \B ~~
     \Heap\s{\Bind\a{\obj\C{\b\a}}}
 \end{tabular}\end{minipage}
@@ -142,24 +145,24 @@ the object at location \a updated to the location \ap.
   \ReduceA \K\s{\DynCall\a\m\ap} \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E10}{  %% Subtypecast
-  \classof\a\s\K \Sub \t
+  \BasicType {\tp \Sub \t;~\tp} {\tp \Sub \t} $~\vee~$ \t $= \any$, \textit{s.t.} $\tp = \classof\a\s\K$
 }{ 
-  \ReduceA \K{\SubCast \tp\a}\s \K\a\s
+  \ReduceA \K{\SubCast \t\a}\s \K\a\s
 }
 \CondRule{E11}{
  \names{\classof\a\s\K}  $\supseteq$  \names\t
 }{ 
-  \ReduceA \K{\ShaCast \tp\a}\s \K\a\s
+  \ReduceA \K{\ShaCast \t\a}\s \K\a\s
 }
 \CondRule{E8}{
   \behcast \a\t\s\K  \Kp\ap\sp
 }{ 
-  \ReduceA  \K{\BehCast \tp\a}\s \Kp\ap\sp
+  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
 }
 \CondRule{E9}{
   \moncast \a\t\s\K  \Kp\sp
 }{ 
-  \ReduceA \K{\MonCast\tp\a}\s \Kp\a\sp
+  \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
 }
 \CondRule{E1}{ %% e -> e'
   \Reduce \K\e\s \Kp\ep\sp
@@ -194,40 +197,51 @@ Types are represented as a set of methods.
 
 \hrulefill
 
-\opdef{$\t \Sub \tp$}{\t is a subtype of \tp}
+\opdef{\BasicType \MN {$~\t \Sub \tp$}}{\t is a subtype of \tp}
 \begin{mathpar}
 \IRule{SRef}{
 }{
-  \t \Sub \t
+ \BasicType \MN {\t \Sub \t}
 }
 
 \IRule{STop}{
 }{
-  \t \Sub {\Type{}}
+ \BasicType \MN {\t \Sub {\Type{}}}
 }
 
 \IRule{SRec}{
- \mt\Sub\mt'\\
-  \Type{ \b{\mt_1}} \Sub \Type{\b{\mt_2}}
+ \BasicType {\M{M;~N,~N'}} {\mt\Sub\mt'}\\
+ \BasicType {\M{M;~N,~N'}} {\Type{ \b{\mt_1}} \Sub \Type{\b{\mt_2}}}
 }{
-  \Type{\mt~\b{\mt_1}\,} \Sub
-  \Type{\mt'~\b{\mt_2}\,} 
+ \BasicType {\M{M;~N,~\texttt{\mt}',~N'}} {\Type{\mt~\b{\mt_1}\,} \Sub
+  \Type{\mt'~\b{\mt_2}\,}} 
 }
 
 \IRule{SMeth}{
-  \t_1 \Sub \t_2 \\   \t_2' \Sub \t_1' 
+   \BasicType {\MNargs{~\t_2 \Sub \t_1}{\t_1}} {\t_2 \Sub \t_1} \\ \BasicType {\MNargs{~\t_1' \Sub \t_2'}{\t_1'}} {\t_1' \Sub \t_2'} 
 }{
-  \Mtype\m{\t_1}{\t_1'} \Sub \Mtype\m{\t_2}{\t_2'}
+  \BasicType \MN {\Mtype\m{\t_1}{\t_1'} \Sub \Mtype\m{\t_2}{\t_2'}}
 }
 
 \IRule{SFd1}{
 }{
-  \Mtype\f{}\t \Sub  \Mtype\f{}\t
+ \BasicType \MN {\Mtype\f{}\t \Sub  \Mtype\f{}\t}
 }
 
 \IRule{SFd2}{
 }{
-  \Mtype\f\t\t \Sub \Mtype\f\t\t
+ \BasicType \MN {\Mtype\f\t\t \Sub \Mtype\f\t\t}
+}
+
+\IRule{SAssump}{
+\t \Sub \tp \in \M{M} 
+}{
+ \BasicType \MN {\t \Sub \tp}
+}
+
+\IRule{SSearch}{
+}{
+ \BasicType {\M{M;\none}} {\t \Sub \tp}
 }
 
 \end{mathpar}
@@ -254,7 +268,7 @@ types in Transient will drift towards \any.
 
 \IRule{W2}{
   \EnvType \Es\e\tp \\
-  \tp \Sub \t
+ \BasicType{\M{\tp \Sub \t;~\t}}{\tp \Sub \t}
  }{
    \EnvType \Es\e\t 
 }   
