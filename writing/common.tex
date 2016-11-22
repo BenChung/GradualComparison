@@ -349,6 +349,39 @@ types in Transient will drift towards \any.
 
 What does the wrap function do? In english.
 
+\[
+\begin{array}{ccc}
+& \t & \any \\
+\t & \t \Rightarrow \t & \t \Rightarrow \any \\
+\any & \any \Rightarrow \t & \any \Rightarrow \any \\
+\end{array}
+\]
+
+\begin{itemize}
+\item $\t \Rightarrow \t$
+  Soundness: Need to make sure that all of the methods on the new type exist on the value, can be done statically.
+  Completeness: All methods need to be persisted.
+
+  Do a shallow cast, then put a wrapper on the old object.
+\item $\t \Rightarrow \any$:
+
+Soundness: Typed arguments are protected from unsafe use, and return types are casted to \any before exiting the typed context.
+
+Completness: All methods in the source object need to be persisted.
+
+Let \C be instance of \t. For every (typed) method \m in \C, generate an untyped method \m in \D which casts its arguments to \C.\m's types. If methods with untyped arguments exist, then they are called from the wrapper verbatim (though typed return values are casted to \any).
+
+\item $\any \Rightarrow \t$:
+
+Soundness: Methods which appear in the type are forced to behave like described. 
+
+Completness: All methods in the source object need to be persisted.
+
+Let \C be instance of \any. For every method \m in \t, generate a typed method that calls \C.\m casting the argument, then casts its return value. Methods \m in \C but not in \t are called directly in an untyped method.
+
+\item $\any \Rightarrow \any$: identity.
+\end{itemize}
+
 \C may be a wrapper or a user class. It may thus have fields or has the
 single \that field.
 
@@ -361,28 +394,27 @@ Nothing more needs to be done.
 
 Assume \C is a typed class.
 
-For each method \m in \C, add a corresponding untyped method \m to \D that calls its corresponding \m in \C, casting the argument
+For each method \m in \C, add a corresponding untyped method \m to \D that calls its corresponding \m in \C, casting the argument.
 
-Field getter and setters are not changed because they are always invoked
-from a typed context.
+Field getter and setters are not changed because they are always invoked from a typed context.
 
-Assume \t = \Cp 
+Assume \t = \{\b{\mt}\} (typed) 
 
 Assume \C is an untyped class.
 
-Add all untyped methods from \C to \D as  passthrough. 
+For every typed method \m in \t,  if there is an untyped \m in \C, add a typed method \m to \D with a call to the underlying untyped method with behav casts on argument and return.
 
-For every typed method \m in \Cp,  if there is an untyped \m in \C, add a typed method \m to \D with a call to the underlying untyped method with behav casts on argument and return
+If there is an untyped \m in \C, but no typed \m in \t, then add an untyped passthrough method to \D.
 
-For methods \m in \Cp, such that there is no \m in \C, put a method that will cause a stuck state, e.g. a dyn call to \m.
+For methods \m in \t, such that there is no \m in \C, put a method that will cause a stuck state, e.g. a dyn call to \m.
 
 Assume \C is a typed class
 
-For every method \m occuring both in \C and \Cp, add a call with behcast
+For every method \m occuring both in \C and \t, add a call with behcast
 
 For every method \m occuring only in \C, add it to \D, 
 
-For every method \m occuring only in \Cp
+For every method \m occuring only in \t then should go boom
 
 
 {\bf context switching to another task... the above is broken too}
