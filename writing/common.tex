@@ -468,6 +468,31 @@ For every method \m occuring only in \t then should go boom
 
 \subsection{Monotone}
 
+The motivation behind the monotonic semantics is that we must ensure that every reference to an object is still valid up to \any types, and as a result, can only proceed by replacing \any types with concrete types, possibly recursively. We accomplish this by \emph{rewriting} the class that objects are associated with, enforcing the new type guarantee, while simultaneously checking that all of the extant field values match the type that they need to be.
+
+In order to do any of this, however, the new type of the object is required. In Siek et al.'s original formalism, the new type was computed simultaneously as the object was being cast, but this creates problems when recursive objects are encountered. For example, consider the following scenario:
+
+\begin{verbatim}
+class C { x:any y:any m(y:any):any }
+class D {}
+class E { x:{x:{y:int}} y:any}
+
+a = new C(new D(),2)
+b = new C(a, 2)
+a.x(b)
+c = <E>a
+\end{verbatim}
+
+Here, when we go to update the value at \x, we then need to go into the type recursively, which points to a new instance of \C. Then, we assert a new type for \x in that new \C, which sends us back to the starting object, where we update the type of \xt{y} to be int, from \any. As a result, we cannot cast simply by examining the statically knowable types, but have to consider the heap structure when determining the final typing for any object.
+
+We break this operation up into two steps:
+
+\begin{itemize}
+\item \emph{Type Determination}. We first determine a valid heap typing that both retains the monotonic property, while satisfying the new cast assertion. To do this, we recursively examine the heap structure, iterating until the heap is unchanged by the last type alteration.
+\item \emph{Heap Update}. In the previous phase, we only determined a new valid typing for the heap. In the second step, we take this typing and apply it to the objects that exist in the heap.
+\end{itemize}
+
+By splitting out the two concerns, we avoid issues where the future state of the heap depends on values produced in the casting process and that do not exist yet. 
 \hrulefill
 
 \begin{mathpar}
