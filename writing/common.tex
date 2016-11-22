@@ -351,47 +351,30 @@ What does the wrap function do? In english.
 \end{array}
 \]
 
-$\t \Rightarrow \t$ - safe, subtype test.
+\begin{itemize}
+\item $\t \Rightarrow \t$
+  Soundness: Need to make sure that all of the methods on the new type exist on the value, can be done statically.
+  Completeness: All methods need to be persisted.
 
-$\t \Rightarrow \any$:
+  Do a shallow cast, then put a wrapper on the old object.
+\item $\t \Rightarrow \any$:
 
-Requirement: typed arguments are protected from unsafe use.
+Soundness: Typed arguments are protected from unsafe use, and return types are casted to \any before exiting the typed context.
+
+Completness: All methods in the source object need to be persisted.
 
 Let \C be instance of \t. For every (typed) method \m in \C, generate an untyped method \m in \D which casts its arguments to \C.\m's types. If methods with untyped arguments exist, then they are called from the wrapper verbatim (though typed return values are casted to \any).
 
-$\any \Rightarrow \t$:
+\item $\any \Rightarrow \t$:
 
-Requirement: Methods which appear in the type are forced to behave like described. Methods that do not appear are retained.
+Soundness: Methods which appear in the type are forced to behave like described. 
+
+Completness: All methods in the source object need to be persisted.
 
 Let \C be instance of \any. For every method \m in \t, generate a typed method that calls \C.\m casting the argument, then casts its return value. Methods \m in \C but not in \t are called directly in an untyped method.
 
-$\any \Rightarrow \any$: identity.
-
-Compositions: Collapse redundancies, leaving
-
-$\t \Rightarrow \any \Rightarrow \t$:
-
-Apply above description. Let \C be start, \D be next, \Cp be final. Assume that \t same.
-
-For every typed \m in \C, generate untyped \m in \D, which calls \C.\m with casted arguments and casts the return type.
-
-For every untyped method \m in \D which has a corresponding \m in \t (which is all of them, in this case), generate a typed \m in \Cp, which casts the arguments and casts the return type.
-
-An unrolled call to \m(\tp1):\tp2 on \Cp would then look like, letting \C be the terminal value:
-
-\BehCast{\tp2}{\BehCast{\any}{\Call{\C}\m{\BehCast{\tp1}{\BehCast{\any}{\x}}}}}
-
-$\any \Rightarrow \t \Rightarrow \any$
-
-Let \C be the start, \D be next, \Cp be final.
-
-For every \m in \C whose type is asserted in \t, add a typed \m in \D which casts its arguments to any and its return value to the correct type, then passes them along to \C.\m. For any \m in \C whose type is not asserted in \t, add an untyped \m to \D which forwards directly.
-
-For every typed \m in \D, add an untyped \m to \Cp which calls \D with arguments cast to the asserted types. For every untyped \m in \D, add a untyped \m to \Cp which calls \D.\m directly.
-
-An unrolled call to \m(\any):\any (\t $ = \{\m(\tp1):\tp2\}$) on \Cp would look like
-
-\BehCast{\any}{ \BehCast{\tp2}{\Call\C\m{\BehCast{\any}{\BehCast{\tp1}{\x}}}}}
+\item $\any \Rightarrow \any$: identity.
+\end{itemize}
 
 \C may be a wrapper or a user class. It may thus have fields or has the
 single \that field.
