@@ -438,8 +438,20 @@ For every method \m occuring only in \t then should go boom
 
 
 \hrulefill
+\newcommand{\wm}{\text{wrapMethod}}
+\begin{align*}
+\wm{(\xt{wrap},\Mdef\m\x\any\any\e,\Mtype\m\t\tp)} &= \Mdef\m\x\t\tp{\BehCast{\tp}{\Call{{\this}.{\xt{wrap}}}{\m}{\BehCast{\any}{\x}}}}\\
+\wm{(\xt{wrap},\Mdef\m\x\t\tp\e,\Mtype\m\any\any)} &= \Mdef\m\x\any\any{\BehCast{\any}{\Call{\this.\xt{wrap}}{\m}{\BehCast{\t}{\x}}}}\\
+\wm{(\xt{wrap},\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2}\any)} &\text{\;\emph{where}\;} \t_1 \sim \t_2 \wedge \tp_2 \sim \tp_1\\
+  &= \Mdef\m\x{\t_2}{\tp_2}{\BehCast{\tp_2}{\Call{\this.\xt{wrap}}{\m}{\BehCast{\t_1}{\x}}}}\\
+\end{align*}
 
-
+\newcommand{\wc}{\text{wrapClass}}
+\begin{align*}
+\wc(\Heap\s{\a\mapsto \{ \b{a}\B\C\} }, \a, \t) &= \\
+&\wm(\xt{wrap},&\Mdef\m\x\t\tp\e,\Mtype\m\t\tp) \\
+&& \emph{if } \m \in \C \wedge \Mtype\m\t\tp \in \t
+\end{align*}
 \begin{mathpar}
 \IRule{UTWrap}{
    \Class\C{\b{\Mdef\m\x\t\tp\e}~\b{\Mdef{\m'_u}\x\t\tp\e}}
@@ -470,31 +482,41 @@ For every method \m occuring only in \t then should go boom
 
 \subsection{Monotone}
 
-The motivation behind the monotonic semantics is that we must ensure that every reference to an object is still valid up to \any types, and as a result, can only proceed by replacing \any types with concrete types, possibly recursively. We accomplish this by \emph{rewriting} the class that objects are associated with, enforcing the new type guarantee, while simultaneously checking that all of the extant field values match the type that they need to be.
+%The motivation behind the monotonic semantics is that we must ensure that every reference to an object is still valid up to \any types, and as a result, can only proceed by replacing \any types with concrete types, possibly recursively. We accomplish this by \emph{rewriting} the class that objects are associated with, enforcing the new type guarantee, while simultaneously checking that all of the extant field values match the type that they need to be.
 
-In order to do any of this, however, the new type of the object is required. In Siek et al.'s original formalism, the new type was computed simultaneously as the object was being cast, but this creates problems when recursive objects are encountered. For example, consider the following scenario:
+%In order to do any of this, however, the new type of the object is required. In Siek et al.'s original formalism, the new type was computed simultaneously as the object was being cast, but this creates problems when recursive objects are encountered. For example, consider the following scenario:
 
-\begin{verbatim}
-class C { x:any y:any m(y:any):any }
-class D {}
-class E { x:{x:{y:int}} y:any}
+%\begin{verbatim}
+%class C { x:any y:any m(y:any):any }
+%class D {}
+%class E { x:{x:{y:int}} y:any}
 
-a = new C(new D(),2)
-b = new C(a, 2)
-a.x(b)
-c = <E>a
-\end{verbatim}
+%a = new C(new D(),2)
+%b = new C(a, 2)
+%a.x(b)
+%c = <E>a
+%\end{verbatim}
 
-Here, when we go to update the value at \x, we then need to go into the type recursively, which points to a new instance of \C. Then, we assert a new type for \x in that new \C, which sends us back to the starting object, where we update the type of \xt{y} to be int, from \any. As a result, we cannot cast simply by examining the statically knowable types, but have to consider the heap structure when determining the final typing for any object.
+%Here, when we go to update the value at \x, we then need to go into the type recursively, which points to a new instance of \C. Then, we assert a new type for \x in that new \C, which sends us back to the starting object, where we update the type of \xt{y} to be int, from \any. As a result, we cannot cast simply by examining the statically knowable types, but have to consider the heap structure when determining the final typing for any object.
 
-We break this operation up into two steps:
+%We break this operation up into two steps:
 
+%\begin{itemize}
+%\item \emph{Type Determination}. We first determine a valid heap typing that both retains the monotonic property, while satisfying the new cast assertion. To do this, we recursively examine the heap structure, iterating until the heap is unchanged by the last type alteration.
+%\item \emph{Heap Update}. In the previous phase, we only determined a new valid typing for the heap. In the second step, we take this typing and apply it to the objects that exist in the heap.
+%\end{itemize}
+
+%By splitting out the two concerns, we avoid issues where the future state of the heap depends on values produced in the casting process and that do not exist yet. 
+
+Monotonic aims to have \emph{every typed reference still be valid}, including the ones that previously existed, as well as the reference created by the cast. If a reference has a type with a non-star value, then the monotonic semantics will ensure that that type is not violated. To accomplish this, the monotonic cast needs to make sure of two properties:
 \begin{itemize}
-\item \emph{Type Determination}. We first determine a valid heap typing that both retains the monotonic property, while satisfying the new cast assertion. To do this, we recursively examine the heap structure, iterating until the heap is unchanged by the last type alteration.
-\item \emph{Heap Update}. In the previous phase, we only determined a new valid typing for the heap. In the second step, we take this typing and apply it to the objects that exist in the heap.
+\item The values that \emph{currently} exist cannot violate any of the types that point to them. Casting needs to recursively ensure that all values referred to by the current object are of the claimed type.
+\item Functions ca  nnot be called with or return values that violate any of the types that they are referred to with. The behaviour of the class needs to check that its types are not violated by lesser-typed call sites.
 \end{itemize}
 
-By splitting out the two concerns, we avoid issues where the future state of the heap depends on values produced in the casting process and that do not exist yet. 
+The second property is strongly reminisicent of the behavioural semantics, though with the interesting caveat that we now need to make sure that \emph{all} method invocations follow the typed calling conventions, rather than just the ones that inherit this particular type assertion.
+
+
 \hrulefill
 
 \begin{mathpar}
