@@ -447,11 +447,20 @@ For every method \m occuring only in \t then should go boom
 \end{align*}
 
 \newcommand{\wc}{\text{wrapClass}}
-\begin{align*}
-\wc(\Heap\s{\a\mapsto \{ \b{a}\B\C\} }, \a, \t) &= \\
-&\wm(\xt{wrap},&\Mdef\m\x\t\tp\e,\Mtype\m\t\tp) \\
-&& \emph{if } \m \in \C \wedge \Mtype\m\t\tp \in \t
-\end{align*}
+\[
+\begin{array}{r@{}l@{}l@{}l@{}}
+\wc(&\Heap\s{\a\mapsto \{ \b{a}\B\C\} }, &\a, \Cp) = \xt{class}~\D\{\\
+&\xt{wrap} : \C \\
+&\wm(&\xt{wrap},\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2}) \\
+&&\emph{if } \Mdef\m\x{\t_1}{\tp_1}\e \in \C \wedge \Mtype\m{\t_2}{\tp_2} \in \Cp \wedge \t_1 \sim \t_2 \wedge \tp_1 \sim \tp_2 \\ %fixme: spacing
+&\Mdef\m\x{\t_1}{\tp_1}{\this.\text{wrap}.\m(\x)} &\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \C \wedge \Mtype\m\_\_ \not\in \Cp\\
+\}\\
+\wc(&\Heap\s{\a\mapsto \{ \b{a}\B\C\} }, \a, \any) = \xt{class}~\D\{&\\
+&\xt{wrap} : \C \\
+&\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{wrap}.\m(\BehCast{\t_1}{\x})}} &\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \C\\
+\}
+\end{array}
+\]
 \begin{mathpar}
 \IRule{UTWrap}{
    \Class\C{\b{\Mdef\m\x\t\tp\e}~\b{\Mdef{\m'_u}\x\t\tp\e}}
