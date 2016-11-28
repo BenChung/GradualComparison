@@ -125,13 +125,11 @@ the object at location \a updated to the location \ap.
    \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E6}{  %% a.f() -> e
-% \BasicType \Sk {\Mdefz\f\t{} \OK}
  \ap = \readf \s\a{\f} 
 }{
   \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
 }
 \CondRule{E7}{ %% a.f(e) -> e
-%  \BasicType \Sk {\Mdef\f\x\t\t{} \OK}
  \sp = \setf \s\a{\f}\ap
 
 }{
@@ -148,7 +146,6 @@ the object at location \a updated to the location \ap.
   \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E10}{  %% Subtypecast
-%   \BasicType {\none} {\tp \Sub \t} $~\vee~$ \t $= \any$, \textit{s.t.} $\tp = \classof\a\s\K$
    \BasicType {\none} {\classof\a\s\K \Sub \t} $~\vee~$ \t $= \any$
 }{ 
   \ReduceA \K{\SubCast \t\a}\s \K\a\s
@@ -220,11 +217,13 @@ Types are represented as a set of methods.
 }
 
 \IRule{SRec}{
- \BasicType {\MNargs{\Type{\mt~\b{\mt_1}\,} \Sub  \Type{\mt'~\b{\mt_2}\,}}} {\mt\Sub\mt'}\\
+ \classoff\C\K = \Type{\mt~\b{\mt_1}\,} \qquad
+ \classoff\Cp\K = \Type{\mt'~\b{\mt_2}\,} \\
+ \BasicType {\MNargs{\Type{\mt~\b{\mt_1}\,} \Sub  \Type{\mt'~\b{\mt_2}\,}}} {\mt\Sub\mt'} \\
  \BasicType {\MNargs{\Type{\mt~\b{\mt_1}\,} \Sub  \Type{\mt'~\b{\mt_2}\,}}} {\Type{ \b{\mt_1}} \Sub \Type{\b{\mt_2}}}
 }{
- \BasicType \MN {\Type{\mt~\b{\mt_1}\,} \Sub
-  \Type{\mt'~\b{\mt_2}\,}} 
+ \BasicType \MN {\C} \Sub
+  \Cp 
 }
 
 \IRule{SMeth}{
@@ -244,21 +243,6 @@ Types are represented as a set of methods.
 }
 
 \end{mathpar}
-
-% \hrulefill
-% 
-% \opdef{\BasicType \Sk {$~\t \OK$}}{type well-formedness}
-% \begin{mathpar}
-% \IRule{WFStar}{
-% }{
-%  \BasicType \Sk {\any \OK}
-% }
-% 
-% \IRule{WFCType}{
-% }{
-%  \BasicType \Sk {\C \OK}
-% }
-% \end{mathpar}
 
 \hrulefill
 
@@ -289,15 +273,6 @@ Types are represented as a set of methods.
  \BasicType \Sk {\Mdefz\f\t\e \OK}
 }
 
-% \IRule{WFFieldSEmpt}{
-% }{
-%  \BasicType \Sk {\Mdef\f\x\t\t{} \OK}
-% }
-% 
-% \IRule{WFFieldREmpt}{
-% }{
-%  \BasicType \Sk {\Mdefz\f\t{} \OK}
-% }
 \end{mathpar}
 
 
@@ -407,12 +382,10 @@ types in Transient will drift towards \any.
 \opdef{\methdef\a\s\K}{method definition auxiliary function}
 
 \begin{equation*}
-\methdef\a\s\K = \begin{cases}
+\methdef\a\s\K = \b\md\begin{cases}
 
-\\
-\\
-\\
-
+ \s(\a) = \obj\C{\b\a}\\
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}
 \end{cases}
 \end{equation*}
 
@@ -422,11 +395,22 @@ types in Transient will drift towards \any.
 \opdef{\classof\a\s\K}{type definition auxiliary function}
 
 \begin{equation*}
-\classof\a\s\K = \begin{cases}
+\classof\a\s\K = \classoff\C\K \begin{cases}
 
-\\
-\\
-\\
+ \s(\a) = \obj\C{\b\a}\\
+
+\end{cases}
+\end{equation*}
+
+\hrulefill
+
+\opdef{\classoff\C\K}{type definition auxiliary function}
+
+\begin{equation*}
+\classoff\C\K = \Mxt{MT} \begin{cases}
+
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+ \Mxt{MT} = \{\convert{\b\md} \oplus \forall \Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \names{\b\md} ~.~ \convertFD{\Ftype\fp\tp}\}
 
 \end{cases}
 \end{equation*}
@@ -439,13 +423,9 @@ types in Transient will drift towards \any.
 \readf \s\a{\f_{i}} = \a_{i} ~~s.t.~~ \begin{cases}
 
  \s(\a) = \obj\C{\dots \a_{i} \dots}\\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}\\
- \f_{i} \in \b\f \\ 
-%  \a_{i} \in \b\a \\ 
- 
+ \K(\C) = \Class \C {\dots \Ftype{\f_{i}}{\t_{i}} \dots}{\b\md}\\
 \end{cases}
 \end{equation*}
-
 
 \hrulefill
 
@@ -455,14 +435,46 @@ types in Transient will drift towards \any.
 \setf \s\a{\f_{i}}\ap = \sp ~~s.t.~~ \begin{cases}
 
  \s(\a) = \obj\C{\dots \a_{i} \dots}\\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}\\
- \f_{i} \in \b\f \\
+ \K(\C) = \Class \C {\dots \Ftype{\f_{i}}{\t_{i}} \dots}{\b\md}\\
  \sp = \s[\Bind{\a}{[\ap/\a_{i}]\obj\C{\dots \a_{i} \dots}}]
-%  \a_{i} \in \b\a \\ 
-
 \end{cases}
 \end{equation*}
 
+\hrulefill
+
+\opdef{\convert{\md} = \mt}{Method definition ($\md$) to method type ($\mt$) conversion function}
+
+\convert{\Mdef\m\x\t\t\e} = \Mtype\m\t\t 
+
+\convert{\Mdef\f\x\t\t\e} = \Mtype\f\t\t 
+
+\convert{\Mdefz\f\t\e} = \Mtype\f{}\t 
+
+\hrulefill
+
+\opdef{\convertFD{\Ftype{\f}{\t}} = (\Mtype\f\t\t, \Mtype\f{}\t)}{Field definition to field methods conversion function}
+
+% \convertFD{\Ftype{\f}{\t}} = (\Mtype\f\t\t, \Mtype\f{}\t)
+
+\hrulefill
+
+\opdef{\names{\mt} = \x}{Naming of method types}
+
+\names{\Mdef\m\x\t\t\e} = \m
+
+\names{\Mdef\f\x\t\t\e} = \f
+
+\names{\Mdefz\f\t\e} = \f
+
+\hrulefill
+
+\opdef{\names{\md} = \x}{Naming of method definition\footnote{Some of these should go into the appendix.}}
+
+\names{\Mtype\m\t\t} = \m
+
+\names{\Mtype\f\t\t} = \f
+
+\names{\Mtype\f{}\t} = \f
 
 
 \section{Generative Casts}
