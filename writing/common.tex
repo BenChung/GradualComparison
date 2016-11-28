@@ -124,18 +124,18 @@ the object at location \a updated to the location \ap.
 }{
    \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
-\SuchRule{E6}{  %% a.f() -> e
+\CondRule{E6}{  %% a.f() -> e
 % \BasicType \Sk {\Mdefz\f\t{} \OK}
- \aE{i} = \readf \s\a{\f_{i}} 
+ \ap = \readf \s\a{\f} 
 }{
-  \ReduceA \K{\Get\a{\f_{i}}}\s  \K\Mxt{$a$_{i}}\s
+  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
 }
-\SuchRule{E7}{ %% a.f(e) -> e
+\CondRule{E7}{ %% a.f(e) -> e
 %  \BasicType \Sk {\Mdef\f\x\t\t{} \OK}
- \sp = \setf \s\a{\f_{i}}\ap
+ \sp = \setf \s\a{\f}\ap
 
 }{
-  \ReduceA \K{\Set\a{\f_{i}}\ap}\s \K\ap\sp
+  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
 }
 \CondRule{E3}{ %% a.m(a) -> e
   \Mdef\m\x\t\tp\e \In \methdef\a\s\K $\wedge~ \t \not= \any$
@@ -262,7 +262,7 @@ Types are represented as a set of methods.
 
 \hrulefill
 
-\opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{class well-formedness}
+\opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{class well-formedness [TODO]}
 \begin{mathpar}
 \IRule{WFClass}{
 }{
@@ -272,7 +272,7 @@ Types are represented as a set of methods.
 
 \hrulefill
 
-\opdef{\BasicType \Sk {$~\md \OK$}}{method well-formedness}
+\opdef{\BasicType \Sk {$~\md \OK$}}{method well-formedness [TODO]}
 \begin{mathpar}
 \IRule{WFMeth}{
 }{
