@@ -523,23 +523,28 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 \begin{align*}
 %\wm{(\xt{wrap},\Mdef\m\x\any\any\e,\Mtype\m\t\tp)} &= \Mdef\m\x\t\tp{\BehCast{\tp}{\Call{{\this}.{\xt{wrap}}}{\m}{\BehCast{\any}{\x}}}}\\
 %\wm{(\xt{wrap},\Mdef\m\x\t\tp\e,\Mtype\m\any\any)} &= \Mdef\m\x\any\any{\BehCast{\any}{\Call{\this.\xt{wrap}}{\m}{\BehCast{\t}{\x}}}}\\
-\wm{(\xt{wrap},\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2})} &\text{\;\emph{where}\;} \t_1 \sim \t_2 \wedge \tp_2 \sim \tp_1\\
-  &= \Mdef\m\x{\t_2}{\tp_2}{\BehCast{\tp_2}{\Call{\this.\xt{wrap}}{\m}{\BehCast{\t_1}{\x}}}}\\
+\wm{(\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2})} = \Mdef\m\x{\t_2}{\tp_2}{\BehCast{\tp_2}{\Call{\this.\xt{that}}{\m}{\BehCast{\t_1}{\x}}}}\\
 \end{align*}
 
+%TODO: define mdef & mtype
+\newcommand{\getmdef}{\text{mdef}}
+\newcommand{\getmtype}{\text{mtype}}
 \newcommand{\wc}{\text{wrapClass}}
 \begin{tabbing}
 $\wc(\Heap\s{$\=$\a\mapsto \{ \b{a}\B\C\} }, \a, \Cp) = $\\
 \>$\xt{class}~\D$\=$~\{$\\
-\>\>$\xt{wrap} : \C$ \\
-\>\>$\wm(\xt{wrap}$\=$,\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2})$ \\
-\>\>\>$\emph{for every } \Mdef\m\x{\t_1}{\tp_1}\e \in \C \wedge \Mtype\m{\t_2}{\tp_2} \in \Cp \wedge \t_1 \sim \t_2 \wedge \tp_1 \sim \tp_2 $\\
-\>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\text{wrap}.\m(\x)} \text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \C \wedge \Mtype\m\_\_ \not\in \Cp$\\
+\>\>$\xt{that} : \C$ \\
+\>\>$\wm($\=$\getmdef(\m,\C),\getmtype(\m,\Cp))$ $\emph{for every } \m \in \C \wedge \m \in \Cp $\\
+\>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)} \text{ \emph{for every} } \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C) \wedge \m \not\in \Cp$\\
+\>\>$\Mdefz\f\t{\this.\xt{that}.\f()} \text{ \emph{for every} } \f:\t \in \Cp \vee \Mtype\f{}\t \in \Cp$\\
+\>\>$\Mdef\f\x\t\t{\this.\xt{that}.\f(\x)} \text{ \emph{for every} } \f:\t \in \Cp \vee \Mtype\f{\x:\t}\t \in \Cp$\\
 \>$\}$\\
 $\wc(\Heap\s{$\=$\a\mapsto \{ \b{a}\B\C\} }, \a, \any) = $\\
 \>$\xt{class}~\D$\=$~\{$\\
-\>\>$\xt{wrap} : \C$ \\
-\>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{wrap}.\m(\BehCast{\t_1}{\x})}} \text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \C$\\
+\>\>$\xt{that} : \C$ \\
+\>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\BehCast{\t_1}{\x})}} \text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \C$\\
+\>\>$\Mdefz\f\any{\BehCast{\any}{\this.\xt{that}.\f()}} \text{ \emph{for every} } \f:\t \in \C \vee \Mtype\f{}\t \in \C$\\
+\>\>$\Mdef\f\x\any\any{\BehCast{\any}{\this.\xt{that}.\f(\BehCast{\t}\x)}} \text{ \emph{for every} } \f:\t \in \C \vee \Mtype\f{\x:\t}\t \in \C$\\
 \>$\}$\\
 \end{tabbing}
 
