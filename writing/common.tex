@@ -246,31 +246,40 @@ Types are represented as a set of methods.
 
 \hrulefill
 
-\opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{class well-formedness [TODO]}
+\opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{class well-formedness }
 \begin{mathpar}
 \IRule{WFClass}{
+%  $|\{$\b\md$\}|~$ = $~|\{$\b{\names{\md}}$\}|$ \\
+%  $|\{$\b\f$\}|~$ = $~|\{$\b{\names{\f}}$\}|$ \\
+ \b\md $~unique$ \\
+ \b\f $~unique$ \\
+ \BasicType {\none ~\none} {\b\md \OK} \\
+%   \Kp = \K,~\Bind{\C}{\Class \C {\b{\Ftype\f\t}}{\b\md}}
 }{
- \BasicType \Sk {\Class \C {\b{\Ftype\f\t}}{\b\md} \OK}
+ \BasicType {} {\Class \C {\b{\Ftype\f\t}}{\b\md} \OK}
 }
 \end{mathpar}
 
 \hrulefill
 
-\opdef{\BasicType \Sk {$~\md \OK$}}{method well-formedness [TODO]}
+\opdef{\BasicType \Sk {$~\md \OK$}}{method well-formedness}
 \begin{mathpar}
 \IRule{WFMeth}{
+ \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t} 
 }{
- \BasicType \Sk {\Mdef\m\x\t\t\e \OK}
+ \BasicType {\Es} {\Mdef\m\x\tp\t\e \OK}
 }
 
 \IRule{WFFieldS}{
+ \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t} 
 }{
- \BasicType \Sk {\Mdef\f\x\t\t\e \OK}
+ \BasicType {\Es} {\Mdef\f\x\tp\t\e \OK}
 }
 
 \IRule{WFFieldR}{
+ \EnvType \Es\e\t 
 }{
- \BasicType \Sk {\Mdefz\f\t\e \OK}
+ \BasicType {\Es} {\Mdefz\f\t\e \OK}
 }
 
 \end{mathpar}
