@@ -388,13 +388,41 @@ types in Transient will drift towards \any.
 
 \hrulefill
 
+\opdef{\methz\m\C\K}{Auxiliary function: Method definition}
+
+\begin{equation*}
+\methz\m\C\K = \md ~~s.t.~~ \begin{cases}
+
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\dots \md \dots} \\
+ \m == \names\md  \\
+\end{cases}
+\end{equation*}
+
+\hrulefill
+
+\opdef{\mtype\m\C\K}{Auxiliary function: Method definition}
+
+\mtype\m\C\K = \convert{\methz\m\C\K} 
+
+\hrulefill
+
+\opdef{\field\C\K}{Auxiliary function: Field definition}
+
+\begin{equation*}
+\field\C\K = \b{\Ftype\f\t} ~~s.t.~~ \begin{cases}
+
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}
+\end{cases}
+\end{equation*}
+
+\hrulefill
+
 \opdef{\methdef\a\s\K}{Auxiliary function: Method definition}
 
 \begin{equation*}
-\methdef\a\s\K = \b\md ~~s.t.~~ \begin{cases}
+\methdef\a\s\K = \method\C\K ~~s.t.~~ \begin{cases}
 
  \s(\a) = \obj\C{\b\a}\\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}
 \end{cases}
 \end{equation*}
 
@@ -543,17 +571,26 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 $\wc(\Heap\s{$\=$\a\mapsto \{ \b{a}\B\C\} }, \a, \Cp) = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{that} : \C$ \\
-\>\>$\wm($\=$\getmdef(\m,\C),\getmtype(\m,\Cp))$ $\emph{for every } \m \in \C \wedge \m \in \Cp $\\
-\>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)} \text{ \emph{for every} } \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C) \wedge \m \not\in \Cp$\\
-\>\>$\Mdefz\f\t{\this.\xt{that}.\f()} \text{ \emph{for every} } \f:\t \in \Cp \vee \Mtype\f{}\t \in \Cp$\\
-\>\>$\Mdef\f\x\t\t{\this.\xt{that}.\f(\x)} \text{ \emph{for every} } \f:\t \in \Cp \vee \Mtype\f{\x:\t}\t \in \Cp$\\
+\>\>$\wm($\=$\getmdef(\m,\C,\K),\getmtype(\m,\Cp,\K))$ \\
+\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every } } \m \in \names{\classoff\C\K} \wedge \m \in \names{\classoff\Cp\K} $\\
+\>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)}$ \\
+\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C,\K) \wedge \m \not\in \names{\classoff\Cp\K}$\\
+\>\>$\Mdefz\f\t{\this.\xt{that}.\f()}$ \\
+\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{}\t \in \names{\classoff\Cp\K}$\\
+\>\>$\Mdef\f\x\t\t{\this.\xt{that}.\f(\x)}$ \\
+\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{\x:\t}\t \in \names{\classoff\Cp\K}$\\
 \>$\}$\\
+\\
+\\
 $\wc(\Heap\s{$\=$\a\mapsto \{ \b{a}\B\C\} }, \a, \any) = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{that} : \C$ \\
-\>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\BehCast{\t_1}{\x})}} \text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \C$\\
-\>\>$\Mdefz\f\any{\BehCast{\any}{\this.\xt{that}.\f()}} \text{ \emph{for every} } \f:\t \in \C \vee \Mtype\f{}\t \in \C$\\
-\>\>$\Mdef\f\x\any\any{\BehCast{\any}{\this.\xt{that}.\f(\BehCast{\t}\x)}} \text{ \emph{for every} } \f:\t \in \C \vee \Mtype\f{\x:\t}\t \in \C$\\
+\>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\BehCast{\t_1}{\x})}}$ \\
+\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \method\C\K$\\
+\>\>$\Mdefz\f\any{\BehCast{\any}{\this.\xt{that}.\f()}}$ \\
+\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{}\t \in \classoff\C\K$\\
+\>\>$\Mdef\f\x\any\any{\BehCast{\any}{\this.\xt{that}.\f(\BehCast{\t}\x)}}$ \\
+\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{\x:\t}\t \in \classoff\C\K$\\
 \>$\}$\\
 \end{tabbing}
 
