@@ -725,7 +725,6 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \end{mathpar}
 
 
-\hrulefill
 
 \begin{mathpar}
 \IRule{Insert-Recv (eager cast)}{
@@ -754,29 +753,131 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 \end{mathpar}
 
-\end{document}
-\section{Addendum}
 
-\input{figures/syncast}
 
-\hrulefill
+\section{Translations}
 
-\input{figures/anacast}
+Our core language supports the core functionality of gradual typing, but none of the surface syntax or quality of life features that full gradual tyyping systems do. To provide a representative surface syntax, we define several translations that convert surface syntax programs in an approximation of the source language into core language ones. 
 
-\hrulefill
+\subsection{Strongscript}
 
-\input{figures/classtrans}
+\newcommand{\bC}{\xt{!C}}
 
-\hrulefill
+\begin{tabular}{l@{~~}l@{}l@{}l}
+\t  &::= ~ \any \B \C \B \bC \\ 
+\end{tabular}
 
-\input{figures/conssub}
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast\E\x\x\t}
+
+\IRule{A2}{
+    \GenCast{\E}{\e_1}{\e_3}{\bC} \\ \m(\t_1):\t_2 \in \bC \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\Call{\e_3}\m{\e_4}}{\t_2}
+}
+
+\IRule{A3}{
+    \GenCast{\E}{\e_1}{\e_3}{\bC} \\ \f(\t_1):\t_1 \in \bC \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+}{
+    \GenCast{\E}{\Call{\e_1}\f{\e_2}}{\Call{\e_3}\f{\e_4}}{\t_1}
+}
+
+\IRule{A4}{
+    \GenCast{\E}{\e_1}{\e_2}{\bC} \\ \f():\t_1 \in \bC
+}{
+    \GenCast{\E}{\Call{\e_1}\f{}}{\Call{\e_2}\f{}}{\t_1}
+}
+
+\IRule{A5}{
+    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\t_2 \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\t_2} %Q: do I need to cast the return value of non-bang
+}
+
+\IRule{A6}{
+    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \f(\t_1):\t_1 \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+}{
+    \GenCast{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\t_1} 
+}
+
+\IRule{A7}{
+    \GenCast{\E}{\e_1}{\e_2}{\C} \\ \f():\t_1 \in \C
+}{
+    \GenCast{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\t_1} 
+}
+
+\IRule{A8}{
+    \GenCast{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\E}{\e_2}{\e_4}{\any}
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\any}
+}
+
+\IRule{A9}{
+    \GenCast{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\E}{\e_2}{\e_4}{\any}
+}{
+    \GenCast{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\any}
+}
+
+\IRule{A10}{
+    \GenCast{\E}{\e_1}{\e_2}{\any}
+}{
+    \GenCast{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\any}
+}
+
+\IRule{A4}{
+  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
 
 \hrulefill
 
 \begin{mathpar}
-\IRule{No-Cons}{ \t_1 \Sub \t_2 }{\MetaSub{\t_1}{\t_2}}
+\IRule{AASC1}{
+  \GenCast{\E}{\e_1}{\e_2}{\bC_2} \\
+  {\C_2}\Sub{\C_1}\\
+}{
+  \AnaCast{\E}{\e_1}{\e_2}{\bC_1}
+}
 
-\IRule{Has-Cons}{\stcons{\t_1}{\t_2}}{\MetaSub{\t_1}{\t_2}}
+\IRule{AASC2}{
+  \GenCast{\E}{\e_1}{\e_2}{\bC_2} \\
+  {\C_2}\Sub{\C_1}\\
+}{
+  \AnaCast{\E}{\e_1}{\e_2}{\C_1}
+}
+
+\IRule{AASC3}{
+  \GenCast{\E}{\e_1}{\e_2}{\C_2} \\
+  {\C_2}\Sub{\C_1}\\
+}{
+  \AnaCast{\E}{\e_1}{\e_2}{\C_1}
+}
+
+\IRule{AASC4}{
+  \GenCast{\E}{\e_1}{\e_2}{\C} \\
+}{
+  \AnaCast{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+}
+
+\IRule{AASC5}{
+  \GenCast{\E}{\e_1}{\e_2}{\any} \\
+}{
+  \AnaCast{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+}
+
+\IRule{AASC6}{
+  \GenCast{\E}{\e_1}{\e_2}{\any} \\
+}{
+  \AnaCast{\E}{\e_1}{\e_2}{\C}
+}
+
+\IRule{AASC3}{
+  \GenCast{\E}{\e_1}{\e_2}{\t} \\ \t \neq \any
+}{
+  \AnaCast{\E}{\e_1}{\e_2}{\any}
+}
 \end{mathpar}
 
 \end{document}
