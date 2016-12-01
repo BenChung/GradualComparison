@@ -578,22 +578,30 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 \wm{(\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2})} = \Mdef\m\x{\t_2}{\tp_2}{\BehCast{\tp_2}{\Call{\this.\xt{that}}{\m}{\BehCast{\t_1}{\x}}}}\\
 \end{align*}
 
+\newcommand{\tfa}{\text{\emph{for every }}}
 \newcommand{\wc}{\text{wrapClass}}
 \begin{tabbing}
 $\wc(\C,$\=$ \Cp, \D) = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{th}$\=$\xt{at} : \C $ \\
 \>\>$\wm(\getmdef(\m,\C,\K),\getmtype(\m,\Cp,\K))$ \\
-\>\>\>$\text{\text{\emph{for every }}} \m \in \names{\classoff\C\K} \wedge \m \in \names{\classoff\Cp\K} $\\
+\>\>\>$\tfa \m \in \names{\classoff\C\K} \wedge \m \in \names{\classoff\Cp\K} $\\
 \>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)}$ \\
-\>\>\>$\text{\text{\emph{for every }}} \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C,\K) \wedge \m \not\in \names{\classoff\Cp\K}$\\
-\>\>$\Mdef\m\x{\t_1}{\tp_1}{\New{\xt{Error}}{}.\xt{error}()}$ \\
-\>\>\>$\text{\text{\emph{for every }}} \m \in \names{\classoff\Cp\K} \wedge \m \not\in \names{\classoff\C\K}$\\
+\>\>\>$\tfa \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C,\K) \wedge \m \not\in \names{\classoff\Cp\K}$\\
+\>\>$\Mdef\m\x{\t_1}{\tp_1}{\New{\xt{Error}}{}@\xt{error}()}$ \\
+\>\>\>$\tfa$\=$ \m \in \names{\classoff\Cp\K} \wedge \m \not\in \names{\classoff\C\K}$\\
 \>\>$\Mdefz\f\t{\BehCast{\t}{\this.\xt{that}.\f()}}$ \\
-\>\>\>$\text{\text{\emph{for every }}} (\f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{}\t \in \names{\classoff\Cp\K})$\\
+\>\>\>$\tfa (\f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{}\t \in \names{\classoff\Cp\K})$\\
+\>\>\>\>$\wedge (\f:\tp \in \names{\classoff\C\K} \vee \Mtype\f{}\tp \in \names{\classoff\C\K})$\\
+\>\>$\Mdefz\f\t{\New{\xt{Error}}{}@\xt{error}()}$ \\
+\>\>\>$\tfa (\f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{}\t \in \names{\classoff\Cp\K})$\\
+\>\>\>\>$\wedge (\f:\tp \not\in \names{\classoff\C\K} \wedge \Mtype\f{}\tp \not\in \names{\classoff\C\K})$\\
 \>\>$\Mdef\f\x\t\t{\BehCast{\t}{\this.\xt{that}.\f(\BehCast{\tp}{\x})}}$ \\
-\>\>\>$\text{\text{\emph{for every }}}$\=$ \f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{\x:\t}\t \in \names{\classoff\Cp\K}$\\
+\>\>\>$\tfa (\f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{\x:\t}\t \in \names{\classoff\Cp\K})$\\
 \>\>\>\>$\wedge (\f:\tp \in \names{\classoff\C\K} \vee \Mtype\f{\x:\tp}\tp \in \names{\classoff\C\K})$\\
+\>\>$\Mdef\f\x\t\t{\New{\xt{Error}}{}@\xt{error}()}$ \\
+\>\>\>$\tfa (\f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{\x:\t}\t \in \names{\classoff\Cp\K})$\\
+\>\>\>\>$\wedge (\f:\tp \not\in \names{\classoff\C\K} \wedge \Mtype\f{\x:\tp}\tp \not\in \names{\classoff\C\K})$\\
 \>$\}$\\
 \\
 \\
