@@ -513,6 +513,21 @@ types in Transient will drift towards \any.
 
 \names{\Mtype\f{}\t} = \f
 
+\newcommand{\getmdef}{\text{mdef}}
+
+\hrulefill
+
+\opdef{\getmdef({\m,\C,\K})}{Gets the definition of \m in \C with respect to \K}
+
+$\getmdef({\m,\C,\K_1 ~ \Class\C\fd{\md_1 ~ \Mdef\m\x{\t_1}{\t_2}{ \e } ~ \md_2} ~ \K_2}) = \Mdef\m\x{\t_1}{\t_2}{ \e }$
+
+\hrulefill
+
+\newcommand{\getmtype}{\text{mtype}}
+
+\opdef{\getmtype({\m,\C,\K})}{Gets the type of \m in \C with respect to \K}
+
+$\getmtype({\m,\C,\K_1 ~ \Class\C\fd{\md_1 ~ \Mdef\m\x{\t_1}{\t_2}{ \e } ~ \md_2} ~ \K_2}) = \Mtype\m{\t_1}{\t_2}$
 
 \section{Generative Casts}
 
@@ -563,26 +578,26 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 \wm{(\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2})} = \Mdef\m\x{\t_2}{\tp_2}{\BehCast{\tp_2}{\Call{\this.\xt{that}}{\m}{\BehCast{\t_1}{\x}}}}\\
 \end{align*}
 
-%TODO: define mdef & mtype
-\newcommand{\getmdef}{\text{mdef}}
-\newcommand{\getmtype}{\text{mtype}}
 \newcommand{\wc}{\text{wrapClass}}
 \begin{tabbing}
-$\wc(\Heap\s{$\=$\a\mapsto \{ \b{a}\B\C\} }, \a, \Cp) = $\\
+$\wc(\C,$\=$ \Cp, \D) = $\\
 \>$\xt{class}~\D$\=$~\{$\\
-\>\>$\xt{that} : \C$ \\
-\>\>$\wm($\=$\getmdef(\m,\C,\K),\getmtype(\m,\Cp,\K))$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every } } \m \in \names{\classoff\C\K} \wedge \m \in \names{\classoff\Cp\K} $\\
+\>\>$\xt{th}$\=$\xt{at} : \C $ \\
+\>\>$\wm(\getmdef(\m,\C,\K),\getmtype(\m,\Cp,\K))$ \\
+\>\>\>$\forall \m \in \names{\classoff\C\K} \wedge \m \in \names{\classoff\Cp\K} $\\
 \>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C,\K) \wedge \m \not\in \names{\classoff\Cp\K}$\\
-\>\>$\Mdefz\f\t{\this.\xt{that}.\f()}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{}\t \in \names{\classoff\Cp\K}$\\
-\>\>$\Mdef\f\x\t\t{\this.\xt{that}.\f(\x)}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{\x:\t}\t \in \names{\classoff\Cp\K}$\\
+\>\>\>$\forall \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C,\K) \wedge \m \not\in \names{\classoff\Cp\K}$\\
+\>\>$\Mdef\m\x{\t_1}{\tp_1}{\New{\xt{Error}}{}.\xt{error}()}$ \\
+\>\>\>$\forall \m \in \names{\classoff\Cp\K} \wedge \m \not\in \names{\classoff\C\K}$\\
+\>\>$\Mdefz\f\t{\BehCast{\t}{\this.\xt{that}.\f()}}$ \\
+\>\>\>$\forall (\f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{}\t \in \names{\classoff\Cp\K})$\\
+\>\>$\Mdef\f\x\t\t{\BehCast{\t}{\this.\xt{that}.\f(\BehCast{\tp}{\x})}}$ \\
+\>\>\>$\forall$\=$ \f:\t \in \names{\classoff\Cp\K} \vee \Mtype\f{\x:\t}\t \in \names{\classoff\Cp\K}$\\
+\>\>\>\>$\wedge (\f:\tp \in \names{\classoff\C\K} \vee \Mtype\f{\x:\tp}\tp \in \names{\classoff\C\K})$\\
 \>$\}$\\
 \\
 \\
-$\wc(\Heap\s{$\=$\a\mapsto \{ \b{a}\B\C\} }, \a, \any) = $\\
+$\wc(\C,$\=$ \any, \D) = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{that} : \C$ \\
 \>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\BehCast{\t_1}{\x})}}$ \\
@@ -630,9 +645,8 @@ Based on this intuition, we have two methods to generate wrappers: \wm, which ge
 Monotonic aims to have \emph{every typed reference still be valid}, including the ones that previously existed, as well as the reference created by the cast. If a reference has a type with a non-star value, then the monotonic semantics will ensure that that type is not violated. To accomplish this, the monotonic cast needs to make sure of two properties:
 \begin{itemize}
 \item The values that \emph{currently} exist cannot violate any of the types that point to them. Casting needs to recursively ensure that all values referred to by the current object are of the claimed type.
-\item Functions ca  nnot be called with or return values that violate any of the types that they are referred to with. The behaviour of the class needs to check that its types are not violated by lesser-typed call sites.
+\item Functions can not be called with or return values that violate any of the types that they are referred to with. The behaviour of the class needs to check that its types are not violated by lesser-typed call sites.
 \end{itemize}
-
 The second property is strongly reminisicent of the behavioural semantics, though with the interesting caveat that we now need to make sure that \emph{all} method invocations follow the typed calling conventions, rather than just the ones that inherit this particular type assertion.
 
 
