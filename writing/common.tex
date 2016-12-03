@@ -799,9 +799,15 @@ Our core language supports the core functionality of gradual typing, but none of
 }
 
 \IRule{A5}{
-    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\t_2 \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1} 
+    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\bC \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1} 
 }{
-    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\t_2} %Q: do I need to cast the return value of non-bang
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\SubCast{\C}{\DynCall{\e_3}\m{\e_4}}}{\bC} %Q: do I need to cast the return value of non-bang
+}
+
+\IRule{A6}{
+    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\C \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1} 
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\C} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A6}{
