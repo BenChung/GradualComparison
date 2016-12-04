@@ -581,10 +581,23 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 \newcommand{\tfa}{\text{\emph{for every }}}
 \newcommand{\wh}{\text{\emph{where}}}
 \newcommand{\wc}{\text{wrapClass}}
+
+
 \begin{tabbing}
 $\wrapper{\C,$\=$ \Cp, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{th}$\=$\xt{at} : \C $ \\
+\\
+\>\>$\Mdefa\m{\b{\HT\x{\t_2}}}{\tp_2} { \BehCast{\tp_2}{\this.\that.\m(\b{\BehCast{\t_1}{\x}})}}$\\
+\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\m{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\m(\b{\x})}$\\
+\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\m{\b{\HT\x{\t_2}}}{\tp_2} { \New{\xt{Error}}{}@\xt{error}()}$\\
+\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\\
+\rule{\linewidth}{\arrayrulewidth}\\
 \>\>$\wm(\methz\m\C\K,\getmtype(\m,\Cp,\K))$ \\
 \>\>\>$\tfa \m \in \Mxt{meth\C} \wedge \m \in \Mxt{meth\Cp} $\\
 \\
