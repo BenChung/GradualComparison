@@ -513,7 +513,7 @@ types in Transient will drift towards \any.
 
 \names{\Mtype\f{}\t} = \f
 
-\newcommand{\getmdef}{\text{mdef}}
+
 % 
 % \hrulefill
 % 
@@ -582,10 +582,10 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 \newcommand{\wh}{\text{\emph{where}}}
 \newcommand{\wc}{\text{wrapClass}}
 \begin{tabbing}
-$\wc(\C,$\=$ \Cp, \D) = $\\
+$\wrapper{\C,$\=$ \Cp, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{th}$\=$\xt{at} : \C $ \\
-\>\>$\wm(\getmdef(\m,\C,\K),\getmtype(\m,\Cp,\K))$ \\
+\>\>$\wm(\methz\m\C\K,\getmtype(\m,\Cp,\K))$ \\
 \>\>\>$\tfa \m \in \Mxt{meth\C} \wedge \m \in \Mxt{meth\Cp} $\\
 \\
 \>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)}$ \\
@@ -619,18 +619,18 @@ $\wc(\C,$\=$ \Cp, \D) = $\\
 \>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\C}  \wedge \Mtype\f{\x:\tp}\tp \not\in \Mxt{meth\C} )$\\
 \\
 \>$\}$ $\wh~$ \Mxt{meth\C} = \names{\classoff\C\K}\\
-\qquad\qquad\qquad\qquad\qquad\Mxt{meth\Cp} = \names{\classoff\Cp\K} \\
+\>\>\>\>\Mxt{meth\Cp} = \names{\classoff\Cp\K} \\
 \\
 \\
-$\wc(\C,$\=$ \any, \D) = $\\
+$\wrapper{\C,$\=$ \any, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{that} : \C$ \\
 \>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\BehCast{\t_1}{\x})}}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \method\C\K$\\
+\>\>\>\>\qquad $\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \method\C\K$\\
 \>\>$\Mdefz\f\any{\BehCast{\any}{\this.\xt{that}.\f()}}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{}\t \in \classoff\C\K$\\
+\>\>\>\>\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{}\t \in \classoff\C\K$\\
 \>\>$\Mdef\f\x\any\any{\BehCast{\any}{\this.\xt{that}.\f(\BehCast{\t}\x)}}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{\x:\t}\t \in \classoff\C\K$\\
+\>\>\>\>\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{\x:\t}\t \in \classoff\C\K$\\
 \>$\}$\\
 \end{tabbing}
 
