@@ -115,12 +115,12 @@ the object at location \a updated to the location \ap.
     \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
 }
 \CondRule{E5}{ %% a.f() -> e
-    \Mdefz\f\t\e \In \method{\s(\a)_{\downarrow\C}}{\K} 
+    \Mdefz\f\t\e \In \methods\s\a\K 
 }{
    \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
 }
 \CondRule{E4}{ %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \method{\s(\a)_{\downarrow\C}}{\K} 
+    \Mdef\f\x\t\t\e \In \methods\s\a\K 
 }{
    \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
@@ -136,22 +136,22 @@ the object at location \a updated to the location \ap.
   \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
 }
 \CondRule{E3}{ %% a.m(a) -> e
-  \Mdef\m\x\t\tp\e \In \method{\s(\a)_{\downarrow\C}}{\K}  $\wedge~ \t \not= \any$
+  \Mdef\m\x\t\tp\e \In \methods\s\a\K  $\wedge~ \t \not= \any$
 }{
  \ReduceA \K{\Call\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E3}{ %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \method{\s(\a)_{\downarrow\C}}{\K} 
+    \Mdef\m\x\any\any\e \In \methods\s\a\K 
 }{
   \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E10}{  %% Subtypecast
-   \BasicType {\none} {\classoff{\s(\a)_{\downarrow\C}}{\K} \Sub \t} $~\vee~$ \t $= \any$
+   \BasicType {\none} {\classoffs\s\a\K \Sub \t} $~\vee~$ \t $= \any$
 }{ 
   \ReduceA \K{\SubCast \t\a}\s \K\a\s
 }
 \CondRule{E11}{
- \names{\classoff{\s(\a)_{\downarrow\C}}{\K}}  $\supseteq$  \names\t
+ \names{\classoffs\s\a\K}  $\supseteq$  \names\t
 }{ 
   \ReduceA \K{\ShaCast \t\a}\s \K\a\s
 }
@@ -419,6 +419,21 @@ types in Transient will drift towards \any.
 
 \hrulefill
 
+
+\opdef{\classoffs\a\s\K}{Auxiliary function: Type definition}
+
+\begin{equation*}
+\classoffs\a\s\K = \Mxt{MT} ~~s.t.~~ \begin{cases}
+
+ \s(\a) = \obj\C{\b\a} \\
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+ \Mxt{MT} = \{\convert{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \b{\names{\md}} ~.~ \convertFD{\Ftype\fp\tp}\}
+
+\end{cases}
+\end{equation*}
+
+\hrulefill
+
 \opdef{\field\C\K}{Auxiliary function: Field definition}
 
 \begin{equation*}
@@ -439,6 +454,17 @@ types in Transient will drift towards \any.
 \end{cases}
 \end{equation*}
 
+\hrulefill
+
+\opdef{\methods\a\s\K}{Auxiliary function: Method definition}
+
+\begin{equation*}
+\methods\a\s\K = \b\md ~~s.t.~~ \begin{cases}
+
+ \s(\a) = \obj\C{\b\a} \\
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}\\
+\end{cases}
+\end{equation*}
 
 % \hrulefill
 
@@ -632,7 +658,7 @@ $\wrapper{\C,$\=$ \Cp, \D} = $\\
 \>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\C}  \wedge \Mtype\f{\x:\tp}\tp \not\in \Mxt{meth\C} )$\\
 \\
 \>$\}$ $\wh~$ \Mxt{meth\C} = \names{\classoff\C\K}\\
-\>\>\>\>\Mxt{meth\Cp} = \names{\classoff\Cp\K} \\
+\>\>\>\Mxt{meth\Cp} = \names{\classoff\Cp\K} \\
 \\
 \\
 $\wrapper{\C,$\=$ \any, \D} = $\\
