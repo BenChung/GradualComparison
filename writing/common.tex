@@ -513,7 +513,7 @@ types in Transient will drift towards \any.
 
 \names{\Mtype\f{}\t} = \f
 
-\newcommand{\getmdef}{\text{mdef}}
+
 % 
 % \hrulefill
 % 
@@ -581,11 +581,24 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 \newcommand{\tfa}{\text{\emph{for every }}}
 \newcommand{\wh}{\text{\emph{where}}}
 \newcommand{\wc}{\text{wrapClass}}
+
+
 \begin{tabbing}
-$\wc(\C,$\=$ \Cp, \D) = $\\
+$\wrapper{\C,$\=$ \Cp, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{th}$\=$\xt{at} : \C $ \\
-\>\>$\wm(\getmdef(\m,\C,\K),\getmtype(\m,\Cp,\K))$ \\
+\\
+\>\>$\Mdefa\m{\b{\HT\x{\t_2}}}{\tp_2} { \BehCast{\tp_2}{\this.\that.\m(\b{\BehCast{\t_1}{\x}})}}$\\
+\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\m{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\m(\b{\x})}$\\
+\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\m{\b{\HT\x{\t_2}}}{\tp_2} { \New{\xt{Error}}{}@\xt{error}()}$\\
+\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\\
+\rule{\linewidth}{\arrayrulewidth}\\
+\>\>$\wm(\methz\m\C\K,\getmtype(\m,\Cp,\K))$ \\
 \>\>\>$\tfa \m \in \Mxt{meth\C} \wedge \m \in \Mxt{meth\Cp} $\\
 \\
 \>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)}$ \\
@@ -598,6 +611,10 @@ $\wc(\C,$\=$ \Cp, \D) = $\\
 \>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{}\t \in \Mxt{meth\Cp})$\\
 \>\>\>\>$\wedge~~ (\f:\tp \in \Mxt{meth\C}  \vee \Mtype\f{}\tp \in \Mxt{meth\C} )$\\
 \\
+\>\>$\Mdefz\f\t{\this.\xt{that}.\f()}$ \\
+\>\>\>$\tfa (\f:\t \in \Mxt{meth\C} \vee \Mtype\f{}\t \in \Mxt{meth\C})$\\
+\>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\Cp}  \wedge \Mtype\f{}\tp \not\in \Mxt{meth\Cp} )$\\
+\\
 \>\>$\Mdefz\f\t{\New{\xt{Error}}{}@\xt{error}()}$ \\
 \>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{}\t \in \Mxt{meth\Cp})$\\
 \>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\C}  \wedge \Mtype\f{}\tp \not\in \Mxt{meth\C} )$\\
@@ -606,23 +623,27 @@ $\wc(\C,$\=$ \Cp, \D) = $\\
 \>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{\x:\t}\t \in \Mxt{meth\Cp})$\\
 \>\>\>\>$\wedge~~ (\f:\tp \in \Mxt{meth\C}  \vee \Mtype\f{\x:\tp}\tp \in \Mxt{meth\C} )$\\
 \\
+\>\>$\Mdef\f\x\t\t{\this.\xt{that}.\f(\x)}$ \\
+\>\>\>$\tfa (\f:\t \in \Mxt{meth\C} \vee \Mtype\f{\x:\t}\t \in \Mxt{meth\C})$\\
+\>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\Cp}  \wedge \Mtype\f{\x:\t}\tp \not\in \Mxt{meth\Cp} )$\\
+\\
 \>\>$\Mdef\f\x\t\t{\New{\xt{Error}}{}@\xt{error}()}$ \\
 \>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{\x:\t}\t \in \Mxt{meth\Cp})$\\
 \>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\C}  \wedge \Mtype\f{\x:\tp}\tp \not\in \Mxt{meth\C} )$\\
 \\
 \>$\}$ $\wh~$ \Mxt{meth\C} = \names{\classoff\C\K}\\
-\qquad\qquad\qquad\qquad\qquad\Mxt{meth\Cp} = \names{\classoff\Cp\K} \\
+\>\>\>\>\Mxt{meth\Cp} = \names{\classoff\Cp\K} \\
 \\
 \\
-$\wc(\C,$\=$ \any, \D) = $\\
+$\wrapper{\C,$\=$ \any, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{that} : \C$ \\
 \>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\BehCast{\t_1}{\x})}}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \method\C\K$\\
+\>\>\>\>\qquad $\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \method\C\K$\\
 \>\>$\Mdefz\f\any{\BehCast{\any}{\this.\xt{that}.\f()}}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{}\t \in \classoff\C\K$\\
+\>\>\>\>\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{}\t \in \classoff\C\K$\\
 \>\>$\Mdef\f\x\any\any{\BehCast{\any}{\this.\xt{that}.\f(\BehCast{\t}\x)}}$ \\
-\qquad\qquad\qquad\qquad\qquad\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{\x:\t}\t \in \classoff\C\K$\\
+\>\>\>\>\qquad $\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{\x:\t}\t \in \classoff\C\K$\\
 \>$\}$\\
 \end{tabbing}
 
@@ -799,9 +820,15 @@ Our core language supports the core functionality of gradual typing, but none of
 }
 
 \IRule{A5}{
-    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\t_2 \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\bC \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1} 
 }{
-    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\t_2} %Q: do I need to cast the return value of non-bang
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\SubCast{\C}{\DynCall{\e_3}\m{\e_4}}}{\bC} %Q: do I need to cast the return value of non-bang
+}
+
+\IRule{A6}{
+    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\C \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1} 
+}{
+    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\C} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A6}{
@@ -834,7 +861,7 @@ Our core language supports the core functionality of gradual typing, but none of
     \GenCast{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\any}
 }
 
-\IRule{A4}{
+\IRule{A11}{
   \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
@@ -882,7 +909,7 @@ Our core language supports the core functionality of gradual typing, but none of
   \AnaCast{\E}{\e_1}{\e_2}{\C}
 }
 
-\IRule{AASC3}{
+\IRule{AASC7}{
   \GenCast{\E}{\e_1}{\e_2}{\t} \\ \t \neq \any
 }{
   \AnaCast{\E}{\e_1}{\e_2}{\any}
