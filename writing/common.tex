@@ -617,93 +617,40 @@ class D {
 In this example, if we were to implement wrappers by wrapping over only the declared methods, despite D having a method f, it is "lost" when D is cast to C. As a result, when we cast it back from C to D, the wrapper added to ensure that C's invariants held does not have a method f, and our call will produce a method not understood exception. To avoid this issue, our wrappers will have to retain all untyped methods when casting untyped to typed, and typed methods if a typed cast does not mention them, so that they may be recovered in a later cast.
 
 \hrulefill
-\newcommand{\wm}{\text{wrapMethod}}
-\begin{align*}
-%\wm{(\xt{wrap},\Mdef\m\x\any\any\e,\Mtype\m\t\tp)} &= \Mdef\m\x\t\tp{\BehCast{\tp}{\Call{{\this}.{\xt{wrap}}}{\m}{\BehCast{\any}{\x}}}}\\
-%\wm{(\xt{wrap},\Mdef\m\x\t\tp\e,\Mtype\m\any\any)} &= \Mdef\m\x\any\any{\BehCast{\any}{\Call{\this.\xt{wrap}}{\m}{\BehCast{\t}{\x}}}}\\
-\wm{(\Mdef\m\x{\t_1}{\tp_1}\e,\Mtype\m{\t_2}{\tp_2})} = \Mdef\m\x{\t_2}{\tp_2}{\BehCast{\tp_2}{\Call{\this.\xt{that}}{\m}{\BehCast{\t_1}{\x}}}}\\
-\end{align*}
 
 \newcommand{\tfa}{\text{\emph{for every }}}
 \newcommand{\wh}{\text{\emph{where}}}
 \newcommand{\wc}{\text{wrapClass}}
+\newcommand{\n}{\xt{n}}
 
+\begin{align*}
+\xt{n} &::= \m \B \f
+\end{align*}
 
 \begin{tabbing}
 $\wrapper{\C,$\=$ \Cp, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\\
 \>\>$\xt{th}$\=$\xt{at} : \C $ \\
+\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { \BehCast{\tp_2}{\this.\that.\n(\b{\BehCast{\t_1}{\x}})}}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
 \\
-\>\>$\Mdefa\m{\b{\HT\x{\t_2}}}{\tp_2} { \BehCast{\tp_2}{\this.\that.\m(\b{\BehCast{\t_1}{\x}})}}$\\
-\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\n(\b{\x})}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
 \\
-\>\>$\Mdefa\m{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\m(\b{\x})}$\\
-\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
-\\
-\>\>$\Mdefa\m{\b{\HT\x{\t_2}}}{\tp_2} { \New{\xt{Error}}{}@\xt{error}()}$\\
-\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
-\\
-\rule{\linewidth}{\arrayrulewidth}\\
-\>\>$\wm(\methz\m\C\K,\getmtype(\m,\Cp,\K))$ \\
-\>\>\>$\tfa \m \in \Mxt{meth\C} \wedge \m \in \Mxt{meth\Cp} $\\
-\\
-\>\>$\Mdef\m\x{\t_1}{\tp_1}{\this.\xt{that}.\m(\x)}$ \\
-\>\>\>$\tfa \Mtype\m{\t_1}{\tp_1} = \getmtype(\m,\C,\K) \wedge \m \not\in \Mxt{meth\Cp}$\\
-\\
-\>\>$\Mdef\m\x{\t_1}{\tp_1}{\New{\xt{Error}}{}@\xt{error}()}$ \\
-\>\>\>$\tfa$\=$ \m \in \Mxt{meth\Cp} \wedge \m \not\in \Mxt{meth\C} $\\
-\\
-\>\>$\Mdefz\f\t{\BehCast{\t}{\this.\xt{that}.\f()}}$ \\
-\>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{}\t \in \Mxt{meth\Cp})$\\
-\>\>\>\>$\wedge~~ (\f:\tp \in \Mxt{meth\C}  \vee \Mtype\f{}\tp \in \Mxt{meth\C} )$\\
-\\
-\>\>$\Mdefz\f\t{\this.\xt{that}.\f()}$ \\
-\>\>\>$\tfa (\f:\t \in \Mxt{meth\C} \vee \Mtype\f{}\t \in \Mxt{meth\C})$\\
-\>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\Cp}  \wedge \Mtype\f{}\tp \not\in \Mxt{meth\Cp} )$\\
-\\
-\>\>$\Mdefz\f\t{\New{\xt{Error}}{}@\xt{error}()}$ \\
-\>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{}\t \in \Mxt{meth\Cp})$\\
-\>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\C}  \wedge \Mtype\f{}\tp \not\in \Mxt{meth\C} )$\\
-\\
-\>\>$\Mdef\f\x\t\t{\BehCast{\t}{\this.\xt{that}.\f(\BehCast{\tp}{\x})}}$ \\
-\>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{\x:\t}\t \in \Mxt{meth\Cp})$\\
-\>\>\>\>$\wedge~~ (\f:\tp \in \Mxt{meth\C}  \vee \Mtype\f{\x:\tp}\tp \in \Mxt{meth\C} )$\\
-\\
-\>\>$\Mdef\f\x\t\t{\this.\xt{that}.\f(\x)}$ \\
-\>\>\>$\tfa (\f:\t \in \Mxt{meth\C} \vee \Mtype\f{\x:\t}\t \in \Mxt{meth\C})$\\
-\>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\Cp}  \wedge \Mtype\f{\x:\t}\tp \not\in \Mxt{meth\Cp} )$\\
-\\
-\>\>$\Mdef\f\x\t\t{\New{\xt{Error}}{}@\xt{error}()}$ \\
-\>\>\>$\tfa (\f:\t \in \Mxt{meth\Cp} \vee \Mtype\f{\x:\t}\t \in \Mxt{meth\Cp})$\\
-\>\>\>\>$\wedge~~ (\f:\tp \not\in \Mxt{meth\C}  \wedge \Mtype\f{\x:\tp}\tp \not\in \Mxt{meth\C} )$\\
-\\
-\>$\}$ $\wh~$ \Mxt{meth\C} = \names{\classoff\C\K}\\
-\>\>\>\Mxt{meth\Cp} = \names{\classoff\Cp\K} \\
-\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { \New{\xt{Error}}{}@\xt{error}()}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
 \>$\}$
-\\
 \\
 $\wrapper{\C,$\=$ \any, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\=\\
 \>\>$\xt{that} : \C$ \\ \\
-\>\>$\Mdefa\m{\b{\HT\x\any}}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\b{\BehCast{\t_1}{\x}})}}$ \\
-\\
-\rule{\linewidth}{\arrayrulewidth}
-\\
-\>\>$\Mdef\m\x{\any}{\any}{\BehCast{\any}{\this.\xt{that}.\m(\BehCast{\t_1}{\x})}}$ \\
-\>\>\>$\text{ \emph{if} } \Mdef\m\x{\t_1}{\tp_1}{\e} \in \method\C\K$\\
-\\
-\>\>$\Mdefz\f\any{\BehCast{\any}{\this.\xt{that}.\f()}}$ \\
-\>\>\>$\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{}\t \in \classoff\C\K$\\
-\\
-\>\>$\Mdef\f\x\any\any{\BehCast{\any}{\this.\xt{that}.\f(\BehCast{\t}\x)}}$ \\
-\>\>\>$\text{ \emph{for every} } \f:\t \in \field\C\K ~~\vee~~ \Mtype\f{\x:\t}\t \in \classoff\C\K$\\
+\>\>$\Mdefa\n{\b{\HT\x\any}}{\any}{\BehCast{\any}{\this.\xt{that}.\n(\b{\BehCast{\t}{\x}})}}$ \\
+\>\>\>$\tfa \Mtype\n{\b{\t}}{\tp} \in \classoff\C$\\
 \>$\}$\\
 \end{tabbing}
 
-Based on this intuition, we have two methods to generate wrappers: \wm, which generates the methods in the wrapper, and \wc, which generates the wrapper class. If the source and target types are compatible, \wm will generate a method that casts the arguments correctly and then casts the return type. 
 
-\wc is more complex than \wm, because different wrappers are needed, depending on if the target type is a concrete type \C, or is the dynamic type \any. If the target type is \C, then it will generate the wrapper methods for the type \C, then insert ``passthrough'' methods. methods of the same type as the original and that just call the original internally, that provide the completness property mentioned above. Likewise, if the target type is \any, then \wc will simply generate a method that casts its argument to the right type and its return type to \any for every one of the typed methods in the source, ensuring soundness and completness.
+\wc is more complex than TODO, because different wrappers are needed, depending on if the target type is a concrete type \C, or is the dynamic type \any. If the target type is \C, then it will generate the wrapper methods for the type \C, then insert ``passthrough'' methods. methods of the same type as the original and that just call the original internally, that provide the completness property mentioned above. Likewise, if the target type is \any, then \wc will simply generate a method that casts its argument to the right type and its return type to \any for every one of the typed methods in the source, ensuring soundness and completness.
 
 
 \subsection{Monotone}
