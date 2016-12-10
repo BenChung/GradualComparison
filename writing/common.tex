@@ -717,6 +717,41 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
+\newcommand{\rectype}[1]{\xt{rectype}(#1)}
+\newcommand{\htype}[1]{\xt{htype}(#1)}
+\newcommand{\fieldtypes}[1]{\xt{fieldtypes}(#1)}
+
+\begin{mathpar}
+\IRule{RC1}{
+  \htype{\a,\Sigma,\sigma} = \tp\\
+  \tpp = \meet{\tp}{\t} \\
+  \tp \neq \tpp \\
+  \fieldtypes{\tpp} = \b\ap,\b{\t_f}\\
+  \b{\rectype{\meet\Sigma{\ap:\t},\sigma,\ap,\t_f} = \Sigma'}
+}
+{\rectype{\Sigma, \sigma, \a, \t} = \bigsqcap\b{\Sigma'}}
+
+\IRule{RC2}{
+  \htype{\a,\Sigma,\sigma} = \tp\\
+  \tpp = \meet{\tp}{\t} \\
+  \tp = \tpp \\
+}{
+  \rectype{\Sigma,\sigma, \a, \t} = \Sigma
+}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule{SP1}{\xt{classgen}(\C,\t) = \D \\
+            \spec{\Sigma,\sigma,\K} = \sigma',\K'}{
+            \spec{\a ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}], \K';\D
+            }
+
+
+\IRule{SP2}{}{
+            \spec{\cdot, \cdot, \K} = \cdot,\cdot
+            }
+\end{mathpar}
+
 \opdef{
   $\meet{\t_1}{\t_2} \equiv \t$
 }{
