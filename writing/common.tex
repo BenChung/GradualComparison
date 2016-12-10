@@ -693,23 +693,16 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
-\begin{mathpar}
-\IRule{Cast-Mono1 (monotonic)}{
-  \Heap \s{\Bind \a{\obj\C{\a_1 \dots \a_n}}} \\
-  \C \not\equiv \meet \t\C \\
-  \Kp = \K\;\spec{\Class\C{\b{\Ftype\f\t}}{\b\md}, \D, \meet \t\C} \\
-  \sp = \Heap \s{\Bind \a{\obj\D{\b{\a_1}}}} \\
-  \s_1 = \castfn{\a_1}{\t_1}{\sp}\Kp \\ \ldots \\
-  \s_n = \castfn{\a_n}{\t_n}{\s_{n-1}}\Kp \\
-}{
-  \moncast \a\t\s\K   \Kp {\s_n}\\
-}
+\newcommand{\rectype}[1]{\xt{rectype}(#1)}
+\newcommand{\htype}[1]{\xt{htype}(#1)}
+\newcommand{\fieldtypes}[1]{\xt{fieldtypes}(#1)}
 
-\IRule{Cast-Mono2 (monotonic)}{
-  \Heap \s{\Bind \a{\obj\C{\b{\a_1}}}} \\
-  \C \equiv \meet \t\C
+\begin{mathpar}
+\IRule{Cast-Mono (monotonic)}{
+  \rectype{\cdot, \s, \a, \t} = \Sigma\\
+  \spec{\Sigma, \K,\s} = \sp,\Kp
 }{
-  \moncast \a\t\s\K  \K\s
+  \moncast \a\t\s\K   \Kp {\sp}\\
 }
 \end{mathpar}
 
@@ -717,16 +710,28 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
-\newcommand{\rectype}[1]{\xt{rectype}(#1)}
-\newcommand{\htype}[1]{\xt{htype}(#1)}
-\newcommand{\fieldtypes}[1]{\xt{fieldtypes}(#1)}
+\begin{align*}
+\Sigma &::= \b{\a:\t}
+\end{align*}
+
+\begin{mathpar}
+\IRule{HT1}{
+  a \not\in \text{dom}(\Sigma)
+}{
+  \htype{\a,\Sigma,\sigma[\a \mapsto \C\{\b\ap\}]} = \C
+}
+
+\IRule{HT2}{}{
+  \htype{\a,\Sigma~\a:\t~\Sigma,\sigma} = \t
+}
+\end{mathpar}
 
 \begin{mathpar}
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
   \tpp = \meet{\tp}{\t} \\
   \tp \neq \tpp \\
-  \fieldtypes{\tpp} = \b\ap,\b{\t_f}\\
+  \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
   \b{\rectype{\meet\Sigma{\ap:\t},\sigma,\ap,\t_f} = \Sigma'}
 }
 {\rectype{\Sigma, \sigma, \a, \t} = \bigsqcap\b{\Sigma'}}
