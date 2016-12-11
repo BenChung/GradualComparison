@@ -590,9 +590,9 @@ types in Transient will drift towards \any.
   \ap\;\mathit{fresh} \\
   \obj\C{\b{\a_1}} = \s(\a) \\
   \sp = \Heap \s{\Bind \ap{\obj\D{\a}} } \\
-  \Kp = \K\;\wrapper{\C,\t,\D}
+  \k = \wrapper{\C,\t,\D}
 }{
-  \behcast\a\t\s\K  \Kp\ap\sp
+  \behcast\a\t\s\K {\K,~\Bind{\D}{\k}~}\ap\sp
 }
 \end{mathpar}
 
@@ -696,6 +696,9 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \newcommand{\rectype}[1]{\xt{rectype}(#1)}
 \newcommand{\htype}[1]{\xt{htype}(#1)}
 \newcommand{\fieldtypes}[1]{\xt{fieldtypes}(#1)}
+\newcommand{\typez}[1]{\xt{types}(#1)}
+\newcommand{\typeof}[1]{\xt{typeof}(#1)}
+
 
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
@@ -705,8 +708,6 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   \moncast \a\t\s\K   \Kp {\sp}\\
 }
 \end{mathpar}
-
-
 
 \hrulefill
 
@@ -827,6 +828,53 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 \end{mathpar}
 
+\hrulefill
+
+\begin{mathpar}
+\IRule{FT1}{
+ \s(\a) = \obj\C{\b\a} \\
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+ $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
+}{
+  \fieldtypes{\C,\K,\s,\a} = \b\a,\typeof{\b{\Ftype\f\t}}
+}
+
+\IRule{FT2}{
+ \s(\a) = \obj\C{\b\a} \\
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+ $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
+}{
+  \fieldtypes{\any,\K,\s,\a} = \b\a,\typeof{\b{\Ftype\f\t}}
+}
+
+% The types are not the types shown in the class, but those in the mt(s)
+\IRule{FT3}{
+ \s(\a) = \obj\C{\b\a} \\
+ \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+ \forall~ \f \in \names{\b{\Ftype\f\t}} ~.~ \f\in\names{\{\b\mt\}} \\ 
+ \b{\t_f} = \forall~ \f \in \names{\b{\Ftype\f\t}} ~.~ \typez{\f, \{\b\mt\}}
+}{
+  \fieldtypes{\{\b\mt\},\K,\s,\a} = \b\a,\b{\t_f}
+}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{TY}{
+}{
+  \typez{\f,~\dots ~\Mtype\f\t\t~ \dots ~\Mtype\f{}\t~ \dots} = \t
+}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{TO}{
+}{
+  \typeof{\Ftype\f\t} = \t
+}
+\end{mathpar}
 
 
 \section{Translations}
