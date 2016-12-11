@@ -698,7 +698,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \newcommand{\fieldtypes}[1]{\xt{fieldtypes}(#1)}
 \newcommand{\typez}[1]{\xt{types}(#1)}
 \newcommand{\typeof}[1]{\xt{typeof}(#1)}
-
+\newcommand{\classgen}[1]{\xt{classgen}(#1)}
 
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
@@ -731,24 +731,24 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \begin{mathpar}
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \tpp = \meet{\tp}{\t} \\
+  \emptyset,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega' \\
   \tp \neq \tpp \\
   \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
   \b{\rectype{\meet\Sigma{\ap:\t},\sigma,\ap,\t_f} = \Sigma'}
 }
-{\rectype{\Sigma, \sigma, \a, \t} = \bigsqcap\b{\Sigma'}}
+{\rectype{\Sigma, \Omega, \sigma, \a, \t} = \left(\bigsqcap\b{\Sigma'}\right),\Omega'}
 
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \tpp = \meet{\tp}{\t} \\
+  \emptyset,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega\\ % is this Omega right?
   \tp = \tpp \\
 }{
-  \rectype{\Sigma,\sigma, \a, \t} = \Sigma
+  \rectype{\Sigma,\Omega,\sigma, \a, \t} = \Sigma,\Omega
 }
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{SP1}{\xt{classgen}(\C,\t) = \D \\
+\IRule{SP1}{\classgen{\C,\t} = \D \\
             \spec{\Sigma,\sigma,\K} = \sigma',\K'}{
             \spec{\a ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}], \K';\D
             }
@@ -765,18 +765,31 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   The most specific type common to $\t_1$ and $\t_2$ is $\t$
 }
 \begin{mathpar}
-\IRule{M1}{ }{\meet{\t}{\any} \equiv \t}
+\IRule{M1}{ }{\Phi,\Omega,\K \vdash\meet{\t}{\any} \equiv \t\dashv\Phi}
 
-\IRule{M2}{ }{\meet{\any}{\t} \equiv \t}
+\IRule{M2}{ }{\Phi,\Omega,\K \vdash\meet{\any}{\t} \equiv \t\dashv\Phi}
 
-\IRule{M3}{ }{\meet{\t}{\t} \equiv \t}
+\IRule{M3}{ }{\Phi,\Omega,\K \vdash\meet{\t}{\t} \equiv \t\dashv\Phi}
 
 \IRule{M4}{
-      \b{\meet{\t_3}{\t_1}  \equiv \t_5} \\
-    \meet{\t_2}{\t_4} \equiv \t_6\\
-    \meet{\Type{\b{\md_1}}}{\Type{\b{\md_2}}} \equiv \Type{\b{\md_3}} 
+      \b{\Phi,\Omega,\K\vdash\meet{\t_3}{\t_1}  \equiv \t_5\dashv\Omega'} \\
+    \Phi,\Omega',\K \vdash \meet{\t_2}{\t_4} \equiv \t_6\dashv\Omega''\\
+    \Phi,\Omega'',\K \vdash \meet{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} \equiv \Type{\b{\mt_3}} \dashv\Omega'''
 }{
-  \meet{\Type{\Mtype\m{\t_1}{\t_2}~ \b{\md_1}}}{\Type{\Mtype\m{\t_3}{\t_4} ~ \b{\md_2}}} \equiv \Type{\Mtype\m{\b{\t_5}}{\t_6} ~ \b{\md_3}}
+  \Phi,\Omega,\K \vdash \meet{\Type{\Mtype\m{\t_1}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\m{\t_3}{\t_4} ~ \b{\mt_2}}} \equiv \Type{\Mtype\m{\b{\t_5}}{\t_6} ~ \b{\mt_3}}\dashv\Omega'''
+}
+
+\IRule{M5}{
+  \meet{\C}{\D} \not\in \text{dom}(\Phi)\\
+  \Phi~\meet{\C}{\D}={\Mxt E},\Omega,\K \vdash \meet{{\text{typeof}}(\C)}{{\text{typeof}}(\D)} \equiv \t \dashv \Omega'
+}{
+  \Phi,\Omega,\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega'~{\Mxt E}\mapsto\t
+}
+
+\IRule{M6}{
+  \Phi(\meet{\C}{\D}) = \Mxt E
+}{
+  \Phi,\Omega,\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega
 }
 \end{mathpar}
 
@@ -798,8 +811,6 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   \spec{\Class{\C}{\b{\f : \t}}{\b{\md}}, \xt{D}, \{\b{\f():\t'},\b{\mt}\}} = \Class{\D}{\b{\f : \t''}}{\b{\spec{\f:\t,\t'}},\b{\spec{\md,\mt}}}
 }
 \end{mathpar}
-
-
 
 \begin{mathpar}
 \IRule{Insert-Recv (eager cast)}{
@@ -875,7 +886,6 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   \typeof{\Ftype\f\t} = \t
 }
 \end{mathpar}
-
 
 \section{Translations}
 
