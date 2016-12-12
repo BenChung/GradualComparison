@@ -700,8 +700,8 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
-  \rectype{\cdot, \s, \a, \t} = \Sigma\\
-  \spec{\Sigma, \K,\s} = \sp,\Kp
+  \rectype{\cdot, \cdot, \s, \a, \t} = \Sigma,\Omega\\
+  \spec{\Sigma, \Omega, \K,\s} = \sp,\Kp
 }{
   \moncast \a\t\s\K   \Kp {\sp}\\
 }
@@ -813,6 +813,20 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 \end{mathpar}
 
+
+\begin{tabbing}
+$\classgen{\C,$\=$ \t} = $\\
+\>$\xt{class}~\D$\=$~\{$\=\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { \BehCast{\tp_2}{\this.\that.\n(\b{\BehCast{\t_1}{\x}})}}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\n(\b{\x})}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { \New{\xt{Error}}{}@\xt{error}()}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\>$\}$
+\end{tabbing}
 
 
 \section{Translations}
