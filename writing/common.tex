@@ -731,31 +731,33 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \begin{mathpar}
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \emptyset,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega' \\
+  \Sigma,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega~\Omega' \\
   \tp \neq \tpp \\
   \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
-  \b{\rectype{\meet\Sigma{\ap:\t},\sigma,\ap,\t_f} = \Sigma'}
+  \b{\rectype{\meet\Sigma{\ap:\t},\Omega,\sigma,\ap,\t_f} = \Omega~\Omega''}
 }
-{\rectype{\Sigma, \Omega, \sigma, \a, \t} = \left(\bigsqcap\b{\Sigma'}\right),\Omega'}
+{\rectype{\Sigma, \Omega, \sigma, \a, \t} = \left(\bigsqcap\b{\Sigma'}\right),\Omega~\Omega'~\b{\Omega''}}
 
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
   \emptyset,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega\\ % is this Omega right?
   \tp = \tpp \\
 }{
-  \rectype{\Sigma,\Omega,\sigma, \a, \t} = \Sigma,\Omega
+  \rectype{\Sigma,\Omega,\sigma, \a, \t} = \Sigma~\Omega
 }
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{SP1}{\classgen{\C,\t} = \D \\
+\IRule{SP1}{\D \text{ Free}\\
+            \classgen{\C,\t} = \D \\
+            \K' = \K~\D\mapsto\classgen{\C,\t} \\
             \spec{\Sigma,\sigma,\K} = \sigma',\K'}{
-            \spec{\a ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}], \K';\D
+            \spec{\a ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}]~\K'
             }
 
 
 \IRule{SP2}{}{
-            \spec{\cdot, \cdot, \K} = \cdot,\cdot
+            \spec{\cdot, \cdot, \K} = \cdot~\cdot
             }
 \end{mathpar}
 
@@ -766,31 +768,38 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   The most specific type common to $\t_1$ and $\t_2$ is $\t$
 }
 \begin{mathpar}
-\IRule{M1}{ }{\Phi,\Omega,\K \vdash\meet{\t}{\any} \equiv \t\dashv\Phi}
+\IRule{M1}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\any} \equiv \t\dashv\Phi}
 
-\IRule{M2}{ }{\Phi,\Omega,\K \vdash\meet{\any}{\t} \equiv \t\dashv\Phi}
+\IRule{M2}{ }{\Phi~\Omega~\K \vdash\meet{\any}{\t} \equiv \t\dashv\Phi}
 
-\IRule{M3}{ }{\Phi,\Omega,\K \vdash\meet{\t}{\t} \equiv \t\dashv\Phi}
+\IRule{M3}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\t} \equiv \t\dashv\Phi}
 
 \IRule{M4}{
-      \b{\Phi,\Omega,\K\vdash\meet{\t_3}{\t_1}  \equiv \t_5\dashv \Omega~\Omega'} \\
-    \Phi,\Omega,\K \vdash \meet{\t_2}{\t_4} \equiv \t_6\dashv \Omega~\Omega''\\
-    \Phi,\Omega,\K \vdash \meet{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} \equiv \Type{\b{\mt_3}} \dashv \Omega~\Omega'''
+      \b{\Phi~\Omega~\K\vdash\meet{\t_3}{\t_1}  \equiv \t_5\dashv \Omega~\Omega'} \\
+    \Phi~\Omega~\K \vdash \meet{\t_2}{\t_4} \equiv \t_6\dashv \Omega~\Omega''\\
+    \Phi~\Omega~\K \vdash \meet{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} \equiv \Type{\b{\mt_3}} \dashv \Omega~\Omega'''
 }{
-  \Phi,\Omega,\K \vdash \meet{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}} \equiv \Type{\Mtype\m{\b{\t_5}}{\t_6} ~ \b{\mt_3}}\dashv\Omega~\b{\Omega'}~\Omega''~\Omega'''
+  \Phi~\Omega~\K \vdash \meet{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}} \equiv \Type{\Mtype\m{\b{\t_5}}{\t_6} ~ \b{\mt_3}}\dashv\Omega~\b{\Omega'}~\Omega''~\Omega'''
 }
 
-\IRule{M5}{
+\IRule{M5}{ 
+}{ \Phi~\Omega~\K \vdash \meet{\Type{\b\mt}}{\Type{}} \equiv \Type{\b\mt} \dashv \Omega}
+
+\IRule{M6}{ }{
+  \Phi~\Omega~\K \vdash \meet{\Type{}}{\Type{\b\mt}} \equiv \Type{\b\mt} \dashv \Omega
+}
+
+\IRule{M7}{
   \meet{\C}{\D} \not\in \text{dom}(\Phi)\\
-  \Phi~\meet{\C}{\D}={\Mxt E},\Omega,\K \vdash \meet{{\text{typeof}}(\C)}{{\text{typeof}}(\D)} \equiv \t \dashv \Omega'
+  \Phi~\meet{\C}{\D}={\Mxt E}~\Omega~\K \vdash \meet{{\text{typeof}}(\C)}{{\text{typeof}}(\D)} \equiv \t \dashv \Omega'
 }{
-  \Phi,\Omega,\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega'~{\Mxt E}\mapsto\t
+  \Phi~\Omega~\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega'~{\Mxt E}\mapsto\t
 }
 
-\IRule{M6}{
+\IRule{M8}{
   \Phi(\meet{\C}{\D}) = \Mxt E
 }{
-  \Phi,\Omega,\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega
+  \Phi~\Omega~\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega
 }
 \end{mathpar}
 % 
@@ -848,7 +857,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
  \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
  $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
 }{
-  \fieldtypes{\C,\K,\s,\a} = \b\a,\typeof{\b{\Ftype\f\t}}
+  \fieldtypes{\C,\K,\s,\a} = \b\a~\typeof{\b{\Ftype\f\t}}
 }
 
 \IRule{FT2}{
@@ -856,7 +865,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
  \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
  $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
 }{
-  \fieldtypes{\any,\K,\s,\a} = \b\a,\typeof{\b{\Ftype\f\t}}
+  \fieldtypes{\any,\K,\s,\a} = \b\a~\typeof{\b{\Ftype\f\t}}
 }
 
 % The types are not the types shown in the class, but those in the mt(s)
@@ -866,7 +875,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
  \forall~ \f \in \names{\b{\Ftype\f\t}} ~.~ \f\in\names{\{\b\mt\}} \\ 
  \b{\t_f} = \forall~ \f \in \names{\b{\Ftype\f\t}} ~.~ \typez{\f, \{\b\mt\}}
 }{
-  \fieldtypes{\{\b\mt\},\K,\s,\a} = \b\a,\b{\t_f}
+  \fieldtypes{\{\b\mt\},\K,\s,\a} = \b\a~\b{\t_f}
 }
 \end{mathpar}
 
