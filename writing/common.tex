@@ -793,52 +793,52 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   \Phi,\Omega,\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega
 }
 \end{mathpar}
-
-\hrulefill
-
-\begin{mathpar}
-\IRule{Refine-Method}{
-  \b{\meet{\t_1}{\t_1'} = \t_1''}\\
-  {\meet{\t_2}{\t_2'} = \t_2''}
-}{
-  \spec{\m(\b{\x:\t_1}):\t_2 = \e,\m(\b{\t_1'}):\t_2'} = 
-  (\m(\b{\x:\t_1''}):\t_2'' = \SubCast{\t_2''}{\e}), \\
-  (\m_\xt{u}(\b{\x:\any}):\any = \SubCast{\any}{\this.{\m}(\SubCast{\t_1''}{\x})})
-}
-
-\IRule{Refine-Class}{
-  \b{\meet{\t}{\t'} = \t''}
-}{
-  \spec{\Class{\C}{\b{\f : \t}}{\b{\md}}, \xt{D}, \{\b{\f():\t'},\b{\mt}\}} = \Class{\D}{\b{\f : \t''}}{\b{\spec{\f:\t,\t'}},\b{\spec{\md,\mt}}}
-}
-\end{mathpar}
-
-\begin{mathpar}
-\IRule{Insert-Recv (eager cast)}{
-  \GenCast \E{\e_1}{\e_3}{\t_1} \\
-  \m(\b{x : \t_2}):\t_3 \in \t_1 \\
-  \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
-}{
-  \inv \E{\Call{\e_1}\m{\b{\e_2}}} = \Call{\e_3}{\m}{\b{\e_4}}, \t_3
-}
-
-\IRule{Insert-Dyn}{
-  \GenCast{\E}{\e_1}{\e_3}{\any} \\
-  \AnaCast{\E}{\e_2}{\e_4}{\any}
-}{
-  \inv \E{\Call{\e_1}\m{\b{\e_2}}} =
-  \Call{\SubCast{(\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\e_4}}, \any
-}
-
-\IRule{Insert-Check (lazy cast)}{
-  \GenCast \E{\e_1}{\e_3}{\t_1} \\
-  \m(\b{x : \t_2}):\t_3 \in \t_1 \\
-  \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
-}{
-  \inv{\E}{\Call{\e_1}\m{\b{\e_2}}} =
-  \SubCast{\t_1}{(\Call{(\SubCast{\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\SubCast \any{\e_4}}})}, \t_1
-}
-\end{mathpar}
+% 
+% \hrulefill
+% 
+% \begin{mathpar}
+% \IRule{Refine-Method}{
+%   \b{\meet{\t_1}{\t_1'} = \t_1''}\\
+%   {\meet{\t_2}{\t_2'} = \t_2''}
+% }{
+%   \spec{\m(\b{\x:\t_1}):\t_2 = \e,\m(\b{\t_1'}):\t_2'} = 
+%   (\m(\b{\x:\t_1''}):\t_2'' = \SubCast{\t_2''}{\e}), \\
+%   (\m_\xt{u}(\b{\x:\any}):\any = \SubCast{\any}{\this.{\m}(\SubCast{\t_1''}{\x})})
+% }
+% 
+% \IRule{Refine-Class}{
+%   \b{\meet{\t}{\t'} = \t''}
+% }{
+%   \spec{\Class{\C}{\b{\f : \t}}{\b{\md}}, \xt{D}, \{\b{\f():\t'},\b{\mt}\}} = \Class{\D}{\b{\f : \t''}}{\b{\spec{\f:\t,\t'}},\b{\spec{\md,\mt}}}
+% }
+% \end{mathpar}
+% 
+% \begin{mathpar}
+% \IRule{Insert-Recv (eager cast)}{
+%   \GenCast \E{\e_1}{\e_3}{\t_1} \\
+%   \m(\b{x : \t_2}):\t_3 \in \t_1 \\
+%   \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
+% }{
+%   \inv \E{\Call{\e_1}\m{\b{\e_2}}} = \Call{\e_3}{\m}{\b{\e_4}}, \t_3
+% }
+% 
+% \IRule{Insert-Dyn}{
+%   \GenCast{\E}{\e_1}{\e_3}{\any} \\
+%   \AnaCast{\E}{\e_2}{\e_4}{\any}
+% }{
+%   \inv \E{\Call{\e_1}\m{\b{\e_2}}} =
+%   \Call{\SubCast{(\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\e_4}}, \any
+% }
+% 
+% \IRule{Insert-Check (lazy cast)}{
+%   \GenCast \E{\e_1}{\e_3}{\t_1} \\
+%   \m(\b{x : \t_2}):\t_3 \in \t_1 \\
+%   \b{\AnaCast \E{\e_2}{\e_4}{\t_2}}
+% }{
+%   \inv{\E}{\Call{\e_1}\m{\b{\e_2}}} =
+%   \SubCast{\t_1}{(\Call{(\SubCast{\Type{\Mtype{\m_\xt{u}}{\b\any}\any}}{\e_3})}{\m_\xt{u}}{\b{\SubCast \any{\e_4}}})}, \t_1
+% }
+% \end{mathpar}
 
 \hrulefill
 
