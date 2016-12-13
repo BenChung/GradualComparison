@@ -734,7 +734,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   \Sigma,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega~\Omega' \\
   \tp \neq \tpp \\
   \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
-  \b{\rectype{\meet\Sigma{\ap:\t},\Omega,\sigma,\ap,\t_f} = \Omega~\Omega''}
+  \b{\rectype{\meet\Sigma{\ap:\tpp},\Omega,\sigma,\ap,\t_f} = \Omega~\Omega''}
 }
 {\rectype{\Sigma, \Omega, \sigma, \a, \t} = \left(\bigsqcap\b{\Sigma'}\right),\Omega~\Omega'~\b{\Omega''}}
 
@@ -752,7 +752,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 %             \classgen{\C,\t} = \D \\
             \K' = \K~\D\mapsto\classgen{\C,\t, \D} \\
             \spec{\Sigma,\sigma,\K} = \sigma',\K'}{
-            \spec{\a ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}]~\K'
+            \spec{\a : \t ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}]~\K'
             }
 
 
@@ -768,11 +768,11 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   The most specific type common to $\t_1$ and $\t_2$ is $\t$
 }
 \begin{mathpar}
-\IRule{M1}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\any} \equiv \t\dashv\Phi}
+\IRule{M1}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\any} \equiv \t\dashv\Omega}
 
-\IRule{M2}{ }{\Phi~\Omega~\K \vdash\meet{\any}{\t} \equiv \t\dashv\Phi}
+\IRule{M2}{ }{\Phi~\Omega~\K \vdash\meet{\any}{\t} \equiv \t\dashv\Omega}
 
-\IRule{M3}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\t} \equiv \t\dashv\Phi}
+\IRule{M3}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\t} \equiv \t\dashv\Omega}
 
 \IRule{M4}{
       \b{\Phi~\Omega~\K\vdash\meet{\t_3}{\t_1}  \equiv \t_5\dashv \Omega~\Omega'} \\
@@ -791,7 +791,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \IRule{M7}{
   \meet{\C}{\D} \not\in \text{dom}(\Phi)\\
-  \Phi~\meet{\C}{\D}={\Mxt E}~\Omega~\K \vdash \meet{{\text{typeof}}(\C)}{{\text{typeof}}(\D)} \equiv \t \dashv \Omega'
+  \Phi~\meet{\C}{\D}={\Mxt E}~\Omega~\K \vdash \meet{{\text{typeof}}(\C,\K)}{{\text{typeof}}(\D,\K)} \equiv \t \dashv \Omega'
 }{
   \Phi~\Omega~\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega'~{\Mxt E}\mapsto\t
 }
