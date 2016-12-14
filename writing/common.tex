@@ -728,22 +728,25 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 \end{mathpar}
 
+
+\renewcommand{\P}{\Mxt P}
+\newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
 \begin{mathpar}
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \Sigma,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega~\Omega' \\
+  \Sigma,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
   \tp \neq \tpp \\
   \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
-  \b{\rectype{\meet\Sigma{\ap:\tpp},\Omega,\sigma,\ap,\t_f} = \Omega~\Omega''}
+  \b{\rectype{\meet\Sigma{\ap:\tpp},\K',\sigma,\ap,\t_f} = \K''}
 }
-{\rectype{\Sigma, \Omega, \sigma, \a, \t} = \left(\bigsqcap\b{\Sigma'}\right),\Omega~\Omega'~\b{\Omega''}}
+{\rectype{\Sigma, \K, \sigma, \a, \t} = \left(\bigsqcap\b{\Sigma'}\right)~\K''}
 
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \emptyset,\Omega,\K \vdash \meet{\tp}{\t} \equiv \tpp \dashv \Omega\\ % is this Omega right?
+  \emptyset,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
   \tp = \tpp \\
 }{
-  \rectype{\Sigma,\Omega,\sigma, \a, \t} = \Sigma~\Omega
+  \rectype{\Sigma,\K,\sigma, \a, \t} = \Sigma~\K
 }
 \end{mathpar}
 
@@ -761,45 +764,45 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
             }
 \end{mathpar}
 
+
 %fixme
 \opdef{
-  $\meet{\t_1}{\t_2} \equiv \t$
+  $\P~\K\vdash \dmeet{\t_1}{\t_2} \equiv \t \dashv \K$
 }{
-  The most specific type common to $\t_1$ and $\t_2$ is $\t$
+  Specializing $\t_1$ with $\t_2$ produces $\t$, with assumptions \P and classes \K, producing classes 
+  $\K'$
 }
 \begin{mathpar}
-\IRule{M1}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\any} \equiv \t\dashv\Omega}
+\IRule{M1}{ }{\P~\K \vdash\dmeet{\t}{\any} \equiv \t\dashv\K}
 
-\IRule{M2}{ }{\Phi~\Omega~\K \vdash\meet{\any}{\t} \equiv \t\dashv\Omega}
+\IRule{M2}{ }{\P~\K \vdash\dmeet{\any}{\t} \equiv \t\dashv\K}
 
-\IRule{M3}{ }{\Phi~\Omega~\K \vdash\meet{\t}{\t} \equiv \t\dashv\Omega}
+\IRule{M3}{ }{\P~\K \vdash\dmeet{\t}{\t} \equiv \t\dashv\K}
 
 \IRule{M4}{
-      \b{\Phi~\Omega~\K\vdash\meet{\t_3}{\t_1}  \equiv \t_5\dashv \Omega~\Omega'} \\
-    \Phi~\Omega~\K \vdash \meet{\t_2}{\t_4} \equiv \t_6\dashv \Omega~\Omega''\\
-    \Phi~\Omega~\K \vdash \meet{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} \equiv \Type{\b{\mt_3}} \dashv \Omega~\Omega'''
+      \b{\P~\K\vdash\dmeet{\t_3}{\t_1}  \equiv \t_5\dashv \K'} \\
+    \P~\K' \vdash \dmeet{\t_2}{\t_4} \equiv \t_6\dashv \K''\\
+    \P~\K \vdash \dmeet{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} \equiv \Type{\b{\mt_3}} \dashv \K'''
 }{
-  \Phi~\Omega~\K \vdash \meet{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}} \equiv \Type{\Mtype\m{\b{\t_5}}{\t_6} ~ \b{\mt_3}}\dashv\Omega~\b{\Omega'}~\Omega''~\Omega'''
+  \P~\K \vdash \dmeet{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}} \equiv \Type{\Mtype\n{\b{\t_5}}{\t_6} ~ \b{\mt_3}}\dashv\K'''
 }
 
 \IRule{M5}{ 
-}{ \Phi~\Omega~\K \vdash \meet{\Type{\b\mt}}{\Type{}} \equiv \Type{\b\mt} \dashv \Omega}
-
-\IRule{M6}{ }{
-  \Phi~\Omega~\K \vdash \meet{\Type{}}{\Type{\b\mt}} \equiv \Type{\b\mt} \dashv \Omega
-}
+}{ \P~\K \vdash \dmeet{\Type{\b\mt}}{\Type{}} \equiv \Type{\b\mt} \dashv \K}
 
 \IRule{M7}{
-  \meet{\C}{\D} \not\in \text{dom}(\Phi)\\
-  \Phi~\meet{\C}{\D}={\Mxt E}~\Omega~\K \vdash \meet{{\text{typeof}}(\C,\K)}{{\text{typeof}}(\D,\K)} \equiv \t \dashv \Omega'
+  \Mxt E \text{ fresh}\\
+  \dmeet{\C}{\D} \not\in \text{dom}(\P)\\
+  \P~\dmeet{\C}{\D}={\Mxt E}~\K \vdash \dmeet{{\text{typeof}}(\C,\K)}{{\text{typeof}}(\D,\K)} \equiv \t \dashv \K'\\
+  \K'' = \K~\Mxt E\mapsto\classgen{\C,\t,\Mxt E}
 }{
-  \Phi~\Omega~\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega'~{\Mxt E}\mapsto\t
+  \P~\K \vdash \dmeet{\C}{\D} \equiv {\Mxt E} \dashv \K''
 }
 
 \IRule{M8}{
-  \Phi(\meet{\C}{\D}) = \Mxt E
+  \P(\dmeet{\C}{\D}) = \Mxt E
 }{
-  \Phi~\Omega~\K \vdash \meet{\C}{\D} \equiv {\Mxt E} \dashv \Omega
+  \P~\K \vdash \dmeet{\C}{\D} \equiv {\Mxt E} \dashv \K
 }
 \end{mathpar}
 % 
