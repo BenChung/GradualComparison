@@ -700,20 +700,20 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \newcommand{\typeof}[1]{\xt{typeof}(#1)}
 \newcommand{\classgen}[1]{\xt{classgen}(#1)}
 
+\begin{align*}
+\Sigma &::= \b{\a:\t}
+\end{align*}
+
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
-  \rectype{\cdot, \cdot, \s, \a, \t} = \Sigma,\K\\
-  \spec{\Sigma, \Omega, \K,\s} = \sp,\Kp
+  \rectype{\cdot, \cdot, \s, \a, \t} = \Sigma,\Kp\\
+  \spec{\Sigma, \s, \Kp} = \sp
 }{
   \moncast \a\t\s\K   \Kp {\sp}\\
 }
 \end{mathpar}
 
 \hrulefill
-
-\begin{align*}
-\Sigma &::= \b{\a:\t}
-\end{align*}
 
 \begin{mathpar}
 \IRule{HT1}{
@@ -728,6 +728,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 \end{mathpar}
 
+\hrulefill
 
 \renewcommand{\P}{\Mxt P}
 \newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
@@ -750,6 +751,8 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 \end{mathpar}
 
+\hrulefill
+
 \begin{mathpar}
 \IRule{SP1}{
             \spec{\Sigma,\sigma,\K} = \sigma'}{
@@ -762,6 +765,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
             }
 \end{mathpar}
 
+\hrulefill
 
 %fixme
 \opdef{
@@ -770,6 +774,9 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   Specializing $\t_1$ with $\t_2$ produces $\t$, with assumptions \P and classes \K, producing classes 
   $\K'$
 }
+
+\hrulefill
+
 \begin{mathpar}
 \IRule{M1}{ }{\P~\K \vdash\dmeet{\t}{\any} \equiv \t\dashv\K}
 
