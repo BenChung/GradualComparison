@@ -13,7 +13,7 @@ jan:
 	pdflatex common && open common.pdf
 
 halfclean:
-	rm -f *.log *.aux *.bbl *.blg *~  *.out  *#  .#*  *.fls
+	rm -f *.log *.aux *.bbl *.blg *~  *.out  *#  .#*  *.fls *.vtc
 
 clean: halfclean
 	rm -f main.pdf
