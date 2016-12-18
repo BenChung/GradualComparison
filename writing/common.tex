@@ -735,7 +735,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
   \Sigma,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
-  \tp \neq \tpp \\
+  \typeof\tp \neq \typeof\tpp \\
   \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
   \b{\rectype{\meet\Sigma{\ap:\tpp},\K',\sigma,\ap,\t_f} = \Sigma'~\K''}
 }
@@ -744,23 +744,21 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
   \emptyset,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
-  \tp = \tpp \\
+  \typeof\tp = \typeof\tpp \\
 }{
   \rectype{\Sigma,\K,\sigma, \a, \t} = \Sigma~\K
 }
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{SP1}{\D \text{ Free}\\
-%             \classgen{\C,\t} = \D \\
-            \K' = \K~\D\mapsto\classgen{\C,\t, \D} \\
-            \spec{\Sigma,\sigma,\K} = \sigma',\K'}{
-            \spec{\a : \t ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}]~\K'
+\IRule{SP1}{
+            \spec{\Sigma,\sigma,\K} = \sigma'}{
+            \spec{\a : \D ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}]
             }
 
 
 \IRule{SP2}{}{
-            \spec{\cdot, \cdot, \K} = \cdot~\cdot
+            \spec{\cdot, \sigma, \K} = \cdot
             }
 \end{mathpar}
 
