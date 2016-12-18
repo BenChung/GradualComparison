@@ -706,7 +706,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
-  \rectype{\cdot, \cdot, \s, \a, \t} = \Sigma,\Kp\\
+  \rectype{\a, \t, \s, \K, \cdot} = \Sigma,\Kp\\
   \spec{\Sigma, \s, \Kp} = \sp
 }{
   \moncast \a\t\s\K   \Kp {\sp}\\
@@ -761,16 +761,16 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   \Sigma,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
   \cdot \vdash \tp \not\approx \tpp \\
   \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
-  \b{\rectype{\meet\Sigma{\ap:\tpp},\K',\sigma,\ap,\t_f} = \Sigma'~\K''}
+  \b{\rectype{\ap, \t_f, \s, \K',\meet\Sigma{\a:\tpp}} = \Sigma'~\K''}
 }
-{\rectype{\Sigma, \K, \sigma, \a, \t} = \left(\bigsqcap\b{\Sigma'}\right)~\K''}
+{\rectype{\a, \t, \s, \K, \Sigma} = \left(\bigsqcap\b{\Sigma'}\right)~\K''}
 
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
   \emptyset,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
   \cdot \vdash \tp \approx \tpp \\
 }{
-  \rectype{\Sigma,\K,\sigma, \a, \t} = \Sigma~\K
+  \rectype{\a, \t, \s, \K, \Sigma} = \Sigma~\K
 }
 \end{mathpar}
 
@@ -829,11 +829,13 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 
 \IRule{M8}{
-  \P(\dmeet{\C}{\D}) = \Mxt E
+  \dmeet{\C}{\D} \equiv {\Mxt E} \in \P
 }{
   \P~\K \vdash \dmeet{\C}{\D} \equiv {\Mxt E} \dashv \K
 }
 \end{mathpar}
+
+\hrulefill
 
 The figure above is semantics for the meet operator for the semantics of the monotonic cast.
 
