@@ -730,13 +730,29 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
+\newcommand{\J}{\Mxt J}
+
+\begin{align*}
+\J &::= \b{\t \approx \t}
+\end{align*}
+
+\begin{mathpar}
+\IRule{EQ1}{ }{\J \vdash \t \approx \t }
+
+\IRule{EQ2}{ \J(\t \approx \tp)}{\J \vdash \t \approx \tp}
+
+\IRule{EQ3}{ \J~\C \approx \D \vdash \typeof\C \approx \typeof\D }{\J \vdash \C \approx \D}
+
+\IRule{EQ4}{\J\vdash \t_1 \approx \t_2 \\ \J \vdash \tp_1 \approx \tp_2}{\J \vdash \{\Mtype\n{\t_1}{\tp_1} ~ \b{\mt_1}\} \approx \{\Mtype\n{\t_2}{\tp_2} ~ \b{\mt_2}\}}
+\end{mathpar}
+
 \renewcommand{\P}{\Mxt P}
 \newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
 \begin{mathpar}
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
   \Sigma,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
-  \typeof\tp \neq \typeof\tpp \\
+  \cdot \vdash \tp \not\approx \tpp \\
   \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
   \b{\rectype{\meet\Sigma{\ap:\tpp},\K',\sigma,\ap,\t_f} = \Sigma'~\K''}
 }
@@ -745,7 +761,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
   \emptyset,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
-  \typeof\tp = \typeof\tpp \\
+  \cdot \vdash \tp \approx \tpp \\
 }{
   \rectype{\Sigma,\K,\sigma, \a, \t} = \Sigma~\K
 }
