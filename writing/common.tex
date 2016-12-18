@@ -693,12 +693,12 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
-\newcommand{\rectype}[1]{\xt{recType}(#1)}
-\newcommand{\htype}[1]{\xt{aType}(#1)}
-\newcommand{\fieldtypes}[1]{\xt{fieldTypes}(#1)}
+\newcommand{\rectype}[1]{\xt{rectype}(#1)}
+\newcommand{\htype}[1]{\xt{htype}(#1)}
+\newcommand{\fieldtypes}[1]{\xt{fieldtypes}(#1)}
 \newcommand{\typez}[1]{\xt{types}(#1)}
 \newcommand{\typeof}[1]{\xt{typeof}(#1)}
-\newcommand{\classgen}[1]{\xt{classGen}(#1)}
+\newcommand{\classgen}[1]{\xt{classgen}(#1)}
 
 \begin{align*}
 \Sigma &::= \b{\a:\t}
@@ -760,13 +760,13 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   \htype{\a,\Sigma,\sigma} = \tp\\
   \cdot~\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
   \cdot \vdash \tp \not\approx \tpp \\
-  \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t^*}\\
+  \fieldtypes{\tpp,\K,\s,\a} = \ap_1 \ldots \ap_n, \t^*_1 \ldots \t^*_n\\
   \text{update}(\a : \tpp, \Sigma) = \Sigma_1\\
   \K_1 = \K'\\
 %   \b{\rectype{\ap, \t_f, \s, \K',\meet\Sigma{\a:\tpp}} = \Sigma'~\K''}
-  \forall i \in 1~\ldots~|\b{\a'}|~.~\rectype{\ap_i, {\t^*}_i, \s, \K_i, \Sigma_i} = \Sigma_{i+1}~\K_{i+1}
+  \forall i \in 1~\ldots~n~.~\rectype{\ap_i, \t^*_i, \s, \K_i, \Sigma_i} = \Sigma_{i+1}~\K_{i+1}
 }
-{\rectype{\a, \t, \s, \Kp, \Sigma} = \Sigma_{|\b{\a'}|+1}, \K_{|\b{\a'}| + 1}}
+{\rectype{\a, \t, \s, \Kp, \Sigma} = \Sigma_{n+1}, \K_{n + 1}}
 
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
