@@ -758,16 +758,19 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \begin{mathpar}
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \Sigma,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
+  \cdot~\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
   \cdot \vdash \tp \not\approx \tpp \\
-  \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t_f}\\
-  \b{\rectype{\ap, \t_f, \s, \K',\meet\Sigma{\a:\tpp}} = \Sigma'~\K''}
+  \fieldtypes{\tpp,\K,\s,\a} = \b\ap,\b{\t^*}\\
+  \text{update}(\a : \tpp, \Sigma) = \Sigma_1\\
+  \K_1 = \K'\\
+%   \b{\rectype{\ap, \t_f, \s, \K',\meet\Sigma{\a:\tpp}} = \Sigma'~\K''}
+  \rectype{\ap_i, {\t^*}_i, \s, \K_i, \Sigma_i} = \Sigma_{i+1}~\K_{i+1} ~~~~ \text{for every $i = 1,\ldots,|\b{\a'}|$}
 }
-{\rectype{\a, \t, \s, \K, \Sigma} = \left(\bigsqcap\b{\Sigma'}\right)~\K''}
+{\rectype{\a, \t, \s, \Kp, \Sigma} = \Sigma_{|\b{\a'}|+1}, \K_{|\b{\a'}| + 1}}
 
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \emptyset,\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
+  \cdot~\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
   \cdot \vdash \tp \approx \tpp \\
 }{
   \rectype{\a, \t, \s, \K, \Sigma} = \Sigma~\K
