@@ -732,6 +732,11 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \newcommand{\J}{\Mxt J}
 
+\opdef{
+  $\J \vdash \t \approx \t_1$
+}{
+}
+
 \begin{align*}
 \J &::= \b{\t \approx \t}
 \end{align*}
@@ -739,12 +744,14 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \begin{mathpar}
 \IRule{EQ1}{ }{\J \vdash \t \approx \t }
 
-\IRule{EQ2}{ \J(\t \approx \tp)}{\J \vdash \t \approx \tp}
+\IRule{EQ2}{\t \approx \tp \in \J}{\J \vdash \t \approx \tp}
 
 \IRule{EQ3}{ \J~\C \approx \D \vdash \typeof\C \approx \typeof\D }{\J \vdash \C \approx \D}
 
 \IRule{EQ4}{\J\vdash \t_1 \approx \t_2 \\ \J \vdash \tp_1 \approx \tp_2}{\J \vdash \{\Mtype\n{\t_1}{\tp_1} ~ \b{\mt_1}\} \approx \{\Mtype\n{\t_2}{\tp_2} ~ \b{\mt_2}\}}
 \end{mathpar}
+
+\hrulefill
 
 \renewcommand{\P}{\Mxt P}
 \newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
@@ -790,6 +797,10 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
   Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
 }
 
+\begin{align*}
+\P &::= \dmeet{\t}{\t} \equiv \t
+\end{align*}
+
 \begin{mathpar}
 \IRule{M1}{ }{\P~\K \vdash\dmeet{\t}{\any} \equiv \t\dashv\K}
 
@@ -828,16 +839,16 @@ The figure above is semantics for the meet operator for the semantics of the mon
 
 \begin{verbatim}
 class C:
-	def m1(self,x:C)->Dyn:
-		return 2
+  def m1(self,x:C)->Dyn:
+      return 2
 
 class E:
-	def m1(self,x:E)->Int:
-		return 2
+  def m1(self,x:E)->Int:
+      return 2
 
-c = C()
-e = castE(c)
-c.m1(c)
+ c = C()
+ e = castE(c)
+ c.m1(c)
 \end{verbatim}
 
 
