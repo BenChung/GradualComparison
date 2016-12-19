@@ -5,196 +5,196 @@
 \input{macros}
 \begin{document}
 
-\section*{Target Langage}
+%% \section*{Target Langage}
 
-The target language (TL) is built around a parred down statically typed
-object calculus. The calculus has non-recursive structural
-substyping\footnote{\bf I am not sure that this is the right way to describe
-  what we have -- check it is. JV} without inheritance.\footnote{Structural
-  subtyping is needed for type systems that have a notion of
-  ``consistency''. Inheritance does not add anything other than code reuse.}
-The calculus does not have null values.\footnote{Null adds a source of error
-  but otherwise should not be too interesting. We should mention what is the
-  type of null.} Fields are accessed by automatically provided getter and
-setter methods, respectively denoted \Get\x\f and \Set\x\f\e.\footnote{This
-  is because we want an easy way to interpose on field access in wrappers.}
-Fields appear in type signatures only through the presence of the getter and
-setter methods. Method calls are denoted \Call\x\m\e.\footnote{The single
-  argument limitation is purely to lighten the notation.} Following C\#
-4.0~\cite{} the TL allows a dynamic type, denoted \any, and
-dynamically-typed method invocation, denoted
-\DynCall\x\m\e. Dynamically-typed method invocation treats arguments and
-return value as \any. A new object is created with a class name and a
-sequence of arguments in the order of definition of fields, denoted
-\New\C{\b\e}.  Meta-variable \x ranges over argument names, \a over memory
-locations, \f over field names, \m over method names, \C over class
-names. The language has four different kinds of cast expressions: it has two
-structural casts and two generative casts. The structural subtype cast,
-denoted \SubCast\t\a, asserts that the object at location \a is of type
-\t.  The structural shallow cast, denoted \ShaCast\t\a, asserts that the
-object at location \a has methods with names matching those of \t. This does
-not make any guarantee about the type of arguments.  The generative
-behavioral cast, denoted \BehCast\t\a, will ensure that either \a behaves
-as a \t or that it get stuck. The generative monotonic cast, denoted
-\MonCast\t\a, is a behavioral cast that, in addition, imposes constraints
-on fields.
+%% The target language (TL) is built around a parred down statically typed
+%% object calculus. The calculus has non-recursive structural
+%% substyping\footnote{\bf I am not sure that this is the right way to describe
+%%   what we have -- check it is. JV} without inheritance.\footnote{Structural
+%%   subtyping is needed for type systems that have a notion of
+%%   ``consistency''. Inheritance does not add anything other than code reuse.}
+%% The calculus does not have null values.\footnote{Null adds a source of error
+%%   but otherwise should not be too interesting. We should mention what is the
+%%   type of null.} Fields are accessed by automatically provided getter and
+%% setter methods, respectively denoted \Get\x\f and \Set\x\f\e.\footnote{This
+%%   is because we want an easy way to interpose on field access in wrappers.}
+%% Fields appear in type signatures only through the presence of the getter and
+%% setter methods. Method calls are denoted \Call\x\m\e.\footnote{The single
+%%   argument limitation is purely to lighten the notation.} Following C\#
+%% 4.0~\cite{} the TL allows a dynamic type, denoted \any, and
+%% dynamically-typed method invocation, denoted
+%% \DynCall\x\m\e. Dynamically-typed method invocation treats arguments and
+%% return value as \any. A new object is created with a class name and a
+%% sequence of arguments in the order of definition of fields, denoted
+%% \New\C{\b\e}.  Meta-variable \x ranges over argument names, \a over memory
+%% locations, \f over field names, \m over method names, \C over class
+%% names. The language has four different kinds of cast expressions: it has two
+%% structural casts and two generative casts. The structural subtype cast,
+%% denoted \SubCast\t\a, asserts that the object at location \a is of type
+%% \t.  The structural shallow cast, denoted \ShaCast\t\a, asserts that the
+%% object at location \a has methods with names matching those of \t. This does
+%% not make any guarantee about the type of arguments.  The generative
+%% behavioral cast, denoted \BehCast\t\a, will ensure that either \a behaves
+%% as a \t or that it get stuck. The generative monotonic cast, denoted
+%% \MonCast\t\a, is a behavioral cast that, in addition, imposes constraints
+%% on fields.
 
-\this is a distinguished variable name that denotes the current object.
-\that is a distinguished field name that denotes the target of a wrapper.
+%% \this is a distinguished variable name that denotes the current object.
+%% \that is a distinguished field name that denotes the target of a wrapper.
 
-\D is a meta-variable used to range over dynamically generated class names.
+%% \D is a meta-variable used to range over dynamically generated class names.
 
-\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
-\p &::= \e \b\k \\
-\e &::=  \x &\B \this &\B \that \\
-   &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
-   &\B \New\C{\b\e} \\
-   &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
-   &\B \a \\ 
-% \Mxt{M} &::= ~~\none ~~ \B \b{\t \Sub \t} \\
-% \Mxt{K} &::= ~\none ~~ \B \b{{\k}}     
-\end{tabular}\end{minipage}
-~~
-\begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
-\k &::= \Class \C {\b{\Ftype\f\t}}{\b\md} \\
-\end{tabular}
-\begin{tabular}{l@{~~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e \\
-    &\B  \Mdef\f\x\t\t\e ~\B~ \Mdefz\f\t\e \\
-\mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t  \\
-%     &\B  $\mu$\ta.\mt \\
-\E  &::= \Ftype\x\t  \B \none\\
-\t  &::= ~ \any  \B   \C \\ 
-% \B \ta \\
-\s  &::= ~~\none ~~ \B ~~
-    {\Bind{\a}{\obj\C{\b\a}}}~\s
-\end{tabular}\end{minipage}
+%% \begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
+%% \p &::= \e \b\k \\
+%% \e &::=  \x &\B \this &\B \that \\
+%%    &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
+%%    &\B \New\C{\b\e} \\
+%%    &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
+%%    &\B \a \\ 
+%% % \Mxt{M} &::= ~~\none ~~ \B \b{\t \Sub \t} \\
+%% % \Mxt{K} &::= ~\none ~~ \B \b{{\k}}     
+%% \end{tabular}\end{minipage}
+%% ~~
+%% \begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
+%% \k &::= \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+%% \end{tabular}
+%% \begin{tabular}{l@{~~}l@{}l@{}l}
+%% \md &::= \Mdef\m\x\t\t\e \\
+%%     &\B  \Mdef\f\x\t\t\e ~\B~ \Mdefz\f\t\e \\
+%% \mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t  \\
+%% %     &\B  $\mu$\ta.\mt \\
+%% \E  &::= \Ftype\x\t  \B \none\\
+%% \t  &::= ~ \any  \B   \C \\ 
+%% % \B \ta \\
+%% \s  &::= ~~\none ~~ \B ~~
+%%     {\Bind{\a}{\obj\C{\b\a}}}~\s
+%% \end{tabular}\end{minipage}
 
-The semantics of TL is defined by a small step operational semantics with
-evaluation contexts.  The context are deterministic. Program error is
-denoted by a stuck term. Meta-variable \k ranges over class definitions.
-The semantics operate over an explicit class table, denoted \K, which is a
-sequence of class definitions. A heap, denoted \s, maps memory locations to
-objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
-heap \s extended by the binding of location \a to object \obj\C{\b\a}.  A
-configuration \K\e\s evaluates in one step to a new configuration, denoted
-\Reduce \K\e\s \Kp\ep\sp. Execution terminate if \ep\xspace is a value, \a,
-or if there is no applicable reduction, in which case the program is
-stuck.\footnote{Intuitively we would expect that the program can only get
-  stuck at dynamic calls or at structural casts. But generative casts add
-  some complexity to that statement.}
+%% The semantics of TL is defined by a small step operational semantics with
+%% evaluation contexts.  The context are deterministic. Program error is
+%% denoted by a stuck term. Meta-variable \k ranges over class definitions.
+%% The semantics operate over an explicit class table, denoted \K, which is a
+%% sequence of class definitions. A heap, denoted \s, maps memory locations to
+%% objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
+%% heap \s extended by the binding of location \a to object \obj\C{\b\a}.  A
+%% configuration \K\e\s evaluates in one step to a new configuration, denoted
+%% \Reduce \K\e\s \Kp\ep\sp. Execution terminate if \ep\xspace is a value, \a,
+%% or if there is no applicable reduction, in which case the program is
+%% stuck.\footnote{Intuitively we would expect that the program can only get
+%%   stuck at dynamic calls or at structural casts. But generative casts add
+%%   some complexity to that statement.}
 
-New object creation picks a fresh memory location \ap and binds it to the
-newly created. Operations on fields are require a typed receiver, for
-example in the expression \Get\this\f, \this is always of the type of the
-current class. Field access through a getter method, works as follows. If
-the receiver's class has a getter method, that method is evaluated,
-otherwise the field corresponding the getter's name is updated. Methods are
-segregated into typed method (methods whose argument is not \any) and
-untyped method (methods whose argument is \any). The former can be called by
-statically resolved method, the latter must be called by dynamically
-resolved methods.
+%% New object creation picks a fresh memory location \ap and binds it to the
+%% newly created. Operations on fields are require a typed receiver, for
+%% example in the expression \Get\this\f, \this is always of the type of the
+%% current class. Field access through a getter method, works as follows. If
+%% the receiver's class has a getter method, that method is evaluated,
+%% otherwise the field corresponding the getter's name is updated. Methods are
+%% segregated into typed method (methods whose argument is not \any) and
+%% untyped method (methods whose argument is \any). The former can be called by
+%% statically resolved method, the latter must be called by dynamically
+%% resolved methods.
 
-The auxiliary function \texttt{names} return the list of function names in a class
-or type, functions that have \any as return values are prefixed with the
-symbol \any. The auxiliary function \texttt{typeof} return the type of the object 
-at the location \a in the heap \s. The auxiliary function \texttt{read} return
-the location \ap pointing to the field \f of the object at location \a. The 
-auxiliary function \texttt{write} return the heap \sp with the field \f of
-the object at location \a updated to the location \ap.
+%% The auxiliary function \texttt{names} return the list of function names in a class
+%% or type, functions that have \any as return values are prefixed with the
+%% symbol \any. The auxiliary function \texttt{typeof} return the type of the object 
+%% at the location \a in the heap \s. The auxiliary function \texttt{read} return
+%% the location \ap pointing to the field \f of the object at location \a. The 
+%% auxiliary function \texttt{write} return the heap \sp with the field \f of
+%% the object at location \a updated to the location \ap.
 
 
-\hrulefill
+%% \hrulefill
 
-\begin{minipage}{8cm}
-  \opdef{\Reduce \K\e\s \Kp\ep\sp}
-        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
-\begin{tabular}{@{}l@{}l@{~}l@{~}l}
-\CondRule{E2}{ %% new C -> a
-   \sp = \Heap\s{\Bind\ap{\obj\C{\b\a}}} $\wedge ~$ \ap fresh
-}{ 
-    \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
-}
-\CondRule{E5}{ %% a.f() -> e
-    \Mdefz\f\t\e \In \methods\s\a\K 
-}{
-   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
-}
-\CondRule{E4}{ %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \methods\s\a\K 
-}{
-   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E6}{  %% a.f() -> e
- \ap = \readf \s\a{\f} 
-}{
-  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
-}
-\CondRule{E7}{ %% a.f(e) -> e
- \sp = \setf \s\a{\f}\ap
+%% \begin{minipage}{8cm}
+%%   \opdef{\Reduce \K\e\s \Kp\ep\sp}
+%%         {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
+%% \begin{tabular}{@{}l@{}l@{~}l@{~}l}
+%% \CondRule{E2}{ %% new C -> a
+%%    \sp = \Heap\s{\Bind\ap{\obj\C{\b\a}}} $\wedge ~$ \ap fresh
+%% }{ 
+%%     \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
+%% }
+%% \CondRule{E5}{ %% a.f() -> e
+%%     \Mdefz\f\t\e \In \methods\s\a\K 
+%% }{
+%%    \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
+%% }
+%% \CondRule{E4}{ %% a.f(a) -> e
+%%     \Mdef\f\x\t\t\e \In \methods\s\a\K 
+%% }{
+%%    \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+%% }
+%% \CondRule{E6}{  %% a.f() -> e
+%%  \ap = \readf \s\a{\f} 
+%% }{
+%%   \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
+%% }
+%% \CondRule{E7}{ %% a.f(e) -> e
+%%  \sp = \setf \s\a{\f}\ap
 
-}{
-  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
-}
-\CondRule{E3}{ %% a.m(a) -> e
-  \Mdef\m\x\t\tp\e \In \methods\s\a\K  $\wedge~ \t \not= \any$
-}{
- \ReduceA \K{\Call\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E3}{ %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \methods\s\a\K 
-}{
-  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E10}{  %% Subtypecast
-   \BasicType {\none} {\classoffs\s\a\K \Sub \t} $~\vee~$ \t $= \any$
-}{ 
-  \ReduceA \K{\SubCast \t\a}\s \K\a\s
-}
-\CondRule{E11}{
- \names{\classoffs\s\a\K}  $\supseteq$  \names\t
-}{ 
-  \ReduceA \K{\ShaCast \t\a}\s \K\a\s
-}
-\CondRule{E8}{
-  \behcast \a\t\s\K  \Kp\ap\sp
-}{ 
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
-}
-\CondRule{E9}{
-  \moncast \a\t\s\K  \Kp\sp
-}{ 
-  \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
-}
-\CondRule{E1}{ %% e -> e'
-  \Reduce \K\e\s \Kp\ep\sp
-}{
- \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
-}
-\end{tabular}\end{minipage}
+%% }{
+%%   \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
+%% }
+%% \CondRule{E3}{ %% a.m(a) -> e
+%%   \Mdef\m\x\t\tp\e \In \methods\s\a\K  $\wedge~ \t \not= \any$
+%% }{
+%%  \ReduceA \K{\Call\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+%% }
+%% \CondRule{E3}{ %% a@m(a) -> e
+%%     \Mdef\m\x\any\any\e \In \methods\s\a\K 
+%% }{
+%%   \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+%% }
+%% \CondRule{E10}{  %% Subtypecast
+%%    \BasicType {\none} {\classoffs\s\a\K \Sub \t} $~\vee~$ \t $= \any$
+%% }{ 
+%%   \ReduceA \K{\SubCast \t\a}\s \K\a\s
+%% }
+%% \CondRule{E11}{
+%%  \names{\classoffs\s\a\K}  $\supseteq$  \names\t
+%% }{ 
+%%   \ReduceA \K{\ShaCast \t\a}\s \K\a\s
+%% }
+%% \CondRule{E8}{
+%%   \behcast \a\t\s\K  \Kp\ap\sp
+%% }{ 
+%%   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
+%% }
+%% \CondRule{E9}{
+%%   \moncast \a\t\s\K  \Kp\sp
+%% }{ 
+%%   \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
+%% }
+%% \CondRule{E1}{ %% e -> e'
+%%   \Reduce \K\e\s \Kp\ep\sp
+%% }{
+%%  \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
+%% }
+%% \end{tabular}\end{minipage}
 
-%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-~\\[3mm]
+%% %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ~\\[3mm]
 
-\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
-\E &::= \Get\square\f     ~\B~
-        \Set\square\f\e   ~\B~
-        \Set\a\f\square   ~\B~  
-        \Call\square\m\e   ~\B~
-        \Call\a\m{\square} \\
-   &\B~
-        \DynCall\square\m\e   ~\B~
-        \DynCall\a\m\square   ~\B~\\
-   &\B~
-       \SubCast\t\square  ~\B~
-       \ShaCast\t\square  ~\B~
-       \BehCast\t\square \\ &\B~
-       \MonCast\t\square  ~\B~
-       \New\C{\b \a\,\square\,\b\e}
-\end{tabular}
-\end{minipage}
+%% \begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
+%% \E &::= \Get\square\f     ~\B~
+%%         \Set\square\f\e   ~\B~
+%%         \Set\a\f\square   ~\B~  
+%%         \Call\square\m\e   ~\B~
+%%         \Call\a\m{\square} \\
+%%    &\B~
+%%         \DynCall\square\m\e   ~\B~
+%%         \DynCall\a\m\square   ~\B~\\
+%%    &\B~
+%%        \SubCast\t\square  ~\B~
+%%        \ShaCast\t\square  ~\B~
+%%        \BehCast\t\square \\ &\B~
+%%        \MonCast\t\square  ~\B~
+%%        \New\C{\b \a\,\square\,\b\e}
+%% \end{tabular}
+%% \end{minipage}
 
-\hrulefill
+%% \hrulefill
 
 \opdef{\BasicType \MN {$~\t \Sub \tp$}}{\t is a subtype of \tp}
 \begin{align*}
@@ -663,7 +663,6 @@ In this example, if we were to implement wrappers by wrapping over only the decl
 \newcommand{\tfa}{\text{\emph{for every }}}
 \newcommand{\wh}{\text{\emph{where}}}
 \newcommand{\wc}{\text{wrapClass}}
-\newcommand{\n}{\xt{n}}
 
 \begin{align*}
 \xt{n} &::= \m \B \f
