@@ -805,7 +805,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \begin{mathpar}
 \IRule{RC1}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \cdot~\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K' \\
+  \meett{\cdot, \K, \tp, \t} = \tpp~{\K'} \\ 
   \cdot \vdash \tp \not\approx \tpp \\
 %   \fieldtypes{\tpp,\K,\s,\a} = \ap_1 \ldots \ap_n, \t^*_1 \ldots \t^*_n\\
 %   \text{update}(\a : \tpp, \Sigma) = \Sigma_1\\
@@ -820,7 +820,8 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \IRule{RC2}{
   \htype{\a,\Sigma,\sigma} = \tp\\
-  \cdot~\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
+  \meett{\cdot, \K, \tp, \t} = \tpp~{\K'} \\
+%   \cdot~\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
   \cdot \vdash \tp \approx \tpp \\
 }{
   \rectype{\a, \t, \s, \K, \Sigma} = \Sigma~\K
@@ -843,56 +844,56 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
-%fixme
-\opdef{
-  $\P~\K\vdash \dmeet{\t_1}{\t_2} \equiv \t \dashv \K$
-}{
-  Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
-}
-\begin{align*}
-\P &::= \b{\dmeet{\t}{\t} \mapsto \t}
-\end{align*}
-
-\newcommand{\meetfn}[6]{#1~#2 \vdash \dmeet{#3}{#4} \equiv #5 \dashv #6}
-
-\begin{mathpar}
-\IRule{M1}{ }{\meetfn\P\K\t\any\t\K}
-
-\IRule{M2}{ }{\meetfn\P\K\any\t\t\K}
-
-\IRule{M3}{ }{\meetfn\P\K\t\t\t\K}
-
-\IRule{M4}{
-      \b{\meetfn\P\K{\t_3}{\t_1}{\t_5}{\K'}} \\
-      \meetfn\P{\K'}{\t_2}{\t_4}{\t_6}{\K''} \\
-      \meetfn\P{\K''}{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}}{\Type{\b{\mt_3}}}{\K'''}
-}{
-    \meetfn\P\K{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}}{\Type{\Mtype\n{\b{\t_5}}{\t_6} ~ \b{\mt_3}}}{\K'''}
-} % Did we get co/contravariance right?
-
-\IRule{M5}{ 
-}{ \meetfn\P\K{\Type{\b\mt}}{\Type{}}{\Type{\b\mt}}{\K} }
-
-\IRule{M6}{
-  \Mxt E \text{ fresh}\\
-  \dmeet{\C}{\D} \not\in \text{dom}(\P)\\
-  {\P'} = \P~\dmeet{\C}{\D} \mapsto{\Mxt E} \\
-  {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
-  {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
-  \meetfn{\P'}{\K}{\Type{\b\mt}}{\Type{\b\mtp}}{\tpp}{\K'}\\
-  \K'' = \K'~\classgen{\C,\tpp,\Mxt E,\K'}
-}{
-    \meetfn\P\K\C\D{\Mxt E}{\K''}
-}
-
-\IRule{M7}{
-  \dmeet{\C}{\D} \mapsto {\Mxt E} \in \P
-}{
-    \meetfn\P\K\C\D{\Mxt E}\K
-}
-\end{mathpar}
-
-\hrulefill
+% %fixme
+% \opdef{
+%   $\P~\K\vdash \dmeet{\t_1}{\t_2} \equiv \t \dashv \K$
+% }{
+%   Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
+% }
+% \begin{align*}
+% \P &::= \b{\dmeet{\t}{\t} \mapsto \t}
+% \end{align*}
+% 
+% \newcommand{\meetfn}[6]{#1~#2 \vdash \dmeet{#3}{#4} \equiv #5 \dashv #6}
+% 
+% \begin{mathpar}
+% \IRule{M1}{ }{\meetfn\P\K\t\any\t\K}
+% 
+% \IRule{M2}{ }{\meetfn\P\K\any\t\t\K}
+% 
+% \IRule{M3}{ }{\meetfn\P\K\t\t\t\K}
+% 
+% \IRule{M4}{
+%       \b{\meetfn\P\K{\t_3}{\t_1}{\t_5}{\K'}} \\
+%       \meetfn\P{\K'}{\t_2}{\t_4}{\t_6}{\K''} \\
+%       \meetfn\P{\K''}{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}}{\Type{\b{\mt_3}}}{\K'''}
+% }{
+%     \meetfn\P\K{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}}{\Type{\Mtype\n{\b{\t_5}}{\t_6} ~ \b{\mt_3}}}{\K'''}
+% } % Did we get co/contravariance right?
+% 
+% \IRule{M5}{ 
+% }{ \meetfn\P\K{\Type{\b\mt}}{\Type{}}{\Type{\b\mt}}{\K} }
+% 
+% \IRule{M6}{
+%   \Mxt E \text{ fresh}\\
+%   \dmeet{\C}{\D} \not\in \text{dom}(\P)\\
+%   {\P'} = \P~\dmeet{\C}{\D} \mapsto{\Mxt E} \\
+%   {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
+%   {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
+%   \meetfn{\P'}{\K}{\Type{\b\mt}}{\Type{\b\mtp}}{\tpp}{\K'}\\
+%   \K'' = \K'~\classgen{\C,\tpp,\Mxt E,\K'}
+% }{
+%     \meetfn\P\K\C\D{\Mxt E}{\K''}
+% }
+% 
+% \IRule{M7}{
+%   \dmeet{\C}{\D} \mapsto {\Mxt E} \in \P
+% }{
+%     \meetfn\P\K\C\D{\Mxt E}\K
+% }
+% \end{mathpar}
+% 
+% \hrulefill
 
 \opdef{
   $\meett{\P, \K, \t, \tp} = {\tpp}~\K$
