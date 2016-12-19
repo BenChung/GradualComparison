@@ -838,37 +838,39 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \P &::= \b{\dmeet{\t}{\t} \equiv \t}
 \end{align*}
 
+\newcommand{\meetfn}[6]{#1~#2 \vdash \dmeet{#3}{#4} \equiv #5 \dashv #6}
+
 \begin{mathpar}
-\IRule{M1}{ }{\P~\K \vdash\dmeet{\t}{\any} \equiv \t\dashv\K}
+\IRule{M1}{ }{\meetfn\P\K\t\any\t\K}
 
-\IRule{M2}{ }{\P~\K \vdash\dmeet{\any}{\t} \equiv \t\dashv\K}
+\IRule{M2}{ }{\meetfn\P\K\any\t\t\K}
 
-\IRule{M3}{ }{\P~\K \vdash\dmeet{\t}{\t} \equiv \t\dashv\K}
+\IRule{M3}{ }{\meetfn\P\K\t\t\t\K}
 
 \IRule{M4}{
-      \b{\P~\K\vdash\dmeet{\t_3}{\t_1}  \equiv \t_5\dashv \K'} \\
-    \P~\K' \vdash \dmeet{\t_2}{\t_4} \equiv \t_6\dashv \K''\\
-    \P~\K'' \vdash \dmeet{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} \equiv \Type{\b{\mt_3}} \dashv \K'''
+      \b{\meetfn\P\K{\t_3}{\t_1}{\t_5}{\K'}} \\
+      \meetfn\P{\K'}{\t_2}{\t_4}{\t_6}{\K''} \\
+      \meetfn\P{\K''}{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}}{\Type{\b{\mt_3}}}{\K'''}
 }{
-  \P~\K \vdash \dmeet{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}} \equiv \Type{\Mtype\n{\b{\t_5}}{\t_6} ~ \b{\mt_3}}\dashv\K'''
+    \meetfn\P\K{\Type{\Mtype\n{\b{\t_1}}{\t_2}~ \b{\mt_1}}}{\Type{\Mtype\n{\b{\t_3}}{\t_4} ~ \b{\mt_2}}}{\Type{\Mtype\n{\b{\t_5}}{\t_6} ~ \b{\mt_3}}}{\K'''}
 } % Did we get co/contravariance right?
 
 \IRule{M5}{ 
-}{ \P~\K \vdash \dmeet{\Type{\b\mt}}{\Type{}} \equiv \Type{\b\mt} \dashv \K}
+}{ \meetfn\P\K{\Type{\b\mt}}{\Type{}}{\Type{\b\mt}}{\K} }
 
 \IRule{M7}{
   \Mxt E \text{ fresh}\\
   \dmeet{\C}{\D} \not\in \text{dom}(\P)\\
-  \P~\dmeet{\C}{\D}={\Mxt E}~\K \vdash \dmeet{{\text{typeof}}(\C,\K)}{{\text{typeof}}(\D,\K)} \equiv \t \dashv \K'\\
+  \meetfn{\P~\dmeet{\C}{\D}={\Mxt E}}{\K}{{\text{typeof}}(\C,\K)}{{\text{typeof}}(\D,\K)}\t{\K'}\\
   \K'' = \K'~\classgen{\C,\t,\Mxt E,\K'}
 }{
-  \P~\K \vdash \dmeet{\C}{\D} \equiv {\Mxt E} \dashv \K''
+    \meetfn\P\K\C\D{\Mxt E}{\K''}
 }
 
 \IRule{M8}{
   \dmeet{\C}{\D} = {\Mxt E} \in \P
 }{
-  \P~\K \vdash \dmeet{\C}{\D} \equiv {\Mxt E} \dashv \K
+    \meetfn\P\K\C\D{\Mxt E}\K
 }
 \end{mathpar}
 
