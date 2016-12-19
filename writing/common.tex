@@ -45,7 +45,7 @@ on fields.
 \D is a meta-variable used to range over dynamically generated class names.
 
 \begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
-\p &::= \e \b\k \\
+\p &::= \e \K \\
 \e &::=  \x &\B \this &\B \that \\
    &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
    &\B \New\C{\b\e} \\
@@ -945,6 +945,26 @@ $\classgen{\C,$\=$ ~\C',$\=$ ~\D, \K} = $\\
 
 Our core language supports the core functionality of gradual typing, but none of the surface syntax or quality of life features that full gradual tyyping systems do. To provide a representative surface syntax, we define several translations that convert surface syntax programs in an approximation of the source language into core language ones. 
 
+\newcommand{\progtrans}[2]{#1 ~\hookrightarrow_p~ #2}
+\newcommand{\classtrans}[3]{#1 \vdash #2 ~\hookrightarrow_c~ #3}
+\newcommand{\methtrans}[3]{#1 \vdash #2 ~\hookrightarrow_m~ #3}
+\begin{mathpar}
+\IRule{PT}{
+  \b{\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~\b{\K'}}}
+
+\IRule{CR1}{ 
+  \b{\methtrans{\K}{\md}{\md'}} \\
+  \classtrans{\K}{\K'}{\K''}
+}{\classtrans{\K}{\Class \C {\b{\Ftype\f\t}}{\b\md}~\K'}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\K''}}
+
+\IRule{CR2}{ }{\classtrans{\K}{\cdot}{\cdot}}
+
+\IRule{MT}{
+  \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
+}{\methtrans\K{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}}
+\end{mathpar}
+
 \subsection{Strongscript}
 
 \newcommand{\bC}{\xt{!C}}
@@ -955,120 +975,120 @@ Our core language supports the core functionality of gradual typing, but none of
 
 
 \begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast\E\x\x\t}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
 \IRule{A2}{
-    \GenCast{\E}{\e_1}{\e_3}{\bC} \\ \m(\t_1):\t_2 \in \bC \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\bC} \\ \m(\t_1):\t_2 \in \bC \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}
 }{
-    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\Call{\e_3}\m{\e_4}}{\t_2}
+    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\Call{\e_3}\m{\e_4}}{\t_2}
 }
 
 \IRule{A3}{
-    \GenCast{\E}{\e_1}{\e_3}{\bC} \\ \f(\t_1):\t_1 \in \bC \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\bC} \\ \f(\t_1):\t_1 \in \bC \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}
 }{
-    \GenCast{\E}{\Call{\e_1}\f{\e_2}}{\Call{\e_3}\f{\e_4}}{\t_1}
+    \GenCast{\K}{\E}{\Call{\e_1}\f{\e_2}}{\Call{\e_3}\f{\e_4}}{\t_1}
 }
 
 \IRule{A4}{
-    \GenCast{\E}{\e_1}{\e_2}{\bC} \\ \f():\t_1 \in \bC
+    \GenCast{\K}{\E}{\e_1}{\e_2}{\bC} \\ \f():\t_1 \in \bC
 }{
-    \GenCast{\E}{\Call{\e_1}\f{}}{\Call{\e_2}\f{}}{\t_1}
+    \GenCast{\K}{\E}{\Call{\e_1}\f{}}{\Call{\e_2}\f{}}{\t_1}
 }
 
 \IRule{A5}{
-    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\bC \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1} 
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\bC \in \C \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1} 
 }{
-    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\SubCast{\C}{\DynCall{\e_3}\m{\e_4}}}{\bC} %Q: do I need to cast the return value of non-bang
+    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\SubCast{\C}{\DynCall{\e_3}\m{\e_4}}}{\bC} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A6}{
-    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\C \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1} 
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\C \in \C \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1} 
 }{
-    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\C} %Q: do I need to cast the return value of non-bang
+    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\C} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A6}{
-    \GenCast{\E}{\e_1}{\e_3}{\C} \\ \f(\t_1):\t_1 \in \C \\ \AnaCast{\E}{\e_2}{\e_4}{\t_1}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \f(\t_1):\t_1 \in \C \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}
 }{
-    \GenCast{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\t_1} 
+    \GenCast{\K}{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\t_1} 
 }
 
 \IRule{A7}{
-    \GenCast{\E}{\e_1}{\e_2}{\C} \\ \f():\t_1 \in \C
+    \GenCast{\K}{\E}{\e_1}{\e_2}{\C} \\ \f():\t_1 \in \C
 }{
-    \GenCast{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\t_1} 
+    \GenCast{\K}{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\t_1} 
 }
 
 \IRule{A8}{
-    \GenCast{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\E}{\e_2}{\e_4}{\any}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\any}
 }{
-    \GenCast{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\any}
+    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\any}
 }
 
 \IRule{A9}{
-    \GenCast{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\E}{\e_2}{\e_4}{\any}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\any}
 }{
-    \GenCast{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\any}
+    \GenCast{\K}{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\any}
 }
 
 \IRule{A10}{
-    \GenCast{\E}{\e_1}{\e_2}{\any}
+    \GenCast{\K}{\E}{\e_1}{\e_2}{\any}
 }{
-    \GenCast{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\any}
+    \GenCast{\K}{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\any}
 }
 
 \IRule{A11}{
-  \b{\AnaCast\E{\e_1}{\e_2}\t} \\ 
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
 \hrulefill
 
 \begin{mathpar}
 \IRule{AASC1}{
-  \GenCast{\E}{\e_1}{\e_2}{\bC_2} \\
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\bC_2} \\
   {\C_2}\Sub{\C_1}\\
 }{
-  \AnaCast{\E}{\e_1}{\e_2}{\bC_1}
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\bC_1}
 }
 
 \IRule{AASC2}{
-  \GenCast{\E}{\e_1}{\e_2}{\bC_2} \\
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\bC_2} \\
   {\C_2}\Sub{\C_1}\\
 }{
-  \AnaCast{\E}{\e_1}{\e_2}{\C_1}
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C_1}
 }
 
 \IRule{AASC3}{
-  \GenCast{\E}{\e_1}{\e_2}{\C_2} \\
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\C_2} \\
   {\C_2}\Sub{\C_1}\\
 }{
-  \AnaCast{\E}{\e_1}{\e_2}{\C_1}
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C_1}
 }
 
 \IRule{AASC4}{
-  \GenCast{\E}{\e_1}{\e_2}{\C} \\
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\C} \\
 }{
-  \AnaCast{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+  \AnaCast{\K}{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
 }
 
 \IRule{AASC5}{
-  \GenCast{\E}{\e_1}{\e_2}{\any} \\
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\any} \\
 }{
-  \AnaCast{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+  \AnaCast{\K}{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
 }
 
 \IRule{AASC6}{
-  \GenCast{\E}{\e_1}{\e_2}{\any} \\
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\any} \\
 }{
-  \AnaCast{\E}{\e_1}{\e_2}{\C}
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C}
 }
 
 \IRule{AASC7}{
-  \GenCast{\E}{\e_1}{\e_2}{\t} \\ \t \neq \any
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\t} \\ \t \neq \any
 }{
-  \AnaCast{\E}{\e_1}{\e_2}{\any}
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\any}
 }
 \end{mathpar}
 
