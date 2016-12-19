@@ -64,7 +64,7 @@ on fields.
 \mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t  \\
 %     &\B  $\mu$\ta.\mt \\
 \E  &::= \Ftype\x\t  \B \none\\
-\t  &::= ~ \any  \B   \C  \B   \{\b\mt\} \\ 
+\t  &::= ~ \any  \B   \C \\ 
 % \B \ta \\
 \s  &::= ~~\none ~~ \B ~~
     {\Bind{\a}{\obj\C{\b\a}}}~\s
@@ -200,16 +200,21 @@ Types are represented as a set of methods.
 \hrulefill
 
 \opdef{\BasicType \MN {$~\t \Sub \tp$}}{\t is a subtype of \tp}
+
+\begin{align*}
+\M{M} &::= \C \Sub \C
+\end{align*}
+
 \begin{mathpar}
 \IRule{SRef}{
 }{
  \BasicType \MN {\t \Sub \t}
 }
 
-\IRule{STop}{
-}{
- \BasicType \MN {\t \Sub {\Type{}}}
-}
+% \IRule{STop}{
+% }{
+%  \BasicType \MN {\t \Sub {\Type{}}}
+% }
 
 \IRule{SAssump}{
 \t \Sub \tp \in \M{M} 
@@ -226,7 +231,13 @@ Types are represented as a set of methods.
  \BasicType \MN {\C} \Sub
   \Cp 
 }
+\end{mathpar}
 
+\begin{align*}
+\M{M} &::= \C \Sub \C
+\end{align*}
+
+\begin{mathpar}
 \IRule{SMeth}{
    \BasicType \MN {\t_2 \Sub \t_1} \\ \BasicType \MN {\t_1' \Sub \t_2'} 
 }{
@@ -803,7 +814,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 
 \begin{align*}
-\P &::= \dmeet{\t}{\t} \equiv \t
+\P &::= \b{\dmeet{\t}{\t} \equiv \t}
 \end{align*}
 
 \begin{mathpar}
@@ -834,7 +845,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }
 
 \IRule{M8}{
-  \dmeet{\C}{\D} \equiv {\Mxt E} \in \P
+  \dmeet{\C}{\D} = {\Mxt E} \in \P
 }{
   \P~\K \vdash \dmeet{\C}{\D} \equiv {\Mxt E} \dashv \K
 }
