@@ -452,6 +452,17 @@ types in Transient will drift towards \any.
 
 \hrulefill
 
+\opdef{\ftype\f\C\K}{Auxiliary function: Field type lookup}
+
+\begin{equation*}
+\ftype\f\C\K = \t ~~s.t.~~ \begin{cases}
+
+ \K(\C) = \Class \C {\ldots ~ \Ftype\f\t ~ \ldots}{\b\md}
+\end{cases}
+\end{equation*}
+
+\hrulefill
+
 \opdef{\field\C\K}{Auxiliary function: Field definition}
 
 \begin{equation*}
@@ -693,7 +704,6 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \newcommand{\rectype}[1]{\xt{recType}(#1)}
 \newcommand{\htype}[1]{\xt{aType}(#1)}
 \newcommand{\fieldtypes}[1]{\xt{fieldTypes}(#1)}
-\newcommand{\typez}[1]{\xt{types}(#1)}
 \newcommand{\typeof}[1]{\xt{typeOf}(#1)}
 \newcommand{\classgen}[1]{\xt{classGen}(#1)}
 
@@ -866,25 +876,6 @@ class E:
 }{
   \fieldtypes{\any,\K,\s,\a} = \b\a~\typeof{\b{\Ftype\f\t}}
 }
-
-% The types are not the types shown in the class, but those in the mt(s)
-\IRule{FT3}{
- \s(\a) = \obj\C{\b\a} \\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
- \forall~ \f \in \names{\b{\Ftype\f\t}} ~.~ \f\in\names{\{\b\mt\}} \\ 
- \b{\t_f} = \forall~ \f \in \names{\b{\Ftype\f\t}} ~.~ \typez{\f, \{\b\mt\}}
-}{
-  \fieldtypes{\{\b\mt\},\K,\s,\a} = \b\a~\b{\t_f}
-}
-\end{mathpar}
-
-\hrulefill
-
-\begin{mathpar}
-\IRule{TY}{
-}{
-  \typez{\f,~\dots ~\Mtype\f\t\t~ \dots ~\Mtype\f{}\t~ \dots} = \t
-}
 \end{mathpar}
 
 \hrulefill
@@ -899,10 +890,10 @@ class E:
 \hrulefill
 
 \begin{tabbing}
-$\classgen{\C,$\=$ ~\t,$\=$ ~\D, \K} = $\\
+$\classgen{\C,$\=$ ~\C',$\=$ ~\D, \K} = $\\
 \>$\xt{class}~\D$\=$~\{$\=\\
 \>\>$\f : \tp_1$\\
-\>\>\>$\tfa \f : \t_1 \in \field\C\K \wedge \f:\tp_1 \in \typez{\f,\t}$\\
+\>\>\>$\tfa \f : \t_1 \in \field\C\K \wedge \f:\tp_1 \in \ftype{\f}{\C'}\K$\\
 \\
 \>\>$\Mdefa\n{\b{\HT\x{\any}}}{\any} { \MonCast{\any}{\this.\n(\b{\MonCast{\t_1}{\x}})}}$\\
 \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\t\K \wedge \t_1 \neq \any$\\
