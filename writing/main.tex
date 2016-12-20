@@ -913,7 +913,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
        \BehCast\t\E &\B
        \MonCast\t\E  &\B
        \New\C{\b \a\,\E\,\b\e}
-  &\B \M{\square}
+  &\B \EM{\square}
 \end{tabular}
 \end{minipage}
 
@@ -934,7 +934,89 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\subsection{Subtyping}
 
+Since we don't have inheritance, I think we don't need transitivity. The SRec rule does everythign we need.
+
+\opdef{\BasicType \MN {$~\t \Sub \tp$}}{\t is a subtype of \tp}
+\begin{mathpar}
+
+\IRule{SCRef}{
+}{
+ \BasicType \MN {\t \Sub \t}
+}
+
+\IRule{SAss}{
+\C \Sub \D \in \M
+}{
+ \BasicType \MN {\C \Sub \D}
+}
+
+
+\IRule{SMet}{
+  \Mdef\m\x{\t_2}{\t_2'}\e\In\App\K\C \\
+  \BasicType\MN {\t \Sub \t_2} \\
+  \BasicType\MN {\t_2' \Sub \tp}  
+}{
+ \BasicType \MN {\C\Sub\Mdef\m\x\t\tp\e}
+}
+
+
+
+\IRule{SF1}{
+  \Fdef\f\t\In\App\K\C
+}{
+ \BasicType \MN {\C\Sub\Fdef\f\t}
+}
+
+
+\IRule{SF2}{
+  \Mdef\f\x\t\t\e\In\App\K\C \\
+  \Mdefz\f\t\e\In\App\K\C 
+}{
+ \BasicType \MN {\C\Sub\Fdef\f\t}
+}
+
+
+
+\IRule{SRec}{
+ \Class\D{\b\fd}{\b\md}\in\K\\
+ \M' = \M~\C\Sub\D\\
+ \fd\in\b\fd \implies \BasicType{\M'~\K}{\C\Sub\fd}\\
+ \md\in\b\md \implies \BasicType{\M'~\K}{\C\Sub\md}\\
+}{
+ \BasicType \MN {\C} \Sub \D 
+}
+\end{mathpar}
+
+\hrulefill
+
+\opdef{\BasicType \MN {$~\mt \Sub \mtp$}}{\mt is a subtype of \mtp}
+
+\begin{mathpar}
+\IRule{SMeth}{
+   \BasicType \MN {\t_2 \Sub \t_1} \\ \BasicType \MN {\t_1' \Sub \t_2'} 
+}{
+  \BasicType \MN {\Mtype\m{\t_1}{\t_1'} \Sub \Mtype\m{\t_2}{\t_2'}}
+}
+
+\IRule{SFd1}{
+}{
+ \BasicType \MN {\Mtype\f{}\t \Sub  \Mtype\f{}\t}
+}
+
+\IRule{SFd2}{
+}{
+ \BasicType \MN {\Mtype\f\t\t \Sub \Mtype\f\t\t}
+}
+
+\end{mathpar}
+
+\hrulefill
+
+
+
+\subsection{others}
 
 %TODO Fix ME \mtype\m\C\K = \convert{\methz\m\C\K} 
 
@@ -943,10 +1025,10 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \opdef{\classoff\C\K}{Auxiliary function: Type definition}
 
 \begin{equation*}
-\classoff\C\K = \Mxt{MT} ~~s.t.~~ \begin{cases}
+\classoff\C\K = \EMxt{MT} ~~s.t.~~ \begin{cases}
 
  \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
- \Mxt{MT} = \{\convert{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \b{\names{\md}} ~.~ \convertFD{\Ftype\fp\tp}\}
+ \EMxt{MT} = \{\convert{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \b{\names{\md}} ~.~ \convertFD{\Ftype\fp\tp}\}
 
 \end{cases}
 \end{equation*}
@@ -957,11 +1039,11 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \opdef{\classoffs\a\s\K}{Auxiliary function: Type definition}
 
 \begin{equation*}
-\classoffs\a\s\K = \Mxt{MT} ~~s.t.~~ \begin{cases}
+\classoffs\a\s\K = \EMxt{MT} ~~s.t.~~ \begin{cases}
 
  \s(\a) = \obj\C{\b\a} \\
  \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
- \Mxt{MT} = \{\convert{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \b{\names{\md}} ~.~ \convertFD{\Ftype\fp\tp}\}
+ \EMxt{MT} = \{\convert{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \b{\names{\md}} ~.~ \convertFD{\Ftype\fp\tp}\}
 
 \end{cases}
 \end{equation*}
@@ -1051,7 +1133,7 @@ The semantics uses evaluation context \Ctx\e, meaning that $\e$ is in the
 hole of $\Ctx$. Selecting an object from the heap is written \Sel\s\a, 
 while a heap is extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\C}}.
 
-For an object reference \a, such that \M{\Sel\s\a=\Obj{\dots}\C}, we have 
+For an object reference \a, such that \EM{\Sel\s\a=\Obj{\dots}\C}, we have 
 \classofis{\Sel\s\a}\C and \typeofis\s\a\t.
 
 We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
