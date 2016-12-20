@@ -922,6 +922,230 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \end{figure}
 
 
+\section{Translations}
+
+KafKa provides us with a basis through which we can describe the operation of more typical languages. KafKa requires that the programmer write casts wherever a type boundary is encountered, which is not representative of how actual gradually typed programming languages behave. Most gradually typed programming languages abstract away from the actual casts that are inserted, automatically inserting them and using them at runtime, invisibly to the programmer up until it produces an error.
+
+To represent this, we introduce a \emph{translation} mechanism, that performs much the same duty that this step does. This step works very similarly to how Siek and Taha~\cite{SiekTaha06} described cast insertion, though, thanks to our more complex source and target languages, we cannot entirely use the simple, bottom-up approach that Siek and Taha did.
+
+Instead, we use a \emph{bidirectional} translation mechanism, based on the work originally done by Pierce and Turner~\cite{lti-pierce}. Bidirectional typechecking is, in effect, a local type inference mechanism, and allows us to cleanly identify cast insertion locations in a modular way.
+
+\newcommand{\progtrans}[2]{#1 ~\hookrightarrow_p~ #2}
+\newcommand{\classtrans}[3]{#1 \vdash #2 ~\hookrightarrow_c~ #3}
+\newcommand{\methtrans}[3]{#1 \vdash #2 ~\hookrightarrow_m~ #3}
+\begin{mathpar}
+\IRule{PT}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule{CR1}{ 
+  \b{\methtrans{\K}{\md}{\md'}} \\
+  \classtrans{\K}{\K'}{\K''}
+}{\classtrans{\K}{\Class \C {\b{\Ftype\f\t}}{\b\md}~\K'}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\K''}}
+
+\IRule{CR2}{ }{\classtrans{\K}{\cdot}{\cdot}}
+
+\IRule{MT}{
+  \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
+}{\methtrans\K{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}}
+\end{mathpar}
+
+\subsection{Strongscript}
+
+\newcommand{\bC}{\xt{!C}}
+
+\begin{tabular}{l@{~~}l@{}l@{}l}
+\t  &::= ~ \any \B \C \B \bC \\ 
+\end{tabular}
+
+\newcommand{\ba}{\xt{!}}
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+
+\IRule[width=30em]{A2}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\bC} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+}
+
+\IRule{A5}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m({\t_1}):\ba\D \in \classoff\C\K \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}} 
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\SubCast{\D}{\DynCall{\e_3}\m{{\e_4}}}}{\bC} %Q: do I need to cast the return value of non-bang
+}
+
+\IRule{A6}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \t_2 \neq \ba\D \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1} }
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\C} %Q: do I need to cast the return value of non-bang
+}
+
+\IRule{A8}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule{A11}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{AASC1}{
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\bC_2} \\
+  {\C_2}\Sub{\C_1}\\
+}{
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\bC_1}
+}
+
+\IRule{AASC2}{
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\bC_2} \\
+  \K \vdash {\C_2}\Sub{\C_1}\\
+}{
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C_1}
+}
+
+\IRule{AASC3}{
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\C_2} \\
+  {\C_2}\Sub{\C_1}\\
+}{
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C_1}
+}
+
+\IRule{AASC4}{
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\C} \\
+}{
+  \AnaCast{\K}{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+}
+
+\IRule{AASC5}{
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\any} \\
+}{
+  \AnaCast{\K}{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+}
+
+\IRule{AASC6}{
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\any} \\
+}{
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C}
+}
+
+\IRule{AASC7}{
+  \GenCast{\K}{\E}{\e_1}{\e_2}{\t} \\ \t \neq \any
+}{
+  \AnaCast{\K}{\E}{\e_1}{\e_2}{\any}
+}
+\end{mathpar}
+
+\subsection{Typed Racket}
+
+The Typed Racket formalism we present is not strictly limited to the Typed Racket language - as in that case, we would be modelling a normal typed object calculus, and not a gradual type system.
+
+As a result, we present the interaction between modules written in both Typed Racket and Racket. Notably, we do not represent the limitation that typed code can only exist in one language and untyped code in the other, as it does not have a considerable impact on the semantics of the language, at least at the level we are considering.
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+
+\IRule[width=30em]{A2}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+}
+
+\IRule{A8}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule{A11}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+Typed Racket uses the simplest translation, as it does not introduce any new types, and relies entirely on wrappers to ensure correctness. As a result, we can use just two rules for calling - one for typed, the other for typed - and the rest of the cases simply reduce trivially.
+
+\begin{mathpar}
+\IRule{AASC1}{
+  \GenCast\K\E\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+
+\IRule{AASC2}{
+  \GenCast\K\E\e\ep\tp
+}{
+  \AnaCast\K\E\e{\BehCast\t\ep}\t
+}
+\end{mathpar}
+
+Likewise, as Typed Racket imposes no restrictions on what is technically possible to assert types on, we do not either. If the system cannot statically show compatibility, then it will wrap whatever it encountered to ensure that its behaviour is correct, then pass it on.
+
+\subsection{Reticulated Python}
+
+Reticulated Python is somewhat more complicated, as it implements three different semantics, though not simultaneously. As a result, we will show translations for each of its three semantics options.
+
+The most notable difference between Reticulated and the other systems at the surface level is the use of \emph{consistency}, an operator broadly meaning that one type is compatible with another type. In our system, we define conistency as follows:
+\newcommand{\consistent}[3]{#1 \vdash #2 ~\sim~ #3}
+\begin{mathpar}
+\IRule{C1}{\meett{\cdot, \K, \C, \D} = \t~{\K'}}{\consistent\K{\C}{\D}}
+\end{mathpar}
+
+In effect, if there is some most specific type for two given types, then the two types are consistent - it is possible that a value of one could be converted into the other with a runtime cast.
+
+\paragraph{Guarded}
+
+The guarded semantics for Reticulated Python is essentially identical to the semantics we propose for Typed Racket, where values are converted from typed to untyped by wrappers applied over boundaries. The only notable difference in our context is that the guarded semantics uses consistency to ensure that the types are actually convertible, whereas the Typed Racket system will always allow values to pass.
+
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+
+\IRule[width=30em]{A2}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+}
+
+\IRule{A8}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule{A11}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule{AASC1}{
+  \GenCast\K\E\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+
+\IRule{AASC2}{
+  \GenCast\K\E\e\ep\tp \\
+  \consistent\K\t\tp
+}{
+  \AnaCast\K\E\e{\BehCast\t\ep}\t
+}
+\end{mathpar}
+
+
+\paragraph{Transient}
+\paragraph{Monotonic}
+
+
 \bibliographystyle{plain}
 \bibliography{../bib/compactdoi}
 
@@ -1083,6 +1307,14 @@ the object stored at \a in \s.
 
 
 \end{document}
+
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
 
 
 
