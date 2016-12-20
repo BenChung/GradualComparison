@@ -866,7 +866,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
   \ReduceA \K{\SubCast \any\a}\s \K\a\s
 }
 \CondRule{E9}{  %% Subtypecast
-  \BasicType {\K} {\C \Sub \D} \AND \obj\C{\b\a} = \App\s\a
+  \StrSub {}\K\C \D \AND \obj\C{\b\a} = \App\s\a
 }{ 
   \ReduceA \K{\SubCast \D\a}\s \K\a\s
 }
@@ -936,45 +936,48 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 
 \subsection{Subtyping}
 
-Since we don't have inheritance, I think we don't need transitivity. The SRec rule does everythign we need.
+The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
+is a subtype of \tp in the environment composed of a set of subtyping \M and
+a class table \K.   The set of subtypings can be omitted if empty.
 
-\opdef{\BasicType \MN {$~\t \Sub \tp$}}{\t is a subtype of \tp}
+
+\opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
 \begin{mathpar}
 
-\IRule{SCRef}{
+\IRule{SRef}{
 }{
- \BasicType \MN {\t \Sub \t}
+ \StrSub\M\K \t \t
 }
 
 \IRule{SAss}{
 \C \Sub \D \in \M
 }{
- \BasicType \MN {\C \Sub \D}
+ \StrSub \M\K \C \D
 }
 
 
 \IRule{SMet}{
   \Mdef\m\x{\t_2}{\t_2'}\e\In\App\K\C \\
-  \BasicType\MN {\t \Sub \t_2} \\
-  \BasicType\MN {\t_2' \Sub \tp}  
+  \StrSub \M\K \t {\t_2} \\
+  \StrSub \M\K {\t_2'} \tp
 }{
- \BasicType \MN {\C\Sub\Mdef\m\x\t\tp\e}
+ \StrSub \M\K \C {\Mdef\m\x\t\tp\e}
 }
 
 
 
-\IRule{SF1}{
+\IRule{SGet}{
   \Fdef\f\t\In\App\K\C
 }{
- \BasicType \MN {\C\Sub\Fdef\f\t}
+ \StrSub \M\K \C {\Fdef\f\t}
 }
 
 
-\IRule{SF2}{
+\IRule{SSet}{
   \Mdef\f\x\t\t\e\In\App\K\C \\
   \Mdefz\f\t\e\In\App\K\C 
 }{
- \BasicType \MN {\C\Sub\Fdef\f\t}
+ \StrSub \M\K \C {\Fdef\f\t}
 }
 
 
@@ -982,10 +985,10 @@ Since we don't have inheritance, I think we don't need transitivity. The SRec ru
 \IRule{SRec}{
  \Class\D{\b\fd}{\b\md}\in\K\\
  \M' = \M~\C\Sub\D\\
- \fd\in\b\fd \implies \BasicType{\M'~\K}{\C\Sub\fd}\\
- \md\in\b\md \implies \BasicType{\M'~\K}{\C\Sub\md}\\
+ \fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
+ \md\in\b\md \implies \StrSub{\M'}\K \C \md\\
 }{
- \BasicType \MN {\C} \Sub \D 
+ \StrSub \M\K \C \D 
 }
 \end{mathpar}
 
