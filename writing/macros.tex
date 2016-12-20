@@ -42,6 +42,7 @@
 \newcommand{\that}{\Mxt{that}}
 \newcommand{\none}{\M{\cdot}}
 \newcommand{\D}   {\Mxt D}
+\newcommand{\Dp}   {\Mxt{D'}}
 \newcommand{\p}   {\Mxt p}
 
 \newcommand{\Get}[2]   {\M{#1.#2()}}
@@ -56,11 +57,10 @@
 \newcommand{\BehCast}[2]{\M{\blacktriangleleft #1 \blacktriangleright #2}}
 \newcommand{\new}      {\M{\bt{new}}}
 \newcommand{\HT}[2]    {\M{{#1}\!:{#2}}}
-\newcommand{\Mdef}[5]  {\M{ \HT{ #1( \HT{#2}{#3})}{#4}~\{\,{#5}\,\}}}
-\newcommand{\Mdefz}[3] {\M{ \HT{ #1()}{#2}~\{\,{#3}\,\}}}
-\newcommand{\Mdefa}[4]  {\M{ \HT{ #1( #2 )}{#3}~\{\,{#4}\,\}}}
+\newcommand{\Mdef}[5]  {\M{ \HT{ #1( \HT{#2}{#3})}{#4}\;\{{#5}\}}}
+\newcommand{\Mdefz}[3] {\M{ \HT{ #1()}{#2}\;\{{#3}\}}}
+\newcommand{\Mdefa}[4]  {\M{ \HT{ #1( #2 )}{#3}~\{{#4}\}}}
 \newcommand{\Ctx}[1]   {\M{\E[#1]}}
-\newcommand{\Obj}[2]   { \M{ #2\{#1\}}}
 \newcommand{\obj}[2]   { \M{ #1\{#2\}}}
 \newcommand{\alloc}[4] {\M{#1\;#2  = \xt{alloc}(#3, #4)}}
 \newcommand{\cast}[8]  {\M{#6\;#7\;#8=\xtns{#5 cast}(#1, #2, #3, #4)}}
@@ -96,7 +96,7 @@
 
 \newcommand{\ConsSub}{\M{\lesssim}}
 
-\newcommand{\CondRule}[3]{ #3 &~{\emph{if}} #2 \\}
+\newcommand{\CondRule}[3]{ #3 &~ #2 \\}
 \newcommand{\SuchRule}[3]{ #3 &~{\emph{s.t.}} #2 \\}
 \newcommand{\EnvType}[3]{ \M{#1 \vdash #2 : #3}}
 \newcommand{\BasicType}[2]{ \M{#1 \vdash #2}}
@@ -120,13 +120,9 @@
 \newcommand{\AnaCast}[5]{#1~#2 \vdash #3 \Downarrow #5 \hookrightarrow #4}
 \newcommand{\TransClass}[2]{\M{ #1 \rightharpoonup #2 }}
 \newcommand{\inv}[2]{\xt{invoke}(#1, #2)}
-\newcommand{\classof}[3]{\M{\xt{typeof}(#1,#2,#3)}}
 \newcommand{\classoff}[2]{\M{\xt{mtypes}(#1,#2)}}
 \newcommand{\classoffs}[3]{\M{\xt{mtypes}(#1,#2,#3)}}
-\newcommand{\methdef}[3]{\M{\xt{methdef}(#1,#2,#3)}}
-\newcommand{\method}[2]{\M{\xt{method}(#1,#2)}}
-\newcommand{\methods}[3]{\M{\xt{method}(#1,#2,#3)}}
-\newcommand{\methz}[3]{\M{\xt{mdef}(#1,#2,#3)}}
+\newcommand{\mdef}[2]{\M{\xt{md}(#1,#2)}}
 \newcommand{\mtype}[3]{\M{\xt{mtype}(#1,#2,#3)}}
 \newcommand{\ftype}[3]{\M{\xt{ftype}(#1,#2,#3)}}
 
@@ -136,3 +132,7 @@
 \newcommand{\T}{\M{\xt T}}
 \newcommand{\Cast}{Cast }
 \newcommand{\fb}{\M{\xt{f!}}}
+
+\newcommand{\classof}[1]{\M{\xt{classof}(#1)}}
+\newcommand{\AND}{\M{\wedge}}
+\newcommand{\App}[2]{\M{#1(#2)}}
