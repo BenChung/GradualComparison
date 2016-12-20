@@ -1,284 +1,9 @@
-%!TEX output_directory=pdfs
 \documentclass[a4paper,UKenglish,final]{tex/lipics-v2016}
 \usepackage{xspace,listings,url,framed,amssymb,
             amsmath,tex/mathpartir,hyperref,stmaryrd, graphicx, mathtools}
 \input{macros}
 \begin{document}
 
-\section*{Target Langage}
-
-The target language (TL) is built around a parred down statically typed
-object calculus. The calculus has non-recursive structural
-substyping\footnote{\bf I am not sure that this is the right way to describe
-  what we have -- check it is. JV} without inheritance.\footnote{Structural
-  subtyping is needed for type systems that have a notion of
-  ``consistency''. Inheritance does not add anything other than code reuse.}
-The calculus does not have null values.\footnote{Null adds a source of error
-  but otherwise should not be too interesting. We should mention what is the
-  type of null.} Fields are accessed by automatically provided getter and
-setter methods, respectively denoted \Get\x\f and \Set\x\f\e.\footnote{This
-  is because we want an easy way to interpose on field access in wrappers.}
-Fields appear in type signatures only through the presence of the getter and
-setter methods. Method calls are denoted \Call\x\m\e.\footnote{The single
-  argument limitation is purely to lighten the notation.} Following C\#
-4.0~\cite{} the TL allows a dynamic type, denoted \any, and
-dynamically-typed method invocation, denoted
-\DynCall\x\m\e. Dynamically-typed method invocation treats arguments and
-return value as \any. A new object is created with a class name and a
-sequence of arguments in the order of definition of fields, denoted
-\New\C{\b\e}.  Meta-variable \x ranges over argument names, \a over memory
-locations, \f over field names, \m over method names, \C over class
-names. The language has four different kinds of cast expressions: it has two
-structural casts and two generative casts. The structural subtype cast,
-denoted \SubCast\t\a, asserts that the object at location \a is of type
-\t.  The structural shallow cast, denoted \ShaCast\t\a, asserts that the
-object at location \a has methods with names matching those of \t. This does
-not make any guarantee about the type of arguments.  The generative
-behavioral cast, denoted \BehCast\t\a, will ensure that either \a behaves
-as a \t or that it get stuck. The generative monotonic cast, denoted
-\MonCast\t\a, is a behavioral cast that, in addition, imposes constraints
-on fields.
-
-\this is a distinguished variable name that denotes the current object.
-\that is a distinguished field name that denotes the target of a wrapper.
-
-\D is a meta-variable used to range over dynamically generated class names.
-
-\begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
-\p &::= \e \b\k \\
-\e &::=  \x &\B \this &\B \that \\
-   &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
-   &\B \New\C{\b\e} \\
-   &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
-   &\B \a \\ 
-% \Mxt{M} &::= ~~\none ~~ \B \b{\t \Sub \t} \\
-% \Mxt{K} &::= ~\none ~~ \B \b{{\k}}     
-\end{tabular}\end{minipage}
-~~
-\begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
-\k &::= \Class \C {\b{\Ftype\f\t}}{\b\md} \\
-\end{tabular}
-\begin{tabular}{l@{~~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e \\
-    &\B  \Mdef\f\x\t\t\e ~\B~ \Mdefz\f\t\e \\
-\mt &::= \Mtype\m\t\t ~\B~  \Mtype\f\t\t  ~\B~ \Mtype\f{}\t  \\
-%     &\B  $\mu$\ta.\mt \\
-\E  &::= \Ftype\x\t  \B \none\\
-\t  &::= ~ \any  \B   \C \\ 
-% \B \ta \\
-\s  &::= ~~\none ~~ \B ~~
-    {\Bind{\a}{\obj\C{\b\a}}}~\s
-\end{tabular}\end{minipage}
-
-The semantics of TL is defined by a small step operational semantics with
-evaluation contexts.  The context are deterministic. Program error is
-denoted by a stuck term. Meta-variable \k ranges over class definitions.
-The semantics operate over an explicit class table, denoted \K, which is a
-sequence of class definitions. A heap, denoted \s, maps memory locations to
-objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
-heap \s extended by the binding of location \a to object \obj\C{\b\a}.  A
-configuration \K\e\s evaluates in one step to a new configuration, denoted
-\Reduce \K\e\s \Kp\ep\sp. Execution terminate if \ep\xspace is a value, \a,
-or if there is no applicable reduction, in which case the program is
-stuck.\footnote{Intuitively we would expect that the program can only get
-  stuck at dynamic calls or at structural casts. But generative casts add
-  some complexity to that statement.}
-
-New object creation picks a fresh memory location \ap and binds it to the
-newly created. Operations on fields are require a typed receiver, for
-example in the expression \Get\this\f, \this is always of the type of the
-current class. Field access through a getter method, works as follows. If
-the receiver's class has a getter method, that method is evaluated,
-otherwise the field corresponding the getter's name is updated. Methods are
-segregated into typed method (methods whose argument is not \any) and
-untyped method (methods whose argument is \any). The former can be called by
-statically resolved method, the latter must be called by dynamically
-resolved methods.
-
-The auxiliary function \texttt{names} return the list of function names in a class
-or type, functions that have \any as return values are prefixed with the
-symbol \any. The auxiliary function \texttt{typeof} return the type of the object 
-at the location \a in the heap \s. The auxiliary function \texttt{read} return
-the location \ap pointing to the field \f of the object at location \a. The 
-auxiliary function \texttt{write} return the heap \sp with the field \f of
-the object at location \a updated to the location \ap.
-
-
-\hrulefill
-
-\begin{minipage}{8cm}
-  \opdef{\Reduce \K\e\s \Kp\ep\sp}
-        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
-\begin{tabular}{@{}l@{}l@{~}l@{~}l}
-\CondRule{E2}{ %% new C -> a
-   \sp = \Heap\s{\Bind\ap{\obj\C{\b\a}}} $\wedge ~$ \ap fresh
-}{ 
-    \ReduceA \K{\New\C{\b\a}}\s \K\ap\sp
-}
-\CondRule{E5}{ %% a.f() -> e
-    \Mdefz\f\t\e \In \methods\s\a\K 
-}{
-   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
-}
-\CondRule{E4}{ %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \methods\s\a\K 
-}{
-   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E6}{  %% a.f() -> e
- \ap = \readf \s\a{\f} 
-}{
-  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
-}
-\CondRule{E7}{ %% a.f(e) -> e
- \sp = \setf \s\a{\f}\ap
-
-}{
-  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
-}
-\CondRule{E3}{ %% a.m(a) -> e
-  \Mdef\m\x\t\tp\e \In \methods\s\a\K  $\wedge~ \t \not= \any$
-}{
- \ReduceA \K{\Call\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E3}{ %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \methods\s\a\K 
-}{
-  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E10}{  %% Subtypecast
-   \BasicType {\none} {\classoffs\s\a\K \Sub \t} $~\vee~$ \t $= \any$
-}{ 
-  \ReduceA \K{\SubCast \t\a}\s \K\a\s
-}
-\CondRule{E11}{
- \names{\classoffs\s\a\K}  $\supseteq$  \names\t
-}{ 
-  \ReduceA \K{\ShaCast \t\a}\s \K\a\s
-}
-\CondRule{E8}{
-  \behcast \a\t\s\K  \Kp\ap\sp
-}{ 
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
-}
-\CondRule{E9}{
-  \moncast \a\t\s\K  \Kp\sp
-}{ 
-  \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
-}
-\CondRule{E1}{ %% e -> e'
-  \Reduce \K\e\s \Kp\ep\sp
-}{
- \ReduceA \K{\Ctx\e}\s \Kp{\Ctx\ep}\sp
-}
-\end{tabular}\end{minipage}
-
-%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-~\\[3mm]
-
-\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
-\E &::= \Get\square\f     ~\B~
-        \Set\square\f\e   ~\B~
-        \Set\a\f\square   ~\B~  
-        \Call\square\m\e   ~\B~
-        \Call\a\m{\square} \\
-   &\B~
-        \DynCall\square\m\e   ~\B~
-        \DynCall\a\m\square   ~\B~\\
-   &\B~
-       \SubCast\t\square  ~\B~
-       \ShaCast\t\square  ~\B~
-       \BehCast\t\square \\ &\B~
-       \MonCast\t\square  ~\B~
-       \New\C{\b \a\,\square\,\b\e}
-\end{tabular}
-\end{minipage}
-
-\hrulefill
-
-\opdef{\BasicType \MN {$~\t \Sub \tp$}}{\t is a subtype of \tp}
-\begin{align*}
-\M{M} &::= \C \Sub \C
-\end{align*}
-
-\begin{mathpar}
-\IRule{SCRef}{
-}{
- \BasicType \MN {\C \Sub \C}
-}
-
-\IRule{SARef}{
-}{
- \BasicType \MN {\any \Sub \any}
-}
-
-\IRule{SAssump}{
-\C \Sub \Cp \in \M{M} 
-}{
- \BasicType \MN {\C \Sub \Cp}
-}
-
-\IRule{STrans}{
- \BasicType \MN {\t \Sub \tpp} \\
- \BasicType \MN {\tpp \Sub \tp} \\ 
-}{
- \BasicType \MN {\t \Sub \tp}
-}
-
-\IRule{SRec}{
- \Class \C {\Ftype{\f_1}{\t_1}~\dots~\Ftype{\f_q}{\t_q}}{\md_1 ~\dots~ \md_n} \in \K \\
- \Class \Cp {\Ftype{\fp_1}{\tp_1}~\dots~\Ftype{\fp_p}{\tp_p}}{\mdpp_1 ~\dots~ \mdpp_m} \in \K \\
- n \geq m \qquad q \geq p\\
- \BasicType {\MNargs{\C \Sub  \C'}} {\convert{\md_1}\Sub\convert{\mdpp_1}} ~\dots~
- \BasicType {\MNargs{\C \Sub  \C'}} {\convert{\md_m}\Sub\convert{\mdpp_m}} \\
- \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_1}{}{\t_1} \Sub  \Mtype{\fp_1}{}{\tp_1}} ~\dots~
- \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_p}{}{\t_p} \Sub  \Mtype{\fp_p}{}{\tp_p}} \\
- \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_1}{\t_1}{\t_1} \Sub  \Mtype{\fp_1}{\tp_1}{\tp_1}} ~\dots~
- \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_p}{\t_p}{\t_p} \Sub  \Mtype{\fp_p}{\tp_p}{\tp_p}} \\
-}{
- \BasicType \MN {\C} \Sub \Cp 
-}
-
-% \IRule{SRec}{
-%  \Class \C {\b{\Ftype{\f}{\t}}}{\b\md} \in \K \\
-%  \Class \Cp {\b{\Ftype{\fp}{\tp}}}{\b{\mdpp}} \in \K \\
-% %  n \geq m \qquad q \geq p\\
-% %  \BasicType {\MNargs{\C \Sub  \C'}} {\convert{\md_1}\Sub\convert{\mdpp_1}} ~\dots~
-% %  \BasicType {\MNargs{\C \Sub  \C'}} {\convert{\md_m}\Sub\convert{\mdpp_m}} \\
-% %  \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_1}{}{\t_1} \Sub  \Mtype{\fp_1}{}{\tp_1}} ~\dots~
-% %  \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_p}{}{\t_p} \Sub  \Mtype{\fp_p}{}{\tp_p}} \\
-% %  \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_1}{\t_1}{\t_1} \Sub  \Mtype{\fp_1}{\tp_1}{\tp_1}} ~\dots~
-% %  \BasicType {\MNargs{\C \Sub  \C'}} {\Mtype{\f_p}{\t_p}{\t_p} \Sub  \Mtype{\fp_p}{\tp_p}{\tp_p}} \\
-% }{
-%  \BasicType \MN {\C} \Sub \Cp 
-% }
-
-\end{mathpar}
-
-\hrulefill
-
-\opdef{\BasicType \MN {$~\mt \Sub \mtp$}}{\mt is a subtype of \mtp}
-
-\begin{mathpar}
-\IRule{SMeth}{
-   \BasicType \MN {\t_2 \Sub \t_1} \\ \BasicType \MN {\t_1' \Sub \t_2'} 
-}{
-  \BasicType \MN {\Mtype\m{\t_1}{\t_1'} \Sub \Mtype\m{\t_2}{\t_2'}}
-}
-
-\IRule{SFd1}{
-}{
- \BasicType \MN {\Mtype\f{}\t \Sub  \Mtype\f{}\t}
-}
-
-\IRule{SFd2}{
-}{
- \BasicType \MN {\Mtype\f\t\t \Sub \Mtype\f\t\t}
-}
-
-\end{mathpar}
-
-\hrulefill
 
 \opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{Well-formed class}
 \begin{mathpar}
@@ -445,142 +170,12 @@ types in Transient will drift towards \any.
 }
 \end{mathpar}
 
-
 %%% defining the auxiliary functions below, they include:
 %%% methdef
 %%% typeof
 %%% read (field)
 %%% write (field)
 
-\hrulefill
-
-\opdef{\methz\m\C\K}{Auxiliary function: Method definition}
-
-\begin{equation*}
-\methz\m\C\K = \Mdef\m\x\t\t\e ~~s.t.~~ \begin{cases}
-
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\dots \Mdef\m\x\t\t\e \dots} \\
-%  \m == \names\md  \\
-\end{cases}
-\end{equation*}
-
-\hrulefill
-
-\opdef{\mtype\m\C\K}{Auxiliary function: Method definition}
-
-\mtype\m\C\K = \convert{\methz\m\C\K} 
-
-\hrulefill
-
-\opdef{\classoff\C\K}{Auxiliary function: Type definition}
-
-\begin{equation*}
-\classoff\C\K = \Mxt{MT} ~~s.t.~~ \begin{cases}
-
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
- \Mxt{MT} = \{\convert{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \b{\names{\md}} ~.~ \convertFD{\Ftype\fp\tp}\}
-
-\end{cases}
-\end{equation*}
-
-\hrulefill
-
-
-\opdef{\classoffs\a\s\K}{Auxiliary function: Type definition}
-
-\begin{equation*}
-\classoffs\a\s\K = \Mxt{MT} ~~s.t.~~ \begin{cases}
-
- \s(\a) = \obj\C{\b\a} \\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
- \Mxt{MT} = \{\convert{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \b{\names{\md}} ~.~ \convertFD{\Ftype\fp\tp}\}
-
-\end{cases}
-\end{equation*}
-
-\hrulefill
-
-\opdef{\ftype\f\C\K}{Auxiliary function: Field type lookup}
-
-\begin{equation*}
-\ftype\f\C\K = \t ~~s.t.~~ \begin{cases}
-
- \K(\C) = \Class \C {\ldots ~ \Ftype\f\t ~ \ldots}{\b\md}
-\end{cases}
-\end{equation*}
-
-\hrulefill
-
-\opdef{\field\C\K}{Auxiliary function: Field definition}
-
-\begin{equation*}
-\field\C\K = \b{\Ftype\f\t} ~~s.t.~~ \begin{cases}
-
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}
-\end{cases}
-\end{equation*}
-
-\hrulefill
-
-\opdef{\method\C\K}{Auxiliary function: Method definition}
-
-\begin{equation*}
-\method\C\K = \b\md ~~s.t.~~ \begin{cases}
-
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}\\
-\end{cases}
-\end{equation*}
-
-\hrulefill
-
-\opdef{\methods\a\s\K}{Auxiliary function: Method definition}
-
-\begin{equation*}
-\methods\a\s\K = \b\md ~~s.t.~~ \begin{cases}
-
- \s(\a) = \obj\C{\b\a} \\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md}\\
-\end{cases}
-\end{equation*}
-
-% \hrulefill
-
-% \opdef{\classof\a\s\K}{Auxiliary function: Type definition}
-% 
-% \begin{equation*}
-% \classof\a\s\K = \classoff\C\K ~~s.t.~~ \begin{cases}
-% 
-%  \s(\a) = \obj\C{\b\a}\\
-% 
-% \end{cases}
-% \end{equation*}
-
-\hrulefill
-
-\opdef{\readf \s\a\f}{Auxiliary function: Field read}
-
-\begin{equation*}
-\readf \s\a{\f_{i}} = \a_{i} ~~s.t.~~ \begin{cases}
-
- \s(\a) = \obj\C{\dots \a_{i} \dots}\\
- \K(\C) = \Class \C {\dots \Ftype{\f_{i}}{\t_{i}} \dots}{\b\md}\\
-\end{cases}
-\end{equation*}
-
-\hrulefill
-
-\opdef{\setf \s\a\f\ap}{Auxiliary function: Field write}
-
-\begin{equation*}
-\setf \s\a{\f_{i}}\ap = \sp ~~s.t.~~ \begin{cases}
-
- \s(\a) = \obj\C{\dots \a_{i} \dots}\\
- \K(\C) = \Class \C {\dots \Ftype{\f_{i}}{\t_{i}} \dots}{\b\md}\\
- \sp = \s[\Bind{\a}{\obj\C{\dots \ap \dots}}]
-\end{cases}
-\end{equation*}
-
-\hrulefill
 
 \opdef{\convert{\md}}{Conversion function: Method definition to method type}
 
@@ -786,7 +381,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
-\newcommand{\J}{\Mxt J}
+\newcommand{\J}{\EMxt J}
 
 \opdef{
   $\J \vdash \t \approx \t_1$
@@ -800,7 +395,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
-\renewcommand{\P}{\Mxt P}
+\renewcommand{\P}{\EMxt P}
 \newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
 \begin{mathpar}
 \IRule{RC1}{
@@ -912,21 +507,21 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \IRule{M3}{ }{\meett{\P, \K, \t, \t} = \t~\K}
 
 \IRule{M4}{
-  \Mxt E \text{ fresh}\\
+  \E \text{ fresh}\\
   \dmeet{\C}{\D} \not\in \text{dom}(\P) \\
-  {\P'} = \P~\dmeet{\C}{\D} \mapsto {\Mxt E} \\
+  {\P'} = \P~\dmeet{\C}{\D} \mapsto \E \\
   {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
   {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
   \meett{{\P'}, {\K}, {\Type{\b\mt}}, {\Type{\b\mtp}}} = \tpp~{\K'}\\
-  \K'' = \K'~\classgen{\C,\tpp,\Mxt E,\K'}\\
+  \K'' = \K'~\classgen{\C,\tpp,\E,\K'}\\
 }{
-    \meett{\P, \K, \C, \D} = {\Mxt E}~{\K''}
+    \meett{\P, \K, \C, \D} = \E~{\K''}
 }
 
 \IRule{M5}{
-    \P(\dmeet{\C}{\D}) = {\Mxt E}
+    \P(\dmeet{\C}{\D}) = \E
 }{
-    \meett{\P, \K, \C, \D} = {\Mxt E}~\K
+    \meett{\P, \K, \C, \D} = \E~\K
 }
 
 \end{mathpar}
@@ -993,15 +588,6 @@ class E:
 
 \hrulefill
 
-% \begin{mathpar}
-% \IRule{TO}{
-% }{
-%   \typeof{\Ftype\f\t} = \t
-% }
-% \end{mathpar}
-% 
-% \hrulefill
-
 \begin{tabbing}
 $\classgen{\C,$\=$ ~\C',$\=$ ~\D, \K} = $\\
 \>$\xt{class}~\D$\=$~\{$\=\\
@@ -1028,8 +614,8 @@ Our core language supports the core functionality of gradual typing, but none of
 \newcommand{\methtrans}[3]{#1 \vdash #2 ~\hookrightarrow_m~ #3}
 \begin{mathpar}
 \IRule{PT}{
-  \b{\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~\b{\K'}}}
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule{CR1}{ 
   \b{\methtrans{\K}{\md}{\md'}} \\
@@ -1051,68 +637,32 @@ Our core language supports the core functionality of gradual typing, but none of
 \t  &::= ~ \any \B \C \B \bC \\ 
 \end{tabular}
 
-
+\newcommand{\ba}{\xt{!}}
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
-\IRule{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\bC} \\ \m(\t_1):\t_2 \in \bC \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}
+\IRule[width=30em]{A2}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\bC} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\Call{\e_3}\m{\e_4}}{\t_2}
-}
-
-\IRule{A3}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\bC} \\ \f(\t_1):\t_1 \in \bC \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}
-}{
-    \GenCast{\K}{\E}{\Call{\e_1}\f{\e_2}}{\Call{\e_3}\f{\e_4}}{\t_1}
-}
-
-\IRule{A4}{
-    \GenCast{\K}{\E}{\e_1}{\e_2}{\bC} \\ \f():\t_1 \in \bC
-}{
-    \GenCast{\K}{\E}{\Call{\e_1}\f{}}{\Call{\e_2}\f{}}{\t_1}
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule{A5}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\bC \in \C \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1} 
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\ba\D \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}} 
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\SubCast{\C}{\DynCall{\e_3}\m{\e_4}}}{\bC} %Q: do I need to cast the return value of non-bang
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\SubCast{\D}{\DynCall{\e_3}\n{\b{\e_4}}}}{\bC} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A6}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m(\t_1):\C \in \C \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1} 
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \t_2 \neq \ba\D \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1} }
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\C} %Q: do I need to cast the return value of non-bang
-}
-
-\IRule{A6}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \f(\t_1):\t_1 \in \C \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}
-}{
-    \GenCast{\K}{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\t_1} 
-}
-
-\IRule{A7}{
-    \GenCast{\K}{\E}{\e_1}{\e_2}{\C} \\ \f():\t_1 \in \C
-}{
-    \GenCast{\K}{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\t_1} 
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\DynCall{\e_3}\n{\b{\e_4}}}{\C} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A8}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\any}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{\e_2}}{\DynCall{\e_3}\m{\e_4}}{\any}
-}
-
-\IRule{A9}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ \AnaCast{\K}{\E}{\e_2}{\e_4}{\any}
-}{
-    \GenCast{\K}{\E}{\Call{\e_1}\f{\e_2}}{\DynCall{\e_3}\f{\e_4}}{\any}
-}
-
-\IRule{A10}{
-    \GenCast{\K}{\E}{\e_1}{\e_2}{\any}
-}{
-    \GenCast{\K}{\E}{\Call{\e_1}\f{}}{\DynCall{\e_2}\f{}}{\any}
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\DynCall{\e_3}\n{\b{\e_4}}}{\any}
 }
 
 \IRule{A11}{
