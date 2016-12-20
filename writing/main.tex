@@ -545,10 +545,11 @@ from the naive interpretation of wrapping, where each time we go from A1 to
 A2 we acquire a new weapper. At the end of this program, a call to a would
 go through 1000 different objects!
 
-While approaches to help simplify this particular problem exist, little progress has been made in eliminating
-it entirely, at least to acceptible levels. As a concequence, two other systems have been added in Reticulated
-Python that take a different perspective on the issue of how to ensure soundness, but at lower cost in memory
-and levels of indirection.
+While approaches to help simplify this particular problem exist, little
+progress has been made in eliminating it entirely, at least to acceptible
+levels. As a concequence, two other systems have been added in Reticulated
+Python that take a different perspective on the issue of how to ensure
+soundness, but at lower cost in memory and levels of indirection.
 
 \subsubsection{Transient}
 
@@ -568,8 +569,9 @@ the return type is correct, the transient semantics for Reticulated Python
 has the callee enforce the types on the arguments and the caller enforce the
 type of the return value.
 
-To illustrate this, consider figure~\ref{fig:guard2}. If we look at the execution trace that produces
-the error, we find the following sequence of events happened:
+To illustrate this, consider figure~\ref{fig:guard2}. If we look at the
+execution trace that produces the error, we find the following sequence of
+events happened:
 \begin{enumerate}
 \item Evaluate \verb|A1()| to value \xt{v}
 \item Wrap \xt{v} with wrapper \xt{A2W}, producing \xt{vw}
@@ -581,9 +583,10 @@ the error, we find the following sequence of events happened:
 \item \xt{A2W} finds that ``2foo'' is not an integer, and errors.
 \end{enumerate}
 
-Likewise, in figure~\ref{fig:guard3}, we would end up with steps 5 and (a successful) step 8 repeated
-1000 times in the execution trace. However, we can ``bake in'' the checks added by \xt{A2W} into the
-program itself, resulting in figure~\ref{fig:trans1}.
+Likewise, in figure~\ref{fig:guard3}, we would end up with steps 5 and (a
+successful) step 8 repeated 1000 times in the execution trace. However, we
+can ``bake in'' the checks added by \xt{A2W} into the program itself,
+resulting in figure~\ref{fig:trans1}.
 
 \begin{figure}[h]
 \begin{verbatim}
@@ -610,9 +613,11 @@ wrappers added at type transitions. However, while the transient semantics
 is able to preserve the execution trace, the site at which the error happens
 is somewhat different.
 
-In the guarded semantics, step 8 happened \emph{before} the function \verb|a| was able to return, and therefore
-the caller effectively never saw the wrong type. In the transient semantics, the caller is now responsible for 
-ensuring that the types of the values passed into it are correct, which has two key implications.
+In the guarded semantics, step 8 happened \emph{before} the function
+\verb|a| was able to return, and therefore the caller effectively never saw
+the wrong type. In the transient semantics, the caller is now responsible
+for ensuring that the types of the values passed into it are correct, which
+has two key implications.
 
 The first is that the site where errors occur is now slightly
 different. When a function returns a value that does not match up with the
@@ -684,8 +689,6 @@ languages by compilation to a core calculus, named \name.
 Following the design of C\# 4.0, \name is a statically typed class-based
 calculus with dynamic dispatch.
 
-
-
 In order to support the notion of consistency, we choose a structural type
 system for \name.  The calculus does not have inheritance between classes.
 
@@ -722,14 +725,11 @@ methods or field names.
 
 \begin{figure}[!h]
 \begin{minipage}{7cm}\begin{tabular}{l@{~~}l@{}l@{}l@{}ll}
-\p &::= \e \b\k \\
-\e &::=  \x &\B \this &\B \that \\
-   &\B \Get\e\f    &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
+\e &::=  \x         &\B \this         &\B \that \\
+   &\B \Get\e\f     &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
    &\B \New\C{\b\e} \\
-   &\B \SubCast\t\e  &\B \ShaCast\t\e    &\B \BehCast\t\e &\B  \MonCast\t\e \\
+   &\B \SubCast\t\e &\B \ShaCast\t\e  &\B \BehCast\t\e &\B  \MonCast\t\e \\
    &\B \a \\ 
-% \Mxt{M} &::= ~~\none ~~ \B \b{\t \Sub \t} \\
-% \Mxt{K} &::= ~\none ~~ \B \b{{\k}}     
 \end{tabular}\end{minipage}
 ~~
 \begin{minipage}{6cm}\begin{tabular}{l@{~~}l@{}l}
