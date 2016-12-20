@@ -723,6 +723,10 @@ methods or field names.
 
 \a is ranges over heap addresses.
 
+\k ranges over class definitions consisting of a class name, followed by
+a, possibly empty, sequence of field definitions, \fd, and a, possibly empty,
+sequence of method definitions, \md.
+
 \begin{figure}[!h]
 \hrulefill
 
@@ -751,50 +755,63 @@ methods or field names.
 % \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
 
 
-The language has four different kinds of cast expressions: it has two
-structural casts and two generative casts. The structural subtype cast,
-denoted \SubCast\t\a, asserts that the object at location \a is of type
-\t.  The structural shallow cast, denoted \ShaCast\t\a, asserts that the
-object at location \a has methods with names matching those of \t. This does
-not make any guarantee about the type of arguments.  The generative
-behavioral cast, denoted \BehCast\t\a, will ensure that either \a behaves
-as a \t or that it get stuck. The generative monotonic cast, denoted
-\MonCast\t\a, is a behavioral cast that, in addition, imposes constraints
-on fields.
+\name has four different kinds of cast expressions, two are structural and
+two are generative. The structural subtype cast, denoted \SubCast\t\a,
+asserts that the object at location \a is of type \t.  The structural
+shallow cast, denoted \ShaCast\t\a, asserts that the object at location \a
+has methods with names matching those of \t. This does not make any
+guarantee about the type of arguments.  The generative behavioral cast,
+denoted \BehCast\t\a, will ensure that either \a behaves as a \t or that it
+get stuck. The generative monotonic cast, denoted \MonCast\t\a, is a
+behavioral cast that, in addition, imposes constraints on fields.
 
 
-The semantics of TL is defined by a small step operational semantics with
-evaluation contexts.  The context are deterministic. Program error is
-denoted by a stuck term. Meta-variable \k ranges over class definitions.
+\subsection{Semantics}
+
+The semantics of \name is defined by a small step operational semantics with
+evaluation contexts.
+
+Evaluation context deterministically identifiy the next expression to evaluate.
+
+Program error is denoted by a stuck term.
+
 The semantics operate over an explicit class table, denoted \K, which is a
-sequence of class definitions. A heap, denoted \s, maps memory locations to
+sequence of class definitions.
+
+A heap, denoted \s, maps memory locations to
 objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
-heap \s extended by the binding of location \a to object \obj\C{\b\a}.  A
-configuration \K\e\s evaluates in one step to a new configuration, denoted
-\Reduce \K\e\s \Kp\ep\sp. Execution terminate if \ep\xspace is a value, \a,
-or if there is no applicable reduction, in which case the program is
-stuck.\footnote{Intuitively we would expect that the program can only get
-  stuck at dynamic calls or at structural casts. But generative casts add
-  some complexity to that statement.}
+heap \s extended by the binding of location \a to object \obj\C{\b\a}.
 
-New object creation picks a fresh memory location \ap and binds it to the
-newly created. Operations on fields are require a typed receiver, for
-example in the expression \Get\this\f, \this is always of the type of the
-current class. Field access through a getter method, works as follows. If
-the receiver's class has a getter method, that method is evaluated,
-otherwise the field corresponding the getter's name is updated. Methods are
-segregated into typed method (methods whose argument is not \any) and
-untyped method (methods whose argument is \any). The former can be called by
-statically resolved method, the latter must be called by dynamically
-resolved methods.
+A configuration \K\e\s evaluates in one step to a new configuration, denoted
+\Reduce \K\e\s \Kp\ep\sp.
 
-The auxiliary function \texttt{names} return the list of function names in a class
-or type, functions that have \any as return values are prefixed with the
-symbol \any. The auxiliary function \texttt{typeof} return the type of the object 
-at the location \a in the heap \s. The auxiliary function \texttt{read} return
-the location \ap pointing to the field \f of the object at location \a. The 
-auxiliary function \texttt{write} return the heap \sp with the field \f of
-the object at location \a updated to the location \ap.
+Execution terminate if \ep\xspace is a value, \a, or if there is no applicable
+reduction, in which case the program is stuck.\footnote{Intuitively we would
+  expect that the program can only get stuck at dynamic calls or at
+  structural casts. But generative casts add some complexity to that
+  statement.}
+
+New object creation picks a fresh memory location  and binds it to the
+newly created.
+
+Operations on fields require a typed receiver, for example in the expression
+\Get\this\f, \this is always of the type of the current class. Field access
+through a getter method, works as follows. If the receiver's class has a
+getter method, that method is evaluated, otherwise the field corresponding
+the getter's name is updated.
+
+Methods are segregated into typed method (methods whose argument is not
+\any) and untyped method (methods whose argument is \any). The former can be
+called by statically resolved method, the latter must be called by
+dynamically resolved methods.
+
+The auxiliary function \xt{names} return the list of function names in a
+class or type, functions that have \any as return values are prefixed with
+the symbol \any. The auxiliary function \xt{typeof} return the type of the
+object at the location \a in the heap \s. The auxiliary function \xt{read}
+return the location \ap pointing to the field \f of the object at location
+\a. The auxiliary function \xt{write} return the heap \sp with the field \f
+of the object at location \a updated to the location \ap.
 
 \begin{figure}[!h]
 \hrulefill
@@ -869,21 +886,21 @@ the object at location \a updated to the location \ap.
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ~\\[3mm]
 
-\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l}
-\E &::= \Get\square\f     ~\B~
-        \Set\square\f\e   ~\B~
-        \Set\a\f\square   ~\B~  
-        \Call\square\m\e   ~\B~
-        \Call\a\m{\square} \\
+\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+\E &::= \Get\E\f     &\B
+        \Set\E\f\e   &\B
+        \Set\a\f\E   &\B  
+        \Call\E\m\e  &\B
+        \Call\a\m{\E} &\B
+        \DynCall\E\m\e   &\B
+        \DynCall\a\m\E   \\
    &\B~
-        \DynCall\square\m\e   ~\B~
-        \DynCall\a\m\square   ~\B~\\
-   &\B~
-       \SubCast\t\square  ~\B~
-       \ShaCast\t\square  ~\B~
-       \BehCast\t\square \\ &\B~
-       \MonCast\t\square  ~\B~
-       \New\C{\b \a\,\square\,\b\e}
+       \SubCast\t\E  &\B
+       \ShaCast\t\E  &\B
+       \BehCast\t\E &\B
+       \MonCast\t\E  &\B
+       \New\C{\b \a\,\E\,\b\e}
+  &\B \M{\square}
 \end{tabular}
 \end{minipage}
 
