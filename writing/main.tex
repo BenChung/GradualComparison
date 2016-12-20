@@ -926,13 +926,13 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \bibliography{../bib/compactdoi}
 
 \appendix
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Auxiliary Definitions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Subtyping}
 
@@ -993,6 +993,30 @@ a class table \K.   The set of subtypings can be omitted if empty.
 \end{mathpar}
 
 \hrulefill
+
+\subsection{Field read}
+
+We write \readf\s\a\f to denote a read of field \f from the object
+stored at \a in \s.
+
+\begin{equation*}
+\readf \s\a{\f} = \ap ~~\mathit{if}~~  \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots} \AND
+ \K(\C) = \Class \C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}
+\end{equation*}
+
+\subsection{Write field}
+
+We write \setf\s\a\f\ap to denote the write of value \ap into field \f of
+the object stored at \a in \s.
+
+\begin{equation*}
+\setf \s\a{\f_{i}}\ap = \sp ~~\mathit{if}~~ \begin{cases}
+ \s(\a) = \obj\C{\a_1\dots\a_n\, \a'' \dots}\\
+ \K(\C) = \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\\
+ \sp = \s[\Bind{\a}{\obj\C{\a_1\dots\a_n\, \ap \dots}}]
+\end{cases}
+\end{equation*}
+
 
 
 
