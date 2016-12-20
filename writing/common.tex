@@ -8,7 +8,8 @@
 \opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{Well-formed class}
 \begin{mathpar}
 \IRule{WFClass}{
- \b{\names{\md}} $~unique$ \\
+ \b{\mnames{\md}} $~unique$ \\
+ \b{\fnames{\md}} $~pair$ \\
  \b\f $~unique$ \\
  \BasicType {\none ~\none ~\K} {\b\md \OK} \\
  \BasicType {\K} {\b\t \OK} \\
@@ -19,26 +20,21 @@
 
 \hrulefill
 
-\opdef{\BasicType \Sk {$~\md \OK$}}{Well-formed method}
+\opdef{\BasicType {\E~ \s~ \K} {$~\md \OK$}}{Well-formed method}
 \begin{mathpar}
 \IRule[width=18em]{WFMethT}{
- \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t}\\
- \BasicType {\K} {\tp \OK} \\
- \BasicType {\K} {\t \OK} \\
- \t \neq \any \\
- \tp \neq \any \\
+ \EnvType {\EsE{\Ftype\x\C}}{\e}{\D}\\
+ \BasicType {\K} {\C \OK} \\
+ \BasicType {\K} {\D \OK} \\
 }{
- \BasicType {\E~ \s~ \K} {\Mdef\m\x\tp\t\e \OK}
+ \BasicType {\E~ \s~ \K} {\Mdef\m\x\C\D\e \OK}
 }
 
 \IRule[width=18em]{WFMethUT}{
- \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t}\\
- \BasicType {\K} {\tp \OK} \\
- \BasicType {\K} {\t \OK} \\
- \t = \any \\
- \tp = \any \\
+ \EnvType {\EsE{\Ftype\x\any}}{\e}{\any}\\
+ \BasicType {\K} {\any \OK} \\
 }{
- \BasicType {\E~ \s~ \K} {\Mdef\m\x\tp\t\e \OK}
+ \BasicType {\E~ \s~ \K} {\Mdef\m\x\any\any\e \OK}
 }
 
 \IRule{WFFieldS}{
@@ -496,7 +492,7 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 %   Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
 }
 \begin{align*}
-\P &::= \b{\dmeet{\t}{\t} \mapsto \t}
+\P &::= \b{(\t,\tp) \mapsto \tpp}
 \end{align*}
 
 \begin{mathpar}
@@ -507,21 +503,21 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \IRule{M3}{ }{\meett{\P, \K, \t, \t} = \t~\K}
 
 \IRule{M4}{
-  \E \text{ fresh}\\
-  \dmeet{\C}{\D} \not\in \text{dom}(\P) \\
-  {\P'} = \P~\dmeet{\C}{\D} \mapsto \E \\
+  \EC \text{ fresh}\\
+  ({\C},{\D}) \not\in \text{dom}(\P) \\
+  {\P'} = \P,~({\C},{\D}) \mapsto \EC \\
   {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
   {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
   \meett{{\P'}, {\K}, {\Type{\b\mt}}, {\Type{\b\mtp}}} = \tpp~{\K'}\\
-  \K'' = \K'~\classgen{\C,\tpp,\E,\K'}\\
+  \K'' = \K'~\classgen{\C,\tpp,\EC,\K'}\\
 }{
-    \meett{\P, \K, \C, \D} = \E~{\K''}
+    \meett{\P, \K, \C, \D} = \EC~{\K''}
 }
 
 \IRule{M5}{
-    \P(\dmeet{\C}{\D}) = \E
+    \P({\C},{\D}) = \EC
 }{
-    \meett{\P, \K, \C, \D} = \E~\K
+    \meett{\P, \K, \C, \D} = \EC~\K
 }
 
 \end{mathpar}
@@ -539,11 +535,26 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 }{ \meett{\P, \K, {\Type{\b\mt}}, {\Type{}}} = {\Type{\b\mt}}~{\K} }
 
 \IRule{M7}{
-      \b{\meett{\P, \K, {\t_3}, {\t_1}} = {\t_5}~{\K'}} \\
+      \meett{\P, \K, {\t_3}, {\t_1}} = {\t_5}~{\K'} \\
       \meett{\P, {\K'}, {\t_2}, {\t_4}} = {\t_6}~{\K''} \\
       \meett{\P, {\K''}, {\Type{\b{\mt_1}}}, {\Type{\b{\mt_2}}}} = {\Type{\b{\mt_3}}}~{\K'''}
 }{
-    \meett{\P, \K, {\Type{\Mtype\n{\b{\t_1}}{\t_2}~\b{\mt_1}}}, {\Type{\Mtype\n{\b{\t_3}}{\t_4}~\b{\mt_2}}}} = {\Type{\Mtype\n{\b{\t_5}}{\t_6}~\b{\mt_3}}}~{\K'''}
+    \meett{\P, \K, {\Type{\Mtype\m{{\t_1}}{\t_2}~\b{\mt_1}}}, {\Type{\Mtype\m{{\t_3}}{\t_4}~\b{\mt_2}}}} = {\Type{\Mtype\m{{\t_5}}{\t_6}~\b{\mt_3}}}~{\K'''}
+}
+
+\IRule{M8}{
+      {\meett{\P, \K, {\t_3}, {\t_1}} = {\t_5}~{\K'}} \\
+      \meett{\P, {\K'}, {\t_2}, {\t_4}} = {\t_6}~{\K''} \\
+      \meett{\P, {\K''}, {\Type{\b{\mt_1}}}, {\Type{\b{\mt_2}}}} = {\Type{\b{\mt_3}}}~{\K'''}
+}{
+    \meett{\P, \K, {\Type{\Mtype\f{{\t_1}}{\t_2}~\b{\mt_1}}}, {\Type{\Mtype\f{{\t_3}}{\t_4}~\b{\mt_2}}}} = {\Type{\Mtype\f{{\t_5}}{\t_6}~\b{\mt_3}}}~{\K'''}
+}
+
+\IRule{M9}{
+      \meett{\P, {\K}, {\t_2}, {\t_4}} = {\t_6}~{\K'} \\
+      \meett{\P, {\K'}, {\Type{\b{\mt_1}}}, {\Type{\b{\mt_2}}}} = {\Type{\b{\mt_3}}}~{\K''}
+}{
+    \meett{\P, \K, {\Type{\Mtype\f{{}}{\t_2}~\b{\mt_1}}}, {\Type{\Mtype\f{{}}{\t_4}~\b{\mt_2}}}} = {\Type{\Mtype\f{{}}{\t_6}~\b{\mt_3}}}~{\K''}
 }
 \end{mathpar}
 

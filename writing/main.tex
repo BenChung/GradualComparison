@@ -943,7 +943,6 @@ a class table \K.   The set of subtypings can be omitted if empty.
 
 \opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
 \begin{mathpar}
-
 \IRule{SRef}{
 }{
  \StrSub\M\K \t \t
@@ -966,7 +965,7 @@ a class table \K.   The set of subtypings can be omitted if empty.
 
 
 
-\IRule{SGet}{
+\IRule{SFie}{
   \Fdef\f\t\In\App\K\C
 }{
  \StrSub \M\K \C {\Fdef\f\t}
@@ -974,10 +973,15 @@ a class table \K.   The set of subtypings can be omitted if empty.
 
 
 \IRule{SSet}{
-  \Mdef\f\x\t\t\e\In\App\K\C \\
-  \Mdefz\f\t\e\In\App\K\C 
+  \Fdef\f\t\In\App\K\C
 }{
- \StrSub \M\K \C {\Fdef\f\t}
+ \StrSub \M\K \C {\Mdef\f\x\t\t\e}
+}
+
+\IRule{SGet}{
+  \Fdef\f\t\In\App\K\C
+}{
+ \StrSub \M\K \C {\Mdefz\f\t\e}
 }
 
 
@@ -985,8 +989,8 @@ a class table \K.   The set of subtypings can be omitted if empty.
 \IRule{SRec}{
  \Class\D{\b\fd}{\b\md}\in\K\\
  \M' = \M~\C\Sub\D\\
- \fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
- \md\in\b\md \implies \StrSub{\M'}\K \C \md\\
+ \forall~\fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
+ \forall~\md\in\b\md \implies \StrSub{\M'}\K \C \md\\
 }{
  \StrSub \M\K \C \D 
 }
