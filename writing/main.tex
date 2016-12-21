@@ -1150,12 +1150,24 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 
 
 \begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+\IRule{MTU}{
+  \AnaCast{\K}{\HT\x\any}{\e}{\ep}{\any}
+}{\methtrans\K{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}}
+
+\IRule{MTT}{
+  \t \neq \any \\
+  \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
+}{\methtrans\K{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt A2}{\ShaCast\t\x, \e}.f2()}}}}
+\end{mathpar}
+
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
 \IRule[width=30em]{A2}{
     \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\n{\b{\e_4}}}}     {\t_2}
 }
 
 \IRule{A8}{
@@ -1180,9 +1192,9 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 
 \IRule{AASC2}{
   \GenCast\K\E\e\ep\tp \\
-  \consistent\K\t\tp
+  \consistent\K\tp\t
 }{
-  \AnaCast\K\E\e{\BehCast\t\ep}\t
+  \AnaCast\K\E\e\ep\t
 }
 \end{mathpar}
 
@@ -1207,8 +1219,9 @@ The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
 is a subtype of \tp in the environment composed of a set of subtyping \M and
 a class table \K.   The set of subtypings can be omitted if empty.
 
+~\\
 
-% \opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
+\opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
 \begin{mathpar}
 \IRule{SRef}{
 }{
@@ -1221,7 +1234,19 @@ a class table \K.   The set of subtypings can be omitted if empty.
  \StrSub \M\K \C \D
 }
 
+\IRule{SRec}{
+ \Class\D{\b\fd}{\b\md}\in\K\\
+ \M' = \M~\C\Sub\D\\
+ \fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
+ \md\in\b\md \implies \StrSub{\M'}\K \C \md\\
+}{
+ \StrSub \M\K \C \D 
+}
+\end{mathpar}
 
+Several auxiliary rules are used in the subtype judgement. 
+
+\begin{mathpar}
 \IRule{SMet}{
   \Mdef\m\x{\t_2}{\t_2'}\e\In\App\K\C \\
   \StrSub \M\K \t {\t_2} \\
@@ -1230,14 +1255,11 @@ a class table \K.   The set of subtypings can be omitted if empty.
  \StrSub \M\K \C {\Mdef\m\x\t\tp\e}
 }
 
-
-
 \IRule{SFie}{
   \Fdef\f\t\In\App\K\C
 }{
  \StrSub \M\K \C {\Fdef\f\t}
 }
-
 
 \IRule{SSet}{
   \Fdef\f\t\In\App\K\C
@@ -1250,20 +1272,76 @@ a class table \K.   The set of subtypings can be omitted if empty.
 }{
  \StrSub \M\K \C {\Mdefz\f\t\e}
 }
+\end{mathpar}
 
+\subsection{Well-formedness}
 
+The overloading function is meant to check that every typed method is
+defined once. Every untyped method is defined once. A class has either a
+field \f or a pair of getter and setters.
 
-\IRule{SRec}{
- \Class\D{\b\fd}{\b\md}\in\K\\
- \M' = \M~\C\Sub\D\\
- \forall~\fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
- \forall~\md\in\b\md \implies \StrSub{\M'}\K \C \md\\
+\opdef{\WF{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
+
+\begin{mathpar}
+\IRule{WC}{
+ \xt{overloading}(\b\fd,\b\md)\OK \\
+ \fd\in\b\fd\implies \WF \none\s\K \fd \\
+ \md\in\b\md\implies \WF \none\s\K \md 
 }{
- \StrSub \M\K \C \D 
+ \WF {}\s\K {\Class \C {\b\fd}{\b\md}}
 }
 \end{mathpar}
 
-\hrulefill
+We have some auxiliary judgements.
+
+\begin{mathpar}
+\IRule[width=18em]{WT}{
+ \EnvType {\EsE{\Ftype\x\C}}{\e}{\D}\\
+ \WFtype\K\C \\
+ \WFtype\K\D \\
+}{
+ \WF \E\s\K {\Mdef\m\x\C\D\e}
+}
+
+\IRule[width=18em]{WU}{
+ \EnvType {\EsE{\Ftype\x\any}}\e\any\\
+}{
+ \WF \E\s\K{\Mdef\m\x\any\any\e}
+}
+
+\IRule{WS}{
+ \EnvType {\EsE{\Ftype\x\tp}}\e\t \\
+ \WFtype \K\t 
+}{
+ \WF  \E\s\K {\Mdef\f\x\t\t\e}
+}
+
+\IRule{WF}{
+ \WFtype \K\t 
+}{
+ \WF  \E\s\K {\Fdef\f\t}
+}
+
+\IRule{WG}{
+ \EnvType \Es\e\t \\
+ \WFtype \K\t
+}{
+ \WF \E\s\K {\Mdefz\f\t\e}
+}
+
+
+\IRule{WA}{
+}{
+ \WFtype \K \any
+}
+
+\IRule{WC}{
+ \C \in \K
+}{
+ \WFtype  \K\C
+}
+\end{mathpar}
+
 
 \subsection{Field read}
 

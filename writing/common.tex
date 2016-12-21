@@ -5,72 +5,6 @@
 \begin{document}
 
 
-\opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{Well-formed class}
-\begin{mathpar}
-\IRule{WFClass}{
- \b{\mnames{\md}} $~unique$ \\
- \b{\fnames{\md}} $~pair$ \\
- \b\f $~unique$ \\
- \BasicType {\none ~\none ~\K} {\b\md \OK} \\
- \BasicType {\K} {\b\t \OK} \\
-}{
- \BasicType {\K} {\Class \C {\b{\Ftype\f\t}}{\b\md} \OK}
-}
-\end{mathpar}
-
-\hrulefill
-
-\opdef{\BasicType {\E~ \s~ \K} {$~\md \OK$}}{Well-formed method}
-\begin{mathpar}
-\IRule[width=18em]{WFMethT}{
- \EnvType {\EsE{\Ftype\x\C}}{\e}{\D}\\
- \BasicType {\K} {\C \OK} \\
- \BasicType {\K} {\D \OK} \\
-}{
- \BasicType {\E~ \s~ \K} {\Mdef\m\x\C\D\e \OK}
-}
-
-\IRule[width=18em]{WFMethUT}{
- \EnvType {\EsE{\Ftype\x\any}}{\e}{\any}\\
- \BasicType {\K} {\any \OK} \\
-}{
- \BasicType {\E~ \s~ \K} {\Mdef\m\x\any\any\e \OK}
-}
-
-\IRule{WFFieldS}{
- \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t} \\
- \BasicType {\K} {\tp \OK} \\
- \BasicType {\K} {\t \OK}
-}{
- \BasicType {\E ~\s ~\K} {\Mdef\f\x\tp\t\e \OK}
-}
-
-\IRule{WFFieldR}{
- \EnvType \Es\e\t \\
- \BasicType {\K} {\t \OK} 
-}{
- \BasicType {\E~ \s~ \K} {\Mdefz\f\t\e \OK}
-}
-
-\end{mathpar}
-
-\hrulefill
-
-\opdef{\BasicType \K {$~\t \OK$}}{Well-formed types}
-\begin{mathpar}
-\IRule{WFStar}{
-}{
- \BasicType {\K} {\any \OK}
-}
-
-\IRule{WFClass}{
- \C \in $~dom$(\K)
-}{
- \BasicType {\K} {\C \OK}
-}
-
-\end{mathpar}
-
 
 Type checking is standard.
 
@@ -344,8 +278,6 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \newcommand{\fieldtypes}[1]{\xt{fieldTypes}(#1)}
 \newcommand{\typeof}[1]{\xt{typeOf}(#1)}
 \newcommand{\classgen}[1]{\xt{classGen}(#1)}
-% \newcommand{\meett}[1]{\xt{meet}(#1)}
-
 
 \begin{align*}
 \Sigma &::= \b{\a:\t}
