@@ -263,12 +263,15 @@ $\wrapper{\C,$\=$ \any, \D} = $\\
 
 %By splitting out the two concerns, we avoid issues where the future state of the heap depends on values produced in the casting process and that do not exist yet. 
 
-Monotonic aims to have \emph{every typed reference still be valid}, including the ones that previously existed, as well as the reference created by the cast. If a reference has a type with a non-star value, then the monotonic semantics will ensure that that type is not violated. To accomplish this, the monotonic cast needs to make sure of two properties:
+Monotonic aims to have \emph{every typed reference still be valid}, including the ones that previously existed, as well as the reference created by the cast.
+If a reference has a type with a non-star value, then the monotonic semantics will ensure that that type is not violated. To accomplish this, 
+the monotonic cast needs to make sure of two properties:
 \begin{itemize}
 \item The values that \emph{currently} exist cannot violate any of the types that point to them. Casting needs to recursively ensure that all values referred to by the current object are of the claimed type.
 \item Functions can not be called with or return values that violate any of the types that they are referred to with. The behaviour of the class needs to check that its types are not violated by lesser-typed call sites.
 \end{itemize}
-The second property is strongly reminisicent of the behavioural semantics, though with the interesting caveat that we now need to make sure that \emph{all} method invocations follow the typed calling conventions, rather than just the ones that inherit this particular type assertion.
+The second property is strongly reminisicent of the behavioural semantics, though with the interesting caveat that we now need to make sure that
+\emph{all} method invocations follow the typed calling conventions, rather than just the ones that inherit this particular type assertion.
 
 
 \hrulefill
@@ -320,6 +323,9 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 \begin{mathpar}
 \IRule{EQ1}{ \cdot \vdash \t <: \tp \\ \cdot \vdash \tp <: \t }{\t \approx \tp }
 \end{mathpar}
+
+
+
 
 \hrulefill
 
