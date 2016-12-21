@@ -1207,8 +1207,9 @@ The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
 is a subtype of \tp in the environment composed of a set of subtyping \M and
 a class table \K.   The set of subtypings can be omitted if empty.
 
+~\\
 
-% \opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
+\opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
 \begin{mathpar}
 \IRule{SRef}{
 }{
@@ -1221,6 +1222,19 @@ a class table \K.   The set of subtypings can be omitted if empty.
  \StrSub \M\K \C \D
 }
 
+\IRule{SRec}{
+ \Class\D{\b\fd}{\b\md}\in\K\\
+ \M' = \M~\C\Sub\D\\
+ \fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
+ \md\in\b\md \implies \StrSub{\M'}\K \C \md\\
+}{
+ \StrSub \M\K \C \D 
+}
+\end{mathpar}
+
+Several auxiliary rules are used in the subtype judgement. 
+
+\begin{mathpar}
 \IRule{SMet}{
   \Mdef\m\x{\t_2}{\t_2'}\e\In\App\K\C \\
   \StrSub \M\K \t {\t_2} \\
@@ -1246,18 +1260,81 @@ a class table \K.   The set of subtypings can be omitted if empty.
 }{
  \StrSub \M\K \C {\Mdefz\f\t\e}
 }
+\end{mathpar}
 
-\IRule{SRec}{
- \Class\D{\b\fd}{\b\md}\in\K\\
- \M' = \M~\C\Sub\D\\
- \fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
- \md\in\b\md \implies \StrSub{\M'}\K \C \md\\
+\subsection{Wellformdness}
+
+\hrulefill
+\opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{Well-formed class}
+\begin{mathpar}
+\IRule{WFClass}{
+ \b{\names{\md}} $~unique$ \\
+ \b\f $~unique$ \\
+ \BasicType {\none ~\none ~\K} {\b\md \OK} \\
+ \BasicType {\K} {\b\t \OK} \\
 }{
- \StrSub \M\K \C \D 
+ \BasicType {\K} {\Class \C {\b{\Ftype\f\t}}{\b\md} \OK}
 }
 \end{mathpar}
 
 \hrulefill
+
+\opdef{\BasicType \Sk {$~\md \OK$}}{Well-formed method}
+\begin{mathpar}
+\IRule[width=18em]{WFMethT}{
+ \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t}\\
+ \BasicType {\K} {\tp \OK} \\
+ \BasicType {\K} {\t \OK} \\
+ \t \neq \any \\
+ \tp \neq \any \\
+}{
+ \BasicType {\E~ \s~ \K} {\Mdef\m\x\tp\t\e \OK}
+}
+
+\IRule[width=18em]{WFMethUT}{
+ \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t}\\
+ \BasicType {\K} {\tp \OK} \\
+ \BasicType {\K} {\t \OK} \\
+ \t = \any \\
+ \tp = \any \\
+}{
+ \BasicType {\E~ \s~ \K} {\Mdef\m\x\tp\t\e \OK}
+}
+
+\IRule{WFFieldS}{
+ \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t} \\
+ \BasicType {\K} {\tp \OK} \\
+ \BasicType {\K} {\t \OK}
+}{
+ \BasicType {\E ~\s ~\K} {\Mdef\f\x\tp\t\e \OK}
+}
+
+\IRule{WFFieldR}{
+ \EnvType \Es\e\t \\
+ \BasicType {\K} {\t \OK} 
+}{
+ \BasicType {\E~ \s~ \K} {\Mdefz\f\t\e \OK}
+}
+
+\end{mathpar}
+
+\hrulefill
+
+\opdef{\BasicType \K {$~\t \OK$}}{Well-formed types}
+\begin{mathpar}
+\IRule{WFStar}{
+}{
+ \BasicType {\K} {\any \OK}
+}
+
+\IRule{WFClass}{
+ \C \in $~dom$(\K)
+}{
+ \BasicType {\K} {\C \OK}
+}
+
+\end{mathpar}
+
 
 \subsection{Field read}
 
