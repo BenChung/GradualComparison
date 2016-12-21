@@ -1159,7 +1159,7 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 \IRule{MTT}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt A2}{\ShaCast\t\x, \e}.f2()}}}}
+}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}}
 \end{mathpar}
 
 The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, KafKa does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
@@ -1181,9 +1181,9 @@ To check the type of the argument, we then create a new instance of the empty ut
 
 
 \IRule[width=30em]{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\n{\b{\e_4}}}}     {\t_2}
+    \GenCast{\K}{\E}{\Call{\e_1}\m{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\m{\b{\e_4}}}}     {\t_2}
 }
 
 \IRule{A8}{
@@ -1197,6 +1197,8 @@ To check the type of the argument, we then create a new instance of the empty ut
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
+
+Transient expression translation contains only one real suprise, A3. Transient does not provide a sufficiently strong type invariant as to satisfy KafKa's field access typechecking, causing us to be unable to call a field setter or getter on any argument. As a concequence, we can only call fields on the self reference \this, which is handled as a special case as A3, since the combination of A1 and A2 is not sufficient to typecheck a field access due to the weakness of the type invariant.
 
 \begin{mathpar}
 \IRule{AASC1}{
@@ -1213,6 +1215,8 @@ To check the type of the argument, we then create a new instance of the empty ut
   \AnaCast\K\E\e\ep\t
 }
 \end{mathpar}
+
+The next point of interest for the transient semantics is AASC2, which handles the case where we expect one type and get another that is not a subtype of the first type, but is consistent. In the behavioural and the soon to be discussed monotonic semantics, we would insert a cast at this point, as it is needed to ensure that the value at this point satisfies the type invariant. However, since transient only checks types at their use site, it does not need to check a type at the site of the type assertion.
 
 \paragraph{Monotonic}
 
