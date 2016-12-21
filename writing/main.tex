@@ -1143,6 +1143,49 @@ The guarded semantics for Reticulated Python is essentially identical to the sem
 
 
 \paragraph{Transient}
+
+The transient semantics is notably different from the other systems, as illustrated by the invariants we can assume about its primary cast, $\ShaCast\t\e$. Here, we simply assert that $\e$ has the same \emph{names} as $\t$ does, and, as a result, the closest type representation we have is the $\any$ type, as illustrated in the typing for KafKa. All Transient guarantees is that the methods on the named type will be callable with some argument, and some return value, and it is up to the callee to check that the arguments are right and up to the caller to ensure that the return value is right.
+
+Because of fields, we cannot fully represent the transient semantics in KafKa, as field accessors and getters can only be called in a fully typed context. However, we can approximate it, by only allowing field getters and setters to be called in the context of \this, thereby removing all possible ambiguity over the receiver of the field getter or setter.
+
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+
+\IRule[width=30em]{A2}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+}
+
+\IRule{A8}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule{A11}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule{AASC1}{
+  \GenCast\K\E\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+
+\IRule{AASC2}{
+  \GenCast\K\E\e\ep\tp \\
+  \consistent\K\t\tp
+}{
+  \AnaCast\K\E\e{\BehCast\t\ep}\t
+}
+\end{mathpar}
+
 \paragraph{Monotonic}
 
 
