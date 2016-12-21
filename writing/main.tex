@@ -805,7 +805,9 @@ Methods are segregated into typed method (methods whose argument is not
 called by statically resolved method, the latter must be called by
 dynamically resolved methods.
 
-The function \names\k returns the names of the untyped methods of the class \k.
+The function \names{} returns the names of methods. 
+
+The function \untyped{} returns the methods whose types are \any.
 
 The auxiliary function \xt{read} return the location \ap pointing to the
 field \f of the object at location \a. The auxiliary function \xt{write}
@@ -842,12 +844,12 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
    \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E4}{  %% a.f() -> e
- \ap = \readf \s\a{\f} 
+ \ap = \readf \s\a\f\K
 }{
   \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
 }
 \CondRule{E5}{  %% a.f(e) -> e
- \sp = \setf \s\a{\f}\ap
+ \sp = \setf \s\a\f\ap\K
 }{
   \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
 }
@@ -875,7 +877,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
   \ReduceA \K{\ShaCast \any\a}\s \K\a\s
 }
 \CondRule{E10b}{  %% Shallow Structural
- \names{\App\K\C}  $\supseteq$  \names{\App\K\D} \AND \obj\C{\b\a} = \App\s\a
+ \names{\untyped{\App\K\C}}  $\supseteq$  \names{\untyped{\App\K\D}} \AND \obj\C{\b\a} = \App\s\a
 }{ 
   \ReduceA \K{\ShaCast \D\a}\s \K\a\s
 }
@@ -1296,7 +1298,7 @@ We have some auxiliary judgements.
 
 \begin{mathpar}
 \IRule[width=18em]{WT}{
- \EnvType {\EsE{\Ftype\x\C}}\e\D\\
+ \EnvType {\E{\Ftype\x\C}}\s\K\e\D\\
  \WFtype\K\C \\
  \WFtype\K\D \\
 }{
@@ -1304,13 +1306,13 @@ We have some auxiliary judgements.
 }
 
 \IRule[width=18em]{WU}{
- \EnvType {\EsE{\Ftype\x\any}}\e\any\\
+ \EnvType {\E \Ftype\x\any}\s\K \e\any\\
 }{
  \WF \E\s\K{\Mdef\m\x\any\any\e}
 }
 
 \IRule{WS}{
- \EnvType {\EsE{\Ftype\x\tp}}\e\t \\
+ \EnvType {\E{\Ftype\x\tp}}\s\K \e\t \\
  \WFtype \K\t 
 }{
  \WF  \E\s\K {\Mdef\f\x\t\t\e}
@@ -1323,7 +1325,7 @@ We have some auxiliary judgements.
 }
 
 \IRule{WG}{
- \EnvType \Es\e\t \\
+ \EnvType \E\s\K\e\t \\
  \WFtype \K\t
 }{
  \WF \E\s\K {\Mdefz\f\t\e}
@@ -1343,26 +1345,129 @@ We have some auxiliary judgements.
 \end{mathpar}
 
 
+
+\subsection{Typing}
+
+
+
+Type checking is standard.
+
+Field accessor rules W3 and W4 require a typed receiver, since \any does
+not have any methods a receiver typed at \any will never typecheck.
+
+Shallow casts, W9, do not change the type of the expression. We are casting
+to the name of \t not to \t.  In practice that means that all expression
+types in Transient will drift towards \any.
+
+~\\
+
+\opdef{\EnvType\E\s\K\e\t}{\e has type \t in environment \E against heap \s}
+\begin{mathpar}
+
+\IRule{W1}{
+   \HasType \E\x\t
+ }{
+   \EnvType \E\s\K\x\t
+}
+
+\IRule{W2}{
+  \EnvType \E\s\K\e\tp \\
+ \StrSub \M\K \tp \t
+ }{
+  \EnvType \E\s\K\e\t 
+}   
+
+\IRule{W3}{
+  \EnvType \E\s\K\e\C \\
+  \Mtype \f{}\tp \in \K(\C)
+}{
+  \EnvType \E\s\K{\Get\e\f}\tp
+}    
+
+\IRule{W4}{
+  \EnvType \E\s\K\e\C \\
+  \Mtype \f\tp\tp \in \K(\C)  \\
+  \EnvType \E\s\K\ep\tp
+}{
+  \EnvType \E\s\K{\Set\e\f\ep}\tp
+}    
+
+\IRule{W5}{
+  \EnvType \E\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \K(\C)  \\
+  \EnvType \E\s\K\ep\tp
+}{
+  \EnvType \E\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{W6}{
+  \EnvType \E\s\K\e\any \\
+  \EnvType \E\s\K\ep\any
+}{
+  \EnvType \E\s\K{\DynCall\e\m\ep}\any
+}    
+
+\IRule{W7}{
+ \EnvType \E\s\K{\e_1}{\t_1}\dots 
+ \EnvType \E\s\K{\e_n}{\t_n}\ \\ 
+ \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
+  \Class \C {\b\fd}{\b\md} \in \K
+}{
+  \EnvType \E\s\K{\New\C{\e_1\dots\e_n}}\C
+}
+
+\IRule{W8}{
+  \EnvType \E\s\K\e\tp
+}{
+  \EnvType \E\s\K{\SubCast\t\e}\t
+}
+
+\IRule{W9}{
+  \EnvType \E\s\K\e\tp
+}{
+  \EnvType \E\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
+}
+
+\IRule{W10}{
+  \EnvType \E\s\K\e\tp
+}{
+  \EnvType \E\s\K{\BehCast\t\e}\t
+}
+
+\IRule{W11}{
+  \EnvType \E\s\K\e\tp
+}{
+  \EnvType \E\s\K{\MonCast\t\e}\t
+}
+
+\IRule{W12}{
+  \s(\a) = \obj\C{\b\ap}
+}{
+  \EnvType \E\s\K\a\C
+}
+\end{mathpar}
+
+
 \subsection{Field read}
 
-We write \readf\s\a\f to denote a read of field \f from the object
+We write \readf\s\a\f\K to denote a read of field \f from the object
 stored at \a in \s.
 
 \begin{equation*}
-\readf \s\a{\f} = \ap ~~\mathit{if}~~  \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots} \AND
- \K(\C) = \Class \C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}
+\readf \s\a\f\K = \ap ~~\mathit{if}~~  \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots} \AND
+ \Class\C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}\in\K
 \end{equation*}
 
 \subsection{Write field}
 
-We write \setf\s\a\f\ap to denote the write of value \ap into field \f of
+We write \setf\s\a\f\ap\K to denote the write of value \ap into field \f of
 the object stored at \a in \s.
 
 \begin{equation*}
-\setf \s\a{\f_{i}}\ap = \sp ~~\mathit{if}~~ \begin{cases}
- \s(\a) = \obj\C{\a_1\dots\a_n\, \a'' \dots}\\
- \K(\C) = \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\\
- \sp = \s[\Bind{\a}{\obj\C{\a_1\dots\a_n\, \ap \dots}}]
+\setf \s\a\f\ap\K= \Heap\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
+  ~~\mathit{if}~~ \begin{cases}
+   \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots}\\
+   \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
 \end{cases}
 \end{equation*}
 
