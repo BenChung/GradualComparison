@@ -1162,6 +1162,14 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 }{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt A2}{\ShaCast\t\x, \e}.f2()}}}}
 \end{mathpar}
 
+The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, KafKa does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
+
+Our translation for untyped methods is very simple, as they make no type-based assumptions internally, as seen in MTU. However, in MTT, we see the considerably more complex typed method translation. As this method must be callable with any argument, the argument type of the untyped function must be \any, then translate the body of the method to account for the altered argument type.
+
+As seen in the expression translation below, we cast every variable to the statically expected type whenever it is seen in the program. However, this is insufficient, as if the method does not use its argument, then without further checking, it can succeed even if the argument value is ill-formed. Solving this problem is challenging, as KafKa does not allow us to write multiple line expressions. What KafKa does have, though, is the ability to write multiple expressions in a new statement with a guaranteed evaluation order, which is sufficient for our purposes. 
+
+To check the type of the argument, we then create a new instance of the empty utility class \EMxt{A2}, which has two fields, \EMxt{f1} and \EMxt{f2}, then set \EMxt{f1} to the casted value of the argument \x. While this value is used nowhere else in the program, the program will get stuck at this cast if the value is not of the specified type, maintaining the required. We then instantiate \EMxt{f2} to the translated body of the function, then return the value of \EMxt{f2}, producing the expected result. 
+
 
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
