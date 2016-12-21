@@ -1162,12 +1162,12 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 
 
 \begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
 \IRule[width=30em]{A2}{
     \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\n{\b{\e_4}}}}     {\t_2}
 }
 
 \IRule{A8}{
@@ -1192,9 +1192,9 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 
 \IRule{AASC2}{
   \GenCast\K\E\e\ep\tp \\
-  \consistent\K\t\tp
+  \consistent\K\tp\t
 }{
-  \AnaCast\K\E\e{\BehCast\t\ep}\t
+  \AnaCast\K\E\e\ep\t
 }
 \end{mathpar}
 
