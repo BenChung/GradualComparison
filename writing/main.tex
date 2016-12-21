@@ -1274,77 +1274,72 @@ Several auxiliary rules are used in the subtype judgement.
 }
 \end{mathpar}
 
-\subsection{Wellformdness}
+\subsection{Well-formedness}
 
-\hrulefill
-\opdef{\BasicType \Sk {$~\Class \C {\b{\Ftype\f\t}}{\b\md} \OK$}}{Well-formed class}
+The overloading function is meant to check that every typed method is
+defined once. Every untyped method is defined once. A class has either a
+field \f or a pair of getter and setters.
+
+\opdef{\WF{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
+
 \begin{mathpar}
-\IRule{WFClass}{
- \b{\names{\md}} $~unique$ \\
- \b\f $~unique$ \\
- \BasicType {\none ~\none ~\K} {\b\md \OK} \\
- \BasicType {\K} {\b\t \OK} \\
+\IRule{WC}{
+ \xt{overloading}(\b\fd,\b\md)\OK \\
+ \fd\in\b\fd\implies \WF \none\s\K \fd \\
+ \md\in\b\md\implies \WF \none\s\K \md 
 }{
- \BasicType {\K} {\Class \C {\b{\Ftype\f\t}}{\b\md} \OK}
+ \WF {}\s\K {\Class \C {\b\fd}{\b\md}}
 }
 \end{mathpar}
 
-\hrulefill
+We have some auxiliary judgements.
 
-\opdef{\BasicType \Sk {$~\md \OK$}}{Well-formed method}
 \begin{mathpar}
-\IRule[width=18em]{WFMethT}{
- \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t}\\
- \BasicType {\K} {\tp \OK} \\
- \BasicType {\K} {\t \OK} \\
- \t \neq \any \\
- \tp \neq \any \\
+\IRule[width=18em]{WT}{
+ \EnvType {\EsE{\Ftype\x\C}}{\e}{\D}\\
+ \WFtype\K\C \\
+ \WFtype\K\D \\
 }{
- \BasicType {\E~ \s~ \K} {\Mdef\m\x\tp\t\e \OK}
+ \WF \E\s\K {\Mdef\m\x\C\D\e}
 }
 
-\IRule[width=18em]{WFMethUT}{
- \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t}\\
- \BasicType {\K} {\tp \OK} \\
- \BasicType {\K} {\t \OK} \\
- \t = \any \\
- \tp = \any \\
+\IRule[width=18em]{WU}{
+ \EnvType {\EsE{\Ftype\x\any}}\e\any\\
 }{
- \BasicType {\E~ \s~ \K} {\Mdef\m\x\tp\t\e \OK}
+ \WF \E\s\K{\Mdef\m\x\any\any\e}
 }
 
-\IRule{WFFieldS}{
- \EnvType {\EsE{\Ftype\x\tp}}{\e}{\t} \\
- \BasicType {\K} {\tp \OK} \\
- \BasicType {\K} {\t \OK}
+\IRule{WS}{
+ \EnvType {\EsE{\Ftype\x\tp}}\e\t \\
+ \WFtype \K\t 
 }{
- \BasicType {\E ~\s ~\K} {\Mdef\f\x\tp\t\e \OK}
+ \WF  \E\s\K {\Mdef\f\x\t\t\e}
 }
 
-\IRule{WFFieldR}{
+\IRule{WF}{
+ \WFtype \K\t 
+}{
+ \WF  \E\s\K {\Fdef\f\t}
+}
+
+\IRule{WG}{
  \EnvType \Es\e\t \\
- \BasicType {\K} {\t \OK} 
+ \WFtype \K\t
 }{
- \BasicType {\E~ \s~ \K} {\Mdefz\f\t\e \OK}
+ \WF \E\s\K {\Mdefz\f\t\e}
 }
 
-\end{mathpar}
 
-\hrulefill
-
-\opdef{\BasicType \K {$~\t \OK$}}{Well-formed types}
-\begin{mathpar}
-\IRule{WFStar}{
+\IRule{WA}{
 }{
- \BasicType {\K} {\any \OK}
+ \WFtype \K \any
 }
 
-\IRule{WFClass}{
- \C \in $~dom$(\K)
+\IRule{WC}{
+ \C \in \K
 }{
- \BasicType {\K} {\C \OK}
+ \WFtype  \K\C
 }
-
 \end{mathpar}
 
 
