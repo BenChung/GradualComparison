@@ -1150,6 +1150,18 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 
 
 \begin{mathpar}
+\IRule{MTU}{
+  \AnaCast{\K}{\HT\x\any}{\e}{\ep}{\any}
+}{\methtrans\K{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}}
+
+\IRule{MTT}{
+  \t \neq \any \\
+  \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
+}{\methtrans\K{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt A2}{\ShaCast\t\x, \e}.f2()}}}}
+\end{mathpar}
+
+
+\begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{A2}{
