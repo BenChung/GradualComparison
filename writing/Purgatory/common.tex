@@ -1,146 +1,67 @@
-
-\newcommand{\context}{\G &::= \cdot \B \NT\x\t~\G\\}
-\newcommand{\syntax}{
-\begin{align*}
-\t &::= ~ \any \\
-   &\B \{ \bar{\NT{\m(\t)}\t}\}\\
-\e &::= ~ \x \\
-   &\B \e.\f \\
-   &\B \e.\f=\e\\
-   &\B \e.\m(\e) \\
-   &\B \NEW\C{\bar{\e}}\\
-   &\B \cast{\t}\e \\
-   &\B \scast{\m}\e\\
-\r &::= \e \B \err\\
-\cl &::= \CLASS \C {\bar\D}{\bar{\NT\f\t} ~~ \bar{\MDEF\m{\NT\x\t}\t\e}} \\
-\m &::= \d \B \f \B \f!\\
-\context
-v &::= n \B a\\
-\s &::= \cdot \B  \s( a \is \{\bar{\f=v} \B \t\} )\\
-F &::=    \square.\f
-   \B     \square.\f = e
-   \B     a.\f = \square    
-   \B     \square.\m(\bar e) 
-   \B     v.\m(\bar v,\square, \bar e) \\
-   &\B     \ifthenelse{\square}{e}{e} 
-   \B     \square + e 
-   \B      v + \square\\
-   &\B     \cast{\tau}\square
-\B \NEW  \C {\bar{v},\square,\bar{e}}\\
-\end{align*}}
+\documentclass[a4paper,UKenglish,final]{tex/lipics-v2016}
+\usepackage{xspace,listings,url,framed,amssymb,
+            amsmath,tex/mathpartir,hyperref,stmaryrd, graphicx, mathtools}
+\input{macros}
+\begin{document}
 
 
-\newcommand{\TVar}{\inferrule*[lab=TVar]{\G(\x) = \t }{\GSdash \x : \t}}
-\newcommand{\TRef}{\inferrule*[lab=TRef]{\S(a) = \t }{\GSdash a : \t}}
-\newcommand{\TInt}{\inferrule*[lab=TInt]{ }{\GSdash {n} : \int}}
-\newcommand{\TSub}{\inferrule*[lab=TSub]{\GSdash e : \t' \\ \t' <: \t}{\GSdash e : \t}}
-
-\newcommand{\TUApp}{\inferrule*[lab=TUApp]{\GSdash e_r : \any \\ \bar{\GSdash e' : \t}}{\GSdash e_r.\m(\bar{e'}) : \any}}
-\newcommand{\TApp}{\inferrule*[lab=TApp]{ \GSdash e_r : \{ \ldots, \m(\bar{\t'}):\t'', \ldots \}\\ \bar{\GSdash e': \t'}}{\GSdash e_r.\m(\bar{e'}) : \t''}}
-\newcommand{\TIf}{\inferrule*[lab=TIf]{ 
-     \GSdash e:\int \\ 
-     \GSdash e':\t \\ 
-     \GSdash e'':\t
-}{ 
-     \GSdash \ifthenelse{e}{e'}{e''} : \t}}
-\newcommand{\TPlus}{\inferrule*[lab=TPlus]{ 
-  \GSdash e:\int \\ \
-  \GSdash e':\int
-}{ \GSdash e+e':\int}}
+%%% defining the auxiliary functions below, they include:
+%%% methdef
+%%% typeof
+%%% read (field)
+%%% write (field)
 
 
+\opdef{\convert{\md}}{Conversion function: Method definition to method type}
 
-\newcommand{\TNew}{\inferrule*[lab=TNew]{
-  \bar{\GSdash e:\t} \\ 
-  \bar{\f:\t} = fields(\C)\\
-}{
-  \GSdash \NEW \C{\bar e}:\C
-}}
+\convert{\Mdef\m\x\t\t\e} = \Mtype\m\t\t 
 
-\newcommand{\TCast}{\inferrule*[lab=TCast]{
-  \GSdash e:\t'
-}{
-  \GSdash \cast{\t}e : \t}}
+\convert{\Mdef\f\x\t\t\e} = \Mtype\f\t\t 
 
+\convert{\Mdefz\f\t\e} = \Mtype\f{}\t 
 
-\newcommand{\CICast}{\inferrule*[lab=CICast]{
-  \Gdash e \tlate e':\t' 
-}{
-  \Gdash \cast{\t} e\tlate \cast{\t}e':\t
-}}
+\hrulefill
 
-\newcommand{\CICall}{\inferrule*[lab=CICall]{
-  \Gdash e \tlate e'':\{\MTYPE\m{\bar\t}{\t'},\ldots\}\\
-  \bar{\CICAST{e'}{\t}{e'''}} 
-}{
-  \Gdash e.\m(\bar{e'}) \tlate e''.\m(\bar{e'''}):\t'
-}}
+\opdef{\convertFD{\Ftype{\f}{\t}}}{Conversion function: Field definition to field types}
 
-\newcommand{\CICallAny}{\inferrule*[lab=CICallAny]{ 
-  \Gdash e \tlate e'':\any \\  
-  \bar{\Gdash e' \tlate e''':\t'} \\ 
-}{
-  \Gdash e.\m(\bar{e'}) \tlate (\cast{\{\m(\bar{\t'}),\ldots\}}e'').\m_u(\bar{e'''}) : \any
-}}
+\convertFD{\Ftype{\f}{\t}} = \Mtype\f\t\t, \Mtype\f{}\t
 
-\newcommand{\CIIf}{\inferrule*[lab=CIIf]{
-  \CICAST{e_1'}{\int}{e_1''}\\ 
-  \Gdash e_2\tlate e_2':\t_2 \\ 
-  \Gdash e_3 \tlate e_3' : \t_2
-}{
-  \Gdash \ifthenelse{e_1}{e_2}{e_3} \tlate \ifthenelse{e_1'}{e_2'}{e_3'} : \t_2
-} }
+\hrulefill
 
-\newcommand{\CIPlus}{\inferrule*[lab=CIPlus]{
-  \CICAST{e_1}{\int}{e_1'}\\ 
-  \CICAST{e_2}{\int}{e_2'}\\ 
-}{
-  \Gdash e_1 + e_2 \tlate e_1' + e_2' :\int 
-}}
+\opdef{\names{\mt}}{Naming function: Method types}
 
-\newcommand{\CIVar}{\inferrule*[lab=CIVar]{
-  x:\t \in \G
-}{
-  \Gdash x \tlate x : \t
-}}
+\names{\Mdef\m\x\t\t\e} = \m
 
-\newcommand{\CINew}{\inferrule*[lab=CINew]
-      {\bar{\CICAST{e}{\t}{e'}}\\
-  \{\ldots \bar{\f:\t} \ldots\} = fields(\C)}
-      {\Gdash \NEW \C{\bar e} \tlate \NEW\C{\bar{e'}} : \C}}
+\names{\Mdef\f\x\t\t\e} = \f
+
+\names{\Mdefz\f\t\e} = \f
+
+\hrulefill
+
+\opdef{\names{\md}}{Naming function: Method definition\footnote{All of these simply functions should go into the appendix.}}
+
+\names{\Mtype\m\t\t} = \m
+
+\names{\Mtype\f\t\t} = \f
+
+\names{\Mtype\f{}\t} = \f
 
 
-\newcommand{\EFrame}{\inferrule*[lab=EFrame]{ e,\s \ereduce e',\s'}{F[e],\s \ereduce F[e'],\s'}}
+% 
+% \hrulefill
+% 
+% \opdef{\getmdef({\m,\C,\K})}{Gets the definition of \m in \C with respect to \K}
+% 
+% $\getmdef({\m,\C,\K_1 ~ \Class\C\fd{\md_1 ~ \Mdef\m\x{\t_1}{\t_2}{ \e } ~ \md_2} ~ \K_2}) = \Mdef\m\x{\t_1}{\t_2}{ \e }$
+% 
+% \hrulefill
+% 
+\newcommand{\getmtype}{\text{mtype}}
+% 
+% \opdef{\getmtype({\m,\C,\K})}{Gets the type of \m in \C with respect to \K}
+% 
+% $\getmtype({\m,\C,\K_1 ~ \Class\C\fd{\md_1 ~ \Mdef\m\x{\t_1}{\t_2}{ \e } ~ \md_2} ~ \K_2}) = \Mtype\m{\t_1}{\t_2}$
 
-\newcommand{\ENew}{\inferrule*[lab=ENew]{
-     \s'=\s(a\is\{\bar{\f:\t=v} \B \C\}) }{ \NEW \C {\bar v},\s \ereduce a,\s'}}
+\section{Generative Casts}
 
-\newcommand{\EInv}{\inferrule*[lab=EInv]{a\is \{\m(\bar x)=e,\ldots\B \t\}}{a.\m(\bar v),\s \ereduce [a/\xt{this}][\bar{v/x}]e,\s}}
-
-\newcommand{\EField}{\inferrule*[lab=EField]{ \s[a\is\{\f:\t=v,\ldots\B \t\}] }{a.\f,\s \ereduce v,\s}}
-
-\newcommand{\EAssign}{\inferrule*[lab=EAssign]{ \s' = \s[a\is \{\f:\t=v,\ldots\B \t\}] }{a.\f = v,\s \ereduce v,\s'}}
-
-\newcommand{\EIfZ}{\inferrule*[lab=EIfZ]{ }{ \ifthenelse{{0}}{e_1}{e_2},\s \ereduce e_1,\s }}
-
-\newcommand{\EIfNZ}{\inferrule*[lab=EIfNZ]{n\neq 0}{ \ifthenelse{{n}}{e_1}{e_2},\s \ereduce e_2,\s }}
-
-\newcommand{\EPlus}{\inferrule*[lab=EPlus]{ n_1 + n_2 = n_3 }{ {n_1} + {n_2},\s \ereduce \intv{n_3},\s}}
-
-\newcommand{\ECastInt}{\inferrule*[lab=ECastInt]{ }{ \cast{\int}{n},\s \ereduce {n},\s'}}
-
-\newcommand{\ECastAny}{\inferrule*[lab=ECastAny]{ }{ \cast{\any}v,\s \ereduce v,\s}}
-
-\newcommand{\wellformedness}{
-\subsection{Class well-formedness}
-
-\begin{mathpar}
-\inferrule*[lab=WFField]{\G \vdash \t}{\G\vdash\f:\t}
-
-\inferrule*[lab=WFMeth]{\G \vdash \t \\ \bar{\G \vdash \t'} \\ \G,\this:this(\G),\bar{x:\t'} \vdash e : \t}{\G \vdash \m(\bar{x:\t'}):\t = e}
-
-\inferrule*[lab=WFSelfGet]{\f:\t \in fields(\G)}{\G \vdash \f():\t = \xt{this}.\f}
-
-\inferrule*[lab=WFSelfSet]{\f:\t \in fields(\G)}{\G \vdash \f!(\xt{x}:\t):\t = (\xt{this}.\f=\xt{x})}
-\end{mathpar}
-}
+\end{document}
