@@ -1105,9 +1105,9 @@ What is \S doing?
 \begin{mathpar}
 \IRule{RC1}{
   \htype \a\S\s = \tp\\
-  \meett{\cdot, \K, \tp, \t} = \tpp\,\Kp\\ 
+  \meet\cdot\K\tp\t = \tpp\,\Kp\\ 
   \tp\not\EQ\tpp \\
-  \b{\a~\t} = \fieldtypes \tpp\Kp\s\a \\
+  \b{\a~\t} = \fieldtypes \a\s\Kp \\
   \Sp = \Map\S{\Bind\a\tpp} \\
   \retype{\b\a}{\b\t}\Sp\s\K = \Spp\,\Kpp
 }{
@@ -1116,7 +1116,7 @@ What is \S doing?
 
 \IRule{RC2}{
   \htype \a\S\s = \tp\\
-  \meett{\cdot, \K, \tp, \t} = \tpp\,\Kp \\
+  \meet\cdot\K\tp\t = \tpp\,\Kp \\
   \tp\EQ\tpp \\
 }{
   \retype \a\t\S\s\K = \S~\K
@@ -1153,41 +1153,41 @@ have been retyped.
 \end{mathpar}
 
 
+The meet function \meet\P\K\t\tp compute the meet of types \t and \tp, it returns a new type if needed and an updated class table.
 
-\hrulefill
+For the case we call \meet\P\K\C\D, the function will have to create a new class \E that is the result of meeting \C with \D.
 
-\opdef{
-  $\meett{\P, \K, \t, \tp} = {\tpp}~\K$
-}{
-%   Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
-}
+Meh. The above is lousy. Rewrite.
+
+
+
 \begin{align*}
-\P &::= \b{(\t,\tp) \mapsto \tpp}
+\P &::= \cdot \B \Map\P{\Bind{(\t,\tp)}\tpp}
 \end{align*}
 
 \begin{mathpar}
-\IRule{M1}{ }{\meett{\P, \K, \t, \any} = \t~\K}
+\IRule{M1}{ }{\meet\P\K\t\any = \t\,\K}
 
-\IRule{M2}{ }{\meett{\P, \K, \any, \t} = \t~\K}
+\IRule{M2}{ }{\meet\P\K\any\t = \t\,\K}
 
-\IRule{M3}{ }{\meett{\P, \K, \t, \t} = \t~\K}
+\IRule{M3}{ }{\meet\P\K\t\t = \t\,\K}
 
 \IRule{M4}{
-  \EC \text{ fresh}\\
-  (\C,\D) \not\in \text{dom}(\P) \\
-  \Pp = \P,~(\C,\D) \mapsto \EC \\
+  \EC \fresh\\
+  (\C,\D) \not\in \Dom\P \\
+  \Pp = \Map\P{\Bind{(\C,\D)}\EC} \\
   {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
   {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
-  \meett{\Pp, \K, {\Type{\b\mt}}, {\Type{\b\mtp}}} = \tpp~\Kp\\
+  \meet\Pp\K{\Type{\b\mt}}{\Type{\b\mtp}} = \tpp\,\Kp\\
   \Kpp = \Kp~\classgen{\C,\tpp,\EC,\Kp}\\
 }{
-    \meett{\P, \K, \C, \D} = \EC~\Kpp
+    \meet\P\K\C\D = \EC\,\Kpp
 }
 
 \IRule{M5}{
     \P(\C,\D) = \EC
 }{
-    \meett{\P, \K, \C, \D} = \EC~\K
+    \meet\P\K\C\D = \EC\,\K
 }
 
 \end{mathpar}
@@ -1199,41 +1199,39 @@ and outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set
 \hrulefill
 
 \opdef{
-  $\meett{\P, \K, {\Type{\b\mt}}, {\Type{\b\mt}}} = {\Type{\b\mt}}~\K$
+  $\meet\P\K{\b\mt}{\b\mt} = \b\mt\,\K$
 }{
 %   Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
 }
 
 \begin{mathpar}
 \IRule{M6}{ 
-}{ \meett{\P, \K, {\Type{\b\mt}}, {\Type{}}} = {\Type{\b\mt}}~{\K} }
+}{ \meet\P\K{\b\mt}\cdot = \b\mt\,\K }
 
 \IRule{M7}{
-      \meett{\P, \K, {\t_3}, {\t_1}} = {\t_5}~{\K'} \\
-      \meett{\P, {\K'}, {\t_2}, {\t_4}} = {\t_6}~{\K''} \\
-      \meett{\P, {\K''}, {\Type{\b{\mt_1}}}, {\Type{\b{\mt_2}}}} = {\Type{\b{\mt_3}}}~{\K'''}
+  \meet\P\K{\t_3}{\t_1} = {\t_5}~{\K'} \\
+  \meet\P\Kp{\t_2}{\t_4} = {\t_6}~{\Kpp} \\
+  \meet\P{\Kpp}{\b{\mt_1}}{\b{\mt_2}} = \b{\mt_3}~\K'''
 }{
-    \meett{\P, \K, {\Type{\Mtype\m{{\t_1}}{\t_2}~\b{\mt_1}}}, {\Type{\Mtype\m{{\t_3}}{\t_4}~\b{\mt_2}}}} = {\Type{\Mtype\m{{\t_5}}{\t_6}~\b{\mt_3}}}~{\K'''}
+  \meet\P\K{\Mtype\m{\t_1}{\t_2}~\b{\mt_1}}{\Mtype\m{{\t_3}}{\t_4}~\b{\mt_2}} = \Mtype\m{\t_5}{\t_6}~\b{\mt_3}~\K'''
 }
 
 \IRule{M8}{
-      {\meett{\P, \K, {\t_3}, {\t_1}} = {\t_5}~{\K'}} \\
-      \meett{\P, {\K'}, {\t_2}, {\t_4}} = {\t_6}~{\K''} \\
-      \meett{\P, {\K''}, {\Type{\b{\mt_1}}}, {\Type{\b{\mt_2}}}} = {\Type{\b{\mt_3}}}~{\K'''}
+      \meet\P\K{\t_3}{\t_1} = {\t_5}~\Kp \\
+      \meet\P\Kp{\t_2}{\t_4} = {\t_6}~\Kpp \\
+      \meet\P\Kpp{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} = {\Type{\b{\mt_3}}}~{\K'''}
 }{
-    \meett{\P, \K, {\Type{\Mtype\f{{\t_1}}{\t_2}~\b{\mt_1}}}, {\Type{\Mtype\f{{\t_3}}{\t_4}~\b{\mt_2}}}} = {\Type{\Mtype\f{{\t_5}}{\t_6}~\b{\mt_3}}}~{\K'''}
+    \meet\P\K{\Type{\Mtype\f{{\t_1}}{\t_2}~\b{\mt_1}}}{\Type{\Mtype\f{{\t_3}}{\t_4}~\b{\mt_2}}} = {\Type{\Mtype\f{{\t_5}}{\t_6}~\b{\mt_3}}}~{\K'''}
 }
 
 \IRule{M9}{
-      \meett{\P, {\K}, {\t_2}, {\t_4}} = {\t_6}~{\K'} \\
-      \meett{\P, {\K'}, {\Type{\b{\mt_1}}}, {\Type{\b{\mt_2}}}} = {\Type{\b{\mt_3}}}~{\K''}
+      \meet\P\K{\t_2}{\t_4} = {\t_6}~\Kp \\
+      \meet\P\Kp{\Type{\b{\mt_1}}}{\Type{\b{\mt_2}}} = {\Type{\b{\mt_3}}}~\Kpp
 }{
-    \meett{\P, \K, {\Type{\Mtype\f{{}}{\t_2}~\b{\mt_1}}}, {\Type{\Mtype\f{{}}{\t_4}~\b{\mt_2}}}} = {\Type{\Mtype\f{{}}{\t_6}~\b{\mt_3}}}~{\K''}
+    \meet\P\K{\Type{\Mtype\f{{}}{\t_2}~\b{\mt_1}}}{\Type{\Mtype\f{{}}{\t_4}~\b{\mt_2}}} = {\Type{\Mtype\f{{}}{\t_6}~\b{\mt_3}}}~\Kpp
 }
 \end{mathpar}
 
-% \hrulefill
-% 
 % The figure above is semantics for the meet operator for the semantics of the monotonic cast.
 % 
 % \begin{verbatim}
@@ -1251,27 +1249,18 @@ and outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set
 % \end{verbatim}
 
 
-\hrulefill
+The function \fieldtypes\a\s\K return the values of the fields of \a and their types.
 
 \begin{mathpar}
 \IRule{FT1}{
- \s(\a) = \obj\C{\b\a} \\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
- $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
+ \obj\C{\b\a} =\App\s\a \\
+ \Class \C {\b{\Fdef\f\t}}{\b\md} \in\K 
 }{
-  \fieldtypes \C\K\s\a = \b\a~\typeof{\b{\Ftype\f\t}}
-}
-
-\IRule{FT2}{
- \s(\a) = \obj\C{\b\a} \\
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
- $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
-}{
-  \fieldtypes \any\K\s\a = \b\a~\typeof{\b{\Ftype\f\t}}
+  \fieldtypes \a\s\K = \b\a~\b\t
 }
 \end{mathpar}
 
-\hrulefill
+
 
 \begin{tabbing}
 $\classgen{\C,$\=$ ~\C',$\=$ ~\D, \K} = $\\
@@ -1464,7 +1453,7 @@ Reticulated Python is somewhat more complicated, as it implements three differen
 The most notable difference between Reticulated and the other systems at the surface level is the use of \emph{consistency}, an operator broadly meaning that one type is compatible with another type. In our system, we define conistency as follows:
 \newcommand{\consistent}[3]{#1 \vdash #2 ~\sim~ #3}
 \begin{mathpar}
-\IRule{C1}{\meett{\cdot, \K, \C, \D} = \t~{\K'}}{\consistent\K{\C}{\D}}
+\IRule{C1}{\meet\cdot\K\C\D = \t~\Kp}{\consistent\K{\C}{\D}}
 \end{mathpar}
 
 In effect, if there is some most specific type for two given types, then the two types are consistent - it is possible that a value of one could be converted into the other with a runtime cast.
@@ -1634,8 +1623,6 @@ At the surface language level, the Monotonic semantics are very similar to that 
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Auxiliary Definitions}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1773,10 +1760,6 @@ We have some auxiliary judgements.
 
 \subsection{Typing}
 
-
-
-Type checking is standard.
-
 Field accessor rules W3 and W4 require a typed receiver, since \any does
 not have any methods a receiver typed at \any will never typecheck.
 
@@ -1899,6 +1882,20 @@ the object stored at \a in \s.
 
 
 
+
+\end{document}
+
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
+
+
+
+
 \subsection{others}
 
 %TODO Fix ME \mtype\m\C\K = \convert{\methz\m\C\K} 
@@ -1953,19 +1950,6 @@ the object stored at \a in \s.
 \end{cases}
 \end{equation*}
 
-
-
-
-
-\end{document}
-
-%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
-%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
-%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
-%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
-%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
-%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
-%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
 
 
 
