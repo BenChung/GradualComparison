@@ -779,7 +779,7 @@ The semantics operate over an explicit class table, denoted \K, which is a
 sequence of class definitions.
 
 A heap, denoted \s, maps memory locations to
-objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
+objects. We use the notation \Map\s{\Bind\a{\obj\C{\b\a}}} to denote the
 heap \s extended by the binding of location \a to object \obj\C{\b\a}.
 
 A configuration \K\e\s evaluates in one step to a new configuration, denoted
@@ -829,9 +829,9 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
         {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
 \begin{tabular}{l@{}l@{~}l@{~}l}
 \CondRule{E1}{  %% new C -> a
-   \ap fresh
+   \fresh\ap 
 }{ 
-  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Heap\s{\Bind\ap{\obj\C{\b\a}}}}
+  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
 \CondRule{E2}{  %% a.f() -> e
     \Mdefz\f\t\e \In \App\K\C \AND \obj\C{\b\a} = \App\s\a
@@ -923,6 +923,363 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \caption{\name Semantics.}
 \end{figure}
 
+\subsection{Cast Semantics}
+
+Casts are the key to the different interpretations of gradual typing, as they are one of the two places that, in KafKa, a program can get stuck at. The approaches that we will be comparing have different definitions of casting, and their varying approach to runtime type assertions forms an important part of how they interact with untyped parts of the program.
+
+
+\paragraph{Behavioral}
+
+
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{Cast-Wrap}{
+  \fresh\D \\
+  \fresh\ap \\
+  \obj\C{\b{\a_1}} = \s(\a) \\
+  \sp = \Map \s{\Bind \ap{\obj\D{\a}} } \\
+  \k = \wrapper{\C,\t,\D}
+}{
+  \behcast\a\t\s\K {\K,~\Bind{\D}{\k}~}\ap\sp
+}
+\end{mathpar}
+
+What does the wrap function do? In english.
+
+At its core, the wrap function protects types. If a function on an object has a declared argument type, then the wrap function will produce a wrapper for that function that ensures that any argument passed in matches the declared type. Likewise, if we assert that an untyped function has a return type, then the generated wrapper guarantees that the returned value of the untyped function is of the asserted type by inserting a cast to the right type.
+
+In our context, wrappers are just generated classes, produced when the runtime system encounters a behavioral cast. These casts need to ensure two key properties, which we will refer to as \emph{soundness} and \emph{completeness}. In the context of casts, soundness refers to correct enforcement of types, whereby protected methods will not observably violate their type guarantees, while completeness ensures that a cast will not lose methods.
+
+This last requirement is somewhat unconventional, and its need is illustrated in a simple example. 
+
+\begin{verbatim}
+class C {
+  m(x:int):int { ... }
+}
+class D {
+  m(x:*):* { ... }
+  f(x:*):* { ... }
+}
+(<D>(<C>new D()))@f(2)
+\end{verbatim}
+
+In this example, if we were to implement wrappers by wrapping over only the declared methods, despite D having a method f, it is "lost" when D is cast to C. As a result, when we cast it back from C to D, the wrapper added to ensure that C's invariants held does not have a method f, and our call will produce a method not understood exception. To avoid this issue, our wrappers will have to retain all untyped methods when casting untyped to typed, and typed methods if a typed cast does not mention them, so that they may be recovered in a later cast.
+
+\hrulefill
+
+\newcommand{\tfa}{\text{\emph{for every }}}
+\newcommand{\wh}{\text{\emph{where}}}
+\newcommand{\wc}{\text{wrapClass}}
+
+\begin{align*}
+\xt{n} &::= \m \B \f
+\end{align*}
+
+\begin{tabbing}
+$\wrapper{\C,$\=$ \Cp, \D} = $\\
+\>$\xt{class}~\D$\=$~\{$\\
+\>\>$\xt{th}$\=$\xt{at} : \C $ \\
+\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { \BehCast{\tp_2}{\this.\that.\n(\b{\BehCast{\t_1}{\x}})}}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\n(\b{\x})}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
+\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { (\SubCast{\any}{\this})@\m(\SubCast{\any}{\this}) }$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K \wedge \fresh\m $\\
+\>$\}$
+\\
+\\
+$\wrapper{\C,$\=$ \any, \D} = $\\
+\>$\xt{class}~\D$\=$~\{$\=\\
+\>\>$\xt{that} : \C$ \\ \\
+\>\>$\Mdefa\n{\b{\HT\x\any}}{\any}{\BehCast{\any}{\this.\xt{that}.\n(\b{\BehCast{\t}{\x}})}}$ \\
+\>\>\>$\tfa \Mtype\n{\b{\t}}{\tp} \in \classoff\C$\\
+\>$\}$\\
+\end{tabbing}
+
+
+\wc is more complex than TODO, because different wrappers are needed, depending on if the target type is a concrete type \C, or is the dynamic type \any. If the target type is \C, then it will generate the wrapper methods for the type \C, then insert ``passthrough'' methods. methods of the same type as the original and that just call the original internally, that provide the completness property mentioned above. Likewise, if the target type is \any, then \wc will simply generate a method that casts its argument to the right type and its return type to \any for every one of the typed methods in the source, ensuring soundness and completness.
+
+
+\paragraph{Monotone}
+
+%The motivation behind the monotonic semantics is that we must ensure that every reference to an object is still valid up to \any types, and as a result, can only proceed by replacing \any types with concrete types, possibly recursively. We accomplish this by \emph{rewriting} the class that objects are associated with, enforcing the new type guarantee, while simultaneously checking that all of the extant field values match the type that they need to be.
+
+%In order to do any of this, however, the new type of the object is required. In Siek et al.'s original formalism, the new type was computed simultaneously as the object was being cast, but this creates problems when recursive objects are encountered. For example, consider the following scenario:
+
+%\begin{verbatim}
+%class C { x:any y:any m(y:any):any }
+%class D {}
+%class E { x:{x:{y:int}} y:any}
+
+%a = new C(new D(),2)
+%b = new C(a, 2)
+%a.x(b)
+%c = <E>a
+%\end{verbatim}
+
+%Here, when we go to update the value at \x, we then need to go into the type recursively, which points to a new instance of \C. Then, we assert a new type for \x in that new \C, which sends us back to the starting object, where we update the type of \xt{y} to be int, from \any. As a result, we cannot cast simply by examining the statically knowable types, but have to consider the heap structure when determining the final typing for any object.
+
+%We break this operation up into two steps:
+
+%\begin{itemize}
+%\item \emph{Type Determination}. We first determine a valid heap typing that both retains the monotonic property, while satisfying the new cast assertion. To do this, we recursively examine the heap structure, iterating until the heap is unchanged by the last type alteration.
+%\item \emph{Heap Update}. In the previous phase, we only determined a new valid typing for the heap. In the second step, we take this typing and apply it to the objects that exist in the heap.
+%\end{itemize}
+
+%By splitting out the two concerns, we avoid issues where the future state of the heap depends on values produced in the casting process and that do not exist yet. 
+
+Monotonic aims to have \emph{every typed reference still be valid},
+including the ones that previously existed, as well as the reference created
+by the cast. If a reference has a type with a non-star value, then the
+monotonic semantics will ensure that that type is not violated. To
+accomplish this, the monotonic cast needs to make sure of two properties:
+\begin{itemize}
+\item The values that \emph{currently} exist cannot violate any of the types
+  that point to them. Casting needs to recursively ensure that all values
+  referred to by the current object are of the claimed type.
+\item Functions can not be called with or return values that violate any of
+  the types that they are referred to with. The behaviour of the class needs
+  to check that its types are not violated by lesser-typed call sites.
+\end{itemize}
+The second property is strongly reminisicent of the behavioural semantics,
+though with the interesting caveat that we now need to make sure that
+\emph{all} method invocations follow the typed calling conventions, rather
+than just the ones that inherit this particular type assertion.
+
+
+The heap typing \S gives a type to addresses.
+
+\begin{align*}
+\S &::= \cdot \B \Map\S{\Bind\a\t}
+\end{align*}
+
+The monotone cast function \moncast\a\t\s\K\Kp\sp takes the address of the
+cast target \a, a target type \t, the current heap \s and class table \K, and
+will return an update heap \sp and an updated class table \Kp.
+
+We use \Dom\S to get a sequence of addresses that have to be retyped.
+
+\begin{mathpar}
+\IRule{Cast-Mono (monotonic)}{
+  \retype \a\t\cdot\s\K = \S\,\Kp\\
+  \spec {\Dom\S} \S\s\Kp = \sp
+}{
+  \moncast \a\t\s\K \Kp \sp\\
+}
+\end{mathpar}
+
+The heap typing \htype\a\S\s function takes a target object's address \a, a
+heap typing \S and a heap \s. It returns the type of \a in \S if defined,
+otherwise the current type in \s.
+
+\begin{mathpar}
+\IRule{HT1}{
+  \ap \not\in \S \\
+  \obj\C{\b\a}=\App\s\a
+}{
+  \htype \ap\S\s = \C
+}
+
+\IRule{HT2}{
+  \t = \App\S\a
+}{
+  \htype \a\S\s = \t
+}
+\end{mathpar}
+
+
+We write \t\EQ\tp to denote that both \StrSub{}\K\t\tp and
+\StrSub{}\K\tp\t hold.
+
+
+The retype function \retype{\b\a}{\b\t}\S\s\K, take a list of object
+addresses \b\a and a list of types to ascribe to them \b\t, and updates the
+heap \s and class table \K.
+
+What is \S doing?
+
+\begin{mathpar}
+\IRule{RC1}{
+  \htype \a\S\s = \tp\\
+  \meet\cdot\K\tp\t = \tpp\,\Kp\\ 
+  \tp\not\EQ\tpp \\
+  \b{\a~\t} = \fieldtypes \a\s\Kp \\
+  \Sp = \Map\S{\Bind\a\tpp} \\
+  \retype{\b\a}{\b\t}\Sp\s\K = \Spp\,\Kpp
+}{
+  \retype \a\t\S\s\K = \Spp\,\Kpp
+}
+
+\IRule{RC2}{
+  \htype \a\S\s = \tp\\
+  \meet\cdot\K\tp\t = \tpp\,\Kp \\
+  \tp\EQ\tpp \\
+}{
+  \retype \a\t\S\s\K = \S~\K
+}
+
+\IRule{RC2}{
+  \retype\a\t\S\s\K = \Sp\,\Kp\\
+  \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
+}{
+  \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
+}
+\end{mathpar}
+
+The heap specialization function \spec{\b\a}\S\s\K takes a
+sequence of object addresses \b\a, a heap typing \S, a heap \s
+and a class table \K and returns a new heap where the objects
+have been retyped.
+
+\begin{mathpar}
+\IRule{SP1}{
+  \D = \App\S\a \\
+  \obj\C{\b\a} = \App\s\a \\
+  \sp = \Map\s{\Bind\a{\b\a}}
+}{
+  \spec \a\S\s\K = \sp
+}
+
+\IRule{SP2}{
+  \spec \a\S\s\K = \sp\\
+  \spec {\b\a}\S\sp\K =\spp
+}{
+   \spec {\a\,\b\a}\S\s\K = \spp
+}
+\end{mathpar}
+
+
+The meet function \meet\P\K\t\tp compute the meet of types \t and \tp, it returns a new type if needed and an updated class table.
+
+For the case we call \meet\P\K\C\D, the function will have to create a new class \E that is the result of meeting \C with \D.
+
+Meh. The above is lousy. Rewrite.
+
+
+
+\begin{align*}
+\P &::= \cdot \B \Map\P{\Bind{(\t,\tp)}\tpp}
+\end{align*}
+
+\begin{mathpar}
+\IRule{M1}{ }{\meet\P\K\t\any = \t\,\K}
+
+\IRule{M2}{ }{\meet\P\K\any\t = \t\,\K}
+
+\IRule{M3}{ }{\meet\P\K\t\t = \t\,\K}
+
+\IRule{M4}{
+  \fresh\EC\\
+  (\C,\D) \not\in \Dom\P \\
+  \Pp = \Map\P{\Bind{(\C,\D)}\EC} \\
+  {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
+  {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
+  \meet\Pp\K{\Type{\b\mt}}{\Type{\b\mtp}} = \tpp\,\Kp\\
+  \Kpp = \Kp~\classgen{\C,\tpp,\EC,\Kp}\\
+}{
+    \meet\P\K\C\D = \EC\,\Kpp
+}
+
+\IRule{M5}{
+    \P(\C,\D) = \EC
+}{
+    \meet\P\K\C\D = \EC\,\K
+}
+
+\end{mathpar}
+
+The \texttt{meet} functions takes four arguments, an environment $\P$, a class table $\K$, the original type $\t$, the cast type $\tp$, 
+and outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set of mappings from a pair of types ($\t,\tp$) to a type $\tpp$.
+
+
+\hrulefill
+
+\opdef{
+  $\meet\P\K{\b\mt}{\b\mt} = \b\mt\,\K$
+}{
+%   Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
+}
+
+\begin{mathpar}
+\IRule{M6}{ 
+}{ \meet\P\K{\b\mt}\cdot = \b\mt\,\K }
+
+\IRule{M7}{
+  \meet\P\K{\t_3}{\t_1} = {\t_5}~{\K'} \\
+  \meet\P\Kp{\t_2}{\t_4} = {\t_6}~{\Kpp} \\
+  \meet\P{\Kpp}{\b{\mt_1}}{\b{\mt_2}} = \b{\mt_3}~\K'''
+}{
+  \meet\P\K{\Mtype\m{\t_1}{\t_2}~\b{\mt_1}}{\Mtype\m{{\t_3}}{\t_4}~\b{\mt_2}} = \Mtype\m{\t_5}{\t_6}~\b{\mt_3}~\K'''
+}
+
+\IRule{M8}{
+   \meet\P\K{\t_3}{\t_1} = {\t_5}~\Kp \\
+   \meet\P\Kp{\t_2}{\t_4} = {\t_6}~\Kpp \\
+   \meet\P\Kpp{\b{\mt_1}}{\b{\mt_2}} = \b{\mt_3}~\K'''
+}{
+    \meet\P\K{\Mtype\f{{\t_1}}{\t_2}~\b{\mt_1}}{\Mtype\f{{\t_3}}{\t_4}~\b{\mt_2}} = \Mtype\f{\t_5}{\t_6}~\b{\mt_3}~\K'''
+}
+
+\IRule{M9}{
+      \meet\P\K{\t_2}{\t_4} = {\t_6}~\Kp \\
+      \meet\P\Kp{\b{\mt_1}}{\b{\mt_2}} = \b{\mt_3}~\Kpp
+}{
+    \meet\P\K{\Mtype\f{}{\t_2}~\b{\mt_1}}{\Mtype\f{}{\t_4}~\b{\mt_2}} = \Mtype\f{}{\t_6}~\b{\mt_3}~\Kpp
+}
+\end{mathpar}
+
+% The figure above is semantics for the meet operator for the semantics of the monotonic cast.
+% 
+% \begin{verbatim}
+% class C:
+%   def m1(self,x:C)->Dyn:
+%       return 2
+% 
+% class E:
+%   def m1(self,x:E)->Int:
+%       return 2
+% 
+%  c = C()
+%  e = castE(c)
+%  c.m1(c)
+% \end{verbatim}
+
+
+The function \fieldtypes\a\s\K return the values of the fields of \a and their types.
+
+\begin{mathpar}
+\IRule{FT1}{
+ \obj\C{\b\a} =\App\s\a \\
+ \Class \C {\b{\Fdef\f\t}}{\b\md} \in\K 
+}{
+  \fieldtypes \a\s\K = \b\a~\b\t
+}
+\end{mathpar}
+
+
+
+\begin{tabbing}
+$\classgen{\C,$\=$ ~\C',$\=$ ~\D, \K} = $\\
+\>$\xt{class}~\D$\=$~\{$\=\\
+\>\>$\f : \tp_1$\\
+\>\>\>$\tfa \f : \t_1 \in \field\C\K \wedge \f:\tp_1 \in \ftype{\f}{\C'}\K$\\
+\\
+\>\>$\Mdefa\n{\b{\HT\x{\any}}}{\any} { \MonCast{\any}{\this.\n(\b{\MonCast{\t_1}{\x}})}}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \t_1 \neq \any$\\
+\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \MonCast{\tp_1}{\e}}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2}\e \in \xt{methods}(\C,\K) \wedge \t_1 \neq \any$\\
+\\
+\>\>$\Mdefa\n{\b{\HT\x{\any}}}{\any} { \e}$\\
+\>\>\>$\tfa \Mtype\n{\b{\any}}{\any} \in \classoff\C\K \wedge \Mdefa\n{\b{\HT\x{\any}}}{\any}\e \in \xt{methods}(\C,\K)$\\
+\>$\}$
+\end{tabbing}
+
+
 
 \section{Translations}
 
@@ -934,22 +1291,22 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 
 \newcommand{\progtrans}[2]{#1 ~\hookrightarrow_p~ #2}
 \newcommand{\classtrans}[3]{#1 \vdash #2 ~\hookrightarrow_c~ #3}
-\newcommand{\methtrans}[3]{#1 \vdash #2 ~\hookrightarrow_m~ #3}
+\newcommand{\methtrans}[4]{#1~#2 \vdash #3 ~\hookrightarrow_m~ #4}
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule{CR1}{ 
-  \b{\methtrans{\K}{\md}{\md'}} \\
-  \classtrans{\K}{\K'}{\K''}
+  \b{\methtrans{\K}{s\C}{\md}{\md'}} \\
+  \classtrans{\K}{\K'}{\K''}b
 }{\classtrans{\K}{\Class \C {\b{\Ftype\f\t}}{\b\md}~\K'}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\K''}}
 
 \IRule{CR2}{ }{\classtrans{\K}{\cdot}{\cdot}}
 
 \IRule{MT}{
-  \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}}
+  \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
+}{\methtrans{\K}{\C}{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}}
 \end{mathpar}
 
 \subsection{Strongscript}
@@ -1096,7 +1453,7 @@ Reticulated Python is somewhat more complicated, as it implements three differen
 The most notable difference between Reticulated and the other systems at the surface level is the use of \emph{consistency}, an operator broadly meaning that one type is compatible with another type. In our system, we define conistency as follows:
 \newcommand{\consistent}[3]{#1 \vdash #2 ~\sim~ #3}
 \begin{mathpar}
-\IRule{C1}{\meett{\cdot, \K, \C, \D} = \t~{\K'}}{\consistent\K{\C}{\D}}
+\IRule{C1}{\meet\cdot\K\C\D = \t~\Kp}{\consistent\K{\C}{\D}}
 \end{mathpar}
 
 In effect, if there is some most specific type for two given types, then the two types are consistent - it is possible that a value of one could be converted into the other with a runtime cast.
@@ -1154,22 +1511,82 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 \begin{mathpar}
 \IRule{MTU}{
   \AnaCast{\K}{\HT\x\any}{\e}{\ep}{\any}
-}{\methtrans\K{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}}
+}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}}
 
 \IRule{MTT}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt A2}{\ShaCast\t\x, \e}.f2()}}}}
+}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}}
 \end{mathpar}
+
+The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, KafKa does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
+
+Our translation for untyped methods is very simple, as they make no type-based assumptions internally, as seen in MTU. However, in MTT, we see the considerably more complex typed method translation. As this method must be callable with any argument, the argument type of the untyped function must be \any, then translate the body of the method to account for the altered argument type.
+
+As seen in the expression translation below, we cast every variable to the statically expected type whenever it is seen in the program. However, this is insufficient, as if the method does not use its argument, then without further checking, it can succeed even if the argument value is ill-formed. Solving this problem is challenging, as KafKa does not allow us to write multiple line expressions. What KafKa does have, though, is the ability to write multiple expressions in a new statement with a guaranteed evaluation order, which is sufficient for our purposes. 
+
+To check the type of the argument, we then create a new instance of the empty utility class \EMxt{A2}, which has two fields, \EMxt{f1} and \EMxt{f2}, then set \EMxt{f1} to the casted value of the argument \x. While this value is used nowhere else in the program, the program will get stuck at this cast if the value is not of the specified type, maintaining the required. We then instantiate \EMxt{f2} to the translated body of the function, then return the value of \EMxt{f2}, producing the expected result. 
 
 
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
+\IRule{A3}{\HasType{\E}\this\C \\ 
+           \Mtype\f{\b{\HT\x\t}}\t \in \classoff{\C}{\K} \\
+           \b{\AnaCast\K\E\e\ep\t}
+}{\GenCast{\K}\E{\this.\f(\b{\e})}{\this.\f(\b{\ep})}\t}
+
+
+\IRule[width=30em]{A2}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\m{\b{\e_4}}}}     {\t_2}
+}
+
+\IRule{A8}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule{A11}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+Transient expression translation contains only one real suprise, A3. Transient does not provide a sufficiently strong type invariant as to satisfy KafKa's field access typechecking, causing us to be unable to call a field setter or getter on any argument. As a concequence, we can only call fields on the self reference \this, which is handled as a special case as A3, since the combination of A1 and A2 is not sufficient to typecheck a field access due to the weakness of the type invariant.
+
+\begin{mathpar}
+\IRule{AASC1}{
+  \GenCast\K\E\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+
+\IRule{AASC2}{
+  \GenCast\K\E\e\ep\tp \\
+  \consistent\K\tp\t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+\end{mathpar}
+
+The next point of interest for the transient semantics is AASC2, which handles the case where we expect one type and get another that is not a subtype of the first type, but is consistent. In the behavioural and the soon to be discussed monotonic semantics, we would insert a cast at this point, as it is needed to ensure that the value at this point satisfies the type invariant. However, since transient only checks types at their use site, it does not need to check a type at the site of the type assertion.
+
+\paragraph{Monotonic}
+
+At the surface language level, the Monotonic semantics are very similar to that used by the guarded semantics and Typed Racket/Racket. We insert casts at locations at type boundaries.
+
+
+\begin{mathpar}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+
 \IRule[width=30em]{A2}{
     \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\n{\b{\e_4}}}}     {\t_2}
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule{A8}{
@@ -1194,14 +1611,11 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 
 \IRule{AASC2}{
   \GenCast\K\E\e\ep\tp \\
-  \consistent\K\tp\t
+  \consistent\K\t\tp
 }{
-  \AnaCast\K\E\e\ep\t
+  \AnaCast\K\E\e{\MonCast\t\ep}\t
 }
 \end{mathpar}
-
-\paragraph{Monotonic}
-
 
 \bibliographystyle{plain}
 \bibliography{../bib/compactdoi}
@@ -1209,8 +1623,6 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Auxiliary Definitions}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1348,10 +1760,6 @@ We have some auxiliary judgements.
 
 \subsection{Typing}
 
-
-
-Type checking is standard.
-
 Field accessor rules W3 and W4 require a typed receiver, since \any does
 not have any methods a receiver typed at \any will never typecheck.
 
@@ -1464,12 +1872,26 @@ We write \setf\s\a\f\ap\K to denote the write of value \ap into field \f of
 the object stored at \a in \s.
 
 \begin{equation*}
-\setf \s\a\f\ap\K= \Heap\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
+\setf \s\a\f\ap\K= \Map\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
   ~~\mathit{if}~~ \begin{cases}
    \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots}\\
    \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
 \end{cases}
 \end{equation*}
+
+
+
+
+
+\end{document}
+
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
 
 
 
@@ -1531,19 +1953,6 @@ the object stored at \a in \s.
 
 
 
-
-\end{document}
-
-%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
-%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
-%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
-%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
-%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
-%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
-%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
-
-
-
 This common core is focused on the basics of object functionality, with a
 simple example being a \xt{Point} class.\footnote{For our examples we use
   integers and common arithmetic operations even if they are not in core
@@ -1591,21 +2000,21 @@ not have a getter \xt{x()}.
 The dynamic semantics evaluates expression extended with object references,
 denoted \a, and errors, denoted \err, together with a heap \s mapping
 references to object values. Object values contain all fields, methods, a
-type, and a class; they are denoted \Obj{\b\a}\C. The class is used for
+type, and a class; they are denoted \obj\C{\b\a}. The class is used for
 locating methods and the type is used for type casts. The need for keeping
 them separate will become clear later.
 
-The semantics uses evaluation context \E[\e], meaning that $\e$ is in the 
-hole of $\E$. Selecting an object from the heap is written \Sel\s\a, 
-while a heap is extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\C}}.
+The semantics uses evaluation context \E[\e], meaning that $\e$ is in the
+hole of $\E$. Selecting an object from the heap is written \Sel\s\a, while a
+heap is extended with a new object by \Map{\s}{\Bind{\a}{\obj\C{\dots}}}.
 
-For an object reference \a, such that \EM{\Sel\s\a=\Obj{\dots}\C}, we have 
+For an object reference \a, such that \EM{\Sel\s\a=\obj\C\dots}, we have 
 \classofis{\Sel\s\a}\C and \typeofis\s\a\t.
 
-We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
-definition and \Fdef\f\t\a\inc\Obj{\dots}\C to express the selection of a
+We use the notation \Mdef\m\x\t\t \in\C to select a method in a class
+definition and \Fdef\f\t\a\in\obj\C\dots to express the selection of a
 field. Lastly a field of an object can be update with the notation
-\Update{\Obj{\dots}\C}\f\a.
+\Update{\obj\C\dots}\f\a.
 
 \subsection{Core Type System}
 
@@ -1836,12 +2245,12 @@ To model Typed Racket, we then need to enforce the property that objects are wra
  \begin{itemize}
  \item for every method $\Mtype\m{\tp1}{\tp2} \in \b{\md}$, generate a function in \xt{D} $\Mdef\m{x}{\any}{\any}{\Cast{\any}{\New{\xt{D}}{\xt{this}.\xt{orig}.\m(\New\C{\b{\Cast{\tp1}x}})}}}$
  \end{itemize}
- \item for every field \Ftype\f\t\inc\C, we add to \C:
+ \item for every field \Ftype\f\t\in\C, we add to \C:
  \begin{itemize}
  \item A setter \SMdef\f\x\t\t{\Set\this\f\x} 
  \item A getter \GMdef\f\t{\Get\this\f}; 
  \end{itemize}
- \item For every method definition \Mdef\d\x\t{\tp1}\e\inc\C:
+ \item For every method definition \Mdef\d\x\t{\tp1}\e\in\C:
  \begin{itemize}
  \item A dynamic method \Mdef{\Dyn\d}\x\any\any{\Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C 
  \item We replace the body \e of \m is replaced by \ep1 where \TransClass\e{\ep1}.

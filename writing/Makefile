@@ -1,16 +1,9 @@
 all: figures
-	pdflatex main.tex
-	bibtex main
-
-siek:
-	pdflatex siek-mod && open siek-mod.pdf
-
-no:
 	bibtex main
 	pdflatex main.tex
 
 jan: 
-	pdflatex common && open common.pdf
+	pdflatex main && open main.pdf
 
 halfclean:
 	rm -f *.log *.aux *.bbl *.blg *~  *.out  *#  .#*  *.fls *.vtc
