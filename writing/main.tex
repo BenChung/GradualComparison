@@ -1153,83 +1153,102 @@ have been retyped.
 \end{mathpar}
 
 
-The meet function \meet\P\K\t\tp compute the meet of types \t and \tp, it returns a new type if needed and an updated class table.
+The \texttt{typemeet} function \tmeet\P\K\t\tp compute the meet of types \t and \tp, it returns a new type if needed and an updated class table.
 
-For the case we call \meet\P\K\C\D, the function will have to create a new class \E that is the result of meeting \C with \D.
+For the case we call \tmeet\P\K\C\D, the function will have to create a new class \E that is the result of meeting \C with \D.
 
 Meh. The above is lousy. Rewrite.
 
-
-
-\begin{align*}
-\P &::= \cdot \B \Map\P{\Bind{(\t,\tp)}\tpp}
-\end{align*}
-
-\begin{mathpar}
-\IRule{M1}{ }{\meet\P\K\t\any = \t\,\K}
-
-\IRule{M2}{ }{\meet\P\K\any\t = \t\,\K}
-
-\IRule{M3}{ }{\meet\P\K\t\t = \t\,\K}
-
-\IRule{M4}{
-  \fresh\EC\\
-  (\C,\D) \not\in \Dom\P \\
-  \Pp = \Map\P{\Bind{(\C,\D)}\EC} \\
-  {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
-  {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
-  \meet\Pp\K{\Type{\b\mt}}{\Type{\b\mtp}} = \tpp\,\Kp\\
-  \Kpp = \Kp~\classgen{\C,\tpp,\EC,\Kp}\\
-}{
-    \meet\P\K\C\D = \EC\,\Kpp
-}
-
-\IRule{M5}{
-    \P(\C,\D) = \EC
-}{
-    \meet\P\K\C\D = \EC\,\K
-}
-
-\end{mathpar}
-
-The \texttt{meet} functions takes four arguments, an environment $\P$, a class table $\K$, the original type $\t$, the cast type $\tp$, 
+The \texttt{typemeet} functions takes four arguments, an environment $\P$, a class table $\K$, the original type $\t$, the cast type $\tp$, 
 and outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set of mappings from a pair of types ($\t,\tp$) to a type $\tpp$.
 
 
 \hrulefill
 
 \opdef{
-  $\meet\P\K{\b\mt}{\b\mt} = \b\mt\,\K$
+  $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
 }{
-%   Specializing $\t_1$ with $\t_2$ to produces $\t$ and $\K'$, under \P and \K 
 }
-
+\begin{align*}
+\P &::= \cdot \B \Map\P{\Bind{(\t,\tp)}\tpp}
+\end{align*}
 \begin{mathpar}
-\IRule{M6}{ 
-}{ \meet\P\K{\b\mt}\cdot = \b\mt\,\K }
+\IRule{TM1}{ }{\tmeet\t\any\P\K = \t\,\K}
 
-\IRule{M7}{
-  \meet\P\K{\t_3}{\t_1} = {\t_5}~{\K'} \\
-  \meet\P\Kp{\t_2}{\t_4} = {\t_6}~{\Kpp} \\
-  \meet\P{\Kpp}{\b{\mt_1}}{\b{\mt_2}} = \b{\mt_3}~\K'''
+\IRule{TM2}{ }{\tmeet\any\t\P\K = \t\,\K}
+
+\IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
+
+\IRule{TM4}{
+  \fresh\EC\\
+  (\C,\D) \not\in \Dom\P \\
+  \Pp = \Map\P{\Bind{(\C,\D)}\EC} \\
+  {\text{mtypes}}(\C,\K) = {\b\mt}\\
+  {\text{mtypes}}(\D,\K) = {\b\mtp}\\
+  \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
+  \Kpp = \Kp~\classgen{\C,\b\mtpp,\EC,\Kp}\\
 }{
-  \meet\P\K{\Mtype\m{\t_1}{\t_2}~\b{\mt_1}}{\Mtype\m{{\t_3}}{\t_4}~\b{\mt_2}} = \Mtype\m{\t_5}{\t_6}~\b{\mt_3}~\K'''
+    \tmeet\C\D\P\K = \EC\,\Kpp
 }
 
-\IRule{M8}{
-   \meet\P\K{\t_3}{\t_1} = {\t_5}~\Kp \\
-   \meet\P\Kp{\t_2}{\t_4} = {\t_6}~\Kpp \\
-   \meet\P\Kpp{\b{\mt_1}}{\b{\mt_2}} = \b{\mt_3}~\K'''
+\IRule{TM5}{
+    \P(\C,\D) = \EC
 }{
-    \meet\P\K{\Mtype\f{{\t_1}}{\t_2}~\b{\mt_1}}{\Mtype\f{{\t_3}}{\t_4}~\b{\mt_2}} = \Mtype\f{\t_5}{\t_6}~\b{\mt_3}~\K'''
+    \tmeet\C\D\P\K = \EC\,\K
 }
 
-\IRule{M9}{
-      \meet\P\K{\t_2}{\t_4} = {\t_6}~\Kp \\
-      \meet\P\Kp{\b{\mt_1}}{\b{\mt_2}} = \b{\mt_3}~\Kpp
+\IRule{TM6}{
 }{
-    \meet\P\K{\Mtype\f{}{\t_2}~\b{\mt_1}}{\Mtype\f{}{\t_4}~\b{\mt_2}} = \Mtype\f{}{\t_6}~\b{\mt_3}~\Kpp
+    \tmeet\cdot\cdot\P\K = \cdot\,\K
 }
+\end{mathpar}
+
+The \texttt{methmeet} functions takes four arguments, the environment $\P$, a class table $\K$, the original method types $\b\mt$, the cast method types $\b\mtp$, 
+and outputs method types $\b\mtpp$ and a class table $\Kp$.
+
+
+\hrulefill
+
+\opdef{
+  $\mmeet{\b\mt}{\b\mtp}\P\K = \b\mtpp\,\Kp$
+}{
+}
+\begin{align*}
+\n &::= \f \B \m
+\end{align*}
+\begin{mathpar}
+\IRule{MM1}{ 
+}{ \mmeet{\b\mt}\cdot\P\K = \b\mt\,\K }
+
+\IRule{MM2}{
+  \tmeet{\b{\t_3}}{\b{\t_1}}\P\K = {\b{\t_5}}~{\K'} \\
+  \tmeet{\t_2}{\t_4}\P\Kp = {\t_6}~{\Kpp} \\
+  \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kpp = \b{\mt_3}~\K'''
+}{
+  \mmeet{\Mtype\n{\b{\t_1}}{\t_2}~\b{\mt_1}}{\Mtype\n{\b{\t_3}}{\t_4}~\b{\mt_2}}\P\K = \Mtype\n{\b{\t_5}}{\t_6}~\b{\mt_3}~\K'''
+}
+% \IRule{MM2}{
+%   \mmeet{\t_3}{\t_1}\P\K = {\t_5}~{\K'} \\
+%   \mmeet{\t_2}{\t_4}\P\Kp = {\t_6}~{\Kpp} \\
+%   \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kpp = \b{\mt_3}~\K'''
+% }{
+%   \mmeet{\Mtype\m{{\t_1}}{\t_2}~\b{\mt_1}}{\Mtype\m{{\t_3}}{\t_4}~\b{\mt_2}}\P\K = \Mtype\m{\t_5}{\t_6}~\b{\mt_3}~\K'''
+% }
+% 
+% \IRule{MM3}{
+%    \mmeet{\t_3}{\t_1}\P\K = {\t_5}~\Kp \\
+%    \mmeet{\t_2}{\t_4}\P\Kp = {\t_6}~\Kpp \\
+%    \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kpp = \b{\mt_3}~\K'''
+% }{
+%     \mmeet{\Mtype\f{{\t_1}}{\t_2}~\b{\mt_1}}{\Mtype\f{{\t_3}}{\t_4}~\b{\mt_2}}\P\K = \Mtype\f{\t_5}{\t_6}~\b{\mt_3}~\K'''
+% }
+% 
+% \IRule{MM4}{
+%       \mmeet{\t_2}{\t_4}\P\K = {\t_6}~\Kp \\
+%       \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kp = \b{\mt_3}~\Kpp
+% }{
+%     \mmeet{\Mtype\f{}{\t_2}~\b{\mt_1}}{\Mtype\f{}{\t_4}~\b{\mt_2}}\P\K = \Mtype\f{}{\t_6}~\b{\mt_3}~\Kpp
+% }
 \end{mathpar}
 
 % The figure above is semantics for the meet operator for the semantics of the monotonic cast.
