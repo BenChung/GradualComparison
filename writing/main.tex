@@ -1061,10 +1061,12 @@ The monotone cast function \moncast\a\t\s\K\Kp\sp takes the address of the
 cast target \a, a target type \t, the current heap \s and class table \K, and
 will return an update heap \sp and an updated class table \Kp.
 
+We use \Dom\S to get a sequence of addresses that have to be retyped.
+
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
   \retype \a\t\cdot\s\K = \S\,\Kp\\
-  \spec{\S, \s, \Kp} = \sp
+  \spec {\Dom\S} \S\s\Kp = \sp
 }{
   \moncast \a\t\s\K \Kp \sp\\
 }
@@ -1126,26 +1128,31 @@ What is \S doing?
 }{
   \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
 }
-
-
 \end{mathpar}
 
-\hrulefill
+The heap specialization function \spec{\b\a}\S\s\K takes a
+sequence of object addresses \b\a, a heap typing \S, a heap \s
+and a class table \K and returns a new heap where the objects
+have been retyped.
 
 \begin{mathpar}
 \IRule{SP1}{
-  \spec{\S,\s,\K} = \sp
+  \D = \App\S\a \\
+  \obj\C{\b\a} = \App\s\a \\
+  \sp = \Heap\s{\Bind\a{\b\a}}
 }{
-  \spec{\a : \D ~ \S, \s[\a \mapsto \C\{\b{\ap}\}], \K} = \sp[\a\mapsto \D\{\b\ap\}]
+  \spec \a\S\s\K = \sp
 }
 
 \IRule{SP2}{
+  \spec \a\S\s\K = \sp\\
+  \spec {\b\a}\S\sp\K =\spp
 }{
-   \spec{\cdot, \sigma, \K} = \cdot
+   \spec {\a\,\b\a}\S\s\K = \spp
 }
 \end{mathpar}
 
-The \texttt{spec} function.
+
 
 \hrulefill
 
