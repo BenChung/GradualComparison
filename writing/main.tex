@@ -1063,7 +1063,7 @@ will return an update heap \sp and an updated class table \Kp.
 
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
-  \rectype{\a, \t, \s, \K, \cdot} = \S~\Kp\\
+  \retype \a\t\s\K\cdot = \S\,\Kp\\
   \spec{\S, \s, \Kp} = \sp
 }{
   \moncast \a\t\s\K \Kp \sp\\
@@ -1093,29 +1093,36 @@ otherwise the current type in \s.
 We write \t\EQ\tp to denote that both \StrSub{}\K\t\tp and
 \StrSub{}\K\tp\t hold.
 
-\hrulefill
 
 \newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
 \begin{mathpar}
 \IRule{RC1}{
   \htype \a\S\s = \tp\\
   \meett{\cdot, \K, \tp, \t} = \tpp~\Kp\\ 
-  \cdot \vdash \tp \not\approx \tpp \\
-  \fieldtypes{\tpp,\K',\s,\a} = \a_1 \ldots \a_n~\t_1 \ldots \t_n\\
-  \S_1 = \Heap\S{\Bind\a\tpp} \\
-  \K_1 = \K'\\
-  \rectype{\a_1, \t_1, \s, \K_1, \S_1} = \S_{2}~\K_{2} ~~ \ldots ~~
-  \rectype{\a_n, \t_n, \s, \K_n, \S_n} = \S_{n+1}~\K_{n+1}
+  \tp\not\EQ\tpp \\
+  \b{\a~\t} = \fieldtypes \tpp\Kp\s\a \\
+  \Sp = \Heap\S{\Bind\a\tpp} \\
+  \retype{\b\a}{\b\t}\s\K\Sp = \Spp\,\Kpp
+}{
+  \retype \a\t\s\K\S = \Spp\,\Kpp
 }
-{\rectype{\a, \t, \s, \K, \S} = \S_{n+1}, \K_{n + 1}}
 
 \IRule{RC2}{
   \htype \a\S\s = \tp\\
   \meett{\cdot, \K, \tp, \t} = \tpp~{\K'} \\
-  \cdot \vdash \tp \approx \tpp \\
+  \tp\EQ\tpp \\
 }{
-  \rectype{\a, \t, \s, \K, \S} = \S~\K
+  \retype \a\t\s\K\S = \S~\K
 }
+
+\IRule{RC2}{
+  \retype\a\t\s\K\S = \Sp\,\Kp\\
+  \retype{\b\a}{\b\t}\s\Kp\Sp = \Spp\,\Kpp
+}{
+  \retype {\a\,\b\a}{\t\,\b\t}\s\K\S = \Spp\,\Kpp
+}
+
+
 \end{mathpar}
 
 \hrulefill
@@ -1240,7 +1247,7 @@ and outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set
  \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
  $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
 }{
-  \fieldtypes{\C,\K,\s,\a} = \b\a~\typeof{\b{\Ftype\f\t}}
+  \fieldtypes \C\K\s\a = \b\a~\typeof{\b{\Ftype\f\t}}
 }
 
 \IRule{FT2}{
@@ -1248,7 +1255,7 @@ and outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set
  \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
  $|~\b\a|~$ = $~|~\b{\Ftype\f\t}|$ \\
 }{
-  \fieldtypes{\any,\K,\s,\a} = \b\a~\typeof{\b{\Ftype\f\t}}
+  \fieldtypes \any\K\s\a = \b\a~\typeof{\b{\Ftype\f\t}}
 }
 \end{mathpar}
 
