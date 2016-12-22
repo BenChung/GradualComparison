@@ -1063,7 +1063,7 @@ will return an update heap \sp and an updated class table \Kp.
 
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
-  \retype \a\t\s\K\cdot = \S\,\Kp\\
+  \retype \a\t\cdot\s\K = \S\,\Kp\\
   \spec{\S, \s, \Kp} = \sp
 }{
   \moncast \a\t\s\K \Kp \sp\\
@@ -1094,32 +1094,37 @@ We write \t\EQ\tp to denote that both \StrSub{}\K\t\tp and
 \StrSub{}\K\tp\t hold.
 
 
-\newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
+The retype function \retype{\b\a}{\b\t}\S\s\K, take a list of object
+addresses \b\a and a list of types to ascribe to them \b\t, and updates the
+heap \s and class table \K.
+
+What is \S doing?
+
 \begin{mathpar}
 \IRule{RC1}{
   \htype \a\S\s = \tp\\
-  \meett{\cdot, \K, \tp, \t} = \tpp~\Kp\\ 
+  \meett{\cdot, \K, \tp, \t} = \tpp\,\Kp\\ 
   \tp\not\EQ\tpp \\
   \b{\a~\t} = \fieldtypes \tpp\Kp\s\a \\
   \Sp = \Heap\S{\Bind\a\tpp} \\
-  \retype{\b\a}{\b\t}\s\K\Sp = \Spp\,\Kpp
+  \retype{\b\a}{\b\t}\Sp\s\K = \Spp\,\Kpp
 }{
-  \retype \a\t\s\K\S = \Spp\,\Kpp
+  \retype \a\t\S\s\K = \Spp\,\Kpp
 }
 
 \IRule{RC2}{
   \htype \a\S\s = \tp\\
-  \meett{\cdot, \K, \tp, \t} = \tpp~{\K'} \\
+  \meett{\cdot, \K, \tp, \t} = \tpp\,\Kp \\
   \tp\EQ\tpp \\
 }{
-  \retype \a\t\s\K\S = \S~\K
+  \retype \a\t\S\s\K = \S~\K
 }
 
 \IRule{RC2}{
-  \retype\a\t\s\K\S = \Sp\,\Kp\\
-  \retype{\b\a}{\b\t}\s\Kp\Sp = \Spp\,\Kpp
+  \retype\a\t\S\s\K = \Sp\,\Kp\\
+  \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
 }{
-  \retype {\a\,\b\a}{\t\,\b\t}\s\K\S = \Spp\,\Kpp
+  \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
 }
 
 
