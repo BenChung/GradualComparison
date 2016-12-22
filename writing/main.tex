@@ -779,7 +779,7 @@ The semantics operate over an explicit class table, denoted \K, which is a
 sequence of class definitions.
 
 A heap, denoted \s, maps memory locations to
-objects. We use the notation \Heap\s{\Bind\a{\obj\C{\b\a}}} to denote the
+objects. We use the notation \Map\s{\Bind\a{\obj\C{\b\a}}} to denote the
 heap \s extended by the binding of location \a to object \obj\C{\b\a}.
 
 A configuration \K\e\s evaluates in one step to a new configuration, denoted
@@ -831,7 +831,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \CondRule{E1}{  %% new C -> a
    \ap fresh
 }{ 
-  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Heap\s{\Bind\ap{\obj\C{\b\a}}}}
+  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
 \CondRule{E2}{  %% a.f() -> e
     \Mdefz\f\t\e \In \App\K\C \AND \obj\C{\b\a} = \App\s\a
@@ -939,7 +939,7 @@ Casts are the key to the different interpretations of gradual typing, as they ar
   \D\;\mathit{fresh} \\
   \ap\;\mathit{fresh} \\
   \obj\C{\b{\a_1}} = \s(\a) \\
-  \sp = \Heap \s{\Bind \ap{\obj\D{\a}} } \\
+  \sp = \Map \s{\Bind \ap{\obj\D{\a}} } \\
   \k = \wrapper{\C,\t,\D}
 }{
   \behcast\a\t\s\K {\K,~\Bind{\D}{\k}~}\ap\sp
@@ -1054,7 +1054,7 @@ than just the ones that inherit this particular type assertion.
 The heap typing \S gives a type to addresses.
 
 \begin{align*}
-\S &::= \cdot \B \Heap\S{\Bind\a\t}
+\S &::= \cdot \B \Map\S{\Bind\a\t}
 \end{align*}
 
 The monotone cast function \moncast\a\t\s\K\Kp\sp takes the address of the
@@ -1108,7 +1108,7 @@ What is \S doing?
   \meett{\cdot, \K, \tp, \t} = \tpp\,\Kp\\ 
   \tp\not\EQ\tpp \\
   \b{\a~\t} = \fieldtypes \tpp\Kp\s\a \\
-  \Sp = \Heap\S{\Bind\a\tpp} \\
+  \Sp = \Map\S{\Bind\a\tpp} \\
   \retype{\b\a}{\b\t}\Sp\s\K = \Spp\,\Kpp
 }{
   \retype \a\t\S\s\K = \Spp\,\Kpp
@@ -1139,7 +1139,7 @@ have been retyped.
 \IRule{SP1}{
   \D = \App\S\a \\
   \obj\C{\b\a} = \App\s\a \\
-  \sp = \Heap\s{\Bind\a{\b\a}}
+  \sp = \Map\s{\Bind\a{\b\a}}
 }{
   \spec \a\S\s\K = \sp
 }
@@ -1889,7 +1889,7 @@ We write \setf\s\a\f\ap\K to denote the write of value \ap into field \f of
 the object stored at \a in \s.
 
 \begin{equation*}
-\setf \s\a\f\ap\K= \Heap\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
+\setf \s\a\f\ap\K= \Map\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
   ~~\mathit{if}~~ \begin{cases}
    \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots}\\
    \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
@@ -2016,21 +2016,21 @@ not have a getter \xt{x()}.
 The dynamic semantics evaluates expression extended with object references,
 denoted \a, and errors, denoted \err, together with a heap \s mapping
 references to object values. Object values contain all fields, methods, a
-type, and a class; they are denoted \Obj{\b\a}\C. The class is used for
+type, and a class; they are denoted \obj\C{\b\a}. The class is used for
 locating methods and the type is used for type casts. The need for keeping
 them separate will become clear later.
 
-The semantics uses evaluation context \E[\e], meaning that $\e$ is in the 
-hole of $\E$. Selecting an object from the heap is written \Sel\s\a, 
-while a heap is extended with a new object by \Heap{\s}{\Bind{\a}{\Obj{\dots}\C}}.
+The semantics uses evaluation context \E[\e], meaning that $\e$ is in the
+hole of $\E$. Selecting an object from the heap is written \Sel\s\a, while a
+heap is extended with a new object by \Map{\s}{\Bind{\a}{\obj\C{\dots}}}.
 
-For an object reference \a, such that \EM{\Sel\s\a=\Obj{\dots}\C}, we have 
+For an object reference \a, such that \EM{\Sel\s\a=\obj\C\dots}, we have 
 \classofis{\Sel\s\a}\C and \typeofis\s\a\t.
 
-We use the notation \Mdef\m\x\t\t \inc\C to select a method in a class
-definition and \Fdef\f\t\a\inc\Obj{\dots}\C to express the selection of a
+We use the notation \Mdef\m\x\t\t \in\C to select a method in a class
+definition and \Fdef\f\t\a\in\obj\C\dots to express the selection of a
 field. Lastly a field of an object can be update with the notation
-\Update{\Obj{\dots}\C}\f\a.
+\Update{\obj\C\dots}\f\a.
 
 \subsection{Core Type System}
 
@@ -2261,12 +2261,12 @@ To model Typed Racket, we then need to enforce the property that objects are wra
  \begin{itemize}
  \item for every method $\Mtype\m{\tp1}{\tp2} \in \b{\md}$, generate a function in \xt{D} $\Mdef\m{x}{\any}{\any}{\Cast{\any}{\New{\xt{D}}{\xt{this}.\xt{orig}.\m(\New\C{\b{\Cast{\tp1}x}})}}}$
  \end{itemize}
- \item for every field \Ftype\f\t\inc\C, we add to \C:
+ \item for every field \Ftype\f\t\in\C, we add to \C:
  \begin{itemize}
  \item A setter \SMdef\f\x\t\t{\Set\this\f\x} 
  \item A getter \GMdef\f\t{\Get\this\f}; 
  \end{itemize}
- \item For every method definition \Mdef\d\x\t{\tp1}\e\inc\C:
+ \item For every method definition \Mdef\d\x\t{\tp1}\e\in\C:
  \begin{itemize}
  \item A dynamic method \Mdef{\Dyn\d}\x\any\any{\Cast\any{\Call\this\d{\b{\Cast\t\x }} }} is added to \C 
  \item We replace the body \e of \m is replaced by \ep1 where \TransClass\e{\ep1}.
