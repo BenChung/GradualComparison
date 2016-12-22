@@ -1032,47 +1032,60 @@ $\wrapper{\C,$\=$ \any, \D} = $\\
 
 %By splitting out the two concerns, we avoid issues where the future state of the heap depends on values produced in the casting process and that do not exist yet. 
 
-Monotonic aims to have \emph{every typed reference still be valid}, including the ones that previously existed, as well as the reference created by the cast. If a reference has a type with a non-star value, then the monotonic semantics will ensure that that type is not violated. To accomplish this, the monotonic cast needs to make sure of two properties:
+Monotonic aims to have \emph{every typed reference still be valid},
+including the ones that previously existed, as well as the reference created
+by the cast. If a reference has a type with a non-star value, then the
+monotonic semantics will ensure that that type is not violated. To
+accomplish this, the monotonic cast needs to make sure of two properties:
 \begin{itemize}
-\item The values that \emph{currently} exist cannot violate any of the types that point to them. Casting needs to recursively ensure that all values referred to by the current object are of the claimed type.
-\item Functions can not be called with or return values that violate any of the types that they are referred to with. The behaviour of the class needs to check that its types are not violated by lesser-typed call sites.
+\item The values that \emph{currently} exist cannot violate any of the types
+  that point to them. Casting needs to recursively ensure that all values
+  referred to by the current object are of the claimed type.
+\item Functions can not be called with or return values that violate any of
+  the types that they are referred to with. The behaviour of the class needs
+  to check that its types are not violated by lesser-typed call sites.
 \end{itemize}
-The second property is strongly reminisicent of the behavioural semantics, though with the interesting caveat that we now need to make sure that \emph{all} method invocations follow the typed calling conventions, rather than just the ones that inherit this particular type assertion.
+The second property is strongly reminisicent of the behavioural semantics,
+though with the interesting caveat that we now need to make sure that
+\emph{all} method invocations follow the typed calling conventions, rather
+than just the ones that inherit this particular type assertion.
 
 
-\hrulefill
-
-\newcommand{\rectype}[1]{\xt{recType}(#1)}
-\newcommand{\htype}[1]{\xt{hType}(#1)}
-\newcommand{\fieldtypes}[1]{\xt{fieldTypes}(#1)}
-\newcommand{\typeof}[1]{\xt{typeOf}(#1)}
-\newcommand{\classgen}[1]{\xt{classGen}(#1)}
+The heap typing \S gives a type to addresses.
 
 \begin{align*}
-\Sigma &::= \b{\a:\t}
+\S &::= \cdot \B \Heap\S{\Bind\a\t}
 \end{align*}
+
+The monotone cast function \moncast\a\t\s\K\Kp\sp takes the address of the
+cast target \a, a target type \t, the current heap \s and class table \K, and
+will return an update heap \sp and an updated class table \Kp.
 
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
-  \rectype{\a, \t, \s, \K, \cdot} = \Sigma~\Kp\\
-  \spec{\Sigma, \s, \Kp} = \sp
+  \rectype{\a, \t, \s, \K, \cdot} = \S~\Kp\\
+  \spec{\S, \s, \Kp} = \sp
 }{
-  \moncast \a\t\s\K   \Kp {\sp}\\
+  \moncast \a\t\s\K \Kp \sp\\
 }
 \end{mathpar}
 
-\hrulefill
+The heap typing \htype\a\S\s function takes a target object's address \a, a
+heap typing \S and a heap \s. It returns the type of \a in \S if defined,
+otherwise the current type in \s.
 
 \begin{mathpar}
 \IRule{HT1}{
-  \a \not\in \text{addr}(\Sigma)
+  \ap \not\in \S \\
+  \obj\C{\b\a}=\App\s\a
 }{
-  \htype{\a,\Sigma,\sigma[\a \mapsto \C\{\b\ap\}]} = \C
+  \htype \ap\S\s = \C
 }
 
 \IRule{HT2}{
+  \t = \App\S\a
 }{
-  \htype{\a,\Sigma~\a:\t~\Sigma,\sigma} = \t
+  \htype \a\S\s = \t
 }
 \end{mathpar}
 
@@ -1092,31 +1105,26 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \hrulefill
 
-\renewcommand{\P}{\EMxt P}
 \newcommand{\dmeet}[2]{#1\overset{\rightharpoonup}{\sqcap}#2}
 \begin{mathpar}
 \IRule{RC1}{
-  \htype{\a,\Sigma,\sigma} = \tp\\
-  \meett{\cdot, \K, \tp, \t} = \tpp~{\K'} \\ 
+  \htype \a\S\s = \tp\\
+  \meett{\cdot, \K, \tp, \t} = \tpp~\Kp\\ 
   \cdot \vdash \tp \not\approx \tpp \\
-%   \fieldtypes{\tpp,\K,\s,\a} = \ap_1 \ldots \ap_n, \t^*_1 \ldots \t^*_n\\
-%   \text{update}(\a : \tpp, \Sigma) = \Sigma_1\\
   \fieldtypes{\tpp,\K',\s,\a} = \a_1 \ldots \a_n~\t_1 \ldots \t_n\\
-  \Sigma_1 = \text{update}(\a:\tpp,\Sigma) \\
+  \S_1 = \Heap\S{\Bind\a\tpp} \\
   \K_1 = \K'\\
-%   \b{\rectype{\ap, \t_f, \s, \K',\meet\Sigma{\a:\tpp}} = \Sigma'~\K''}
-  \rectype{\a_1, \t_1, \s, \K_1, \Sigma_1} = \Sigma_{2}~\K_{2} ~~ \ldots ~~
-  \rectype{\a_n, \t_n, \s, \K_n, \Sigma_n} = \Sigma_{n+1}~\K_{n+1}
+  \rectype{\a_1, \t_1, \s, \K_1, \S_1} = \S_{2}~\K_{2} ~~ \ldots ~~
+  \rectype{\a_n, \t_n, \s, \K_n, \S_n} = \S_{n+1}~\K_{n+1}
 }
-{\rectype{\a, \t, \s, \K, \Sigma} = \Sigma_{n+1}, \K_{n + 1}}
+{\rectype{\a, \t, \s, \K, \S} = \S_{n+1}, \K_{n + 1}}
 
 \IRule{RC2}{
-  \htype{\a,\Sigma,\sigma} = \tp\\
+  \htype \a\S\s = \tp\\
   \meett{\cdot, \K, \tp, \t} = \tpp~{\K'} \\
-%   \cdot~\K \vdash \dmeet{\tp}{\t} \equiv \tpp \dashv \K'\\ % is this Omega right?
   \cdot \vdash \tp \approx \tpp \\
 }{
-  \rectype{\a, \t, \s, \K, \Sigma} = \Sigma~\K
+  \rectype{\a, \t, \s, \K, \S} = \S~\K
 }
 \end{mathpar}
 
@@ -1124,18 +1132,18 @@ The second property is strongly reminisicent of the behavioural semantics, thoug
 
 \begin{mathpar}
 \IRule{SP1}{
-            \spec{\Sigma,\sigma,\K} = \sigma'}{
-            \spec{\a : \D ~ \Sigma, \sigma[\a \mapsto \C\{\b{\ap}\}], \K} = \sigma'[\a\mapsto \D\{\b\ap\}]
-            }
+  \spec{\S,\s,\K} = \sp
+}{
+  \spec{\a : \D ~ \S, \s[\a \mapsto \C\{\b{\ap}\}], \K} = \sp[\a\mapsto \D\{\b\ap\}]
+}
 
-
-\IRule{SP2}{}{
-            \spec{\cdot, \sigma, \K} = \cdot
-            }
+\IRule{SP2}{
+}{
+   \spec{\cdot, \sigma, \K} = \cdot
+}
 \end{mathpar}
 
-The \texttt{spec} functin.
-
+The \texttt{spec} function.
 
 \hrulefill
 
@@ -1157,18 +1165,18 @@ The \texttt{spec} functin.
 
 \IRule{M4}{
   \EC \text{ fresh}\\
-  ({\C},{\D}) \not\in \text{dom}(\P) \\
-  {\P'} = \P,~({\C},{\D}) \mapsto \EC \\
+  (\C,\D) \not\in \text{dom}(\P) \\
+  \Pp = \P,~(\C,\D) \mapsto \EC \\
   {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
   {\text{mtypes}}(\D,\K) = {\Type{\b\mtp}}\\
-  \meett{{\P'}, {\K}, {\Type{\b\mt}}, {\Type{\b\mtp}}} = \tpp~{\K'}\\
-  \K'' = \K'~\classgen{\C,\tpp,\EC,\K'}\\
+  \meett{\Pp, \K, {\Type{\b\mt}}, {\Type{\b\mtp}}} = \tpp~\Kp\\
+  \Kpp = \Kp~\classgen{\C,\tpp,\EC,\Kp}\\
 }{
-    \meett{\P, \K, \C, \D} = \EC~{\K''}
+    \meett{\P, \K, \C, \D} = \EC~\Kpp
 }
 
 \IRule{M5}{
-    \P({\C},{\D}) = \EC
+    \P(\C,\D) = \EC
 }{
     \meett{\P, \K, \C, \D} = \EC~\K
 }
