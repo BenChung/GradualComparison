@@ -829,7 +829,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
         {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
 \begin{tabular}{l@{}l@{~}l@{~}l}
 \CondRule{E1}{  %% new C -> a
-   \ap fresh
+   \fresh\ap 
 }{ 
   \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
@@ -936,8 +936,8 @@ Casts are the key to the different interpretations of gradual typing, as they ar
 
 \begin{mathpar}
 \IRule{Cast-Wrap}{
-  \D\;\mathit{fresh} \\
-  \ap\;\mathit{fresh} \\
+  \fresh\D \\
+  \fresh\ap \\
   \obj\C{\b{\a_1}} = \s(\a) \\
   \sp = \Map \s{\Bind \ap{\obj\D{\a}} } \\
   \k = \wrapper{\C,\t,\D}
@@ -988,7 +988,7 @@ $\wrapper{\C,$\=$ \Cp, \D} = $\\
 \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
 \\
 \>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { (\SubCast{\any}{\this})@\m(\SubCast{\any}{\this}) }$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K \wedge \m \text{ fresh}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K \wedge \fresh\m $\\
 \>$\}$
 \\
 \\
@@ -1173,7 +1173,7 @@ Meh. The above is lousy. Rewrite.
 \IRule{M3}{ }{\meet\P\K\t\t = \t\,\K}
 
 \IRule{M4}{
-  \EC \fresh\\
+  \fresh\EC\\
   (\C,\D) \not\in \Dom\P \\
   \Pp = \Map\P{\Bind{(\C,\D)}\EC} \\
   {\text{mtypes}}(\C,\K) = {\Type{\b\mt}}\\
