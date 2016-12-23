@@ -1066,9 +1066,9 @@ We use \Dom\S to get a sequence of addresses that have to be retyped.
 \begin{mathpar}
 \IRule{Cast-Mono (monotonic)}{
   \retype \a\t\cdot\s\K = \S\,\Kp\\
-  \spec {\Dom\S} \S\s\Kp = \sp
+  \spec {\Dom\S} \S\s\Kp = \sp~\Kpp
 }{
-  \moncast \a\t\s\K \Kp \sp\\
+  \moncast \a\t\s\K \Kpp \sp\\
 }
 \end{mathpar}
 
@@ -1085,9 +1085,9 @@ otherwise the current type in \s.
 }
 
 \IRule{HT2}{
-  \t = \App\S\a
+  \C = \App\S\a
 }{
-  \htype \a\S\s = \t
+  \htype \a\S\s = \C
 }
 \end{mathpar}
 
@@ -1104,12 +1104,12 @@ What is \S doing?
 
 \begin{mathpar}
 \IRule{RC1}{
-  \htype \a\S\s = \tp\\
-  \tmeet\tp\t\cdot\K = \tpp\,\Kp\\ 
-  \tp\not\EQ\tpp \\
-  \b{\a~\t} = \fieldtypes \a\s\Kp \\
-  \Sp = \Map\S{\Bind\a\tpp} \\
-  \retype{\b\a}{\b\t}\Sp\s\K = \Spp\,\Kpp
+  \htype \a\S\s = \C\\
+  \tmeet\C\t\cdot\K = \D \,\Kp\\ 
+  \C\not\EQ\D  \\
+  \b\ap~\b\tp = \fieldtypes \a\D \s\Kp \\
+  \Sp = \Map\S{\Bind\a\D } \\
+  \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\Kpp
 }{
   \retype \a\t\S\s\K = \Spp\,\Kpp
 }
@@ -1130,6 +1130,25 @@ What is \S doing?
 }
 \end{mathpar}
 
+%class C {
+%  f : *
+%}
+%class CW {
+%  that : C
+%  f() : t1 { ... }
+%  f(x : t1) : t1 { ... }  
+%}
+%class D {
+%  f : t
+%}
+%class DW {
+%  that : D
+%  f() : t2 { ... }
+%  f(x : t2) : t2 { ... }  
+%}
+% c = new CW(new C( ... ))
+% d = <D> c
+
 The heap specialization function \spec{\b\a}\S\s\K takes a
 sequence of object addresses \b\a, a heap typing \S, a heap \s
 and a class table \K and returns a new heap where the objects
@@ -1137,11 +1156,13 @@ have been retyped.
 
 \begin{mathpar}
 \IRule{SP1}{
+  \EMxt E \text{ fresh}\\
   \D = \App\S\a \\
   \obj\C{\b\a} = \App\s\a \\
-  \sp = \Map\s{\Bind\a{\b\a}}
+  \Kp = \K~\classgen{\C,\classoff\D\K,\EMxt E,\K} \\
+  \sp = \Map\s{\Bind\a{{\EMxt E}\{\b\a\}}}
 }{
-  \spec \a\S\s\K = \sp
+  \spec \a\S\s\K = \sp~\Kp
 }
 
 \IRule{SP2}{
@@ -1275,33 +1296,57 @@ signature of field setter, field getter, and regular method.
 % \end{verbatim}
 
 
-The function \fieldtypes\a\s\K return the values of the fields of \a and their types.
+The function \fieldtypes\a\C\s\K returns the old references and the new types for them according to the new wrapper \C.
 
+
+%\newcommand{\ftype}[3]{\text{ftype}(#1,#2,#3)}
 \begin{mathpar}
 \IRule{FT1}{
- \obj\C{\b\a} =\App\s\a \\
- \Class \C {\b{\Fdef\f\t}}{\b\md} \in\K 
+ \obj\D{\ap} = \App\s\a \\ % we know that a refers to a wrapper with a that field of the wrapped object
+ \obj\EC{\b\app} = \App\s\ap \\ % getting the fields out of ap
+ \Class \EC {\b{\Fdef\f\t}}{\b\md} \in\K \\
+ \b\t = \ftype{\b\f}\C\K
 }{
-  \fieldtypes \a\s\K = \b\a~\b\t
+  \fieldtypes \a\C\s\K = \b\app~\b\t
 }
 \end{mathpar}
 
+%class C {
+%  f : t1
+%}
+%class CW {
+%  that : C
+%  f() : t1 { ... }
+%  f(x : t1) : t1 { ... }  
+%}
+%class D {
+%  f : t2 
+%}
+%class DW {
+%  that : D
+%  f() : t2 { ... }
+%  f(x : t2) : t2 { ... }  
+%}
+% c = new CW(new C( ... ))
+% fieldtypes(c,DW,s,K) = f t2
 
-
+\newcommand{\statictype}[2]{\xt{static}(#1,#2)}
 \begin{tabbing}
-$\classgen{\C,$\=$ ~\C',$\=$ ~\D, \K} = $\\
+$\classgen{\C,$\=$ ~\b{\mt},$\=$ ~\D, \K} = $\\
 \>$\xt{class}~\D$\=$~\{$\=\\
-\>\>$\f : \tp_1$\\
-\>\>\>$\tfa \f : \t_1 \in \field\C\K \wedge \f:\tp_1 \in \ftype{\f}{\C'}\K$\\
+\>\>$\that : \C$ \\
 \\
-\>\>$\Mdefa\n{\b{\HT\x{\any}}}{\any} { \MonCast{\any}{\this.\n(\b{\MonCast{\t_1}{\x}})}}$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \t_1 \neq \any$\\
+\>\>$\Mdefa\n{\b{\HT\x{\any}}}{\any} { \MonCast{\any}{\this.\that.\n(\b{\MonCast\any{\MonCast{\t_2}{\x}}})}}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \b\mt$\\
 \\
-\>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \MonCast{\tp_1}{\e}}$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2}\e \in \xt{methods}(\C,\K) \wedge \t_1 \neq \any$\\
+\>\>$\Mdefa\n{\b{\HT\x{\any}}}{\any} { \MonCast{\any}{\this.\that.\n(\b{\MonCast\any{\MonCast{\t_1}{\x}}})}}$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b\mt$\\
 \\
-\>\>$\Mdefa\n{\b{\HT\x{\any}}}{\any} { \e}$\\
-\>\>\>$\tfa \Mtype\n{\b{\any}}{\any} \in \classoff\C\K \wedge \Mdefa\n{\b{\HT\x{\any}}}{\any}\e \in \xt{methods}(\C,\K)$\\
+\>\>$\Mdefa\m{{\HT\x{\t_2}}}{\tp_2} { \MonCast{\tp_2}{\this.\that.\m({\MonCast{\t_1}{\x}})}}$\\
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} \wedge \statictype{\t_2}\K$\\
+\\
+\>\>$\Mdefa\m{{\HT\x{\t_1}}}{\tp_1} { {\this.\that.\m({{\x}})}}$\\
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mt} \wedge \statictype{\t_1}\K$\\
 \>$\}$
 \end{tabbing}
 
@@ -1605,6 +1650,8 @@ The next point of interest for the transient semantics is AASC2, which handles t
 
 At the surface language level, the Monotonic semantics are very similar to that used by the guarded semantics and Typed Racket/Racket. We insert casts at locations at type boundaries.
 
+
+% broken: partially typed calls
 
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
