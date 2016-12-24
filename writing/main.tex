@@ -1524,7 +1524,7 @@ Reticulated Python is somewhat more complicated, as it implements three differen
 The most notable difference between Reticulated and the other systems at the surface level is the use of \emph{consistency}, an operator broadly meaning that one type is compatible with another type. In our system, we define conistency as follows:
 \newcommand{\consistent}[3]{#1 \vdash #2 ~\sim~ #3}
 \begin{mathpar}
-\IRule{C1}{\meet\cdot\K\C\D = \t~\Kp}{\consistent\K{\C}{\D}}
+\IRule{C1}{\tmeet\t\tp\cdot\K = \tpp}{\consistent\K{\t}{\tp}}
 \end{mathpar}
 
 In effect, if there is some most specific type for two given types, then the two types are consistent - it is possible that a value of one could be converted into the other with a runtime cast.
@@ -1653,13 +1653,21 @@ At the surface language level, the Monotonic semantics are very similar to that 
 
 % broken: partially typed calls
 
+\newcommand{\isstatic}[2]{\text{static}(#1,#2)}
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+}
+
+
+\IRule[width=30em]{A3}{
+    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+}{
+    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule{A8}{
@@ -1670,8 +1678,10 @@ At the surface language level, the Monotonic semantics are very similar to that 
 
 \IRule{A11}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
+  \D~\text{fresh} \\
+  \D = \classgen{\C,\classoff\C\K,\D,\K}
+  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
 
 \begin{mathpar}
