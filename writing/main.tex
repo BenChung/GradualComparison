@@ -1010,7 +1010,7 @@ $\wrapper{\C,$\=$ \Cp, \D} = $\\
 \>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\n(\b{\x})}$\\
 \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
 \\
-\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { (\SubCast{\any}{\this})@\m(\SubCast{\any}{\this}) }$\\
+\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { (\SubCast{\any}{\this})@\m(\SubCast{\any}{\x}) }$\\
 \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K \wedge \fresh\m $\\
 \>$\}$
 \\
@@ -1796,14 +1796,14 @@ types in Transient will drift towards \any.
 
 \IRule{W3}{
   \EnvType \E\s\K\e\C \\
-  \Mtype \f{}\tp \in \K(\C)
+  \Mtype \f{}\tp \in \classoff\C\K
 }{
   \EnvType \E\s\K{\Get\e\f}\tp
 }    
 
 \IRule{W4}{
   \EnvType \E\s\K\e\C \\
-  \Mtype \f\tp\tp \in \K(\C)  \\
+  \Mtype \f\tp\tp \in \classoff\C\K  \\
   \EnvType \E\s\K\ep\tp
 }{
   \EnvType \E\s\K{\Set\e\f\ep}\tp
@@ -1811,7 +1811,7 @@ types in Transient will drift towards \any.
 
 \IRule{W5}{
   \EnvType \E\s\K\e\C \\
-  \Mtype \m\tp\tpp\in \K(\C)  \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
   \EnvType \E\s\K\ep\tp
 }{
   \EnvType \E\s\K{\Call\e\m\ep}\tpp
@@ -1887,7 +1887,6 @@ the object stored at \a in \s.
    \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
 \end{cases}
 \end{equation*}
-
 
 \section{Generative Monotone Casts}
 
@@ -1980,6 +1979,51 @@ Define \xt{mtypes}
 }
 \end{mathpar}
 
+\section{Proofs of Related Theorems}
+\subsection{Accessory Lemmas}
+
+\paragraph{Evaluation Extends Class Tables}
+
+If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
+
+\paragraph{Weakening of Subtyping}
+
+If $\StrSub\cdot\K\t\tp$ then $\StrSub\cdot{\K~\Kp}\t\tp$.
+
+\paragraph{Correctness of \classoff{\C}{\K}}
+
+If $\Mtype\n{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable) $\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\n{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$
+
+\subsection{Soundness of \name Typing}
+
+Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is of one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\DynCall\ep\m{\epp}$
+\item $\SubCast\tp\ep$
+\item $\ShaCast\tp\ep$
+\item $\BehCast\tp\ep$
+\item $\MonCast\tp\ep$
+\end{itemize}
+We proceed with rule induction on the judgement used to conclude $\EnvType\E\s\K\e\t$. Note that we refer to rule preconditions from left to right.
+\begin{itemize}
+  \item W1
+
+        Not possible, since $\Gamma = \cdot$ and therefore contains no variables.
+  \item W2
+
+        We apply the IH to the first precondition. If we get stuck in the IH, then the entire expression gets stuck or terminates, trivially. Therefore, the interesting case is when $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\tp$. By 
+  \item W3, W4, W5
+  \item W6
+  \item W7
+  \item W8
+  \item W9
+  \item W10
+  \item W11
+  \item W12
+\end{itemize}
+
+\subsection{Type Correctness of Translation}
 
 
 \end{document}
