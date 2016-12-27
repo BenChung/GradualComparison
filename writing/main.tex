@@ -1103,8 +1103,6 @@ The retype function \retype{\b\a}{\b\t}\S\s\K, take a list of object
 addresses \b\a and a list of types to ascribe to them \b\t, and updates the
 heap \s and class table \K.
 
-What is \S doing?
-
 \begin{mathpar}
 \IRule{RC1}{
   \htype \a\S\s = \C\\
@@ -1133,25 +1131,6 @@ What is \S doing?
 }
 \end{mathpar}
 
-%class C {
-%  f : *
-%}
-%class CW {
-%  that : C
-%  f() : t1 { ... }
-%  f(x : t1) : t1 { ... }  
-%}
-%class D {
-%  f : t
-%}
-%class DW {
-%  that : D
-%  f() : t2 { ... }
-%  f(x : t2) : t2 { ... }  
-%}
-% c = new CW(new C( ... ))
-% d = <D> c
-
 The heap specialization function \spec{\b\a}\S\s\K takes a
 sequence of object addresses \b\a, a heap typing \S, a heap \s
 and a class table \K and returns a new heap where the objects
@@ -1178,7 +1157,8 @@ have been retyped.
 \end{mathpar}
 
 
-The \texttt{typemeet} function \tmeet\P\K\t\tp compute the meet of types \t and \tp, it returns a new type if needed and an updated class table.
+The \texttt{typemeet} function \tmeet\P\K\t\tp compute the meet of types \t
+and \tp, it returns a new type if needed and an updated class table.
 
 For the case we call \tmeet\P\K\C\D, the function will have to create a new
 class \E that is the result of meeting \C with \D.
@@ -1244,68 +1224,10 @@ types $\b\mtpp$ and a class table $\Kp$. The \texttt{MM2} rule operators
 over the method typing signature of field setter, field getter, and regular
 method.
 
-\hrulefill
-
-\opdef{
-  $\mmeet{\b\mt}{\b\mtp}\P\K = \b\mtpp\,\Kp$
-}{
-}
-\begin{align*}
-\n &::= \f \B \m
-\end{align*}
-\begin{mathpar}
-\IRule{MM1}{ 
-  \Mtype\f{}{\t} = \mt \\
-  \Mtype\f{}{\tp} \in \b{\mtp} \\
-  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
-  \Mtype\f{}{\tpp} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
-}
-
-\IRule{MM1}{ 
-  \Mtype\f{\t}{\tp} = \mt \\
-  \Mtype\f{\t}{\tp} \in \b{\mtp} \\
-  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
-  \Mtype\f{\tpp}{\tpp} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
-}
-
-
-\IRule{MM1}{ 
-  \Mtype\m{\t_1}{\t_2} = \mt \\
-  \Mtype\m{\t_3}{\t_4} \in \b{\mtp} \\
-  \tmeet{\t_3}{\t_1}\P\K = \t_5~\Kp \\
-  \tmeet{\t_2}{\t_4}\P\Kp = {\t_6}~{\Kpp} \\
-  \Mtype\n{\t_5}{\t_6} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kpp 
-}
-
-\IRule{MM2}{
-  \mmeet{\mt}{\b{\mt_2}}\P\K = \mt_3 \\
-  \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kpp = \b{\mt_4}~\K'''
-}{
-  \mmeet{\mt~\b{\mt_1}}{\b{\mt_2}}\P\K =\mt_3\b{\mt_4} ~\K'''
-}
-\end{mathpar}
-\\
 
 
 The function \ftypes\a\C\s\K returns the old references and the new types for them according to the new wrapper \C.
 
-
-\begin{mathpar}
-\IRule{FT1}{
- \obj\D{\ap} = \App\s\a \\ % we know that a refers to a wrapper with a that field of the wrapped object
- \obj\EC{\b\app} = \App\s\ap \\ % getting the fields out of ap
- \Class \EC {\b{\Fdef\f\t}}{\b\md} \in\K \\
- \b\tp = \wftype{\b\f}\C\K
-}{
-  \ftypes \a\C\s\K = \b\app~\b\tp
-}
-\end{mathpar}
 
 %class C {
 %  f : t1
@@ -1978,6 +1900,72 @@ the object stored at \a in \s.
 \end{equation*}
 
 
+\section{Generative Monotone Casts}
+
+\hrulefill
+
+\opdef{
+  $\mmeet{\b\mt}{\b\mtp}\P\K = \b\mtpp\,\Kp$
+}{
+}
+\begin{align*}
+\n &::= \f \B \m
+\end{align*}
+\begin{mathpar}
+\IRule{MM1}{ 
+  \Mtype\f{}{\t} = \mt \\
+  \Mtype\f{}{\tp} \in \b{\mtp} \\
+  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
+  \Mtype\f{}{\tpp} = \mtpp
+}{ 
+   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
+}
+
+\IRule{MM1}{ 
+  \Mtype\f{\t}{\tp} = \mt \\
+  \Mtype\f{\t}{\tp} \in \b{\mtp} \\
+  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
+  \Mtype\f{\tpp}{\tpp} = \mtpp
+}{ 
+   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
+}
+
+
+\IRule{MM1}{ 
+  \Mtype\m{\t_1}{\t_2} = \mt \\
+  \Mtype\m{\t_3}{\t_4} \in \b{\mtp} \\
+  \tmeet{\t_3}{\t_1}\P\K = \t_5~\Kp \\
+  \tmeet{\t_2}{\t_4}\P\Kp = {\t_6}~{\Kpp} \\
+  \Mtype\n{\t_5}{\t_6} = \mtpp
+}{ 
+   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kpp 
+}
+
+\IRule{MM2}{
+  \mmeet{\mt}{\b{\mt_2}}\P\K = \mt_3 \\
+  \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kpp = \b{\mt_4}~\K'''
+}{
+  \mmeet{\mt~\b{\mt_1}}{\b{\mt_2}}\P\K =\mt_3\b{\mt_4} ~\K'''
+}
+\end{mathpar}
+\\
+
+
+Define \xt{static}
+
+Define \xt{wftype}
+
+
+\begin{mathpar}
+\IRule{FT1}{
+ \App\s\a=\obj\D{\ap} \\ % we know that a refers to a wrapper with a that field of the wrapped object
+  \App\s\ap =\obj\EC{\b\app}  \\ % getting the fields out of ap
+ \Class \EC {\b{\Fdef\f\t}}{\b\md} \in\K \\
+ \wftype{\b\f}\C\K =\b\tp
+}{
+  \ftypes \a\C\s\K = \b\app~\b\tp
+}
+\end{mathpar}
 
 
 
