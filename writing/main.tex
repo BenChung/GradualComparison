@@ -851,32 +851,32 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
   \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
 \CondRule{E2}{  %% a.f() -> e
-    \Mdefz\f\t\e \In \App\K\C \AND \obj\C{\b\a} = \App\s\a
+    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
 }{
    \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
 }
 \CondRule{E3}{  %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \App\K\C \AND \obj\C{\b\a} = \App\s\a
+    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
 }{
    \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E4}{  %% a.f() -> e
- \ap = \readf \s\a\f\K
+ \readf \s\a\f\K =  \ap 
 }{
   \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
 }
 \CondRule{E5}{  %% a.f(e) -> e
- \sp = \setf \s\a\f\ap\K
+ \setf \s\a\f\ap\K =  \sp
 }{
   \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
 }
 \CondRule{E6}{  %% a.m(a) -> e
-  \Mdef\m\x\D\Dp\e  \In \App\K\C \AND \obj\C{\b\a} = \App\s\a 
+  \Mdef\m\x\D\Dp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
 }{
  \ReduceA \K{\Call\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E7}{  %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \App\K\C \AND \obj\C{\b\a} = \App\s\a
+    \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
 }{
   \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
@@ -885,7 +885,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
   \ReduceA \K{\SubCast \any\a}\s \K\a\s
 }
 \CondRule{E9}{  %% Subtypecast
-  \StrSub {}\K\C \D \AND \obj\C{\b\a} = \App\s\a
+  \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
 }{ 
   \ReduceA \K{\SubCast \D\a}\s \K\a\s
 }
@@ -894,7 +894,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
   \ReduceA \K{\ShaCast \any\a}\s \K\a\s
 }
 \CondRule{E10b}{  %% Shallow Structural
- \names{\untyped{\App\K\C}}  $\supseteq$  \names{\untyped{\App\K\D}} \AND \obj\C{\b\a} = \App\s\a
+ \names{\untyped{\App\K\C}}  $\supseteq$  \names{\untyped{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
 }{ 
   \ReduceA \K{\ShaCast \D\a}\s \K\a\s
 }
@@ -940,30 +940,28 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \caption{\name Semantics.}
 \end{figure}
 
-\subsection{Cast Semantics}
+\subsection{Generative Casts}
 
-Casts are the key to the different interpretations of gradual typing, as they are one of the two places that, in KafKa, a program can get stuck at. The approaches that we will be comparing have different definitions of casting, and their varying approach to runtime type assertions forms an important part of how they interact with untyped parts of the program.
+Casts are the key to the different interpretations of gradual typing, as
+they are one of the two places that, in \name, a program can get stuck
+at. The approaches that we will be comparing have different definitions of
+casting, and their varying approach to runtime type assertions forms an
+important part of how they interact with untyped parts of the program.
 
-
-\paragraph{Behavioral}
-
-
-
-\hrulefill
+\subsubsection{Behavioral}
 
 \begin{mathpar}
-\IRule{Cast-Wrap}{
+\IRule{}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
+  \k = \wrapper{\C,\t,\D}\\
   \fresh\ap \\
-  \obj\C{\b{\a_1}} = \s(\a) \\
-  \sp = \Map \s{\Bind \ap{\obj\D{\a}} } \\
-  \k = \wrapper{\C,\t,\D}
+  \sp = \Map \s{\Bind \ap{\obj\D{\a}} } \\  
 }{
-  \behcast\a\t\s\K {\K,~\Bind{\D}{\k}~}\ap\sp
+  \behcast\a\t\s\K {\k\,\K}\ap\sp
 }
 \end{mathpar}
 
-What does the wrap function do? In english.
 
 At its core, the wrap function protects types. If a function on an object has a declared argument type, then the wrap function will produce a wrapper for that function that ensures that any argument passed in matches the declared type. Likewise, if we assert that an untyped function has a return type, then the generated wrapper guarantees that the returned value of the untyped function is of the asserted type by inserting a cast to the right type.
 
@@ -1104,7 +1102,7 @@ What is \S doing?
   \htype \a\S\s = \C\\
   \tmeet\C\t\cdot\K = \D \,\Kp\\ 
   \C\not\EQ\D  \\
-  \b\ap~\b\tp = \fieldtypes \a\D \s\Kp \\
+  \b\ap~\b\tp = \ftypes \a\D \s\Kp \\
   \Sp = \Map\S{\Bind\a\D } \\
   \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\Kpp
 }{
@@ -1287,18 +1285,17 @@ method.
 \\
 
 
-The function \fieldtypes\a\C\s\K returns the old references and the new types for them according to the new wrapper \C.
+The function \ftypes\a\C\s\K returns the old references and the new types for them according to the new wrapper \C.
 
 
-%\newcommand{\ftype}[3]{\text{ftype}(#1,#2,#3)}
 \begin{mathpar}
 \IRule{FT1}{
  \obj\D{\ap} = \App\s\a \\ % we know that a refers to a wrapper with a that field of the wrapped object
  \obj\EC{\b\app} = \App\s\ap \\ % getting the fields out of ap
  \Class \EC {\b{\Fdef\f\t}}{\b\md} \in\K \\
- \b\tp = \ftype{\b\f}\C\K
+ \b\tp = \wftype{\b\f}\C\K
 }{
-  \fieldtypes \a\C\s\K = \b\app~\b\tp
+  \ftypes \a\C\s\K = \b\app~\b\tp
 }
 \end{mathpar}
 
@@ -1363,15 +1360,21 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule{CR1}{ 
-  \b{\methtrans{\K}{s\C}{\md}{\md'}} \\
-  \classtrans{\K}{\K'}{\K''}b
-}{\classtrans{\K}{\Class \C {\b{\Ftype\f\t}}{\b\md}~\K'}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\K''}}
+  \b{\methtrans \K\C\md{\md'}} \\
+  \classtrans \K\Kp\Kpp
+}{
+   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
 
-\IRule{CR2}{ }{\classtrans{\K}{\cdot}{\cdot}}
+\IRule{CR2}{ 
+}{
+  \classtrans \K\cdot\cdot
+}
 
 \IRule{MT}{
-  \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans{\K}{\C}{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}}
+  \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp
+}{
+  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}
+}
 \end{mathpar}
 
 \subsection{Strongscript}
