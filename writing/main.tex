@@ -2,7 +2,7 @@
 
 \usepackage{xspace,listings,url,framed,amssymb,
             amsmath,tex/mathpartir,hyperref,
-            stmaryrd, graphicx % double brackets llbracket
+            stmaryrd, graphicx, tikz % double brackets llbracket
 }
 
 
@@ -768,6 +768,23 @@ behavioral cast that, in addition, imposes constraints on fields.
 
 \subsection{Semantics}
 
+\begin{tikzpicture}
+% states
+\draw (0,0) node[anchor=west] {$\K~\e$}
+      (2,0) node[anchor=west] {$\Kp~\ep$}
+      (4,0) node[anchor=west] {$\Kpp~\a$};
+
+% transitions
+\draw (1-0.1,-0.1) node[anchor=west] {$\progtrans{}{}$}
+      (3,0) node[anchor=west] {$\longrightarrow^*$};
+
+%requirements
+\draw (2,-0.5) node[anchor=west] {$\WFp\Kp\ep$};
+\draw (2-0.1,-1) node[anchor=west] {$\EnvType {}{}\Kp\ep\t$};
+
+\draw (4-0.1,-1) node[anchor=west] {$\EnvType {}{}\Kpp\a\t$};
+\end{tikzpicture}
+
 The semantics of \name is defined by a small step operational semantics with
 evaluation contexts.
 
@@ -1367,9 +1384,6 @@ To represent this, we introduce a \emph{translation} mechanism, that performs mu
 
 Instead, we use a \emph{bidirectional} translation mechanism, based on the work originally done by Pierce and Turner~\cite{lti-pierce}. Bidirectional typechecking is, in effect, a local type inference mechanism, and allows us to cleanly identify cast insertion locations in a modular way.
 
-\newcommand{\progtrans}[2]{#1 ~\hookrightarrow_p~ #2}
-\newcommand{\classtrans}[3]{#1 \vdash #2 ~\hookrightarrow_c~ #3}
-\newcommand{\methtrans}[4]{#1~#2 \vdash #3 ~\hookrightarrow_m~ #4}
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
