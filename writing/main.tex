@@ -1884,7 +1884,6 @@ the object stored at \a in \s.
 \end{cases}
 \end{equation*}
 
-
 \section{Generative Monotone Casts}
 
 \hrulefill
@@ -1952,6 +1951,51 @@ Define \xt{wftype}
 }
 \end{mathpar}
 
+\section{Proofs of Related Theorems}
+\subsection{Accessory Lemmas}
+
+\paragraph{Evaluation Extends Class Tables}
+
+If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
+
+\paragraph{Weakening of Subtyping}
+
+If $\StrSub\cdot\K\t\tp$ then $\StrSub\cdot{\K~\Kp}\t\tp$.
+
+\paragraph{Correctness of \classoff{\C}{\K}}
+
+If $\Mtype\n\t\tp \in \classoff{\C}{\K}$
+
+\subsection{Soundness of \name Typing}
+
+Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is of one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\DynCall\ep\m{\epp}$
+\item $\SubCast\tp\ep$
+\item $\ShaCast\tp\ep$
+\item $\BehCast\tp\ep$
+\item $\MonCast\tp\ep$
+\end{itemize}
+We proceed with rule induction on the judgement used to conclude $\EnvType\E\s\K\e\t$. Note that we refer to rule preconditions from left to right.
+\begin{itemize}
+  \item W1
+
+        Not possible, since $\Gamma = \cdot$ and therefore contains no variables.
+  \item W2
+
+        We apply the IH to the first precondition. If we get stuck in the IH, then the entire expression gets stuck or terminates, trivially. Therefore, the interesting case is when $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\tp$. By 
+  \item W3
+  \item W4
+  \item W5
+  \item W6
+  \item W7
+  \item W8
+  \item W9
+  \item W10
+\end{itemize}
+
+\subsection{Type Correctness of Translation}
 
 
 \end{document}
