@@ -1703,14 +1703,14 @@ The overloading function is meant to check that every typed method is
 defined once. Every untyped method is defined once. A class has either a
 field \f or a pair of getter and setters.
 
-\opdef{\WFp\e\K\s}{Well-formed program}
+\opdef{\WFp\e\K}{Well-formed program}
 
 \begin{mathpar}
 \IRule{WP}{
   \k \in \K \implies \WF{}\cdot\K\k \\
-  \EnvType\E\s\K\e\t
+  \EnvType\E\cdot\K\e\t
 }{
-  \WFp\e\K\s
+  \WFp\e\K
 }
 \end{mathpar}
 
@@ -1805,22 +1805,37 @@ types in Transient will drift towards \any.
   \EnvType \E\s\K\e\t 
 }   
 
-\IRule[width=20em]{W3}{
+\IRule{W3}{
   \EnvType \E\s\K\e\C \\
-  \Mtype \n{\b\tp}\tpp\in \classoff\C\K  \\
-  \b{\EnvType \E\s\K\ep\tp}
+  \Mtype \f{}\tp \in \K(\C)
 }{
-  \EnvType \E\s\K{\Call\e\n{\b\ep}}\tpp
+  \EnvType \E\s\K{\Get\e\f}\tp
 }    
 
 \IRule{W4}{
+  \EnvType \E\s\K\e\C \\
+  \Mtype \f\tp\tp \in \K(\C)  \\
+  \EnvType \E\s\K\ep\tp
+}{
+  \EnvType \E\s\K{\Set\e\f\ep}\tp
+}    
+
+\IRule{W5}{
+  \EnvType \E\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \K(\C)  \\
+  \EnvType \E\s\K\ep\tp
+}{
+  \EnvType \E\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{W6}{
   \EnvType \E\s\K\e\any \\
   \EnvType \E\s\K\ep\any
 }{
   \EnvType \E\s\K{\DynCall\e\m\ep}\any
 }    
 
-\IRule{W5}{
+\IRule{W7}{
  \EnvType \E\s\K{\e_1}{\t_1}\dots 
  \EnvType \E\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
@@ -1829,31 +1844,31 @@ types in Transient will drift towards \any.
   \EnvType \E\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 
-\IRule{W6}{
+\IRule{W8}{
   \EnvType \E\s\K\e\tp
 }{
   \EnvType \E\s\K{\SubCast\t\e}\t
 }
 
-\IRule{W7}{
+\IRule{W9}{
   \EnvType \E\s\K\e\tp
 }{
   \EnvType \E\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
 }
 
-\IRule{W8}{
+\IRule{W10}{
   \EnvType \E\s\K\e\tp
 }{
   \EnvType \E\s\K{\BehCast\t\e}\t
 }
 
-\IRule{W9}{
+\IRule{W11}{
   \EnvType \E\s\K\e\tp
 }{
   \EnvType \E\s\K{\MonCast\t\e}\t
 }
 
-\IRule{W10}{
+\IRule{W12}{
   \s(\a) = \obj\C{\b\ap}
 }{
   \EnvType \E\s\K\a\C
