@@ -940,6 +940,14 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \caption{\name Semantics.}
 \end{figure}
 
+\subsection{Structural Casts}
+
+\name offers two kinds of structural casts. One which performs a structural
+subtype check and one that only check for the persence of methods with given
+names.
+
+
+
 \subsection{Generative Casts}
 
 Casts are the key to the different interpretations of gradual typing, as
@@ -1019,7 +1027,7 @@ $\wrapper{\C,$\=$ \any, \D} = $\\
 \wc is more complex than TODO, because different wrappers are needed, depending on if the target type is a concrete type \C, or is the dynamic type \any. If the target type is \C, then it will generate the wrapper methods for the type \C, then insert ``passthrough'' methods. methods of the same type as the original and that just call the original internally, that provide the completness property mentioned above. Likewise, if the target type is \any, then \wc will simply generate a method that casts its argument to the right type and its return type to \any for every one of the typed methods in the source, ensuring soundness and completness.
 
 
-\paragraph{Monotone}
+\subsubsection{Monotone}
 
 %The motivation behind the monotonic semantics is that we must ensure that every reference to an object is still valid up to \any types, and as a result, can only proceed by replacing \any types with concrete types, possibly recursively. We accomplish this by \emph{rewriting} the class that objects are associated with, enforcing the new type guarantee, while simultaneously checking that all of the extant field values match the type that they need to be.
 
@@ -1318,7 +1326,6 @@ The function \ftypes\a\C\s\K returns the old references and the new types for th
 % c = new CW(new C( ... ))
 % fieldtypes(c,DW,s,K) = f t2
 
-\newcommand{\statictype}[2]{\xt{static}(#1,#2)}
 \begin{tabbing}
 $\classgen{\C,$\=$ ~\b{\mt},$\=$ ~\D, \K} = $\\
 \>$\xt{class}~\D$\=$~\{$\=\\
@@ -1337,10 +1344,10 @@ $\classgen{\C,$\=$ ~\b{\mt},$\=$ ~\D, \K} = $\\
 \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b\mt$\\
 \\
 \>\>$\Mdefa\m{{\HT\x{\t_2}}}{\tp_2} { \MonCast{\tp_2}{\this.\that.\m({\MonCast{\t_1}{\x}})}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} \wedge \statictype{\t_2}\K \wedge \statictype{\tp_2}\K$\\
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} \wedge \statictype{\t_2\,\tp_2}\K $\\
 \\
 \>\>$\Mdefa\m{{\HT\x{\t_1}}}{\tp_1} { {\this.\that.\m({{\x}})}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mt} \wedge \statictype{\t_1}\K \wedge \statictype{\tp_1}\K$\\
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mt} \wedge \statictype{\t_1\,\tp_1}\K $\\
 \>$\}$
 \end{tabbing}
 
