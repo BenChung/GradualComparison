@@ -1019,7 +1019,7 @@ $\wrapper{\C,$\=$ \any, \D} = $\\
 \>$\xt{class}~\D$\=$~\{$\=\\
 \>\>$\xt{that} : \C$ \\ \\
 \>\>$\Mdefa\n{\b{\HT\x\any}}{\any}{\BehCast{\any}{\this.\xt{that}.\n(\b{\BehCast{\t}{\x}})}}$ \\
-\>\>\>$\tfa \Mtype\n{\b{\t}}{\tp} \in \classoff\C$\\
+\>\>\>$\tfa \Mtype\n{\b{\t}}{\tp} \in \classoff\C\K$\\
 \>$\}$\\
 \end{tabbing}
 
@@ -1037,48 +1037,65 @@ methods in the source, ensuring soundness and completness.
 
 \subsubsection{Monotone Generative Casts}
 
-Example -- please check
+%% Example -- please check
 
-class A {
-  fa : B
-  ma(x : A): B { fa.mb(a) }
-}
-class B {
-  fb : any
-  mb(x:A):B { this }
-}
-class C {}
+%% class A {
+%%   fa : B
+%%   ma(x : A): B { fa.mb(a) }
+%% }
+%% class B {
+%%   fb : any
+%%   mb(x:A):B { this }
+%% }
+%% class C {}
 
-class Ap {
-  fa : Bp
-  ma(x : Ap): Bp {...}
-}
-class Bp {
-  fb: C 
-  ma(x : Ap): Bp {...}
-}
+%% class Ap {
+%%   fa : Bp
+%%   ma(x : Ap): Bp {...}
+%% }
+%% class Bp {
+%%   fb: C 
+%%   ma(x : Ap): Bp {...}
+%% }
 
-a = new A(new B(new C()))
-ap = <| Ap |> a
+%% a = new A(new B(new C()))
+%% ap = <| Ap |> a
 
-class WA {
-  that : A
-  fa() : B { that.fa() }
-  fa(x:B):B { that.fa(x) }
-  ma(x:B):B { that.ma(x) }
-}
-class WB {
-  that : any
-  fb() : any { that.fb() }
-  fb(x:any):any { that.fb(x) }
-  mb(x:B):B { that.mb(x) }
-}
-class WBp {
-  that : A
-  ...
+%% class WA {
+%%   that : A
+%%   fa() : B { that.fa() }
+%%   fa(x:B):B { that.fa(x) }
+%%   ma(x:B):B { that.ma(x) }
+%% }
+%% class WB {
+%%   that : any
+%%   fb() : any { that.fb() }
+%%   fb(x:any):any { that.fb(x) }
+%%   mb(x:B):B { that.mb(x) }
+%% }
+%% class WBp {
+%%   that : A
+%%   ...
+
+The monotone cast \MonCast\t\a imposes type \t on the object referenced by
+\a and, transitively, on other objects reachable from it. In the extreme,
+one cast could cause all objects in the heap to be retyped. To prevent
+pathological cases, monotone casts, only modify the heap if the target type
+\t has fewer occurences of \any than the original type of the object at \a
+(and transitively so for types appearing in \t and reachable from \a).  When
+a type \t does not have any occurence of the dynamic type, denoted by
+\statictype\t\K, monotone casts will leave the object and the heap
+unchanged.
+
+The monotone cast is generative, it triggers the creation of new types that
+are the meet of the existing types and the requested type. Generativity is
+required when objects are aliased at different types.  This cast also
+perform update in place of the class of objects, for example \obj\C{\a}
+becomes \obj\D{\a}. To deal correctly with fields, we restrict monotone
+casts to wrapper objects.
 
 
-%The motivation behind the monotonic semantics is that we must ensure that every reference to an object is still valid up to \any types, and as a result, can only proceed by replacing \any types with concrete types, possibly recursively. We accomplish this by \emph{rewriting} the class that objects are associated with, enforcing the new type guarantee, while simultaneously checking that all of the extant field values match the type that they need to be.
+
 
 %In order to do any of this, however, the new type of the object is required. In Siek et al.'s original formalism, the new type was computed simultaneously as the object was being cast, but this creates problems when recursive objects are encountered. For example, consider the following scenario:
 
