@@ -1084,7 +1084,7 @@ pathological cases, monotone casts, only modify the heap if the target type
 \t has fewer occurences of \any than the original type of the object at \a
 (and transitively so for types appearing in \t and reachable from \a).  When
 a type \t does not have any occurence of the dynamic type, denoted by
-\statictype\t\K, monotone casts will leave the object and the heap
+\statictype\t\K\V, monotone casts will leave the object and the heap
 unchanged.
 
 The monotone cast is generative, it triggers the creation of new types that
@@ -1310,12 +1310,12 @@ $\classgen{\C,$\=$ ~\b\mt,$\=$ ~\D,\K}= $\\
 \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b\mt$\\
 \\
 \>\>$\Mdefa\m{{\HT\x{\t_2}}}{\tp_2} { \MonCast{\tp_2}{\this.\that.\m({\MonCast{\t_1}\x})}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} ~$\=$\wedge~ \statictype{\t_2}\K $\\
-\>\>\>\>$\wedge~ \statictype{\tp_2}\K$
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} ~$\=$\wedge~ \statictype{\t_2}\K\cdot $\\
+\>\>\>\>$\wedge~ \statictype{\tp_2}\K\cdot$
 \\
 \>\>$\Mdefa\m{{\HT\x{\t_1}}}{\tp_1} { {\this.\that.\m(\x)}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mt} ~$\=$\wedge~ \statictype{\t_1}\K $\\
-\>\>\>\>$\wedge~ \statictype{\tp_1}\K$\\
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mt} ~$\=$\wedge~ \statictype{\t_1}\K\cdot $\\
+\>\>\>\>$\wedge~ \statictype{\tp_1}\K\cdot$\\
 \>$\}$
 \end{tabbing}
 
@@ -2014,21 +2014,65 @@ types $\b\mtpp$ and a class table $\Kp$.
 \end{mathpar}
 \\
 
+\hrulefill
 
-Define \xt{static}
+\opdef{
+  $\statictype\D\K{\b\C} = \texttt{Bool}$
+}{
+}
 
-Define \xt{wftype}
+\begin{mathpar}
+\IRule{ST1}{ 
+}{ 
+  \statictype\any\K{\b\C} = \texttt{False} 
+}
 
-We write \classoff\C\K to denote the lookup of the method signutare for every method, including field getters and setters, in \C.
+\IRule{ST2}{ 
+ \D \in {\b\C}
+}{ 
+  \statictype\D\K{\b\C} = \texttt{True} 
+}
+
+\IRule{ST3}{
+  \D ~\text{empty}
+}{ 
+  \statictype\D\K{\b\C} = \texttt{True} 
+}
+
+\IRule{ST4}{
+ \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K \\
+ \sign{\b\md} = \b{\Mtype\m\tp\tpp} \\ 
+ \b\Cp = \b\C, \b\t, \b\tp, \b\tpp 
+}{ 
+  \statictype\D\K{\b\C} = \statictype{\b\t}\K{\b\Cp} \cap \statictype{\b\tp}\K{\b\Cp} \cap \statictype{\b\tpp}\K{\b\Cp}
+}
+\end{mathpar}
+\\
+
+
+We write \wftype{\b\f}\C\K to denote the type lookup for a particular set of fields in \C.
+
+\begin{equation*}
+\wftype{\b\f}\C\K = \b\t ~~\mathit{if}~~ \begin{cases}
+
+ \Class \C {\b{\Ftype\fp\tp}}{\b\md} \in \K\\
+ \b\t = \{ \b\t \subseteq \b\tp ~|~ \forall~ \f \in \b\f ~.~ \f \in \names{\b{\Ftype\fp\tp}} \} \\
+ 
+\end{cases}
+\end{equation*}
+
+
+We write \classoff\C\K to denote the signutare lookup for every method, including field getters and setters, in \C.
 
 \begin{equation*}
 \classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
 
- \K(\C) = \Class \C {\b{\Ftype\f\t}}{\b\md} \\
+ \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K\\
  \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \names{\b\md} ~.~ \typez{\Ftype\fp\tp}
 
 \end{cases}
 \end{equation*}
+
 \hrulefill
 
 \begin{mathpar}
