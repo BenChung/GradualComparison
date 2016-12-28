@@ -1094,38 +1094,12 @@ perform update in place of the class of objects, for example \obj\C{\a}
 becomes \obj\D{\a}. To deal correctly with fields, we restrict monotone
 casts to wrapper objects.
 
-
-
-
-%In order to do any of this, however, the new type of the object is required. In Siek et al.'s original formalism, the new type was computed simultaneously as the object was being cast, but this creates problems when recursive objects are encountered. For example, consider the following scenario:
-
-%\begin{verbatim}
-%class C { x:any y:any m(y:any):any }
-%class D {}
-%class E { x:{x:{y:int}} y:any}
-
-%a = new C(new D(),2)
-%b = new C(a, 2)
-%a.x(b)
-%c = <E>a
-%\end{verbatim}
-
-%Here, when we go to update the value at \x, we then need to go into the type recursively, which points to a new instance of \C. Then, we assert a new type for \x in that new \C, which sends us back to the starting object, where we update the type of \xt{y} to be int, from \any. As a result, we cannot cast simply by examining the statically knowable types, but have to consider the heap structure when determining the final typing for any object.
-
-%We break this operation up into two steps:
-
-%\begin{itemize}
-%\item \emph{Type Determination}. We first determine a valid heap typing that both retains the monotonic property, while satisfying the new cast assertion. To do this, we recursively examine the heap structure, iterating until the heap is unchanged by the last type alteration.
-%\item \emph{Heap Update}. In the previous phase, we only determined a new valid typing for the heap. In the second step, we take this typing and apply it to the objects that exist in the heap.
-%\end{itemize}
-
-%By splitting out the two concerns, we avoid issues where the future state of the heap depends on values produced in the casting process and that do not exist yet. 
-
-Monotonic aims to have \emph{every typed reference still be valid},
-including the ones that previously existed, as well as the reference created
-by the cast. If a reference has a type with a non-star value, then the
-monotonic semantics will ensure that that type is not violated. To
-accomplish this, the monotonic cast needs to make sure of two properties:
+The semantics of monotone casts is somewhat involved. Key the definitions
+are shown here, the remainder is in appendix. The key challenge is that
+after a monotone cast in a heap \s, every reference should still be valid.
+If a reference has a type other than \any, then the cast will preserve
+correctness of that reference. To accomplish this, the cast ensure two
+properties hold:
 \begin{itemize}
 \item The values that \emph{currently} exist cannot violate any of the types
   that point to them. Casting needs to recursively ensure that all values
@@ -1153,7 +1127,7 @@ will return an update heap \sp and an updated class table \Kp.
 We use \Dom\S to get a sequence of addresses that have to be retyped.
 
 \begin{mathpar}
-\IRule{Cast-Mono (monotonic)}{
+\IRule{CM}{
   \retype \a\t\cdot\s\K = \S\,\Kp\\
   \spec {\Dom\S} \S\s\Kp = \sp~\Kpp
 }{
@@ -1170,9 +1144,9 @@ addresses \b\a and a list of types to ascribe to them \b\t, and updates the
 heap \s and class table \K.
 
 \begin{mathpar}
-\IRule{RC1}{
+\IRule{CRM1}{
   \htype \a\S\s = \C\\
-  \tmeet\C\t\cdot\K = \D \,\Kp\\ 
+  \tmeet\C\t\cdot\K = \D\,\Kp\\ 
   \C\not\EQ\D  \\
   \ftypes \a\D \s\Kp = \b\ap~\b\tp \\
   \Sp = \Map\S{\Bind\a\D } \\
@@ -1181,7 +1155,7 @@ heap \s and class table \K.
   \retype \a\t\S\s\K = \Spp\,\Kpp
 }
 
-\IRule{RC2}{
+\IRule{CMR2}{
   \htype \a\S\s = \tp\\
   \tmeet\tp\t\cdot\K = \tpp\,\Kp \\
   \tp\EQ\tpp \\
@@ -1189,7 +1163,7 @@ heap \s and class table \K.
   \retype \a\t\S\s\K = \S~\K
 }
 
-\IRule{RC2}{
+\IRule{CMR3}{
   \retype\a\t\S\s\K = \Sp\,\Kp\\
   \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
 }{
@@ -1203,7 +1177,7 @@ and a class table \K and returns a new heap where the objects
 have been retyped.
 
 \begin{mathpar}
-\IRule{SP1}{
+\IRule{CMS1}{
   \EMxt E \text{ fresh}\\
   \D = \App\S\a \\
   \obj\C{\ap} = \App\s\a \\
@@ -1214,7 +1188,7 @@ have been retyped.
   \spec \a\S\s\K = \sp~\Kp
 }
 
-\IRule{SP2}{
+\IRule{CMS2}{
   \spec \a\S\s\K = \sp\\
   \spec {\b\a}\S\sp\K =\spp
 }{
@@ -2116,7 +2090,7 @@ We proceed with rule induction on the judgement used to conclude $\EnvType\E\s\K
 \begin{itemize}
   \item W1
 
-        Not possible, since $\Gamma = \cdot$ and therefore contains no variables.
+        Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
   \item W2
 
         We apply the IH to the first precondition. If we get stuck in the IH, then the entire expression gets stuck or terminates, trivially. Therefore, the interesting case is when $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\tp$. By 
