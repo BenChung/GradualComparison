@@ -956,26 +956,41 @@ at. The approaches that we will be comparing have different definitions of
 casting, and their varying approach to runtime type assertions forms an
 important part of how they interact with untyped parts of the program.
 
-\subsubsection{Behavioral}
+\subsubsection{Behavioral Generative Casts}
+
+A behavioral cast
 
 \begin{mathpar}
 \IRule{}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrapper{\C,\t,\D}\\
+  \k = \wrap\C{\classoff\C\K}{\classoff\t\K}\D\\
   \fresh\ap \\
-  \sp = \Map \s{\Bind \ap{\obj\D{\a}} } \\  
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\t\s\K {\k\,\K}\ap\sp
 }
 \end{mathpar}
 
 
-At its core, the wrap function protects types. If a function on an object has a declared argument type, then the wrap function will produce a wrapper for that function that ensures that any argument passed in matches the declared type. Likewise, if we assert that an untyped function has a return type, then the generated wrapper guarantees that the returned value of the untyped function is of the asserted type by inserting a cast to the right type.
+At its core, the wrap function protects types. If a function on an object
+has a declared argument type, then the wrap function will produce a wrapper
+for that function that ensures that any argument passed in matches the
+declared type. Likewise, if we assert that an untyped function has a return
+type, then the generated wrapper guarantees that the returned value of the
+untyped function is of the asserted type by inserting a cast to the right
+type.
 
-In our context, wrappers are just generated classes, produced when the runtime system encounters a behavioral cast. These casts need to ensure two key properties, which we will refer to as \emph{soundness} and \emph{completeness}. In the context of casts, soundness refers to correct enforcement of types, whereby protected methods will not observably violate their type guarantees, while completeness ensures that a cast will not lose methods.
+In our context, wrappers are just generated classes, produced when the
+runtime system encounters a behavioral cast. These casts need to ensure two
+key properties, which we will refer to as \emph{soundness} and
+\emph{completeness}. In the context of casts, soundness refers to correct
+enforcement of types, whereby protected methods will not observably violate
+their type guarantees, while completeness ensures that a cast will not lose
+methods.
 
-This last requirement is somewhat unconventional, and its need is illustrated in a simple example. 
+This last requirement is somewhat unconventional, and its need is
+illustrated in a simple example.
 
 \begin{verbatim}
 class C {
@@ -988,118 +1003,120 @@ class D {
 (<D>(<C>new D()))@f(2)
 \end{verbatim}
 
-In this example, if we were to implement wrappers by wrapping over only the declared methods, despite D having a method f, it is "lost" when D is cast to C. As a result, when we cast it back from C to D, the wrapper added to ensure that C's invariants held does not have a method f, and our call will produce a method not understood exception. To avoid this issue, our wrappers will have to retain all untyped methods when casting untyped to typed, and typed methods if a typed cast does not mention them, so that they may be recovered in a later cast.
+In this example, if we were to implement wrappers by wrapping over only the
+declared methods, despite D having a method f, it is "lost" when D is cast
+to C. As a result, when we cast it back from C to D, the wrapper added to
+ensure that C's invariants held does not have a method f, and our call will
+produce a method not understood exception. To avoid this issue, our wrappers
+will have to retain all untyped methods when casting untyped to typed, and
+typed methods if a typed cast does not mention them, so that they may be
+recovered in a later cast.
 
 \hrulefill
 
-\newcommand{\tfa}{\text{\emph{for every }}}
-\newcommand{\wh}{\text{\emph{where}}}
-\newcommand{\wc}{\text{wrapClass}}
 
 \begin{align*}
 \xt{n} &::= \m \B \f
 \end{align*}
 
-\begin{tabbing}
-$\wrapper{\C,$\=$ \Cp, \D} = $\\
-\>$\xt{class}~\D$\=$~\{$\\
-\>\>$\xt{th}$\=$\xt{at} : \C $ \\
-\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { \BehCast{\tp_2}{\this.\that.\n(\b{\BehCast{\t_1}{\x}})}}$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K$\\
+\newcommand{\All}[1]{\EM{\forall ~\xt #1~&.&~}}
+
+\newcommand{\SP}{\hspace{.5cm}}
+\newcommand{\SPP}{\SP\SP}
+
+\[\begin{array}{@{}ll@{}l@{}r@{~}r}
+    \wrap\C\mt\mtp\D = \\
+\SP \class ~\D ~ \{\\
+\SPP \Fdef\that\C \\
+\SPP \Mdefz\f\tp{~\BehCast\tp{\this.\Call\that\f{}}~}
+&    \All f \Mtype\f{}\t\in\mt &\wedge~ \Mtype\f{}\tp \in \mtp
 \\
-\>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\n(\b{\x})}$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
+\SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\this.\Call\that\f{\BehCast\t\x}}~}
+&    \All f \Mtype\f\t\t \in \mt &\wedge~ \Mtype\f\tp\tp \in \mtp
 \\
-\>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { (\SubCast{\any}{\this})@\m(\SubCast{\any}{\x}) }$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K \wedge \fresh\m $\\
-\>$\}$
+\SPP \Mdef\m\x{\t_2}{\tp_2} {~\BehCast{\tp_2}{\this.\Call\that\m{\BehCast{\t_1}\x}}~}
+&     \All m \Mtype\m{\t_1}{\tp_1} \in \mt &\wedge~ \Mtype\m{\t_2}{\tp_2} \in \mtp
 \\
+\SPP \Mdefz\f\t { ~\this.\Call\that\f{}~}
+&    \All f \Mtype\f{}\t \in \mt &\wedge~ \Mtype\f{}\tp \not\in \mtp
 \\
-$\wrapper{\C,$\=$ \any, \D} = $\\
-\>$\xt{class}~\D$\=$~\{$\=\\
-\>\>$\xt{that} : \C$ \\ \\
-\>\>$\Mdefa\n{\b{\HT\x\any}}{\any}{\BehCast{\any}{\this.\xt{that}.\n(\b{\BehCast{\t}{\x}})}}$ \\
-\>\>\>$\tfa \Mtype\n{\b{\t}}{\tp} \in \classoff\C\K$\\
-\>$\}$\\
-\end{tabbing}
+\SPP \Mdef\f\x\t\t { ~\this.\Call\that\f\x~}
+&    \All f \Mtype\f\t\t \in \mt&\wedge~ \Mtype\f\tp\tp \not\in \mtp
+\\
+\SPP \Mdef\m\x{\t_1}{\tp_1} {~\this.\Call\that\m\x~}
+&    \All m \Mtype\m{\t_1}{\tp_1} \in \mt &\wedge~ \Mtype\m{\t_2}{\tp_2} \not\in \mtp
+\\
+\SP \}
+\\
+\wrap\C\mt\D = \\
+\SP \class~\D~\{\\
+\SPP \Fdef \that \C\\ 
+\SPP   \Mdefz\f\any{\BehCast\any{\this.\Call\that\f{}}} \\
+&  \All \m  \Mtype\f{}\t \in \mt\\
+\SPP   \Mdef\f\x\any\any{\BehCast\any{\this.\Call\that\f{\BehCast\t\x}}} \\
+&  \All \f  \Mtype\m\t\t \in \mt\\
+\SPP   \Mdef\m\x\any\any{\BehCast\any{\this.\Call\that\m{\BehCast\t\x}}} \\
+&  \All \m  \Mtype\m\t\tp \in \mt\\
+\SP \}\\
+\end{array}\]
+  
 
 
-\wc is more complex than TODO, because different wrappers are needed,
+%% \>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\n(\b{\x})}$\\
+%% \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
+%% \\
+%% \>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { (\SubCast{\any}{\this})@\m(\SubCast{\any}{\x}) }$\\
+%% \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K \wedge \fresh\m $\\
+%% \>$\}$
+%% \\
+%% \end{tabbing}
+
+
+wrap is more complex than TODO, because different wrappers are needed,
 depending on if the target type is a concrete type \C, or is the dynamic
 type \any. If the target type is \C, then it will generate the wrapper
 methods for the type \C, then insert ``passthrough'' methods. methods of the
 same type as the original and that just call the original internally, that
 provide the completness property mentioned above. Likewise, if the target
-type is \any, then \wc will simply generate a method that casts its argument
+type is \any, then wrap will simply generate a method that casts its argument
 to the right type and its return type to \any for every one of the typed
 methods in the source, ensuring soundness and completness.
 
 
 \subsubsection{Monotone Generative Casts}
 
-%% Example -- please check
+The monotone cast \MonCast\C\a imposes the type denoted by \C on the object
+at \a.
 
-%% class A {
-%%   fa : B
-%%   ma(x : A): B { fa.mb(a) }
-%% }
-%% class B {
-%%   fb : any
-%%   mb(x:A):B { this }
-%% }
-%% class C {}
 
-%% class Ap {
-%%   fa : Bp
-%%   ma(x : Ap): Bp {...}
-%% }
-%% class Bp {
-%%   fb: C 
-%%   ma(x : Ap): Bp {...}
-%% }
+and,
+transitively, on other objects reachable from it. 
 
-%% a = new A(new B(new C()))
-%% ap = <| Ap |> a
 
-%% class WA {
-%%   that : A
-%%   fa() : B { that.fa() }
-%%   fa(x:B):B { that.fa(x) }
-%%   ma(x:B):B { that.ma(x) }
-%% }
-%% class WB {
-%%   that : any
-%%   fb() : any { that.fb() }
-%%   fb(x:any):any { that.fb(x) }
-%%   mb(x:B):B { that.mb(x) }
-%% }
-%% class WBp {
-%%   that : A
-%%   ...
+In the extreme, one cast could cause all objects in the heap to be
+retyped. To prevent pathological cases, monotone casts, only modify the heap
+if the target \C has fewer occurences of \any than the original type of the
+object at \a (and transitively so for types appearing in \t and reachable
+from \a).  When a type \C does not have any occurence of the dynamic type,
+denoted by \statictype\C\K\V, monotone casts will leave the object and the
+heap unchanged.
 
-The monotone cast \MonCast\t\a imposes type \t on the object referenced by
-\a and, transitively, on other objects reachable from it. In the extreme,
-one cast could cause all objects in the heap to be retyped. To prevent
-pathological cases, monotone casts, only modify the heap if the target type
-\t has fewer occurences of \any than the original type of the object at \a
-(and transitively so for types appearing in \t and reachable from \a).  When
-a type \t does not have any occurence of the dynamic type, denoted by
-\statictype\t\K\V, monotone casts will leave the object and the heap
-unchanged.
-
-The monotone cast is generative, it triggers the creation of new types that
-are the meet of the existing types and the requested type. Generativity is
-required when objects are aliased at different types.  This cast also
+The monotone cast is generative, it triggers the creation of new classes
+that are the meet of the existing types and the requested type. Generativity
+is required when objects are aliased at different types.  This cast also
 perform update in place of the class of objects, for example \obj\C{\a}
 becomes \obj\D{\a}. To deal correctly with fields, we restrict monotone
 casts to wrapper objects.
 
-The semantics of monotone casts is somewhat involved. Key the definitions
-are shown here, the remainder is in appendix. The key challenge is that
-after a monotone cast in a heap \s, every reference should still be valid.
-If a reference has a type other than \any, then the cast will preserve
-correctness of that reference. To accomplish this, the cast ensure two
-properties hold:
+The semantics of monotone casts is somewhat involved, some auxiliary
+functions are left in appendix.
+
+
+
+The key challenge is that after a monotone
+cast in a heap \s, every reference should still be valid.  If a reference
+has a type other than \any, then the cast will preserve correctness of that
+reference. To accomplish this, the cast ensure two properties hold:
 \begin{itemize}
 \item The values that \emph{currently} exist cannot violate any of the types
   that point to them. Casting needs to recursively ensure that all values
@@ -1265,6 +1282,8 @@ method.
 
 The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
+
+\newcommand{\tfa}{\EM{\forall f~.~}}
 
 \begin{tabbing}
 $\classgen{\C,$\=$ ~\b\mt,$\=$ ~\D,\K}= $\\
@@ -2564,3 +2583,42 @@ For every class $\C$ and every $\t$ where $\stcons\C\t$, we can generate a most 
 %\input{figures/castins}
 \end{figure}
 
+%% Example -- please check
+
+%% class A {
+%%   fa : B
+%%   ma(x : A): B { fa.mb(a) }
+%% }
+%% class B {
+%%   fb : any
+%%   mb(x:A):B { this }
+%% }
+%% class C {}
+
+%% class Ap {
+%%   fa : Bp
+%%   ma(x : Ap): Bp {...}
+%% }
+%% class Bp {
+%%   fb: C 
+%%   ma(x : Ap): Bp {...}
+%% }
+
+%% a = new A(new B(new C()))
+%% ap = <| Ap |> a
+
+%% class WA {
+%%   that : A
+%%   fa() : B { that.fa() }
+%%   fa(x:B):B { that.fa(x) }
+%%   ma(x:B):B { that.ma(x) }
+%% }
+%% class WB {
+%%   that : any
+%%   fb() : any { that.fb() }
+%%   fb(x:any):any { that.fb(x) }
+%%   mb(x:B):B { that.mb(x) }
+%% }
+%% class WBp {
+%%   that : A
+%%   ...
