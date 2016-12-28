@@ -1023,59 +1023,52 @@ recovered in a later cast.
 
 \newcommand{\SP}{\hspace{.5cm}}
 \newcommand{\SPP}{\SP\SP}
+\newcommand{\bmt}{\b{\mt}}
+\newcommand{\bmtp}{\b{\mtp}}
 
 \[\begin{array}{@{}ll@{}l@{}r@{~}r}
-    \wrap\C\mt\mtp\D = \\
+    \wrap\C\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-\SPP \Mdefz\f\tp{~\Call{(\BehCast\tp{\this.\that})}\f{}~}
-&    \All f \Mtype\f{}\t\in\mt &\wedge~ \Mtype\f{}\tp \in \mtp
+\SPP \Mdefz\f\tp{~\BehCast\tp{\Call{\this.\that}\f{}}~}
+&    \All f \Mtype\f{}\t\in\bmt &\wedge~ \Mtype\f{}\tp \in \bmtp
 \\
-\SPP \Mdef\f\x\tp\tp {~\Call{(\BehCast\tp{\this.\that})}\f{\BehCast\t\x}~}
-&    \All f \Mtype\f\t\t \in \mt &\wedge~ \Mtype\f\tp\tp \in \mtp
+\SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Call{\this.\that}\f{\BehCast\t\x}}~}
+&    \All f \Mtype\f\t\t \in \bmt &\wedge~ \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x{\t_2}{\tp_2} {~\Call{(\BehCast{\tp_2}{\this.\that})}\m{\BehCast\Cp\x}~}
-&     \All m \Mtype\m\Cp\Cpp\in\mt &\wedge~ \Mtype\m{\t_2}{\tp_2} \in\mtp
+\SPP \Mdef\m\x\t\tp {~\BehCast\tp{\Call{\this.\that}\m{\BehCast\Cp\x}}~}
+&     \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge~ \Mtype\m\t\tp\in\bmtp
 \\
-\SPP \Mdef\m\x{\t_2}{\tp_2} {~\DynCall{(\SubCast{\any}{\this.\that})}\m{\BehCast\any\x}~}
-&     \All m \Mtype\m{\any}{\any} \in \mt &\wedge~ \Mtype\m{\t_2}{\tp_2} \in \mtp
+\SPP \Mdef\m\x\t\tp{~\DynCall{(\BehCast\any{\this.\that})}\m{\BehCast\any\x}~}
+&     \All m \Mtype\m\any\any\in\bmt &\wedge~ \Mtype\m\t\tp\in\bmtp
 \\
 \SPP \Mdefz\f\t { ~\Call{\this.\that}\f{}~}
-&    \All f \Mtype\f{}\t \in \mt &\wedge~ \Mtype\f{}\tp \not\in \mtp
+&    \All f \Mtype\f{}\t \in \bmt &\wedge~ \Mtype\f{}\tp \not\in \bmtp
 \\
 \SPP \Mdef\f\x\t\t { ~\Call{\this.\that}\f\x~}
-&    \All f \Mtype\f\t\t \in \mt&\wedge~ \Mtype\f\tp\tp \not\in \mtp
+&    \All f \Mtype\f\t\t \in \bmt&\wedge~ \Mtype\f\tp\tp \not\in \bmtp
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\Call{\this.\that}\m\x~}
-&    \All m \Mtype\m{\Cp}{\Cpp} \in \mt &\wedge~ \Mtype\m{\t_2}{\tp_2} \not\in \mtp
+&    \All m \Mtype\m{\Cp}{\Cpp} \in \bmt &\wedge~ \Mtype\m{\t_2}{\tp_2} \not\in \bmtp
 \\
-\SPP \Mdef\m\x\any\any {~\Call{(\SubCast\any{\this.\that})}\m\x~}
-&    \All m \Mtype\m\any\any\in\mt &\wedge~ \Mtype\m\t\tp\not\in\mtp
+\SPP \Mdef\m\x\any\any {~\DynCall{(\BehCast\any{\this.\that})}\m\x~}
+&    \All m \Mtype\m\any\any\in\bmt &\wedge~ \Mtype\m\t\tp\not\in\bmtp
 \\
 \SP \}
 \\
-\wrap\C\mt\D = \\
+\wrap\C\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{\BehCast\any{\this.\Call\that\f{}}} 
-&  \All \m  \Mtype\f{}\t \in \mt\\
-\SPP   \Mdef\f\x\any\any{\BehCast\any{\this.\Call\that\f{\BehCast\t\x}}} 
-&  \All \f  \Mtype\m\t\t \in \mt\\
-\SPP   \Mdef\m\x\any\any{\BehCast\any{\this.\Call\that\m{\BehCast\t\x}}} 
-&  \All \m  \Mtype\m\t\tp \in \mt\\
+\SPP   \Mdefz\f\any{\BehCast\any{\Call{{\this.\that}}\f{}}}
+&  \All \m  \Mtype\f{}\t \in \bmt\\
+\SPP   \Mdef\f\x\any\any{\BehCast\any{\Call{{\this.\that}}\f{\BehCast\t\x}}}
+&  \All \f  \Mtype\m\t\t \in \bmt\\
+\SPP   \Mdef\m\x\any\any{\BehCast\any{\Call{{\this.\that}}\m{\BehCast\Cp\x}}}
+&  \All \m  \Mtype\m\Cp\Cpp \in \bmt\\
+\SPP   \Mdef\m\x\any\any{\DynCall{(\BehCast\any{\this.\that})}\m{\BehCast\Cp\x}}
+&  \All \m  \Mtype\m\any\any \in \bmt\\
 \SP \}\\
 \end{array}\]
-  
-
-
-%% \>\>$\Mdefa\n{\b{\HT\x{\t_1}}}{\tp_1} { \this.\that.\n(\b{\x})}$\\
-%% \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \classoff\Cp\K$\\
-%% \\
-%% \>\>$\Mdefa\n{\b{\HT\x{\t_2}}}{\tp_2} { (\SubCast{\any}{\this})@\m(\SubCast{\any}{\x}) }$\\
-%% \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \not\in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \in \classoff\Cp\K \wedge \fresh\m $\\
-%% \>$\}$
-%% \\
-%% \end{tabbing}
 
 
 wrap is more complex than TODO, because different wrappers are needed,
