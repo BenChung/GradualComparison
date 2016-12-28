@@ -1223,15 +1223,13 @@ have been retyped.
 \end{mathpar}
 
 
-The \texttt{typemeet} function \tmeet\P\K\t\tp compute the meet of types \t
-and \tp, it returns a new type if needed and an updated class table.
+% The \texttt{typemeet} function \tmeet\P\K\t\tp compute the meet of types \t
+% and \tp, it returns a new type if needed and an updated class table.
+% 
+% For the case we call \tmeet\P\K\C\D, the function will have to create a new
+% class \E that is the result of meeting \C with \D.
 
-For the case we call \tmeet\P\K\C\D, the function will have to create a new
-class \E that is the result of meeting \C with \D.
-
-Meh. The above is lousy. Rewrite.
-
-The \texttt{typemeet} functions takes four arguments, the original type
+The \texttt{tmeet} functions takes four arguments, the original type
 $\t$, the cast type $\tp$, an environment $\P$, a class table $\K$, and
 outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set
 of mappings from a pair of types ($\t,\tp$) to a type $\tpp$.
@@ -2019,7 +2017,7 @@ Define \xt{static}
 
 Define \xt{wftype}
 
-Define \xt{mtypes}
+We write \classoff\C\K to denote the lookup of the method signutare for every method, including field getters and setters, in \C.
 
 \begin{equation*}
 \classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
