@@ -1085,6 +1085,7 @@ methods in the source, ensuring soundness and completness.
 
 \subsubsection{Monotone Generative Casts}
 
+
 The monotone cast \MonCast\C\a imposes the type denoted by \C on the object
 at \a.
 
@@ -1291,7 +1292,10 @@ $\classgen{\C,$\=$ ~\b\mt,$\=$ ~\D,\K}= $\\
 \>\>$\that : \C$ \\
 \\
 \>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{\this.\that.\m({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b\mt$\\
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b\mt \wedge \t_1 \neq \any$\\
+\\
+\>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{(\MonCast{\any}{\this.\that})@\m({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
+\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b\mt \wedge \t_1 = \any$\\
 \\
 \>\>$\Mdefa\f{{\HT\x\any}}\any {\MonCast\any{\MonCast{\tp_2}{\this.\that.\f({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
 \>\>\>$\tfa \Mtype\f{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\f{{\t_2}}{\tp_2} \in \b\mt$\\
@@ -1300,7 +1304,10 @@ $\classgen{\C,$\=$ ~\b\mt,$\=$ ~\D,\K}= $\\
 \>\>\>$\tfa \Mtype\f{}{\tp_1} \in \classoff\C\K \wedge \Mtype\f{}{\tp_2} \in \b\mt$\\
 \\
 \>\>$\Mdefa\n{\b{\HT\x\any}}\any { {\this.\that.\n(\b{\MonCast\any{\MonCast{\t_1}\x}})}}$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b\mt$\\
+\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b\mt \wedge (\n = \f \vee \t_1 \neq \any)$\\
+\\
+\>\>$\Mdefa\m{\b{\HT\x\any}}\any { {(\MonCast{\any}{\this.\that})@\m(\b{\MonCast\any{\MonCast{\t_1}\x}})}}$\\
+\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \not\in \b\mt \wedge \t_1 = \any$\\
 \\
 \>\>$\Mdefa\m{{\HT\x{\t_2}}}{\tp_2} { \MonCast{\tp_2}{\this.\that.\m({\MonCast{\t_1}\x})}}$\\
 \>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} ~$\=$\wedge~ \statictype{\t_2}\K\cdot $\\
@@ -1334,7 +1341,7 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule{CR1}{ 
-  \b{\methtrans \K\C\md{\md'}} \\
+  \b{\methtrans \K\C\md{\md'}{}} \\
   \classtrans \K\Kp\Kpp
 }{
    \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
@@ -1347,7 +1354,7 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 \IRule{MT}{
   \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp
 }{
-  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}
+  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}{}
 }
 \end{mathpar}
 
@@ -1553,12 +1560,12 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 \begin{mathpar}
 \IRule{MTU}{
   \AnaCast{\K}{\HT\x\any}{\e}{\ep}{\any}
-}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}}
+}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
 
 \IRule{MTT}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}}
+}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
 The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, KafKa does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
@@ -1624,6 +1631,46 @@ At the surface language level, the Monotonic semantics are very similar to that 
 
 % broken: partially typed calls
 
+\newcommand{\monowrap}[2]{\xt{mwrap}(#1,#2)}
+\begin{mathpar}
+\IRule{PT}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule{MCT1}{
+  \D \text{ fresh}\\
+  \k = \classgen{\C,{\classoff\C\K},\D,\K}
+}{
+  \monowrap{\C}{\K} = \D~\k
+}
+
+\IRule{MCT2}{
+}{
+  \monowrap{\any}{\K} = \any
+}
+
+\IRule{CR1}{ 
+  \b{\methtrans \K\C\md{\md'}{\K_m}} \\
+  \classtrans \K\Kp\Kpp \\
+  \b{\monowrap\t\Kpp = \tp~\Kppp}
+}{
+   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\tp}}{\b{\md'}}~\Kpp~\K_m~\b{\Kppp}}}
+
+\IRule{CR2}{ 
+}{
+  \classtrans \K\cdot\cdot
+}
+
+\IRule{MT}{
+  \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp \\
+  \monowrap{\t_1}\K = \t_2~\K_1 \\
+  \monowrap{\tp_1}\K = \tp_2~\K_2
+}{
+  \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2}
+}
+\end{mathpar}
+
+
 \newcommand{\isstatic}[2]{\text{static}(#1,#2)}
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
@@ -1651,7 +1698,7 @@ At the surface language level, the Monotonic semantics are very similar to that 
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \D~\text{fresh} \\
-  \D = \classgen{\C,\classoff\C\K,\D,\K}
+  \D = \classgen{\C,\classoff\C\K,\D,\K} \\
   }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
 
@@ -2078,6 +2125,48 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
   \ftypes \a\C\s\K = \b\app~\b\tp
 }
 \end{mathpar}
+\section{Monotonic figure scratch}
+
+%% Example -- please check
+
+%% class A {
+%%   fa : B
+%%   ma(x : A): B { fa.mb(a) }
+%% }
+%% class B {
+%%   fb : any
+%%   mb(x:A):B { this }
+%% }
+%% class C {}
+
+%% class Ap {
+%%   fa : Bp
+%%   ma(x : Ap): Bp {...}
+%% }
+%% class Bp {
+%%   fb: C 
+%%   ma(x : Ap): Bp {...}
+%% }
+
+%% a = new A(new B(new C()))
+%% ap = <| Ap |> a
+
+%% class WA {
+%%   that : A
+%%   fa() : B { that.fa() }
+%%   fa(x:B):B { that.fa(x) }
+%%   ma(x:B):B { that.ma(x) }
+%% }
+%% class WB {
+%%   that : any
+%%   fb() : any { that.fb() }
+%%   fb(x:any):any { that.fb(x) }
+%%   mb(x:B):B { that.mb(x) }
+%% }
+%% class WBp {
+%%   that : A
+%%   ...
+
 
 \section{Proofs of Related Theorems}
 \subsection{Accessory Lemmas}
@@ -2103,7 +2192,7 @@ Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $
 \item $\SubCast\tp\ep$
 \item $\ShaCast\tp\ep$
 \item $\BehCast\tp\ep$
-\item $\MonCast\tp\ep$
+\item $\MonCast\tp\ep $
 \end{itemize}
 We proceed with rule induction on the judgement used to conclude $\EnvType\E\s\K\e\t$. Note that we refer to rule preconditions from left to right.
 \begin{itemize}
