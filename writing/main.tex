@@ -1315,7 +1315,7 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule{CR1}{ 
-  \b{\methtrans \K\C\md{\md'}} \\
+  \b{\methtrans \K\C\md{\md'}{}} \\
   \classtrans \K\Kp\Kpp
 }{
    \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
@@ -1328,7 +1328,7 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 \IRule{MT}{
   \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp
 }{
-  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}
+  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}{}
 }
 \end{mathpar}
 
@@ -1534,12 +1534,12 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 \begin{mathpar}
 \IRule{MTU}{
   \AnaCast{\K}{\HT\x\any}{\e}{\ep}{\any}
-}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}}
+}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
 
 \IRule{MTT}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}}
+}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
 The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, KafKa does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
@@ -1605,6 +1605,46 @@ At the surface language level, the Monotonic semantics are very similar to that 
 
 % broken: partially typed calls
 
+\newcommand{\monowrap}[2]{\xt{mwrap}(#1,#2)}
+\begin{mathpar}
+\IRule{PT}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule{MCT1}{
+  \D \text{ fresh}\\
+  \k = \classgen{\C,{\classoff\C\K},\D,\K}
+}{
+  \monowrap{\C}{\K} = \D~\k
+}
+
+\IRule{MCT2}{
+}{
+  \monowrap{\any}{\K} = \any
+}
+
+\IRule{CR1}{ 
+  \b{\methtrans \K\C\md{\md'}{\K_m}} \\
+  \classtrans \K\Kp\Kpp \\
+  \b{\monowrap\t\Kpp = \tp~\Kppp}
+}{
+   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\tp}}{\b{\md'}}~\Kpp~\K_m~\b{\Kppp}}}
+
+\IRule{CR2}{ 
+}{
+  \classtrans \K\cdot\cdot
+}
+
+\IRule{MT}{
+  \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp \\
+  \monowrap{\t_1}\K = \t_2~\K_1 \\
+  \monowrap{\tp_1}\K = \tp_2~\K_2
+}{
+  \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2}
+}
+\end{mathpar}
+
+
 \newcommand{\isstatic}[2]{\text{static}(#1,#2)}
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
@@ -1632,7 +1672,7 @@ At the surface language level, the Monotonic semantics are very similar to that 
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \D~\text{fresh} \\
-  \D = \classgen{\C,\classoff\C\K,\D,\K}
+  \D = \classgen{\C,\classoff\C\K,\D,\K} \\
   }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
 
@@ -2084,7 +2124,7 @@ Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $
 \item $\SubCast\tp\ep$
 \item $\ShaCast\tp\ep$
 \item $\BehCast\tp\ep$
-\item $\MonCast\tp\ep$
+\item $\MonCast\tp\ep $
 \end{itemize}
 We proceed with rule induction on the judgement used to conclude $\EnvType\E\s\K\e\t$. Note that we refer to rule preconditions from left to right.
 \begin{itemize}
