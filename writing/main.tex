@@ -1037,45 +1037,6 @@ methods in the source, ensuring soundness and completness.
 
 \subsubsection{Monotone Generative Casts}
 
-%% Example -- please check
-
-%% class A {
-%%   fa : B
-%%   ma(x : A): B { fa.mb(a) }
-%% }
-%% class B {
-%%   fb : any
-%%   mb(x:A):B { this }
-%% }
-%% class C {}
-
-%% class Ap {
-%%   fa : Bp
-%%   ma(x : Ap): Bp {...}
-%% }
-%% class Bp {
-%%   fb: C 
-%%   ma(x : Ap): Bp {...}
-%% }
-
-%% a = new A(new B(new C()))
-%% ap = <| Ap |> a
-
-%% class WA {
-%%   that : A
-%%   fa() : B { that.fa() }
-%%   fa(x:B):B { that.fa(x) }
-%%   ma(x:B):B { that.ma(x) }
-%% }
-%% class WB {
-%%   that : any
-%%   fb() : any { that.fb() }
-%%   fb(x:any):any { that.fb(x) }
-%%   mb(x:B):B { that.mb(x) }
-%% }
-%% class WBp {
-%%   that : A
-%%   ...
 
 The monotone cast \MonCast\t\a imposes type \t on the object referenced by
 \a and, transitively, on other objects reachable from it. In the extreme,
@@ -2099,6 +2060,48 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
   \ftypes \a\C\s\K = \b\app~\b\tp
 }
 \end{mathpar}
+\section{Monotonic figure scratch}
+
+%% Example -- please check
+
+%% class A {
+%%   fa : B
+%%   ma(x : A): B { fa.mb(a) }
+%% }
+%% class B {
+%%   fb : any
+%%   mb(x:A):B { this }
+%% }
+%% class C {}
+
+%% class Ap {
+%%   fa : Bp
+%%   ma(x : Ap): Bp {...}
+%% }
+%% class Bp {
+%%   fb: C 
+%%   ma(x : Ap): Bp {...}
+%% }
+
+%% a = new A(new B(new C()))
+%% ap = <| Ap |> a
+
+%% class WA {
+%%   that : A
+%%   fa() : B { that.fa() }
+%%   fa(x:B):B { that.fa(x) }
+%%   ma(x:B):B { that.ma(x) }
+%% }
+%% class WB {
+%%   that : any
+%%   fb() : any { that.fb() }
+%%   fb(x:any):any { that.fb(x) }
+%%   mb(x:B):B { that.mb(x) }
+%% }
+%% class WBp {
+%%   that : A
+%%   ...
+
 
 \section{Proofs of Related Theorems}
 \subsection{Accessory Lemmas}
