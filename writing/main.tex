@@ -1371,7 +1371,7 @@ for them according to the new wrapper \C.
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
 \\[1mm]\hline
-\SPP \Mdef\f\x\any\any {\SubCast\any{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}
+\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\t{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}}
 & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
 \\[1mm]\hline
 \SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
@@ -1398,6 +1398,23 @@ for them according to the new wrapper \C.
 \includegraphics[width=1\textwidth]{figures/classgenDefinition}
 \caption{Class generation.}\label{classgen}
 \end{figure}
+
+\newcommand{\gettype}[2]{\xt{getType}(#1,#2)} % gettype(C,K)
+\newcommand{\getmt}[2]{\xt{getMt}(#1,#2)} % getMt(md,K)
+\begin{mathpar}
+\IRule{GTT}{ \Class\C{\hspace{-0.3em}}{\b\md} \in \K \\ \b{\getmt\md\K = \mt}}{\gettype{\C}{\K} = \b\mt}
+
+% \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t
+\IRule{GMTU}{ }{\getmt{\Mdef\m\x\any\any\e}{\K} = \Mtype\m\any\any}
+
+\IRule{GMT}{ }{\getmt{\Mdef\m\x{\C}{\Cp}\e}{\K} = \Mtype\m\C\Cp}
+
+\IRule{GFST}{ }{\getmt{\Mdef\f\x\any\any{\SubCast\any{\MonCast\t{
+      \Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}}}{\K} = \Mtype\f\t\t}
+
+\IRule{GFGT}{ }{\getmt{\Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}}{\K} = \Mtype\f{}\t}
+\end{mathpar}
 
 \section{Translations}
 
