@@ -4,6 +4,8 @@
             amsmath,tex/mathpartir,hyperref,
             stmaryrd, graphicx, tikz % double brackets llbracket
 }
+\usepackage[customcolors,norndcorners]{hf-tikz}
+
 
 
 \input{macros}
@@ -1339,14 +1341,14 @@ The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
 
 \begin{figure}[!ht]
-
-\IGNOREUNLESSNEEDED{
+\footnotesize
+%\IGNOREUNLESSNEEDED{
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \classgen{\C, \bmt, \bmtp, \D,\K}= \\
-\SP \class~\D~\{ \\
+\SP \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.8,-0.8)(-0.2,0.25) \class~\D~\{ \\
 \SPP \Fdef\that\C
 \\[1mm]
-\SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}}
+\SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}} 
 &
 \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
 \\[1mm]
@@ -1364,7 +1366,7 @@ for them according to the new wrapper \C.
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\[1mm]
-\SPP \Mdefz\f\any{\SubCast\any{\Get{\Get\this\that}\f}}
+\SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
 \\[1mm]
@@ -1382,16 +1384,16 @@ for them according to the new wrapper \C.
 \SPP \Mdef\m\x{\t_2}{\tp_2} { \MonCast{\tp_2}{\Call{\Get\this\that}\m{{\MonCast{\t_1}\x}}}}
 &
  \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \in\bmtp \\
- &&\wedge& \statictype{\t_2}\K\cdot &\wedge& \statictype{\tp_2}\K\cdot
+ && &\wedge ~ \t_1 \neq \any
  \\[1mm]
-\SPP \Mdef\m\x{\t_1}{\tp_1} { {\Call{\Get\this\that}\m\x}}
+\SPP \Mdef\m\x{\t_1}{\tp_1} { {\Call{\Get\this\that}\m\x}} \tikzmarkend{a}
 &
  \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \not\in \bmtp \\
-&&  \wedge& \statictype{\t_1}\K\cdot &\wedge& \statictype{\tp_1}\K\cdot\\
-\}
+&&  &\wedge ~ \t_1 \neq \any \\
+\SP\}
 \end{array}
 \]
-}
+%}
 \includegraphics[width=1\textwidth]{figures/classgenDefinition}
 \caption{Class generation.}\label{classgen}
 \end{figure}
