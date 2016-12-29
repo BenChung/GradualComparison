@@ -1219,6 +1219,25 @@ heap \s and class table \K.
 
 
 
+\newcommand{\gettype}[2]{\xt{getType}(#1,#2)} % gettype(C,K)  
+\newcommand{\getmt}[1]{\xt{getMt}(#1)} % getMt(md)
+\begin{mathpar}
+\IRule{GTT}{ \Class\C{\hspace{-0.3em}}{\b\md} \in \K \\ \b{\getmt\md = \mt}}{\gettype{\C}{\K} = \b\mt}
+
+% \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t
+\IRule{GMTU}{ }{\getmt{\Mdef\m\x\any\any\e}{\K} = \Mtype\m\any\any}
+
+\IRule{GMT}{ }{\getmt{\Mdef\m\x{\C}{\Cp}\e} = \Mtype\m\C\Cp}
+
+\IRule{GFST}{ }{\getmt{\Mdef\f\x\any\any{\SubCast\any{\MonCast\t{
+      \Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}}} = \Mtype\f\t\t}
+
+\IRule{GFGT}{ }{\getmt{\Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}} = \Mtype\f{}\t}
+\end{mathpar}
+
+TODO: Gettype from mtype
+
 \begin{mathpar}
 \IRule{CRM1}{
   \htype \a\S\s = \C\\
@@ -1294,26 +1313,6 @@ getter or setter method for that field. This is enforced by the
 \texttt{overloading} function in class well-formedness.)
 
 \hrulefill
-
-
-\newcommand{\gettype}[2]{\xt{getType}(#1,#2)} % gettype(C,K)
-\newcommand{\getmt}[1]{\xt{getMt}(#1)} % getMt(md)
-\begin{mathpar}
-\IRule{GTT}{ \Class\C{\hspace{-0.3em}}{\b\md} \in \K \\ \b{\getmt\md\K = \mt}}{\gettype{\C}{\K} = \b\mt}
-
-% \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t
-\IRule{GMTU}{ }{\getmt{\Mdef\m\x\any\any\e}{\K} = \Mtype\m\any\any}
-
-\IRule{GMT}{ }{\getmt{\Mdef\m\x{\C}{\Cp}\e} = \Mtype\m\C\Cp}
-
-\IRule{GFST}{ }{\getmt{\Mdef\f\x\any\any{\SubCast\any{\MonCast\t{
-      \Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}}} = \Mtype\f\t\t}
-
-\IRule{GFGT}{ }{\getmt{\Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}} = \Mtype\f{}\t}
-\end{mathpar}
-
-TODO: Htype defn using gettype
 
 \opdef{
   $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
