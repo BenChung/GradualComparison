@@ -1012,7 +1012,13 @@ handles the case where the target type of the cast is \any.
 \caption{Behavioral casts.}\label{behave}
 \end{figure}
 
-
+\figref{wrap} details the construction of wrapper classes. A wrapper is a
+class that has the distinguished field \that, at the type of the target
+object and a set of methods that mirrors the methods of the target object
+but with additionals casts to some of their arguments and return values.
+For getters, setters and typed methods, the wrapper simply adds a behavioral
+casts to argument, issues a typed call, and then casts of the result. For
+untyped methods, a dynamic call is blanketed by casts to \any.
 
 
 
@@ -1026,28 +1032,28 @@ handles the case where the target type of the cast is \any.
     \wrap\C\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\BehCast\tp{\Call{\Call\this\that{}}\f{}}~}
+\SPP \Mdefz\f{\tp}{~\BehCast\tp{\Get{\Get\this\that}\f}~}
 &    \All f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\
-\SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Call{\Call\this\that{}}\f{\BehCast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &    \All f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x\t\tp {~\BehCast\tp{\Call{\Call\this\that{}}\m{\BehCast\Cp\x}}~}
+\SPP \Mdef\m\x\t\tp {~\BehCast\tp{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
 &     \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
 \\
-\SPP \Mdef\m\x\t\tp{~\DynCall{(\BehCast\any{\Call\this\that{}})}\m{\BehCast\any\x}~}
+\SPP \Mdef\m\x\t\tp{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\any\x}~}
 &     \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
 \\
-\SPP \Mdefz\f\t { ~\Call{\Call\this\that{}}\f{}~}
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
 \\
-\SPP \Mdef\f\x\t\t { ~\Call{\Call\this\that{}}\f\x~}
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
 &    \All f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
 \\
-\SPP \Mdef\m\x{\Cp}{\Cpp} {~\Call{\Call\this\that{}}\m\x~}
+\SPP \Mdef\m\x{\Cp}{\Cpp} {~\Call{\Get\this\that}\m\x~}
 &    \All m \Mtype\m{\Cp}{\Cpp} \in \bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp
 \\
-\SPP \Mdef\m\x\any\any {~\DynCall{(\BehCast\any{\Call\this\that{}})}\m\x~}
+\SPP \Mdef\m\x\any\any {~\DynCall{(\BehCast\any{\Get\this\that})}\m\x~}
 &    \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in\bmtp
 \\
 \SP \}
@@ -1055,13 +1061,13 @@ handles the case where the target type of the cast is \any.
 \wrapAny\C\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{\BehCast\any{\Call{{\Call\this\that{}}}\f{}}}
+\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
 &  \All \m  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{\BehCast\any{\Call{\Call\this\that{}}\f{\BehCast\t\x}}}
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set\Get\this\that}\f{\BehCast\t\x}~}
 &  \All \f  \Mtype\m\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any{\BehCast\any{\Call{\Call\this\that{}}\m{\BehCast\Cp\x}}}
+\SPP   \Mdef\m\x\any\any{~\BehCast\any{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
 &  \All \m  \Mtype\m\Cp\Cpp \in \bmt\\
-\SPP   \Mdef\m\x\any\any{\DynCall{(\BehCast\any{\Call\this\that{}})}\m{\BehCast\Cp\x}}
+\SPP   \Mdef\m\x\any\any{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\Cp\x}~}
 &  \All \m  \Mtype\m\any\any \in \bmt\\
 \SP \}\\
 \end{array}\]
@@ -1070,43 +1076,52 @@ handles the case where the target type of the cast is \any.
 
 \hrulefill
 %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \caption{Behavioral cast wrapper class generation.}\label{wrap}
+  \caption{Wrapper class generation.}\label{wrap}
 \end{figure}
 
+Multiple wrappers can be layered on top of a target object. Each time a
+reference crosses a boundary between typed and untyped code, it will accrue
+an additional wrapper. When a method is invoked on a wrapper chair, that
+method will be invoked on every wrapper, until finding its way to the target
+object. A key property of the wrapper generation functions of \figref{wrap}
+is that methods should not be ``lost''. That is to say, any method in the
+target object, even if it is not in the type it is being cast to, will be
+retained in the wrapper.  This property is somewhat unconventional, and its
+need is illustrated in a simple example.
 
-The wrapper classes constructed during the cast mediate on the values passed
-to methods of the target, and provide methods that can be accessed either
-from the typed side or the untyped side.
+\begin{figure}
+\footnotesize
+\begin{tabular}{ll}\begin{minipage}{5cm}
+\[\begin{array}{l}
+\class ~\C~ \{\\
+\SP  \Mdef\m\x\E\E\x\\
+\SP  \Mdef\mp\x\E\E\x\\
+\}\\
+\\
+\class ~\D~ \{\\
+\SP  \Mdef\m\x\any\any\x\\
+\}\\
+\end{array}\]
+\end{minipage}
+&
+\begin{minipage}{5cm}
+\[\begin{array}{l}
+\class ~\EMxt{CtoD}~ \{\\
+\SP  \Fdef\that\C\\
+\SP  \Mdef \m\x\any\any{\Call{\Get\this\that}\m{\BehCast\E\x}}\\
+\SP  \Mdef \mp\x\E\E{\Call{\Get\this\that}\m\x}\\
+\}\\
+\class ~\EMxt{CtoDtoC}~ \{\\
+\SP  \Fdef\that{\EMxt{CtoD}}\\
+\SP  \Mdef\m\x\E\E{ \BehCast\E{\Call{\Get\this\that}\m{\BehCast\E\x}}}\\
+\SP  \Mdef\mp\x\E\E{ \Call{\Get\this\that}\m{\x}}\\
+\}\\
+\end{array}\]
+\end{minipage}
+\end{tabular}
+\caption{Classes generated by \BehCast\C{(\BehCast\D{\New\C{}})}.}
+\end{figure}
 
-At its core, the wrap function protects types. If a function on an object
-has a declared argument type, then the wrap function will produce a wrapper
-for that function that ensures that any argument passed in matches the
-declared type. Likewise, if we assert that an untyped function has a return
-type, then the generated wrapper guarantees that the returned value of the
-untyped function is of the asserted type by inserting a cast to the right
-type.
-
-In our context, wrappers are just generated classes, produced when the
-runtime system encounters a behavioral cast. These casts need to ensure two
-key properties, which we will refer to as \emph{soundness} and
-\emph{completeness}. In the context of casts, soundness refers to correct
-enforcement of types, whereby protected methods will not observably violate
-their type guarantees, while completeness ensures that a cast will not lose
-methods.
-
-This last requirement is somewhat unconventional, and its need is
-illustrated in a simple example.
-
-\begin{verbatim}
-class C {
-  m(x:int):int { ... }
-}
-class D {
-  m(x:*):* { ... }
-  f(x:*):* { ... }
-}
-(<D>(<C>new D()))@f(2)
-\end{verbatim}
 
 In this example, if we were to implement wrappers by wrapping over only the
 declared methods, despite D having a method f, it is "lost" when D is cast
@@ -1117,15 +1132,6 @@ will have to retain all untyped methods when casting untyped to typed, and
 typed methods if a typed cast does not mention them, so that they may be
 recovered in a later cast.
 
-wrap is more complex than TODO, because different wrappers are needed,
-depending on if the target type is a concrete type \C, or is the dynamic
-type \any. If the target type is \C, then it will generate the wrapper
-methods for the type \C, then insert ``passthrough'' methods. methods of the
-same type as the original and that just call the original internally, that
-provide the completness property mentioned above. Likewise, if the target
-type is \any, then wrap will simply generate a method that casts its argument
-to the right type and its return type to \any for every one of the typed
-methods in the source, ensuring soundness and completness.
 
 
 \subsubsection{Monotone Generative Casts}
@@ -1241,12 +1247,12 @@ have been retyped.
 
 \begin{mathpar}
 \IRule{CMS1}{
-  \EMxt E \text{ fresh}\\
+  \E \text{ fresh}\\
   \D = \App\S\a \\
   \obj\C{\ap} = \App\s\a \\
   \obj\Cp{\b\app} = \App\s\ap \\
-  \Kp = \K~\classgen{\Cp,\classoff\Cp\K,\classoff\D\K,\EMxt E,\K} \\
-  \sp = \Map\s{\Bind\a{{\EMxt E}\{\ap\}}}
+  \Kp = \K~\classgen{\Cp,\classoff\Cp\K,\classoff\D\K,\E,\K} \\
+  \sp = \Map\s{\Bind\a{\E\{\ap\}}}
 }{
   \spec \a\S\s\K = \sp~\Kp
 }
@@ -1297,21 +1303,21 @@ getter or setter method for that field. This is enforced by the
 \IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
 
 \IRule{TM4}{
-  \fresh\EC\\
+  \fresh\E\\
   (\C,\D) \not\in\P \\
-  \Pp = \Map\P{\Bind{(\C,\D)}\EC} \\
+  \Pp = \Map\P{\Bind{(\C,\D)}\E} \\
   \mtypes\C\K = {\b\mt}\\
   \mtypes\D\K = {\b\mtp}\\
   \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
-  \Kpp = \Kp~\classgen{\C,\classoff\C\K,\b\mtpp,\EC,\Kp}\\
+  \Kpp = \Kp~\classgen{\C,\classoff\C\K,\b\mtpp,\E,\Kp}\\
 }{
-    \tmeet\C\D\P\K = \EC\,\Kpp
+    \tmeet\C\D\P\K = \E\,\Kpp
 }
 
 \IRule{TM5}{
-    \P(\C,\D) = \EC
+    \P(\C,\D) = \E
 }{
-    \tmeet\C\D\P\K = \EC\,\K
+    \tmeet\C\D\P\K = \E\,\K
 }
 \end{mathpar}
 \\
@@ -1433,85 +1439,101 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 \end{tabular}
 
 \newcommand{\ba}{\xt{!}}
+
 \begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+\IRule{A1}{
+  \HasType\Env\x\t
+}{
+  \GenCast\K\Env\x\x\t
+}
 
 \IRule[width=30em]{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\bC} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}\bC \\ 
+    \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ 
+    \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule{A5}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m({\t_1}):\ba\D \in \classoff\C\K \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}} 
+    \GenCast\K\Env{\e_1}{\e_3}\C \\ 
+    \m({\t_1}):\ba\D \in \classoff\C\K \\ 
+    \AnaCast\K\Env{\e_2}{\e_4}{\t_1}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\SubCast{\D}{\DynCall{\e_3}\m{{\e_4}}}}{\bC} %Q: do I need to cast the return value of non-bang
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast\D{\DynCall{\e_3}\m{{\e_4}}}}{\bC} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A6}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \t_2 \neq \ba\D \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1} }
+    \GenCast\K\Env{\e_1}{\e_3}\C \\ 
+    \m({\t_1}):\t_2 \in \classoff\C\K \\ 
+    \t_2 \neq \ba\D \\ 
+      \AnaCast\K\Env{\e_2}{\e_4}{\t_1} 
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\C} %Q: do I need to cast the return value of non-bang
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\C
+    %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{A8}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}\any \\ 
+    \AnaCast\K\Env{\e_2}{\e_4}\any
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
 }
 
 \IRule{A11}{
-  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  \b{\AnaCast\K\Env{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b\md}
+  }{
+  \GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}\C
+}
 \end{mathpar}
 
 \hrulefill
 
 \begin{mathpar}
 \IRule{AASC1}{
-  \GenCast{\K}{\E}{\e_1}{\e_2}{\bC_2} \\
+  \GenCast\K\Env{\e_1}{\e_2}{\bC_2} \\
   {\C_2}\Sub{\C_1}\\
 }{
-  \AnaCast{\K}{\E}{\e_1}{\e_2}{\bC_1}
+  \AnaCast\K\Env{\e_1}{\e_2}{\bC_1}
 }
 
 \IRule{AASC2}{
-  \GenCast{\K}{\E}{\e_1}{\e_2}{\bC_2} \\
+  \GenCast\K\Env{\e_1}{\e_2}{\bC_2} \\
   \K \vdash {\C_2}\Sub{\C_1}\\
 }{
-  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C_1}
+  \AnaCast\K\Env{\e_1}{\e_2}{\C_1}
 }
 
 \IRule{AASC3}{
-  \GenCast{\K}{\E}{\e_1}{\e_2}{\C_2} \\
+  \GenCast\K\Env{\e_1}{\e_2}{\C_2} \\
   {\C_2}\Sub{\C_1}\\
 }{
-  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C_1}
+  \AnaCast\K\Env{\e_1}{\e_2}{\C_1}
 }
 
 \IRule{AASC4}{
-  \GenCast{\K}{\E}{\e_1}{\e_2}{\C} \\
+  \GenCast\K\Env{\e_1}{\e_2}{\C} \\
 }{
-  \AnaCast{\K}{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+  \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\bC}
 }
 
 \IRule{AASC5}{
-  \GenCast{\K}{\E}{\e_1}{\e_2}{\any} \\
+  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
-  \AnaCast{\K}{\E}{\e_1}{\SubCast{\C}{\e_2}}{\bC}
+  \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\bC}
 }
 
 \IRule{AASC6}{
-  \GenCast{\K}{\E}{\e_1}{\e_2}{\any} \\
+  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
-  \AnaCast{\K}{\E}{\e_1}{\e_2}{\C}
+  \AnaCast\K\Env{\e_1}{\e_2}{\C}
 }
 
 \IRule{AASC7}{
-  \GenCast{\K}{\E}{\e_1}{\e_2}{\t} \\ \t \neq \any
+  \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
 }{
-  \AnaCast{\K}{\E}{\e_1}{\e_2}{\any}
+  \AnaCast\K\Env{\e_1}{\e_2}{\any}
 }
 \end{mathpar}
 
@@ -1525,21 +1547,21 @@ As a result, we present the interaction between modules written in both Typed Ra
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule{A8}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
 \IRule{A11}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
 Typed Racket uses the simplest translation, as it does not introduce any new types, and relies entirely on wrappers to ensure correctness. As a result, we can use just two rules for calling - one for typed, the other for typed - and the rest of the cases simply reduce trivially.
@@ -1582,21 +1604,21 @@ The guarded semantics for Reticulated Python is essentially identical to the sem
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule{A8}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
 \IRule{A11}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
 \begin{mathpar}
@@ -1653,21 +1675,21 @@ To check the type of the argument, we then create a new instance of the empty ut
 
 
 \IRule[width=30em]{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\m{\b{\e_4}}}}     {\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\m{\b{\e_4}}}}     {\t_2}
 }
 
 \IRule{A8}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
 \IRule{A11}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
 Transient expression translation contains only one real suprise, A3. Transient does not provide a sufficiently strong type invariant as to satisfy KafKa's field access typechecking, causing us to be unable to call a field setter or getter on any argument. As a concequence, we can only call fields on the self reference \this, which is handled as a special case as A3, since the combination of A1 and A2 is not sufficient to typecheck a field access due to the weakness of the type invariant.
@@ -1742,22 +1764,22 @@ At the surface language level, the Monotonic semantics are very similar to that 
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{A2}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 
 \IRule[width=30em]{A3}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\n{\b{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\n{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule{A8}{
-    \GenCast{\K}{\E}{\e_1}{\e_3}{\any} \\ {\AnaCast{\K}{\E}{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast{\K}{\E}{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
 \IRule{A11}{
@@ -1765,22 +1787,22 @@ At the surface language level, the Monotonic semantics are very similar to that 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \D~\text{fresh} \\
   \D = \classgen{\C,\classoff\C\K,\classoff\C\K,\D,\K} \\
-  }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
 
 \begin{mathpar}
 \IRule{AASC1}{
-  \GenCast\K\E\e\ep\tp \\
+  \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
-  \AnaCast\K\E\e\ep\t
+  \AnaCast\K\Env\e\ep\t
 }
 
 \IRule{AASC2}{
-  \GenCast\K\E\e\ep\tp \\
+  \GenCast\K\Env\e\ep\tp \\
   \consistent\K\t\tp
 }{
-  \AnaCast\K\E\e{\MonCast\t\ep}\t
+  \AnaCast\K\Env\e{\MonCast\t\ep}\t
 }
 \end{mathpar}
 
@@ -1866,7 +1888,7 @@ field \f or a pair of getter and setters.
 \begin{mathpar}
 \IRule{WP}{
   \k \in \K \implies \WF{}\cdot\K\k \\
-  \EnvType\E\cdot\K\e\t
+  \EnvType\Env\cdot\K\e\t
 }{
   \WFp\e\K
 }
@@ -1888,37 +1910,37 @@ We have some auxiliary judgements.
 
 \begin{mathpar}
 \IRule[width=18em]{WT}{
- \EnvType {\E{\Ftype\x\C}}\s\K\e\D\\
+ \EnvType {\Env{\Ftype\x\C}}\s\K\e\D\\
  \WFtype\K\C \\
  \WFtype\K\D \\
 }{
- \WF \E\s\K {\Mdef\m\x\C\D\e}
+ \WF \Env\s\K {\Mdef\m\x\C\D\e}
 }
 
 \IRule[width=18em]{WU}{
- \EnvType {\E \Ftype\x\any}\s\K \e\any\\
+ \EnvType {\Env \Ftype\x\any}\s\K \e\any\\
 }{
- \WF \E\s\K{\Mdef\m\x\any\any\e}
+ \WF \Env\s\K{\Mdef\m\x\any\any\e}
 }
 
 \IRule{WS}{
- \EnvType {\E{\Ftype\x\tp}}\s\K \e\t \\
+ \EnvType {\Env{\Ftype\x\tp}}\s\K \e\t \\
  \WFtype \K\t 
 }{
- \WF  \E\s\K {\Mdef\f\x\t\t\e}
+ \WF  \Env\s\K {\Mdef\f\x\t\t\e}
 }
 
 \IRule{WF}{
  \WFtype \K\t 
 }{
- \WF  \E\s\K {\Fdef\f\t}
+ \WF  \Env\s\K {\Fdef\f\t}
 }
 
 \IRule{WG}{
- \EnvType \E\s\K\e\t \\
+ \EnvType \Env\s\K\e\t \\
  \WFtype \K\t
 }{
- \WF \E\s\K {\Mdefz\f\t\e}
+ \WF \Env\s\K {\Mdefz\f\t\e}
 }
 
 
@@ -1947,89 +1969,89 @@ types in Transient will drift towards \any.
 
 ~\\
 
-\opdef{\EnvType\E\s\K\e\t}{\e has type \t in environment \E against heap \s}
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s}
 \begin{mathpar}
 
 \IRule{W1}{
-   \HasType \E\x\t
+   \HasType \Env\x\t
  }{
-   \EnvType \E\s\K\x\t
+   \EnvType \Env\s\K\x\t
 }
 
 \IRule{W2}{
-  \EnvType \E\s\K\e\tp \\
+  \EnvType \Env\s\K\e\tp \\
  \StrSub \M\K \tp \t
  }{
-  \EnvType \E\s\K\e\t 
+  \EnvType \Env\s\K\e\t 
 }   
 
 \IRule{W3}{
-  \EnvType \E\s\K\e\C \\
+  \EnvType \Env\s\K\e\C \\
   \Mtype \f{}\tp \in \classoff\C\K
 }{
-  \EnvType \E\s\K{\Get\e\f}\tp
+  \EnvType \Env\s\K{\Get\e\f}\tp
 }    
 
 \IRule{W4}{
-  \EnvType \E\s\K\e\C \\
+  \EnvType \Env\s\K\e\C \\
   \Mtype \f\tp\tp \in \classoff\C\K  \\
-  \EnvType \E\s\K\ep\tp
+  \EnvType \Env\s\K\ep\tp
 }{
-  \EnvType \E\s\K{\Set\e\f\ep}\tp
+  \EnvType \Env\s\K{\Set\e\f\ep}\tp
 }    
 
 \IRule{W5}{
-  \EnvType \E\s\K\e\C \\
+  \EnvType \Env\s\K\e\C \\
   \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvType \E\s\K\ep\tp
+  \EnvType \Env\s\K\ep\tp
 }{
-  \EnvType \E\s\K{\Call\e\m\ep}\tpp
+  \EnvType \Env\s\K{\Call\e\m\ep}\tpp
 }    
 
 \IRule{W6}{
-  \EnvType \E\s\K\e\any \\
-  \EnvType \E\s\K\ep\any
+  \EnvType \Env\s\K\e\any \\
+  \EnvType \Env\s\K\ep\any
 }{
-  \EnvType \E\s\K{\DynCall\e\m\ep}\any
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
 
 \IRule{W7}{
- \EnvType \E\s\K{\e_1}{\t_1}\dots 
- \EnvType \E\s\K{\e_n}{\t_n}\ \\ 
+ \EnvType \Env\s\K{\e_1}{\t_1}\dots 
+ \EnvType \Env\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
-  \EnvType \E\s\K{\New\C{\e_1\dots\e_n}}\C
+  \EnvType \Env\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 
 \IRule{W8}{
-  \EnvType \E\s\K\e\tp
+  \EnvType \Env\s\K\e\tp
 }{
-  \EnvType \E\s\K{\SubCast\t\e}\t
+  \EnvType \Env\s\K{\SubCast\t\e}\t
 }
 
 \IRule{W9}{
-  \EnvType \E\s\K\e\tp
+  \EnvType \Env\s\K\e\tp
 }{
-  \EnvType \E\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
+  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
 }
 
 \IRule{W10}{
-  \EnvType \E\s\K\e\tp
+  \EnvType \Env\s\K\e\tp
 }{
-  \EnvType \E\s\K{\BehCast\t\e}\t
+  \EnvType \Env\s\K{\BehCast\t\e}\t
 }
 
 \IRule{W11}{
-  \EnvType \E\s\K\e\tp
+  \EnvType \Env\s\K\e\tp
 }{
-  \EnvType \E\s\K{\MonCast\t\e}\t
+  \EnvType \Env\s\K{\MonCast\t\e}\t
 }
 
 \IRule{W12}{
   \s(\a) = \obj\C{\b\ap}
 }{
-  \EnvType \E\s\K\a\C
+  \EnvType \Env\s\K\a\C
 }
 \end{mathpar}
 
@@ -2184,8 +2206,8 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 \begin{mathpar}
 \IRule{FT1}{
  \App\s\a=\obj\D{\ap} \\ % we know that a refers to a wrapper with a that field of the wrapped object
-  \App\s\ap =\obj\EC{\b\app}  \\ % getting the fields out of ap
- \Class \EC {\b{\Fdef\f\t}}{\b\md} \in\K \\
+  \App\s\ap =\obj\E{\b\app}  \\ % getting the fields out of ap
+ \Class \E {\b{\Fdef\f\t}}{\b\md} \in\K \\
  \wftype{\b\f}\C\K =\b\tp
 }{
   \ftypes \a\C\s\K = \b\app~\b\tp
@@ -2304,7 +2326,7 @@ Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $
 \item $\BehCast\tp\ep$
 \item $\MonCast\tp\ep $
 \end{itemize}
-We proceed with rule induction on the judgement used to conclude $\EnvType\E\s\K\e\t$. Note that we refer to rule preconditions from left to right.
+We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. Note that we refer to rule preconditions from left to right.
 \begin{itemize}
   \item W1
 
@@ -2656,7 +2678,7 @@ Theorem 2: Progress. If $\EnvType{\Es}{\e}{\t}$ then $\s,\e \rightarrow \s',\e'$
 
 Theorem 3: Preservation. If $\s,\e \rightarrow \s',\e'$ and $\EnvType{\Es}{\e}{\t}$ then $\EnvType{\E~\s'}{\e'}{\t}$.
 
-For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
+For a list of classes $\bar{\c}$ such that $\b{\c ~~ WF}$ and an expression $e$ such that $\EnvnvType\cdot\e\t$ and $\b{\TransClass\c{\c'}}$, we have $\cdot~e \rightarrow^* \sigma~r$ (against $\b{\c'}$) where $r$ is either a value or $\err$.
 
 
 \begin{figure}
