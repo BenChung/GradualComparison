@@ -1028,34 +1028,41 @@ recovered in a later cast.
     \wrap\C{\b\mt}{\b\mtp}\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-\SPP \Mdefz\f\tp{~\BehCast\tp{\this.\Call\that\f{}}~}
-&    \All f \Mtype\f{}\t\in{\b\mt} &\wedge~ \Mtype\f{}\tp \in \mtp
+
+\SPP \Mdefz\f\tp{~\Call{(\BehCast\tp{\this.\that})}\f{}~}
+&    \All f \Mtype\f{}\t\in {\b\mt} &\wedge~ \Mtype\f{}\tp \in \b{\mtp}
 \\
-\SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\this.\Call\that\f{\BehCast\t\x}}~}
-&    \All f \Mtype\f\t\t \in {\b\mt} &\wedge~ \Mtype\f\tp\tp \in \mtp
+\SPP \Mdef\f\x\tp\tp {~\Call{(\BehCast\tp{\this.\that})}\f{\BehCast\t\x}~}
+&    \All f \Mtype\f\t\t \in {\b\mt} &\wedge~ \Mtype\f\tp\tp \in \b{\mtp}
 \\
-\SPP \Mdef\m\x{\t_2}{\tp_2} {~\BehCast{\tp_2}{\this.\Call\that\m{\BehCast{\t_1}\x}}~}
-&     \All m \Mtype\m{\t_1}{\tp_1} \in {\b\mt} &\wedge~ \Mtype\m{\t_2}{\tp_2} \in \mtp
+\SPP \Mdef\m\x{\t_2}{\tp_2} {~\Call{(\BehCast{\tp_2}{\this.\that})}\m{\BehCast\Cp\x}~}
+&     \All m \Mtype\m\Cp\Cpp\in{\b\mt} &\wedge~ \Mtype\m{\t_2}{\tp_2} \in\b{\mtp}
 \\
-\SPP \Mdefz\f\t { ~\this.\Call\that\f{}~}
-&    \All f \Mtype\f{}\t \in {\b\mt} &\wedge~ \Mtype\f{}\tp \not\in \mtp
+\SPP \Mdef\m\x{\t_2}{\tp_2} {~\DynCall{(\SubCast{\any}{\this.\that})}\m{\BehCast\any\x}~}
+&     \All m \Mtype\m{\any}{\any} \in {\b\mt} &\wedge~ \Mtype\m{\t_2}{\tp_2} \in \b{\mtp}
 \\
-\SPP \Mdef\f\x\t\t { ~\this.\Call\that\f\x~}
-&    \All f \Mtype\f\t\t \in {\b\mt} &\wedge~ \Mtype\f\tp\tp \not\in \mtp
+\SPP \Mdefz\f\t { ~\Call{\this.\that}\f{}~}
+&    \All f \Mtype\f{}\t \in {\b\mt} &\wedge~ \Mtype\f{}\tp \not\in \b{\mtp}
 \\
-\SPP \Mdef\m\x{\t_1}{\tp_1} {~\this.\Call\that\m\x~}
-&    \All m \Mtype\m{\t_1}{\tp_1} \in {\b\mt} &\wedge~ \Mtype\m{\t_2}{\tp_2} \not\in \mtp
+\SPP \Mdef\f\x\t\t { ~\Call{\this.\that}\f\x~}
+&    \All f \Mtype\f\t\t \in {\b\mt}&\wedge~ \Mtype\f\tp\tp \not\in \b{\mtp}
+\\
+\SPP \Mdef\m\x{\Cp}{\Cpp} {~\Call{\this.\that}\m\x~}
+&    \All m \Mtype\m{\Cp}{\Cpp} \in {\b\mt} &\wedge~ \Mtype\m{\t_2}{\tp_2} \not\in \b{\mtp}
+\\
+\SPP \Mdef\m\x\any\any {~\Call{(\SubCast\any{\this.\that})}\m\x~}
+&    \All m \Mtype\m\any\any\in{\b\mt} &\wedge~ \Mtype\m\t\tp\not\in\b{\mtp}
 \\
 \SP \}
 \\
 \wrap\C\mt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{\BehCast\any{\this.\Call\that\f{}}} \\
+\SPP   \Mdefz\f\any{\BehCast\any{\this.\Call\that\f{}}} 
 &  \All \m  \Mtype\f{}\t \in \mt\\
-\SPP   \Mdef\f\x\any\any{\BehCast\any{\this.\Call\that\f{\BehCast\t\x}}} \\
+\SPP   \Mdef\f\x\any\any{\BehCast\any{\this.\Call\that\f{\BehCast\t\x}}} 
 &  \All \f  \Mtype\m\t\t \in \mt\\
-\SPP   \Mdef\m\x\any\any{\BehCast\any{\this.\Call\that\m{\BehCast\t\x}}} \\
+\SPP   \Mdef\m\x\any\any{\BehCast\any{\this.\Call\that\m{\BehCast\t\x}}} 
 &  \All \m  \Mtype\m\t\tp \in \mt\\
 \SP \}\\
 \end{array}\]
