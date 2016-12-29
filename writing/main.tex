@@ -960,18 +960,31 @@ important part of how they interact with untyped parts of the program.
 
 A behavioral cast
 
-\begin{mathpar}
-\IRule{}{
+\begin{figure}[!ht]
+{  \small
+  \begin{mathpar}
+\IRule{BC1}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \k = \wrap\C{\classoff\C\K}{\classoff\t\K}\D\\
+  \fresh\D \\\\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
-  \behcast\a\t\s\K {\k\,\K}\ap\sp
+  \behcast\a\Cp\s\K {\k\,\K}\ap\sp
 }
-\end{mathpar}
 
+\IRule{BC2}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \fresh\D \\\\
+  \k = \wrap\C{\classoff\C\K}\D\\\\
+  \fresh\ap \\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+}{
+  \behcast\a\any\s\K {\k\,\K}\ap\sp
+}
+\end{mathpar}}
+\caption{Behavior generative casts.}\label{behave}
+\end{figure}
 
 At its core, the wrap function protects types. If a function on an object
 has a declared argument type, then the wrap function will produce a wrapper
@@ -1012,16 +1025,11 @@ will have to retain all untyped methods when casting untyped to typed, and
 typed methods if a typed cast does not mention them, so that they may be
 recovered in a later cast.
 
-\hrulefill
 
-
-\begin{align*}
-\xt{n} &::= \m \B \f
-\end{align*}
 
 \begin{figure}[!ht]
-\includegraphics[width=.9\textwidth]{figures/wrapDefinition}
-\caption{Behavioral cast wrapper class generation.}\label{wrap}
+  \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
+  \caption{Behavioral cast wrapper class generation.}\label{wrap}
 \end{figure}
 
 \newcommand{\All}[1]{\EM{\forall ~\xt #1~&.&~}}
@@ -1292,39 +1300,56 @@ for them according to the new wrapper \C.
 
 \newcommand{\tfa}{\EM{\forall f~.~}}
 
-\begin{tabbing}
-$\classgen{\C,$\=$ ~\b\mt,$\=$ ~\D,\K}= $\\
-\>$\xt{class}~\D$\=$~\{$\=\\
-\>\>$\that : \C$ \\
-\\
-\>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{\Call{\Get{\this}{\that}}\m{{\MonCast{\t_1}{\MonCast{\t_2}\x}}}}}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b\mt \wedge \t_1 \neq \any$\\
-\\
-\>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{(\MonCast{\any}{\Get\this\that})@\m({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b\mt \wedge \t_1 = \any$\\
-\\
-\>\>$\Mdefa\f{{\HT\x\any}}\any {\MonCast\any{\MonCast{\tp_2}{\Set{\Get{\this}{\that}}\f{{\MonCast{\t_1}{\MonCast{\t_2}\x}}}}}}$\\
-\>\>\>$\tfa \Mtype\f{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\f{{\t_2}}{\tp_2} \in \b\mt$\\
-\\
-\>\>$\Mdefa\f{}\any {\MonCast{\any}{\MonCast{\tp_2}{\Get{\Get{\this}{\that}}\f}}}$\\
-\>\>\>$\tfa \Mtype\f{}{\tp_1} \in \classoff\C\K \wedge \Mtype\f{}{\tp_2} \in \b\mt$\\
-\\
-\>\>$\Mdefa\n{\b{\HT\x\any}}\any { {\Call{\Get{\this}{\that}}\n{\b{\MonCast\any{\MonCast{\t_1}\x}}}}}$\\
-\>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b\mt \wedge (\n = \f \vee \t_1 \neq \any)$\\
-\\
-\>\>$\Mdefa\m{\b{\HT\x\any}}\any { {(\MonCast{\any}{\Get\this\that})@\m(\b{\MonCast\any{\MonCast{\t_1}\x}})}}$\\
-\>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \not\in \b\mt \wedge \t_1 = \any$\\
-\\
-\>\>$\Mdefa\m{{\HT\x{\t_2}}}{\tp_2} { \MonCast{\tp_2}{\Call{\Get{\this}{\that}}\m{{\MonCast{\t_1}\x}}}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} ~$\=$\wedge~ \statictype{\t_2}\K\cdot $\\
-\>\>\>\>$\wedge~ \statictype{\tp_2}\K\cdot$
-\\
-\>\>$\Mdefa\m{{\HT\x{\t_1}}}{\tp_1} { {\Call{\Get{\this}{\that}}\m\x}}$\\
-\>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mt} ~$\=$\wedge~ \statictype{\t_1}\K\cdot $\\
-\>\>\>\>$\wedge~ \statictype{\tp_1}\K\cdot$\\
-\>$\}$
-\end{tabbing}
-
+\[\begin{array}{l@{\,}l@{\,}l@{\,}l@{\,}lll}
+\classgen{\C, \bmt, \bmtp, \D,\K}= \\
+\SP \class~\D~\{ \\
+\SPP \Fdef\that\C
+\\[1mm]
+\SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}}
+&
+\All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+\\[1mm]
+\SPP \Mdef\m\x\any\any{
+  \SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} 
+&
+\All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+\\[1mm]
+\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
+      \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
+&
+\All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
+\\[1mm]
+\SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
+&
+ \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+\\[1mm]
+\SPP \Mdefz\f\any{\Get{\Get\this\that}\f}
+&
+ \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
+\\[1mm]
+\SPP \Mdef\f\x\any\any {\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}
+& \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
+\\[1mm]
+\SPP \Mdef\m\x\any\any { {\Call{\Get\this\that}\m{\SubCast\any\x}}}
+&
+\All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
+\\[1mm]
+\SPP \Mdef\m\x\any\any{ \DynCall{(\SubCast\any{\Get\this\that})}\m{\SubCast\any\x}}
+&
+\All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
+\\[1mm]
+\SPP \Mdef\m\x{\t_2}{\tp_2} { \MonCast{\tp_2}{\Call{\Get\this\that}\m{{\MonCast{\t_1}\x}}}}
+&
+ \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \in\bmtp \\
+ &&\wedge& \statictype{\t_2}\K\cdot &\wedge& \statictype{\tp_2}\K\cdot
+ \\[1mm]
+\SPP \Mdef\m\x{\t_1}{\tp_1} { {\Call{\Get\this\that}\m\x}}
+&
+ \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \not\in \bmtp \\
+&&  \wedge& \statictype{\t_1}\K\cdot &\wedge& \statictype{\tp_1}\K\cdot\\
+\}
+\end{array}
+\]
 
 
 \section{Translations}
