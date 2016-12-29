@@ -2151,8 +2151,21 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 
 %%class wA {
 %%  that : A
-%%   
+%%  m(x:*):* { this.that().m(x) }
 %%}
+%%a = new wA(new A())
+%%(<*>a)@(<*>new wA(new A()))
+%%class AmB {
+%%  m(x:B):B{ ... }
+%%}
+%%class AwAmB {
+%%  that : A
+%%  m(x:*):* { <|*|><|B|>(<|*|>this.that())@m(<|*|><|B|>x) }
+%%  m(x:B):B { <|B|>(<|*|>this.that())@m(<|*|>x)}  
+%%}
+%% b = <|B|> a -- b and a instance of AwAmB
+%% b.m(new B()) -- works
+%% a.m(new A()) -- fails
 
 %% class A {
 %%   fa : B
