@@ -2,8 +2,10 @@
 
 \usepackage{xspace,listings,url,framed,amssymb,
             amsmath,tex/mathpartir,hyperref,
-            stmaryrd, graphicx, tikz % double brackets llbracket
+            stmaryrd, graphicx, tikz, colortbl % double brackets llbracket
 }
+\usepackage[customcolors,norndcorners]{hf-tikz}
+
 
 
 \input{macros}
@@ -1093,7 +1095,10 @@ cast from \C to \D, results in the generation of class \EMxt{CtoD}. The
 wrapper class is a subtype of \D but it also has method \mp only found in
 class \C.  The cast from \EMxt{CtoD} back to \C leads to the generation of
 wrapper class \EMxt{CtoDtoC}. The latter is a subtype of \C and has a rather
-interesting method \m. ...
+interesting method \m which is dynamic and thus must be invoked dynamically.
+The receiver is cast to \any using a subtype cast. The argument on the other
+hand is converted to dynamic with a behavioral cast. The return value is
+converted to the expected return type with another behavioral cast.
 
 
 %%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1134,7 +1139,7 @@ interesting method \m. ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\subsubsection{Monotone Generative Casts}
+\subsubsection{Monotone Casts}
 
 
 The monotone cast \MonCast\C\a imposes the type denoted by \C on the object
@@ -1212,6 +1217,8 @@ The retype function \retype{\b\a}{\b\t}\S\s\K, take a list of object
 addresses \b\a and a list of types to ascribe to them \b\t, and updates the
 heap \s and class table \K.
 
+
+
 \begin{mathpar}
 \IRule{CRM1}{
   \htype \a\S\s = \C\\
@@ -1288,6 +1295,26 @@ getter or setter method for that field. This is enforced by the
 
 \hrulefill
 
+
+\newcommand{\gettype}[2]{\xt{getType}(#1,#2)} % gettype(C,K)
+\newcommand{\getmt}[1]{\xt{getMt}(#1)} % getMt(md)
+\begin{mathpar}
+\IRule{GTT}{ \Class\C{\hspace{-0.3em}}{\b\md} \in \K \\ \b{\getmt\md\K = \mt}}{\gettype{\C}{\K} = \b\mt}
+
+% \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t
+\IRule{GMTU}{ }{\getmt{\Mdef\m\x\any\any\e}{\K} = \Mtype\m\any\any}
+
+\IRule{GMT}{ }{\getmt{\Mdef\m\x{\C}{\Cp}\e} = \Mtype\m\C\Cp}
+
+\IRule{GFST}{ }{\getmt{\Mdef\f\x\any\any{\SubCast\any{\MonCast\t{
+      \Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}}} = \Mtype\f\t\t}
+
+\IRule{GFGT}{ }{\getmt{\Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}} = \Mtype\f{}\t}
+\end{mathpar}
+
+TODO: Htype defn using gettype
+
 \opdef{
   $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
 }{
@@ -1336,59 +1363,60 @@ The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
 
 \begin{figure}[!ht]
-
-\IGNOREUNLESSNEEDED{
+\footnotesize
+%\IGNOREUNLESSNEEDED{
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
 \classgen{\C, \bmt, \bmtp, \D,\K}= \\
-\SP \class~\D~\{ \\
+\SP \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.8,-0.8)(0,0.25) \class~\D~\{ \\
 \SPP \Fdef\that\C
 \\[1mm]
-\SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}}
+\SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}} 
 &
 \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x\any\any{
   \SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} 
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
       \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
 &
 \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\[1mm]
-\SPP \Mdefz\f\any{\SubCast\any{\Get{\Get\this\that}\f}}
+\\[1mm]\hline
+\SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
-\\[1mm]
-\SPP \Mdef\f\x\any\any {\SubCast\any{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}
+\\[1mm]\hline
+\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\t{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}}
 & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x\any\any{ \DynCall{(\SubCast\any{\Get\this\that})}\m{\SubCast\any\x}}
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x{\t_2}{\tp_2} { \MonCast{\tp_2}{\Call{\Get\this\that}\m{{\MonCast{\t_1}\x}}}}
 &
  \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \in\bmtp \\
- &&\wedge& \statictype{\t_2}\K\cdot &\wedge& \statictype{\tp_2}\K\cdot
- \\[1mm]
-\SPP \Mdef\m\x{\t_1}{\tp_1} { {\Call{\Get\this\that}\m\x}}
+ && &\wedge ~ \t_1 \neq \any
+ \\[1mm]\hline
+\SPP \Mdef\m\x{\t_1}{\tp_1} { {\Call{\Get\this\that}\m\x}} \tikzmarkend{a}
 &
  \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \not\in \bmtp \\
-&&  \wedge& \statictype{\t_1}\K\cdot &\wedge& \statictype{\tp_1}\K\cdot\\
-\}
+&&  &\wedge ~ \t_1 \neq \any \\
+\SP\}
 \end{array}
 \]
-}
+%}
 \includegraphics[width=1\textwidth]{figures/classgenDefinition}
 \caption{Class generation.}\label{classgen}
 \end{figure}
