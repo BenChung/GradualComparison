@@ -1290,29 +1290,29 @@ $\classgen{\C,$\=$ ~\b\mt,$\=$ ~\D,\K}= $\\
 \>$\xt{class}~\D$\=$~\{$\=\\
 \>\>$\that : \C$ \\
 \\
-\>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{\this.\that.\m({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
+\>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{\Call{\Get{\this}{\that}}\m{{\MonCast{\t_1}{\MonCast{\t_2}\x}}}}}}$\\
 \>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b\mt \wedge \t_1 \neq \any$\\
 \\
-\>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{(\MonCast{\any}{\this.\that})@\m({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
+\>\>$\Mdefa\m{{\HT\x\any}}\any { \MonCast\any{\MonCast{\tp_2}{(\MonCast{\any}{\Get\this\that})@\m({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
 \>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b\mt \wedge \t_1 = \any$\\
 \\
-\>\>$\Mdefa\f{{\HT\x\any}}\any {\MonCast\any{\MonCast{\tp_2}{\this.\that.\f({\MonCast{\t_1}{\MonCast{\t_2}\x}})}}}$\\
+\>\>$\Mdefa\f{{\HT\x\any}}\any {\MonCast\any{\MonCast{\tp_2}{\Set{\Get{\this}{\that}}\f{{\MonCast{\t_1}{\MonCast{\t_2}\x}}}}}}$\\
 \>\>\>$\tfa \Mtype\f{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\f{{\t_2}}{\tp_2} \in \b\mt$\\
 \\
-\>\>$\Mdefa\f{}\any {\MonCast{\any}{\MonCast{\tp_2}{\this.\that.\f()}}}$\\
+\>\>$\Mdefa\f{}\any {\MonCast{\any}{\MonCast{\tp_2}{\Get{\Get{\this}{\that}}\f}}}$\\
 \>\>\>$\tfa \Mtype\f{}{\tp_1} \in \classoff\C\K \wedge \Mtype\f{}{\tp_2} \in \b\mt$\\
 \\
-\>\>$\Mdefa\n{\b{\HT\x\any}}\any { {\this.\that.\n(\b{\MonCast\any{\MonCast{\t_1}\x}})}}$\\
+\>\>$\Mdefa\n{\b{\HT\x\any}}\any { {\Call{\Get{\this}{\that}}\n{\b{\MonCast\any{\MonCast{\t_1}\x}}}}}$\\
 \>\>\>$\tfa \Mtype\n{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b\mt \wedge (\n = \f \vee \t_1 \neq \any)$\\
 \\
-\>\>$\Mdefa\m{\b{\HT\x\any}}\any { {(\MonCast{\any}{\this.\that})@\m(\b{\MonCast\any{\MonCast{\t_1}\x}})}}$\\
+\>\>$\Mdefa\m{\b{\HT\x\any}}\any { {(\MonCast{\any}{\Get\this\that})@\m(\b{\MonCast\any{\MonCast{\t_1}\x}})}}$\\
 \>\>\>$\tfa \Mtype\m{\b{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{\b{\t_2}}{\tp_2} \not\in \b\mt \wedge \t_1 = \any$\\
 \\
-\>\>$\Mdefa\m{{\HT\x{\t_2}}}{\tp_2} { \MonCast{\tp_2}{\this.\that.\m({\MonCast{\t_1}\x})}}$\\
+\>\>$\Mdefa\m{{\HT\x{\t_2}}}{\tp_2} { \MonCast{\tp_2}{\Call{\Get{\this}{\that}}\m{{\MonCast{\t_1}\x}}}}$\\
 \>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \in \b{\mt} ~$\=$\wedge~ \statictype{\t_2}\K\cdot $\\
 \>\>\>\>$\wedge~ \statictype{\tp_2}\K\cdot$
 \\
-\>\>$\Mdefa\m{{\HT\x{\t_1}}}{\tp_1} { {\this.\that.\m(\x)}}$\\
+\>\>$\Mdefa\m{{\HT\x{\t_1}}}{\tp_1} { {\Call{\Get{\this}{\that}}\m\x}}$\\
 \>\>\>$\tfa \Mtype\m{{\t_1}}{\tp_1} \in \classoff\C\K \wedge \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mt} ~$\=$\wedge~ \statictype{\t_1}\K\cdot $\\
 \>\>\>\>$\wedge~ \statictype{\tp_1}\K\cdot$\\
 \>$\}$
@@ -1751,7 +1751,7 @@ a class table \K.   The set of subtypings can be omitted if empty.
 \IRule{SRec}{
  \Class\D{\b\fd}{\b\md}\in\K\\
  \M' = \M~\C\Sub\D\\
- \fd\in\b\fd \implies \StrSub{\M'}\K \C \fd\\
+ \f:\t \in\b\fd \wedge \f \neq \that \implies \StrSub{\M'}\K \C \f:\t\\
  \md\in\b\md \implies \StrSub{\M'}\K \C \md\\
 }{
  \StrSub \M\K \C \D 
@@ -2127,6 +2127,25 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 \section{Monotonic figure scratch}
 
 %% Example -- please check
+
+%%class A {
+%%  m(x:*):* { x }  
+%%}
+%% a = new A()
+%% a.m(new A()) -- works fine
+%%class B {
+%%  m(x:B):B { x }  
+%%}
+%% b = <|B|> a
+%% b.m(new B()) -- works
+%% a.m(new A()) -- fails
+
+% translated version
+
+%%class wA {
+%%  that : A
+%%   
+%%}
 
 %% class A {
 %%   fa : B
