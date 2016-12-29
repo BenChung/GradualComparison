@@ -1032,7 +1032,7 @@ recovered in a later cast.
   \caption{Behavioral cast wrapper class generation.}\label{wrap}
 \end{figure}
 
-\newcommand{\All}[1]{\EM{\forall ~\xt #1~&.&~}}
+\newcommand{\All}[1]{\EM{\forall ~\xt #1 &.&}}
 
 \newcommand{\SP}{\hspace{.5cm}}
 \newcommand{\SPP}{\SP\SP}
@@ -1214,7 +1214,7 @@ have been retyped.
   \D = \App\S\a \\
   \obj\C{\ap} = \App\s\a \\
   \obj\Cp{\b\app} = \App\s\ap \\
-  \Kp = \K~\classgen{\Cp,\classoff\D\K,\EMxt E,\K} \\
+  \Kp = \K~\classgen{\Cp,\classoff\Cp\K,\classoff\D\K,\EMxt E,\K} \\
   \sp = \Map\s{\Bind\a{{\EMxt E}\{\ap\}}}
 }{
   \spec \a\S\s\K = \sp~\Kp
@@ -1272,7 +1272,7 @@ getter or setter method for that field. This is enforced by the
   \mtypes\C\K = {\b\mt}\\
   \mtypes\D\K = {\b\mtp}\\
   \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
-  \Kpp = \Kp~\classgen{\C,\b\mtpp,\EC,\Kp}\\
+  \Kpp = \Kp~\classgen{\C,\classoff\C\K,\b\mtpp,\EC,\Kp}\\
 }{
     \tmeet\C\D\P\K = \EC\,\Kpp
 }
@@ -1298,9 +1298,8 @@ method.
 The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
 
-\newcommand{\tfa}{\EM{\forall f~.~}}
 
-\[\begin{array}{l@{\,}l@{\,}l@{\,}l@{\,}lll}
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \classgen{\C, \bmt, \bmtp, \D,\K}= \\
 \SP \class~\D~\{ \\
 \SPP \Fdef\that\C
@@ -1729,7 +1728,7 @@ At the surface language level, the Monotonic semantics are very similar to that 
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \D~\text{fresh} \\
-  \D = \classgen{\C,\classoff\C\K,\D,\K} \\
+  \D = \classgen{\C,\classoff\C\K,\classoff\C\K,\D,\K} \\
   }{\GenCast{\K}{\E}{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
 
