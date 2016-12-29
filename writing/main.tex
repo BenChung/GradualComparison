@@ -940,11 +940,16 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \caption{\name Semantics.}
 \end{figure}
 
+
+\newpage
+
 \subsection{Structural Casts}
 
 \name offers two kinds of structural casts. One which performs a structural
 subtype check and one that only check for the persence of methods with given
 names.
+
+\newpage
 
 
 
@@ -956,24 +961,38 @@ at. The approaches that we will be comparing have different definitions of
 casting, and their varying approach to runtime type assertions forms an
 important part of how they interact with untyped parts of the program.
 
-\subsubsection{Behavioral Generative Casts}
+\subsubsection{Behavioral Casts}
 
-A behavioral cast \BehCast\t\a will return a reference \ap that behaves as
-it was refering to an object of type \t. Behavioral casts are generative as
-they will create a new wrapper class that ensures that the target object
-abides by the interface of \t.
+A behavioral cast \BehCast\t\a will return a fresh \ap that refers to an
+object that behaves as if it was of type \t. In case, the underlying object
+departs from that expected behavior, the computation will get
+stuck. Behavioral casts are generative as they create a new wrapper class
+which monitors the target object for conformance to the interface of \t.
+\figref{behave} details the semantics of this cast. \ruleref{BC1} is the
+cast where an object \obj\C{\b\a} is cast to a class \Cp. This leads to the
+creation of a wrapper class \k (under a new name \D). The class is appended
+to the class table \K.  The cast returns a reference \ap to an instance of
+this wrapper class pointing to the original object. The wrapper class is a
+structural subtype of the target class, so \D\Sub\C holds. \ruleref{BC2}
+handles the case where the target type of the cast is \any.
+
 
 \begin{figure}[!ht]
+\hrulefill
+%%%%%%%%%%%%%%%%% BEHCAST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vspace{-2mm}
+
 {  \small
   \begin{mathpar}
 \IRule{BC1}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \App\s\a = \obj\C{\b\a}  \\
   \fresh\D \\\\
   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
-  \behcast\a\Cp\s\K {\k\,\K}\ap\sp
+  \behcast\a\Cp\s\K {\K\,\k}\ap\sp
 }
 
 \IRule{BC2}{
@@ -983,55 +1002,25 @@ abides by the interface of \t.
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
-  \behcast\a\any\s\K {\k\,\K}\ap\sp
+  \behcast\a\any\s\K {\K\,\k}\ap\sp
 }
 \end{mathpar}}
-\caption{Behavior generative casts.}\label{behave}
+
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hrulefill
+\caption{Behavioral casts.}\label{behave}
 \end{figure}
 
-At its core, the wrap function protects types. If a function on an object
-has a declared argument type, then the wrap function will produce a wrapper
-for that function that ensures that any argument passed in matches the
-declared type. Likewise, if we assert that an untyped function has a return
-type, then the generated wrapper guarantees that the returned value of the
-untyped function is of the asserted type by inserting a cast to the right
-type.
 
-In our context, wrappers are just generated classes, produced when the
-runtime system encounters a behavioral cast. These casts need to ensure two
-key properties, which we will refer to as \emph{soundness} and
-\emph{completeness}. In the context of casts, soundness refers to correct
-enforcement of types, whereby protected methods will not observably violate
-their type guarantees, while completeness ensures that a cast will not lose
-methods.
-
-This last requirement is somewhat unconventional, and its need is
-illustrated in a simple example.
-
-\begin{verbatim}
-class C {
-  m(x:int):int { ... }
-}
-class D {
-  m(x:*):* { ... }
-  f(x:*):* { ... }
-}
-(<D>(<C>new D()))@f(2)
-\end{verbatim}
-
-In this example, if we were to implement wrappers by wrapping over only the
-declared methods, despite D having a method f, it is "lost" when D is cast
-to C. As a result, when we cast it back from C to D, the wrapper added to
-ensure that C's invariants held does not have a method f, and our call will
-produce a method not understood exception. To avoid this issue, our wrappers
-will have to retain all untyped methods when casting untyped to typed, and
-typed methods if a typed cast does not mention them, so that they may be
-recovered in a later cast.
 
 
 
 \begin{figure}[!ht]
+\hrulefill 
 
+\vspace{4mm}
+%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \IGNOREUNLESSNEEDED{
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
     \wrap\C\bmt\bmtp\D = \\
@@ -1078,8 +1067,55 @@ recovered in a later cast.
 \end{array}\]
 }%%END IGNORE
   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
+
+\hrulefill
+%%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \caption{Behavioral cast wrapper class generation.}\label{wrap}
 \end{figure}
+
+
+The wrapper classes constructed during the cast mediate on the values passed
+to methods of the target, and provide methods that can be accessed either
+from the typed side or the untyped side.
+
+At its core, the wrap function protects types. If a function on an object
+has a declared argument type, then the wrap function will produce a wrapper
+for that function that ensures that any argument passed in matches the
+declared type. Likewise, if we assert that an untyped function has a return
+type, then the generated wrapper guarantees that the returned value of the
+untyped function is of the asserted type by inserting a cast to the right
+type.
+
+In our context, wrappers are just generated classes, produced when the
+runtime system encounters a behavioral cast. These casts need to ensure two
+key properties, which we will refer to as \emph{soundness} and
+\emph{completeness}. In the context of casts, soundness refers to correct
+enforcement of types, whereby protected methods will not observably violate
+their type guarantees, while completeness ensures that a cast will not lose
+methods.
+
+This last requirement is somewhat unconventional, and its need is
+illustrated in a simple example.
+
+\begin{verbatim}
+class C {
+  m(x:int):int { ... }
+}
+class D {
+  m(x:*):* { ... }
+  f(x:*):* { ... }
+}
+(<D>(<C>new D()))@f(2)
+\end{verbatim}
+
+In this example, if we were to implement wrappers by wrapping over only the
+declared methods, despite D having a method f, it is "lost" when D is cast
+to C. As a result, when we cast it back from C to D, the wrapper added to
+ensure that C's invariants held does not have a method f, and our call will
+produce a method not understood exception. To avoid this issue, our wrappers
+will have to retain all untyped methods when casting untyped to typed, and
+typed methods if a typed cast does not mention them, so that they may be
+recovered in a later cast.
 
 wrap is more complex than TODO, because different wrappers are needed,
 depending on if the target type is a concrete type \C, or is the dynamic
