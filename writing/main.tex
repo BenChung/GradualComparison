@@ -1298,7 +1298,9 @@ method.
 The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
 
+\begin{figure}[!ht]
 
+\IGNOREUNLESSNEEDED{
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \classgen{\C, \bmt, \bmtp, \D,\K}= \\
 \SP \class~\D~\{ \\
@@ -1322,14 +1324,14 @@ for them according to the new wrapper \C.
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\[1mm]
-\SPP \Mdefz\f\any{\Get{\Get\this\that}\f}
+\SPP \Mdefz\f\any{\SubCast\any{\Get{\Get\this\that}\f}}
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
 \\[1mm]
-\SPP \Mdef\f\x\any\any {\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}
+\SPP \Mdef\f\x\any\any {\SubCast\any{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}
 & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
 \\[1mm]
-\SPP \Mdef\m\x\any\any { {\Call{\Get\this\that}\m{\SubCast\any\x}}}
+\SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
 \\[1mm]
@@ -1349,7 +1351,10 @@ for them according to the new wrapper \C.
 \}
 \end{array}
 \]
-
+}
+\includegraphics[width=1\textwidth]{figures/classgenDefinition}
+\caption{Class generation.}\label{classgen}
+\end{figure}
 
 \section{Translations}
 
