@@ -1093,7 +1093,10 @@ cast from \C to \D, results in the generation of class \EMxt{CtoD}. The
 wrapper class is a subtype of \D but it also has method \mp only found in
 class \C.  The cast from \EMxt{CtoD} back to \C leads to the generation of
 wrapper class \EMxt{CtoDtoC}. The latter is a subtype of \C and has a rather
-interesting method \m. ...
+interesting method \m which is dynamic and thus must be invoked dynamically.
+The receiver is cast to \any using a subtype cast. The argument on the other
+hand is converted to dynamic with a behavioral cast. The return value is
+converted to the expected return type with another behavioral cast.
 
 
 %%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1134,7 +1137,7 @@ interesting method \m. ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\subsubsection{Monotone Generative Casts}
+\subsubsection{Monotone Casts}
 
 
 The monotone cast \MonCast\C\a imposes the type denoted by \C on the object
