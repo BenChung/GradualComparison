@@ -2,7 +2,7 @@
 
 \usepackage{xspace,listings,url,framed,amssymb,
             amsmath,tex/mathpartir,hyperref,
-            stmaryrd, graphicx, tikz % double brackets llbracket
+            stmaryrd, graphicx, tikz, colortbl % double brackets llbracket
 }
 \usepackage[customcolors,norndcorners]{hf-tikz}
 
@@ -1344,48 +1344,49 @@ for them according to the new wrapper \C.
 \footnotesize
 %\IGNOREUNLESSNEEDED{
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
 \classgen{\C, \bmt, \bmtp, \D,\K}= \\
-\SP \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.8,-0.8)(-0.2,0.25) \class~\D~\{ \\
+\SP \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.8,-0.8)(0,0.25) \class~\D~\{ \\
 \SPP \Fdef\that\C
 \\[1mm]
 \SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}} 
 &
 \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x\any\any{
   \SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} 
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
       \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
 &
 \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\f\x\any\any {\SubCast\any{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}
 & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x\any\any{ \DynCall{(\SubCast\any{\Get\this\that})}\m{\SubCast\any\x}}
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
-\\[1mm]
+\\[1mm]\hline
 \SPP \Mdef\m\x{\t_2}{\tp_2} { \MonCast{\tp_2}{\Call{\Get\this\that}\m{{\MonCast{\t_1}\x}}}}
 &
  \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \in\bmtp \\
  && &\wedge ~ \t_1 \neq \any
- \\[1mm]
+ \\[1mm]\hline
 \SPP \Mdef\m\x{\t_1}{\tp_1} { {\Call{\Get\this\that}\m\x}} \tikzmarkend{a}
 &
  \All m \Mtype\m{\t_1}{\tp_1} \in\bmt &\wedge& \Mtype\m{\t_2}{\tp_2} \not\in \bmtp \\
