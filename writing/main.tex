@@ -958,7 +958,10 @@ important part of how they interact with untyped parts of the program.
 
 \subsubsection{Behavioral Generative Casts}
 
-A behavioral cast
+A behavioral cast \BehCast\t\a will return a reference \ap that behaves as
+it was refering to an object of type \t. Behavioral casts are generative as
+they will create a new wrapper class that ensures that the target object
+abides by the interface of \t.
 
 \begin{figure}[!ht]
 {  \small
@@ -1028,18 +1031,7 @@ recovered in a later cast.
 
 
 \begin{figure}[!ht]
-  \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
-  \caption{Behavioral cast wrapper class generation.}\label{wrap}
-\end{figure}
 
-\newcommand{\All}[1]{\EM{\forall ~\xt #1 &.&}}
-
-\newcommand{\SP}{\hspace{.5cm}}
-\newcommand{\SPP}{\SP\SP}
-\newcommand{\bmt}{\b{\mt}}
-\newcommand{\bmtp}{\b{\mtp}}
-
-\newcommand{\IGNOREUNLESSNEEDED}[1]{}
 \IGNOREUNLESSNEEDED{
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
     \wrap\C\bmt\bmtp\D = \\
@@ -1085,6 +1077,9 @@ recovered in a later cast.
 \SP \}\\
 \end{array}\]
 }%%END IGNORE
+  \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
+  \caption{Behavioral cast wrapper class generation.}\label{wrap}
+\end{figure}
 
 wrap is more complex than TODO, because different wrappers are needed,
 depending on if the target type is a concrete type \C, or is the dynamic
