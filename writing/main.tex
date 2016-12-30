@@ -1221,7 +1221,7 @@ heap \s and class table \K.
 
 \begin{mathpar}
 \IRule{CRM1}{
-  \enfortype{\htype \a\S\s}{\K} = \C~\Kp\\
+  \unwrap{\htype \a\S\s}{\K} = \C~\Kp\\
   \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
   \C\not\EQ\D  \\
   \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
@@ -1231,15 +1231,15 @@ heap \s and class table \K.
   \retype \a\t\S\s\K = \Spp\,\K'''
 }
 
-\IRule{CMR2}{
-  \htype \a\S\s = \tp\\
-  \tmeet\tp\t\cdot\K = \tpp\,\Kp \\
+\IRule{CRM2}{
+  \unwrap{\htype \a\S\s}{\K} = \tp\,\Kp\\
+  \tmeet\tp\t\cdot\Kp = \tpp\,\Kpp \\
   \tp\EQ\tpp \\
 }{
-  \retype \a\t\S\s\K = \S~\K
+  \retype \a\t\S\s\K = \S~\Kpp
 }
 
-\IRule{CMR3}{
+\IRule{CRM3}{
   \retype\a\t\S\s\K = \Sp\,\Kp\\
   \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
 }{
@@ -1258,10 +1258,8 @@ have been retyped.
   \D = \App\S\a \\
   \obj\C{\ap} = \App\s\a \\
   \obj\Cp{\b\app} = \App\s\ap \\
-  \enfortype{\Cp}{\K} = \Cpp\,\Kp \\
-  \enfortype{\D}{\Kp} = \Dp\,\Kpp \\
-  \classoff\Cp\Kpp = \b\mt \\
-  \classoff\D\Kpp = \b\mtp \\  
+  \classoff\C\K = \b\mt \\
+  \classoff\D\K = \b\mtp \\  
   \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
   \sp = \Map\s{\Bind\a{\E\{\ap\}}}
 }{
@@ -2162,15 +2160,31 @@ types $\b\mtpp$ and a class table $\Kp$.
 \\
 
 \hrulefill
-
+\begin{align*}
+\W &::= \cdot \B \Map\W{\Bind\C\D}
+\end{align*}
 \begin{mathpar}
-\IRule{ENT}{ 
-  \Class\C{\hspace{-0.3em}}{\Fdef\that\Cp ~ \b\md} \in \K \\ 
-  \D\text{ fresh} \\
-  \Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}} \\ 
-  \Kp = \K\,\D
+\IRule{UWRP}{ 
+  \enfortype{\C}{\cdot}{\K} = \Cp\,\W\,\Kp
 }{
-  \enfortype{\C}{\K} = \D\,\Kp
+  \unwrap{\C}{\K} = \Cp\,\Kp
+}
+
+\IRule{ENT1}{ 
+  \Class\C{\hspace{-0.3em}}{\Fdef\that\Cp ~ \b\md} \in \K \\ 
+  \C \notin \text{dom}(\W) \\
+  \D\text{ fresh} \\
+  \Kp = \K\,\D \\
+  \Wp = \W\,\Bind\C\D \\
+  \Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}{\Wp}{\Kp} } \\ 
+}{
+  \enfortype{\C}{\W}{\K} = \D\,\Wp\,\Kp
+}
+
+\IRule{ENT2}{ 
+  \W(\C) = \D \\
+}{
+  \enfortype{\C}{\W}{\K} = \D\,\Wp\,\K
 }
 \end{mathpar}
 \\
@@ -2179,48 +2193,57 @@ types $\b\mtpp$ and a class table $\Kp$.
 
 \begin{mathpar}
 \IRule{ENMT1}{
-  \md = \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\t\x}}}} \\ 
-  \mdpp = \Mdef\m\x\t\tp {\MonCast\tp\x} \\
-  \enformt{\b\md} = \b\mdpp \\
+  \md = \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\t\x}}}} \\
+  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
+  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\
+  \mdpp = \Mdef\m\x\tpp\tppp {\MonCast\tppp\x} \\
+  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mdpp \\
 }{
-  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mdpp
 }
 
 \IRule{ENMT2}{
   \md = \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}}\\ 
-  \mdpp =\Mdef\m\x\t\tp {\MonCast\tp\x}\\
-  \enformt{\b\md} = \b\mdpp \\
+  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
+  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\  
+  \mdpp =\Mdef\m\x\tpp\tppp {\MonCast\tppp\x}\\
+  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mdpp \\
 }{
-  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mdpp
 }
 
 \IRule{ENDT}{
   \md = \Mdef\m\x\any\any{\SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} \\ 
-  \mdpp =\Mdef\m\x\t\tp {\MonCast\tp\x}\\
-  \enformt{\b\md} = \b\mdpp \\
+  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
+  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\   
+  \mdpp =\Mdef\m\x\tpp\tppp {\MonCast\tppp\x}\\
+  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mdpp \\
 }{
-  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mdpp
 }
 
 \IRule{ENFS}{
   \md = \Mdef\f\x\any\any{\SubCast\any{\MonCast\t{\Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}} \\ 
-  \mdpp = \Mdef\f\x\t\tp {\MonCast\tp\x} \\
-  \enformt{\b\md} = \b\mdpp \\
+  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
+  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\   
+  \mdpp = \Mdef\f\x\tpp\tppp {\MonCast\tppp\x} \\
+  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mdpp \\
 }{
-  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mdpp
 }
 
 \IRule{ENFG}{
   \md = \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}} \\ 
-  \mdpp = \Mdefz\f\t {\MonCast\t{\Get{\Get\this\that}\f}} \\
-  \enformt{\b\md} = \b\mdpp \\
+  \enfortype\t\W\K = \tp\,\Wp\,\Kp \\
+  \mdpp = \Mdefz\f\tp {\MonCast\tp{\Get{\Get\this\that}\f}} \\
+  \enformt{\b\md}{\Wp}{\Kp} = \b\mdpp \\
 }{
-  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mdpp
 }
 
 \IRule{ENE}{
 }{
-  \enformt{\cdot} = \cdot
+  \enformt{\cdot}{\W}{\K} = \cdot
 }
 
 % \IRule{GMTU}{
