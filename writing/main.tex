@@ -1189,8 +1189,8 @@ than just the ones that inherit this particular type assertion.
 
 
 Meta-variable \S denotes a map from addresses to classes, thus
-\Map\S{\Bind\a\C} gives type \C to address \a. The function \htype\a\S\s
-returns the class of the object at address \a.  \htype\a\S\s is \C if \C =
+\Map\S{\Bind\a\C} gives type \C to address \a. The function \htype\a\S\s\K
+returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
 \App\S\a or if $\a\not\in\S$ and \obj\C{\b\a}=\App\s\a.
 
 
@@ -1221,7 +1221,8 @@ heap \s and class table \K.
 
 \begin{mathpar}
 \IRule{CRM1}{
-  \unwrap{\htype \a\S\s}{\K} = \C~\Kp\\
+%   \unwrap{\htype \a\S\s}{\K} = \C~\Kp\\
+  \htype \a\S\s\K = \C~\Kp\\
   \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
   \C\not\EQ\D  \\
   \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
@@ -1232,8 +1233,10 @@ heap \s and class table \K.
 }
 
 \IRule{CRM2}{
-  \unwrap{\htype \a\S\s}{\K} = \tp\,\Kp\\
-  \tmeet\tp\t\cdot\Kp = \tpp\,\Kpp \\
+%   \unwrap{\htype \a\S\s}{\K} = \tp\,\Kp\\
+%   \tmeet\tp\t\cdot\Kp = \tpp\,\Kpp \\
+  \htype \a\S\s\K = \tp\,\Kp\\
+  \tmeet\tp\t\cdot\Kp = \tpp\,\Kp \\
   \tp\EQ\tpp \\
 }{
   \retype \a\t\S\s\K = \S~\Kpp
@@ -1258,8 +1261,8 @@ have been retyped.
   \D = \App\S\a \\
   \obj\C{\ap} = \App\s\a \\
   \obj\Cp{\b\app} = \App\s\ap \\
-  \classoff\C\K = \b\mt \\
-  \classoff\D\K = \b\mtp \\  
+  \classoff\Cp\Kpp = \b\mt \\
+  \classoff\D\Kpp = \b\mtp \\  
   \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
   \sp = \Map\s{\Bind\a{\E\{\ap\}}}
 }{
@@ -1318,7 +1321,7 @@ getter or setter method for that field. This is enforced by the
   \mtypes\C\K = {\b\mt}\\
   \mtypes\D\K = {\b\mtp}\\
   \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
-  \Kpp = \Kp~\classgen{\C,\classoff\C\K,\b\mtpp,\E,\Kp}\\
+  \Kpp = \Kp~\typegen{\b\mtpp}\E\\
 }{
     \tmeet\C\D\P\K = \E\,\Kpp
 }
@@ -1396,9 +1399,34 @@ for them according to the new wrapper \C.
 \SP\}
 \end{array}
 \]
-%}
+%} 
 %\includegraphics[width=1\textwidth]{figures/classgenDefinition}
 \caption{Class generation.}\label{classgen}
+\end{figure}
+
+\begin{figure}
+
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\typegen{\bmt}{\D} = \\
+\SP \class~\D~\{
+\\[1mm]
+\SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
+&
+\All m \Mtype\m\t\tp\in\bmt
+\\[1mm]\hline
+\SPP \Mdef\f\x\t\t {\x}
+&
+\All f \Mtype\f\t\t\in\bmt
+\\[1mm]\hline
+\SPP \Mdefz\f\t{{\MonCast\t{\New\D{}}}}
+&
+ \All f \Mtype\f{}\t \in \bmt
+\\[1mm]
+\SP\}
+\end{array}
+\]
+\caption{Equivalent Type Generation} \label{typegen}
 \end{figure}
 
 \section{Translations}
@@ -2331,14 +2359,15 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 \begin{mathpar}
 \IRule{HT1}{
   \a \not\in \text{addr}(\S)
+  \unwrap\C\cdot\K = \D\,\W\,\Kp
 }{
-  \htype\a\S{\sigma[\a \mapsto \C\{\b\ap\}]} = \C
+  \htype\a\S{\sigma[\a \mapsto \C\{\b\ap\}]}\K = \C~\Kp
 }
 
 \IRule{HT2}{
   \S(\a) = \t
 }{
-  \htype{\a}{\S}{\sigma} = \t
+  \htype{\a}{\S}{\sigma}\K = \t~\K
 }
 \end{mathpar}
 \section{Monotonic figure scratch}
