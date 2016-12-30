@@ -2296,6 +2296,24 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 %% a1 = new A(new T())
 %% a2 = new A(a1)
 %% a3 = new A(a2)
+%% b = <|B|> a3
+
+% translated
+
+%% class WA { that : A f():* { <|*|> this.that().f() } f(x:*):* { <|*|> this.that().f(<|*|> x)} }
+%% class WAmB { that:A f():* { <|*|><|A|>this.that().f() } f(x:*):* {<|*|><|A|> this.that().f(<|*|><|A|> x) } }
+%% class WAmBmC { that:A f():* {<|*|> <|B|> this.that().f() } f(x:*):* { <|*|> <|B|> this.that().f(<|*|><|B|> x)} }
+%% a1 = new WA(new A(new WT(new T())))
+%% a2 = new WA(new A(a1))
+%% a3 = new WA(new A(a2))
+%% b = <|B|> a3 -- s(b) : WAmB
+%% a3.f(new T()) -- boom
+%% a2.f(new T()) -- ok
+%% c = <|C|> b -- s(b) : WAmBmC, s(a2) : WAmB
+%% a3.f(new T()) -- boom
+%% a3.f(new WA(new A(new T))) -- boom
+%% a2.f(new T()) -- boom
+
 
 
 %% class A {
