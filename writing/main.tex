@@ -1388,7 +1388,7 @@ for them according to the new wrapper \C.
 &
 \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
 \\[1mm]\hline
-\SPP \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\t\x}}}}
+\SPP \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\Cp\x}}}}
 &
  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp 
  \\[1mm]\hline
@@ -1789,12 +1789,6 @@ At the surface language level, the Monotonic semantics are very similar to that 
     \HasType\E\this\C \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\this}\n{\b{\e_2}}}{\Call{\this}\n{\b{\e_4}}}{\t_2}
-}
-
-\IRule[width=30em]{A5}{
-    \HasType\E\this\C \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\this}\m{{\e_2}}}{\DynCall{(\MonCast\any\this)}\m{{\e_4}}}{\t_2}
 }
 
 \IRule{A8}{
