@@ -2213,9 +2213,8 @@ types $\b\mtpp$ and a class table $\Kp$.
   \Class\C{\hspace{-0.3em}}{\Fdef\that\Cp ~ \b\md} \in \K \\ 
   \C \notin \text{dom}(\W) \\
   \D\text{ fresh} \\
-  \Kp = \K\,\D \\
   \Wp = \W\,\Bind\C\D \\
-  \Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}{\Wp}{\Kp} } \\ 
+  \Kp = \K\,\Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}{\Wp}{\K}} \\ 
 }{
   \enfortype{\C}{\W}{\K} = \D\,\Wp\,\Kp
 }
@@ -2223,7 +2222,12 @@ types $\b\mtpp$ and a class table $\Kp$.
 \IRule{ENT2}{ 
   \W(\C) = \D \\
 }{
-  \enfortype{\C}{\W}{\K} = \D\,\Wp\,\K
+  \enfortype{\C}{\W}{\K} = \D\,\W\,\K
+}
+
+\IRule{ENT3}{ 
+}{
+  \enfortype{\any}{\W}{\K} = \any\,\W\,\K
 }
 \end{mathpar}
 \\
