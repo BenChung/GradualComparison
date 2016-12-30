@@ -1189,8 +1189,8 @@ than just the ones that inherit this particular type assertion.
 
 
 Meta-variable \S denotes a map from addresses to classes, thus
-\Map\S{\Bind\a\C} gives type \C to address \a. The function \htype\a\S\s
-returns the class of the object at address \a.  \htype\a\S\s is \C if \C =
+\Map\S{\Bind\a\C} gives type \C to address \a. The function \htype\a\S\s\K
+returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
 \App\S\a or if $\a\not\in\S$ and \obj\C{\b\a}=\App\s\a.
 
 
@@ -1221,7 +1221,7 @@ heap \s and class table \K.
 
 \begin{mathpar}
 \IRule{CRM1}{
-  \enfortype{\htype \a\S\s}{\K} = \C~\Kp\\
+  \htype \a\S\s\K = \C~\Kp\\
   \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
   \C\not\EQ\D  \\
   \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
@@ -1232,8 +1232,8 @@ heap \s and class table \K.
 }
 
 \IRule{CRM2}{
-  \htype \a\S\s = \tp\\
-  \tmeet\tp\t\cdot\K = \tpp\,\Kp \\
+  \htype \a\S\s\K = \tp\,\Kp\\
+  \tmeet\tp\t\cdot\Kp = \tpp\,\Kp \\
   \tp\EQ\tpp \\
 }{
   \retype \a\t\S\s\K = \S~\K
@@ -1258,8 +1258,6 @@ have been retyped.
   \D = \App\S\a \\
   \obj\C{\ap} = \App\s\a \\
   \obj\Cp{\b\app} = \App\s\ap \\
-  \enfortype{\Cp}{\K} = \Cpp\,\Kp \\
-  \enfortype{\D}{\Kp} = \Dp\,\Kpp \\
   \classoff\Cp\Kpp = \b\mt \\
   \classoff\D\Kpp = \b\mtp \\  
   \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
@@ -1320,7 +1318,7 @@ getter or setter method for that field. This is enforced by the
   \mtypes\C\K = {\b\mt}\\
   \mtypes\D\K = {\b\mtp}\\
   \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
-  \Kpp = \Kp~\classgen{\C,\classoff\C\K,\b\mtpp,\E,\Kp}\\
+  \Kpp = \Kp~\typegen{\b\mtpp}\E\\
 }{
     \tmeet\C\D\P\K = \E\,\Kpp
 }
@@ -2333,14 +2331,15 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 \begin{mathpar}
 \IRule{HT1}{
   \a \not\in \text{addr}(\S)
+  \enfortype\C\K = \D~\Kp
 }{
-  \htype\a\S{\sigma[\a \mapsto \C\{\b\ap\}]} = \C
+  \htype\a\S{\sigma[\a \mapsto \C\{\b\ap\}]}\K = \C~\Kp
 }
 
 \IRule{HT2}{
   \S(\a) = \t
 }{
-  \htype{\a}{\S}{\sigma} = \t
+  \htype{\a}{\S}{\sigma}\K = \t~\K
 }
 \end{mathpar}
 \section{Monotonic figure scratch}
