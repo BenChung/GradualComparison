@@ -1786,19 +1786,30 @@ At the surface language level, the Monotonic semantics are very similar to that 
 
 \newcommand{\isstatic}[2]{\text{static}(#1,#2)}
 \begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+\IRule{A1}{\HasType{\E}\x\t \\ \x \neq \this}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{A2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
-
 \IRule[width=30em]{A3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\n{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{{\e_4}}}{\t_2}
+}
+
+\IRule[width=30em]{A4}{
+    \HasType\E\this\C \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\this}\n{\b{\e_2}}}{\Call{\this}\n{\b{\e_4}}}{\t_2}
+}
+
+\IRule[width=30em]{A5}{
+    \HasType\E\this\C \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+}{
+    \GenCast\K\Env{\Call{\this}\m{{\e_2}}}{\DynCall{(\MonCast\any\this)}\m{{\e_4}}}{\t_2}
 }
 
 \IRule{A8}{
@@ -1998,7 +2009,7 @@ types in Transient will drift towards \any.
 \begin{mathpar}
 
 \IRule{W1}{
-   \HasType \Env\x\t
+   \HasType \Env\x\t \\ \x \neq \this
  }{
    \EnvType \Env\s\K\x\t
 }
@@ -2031,6 +2042,14 @@ types in Transient will drift towards \any.
   \EnvType \Env\s\K\ep\tp
 }{
   \EnvType \Env\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{WThis}{
+  \HasType\Env\this\C \\
+  \Mtype \n{\b\tp}\tpp\in \classoff\C\K  \\
+  \b{\EnvType \Env\s\K\ep\tp}
+}{
+  \EnvType \Env\s\K{\Call\this\n{\b\ep}}\tpp
 }    
 
 \IRule{W6}{
