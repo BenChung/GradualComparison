@@ -1217,37 +1217,18 @@ The retype function \retype{\b\a}{\b\t}\S\s\K, take a list of object
 addresses \b\a and a list of types to ascribe to them \b\t, and updates the
 heap \s and class table \K.
 
-
-
-\newcommand{\gettype}[2]{\xt{getType}(#1,#2)} % gettype(C,K)  
-\newcommand{\getmt}[1]{\xt{getMt}(#1)} % getMt(md)
-\begin{mathpar}
-\IRule{GTT}{ \Class\C{\hspace{-0.3em}}{\b\md} \in \K \\ \b{\getmt\md = \mt}}{\gettype{\C}{\K} = \b\mt}
-
-% \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t
-\IRule{GMTU}{ }{\getmt{\Mdef\m\x\any\any\e}{\K} = \Mtype\m\any\any}
-
-\IRule{GMT}{ }{\getmt{\Mdef\m\x{\C}{\Cp}\e} = \Mtype\m\C\Cp}
-
-\IRule{GFST}{ }{\getmt{\Mdef\f\x\any\any{\SubCast\any{\MonCast\t{
-      \Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}}} = \Mtype\f\t\t}
-
-\IRule{GFGT}{ }{\getmt{\Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}} = \Mtype\f{}\t}
-\end{mathpar}
-
-TODO: Gettype from mtype
+% TODO: Gettype from mtype
 
 \begin{mathpar}
 \IRule{CRM1}{
-  \htype \a\S\s = \C\\
-  \tmeet\C\t\cdot\K = \D\,\Kp\\ 
+  \enfortype{\htype \a\S\s}{\K} = \C~\Kp\\
+  \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
   \C\not\EQ\D  \\
-  \ftypes \a\D \s\Kp = \b\ap~\b\tp \\
+  \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
   \Sp = \Map\S{\Bind\a\D } \\
-  \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\Kpp
+  \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\K'''
 }{
-  \retype \a\t\S\s\K = \Spp\,\Kpp
+  \retype \a\t\S\s\K = \Spp\,\K'''
 }
 
 \IRule{CMR2}{
@@ -1277,7 +1258,11 @@ have been retyped.
   \D = \App\S\a \\
   \obj\C{\ap} = \App\s\a \\
   \obj\Cp{\b\app} = \App\s\ap \\
-  \Kp = \K~\classgen{\Cp,\classoff\Cp\K,\classoff\D\K,\E,\K} \\
+  \enfortype{\Cp}{\K} = \Cpp\,\Kp \\
+  \enfortype{\D}{\Kp} = \Dp\,\Kpp \\
+  \classoff\Cp\Kpp = \b\mt \\
+  \classoff\D\Kpp = \b\mtp \\  
+  \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
   \sp = \Map\s{\Bind\a{\E\{\ap\}}}
 }{
   \spec \a\S\s\K = \sp~\Kp
@@ -2181,6 +2166,76 @@ types $\b\mtpp$ and a class table $\Kp$.
 }
 \end{mathpar}
 \\
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{ENT}{ 
+  \Class\C{\hspace{-0.3em}}{\Fdef\that\Cp ~ \b\md} \in \K \\ 
+  \D\text{ fresh} \\
+  \Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}} \\ 
+  \Kp = \K\,\D
+}{
+  \enfortype{\C}{\K} = \D\,\Kp
+}
+\end{mathpar}
+\\
+
+\hrulefill
+
+\begin{mathpar}
+\IRule{ENMT1}{
+  \md = \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\t\x}}}} \\ 
+  \mdpp = \Mdef\m\x\t\tp {\MonCast\tp\x} \\
+  \enformt{\b\md} = \b\mdpp \\
+}{
+  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+}
+
+\IRule{ENMT2}{
+  \md = \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}}\\ 
+  \mdpp =\Mdef\m\x\t\tp {\MonCast\tp\x}\\
+  \enformt{\b\md} = \b\mdpp \\
+}{
+  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+}
+
+\IRule{ENDT}{
+  \md = \Mdef\m\x\any\any{\SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} \\ 
+  \mdpp =\Mdef\m\x\t\tp {\MonCast\tp\x}\\
+  \enformt{\b\md} = \b\mdpp \\
+}{
+  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+}
+
+\IRule{ENFS}{
+  \md = \Mdef\f\x\any\any{\SubCast\any{\MonCast\t{\Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}} \\ 
+  \mdpp = \Mdef\f\x\t\tp {\MonCast\tp\x} \\
+  \enformt{\b\md} = \b\mdpp \\
+}{
+  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+}
+
+\IRule{ENFG}{
+  \md = \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}} \\ 
+  \mdpp = \Mdefz\f\t {\MonCast\t{\Get{\Get\this\that}\f}} \\
+  \enformt{\b\md} = \b\mdpp \\
+}{
+  \enformt{\md\,\b\md} = \mdpp\,\b\mdpp
+}
+
+\IRule{ENE}{
+}{
+  \enformt{\cdot} = \cdot
+}
+
+% \IRule{GMTU}{
+%   \enformt{\md} = \mdp \\
+%   \enformt{\b\md} = \b\mdp
+% }{
+%   \enformt{\md \b\md}  = \mdp \b\mdp
+% }
+\end{mathpar}
 
 \hrulefill
 
