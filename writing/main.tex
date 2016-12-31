@@ -57,35 +57,40 @@
 A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
 for a variant of Abadi and Cardelli's object-based
 calculus~\cite{cardelli:1996:theory-of-objects}. Their key insight was to
-marry the structural subtyping relation used in some object-based languages
-with the consistency relation that relates objects that only differ in the
+marry the structural subtyping relation used in that calculus with the
+consistency relation that relates program constructs that only differ in the
 addition of type annotations. The resulting calculus was sound in the sense
-that any type error would be caught and cause computation to get stuck.
-Soundness was enforced adding casts to objects each time they crossed a
-type/untyped boundary.
+that any type error would be caught, and computation would get stuck at a
+cast. As in their previous work~\cite{SiekTaha06} soundness was enforced by
+systematically applying casts to objects as they crossed type boundaries.
 
-Obtaining a practical implementation of this calculus has proven elusive.
+Practical realizations of this proposal have proved elusive. Ten years
+later, there are multiple systems that support the gradual addition of type
+annotations to untyped object-oriented programs.\footnote{Languages with
+  some form of incremental type annotation for objects include
+%%
+Dart, 
+Hack, 
+Gradual Smalltalk,
+Reticulated Python, 
+Safe Typescript,
+StrongScript, 
+Thorn, 
+Typed Racket, 
+TypeScript, 
+more ??}
+%%
+The only implementation that comes close to realizing the Siek and Taha's
+system is Typed Racket. Unlike Siek and Taha's calculus Typed Racket has
+side effects, and it also add first order classes. There are also subtle
+differences in the nature of types and casts, but the salient features
+is that Typed Racket is the only practical gradual type system that is 
+sound~\cite{}.
 
 
-Short of programming with a proof
-assistant, our programs will remain replete with errors that lead to
-undesirable outcomes.  The question that face language designers is what
-classes of errors are frequent enough that it makes sense to try to catch in
-the programming language itself, and how much linguistic machinery to expose
-to end-users for that purpose.  At one end of the spectrum, some of the most
-popular languages of the day rely solely on dynamic checks to catch errors
-as the program runs. Towards the other end, statically typed languages
-expose a set of type annotations that programmers have to use in their code
-and, in return, these languages ensure that many errors are ruled out
-entirely.
 
-Gradual typing attempts to merge both of these world-views by allowing
-developers to add annotations in an incremental manner, with the promise of
-rewards in error prevention commensurate to the effort invested in selecting
-where to put annotations. Types have other benefits, by making programmer
-intent explicit, they play the role of simple machine-checked documentation,
-and they also have the potential of providing useful information for
-the compiler to generate efficient code.
+
+
 
 This paper explores the design space of gradual type systems for
 object-oriented languages. We aim to expose the main forces influencing the
