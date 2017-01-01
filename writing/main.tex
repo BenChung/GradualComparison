@@ -1000,7 +1000,7 @@ handles the case where the target type of the cast is \any.
 \IRule{BC1}{
   \App\s\a = \obj\C{\b\a}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\\\\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D{}{}\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -1010,13 +1010,13 @@ handles the case where the target type of the cast is \any.
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}\D\\\\
+  \k = \wrap\C{\classoff\C\K}\D{}{}\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\any\s\K {\K\,\k}\ap\sp
 }
-\end{mathpar}}
+\end{mathpar}}  
 
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1036,12 +1036,13 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \begin{figure}[!ht]
 \hrulefill 
+\scriptsize
 
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\IGNOREUNLESSNEEDED{
+%\IGNOREUNLESSNEEDED{
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C\bmt\bmtp\D = \\
+    \wrap\C{\b\md}\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\BehCast\tp{\Get{\Get\this\that}\f}~}
@@ -1050,11 +1051,15 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &    \All f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x\t\tp {~\BehCast\tp{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
-&     \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+\SPP \Mdef\m\x\t\tp {~\BehCast\tp{{[\BehCast\Cp\x / \x] \e}}~}
+&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp
 \\
-\SPP \Mdef\m\x\t\tp{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\any\x}~}
-&     \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
+&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
+&&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
+\\
+\SPP \Mdef\m\x\t\tp{~\BehCast\tp{[\BehCast\any\x/\x]\e}~}
+&     \All m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
@@ -1062,11 +1067,11 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
 &    \All f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
 \\
-\SPP \Mdef\m\x{\Cp}{\Cpp} {~\Call{\Get\this\that}\m\x~}
-&    \All m \Mtype\m{\Cp}{\Cpp} \in \bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp
+\SPP \Mdef\m\x{\Cp}{\Cpp} {~\e~}
+&    \All m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp
 \\
-\SPP \Mdef\m\x\any\any {~\DynCall{(\BehCast\any{\Get\this\that})}\m\x~}
-&    \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in\bmtp
+\SPP \Mdef\m\x\any\any {~\e~}
+&    \All m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp
 \\
 \SP \}
 \\
@@ -1075,15 +1080,15 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
 &  \All \m  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set\Get\this\that}\f{\BehCast\t\x}~}
-&  \All \f  \Mtype\m\t\t \in \bmt\\
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
+&  \All \f  \Mtype\f\t\t \in \bmt\\
 \SPP   \Mdef\m\x\any\any{~\BehCast\any{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
 &  \All \m  \Mtype\m\Cp\Cpp \in \bmt\\
 \SPP   \Mdef\m\x\any\any{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\Cp\x}~}
 &  \All \m  \Mtype\m\any\any \in \bmt\\
 \SP \}\\
 \end{array}\]
-}%%END IGNORE
+%}%%END IGNORE
   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
 
 \hrulefill
@@ -2420,6 +2425,7 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 %% a2 = new A(a1)
 %% a3 = new A(a2)
 %% b = <|B|> a3
+%% c = <|C|> a3
 
 % translated
 
