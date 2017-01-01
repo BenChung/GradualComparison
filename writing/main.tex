@@ -88,13 +88,28 @@ implementation strategies seems daunting.\footnote{Most practical
   \emph{sound} type system reports order of magnitude pathologies, e.g.~5x
   slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
   Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and
-  121x for Typed Racket~\cite{popl16}.}  Predictably, industrial strength
-systems have chosen to compromise on soundness to avoid degrading
-performance.\footnote{Languages such as Dart, Typescript, Hack all have
-  unchecked, or partially checked, execution modes that will not catch all
-  type errors.}
+  121x for Typed Racket~\cite{popl16}. These numbers merely indicate the
+  existence of configurations of type annotations that hurt performance.
+  They are neither comparable between each other, nor worst case performance
+  indicators as most languages have not been used enough to have rigorous
+  evaluations.  }  Predictably, industrial strength systems have chosen to
+compromise on soundness to avoid degrading performance.\footnote{Languages
+  such as Dart, Typescript, Hack all have unchecked, or partially checked,
+  execution modes that will not catch all type errors.}
 
 
+The goal of this paper is to explore the design space of gradual type system
+for object-oriented languages. We aim to expose some of the forces that have
+influenced existing systems and discuss the implication of design decisions.
+Hopefully we can lay out some research questions that future research in the
+field can address. In order to present the essence of gradual typing for
+objects we introduce \kafka, a statically typed class-based calculus with
+mutable state and structural subtyping. Untyped method calls are supported
+with a distinct dynamic dispatch operation. The calculus allows for class
+generation, in particular, it allows the generation of transparent wrapper
+classes. We define the semantics of various gradual type systems by
+translation from a surface syntax into \kafka extended with generative
+casts.
 
 
 
