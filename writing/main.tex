@@ -78,49 +78,22 @@ Thorn~\cite{oopsla09},
 Typed Racket~\cite{Takikawa:2012}, 
 TypeScript~\cite{BAT14}.}
 %%
+Yet, faithful realizations of that elegant idea have proved to be
+surprisingly elusive.  One reason is that the paper did not consider mutable
+state.  The combination of mutable state, aliasing and subtyping complicates
+enforcement strategies as one must consider the case where one object is
+being accessed at different types. While several solutions have been
+proposed to address this, the performance implications of their
+implementation strategies seems daunting.\footnote{Most practical
+  \emph{sound} type system reports order of magnitude pathologies, e.g.~5x
+  slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
+  Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and
+  121x for Typed Racket~\cite{popl16}.}  Predictably, industrial strength
+systems have chosen to compromise on soundness to avoid degrading
+performance.\footnote{Languages such as Dart, Typescript, Hack all have
+  unchecked, or partially checked, execution modes that will not catch all
+  type errors.}
 
-
-
-Practical realizations of that elegant idea have proved suprisingly elusive.
-One reason is that the original paper did not consider mutable state.  The
-combination of state and aliasing complicates enforcement strategies as one
-must consider the case where the same object is being accessed at different
-types in the same program. While it is posible to deal with state, the
-performance implications of current implementation strategies seem
-daunting.\footnote{Most practical \emph{sound} type system reports order of
-  magnitude pathologies, e.g.~5x slow downs for
-  Gradualtalk~\cite{allende13}, 10x for Reticulated Python~\cite{siek14},
-  22x for Safe Typescript~\cite{safe-typescript}, and 121x for Typed
-  Racket~\cite{popl16}.}
-
-
-
-The key insight in that
-paper was to marry structural subtyping with the consistency relation
-between terms that only differ by the addition of type annotations.
-
-
-
- The
-resulting calculus was sound: type errors would be caught statically or
-dynamically at a cast. As in their previous work~\cite{SiekTaha06} soundness
-was enforced by systematically applying casts to objects as they crossed
-type boundaries.
-
-Practical realizations of this proposal have proved elusive.
-
-
-
-
-
-
-
-The only implementation that comes close to realizing the Siek and Taha's
-system is Typed Racket. Unlike Siek and Taha's calculus Typed Racket has
-side effects, and it also add first order classes. There are also subtle
-differences in the nature of types and casts, but the salient features
-is that Typed Racket is the only practical gradual type system that is 
-sound~\cite{}.
 
 
 
