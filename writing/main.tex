@@ -61,63 +61,55 @@ a subtype relation that combined structural subtyping with the consistency
 relation between terms that only differ in dynamic type annotations.
 Soundness at the boundaries between typed and untyped code is ensured by
 inserting casts as in their previous work that targeted purely functional
-languages~\cite{SiekTaha06}.
-
-Practical realizations of that elegant idea have proved suprisingly elusive.
-One reason is that the original paper did not consider mutable state.  The
-combination of state and aliasing complicates enforcement strategies as one
-must consider the case where the same object is being accessed at different
-types in the same program. While it is posible to deal with state, the
-performance implications of current implementation strategies seem daunting.\footnote{Every practical sound type system reports order of magnitude pathologies, e.g. 
-5x for Gradualtalk~\cite{allende13},
-10x for Reticulated Python~\cite{siek14},
-22x for Safe Typescript~\cite{safe-typescript},
-121x Typed Racket~\cite{popl16}.}
-
-
-
-The key insight in that
-paper was to marry structural subtyping with the consistency relation
-between terms that only differ by the addition of type annotations.
-
-
-
- The
-resulting calculus was sound: type errors would be caught statically or
-dynamically at a cast. As in their previous work~\cite{SiekTaha06} soundness
-was enforced by systematically applying casts to objects as they crossed
-type boundaries.
-
-Practical realizations of this proposal have proved elusive. Ten years
-later, there are multiple systems that support the gradual addition of type
-annotations to untyped object-oriented programs.\footnote{Languages with
-  some form of incremental type annotation for objects include
+languages~\cite{SiekTaha06}.  Ten years later, many systems support the
+gradual addition of type annotations to untyped object-oriented
+programs.\footnote{Languages which allow mixing  typed and untyped with 
+objects include
 %%
-Dart, 
-DRuby,
-Hack, 
-Flow,
-Gradualtalk,
-Reticulated Python, 
-Safe Typescript,
-StrongScript, 
-Thorn, 
-Typed Racket, 
-TypeScript, 
-more ??}
+C\#~\cite{Bierman10},
+Dart~\cite{dart13}, 
+DRuby~\cite{FurrAF2009},
+Hack~\cite{hack13}, 
+Gradualtalk~\cite{GS13},
+Reticulated Python~\cite{siek14}, 
+Safe Typescript~\cite{safe-typescript},
+StrongScript~\cite{ecoop15}, 
+Thorn~\cite{oopsla09}, 
+Typed Racket~\cite{Takikawa:2012}, 
+TypeScript~\cite{BAT14}.}
 %%
+Yet, faithful realizations of that elegant idea have proved to be
+surprisingly elusive.  One reason is that the paper did not consider mutable
+state.  The combination of mutable state, aliasing and subtyping complicates
+enforcement strategies as one must consider the case where one object is
+being accessed at different types. While several solutions have been
+proposed to address this, the performance implications of their
+implementation strategies seems daunting.\footnote{Most practical
+  \emph{sound} type system reports order of magnitude pathologies, e.g.~5x
+  slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
+  Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and
+  121x for Typed Racket~\cite{popl16}. These numbers merely indicate the
+  existence of configurations of type annotations that hurt performance.
+  They are neither comparable between each other, nor worst case performance
+  indicators as most languages have not been used enough to have rigorous
+  evaluations.  }  Predictably, industrial strength systems have chosen to
+compromise on soundness to avoid degrading performance.\footnote{Languages
+  such as Dart, Typescript, Hack all have unchecked, or partially checked,
+  execution modes that will not catch all type errors.}
 
 
-
-
-
-The only implementation that comes close to realizing the Siek and Taha's
-system is Typed Racket. Unlike Siek and Taha's calculus Typed Racket has
-side effects, and it also add first order classes. There are also subtle
-differences in the nature of types and casts, but the salient features
-is that Typed Racket is the only practical gradual type system that is 
-sound~\cite{}.
-
+The goal of this paper is to explore the design space of gradual type system
+for object-oriented languages. We aim to expose some of the forces that have
+influenced existing systems and discuss the implication of design decisions.
+Hopefully we can lay out some research questions that future research in the
+field can address. In order to present the essence of gradual typing for
+objects we introduce \kafka, a statically typed class-based calculus with
+mutable state and structural subtyping. Untyped method calls are supported
+with a distinct dynamic dispatch operation. The calculus allows for class
+generation, in particular, it allows the generation of transparent wrapper
+classes. We define the semantics of various gradual type systems by
+translation from a surface syntax into \kafka extended with generative
+casts.
 
 
 
@@ -1060,6 +1052,33 @@ For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
 untyped methods, a dynamic call is blanketed by casts to \any.
 
+
+\newcommand{\rtranst}[3]{#1 \vdash #2 \looparrowright_t #3}
+\begin{mathpar}
+\IRule{REW1}{ }{ \rtranst{\b\mt}\x\x }
+
+\IRule{REW2}{ }{\rtranst{\b\mt}{\Get\this\f}{\SubCast\any{\Get\this\f}} }
+
+\IRule{REW3}{ \Mtype\f\t\t \in \b\mt }{\rtranst{\b\mt}{\Set\this\f\e}{\SubCast\any{\Set\this\f{\BehCast\t\e}}}}
+
+\IRule{REW3}{ \rtranst{\b\mt}{\e_1}{\e_2} \\ \rtranst{\b\mt}{\ep_1}{\ep_2}}{\rtranst{\b\mt}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
+
+\IRule{REW4}{ \rtranst{\b\mt}{\b\e}{\b\ep} }{\rtranst{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
+\end{mathpar}
+
+
+\newcommand{\rtransut}[3]{#1 \vdash #2 \looparrowright_u #3}
+\begin{mathpar}
+\IRule{REW1}{ }{ \rtransut{\b\mt}\x\x }
+
+\IRule{REW2}{ \Mtype\f{}\t \in \b\mt }{\rtransut{\b\mt}{\Get\this\f}{\BehCast\t{\Get\this\f}} }
+
+\IRule{REW3}{ \Mtype\f\t\t \in \b\mt }{\rtransut{\b\mt}{\Set\this\f\e}{\BehCast\t{\Set\this\f{\SubCast\any\e}}}}
+
+\IRule{REW3}{ \rtransut{\b\mt}{\e_1}{\e_2} \\ \rtransut{\b\mt}{\ep_1}{\ep_2}}{\rtransut{\b\mt}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
+
+\IRule{REW4}{ \rtransut{\b\mt}{\b\e}{\b\ep} }{\rtransut{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
+\end{mathpar}
 
 
 \begin{figure}[!ht]
