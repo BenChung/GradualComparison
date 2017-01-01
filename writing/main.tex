@@ -1059,25 +1059,33 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \IRule{REW2}{ }{\rtranst{\b\mt}{\Get\this\f}{\SubCast\any{\Get\this\f}} }
 
-\IRule{REW3}{ \Mtype\f\t\t \in \b\mt }{\rtranst{\b\mt}{\Set\this\f\e}{\SubCast\any{\Set\this\f{\BehCast\t\e}}}}
+\IRule{REW3}{ \e \neq \this \\ \rtranst{\b\mt}{\e}{\ep} }{\rtranst{\b\mt}{\Get\e\f}{\Get\ep\f}}
 
-\IRule{REW3}{ \rtranst{\b\mt}{\e_1}{\e_2} \\ \rtranst{\b\mt}{\ep_1}{\ep_2}}{\rtranst{\b\mt}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
+\IRule{REW4}{ \Mtype\f\t\t \in \b\mt }{\rtranst{\b\mt}{\Set\this\f\e}{\SubCast\any{\Set\this\f{\BehCast\t\e}}}}
 
-\IRule{REW4}{ \rtranst{\b\mt}{\b\e}{\b\ep} }{\rtranst{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{REW5}{ \e_1 \neq \this \\ \rtranst{\b\mt}{\e_1}{\e_2} \\ \rtranst{\b\mt}{\ep_1}{\ep_2} }{\rtranst{\b\mt}{\Set{\e_1}\f{\ep_1}}{\Set{\e_2}\f{\ep_2}}}
+
+\IRule{REW6}{ \rtranst{\b\mt}{\e_1}{\e_2} \\ \rtranst{\b\mt}{\ep_1}{\ep_2}}{\rtranst{\b\mt}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+
+\IRule{REW7}{ \rtranst{\b\mt}{\b\e}{\b\ep} }{\rtranst{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
 
 \newcommand{\rtransut}[3]{#1 \vdash #2 \looparrowright_u #3}
 \begin{mathpar}
-\IRule{REW1}{ }{ \rtransut{\b\mt}\x\x }
+\IRule{REU1}{ }{ \rtransut{\b\mt}\x\x }
 
-\IRule{REW2}{ \Mtype\f{}\t \in \b\mt }{\rtransut{\b\mt}{\Get\this\f}{\BehCast\t{\Get\this\f}} }
+\IRule{REU2}{ \Mtype\f{}\t \in \b\mt }{\rtransut{\b\mt}{\Get\this\f}{\BehCast\t{\Get\this\f}} }
 
-\IRule{REW3}{ \Mtype\f\t\t \in \b\mt }{\rtransut{\b\mt}{\Set\this\f\e}{\BehCast\t{\Set\this\f{\SubCast\any\e}}}}
+\IRule{REU3}{ \e \neq \this \\ \rtransut{\b\mt}{\e}{\ep} }{\rtransut{\b\mt}{\Get\e\f}{\Get\ep\f}}
 
-\IRule{REW3}{ \rtransut{\b\mt}{\e_1}{\e_2} \\ \rtransut{\b\mt}{\ep_1}{\ep_2}}{\rtransut{\b\mt}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
+\IRule{REU4}{ \Mtype\f\t\t \in \b\mt }{\rtransut{\b\mt}{\Set\this\f\e}{\BehCast\t{\Set\this\f{\SubCast\any\e}}}}
 
-\IRule{REW4}{ \rtransut{\b\mt}{\b\e}{\b\ep} }{\rtransut{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{REU5}{ \e_1 \neq \this \\ \rtransut{\b\mt}{\e_1}{\e_2} \\ \rtransut{\b\mt}{\ep_1}{\ep_2} }{\rtransut{\b\mt}{\Set{\e_1}\f{\ep_1}}{\Set{\e_2}\f{\ep_2}}}
+
+\IRule{REU6}{ \rtransut{\b\mt}{\e_1}{\e_2} \\ \rtransut{\b\mt}{\ep_1}{\ep_2}}{\rtransut{\b\mt}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
+
+\IRule{REU7}{ \rtransut{\b\mt}{\b\e}{\b\ep} }{\rtransut{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
 
