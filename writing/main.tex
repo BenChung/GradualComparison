@@ -61,18 +61,37 @@ a subtype relation that combined structural subtyping with the consistency
 relation between terms that only differ in dynamic type annotations.
 Soundness at the boundaries between typed and untyped code is ensured by
 inserting casts as in their previous work that targeted purely functional
-languages~\cite{SiekTaha06}.
+languages~\cite{SiekTaha06}.  Ten years later, many systems support the
+gradual addition of type annotations to untyped object-oriented
+programs.\footnote{Languages which allow mixing  typed and untyped with 
+objects include
+%%
+C\#~\cite{Bierman10},
+Dart~\cite{dart13}, 
+DRuby~\cite{FurrAF2009},
+Hack~\cite{hack13}, 
+Gradualtalk~\cite{GS13},
+Reticulated Python~\cite{siek14}, 
+Safe Typescript~\cite{safe-typescript},
+StrongScript~\cite{ecoop15}, 
+Thorn~\cite{oopsla09}, 
+Typed Racket~\cite{Takikawa:2012}, 
+TypeScript~\cite{BAT14}.}
+%%
+
+
 
 Practical realizations of that elegant idea have proved suprisingly elusive.
 One reason is that the original paper did not consider mutable state.  The
 combination of state and aliasing complicates enforcement strategies as one
 must consider the case where the same object is being accessed at different
 types in the same program. While it is posible to deal with state, the
-performance implications of current implementation strategies seem daunting.\footnote{Every practical sound type system reports order of magnitude pathologies, e.g. 
-5x for Gradualtalk~\cite{allende13},
-10x for Reticulated Python~\cite{siek14},
-22x for Safe Typescript~\cite{safe-typescript},
-121x Typed Racket~\cite{popl16}.}
+performance implications of current implementation strategies seem
+daunting.\footnote{Most practical \emph{sound} type system reports order of
+  magnitude pathologies, e.g.~5x slow downs for
+  Gradualtalk~\cite{allende13}, 10x for Reticulated Python~\cite{siek14},
+  22x for Safe Typescript~\cite{safe-typescript}, and 121x for Typed
+  Racket~\cite{popl16}.}
 
 
 
@@ -88,24 +107,9 @@ dynamically at a cast. As in their previous work~\cite{SiekTaha06} soundness
 was enforced by systematically applying casts to objects as they crossed
 type boundaries.
 
-Practical realizations of this proposal have proved elusive. Ten years
-later, there are multiple systems that support the gradual addition of type
-annotations to untyped object-oriented programs.\footnote{Languages with
-  some form of incremental type annotation for objects include
-%%
-Dart, 
-DRuby,
-Hack, 
-Flow,
-Gradualtalk,
-Reticulated Python, 
-Safe Typescript,
-StrongScript, 
-Thorn, 
-Typed Racket, 
-TypeScript, 
-more ??}
-%%
+Practical realizations of this proposal have proved elusive.
+
+
 
 
 
