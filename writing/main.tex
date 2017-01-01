@@ -1,14 +1,14 @@
 \documentclass[a4paper,USenglish]{tex/lipics-v2016}
 \usepackage{xspace,listings,url,framed,amssymb,
-            amsmath,tex/mathpartir,hyperref,
+            amsmath,tex/mathpartir,hyperref,doi,
             stmaryrd, graphicx, tikz, colortbl} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \input{macros}
 
 \usepackage[textsize=tiny]{todonotes}
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\title{On Gradual Type Systems for Objects}
-\titlerunning{Gradual Typing for Objects Redux}
+\title{Gradual Types for Objects Redux}
+\titlerunning{Gradual Types for Objects Redux}
 %% provide for each author the \author and \affil macro, even if same
 \author[1]{Anonymous}
 \affil[1]{}
@@ -36,33 +36,57 @@
 \begin{document}
 \maketitle
 
-%\begin{abstract}
-%The popularity of dynamically typed languages has given rise to a cottage
-%industry of type systems that provide various degrees of assurance
-%while allowing some code to remain free of type annotations. 
-%The motivation underlying these new type systems is that they give
-%programmers a way to incrementally migrate a code base from untyped
-%to typed.  It is becoming increasingly clear that the design of these
-%type systems must carefully consider issues such expressiveness of the 
-%annotation language, granularity of type regions, and performance overheads
-%of any associated run-time checks.  This paper focuses on gradual types for 
-%object-oriented languages and attempts to explain some of the key design 
-%dimensions and trade-offs of three implemented gradual types systems.
-%This is achieved by embedding the different design into a core calculus
-%that is broadly representative of dynamic languages such as Python, JavaScript
-%and Ruby.
-%\end{abstract} 
+\begin{abstract}
+The enduring popularity of dynamically typed languages has given rise to a
+cottage industry of static type systems, often referred to as \emph{gradual
+  type systems}, that allow developers to annotate legacy untyped code
+piecemeal. Soundness for programs which contain a mixture of typed and
+untyped code entails catching some errors at type checking time and other
+errors as the program executes. After a decade of research on gradual types
+it has become clear that the combination of mutable state, self references
+and subtyping present serious challenges to implementers of gradual type
+systems for object-oriented languages.  This papers overviews the state of
+the art in gradual types for objects. We introduce \kafka, a class-based
+object calculus with a static type system, dynamic method dispatch,
+transparent wrappers and dynamic class generation. We model key features of
+several type systems for dynamic languages by translation to \kafka and
+discuss the implication of the respective designs.
+\end{abstract} 
 
 \section{Introduction}
 A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
 for a variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996:theory-of-objects}. Their key insight was to
-marry the structural subtyping relation used in that calculus with the
-consistency relation that relates program constructs that only differ in the
-addition of type annotations. The resulting calculus was sound in the sense
-that any type error would be caught, and computation would get stuck at a
-cast. As in their previous work~\cite{SiekTaha06} soundness was enforced by
-systematically applying casts to objects as they crossed type boundaries.
+calculus~\cite{cardelli:1996:theory-of-objects}. Their type system featured
+a subtype relation that combined structural subtyping with the consistency
+relation between terms that only differ in dynamic type annotations.
+Soundness at the boundaries between typed and untyped code is ensured by
+inserting casts as in their previous work that targeted purely functional
+languages~\cite{SiekTaha06}.
+
+Practical realizations of that elegant idea have proved suprisingly elusive.
+One reason is that the original paper did not consider mutable state.  The
+combination of state and aliasing complicates enforcement strategies as one
+must consider the case where the same object is being accessed at different
+types in the same program. While it is posible to deal with state, the
+performance implications of current implementation strategies seem daunting.\footnote{Every practical sound type system reports order of magnitude pathologies, e.g. 
+5x for Gradualtalk~\cite{allende13},
+10x for Reticulated Python~\cite{siek14},
+22x for Safe Typescript~\cite{safe-typescript},
+121x Typed Racket~\cite{popl16}.}
+
+
+
+The key insight in that
+paper was to marry structural subtyping with the consistency relation
+between terms that only differ by the addition of type annotations.
+
+
+
+ The
+resulting calculus was sound: type errors would be caught statically or
+dynamically at a cast. As in their previous work~\cite{SiekTaha06} soundness
+was enforced by systematically applying casts to objects as they crossed
+type boundaries.
 
 Practical realizations of this proposal have proved elusive. Ten years
 later, there are multiple systems that support the gradual addition of type
@@ -70,8 +94,10 @@ annotations to untyped object-oriented programs.\footnote{Languages with
   some form of incremental type annotation for objects include
 %%
 Dart, 
+DRuby,
 Hack, 
-Gradual Smalltalk,
+Flow,
+Gradualtalk,
 Reticulated Python, 
 Safe Typescript,
 StrongScript, 
@@ -80,14 +106,17 @@ Typed Racket,
 TypeScript, 
 more ??}
 %%
+
+
+
+
+
 The only implementation that comes close to realizing the Siek and Taha's
 system is Typed Racket. Unlike Siek and Taha's calculus Typed Racket has
 side effects, and it also add first order classes. There are also subtle
 differences in the nature of types and casts, but the salient features
 is that Typed Racket is the only practical gradual type system that is 
 sound~\cite{}.
-
-
 
 
 
@@ -693,24 +722,23 @@ incompatible with our new type, monotonic will reject it at that point.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Kafka: A Core Calculus}
-\newcommand{\name}{{\sf KafKa}\xspace}
 
 We propose to explore the semantics of gradually typed object-oriented
-languages by compilation to a core calculus, named \name.
+languages by compilation to a core calculus, named \kafka.
 
-Following the design of C\# 4.0, \name is a statically typed class-based
+Following the design of C\# 4.0, \kafka is a statically typed class-based
 calculus with dynamic dispatch.
 
 In order to support the notion of consistency, we choose a structural type
-system for \name.  The calculus does not have inheritance between classes.
+system for \kafka.  The calculus does not have inheritance between classes.
 
-\name does not have null values.\footnote{What would the type of null be?}
+\kafka does not have null values.\footnote{What would the type of null be?}
 
 Fields are accessed by getter and setter methods, their presence in class
 types is observed by the presence of the respective getters and setters.
 
 
-Following C\#, \name allows a dynamic type, denoted \any. 
+Following C\#, \kafka allows a dynamic type, denoted \any. 
 
 Statically dispatched method calls (i.e. calls where the type of the
 receiver is not \any) are denoted \Call\x\m\e. Methods are limited to a
@@ -759,7 +787,7 @@ sequence of method definitions, \md.
 
 \hrulefill
 
-\caption{\name Syntax.}\label{syn}
+\caption{\kafka Syntax.}\label{syn}
 \end{figure}
 
 %% TODO Put somewhere????
@@ -767,7 +795,7 @@ sequence of method definitions, \md.
 % \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
 
 
-\name has four different kinds of cast expressions, two are structural and
+\kafka has four different kinds of cast expressions, two are structural and
 two are generative. The structural subtype cast, denoted \SubCast\t\a,
 asserts that the object at location \a is of type \t.  The structural
 shallow cast, denoted \ShaCast\t\a, asserts that the object at location \a
@@ -797,7 +825,7 @@ behavioral cast that, in addition, imposes constraints on fields.
 \draw (4-0.1,-1) node[anchor=west] {$\EnvType {}{}\Kpp\a\t$};
 \end{tikzpicture}
 
-The semantics of \name is defined by a small step operational semantics with
+The semantics of \kafka is defined by a small step operational semantics with
 evaluation contexts.
 
 Evaluation context deterministically identifiy the next expression to evaluate.
@@ -949,7 +977,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \end{minipage}
 
 \hrulefill
-\caption{\name Semantics.}
+\caption{\kafka Semantics.}
 \end{figure}
 
 
@@ -957,7 +985,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 
 \subsection{Structural Casts}
 
-\name offers two kinds of structural casts. One which performs a structural
+\kafka offers two kinds of structural casts. One which performs a structural
 subtype check and one that only check for the persence of methods with given
 names.
 
@@ -968,7 +996,7 @@ names.
 \subsection{Generative Casts}
 
 Casts are the key to the different interpretations of gradual typing, as
-they are one of the two places that, in \name, a program can get stuck
+they are one of the two places that, in \kafka, a program can get stuck
 at. The approaches that we will be comparing have different definitions of
 casting, and their varying approach to runtime type assertions forms an
 important part of how they interact with untyped parts of the program.
@@ -1000,7 +1028,7 @@ handles the case where the target type of the cast is \any.
 \IRule{BC1}{
   \App\s\a = \obj\C{\b\a}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\\\\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D{}{}\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -1010,13 +1038,13 @@ handles the case where the target type of the cast is \any.
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}\D\\\\
+  \k = \wrap\C{\classoff\C\K}\D{}{}\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\any\s\K {\K\,\k}\ap\sp
 }
-\end{mathpar}}
+\end{mathpar}}  
 
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1036,12 +1064,13 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \begin{figure}[!ht]
 \hrulefill 
+\scriptsize
 
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\IGNOREUNLESSNEEDED{
+%\IGNOREUNLESSNEEDED{
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C\bmt\bmtp\D = \\
+    \wrap\C{\b\md}\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\BehCast\tp{\Get{\Get\this\that}\f}~}
@@ -1050,11 +1079,15 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &    \All f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x\t\tp {~\BehCast\tp{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
-&     \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+\SPP \Mdef\m\x\t\tp {~\BehCast\tp{{[\BehCast\Cp\x / \x] \e}}~}
+&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp
 \\
-\SPP \Mdef\m\x\t\tp{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\any\x}~}
-&     \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
+&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
+&&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
+\\
+\SPP \Mdef\m\x\t\tp{~\BehCast\tp{[\BehCast\any\x/\x]\e}~}
+&     \All m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
@@ -1062,11 +1095,11 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
 &    \All f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
 \\
-\SPP \Mdef\m\x{\Cp}{\Cpp} {~\Call{\Get\this\that}\m\x~}
-&    \All m \Mtype\m{\Cp}{\Cpp} \in \bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp
+\SPP \Mdef\m\x{\Cp}{\Cpp} {~\e~}
+&    \All m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp
 \\
-\SPP \Mdef\m\x\any\any {~\DynCall{(\BehCast\any{\Get\this\that})}\m\x~}
-&    \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in\bmtp
+\SPP \Mdef\m\x\any\any {~\e~}
+&    \All m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp
 \\
 \SP \}
 \\
@@ -1075,15 +1108,15 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
 &  \All \m  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set\Get\this\that}\f{\BehCast\t\x}~}
-&  \All \f  \Mtype\m\t\t \in \bmt\\
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
+&  \All \f  \Mtype\f\t\t \in \bmt\\
 \SPP   \Mdef\m\x\any\any{~\BehCast\any{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
 &  \All \m  \Mtype\m\Cp\Cpp \in \bmt\\
 \SPP   \Mdef\m\x\any\any{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\Cp\x}~}
 &  \All \m  \Mtype\m\any\any \in \bmt\\
 \SP \}\\
 \end{array}\]
-}%%END IGNORE
+%}%%END IGNORE
   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
 
 \hrulefill
@@ -1441,8 +1474,8 @@ for them according to the new wrapper \C.
 
 \section{Translations}
 
-KafKa provides us with a basis through which we can describe the operation
-of more typical languages. KafKa requires that the programmer write casts
+\kafka provides us with a basis through which we can describe the operation
+of more typical languages. \kafka requires that the programmer write casts
 wherever a type boundary is encountered, which is not representative of how
 actual gradually typed programming languages behave. Most gradually typed
 programming languages abstract away from the actual casts that are inserted,
@@ -1686,9 +1719,9 @@ The guarded semantics for Reticulated Python is essentially identical to the sem
 
 \paragraph{Transient}
 
-The transient semantics is notably different from the other systems, as illustrated by the invariants we can assume about its primary cast, $\ShaCast\t\e$. Here, we simply assert that $\e$ has the same \emph{names} as $\t$ does, and, as a result, the closest type representation we have is the $\any$ type, as illustrated in the typing for KafKa. All Transient guarantees is that the methods on the named type will be callable with some argument, and some return value, and it is up to the callee to check that the arguments are right and up to the caller to ensure that the return value is right.
+The transient semantics is notably different from the other systems, as illustrated by the invariants we can assume about its primary cast, $\ShaCast\t\e$. Here, we simply assert that $\e$ has the same \emph{names} as $\t$ does, and, as a result, the closest type representation we have is the $\any$ type, as illustrated in the typing for \kafka. All Transient guarantees is that the methods on the named type will be callable with some argument, and some return value, and it is up to the callee to check that the arguments are right and up to the caller to ensure that the return value is right.
 
-Because of fields, we cannot fully represent the transient semantics in KafKa, as field accessors and getters can only be called in a fully typed context. However, we can approximate it, by only allowing field getters and setters to be called in the context of \this, thereby removing all possible ambiguity over the receiver of the field getter or setter.
+Because of fields, we cannot fully represent the transient semantics in \kafka, as field accessors and getters can only be called in a fully typed context. However, we can approximate it, by only allowing field getters and setters to be called in the context of \this, thereby removing all possible ambiguity over the receiver of the field getter or setter.
 
 
 \begin{mathpar}
@@ -1702,11 +1735,11 @@ Because of fields, we cannot fully represent the transient semantics in KafKa, a
 }{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
-The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, KafKa does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
+The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, \kafka does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
 
 Our translation for untyped methods is very simple, as they make no type-based assumptions internally, as seen in MTU. However, in MTT, we see the considerably more complex typed method translation. As this method must be callable with any argument, the argument type of the untyped function must be \any, then translate the body of the method to account for the altered argument type.
 
-As seen in the expression translation below, we cast every variable to the statically expected type whenever it is seen in the program. However, this is insufficient, as if the method does not use its argument, then without further checking, it can succeed even if the argument value is ill-formed. Solving this problem is challenging, as KafKa does not allow us to write multiple line expressions. What KafKa does have, though, is the ability to write multiple expressions in a new statement with a guaranteed evaluation order, which is sufficient for our purposes. 
+As seen in the expression translation below, we cast every variable to the statically expected type whenever it is seen in the program. However, this is insufficient, as if the method does not use its argument, then without further checking, it can succeed even if the argument value is ill-formed. Solving this problem is challenging, as \kafka does not allow us to write multiple line expressions. What \kafka does have, though, is the ability to write multiple expressions in a new statement with a guaranteed evaluation order, which is sufficient for our purposes. 
 
 To check the type of the argument, we then create a new instance of the empty utility class \EMxt{A2}, which has two fields, \EMxt{f1} and \EMxt{f2}, then set \EMxt{f1} to the casted value of the argument \x. While this value is used nowhere else in the program, the program will get stuck at this cast if the value is not of the specified type, maintaining the required. We then instantiate \EMxt{f2} to the translated body of the function, then return the value of \EMxt{f2}, producing the expected result. 
 
@@ -1738,7 +1771,7 @@ To check the type of the argument, we then create a new instance of the empty ut
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
-Transient expression translation contains only one real suprise, A3. Transient does not provide a sufficiently strong type invariant as to satisfy KafKa's field access typechecking, causing us to be unable to call a field setter or getter on any argument. As a concequence, we can only call fields on the self reference \this, which is handled as a special case as A3, since the combination of A1 and A2 is not sufficient to typecheck a field access due to the weakness of the type invariant.
+Transient expression translation contains only one real suprise, A3. Transient does not provide a sufficiently strong type invariant as to satisfy \kafka's field access typechecking, causing us to be unable to call a field setter or getter on any argument. As a concequence, we can only call fields on the self reference \this, which is handled as a special case as A3, since the combination of A1 and A2 is not sufficient to typecheck a field access due to the weakness of the type invariant.
 
 \begin{mathpar}
 \IRule{AASC1}{
@@ -1857,7 +1890,7 @@ At the surface language level, the Monotonic semantics are very similar to that 
 }
 \end{mathpar}
 
-\bibliographystyle{plain}
+\bibliographystyle{unsrturl}
 \bibliography{../bib/jv,../bib/all}
 
 \appendix
@@ -2419,6 +2452,7 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
 %% a2 = new A(a1)
 %% a3 = new A(a2)
 %% b = <|B|> a3
+%% c = <|C|> a3
 
 % translated
 
@@ -2490,7 +2524,7 @@ If $\StrSub\cdot\K\t\tp$ then $\StrSub\cdot{\K~\Kp}\t\tp$.
 
 If $\Mtype\n{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable) $\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\n{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$
 
-\subsection{Soundness of \name Typing}
+\subsection{Soundness of \kafka Typing}
 
 Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is of one of the following forms:
 \begin{itemize} 
