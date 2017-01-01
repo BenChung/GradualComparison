@@ -1,6 +1,6 @@
 \documentclass[a4paper,USenglish]{tex/lipics-v2016}
 \usepackage{xspace,listings,url,framed,amssymb,
-            amsmath,tex/mathpartir,hyperref,
+            amsmath,tex/mathpartir,hyperref,doi,
             stmaryrd, graphicx, tikz, colortbl} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \input{macros}
@@ -44,19 +44,39 @@ piecemeal. Soundness for programs which contain a mixture of typed and
 untyped code entails catching some errors at type checking time and other
 errors as the program executes. After a decade of research on gradual types
 it has become clear that the combination of mutable state, self references
-and subtyping present serious challenges for the implementation of gradual
-type systems for object-oriented languages.  This papers presents an
-overview of the state of the art in gradual types for objects. We introduce
-\kafka, a class-based object calculus with a static type system, dynamic
-method dispatch, transparent wrappers and dynamic class generation. We model
-key features of several type systems for dynamic languages by translation to
-\kafka and discuss the implication of the respective designs.
+and subtyping present serious challenges to implementers of gradual type
+systems for object-oriented languages.  This papers overviews the state of
+the art in gradual types for objects. We introduce \kafka, a class-based
+object calculus with a static type system, dynamic method dispatch,
+transparent wrappers and dynamic class generation. We model key features of
+several type systems for dynamic languages by translation to \kafka and
+discuss the implication of the respective designs.
 \end{abstract} 
 
 \section{Introduction}
 A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
 for a variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996:theory-of-objects}. The key insight in that
+calculus~\cite{cardelli:1996:theory-of-objects}. Their type system featured
+a subtype relation that combined structural subtyping with the consistency
+relation between terms that only differ in dynamic type annotations.
+Soundness at the boundaries between typed and untyped code is ensured by
+inserting casts as in their previous work that targeted purely functional
+languages~\cite{SiekTaha06}.
+
+Practical realizations of that elegant idea have proved suprisingly elusive.
+One reason is that the original paper did not consider mutable state.  The
+combination of state and aliasing complicates enforcement strategies as one
+must consider the case where the same object is being accessed at different
+types in the same program. While it is posible to deal with state, the
+performance implications of current implementation strategies seem daunting.\footnote{Every practical sound type system reports order of magnitude pathologies, e.g. 
+5x for Gradualtalk~\cite{allende13},
+10x for Reticulated Python~\cite{siek14},
+22x for Safe Typescript~\cite{safe-typescript},
+121x Typed Racket~\cite{popl16}.}
+
+
+
+The key insight in that
 paper was to marry structural subtyping with the consistency relation
 between terms that only differ by the addition of type annotations.
 
@@ -1870,7 +1890,7 @@ At the surface language level, the Monotonic semantics are very similar to that 
 }
 \end{mathpar}
 
-\bibliographystyle{plain}
+\bibliographystyle{unsrturl}
 \bibliography{../bib/jv,../bib/all}
 
 \appendix
