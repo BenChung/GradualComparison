@@ -1063,7 +1063,6 @@ For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
 untyped methods, a dynamic call is blanketed by casts to \any.
 
-%TODO: Still does need e.m
 \newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_t #4}
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt_s}}{\b{\mt_t}}\x\x }
@@ -1086,7 +1085,8 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \IRule{REW9}{ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\b\e}{\b\ep} }{\rtranst{\b\mt_s}{\b\mt_t}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
-
+\newcommand{\ignorethis}[1]{}
+\ignorethis{
 \newcommand{\rtransut}[3]{#1 \vdash #2 \looparrowright_u #3}
 \begin{mathpar}
 \IRule{REU1}{ }{ \rtransut{\b\mt}\x\x }
@@ -1103,6 +1103,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \IRule{REU7}{ \rtransut{\b\mt}{\b\e}{\b\ep} }{\rtransut{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
+}
 
 
 \begin{figure}[!ht]
@@ -1117,50 +1118,48 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\BehCast\tp{\Get{\Get\this\that}\f}~}
-&    \All f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+&    \All \f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\
 \SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
-&    \All f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
+&    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
 \SPP \Mdef\m\x\t\tp {~\BehCast\tp{{[\BehCast\Cp\x / \x] \ep}}~}
-&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
-&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
 &&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
 \\
 \SPP \Mdef\m\x\t\tp{~\BehCast\tp{[\BehCast\any\x/\x]\ep}~}
-&     \All m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
-&    \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
+&    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
 \\
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
-&    \All f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
+&    \All \f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
-&    \All m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\ep~}
-&    \All m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SP \}
 \\
-\wrapAny\C\bmt\D = \\
+\wrapAny\C\bmt\bmd\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
 &  \All \m  \Mtype\f{}\t \in \bmt\\
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &  \All \f  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any{~\BehCast\any{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
-&  \All \m  \Mtype\m\Cp\Cpp \in \bmt\\
-\SPP   \Mdef\m\x\any\any{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\Cp\x}~}
-&  \All \m  \Mtype\m\any\any \in \bmt\\
+\SPP   \Mdef\m\x\t\tp {~\BehCast\any{{[\BehCast\t\x / \x] \ep}}~}
+&  \All \m \Mdef\m\x\t\tp\e\in\b\md  &\wedge& \rtranst{\bmt}\cdot{\e}{\ep}\\
 \SP \}\\
 \end{array}\]
 %}%%END IGNORE
