@@ -12,6 +12,32 @@
 \renewcommand*{\epigraphsize}{\normalsize\itshape}
 
 
+
+\definecolor{vlightgray}{gray}{0.93}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof,new,true,false,instanceof,catch,function,return,null, 
+    catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{darkgray},
+  ndkeywords={class,def,interface,export,boolean,throw,extends,implements,import,this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,  comment=[l]{//},  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,  stringstyle=\color{gray}\ttfamily,
+  morestring=[b]',  morestring=[b]",
+  backgroundcolor=\color{vlightgray},
+  aboveskip=\medskipamount, %0em,
+  belowskip=\smallskipamount %0em
+}
+\lstset{
+  language=JavaScript,  extendedchars=true,  basicstyle=\small\ttfamily,
+  showstringspaces=false,   showspaces=false,  numberstyle=\small,
+  numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
+}
+
+
+
+
 \usepackage[textsize=tiny]{todonotes}
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Gradual Types for Objects Redux}
@@ -273,11 +299,13 @@ applications. Moreover, to deal with higher-order functions which TypeScript
 inherits from JavaScript, the language does use contract for functions.
 
 \newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
+\newcommand{\X}{\EM{\bullet}}
+\newcommand{\XX}{\EM{\bullet^1}}
 \begin{figure}[!ht]
   \center
 ~ \\[2cm]
-  {\small
-\begin{tabular}{l|llllllllllllllr}
+  {\footnotesize
+\begin{tabular}{r|lllllllllllllr}
 & & \rot{Nominal}
   & \rot{Optional types}
   & \rot{Concrete types}
@@ -290,20 +318,26 @@ inherits from JavaScript, the language does use contract for functions.
   & \rot{Shallow cast}
   & \rot{Generative cast}
   & \rot{Blame assignment}
-  & \rot{Pathologies}\\
-  \\\hline
-Dart        &&x &x &  &  & x &   &   &   & x &   &   &   &  - &\\\hline
-Hack        &&x &x &  &  & x &   &   &   & x &   &   &   &  - & \\\hline
-C\#         &&x &x &x &  & x &   & x & x & x &   &   &   &  - & \\\hline
-Thorn       &&x &x &x &  & x &   & 1 & x & x &   &   &   & 1x  &\\\hline
-StrongScript&&x &x &x &x & x &   & 1 &   & x &   &   &   & 1.1x  & \\\hline
-Typed Racket&&  &  &  &x & x & x & x &   &   & x & x & x & 121x  &\\\hline
-Gradualtalk &&x &  &  &x & x &   & x &   &   &   & x & x &  5x &\\\hline
-Reticulated
-Python      &&  &  \\
-\it Monotonic&&  &  &  &x & x &   & x &   &   &   & x & x &   &\\
-\it Transient&&  &x &  &  & x &   & x &   &   & x &   & x &   &\\
-\it Guarded  &&  &  &  &x & x &   & x &   &   &   & x & x &  10x &\\\hline
+  & \rot{Pathologies}
+  \\
+Dart         &&\X &\X &   &   &\X &   &    &    &\X &   &   &   &  - 
+\\\hline
+Hack         &&\X &\X &   &   &\X &   &    &    &\X &   &   &   &  -  
+\\\hline
+C\#          &&\X &\X &\X &   &\X &   & \X & \X &\X &   &   &   &  -  
+\\\hline
+Thorn        &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   & 0.8x
+\\\hline
+StrongScript &&\X &\X &\X &\X &\X &   &\XX &    &\X &   &   &   & 1.1x   
+\\\hline
+Typed Racket &&   &   &   &\X &\X &\X &\X  &    &   &\X &\X &\X & 121x 
+\\\hline
+Gradualtalk  &&\X &   &   &\X &\X &   & \X &    &   &   &\X &\X &  5x
+\\\hline
+Reticulated Python    \\
+\it Transient&&   &\X &   &   & \X &  & \X &    &   &\X &   &\X & 10x \\
+\it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  27x\\
+\it Guarded  &&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  21x\\
 \end{tabular}}
 \caption{Overview of implemented systems.}\label{over}
 \end{figure}
