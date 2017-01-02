@@ -5,12 +5,19 @@
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \input{macros}
 
+\usepackage{epigraph}
+\setlength{\epigraphwidth}{0.75\linewidth}
+\setlength{\epigraphrule}{0pt}
+\renewcommand*{\textflush}{flushright}
+\renewcommand*{\epigraphsize}{\normalsize\itshape}
+
+
 \usepackage[textsize=tiny]{todonotes}
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Gradual Types for Objects Redux}
 \titlerunning{Gradual Types for Objects Redux}
 %% provide for each author the \author and \affil macro, even if same
-\author[1]{A. Nonymous, et al.}
+\author[1]{Ano Nymous, et al.}
 %\affil[1]{}
 \authorrunning{Anon} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
 \Copyright{Anon}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
@@ -53,7 +60,15 @@ several type systems for dynamic languages by translation to \kafka and
 discuss the implication of the respective designs.
 \end{abstract} 
 
+
+
 \section{Introduction}
+
+\epigraph{\vspace{-12mm}
+  ``Because half the problem is seeing the problem''
+\vspace{-15mm}}
+
+\noindent
 A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
 for a variant of Abadi and Cardelli's object-based
 calculus~\cite{cardelli:1996:theory-of-objects}. Their type system featured
@@ -89,12 +104,11 @@ implementation strategies seems daunting.\footnote{Most practical
   slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
   Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and
   121x for Typed Racket~\cite{popl16}. These numbers merely indicate the
-  existence of configurations of type annotations that hurt performance.
-  They are neither comparable between each other, nor worst case indicators.
-  Most systems lack rigorous evaluations.  } Predictably, industrial
-strength systems have chosen to compromise on soundness to avoid degrading
-performance.\footnote{Industrial languages such as Dart, Typescript, Hack
-  have unchecked, or partially checked, execution modes that will not catch
+  existence of configurations that hurt performance.  They are neither
+  comparable nor worst case indicators.  Most systems lack rigorous
+  evaluations.  } Predictably, industrial strength systems have chosen to
+compromise on soundness to avoid degrading performance.\footnote{Industrial
+  languages (Dart, Typescript, Hack) have unchecked modes that won't catch
   all type errors.}
 
 The goal of this paper is to explore the design space of gradual type system
@@ -146,48 +160,32 @@ cast could also test for tags of primitive types. \kafka, also has two, so
 called, generative casts. The behavioral cast \BehCast\t\a generates a
 wrapper object that monitors that methods invoked on \a abide by the
 interface of type \t. The monotone cast \MonCast\t\a returns a wrapper which
-monitors all invocations to \a from any reference. 
+monitors all invocations to \a from any reference.
 
+\renewcommand{\u}[1]{\underline{#1}\xspace}
 
-% Class based
-% Nominal subtyping
-% First class classes
-% Soundness claim
+Another contribution of this work is the translation from gradual type
+system into \kafka. Each expression \HT{\u\e}{\u\T} in the gradually typed
+language is translated to the \kafka term \HT\e\T, for each gradual type
+\u\T there is a corresponding type \T in \kafka, and, similarly, each
+expression \u\e has an equivalent \e. While \kafka has simple notion of
+soundness, soundness of gradual types is a more interesting story. At the
+\kafka level, a well type program can get stuck at a cast or at a
+dynamically resolved call. For a gradually typed system, an expression of
+the form \Call{\u\x}\m{\u{\x'}} where \u\x is declared to belong to some
+class \u\C can have significantly different behaviors. In optional type
+systems, e.g.  TypeScript, the type \u\C translates to \any, the actual
+value denoted by \u\x can be an object of any class. In this case, we say
+that \u\C is an \emph{unconstrained} type. The TypeScript compiler can still
+catch static errors when \u\x is used in a way that is inconsistent with
+\u\C.  In type systems that support \emph{concrete types}, such as C\# and
+StrongScript, \u\C maps directly to \C and the object denoted by \u\x must
+of the class \C or a subtype. Lastly, in sound gradual type systems like
+that of Typed Racket, \u\C is a \emph{promised type}, that is \u\x can
+either refer to an instance of class \C or to a wrapper over an object that
+has all the methods of \C but may, or may not, behave as \C. In case it
+doesn't the computation will get stuck.
 
-This paper explores the design space of gradual type systems for
-object-oriented languages. We aim to expose the main forces influencing the
-design of practical systems, and to provide advice for the next generation
-of gradually typed languages. To this end, we have designed a minimialistic
-object-based language that supports statically and dynamically typed code
-fragments. On top of this common core, we then build models of several
-practical gradual type systems and illustrate their differences in terms of
-catching errors. While our work has a formal flavor, we are careful to
-discuss the practical implications of different choices in the light of our
-experience with the implementation of several gradually typed systems.
-
-The fundamental property that a type system object-based language should
-guarantee is that an expression of the form 
-\vspace{-1mm}\[ \xt{x.m(y)} \]
-
-\vspace{-1mm}\noindent does not result in, to borrow Smalltalk terminology,
-a \emph{message not understood} error.  That is to say, method \xt{m} exists
-in the object bound to variable \x. Many static type systems only
-provide a partial guarantee as they make an exception for \xt{null} or
-\xt{undefined} references; the call may fail as the test whether \x is
-bound to an object is deferred to execution.
-
-At the heart of the design of a gradual type system lies the choice of
-definition of \emph{soundness} and the static and dynamic mechanisms
-employed to enforce it. The literature is ripe with proposals with subtly
-different properties and mechanisms.  One key distinction is what it means
-for a variable \x to be of type \T. In a traditional statically typed
-language, \x will refer to either an instance of the class denoted by \T or
-one of its sub-classes; we say that \T is a \emph{concrete type}. In some
-proposals, a variable \x of type \T can refer to an instance of any class,
-in this case we say that \T is \emph{unconstrained type}. Lastly, in some
-systems \x is allowed to refer to any value but the language implementation
-will ensure that the value behaves as if it was of type \T, we call this a
-\emph{promised type}.
 
 While statically typed languages such as Scala only offer concrete types and
 dynamically typed languages like Python have a single, implicit,
@@ -200,6 +198,11 @@ TypeScript~\cite{typescript13} support only unconstrained types.  Finally
 Reticulated Python~\cite{siek14} and Typed Racket~\cite{tf-dls06} support
 promised types.
 
+
+% Class based
+% Nominal subtyping
+% First class classes
+% Soundness claim
 
 \section{Inside the Cottages}
 %explanation..
