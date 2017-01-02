@@ -105,9 +105,28 @@ prevent adoption of some of the more ambitious type systems, there are are
 also opportunities for improving on existing techniques.  This paper will
 hopefully lay out an agenda for future investigations.
 
+In order to capture the essence of gradual typing for objects and to
+highlight the challenges implementers face, we present translations of
+gradual type system into a common target language. Targeting a common
+language lets us reason about the different systems in the same framework
+and makes comparisons possible. But which language should we target?  While
+the common language should be simple to avoid linguistic clutter, key
+features of object-oriented languages should be expressed directly rather
+than by encoding. We propose a target language inspired by modern runtime
+systems such as the Java Virtual Machine and the .Net environment.  Both
+have reasonably efficient implementations. They have a static type systems
+with classes and subtyping but allow for dynamically resolved method
+dispatch.\footnote{Both languages support reflective method invocation based
+  on the string name of the invoked method. Since C\# 4.0, dynamic
+  resolution is part of the language~\cite{BAT14}. In Java,
+  \xt{invokedynamic} allows for custom method dispatch.} In both
+environments, primitive types can be unboxed as the static typing an
+accurately final types.
 
-To capture the essence of gradual typing for object, we will compile
-different type system to the same core calculus. The
+One contribution of this work is \kafka, a statically typed, class-based,
+object calculus with mutable state and structural subtyping.
+
+
 
 In order to present the essence of
 gradual typing for objects we introduce \kafka, a statically typed
