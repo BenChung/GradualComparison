@@ -1283,29 +1283,24 @@ For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
 untyped methods, a dynamic call is blanketed by casts to \any.
 
-\newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_{beh} #4}
+\newcommand{\rtranst}[6]{#1 \Rightarrow #2 ~ #3 / #4 \vdash #5 \looparrowright_{beh} #6}
 
 \begin{figure}[!ht]
 \hrulefill
 \begin{mathpar}
-\IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\x\x }
+\IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\e\x }
 \\
-\IRule{REW2}{ \Mtype\f{}\t \in \b{\mtp} }{\rtranst{\b{\mt}}{\b{\mtp}}{\Get\this\f}{\BehCast\t{\Get\this\f}} }
+\IRule[width=25em]{REW2}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp}  \\ 
+\b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{\BehCast{\tp_1}{\Call{\this}\n{\b{\BehCast{\t_2}{\ep}}}}}}
 
-\IRule{REW3}{ \e \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}{\e}{\ep} }{\rtranst{\b{\mt}}{\b{\mtp}}{\Get\e\f}{\Get\ep\f}}
+\IRule[width=25em]{REW3}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
+\b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{{\Call{\this}\n{\b{{\ep}}}}}}
 
-\IRule[width=20em]{REW4}{ \Mtype\f\t\t \in \b{\mt} \\ \Mtype\f\tp\tp \in \b{\mtp} \\ \rtranst{\b{\mt}}{\b{\mtp}}{\e}{\ep} }{\rtranst{\b{\mt}}{\b{\mtp}}{\Set\this\f\e}{\BehCast\tp{\Set\this\f{\BehCast\t\ep}}}}
+\IRule[width=20em]{REW4}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}}
 
-\IRule[width=20em]{REW5}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2} }{\rtranst{\b{\mt}}{\b{\mtp}}{\Set{\e_1}\f{\ep_1}}{\Set{\e_2}\f{\ep_2}}}
+\IRule{REW5}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
 
-\IRule[width=25em]{REW6}{ \Mtype\m{\t_1}{\tp_1} \in \b{\mt} \\ \Mtype\m{\t_2}{\tp_2} \in \b{\mtp}  \\ 
-\rtranst{\b{\mt}}{\b{\mtp}}{\e}{\ep}}{\rtranst{\b{\mt}}{\b{\mtp}}{\Call{\this}\m{\e}}{\BehCast{\tp_1}{\Call{\this}\m{\BehCast{\t_2}{\ep}}}}}
-
-\IRule[width=20em]{REW7}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
-
-\IRule{REW8}{ \rtranst{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
-
-\IRule{REW9}{ \rtranst{\b{\mt}}{\b{\mtp}}{\b\e}{\b\ep} }{\rtranst{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{REW6}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\b\e}{\b\ep} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
 \vspace{-2mm}
@@ -1331,17 +1326,17 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x\t\tp {~\BehCast\tp{{[\BehCast\Cp\x / \x] \ep}}~}
+\SPP \Mdef\m\x\t\tp {~\BehCast\tp{{\ep}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranst{\bmt}\bmtp{(\BehCast\Cp\x)}\x{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
 &&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
 \\
-\SPP \Mdef\m\x\t\tp{~\BehCast\tp{[\BehCast\any\x/\x]\ep}~}
+\SPP \Mdef\m\x\t\tp{~\BehCast\tp{\ep}~}
 &     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranst{\bmt}\bmtp{(\BehCast\any\x)}\x\e\x{\e}{\ep}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
@@ -1351,11 +1346,11 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
 &    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranst{\bmt}\bmtp\x\x{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\ep~}
 &    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranst{\bmt}\bmtp\x\x{\e}{\ep}
 \\
 \SP \}
 \\
@@ -1366,13 +1361,13 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 &  \All \m  \Mtype\f{}\t \in \bmt\\
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &  \All \f  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\t\tp {~\BehCast\any{{[\BehCast\t\x / \x] \ep}}~}
-&  \All \m \Mdef\m\x\any\any\e\in\b\md  &\wedge& \rtranst{\bmt}\cdot{\e}{\ep}\\
+\SPP   \Mdef\m\x\t\tp {~\BehCast\any{{\ep}}~}
+&  \All \m \Mdef\m\x\any\any\e\in\b\md  &\wedge& \rtranst{\bmt}\cdot{(\BehCast\t\x)}\x{\e}{\ep}\\
 \SP \}\\
 \end{array}\]
 %}%%END IGNORE
 %   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
-
+% TODO: untyped(mt)
 \hrulefill
 %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \caption{Wrapper class generation.}\label{wrap}
@@ -1404,13 +1399,13 @@ converted to the expected return type with another behavioral cast.
 \begin{tabular}{ll}\begin{minipage}{6cm}
 \[\begin{array}{l}
 \class ~\C~ \{\\
-\SP  \Mdef\m\x\E\E\x\\
-\SP  \Mdef\mp\x\E\E\x\\
+\SP  \Mdef\m\e\x\E\x\\
+\SP  \Mdef\mp\e\x\E\x\\
 \}\\[2mm]
 \class ~\EMxt{CtoD}~ \{\\
 \SP  \Fdef\that\C\\
 \SP  \Mdef \m\x\any\any{\Call{\Get\this\that}\m{\BehCast\E\x}}\\
-\SP  \Mdef \mp\x\E\E{\Call{\Get\this\that}\mp\x}\\
+\SP  \Mdef \mp\e\x\E{\Call{\Get\this\that}\mp\x}\\
 \}\\
 \end{array}\]
 \end{minipage}
@@ -1424,8 +1419,8 @@ converted to the expected return type with another behavioral cast.
 \\[2mm]
 \class ~\EMxt{CtoDtoC}~ \{\\
 \SP  \Fdef\that{\EMxt{CtoD}}\\
-\SP  \Mdef\m\x\E\E{ \BehCast\E{\DynCall{(\SubCast\any{\Get\this\that})}\m{\BehCast\any\x}}}\\
-\SP  \Mdef\mp\x\E\E{ \Call{\Get\this\that}\mp{\x}}\\
+\SP  \Mdef\m\e\x\E{ \BehCast\E{\DynCall{(\SubCast\any{\Get\this\that})}\m{\BehCast\any\x}}}\\
+\SP  \Mdef\mp\e\x\E{ \Call{\Get\this\that}\mp{\x}}\\
 \}\\
 \end{array}\]
 \end{minipage}
