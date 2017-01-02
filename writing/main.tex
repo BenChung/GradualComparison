@@ -148,10 +148,11 @@ classes (by update of the class table \K and allocation of new objects \a).
 Methods can be statically resolved, denoted by a simple call \Call\a\m\x
 operation, or can be dynamically resolved, denoted by a dynamic call
 \DynCall\a\m\x. The \kafka type system is based on structural subtyping,
-this is not an essential part of the design, it could be replaced with a
-traditional nominal system with multiple subtyping as in Java or C\#.  The
-last noteworthy feature is that to support transparent wrappers, \kafka has
-a distinguished \that field which does not appear in a class' type.
+although this is not essential, we could also use a nominal type system with
+multiple subtyping as in Java or C\#.  \kafka has a dynamic type, denoted
+\any. It's last noteworthy feature is support for transparent wrappers:
+\kafka has a distinguished \that field which does not appear in a class'
+type.
 
 The heart of the translation to \kafka is the insertion of explicit casts.
 \kafka includes four cast operations. Two of the cast are purely structural.
@@ -231,10 +232,65 @@ can be assigned to module where the value originated. In Typed Racket, the
 granularity of typing is the module, thus each module is either entirely
 typed or entirely untyped.
 
-% Class based
-% Nominal subtyping
-% First class classes
-% Soundness claim
+Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as any
+type system that allows programmers to control the degree of static checking
+for a program by choosing to annotate function parameters with types, or
+not. Their contribution was formalization in a lambda calculus with
+references and a proof of soundness that stated that all type errors would
+be caught. They defined the type consistency relation $\t \sim \tp$ which
+states that a type that agree on non-\any position are compatible.  In their
+follow up~\cite{SiekTaha07} they extended the work to a stateless object
+calculus and combined consistency with structural subtyping. Extending the
+approach to mutable objects proved challenging. Reticulated
+Python~\cite{siek14} attempts to find a reasonable compromise between
+soundness and efficiency.  The language has three modes: in \emph{guarded}
+mode, Python behaves as Typed Racket with contracts applied to values,
+\emph{transient} mode performs first order checks before each call, and the
+\emph{monotonic} mode is similar to guarded except there is at most one
+wrapper per object and casts can only remove occurences of \any from its
+type.
+
+Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
+4.0~\cite{Beirman10}, Thorn~\cite{oopsla09},
+StrongScript~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
+Felleisen-style contracts and mostly nominal subtyping. C\# 4.0 adds the
+type \sf{dynamic} (i.e.~\any) to the language and dynamically resolved
+method invocation when the receiver is of type \any.  This means C\# has a
+dynamic sublanguage that allows developer to write unchecked code, but it
+also has a strongly type sublanguage in which values are guaranteed to be of
+their declared type.  Thorn and StrongScript extend the C\# approach with
+the addition of optional types (called like types).  Thorn is a new language
+implemented by translation to the JVM.\footnote{The translation strategy is
+  quite close to that presented here.} The presence of concrete types means
+that the compiler can optimize code (unbox data and inline methods) and
+programmers are guaranteed that type errors will not occur within concretely
+typed code.  StrongScript takes Thorn and reimplements it within the context
+of TypeScript.  The interesting design choices there are that while
+TypeScript originally relied on structural subtyping, StrongScript changed
+the language to follow a nominal discipline. It is interesting to note that
+this change did not affect the semantics of benchmark
+applications. Moreover, to deal with higher-order functions which TypeScript
+inherits from JavaScript, the language does use contract for functions.
+
+\newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
+\begin{figure}[!ht]
+  {\small
+\begin{tabular}{|l|l|l|l|l|}
+  & \rot{Nominal types}
+  & \rot{Class based}
+  & \rot{First-class Class}
+  & \rot{Soundness claimed}
+  \\\hline
+  Typed Racket\\
+  StrongScript\\
+  Thorn\\
+  Reticulated Python \\
+  Gradualtalk\\
+  C\# \\
+  Dart \\  
+  \\\hline
+\end{tabular}}
+\end{figure}
 
 REWRITEREWRITEREWRITEREWRITEREWRITEREWRITEREWRITEREWRITE
 
