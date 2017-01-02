@@ -1280,7 +1280,7 @@ For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
 untyped methods, a dynamic call is blanketed by casts to \any.
 
-\newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_t #4}
+\newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_{beh} #4}
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt_s}}{\b{\mt_t}}\x\x }
 \\
@@ -1653,6 +1653,7 @@ method.
 The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
 
+\newcommand{\rtranstz}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_{mon} #4}
 
 \begin{figure}[!ht]
 \hrulefill 
@@ -1670,11 +1671,12 @@ for them according to the new wrapper \C.
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
 &    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\ep~}
 &    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
+\\
 \SP \}\\
 \end{array}\]
 \hrulefill
