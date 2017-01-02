@@ -18,6 +18,7 @@
 \titlerunning{Gradual Types for Objects Redux}
 %% provide for each author the \author and \affil macro, even if same
 \author[1]{Ano Nymous, et al.}
+%% Benjamin Chung, Paley Li, Jan Vitek
 %\affil[1]{}
 \authorrunning{Anon} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
 \Copyright{Anon}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
@@ -215,8 +216,20 @@ concrete types.
 On the functional side, the ancestry is dominated by the work of Felleisen
 and his students.  The Typed Scheme~\cite{tf-popl08} design that later
 became Typed Racket is strongly influenced by their earlier work on
-higher-order contracts~\cite{ff-icfp02}. The approach is quite different
-from optional types. 
+higher-order contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a
+vehicle for teaching programming to high-school students and undergraduates.
+For that reason, being able to explain the source of errors was viewed as an
+important design constraint as well as preventing surprises -- a variable
+annotated as a \C should behave as a \C. If it doesn't, then that should be
+reported at the first discrepancy. The approach to typing is thus quite
+different from optional types. In Typed Racket, whenever a value crosses a
+boundary between typed and untyped code, the value will be wrapped in a
+contract that monitors it's behavior. This allows to ensure that the type of
+mutable values remains consistent with their declared type and that
+functions respect their declared interface. When a value misbehaves, blame
+can be assigned to module where the value originated. In Typed Racket, the
+granularity of typing is the module, thus each module is either entirely
+typed or entirely untyped.
 
 % Class based
 % Nominal subtyping
