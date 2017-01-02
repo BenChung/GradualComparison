@@ -72,19 +72,19 @@
 
 \begin{abstract}
 The enduring popularity of dynamically typed languages has given rise to a
-cottage industry of static type systems, often referred to as \emph{gradual
-  type systems}, that allow developers to annotate legacy untyped code
-piecemeal. Soundness for programs which contain a mixture of typed and
-untyped code entails catching some errors at type checking time and other
-errors as the program executes. After a decade of research on gradual types
-it has become clear that the combination of mutable state, self references
-and subtyping present serious challenges to implementers of gradual type
-systems for object-oriented languages.  This papers overviews the state of
-the art in gradual types for objects. We introduce \kafka, a class-based
-object calculus with a static type system, dynamic method dispatch,
-transparent wrappers and dynamic class generation. We model key features of
-several type systems for dynamic languages by translation to \kafka and
-discuss the implication of the respective designs.
+cottage industry of static type systems, referred to as \emph{gradual type
+  systems}, that let developers annotate legacy code piecemeal. Soundness
+for programs which mix typed and untyped code means that some errors will
+caught at type checking time and while other will be caught as the program
+executes. After a decade of research on gradual types it has become clear
+that the combination of mutable state, self references and subtyping
+presents serious challenges to implementers of gradual type systems.  This
+papers reviews the state of the art in gradual typing for objects. We
+introduce \kafka, a class-based object calculus with a static type system,
+dynamic method dispatch, transparent wrappers and dynamic class
+generation. We model key features of several type systems for dynamic
+languages by translation to \kafka and discuss the implications of the
+respective designs.
 \end{abstract} 
 
 
@@ -100,15 +100,15 @@ discuss the implication of the respective designs.
 \noindent
 A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
 for a variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996:theory-of-objects}. Their type system featured
-a subtype relation that combined structural subtyping with the consistency
-relation between terms that only differ in dynamic type annotations.
-Soundness at the boundaries between typed and untyped code is ensured by
-inserting casts as in their previous work that targeted purely functional
-languages~\cite{SiekTaha06}.  Ten years later, many systems support the
-gradual addition of type annotations to untyped object-oriented
-programs.\footnote{Languages which allow mixing  typed and untyped with 
-objects include
+calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a
+dynamic type, denoted \any, and a subtype relation that combined structural
+subtyping with a consistency relation between terms that differ in dynamic
+type annotations.  Soundness at the boundaries between typed and untyped
+code is ensured by inserting casts as was already done in their previous
+work that targeted functional languages~\cite{SiekTaha06}.  Ten years later,
+many systems support the gradual addition of types to untyped
+object-oriented programs.\footnote{Languages which allow mixing typed and
+  untyped with objects include
 %%
 C\#~\cite{Bierman10},
 Dart~\cite{dart13}, 
@@ -122,23 +122,24 @@ Thorn~\cite{oopsla09},
 Typed Racket~\cite{Takikawa:2012}, 
 TypeScript~\cite{BAT14}.}
 %%
-Yet, faithful realizations of that elegant idea have proved to be
-surprisingly elusive.  One reason is that the paper did not consider mutable
-state.  The combination of mutable state, aliasing and subtyping complicates
-enforcement strategies as one must consider the case where one object is
-being accessed at different types. While several solutions have been
-proposed to address this, the performance implications of their
-implementation strategies seems daunting.\footnote{Most practical
-  \emph{sound} type system reports order of magnitude pathologies, e.g.~5x
-  slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
-  Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and
-  121x for Typed Racket~\cite{popl16}. These numbers merely indicate the
-  existence of configurations that hurt performance.  They are neither
-  comparable nor worst case indicators.  Most systems lack rigorous
-  evaluations.  } Predictably, industrial strength systems have chosen to
-compromise on soundness to avoid degrading performance.\footnote{Industrial
-  languages (Dart, Typescript, Hack) have unchecked modes that won't catch
-  all type errors.}
+Yet, faithful realizations of Seik and Taha's elegant idea have proved to be
+surprisingly elusive.  One reason for this may be that the paper did not
+consider state.  The combination of mutable state, aliasing and subtyping
+complicates enforcement strategies as one must consider situations where an
+object is being accessed at different types. While several solutions have
+been proposed to address this, the performance implications of the
+implementation strategies implied by these solutions seem
+daunting.\footnote{Most practical \emph{sound} type system reports order of
+  magnitude pathologies, e.g.~5x slow downs for
+  Gradualtalk~\cite{allende13}, 10x for Reticulated Python~\cite{siek14},
+  22x for Safe Typescript~\cite{safe-typescript}, and 121x for Typed
+  Racket~\cite{popl16}. These numbers merely indicate the existence of
+  configurations that hurt performance.  They are neither comparable nor
+  worst case indicators.  Most systems lack rigorous evaluations.  }
+Predictably, industrial strength systems have chosen to compromise on
+soundness to avoid degrading performance.\footnote{Industrial languages
+  (Dart, Typescript, Hack) have unchecked modes that won't catch all type
+  errors.}
 
 The goal of this paper is to explore the design space of gradual type system
 for object-oriented languages. We aim to expose some of the forces that have
@@ -155,13 +156,13 @@ language lets us reason about the different systems in the same framework
 and makes comparisons possible. But which language should we target?  While
 the common language should be simple to avoid linguistic clutter, key
 features of object-oriented languages should be expressed directly rather
-than by encoding. We propose a target language inspired by modern runtime
-systems such as the Java Virtual Machine and the .Net environment.  Both
-have reasonably efficient implementations. They have a static type systems
-with classes and subtyping but allow for dynamically resolved method
-dispatch.\footnote{Both languages support reflective method invocation based
-  on the string name of the invoked method. Since C\# 4.0, dynamic
-  resolution is part of the language~\cite{BAT14}. In Java,
+than by encoding. We propose to target a typed object-oriented language
+inspired by modern runtime systems such as the Java Virtual Machine and the
+.Net environment.  Both have reasonably efficient implementations. They have
+a static type systems with classes and subtyping but allow for dynamically
+resolved method dispatch.\footnote{Both languages support reflective method
+  invocation based on the string name of the invoked method. Since C\# 4.0,
+  dynamic resolution is part of the language~\cite{BAT14}. In Java,
   \xt{invokedynamic} allows for custom method dispatch.} In both
 environments, primitive types can be unboxed as the static typing an
 accurately final types.
