@@ -299,7 +299,7 @@ applications. Moreover, to deal with higher-order functions which TypeScript
 inherits from JavaScript, the language does use contract for functions.
 
 
-\subsection{Overview}
+\subsection{Surveying the design space}
 
 \figref{over} gives a synthetic overview of systems with publicly available
 implementations. All languages here are class-based, even TypeScript which
@@ -310,10 +310,11 @@ Gradualtalk which is nominal but also supports structural subtype if
 programmers want to use it.  TypeScript uses structural subtyping, but does
 not implement a runtime structural check. This is probably because of the
 JavaScript roots of the language, annecdotal evidence suggests that
-structural subtyping is not always exercised~\cite{ecoop15}. Python is
-structural because the consistency relation is fundamentally structural.
-Racket is structural because of it heavy use of first-class classes and
-class generation.
+structural subtyping is not always exercised~\cite{ecoop15}.  The
+consistency relation used in Reticulated Python is fundamentally structural.
+For Racket, the heavy use of first-class classes and class generation
+naturally leads to choosing structural subtyping as many of the classes
+being manipulated have no names.
 
 
 \newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
@@ -364,28 +365,37 @@ Reticulated Python    \\
 \caption{Overview of implemented systems.}\label{over}
 \end{figure}
 
-Optional types are the main mode of execution for Dart, Hack and
-TypeScript. Thogh Dart has a checked mode that can catch more errors (but is
-still not sound [CHECK]). Types in Transient Python are also optional, in
-the sense that a variable \x can refer to any value, but casts are applied
-before use.  
+Optional types are the default execution mode for Dart, Hack and TypeScript.
+Dart has a checked mode that can be turned on to catch some type errors.
+The Transient variant of Reticulated Python is essentially optionally typed,
+any value can flow into a variable regardless of its type
+annotation. Run-time checks are applied before method invocation.  C\#,
+StrongScript and Thorn support both optional and concrete types.  In the
+case of Thorn and C\#, when primitives are concretely typed they can be
+unboxed and do not require tagging.
 
-Concrete types are supported by C\#, StrongScript and Thorn. In the case of
-Thorn and C\# when primitives are concretely typed they can be unbox and do
-not require tagging.
+The choice of casts follows from other design decisions. Languages with
+concrete types naturally tend to use subtype casts to establish the type of
+values. For nominal systems there are highly optimized algorithms. Shallow
+casts are casts that only checking the presence of methods not their
+signature. These are used by Racket and Python to ensure some basic form of
+type conformance. Generative casts are used when information such as a type
+or a blame label must be associated with a reference or an object.
 
-Subtype casts are used in most nominal languages, they are fast and easy to
-implement. Shallow casts are used by Racket and Python to ensure that
-wrappers are applied to objects that have the right methods.
-
-Generative casts are casts that require associating information with
-objects, they typically allocate data structures.
-
-Blame assignment allows to track where an error comes from.
-
-Performance pathologies are self reported worst cases. These numbers should
-not be considered definitive performance indicator as they are self-reported
-values taken from very small sample sizes.
+The last column of \figref{over} lists self-reported performance
+pathologies.  These numbers are not comparable as they refer to different
+programs and different configurations of type annotations. They are also not
+likely to be worst case scenarios as many of these languages do not have a
+sufficient corpus of code written in them to conduct a thorough evaluation.
+Lastly, these implementations have not been optimized.  Nevertheless, one
+can observe that for optional types no overhead is expected as the type
+annotations are erased during compilation. Concrete types introduce very
+cheap casts, and lead to code that is can be compiled more efficiently. So
+experiments suggest performance improvements.  The Transient Reticulated
+Python performance can be viewed as a worst case scenario for concrete types
+-- i.e. there is a shallow cast at almost every call. Finally languages
+with generative casts tend to suffer prohibitive slow downs in pathological 
+cases.
 
 
 \subsection{Strongscript}
