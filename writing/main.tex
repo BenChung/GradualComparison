@@ -1637,62 +1637,92 @@ method.
 The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
 
+
 \begin{figure}[!ht]
-\footnotesize
-%\IGNOREUNLESSNEEDED{
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
-\arrayrulecolor{white}
-\classgen{\C, \bmt, \bmtp, \D,\K}= \\
-\SP \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.65,-0.5)(0,0.25) \class~\D~\{ \\
-\SPP \Fdef\that\C
-\\[1mm]
-\SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}} 
-&
-\All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
-\\[1mm]\hline
-\SPP \Mdef\m\x\any\any{
-  \SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} 
-&
-\All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
-\\[1mm]\hline
-\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
-      \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
-&
-\All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
-\\[1mm]\hline
-\SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
-&
- \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\[1mm]\hline
-% \SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
-% &
-%  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
-% \\[1mm]\hline
-% \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\t{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}}
-% & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
-% \\[1mm]\hline
-% \SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
-% &
-% \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
-% \\[1mm]\hline
-% \SPP \Mdef\m\x\any\any{ \DynCall{(\SubCast\any{\Get\this\that})}\m{\SubCast\any\x}}
-% &
-% \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
-% \\[1mm]\hline
-\SPP \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\Cp\x}}}}
-&
- \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp \\
-%  \\[1mm]\hline
-% \SPP \Mdef\m\x\Cp\Cpp { \Call{\Get\this\that}\m\x} \tikzmarkend{a}
-% &
-%  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp \not\in \bmtp \\
-\SP\}
-\end{array}
-\]
-%} 
-%\includegraphics[width=1\textwidth]{figures/classgenDefinition}
-\caption{Class generation.}\label{classgen}
+\hrulefill 
+\scriptsize
+\vspace{4mm}
+\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+    \classgen{\C, \b\md, \bmt, \bmtp, \D} = \\
+\SP \class ~\D ~ \{\\
+\SPP \Fdef\that\C \\
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
+&    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
+\\
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
+&    \All \f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
+\\
+\SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
+&    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+\\
+\SPP \Mdef\m\x\any\any {~\ep~}
+&    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
+\SP \}\\
+\end{array}\]
+\hrulefill
+%%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \caption{Monotonic class generation.}\label{classgen}
 \end{figure}
+
+
+% \begin{figure}[!ht]
+% \footnotesize
+% %\IGNOREUNLESSNEEDED{
+% \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+% \arrayrulecolor{white}
+% \classgen{\C, \bmt, \bmtp, \D,\K}= \\
+% \SP \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.65,-0.5)(0,0.25) \class~\D~\{ \\
+% \SPP \Fdef\that\C
+% \\[1mm]
+% \SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}} 
+% &
+% \All m \Mtype\m\Cp\Cpp\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+% \\[1mm]\hline
+% \SPP \Mdef\m\x\any\any{
+%   \SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} 
+% &
+% \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp
+% \\[1mm]\hline
+% \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
+%       \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
+% &
+% \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
+% \\[1mm]\hline
+% \SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
+% &
+%  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+% \\[1mm]\hline
+% % \SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
+% % &
+% %  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
+% % \\[1mm]\hline
+% % \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\t{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}}
+% % & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
+% % \\[1mm]\hline
+% % \SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
+% % &
+% % \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
+% % \\[1mm]\hline
+% % \SPP \Mdef\m\x\any\any{ \DynCall{(\SubCast\any{\Get\this\that})}\m{\SubCast\any\x}}
+% % &
+% % \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
+% % \\[1mm]\hline
+% \SPP \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\Cp\x}}}}
+% &
+%  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp \\
+% %  \\[1mm]\hline
+% % \SPP \Mdef\m\x\Cp\Cpp { \Call{\Get\this\that}\m\x} \tikzmarkend{a}
+% % &
+% %  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp \not\in \bmtp \\
+% \SP\}
+% \end{array}
+% \]
+% %} 
+% %\includegraphics[width=1\textwidth]{figures/classgenDefinition}
+% \caption{Class generation.}\label{classgen}
+% \end{figure}
 
 \begin{figure}
 
