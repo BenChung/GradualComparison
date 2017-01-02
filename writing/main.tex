@@ -5,13 +5,47 @@
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \input{macros}
 
+\usepackage{epigraph}
+\setlength{\epigraphwidth}{0.75\linewidth}
+\setlength{\epigraphrule}{0pt}
+\renewcommand*{\textflush}{flushright}
+\renewcommand*{\epigraphsize}{\normalsize\itshape}
+
+
+
+\definecolor{vlightgray}{gray}{0.93}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof,new,true,false,instanceof,catch,function,return,null, 
+    catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{darkgray},
+  ndkeywords={class,def,interface,export,boolean,throw,extends,implements,import,this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,  comment=[l]{//},  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,  stringstyle=\color{gray}\ttfamily,
+  morestring=[b]',  morestring=[b]",
+  backgroundcolor=\color{vlightgray},
+  aboveskip=\medskipamount, %0em,
+  belowskip=\smallskipamount %0em
+}
+\lstset{
+  language=JavaScript,  extendedchars=true,  basicstyle=\small\ttfamily,
+  showstringspaces=false,   showspaces=false,  numberstyle=\small,
+  numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
+}
+
+
+
+
 \usepackage[textsize=tiny]{todonotes}
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Gradual Types for Objects Redux}
 \titlerunning{Gradual Types for Objects Redux}
 %% provide for each author the \author and \affil macro, even if same
-\author[1]{Anonymous}
-\affil[1]{}
+\author[1]{Ano Nymous, et al.}
+%% Benjamin Chung, Paley Li, Jan Vitek
+%\affil[1]{}
 \authorrunning{Anon} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
 \Copyright{Anon}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
 %\subjclass{Dummy classification -- please refer to \url{http://www.acm.org/about/class/ccs98-html}}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation". 
@@ -53,7 +87,17 @@ several type systems for dynamic languages by translation to \kafka and
 discuss the implication of the respective designs.
 \end{abstract} 
 
+
+
 \section{Introduction}
+
+\vspace{-5mm}
+
+\epigraph{``Because half the problem is seeing the problem''}
+
+\vspace{-5mm}
+
+\noindent
 A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
 for a variant of Abadi and Cardelli's object-based
 calculus~\cite{cardelli:1996:theory-of-objects}. Their type system featured
@@ -89,87 +133,254 @@ implementation strategies seems daunting.\footnote{Most practical
   slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
   Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and
   121x for Typed Racket~\cite{popl16}. These numbers merely indicate the
-  existence of configurations of type annotations that hurt performance.
-  They are neither comparable between each other, nor worst case performance
-  indicators as most languages have not been used enough to have rigorous
-  evaluations.  }  Predictably, industrial strength systems have chosen to
-compromise on soundness to avoid degrading performance.\footnote{Languages
-  such as Dart, Typescript, Hack all have unchecked, or partially checked,
-  execution modes that will not catch all type errors.}
-
+  existence of configurations that hurt performance.  They are neither
+  comparable nor worst case indicators.  Most systems lack rigorous
+  evaluations.  } Predictably, industrial strength systems have chosen to
+compromise on soundness to avoid degrading performance.\footnote{Industrial
+  languages (Dart, Typescript, Hack) have unchecked modes that won't catch
+  all type errors.}
 
 The goal of this paper is to explore the design space of gradual type system
 for object-oriented languages. We aim to expose some of the forces that have
-influenced existing systems and discuss the implication of design decisions.
-Hopefully we can lay out some research questions that future research in the
-field can address. In order to present the essence of gradual typing for
-objects we introduce \kafka, a statically typed class-based calculus with
-mutable state and structural subtyping. Untyped method calls are supported
-with a distinct dynamic dispatch operation. The calculus allows for class
-generation, in particular, it allows the generation of transparent wrapper
-classes. We define the semantics of various gradual type systems by
-translation from a surface syntax into \kafka extended with generative
-casts.
+influenced existing systems and discuss the implication of key design
+decisions. While there are significant challenges that, in the end, may
+prevent adoption of some of the more ambitious type systems, there are are
+also opportunities for improving on existing techniques.  This paper will
+hopefully lay out an agenda for future investigations.
+
+In order to capture the essence of gradual typing for objects and to
+highlight the challenges implementers face, we present translations of
+gradual type system into a common target language. Targeting a common
+language lets us reason about the different systems in the same framework
+and makes comparisons possible. But which language should we target?  While
+the common language should be simple to avoid linguistic clutter, key
+features of object-oriented languages should be expressed directly rather
+than by encoding. We propose a target language inspired by modern runtime
+systems such as the Java Virtual Machine and the .Net environment.  Both
+have reasonably efficient implementations. They have a static type systems
+with classes and subtyping but allow for dynamically resolved method
+dispatch.\footnote{Both languages support reflective method invocation based
+  on the string name of the invoked method. Since C\# 4.0, dynamic
+  resolution is part of the language~\cite{BAT14}. In Java,
+  \xt{invokedynamic} allows for custom method dispatch.} In both
+environments, primitive types can be unboxed as the static typing an
+accurately final types.
+
+One contribution of this work is \kafka, a statically typed object calculus.
+\kafka is class based (with an explicit class table \K), has mutable state
+(a heap address \a refers to an object, each field \f is reifed into a pair
+of getter and setter methods), and allows the dynamic generation of wrapper
+classes (by update of the class table \K and allocation of new objects \a).
+Methods can be statically resolved, denoted by a simple call \Call\a\m\x
+operation, or can be dynamically resolved, denoted by a dynamic call
+\DynCall\a\m\x. The \kafka type system is based on structural subtyping,
+although this is not essential, we could also use a nominal type system with
+multiple subtyping as in Java or C\#.  \kafka has a dynamic type, denoted
+\any. It's last noteworthy feature is support for transparent wrappers:
+\kafka has a distinguished \that field which does not appear in a class'
+type.
+
+The heart of the translation to \kafka is the insertion of explicit casts.
+\kafka includes four cast operations. Two of the cast are purely structural.
+The subtype cast \SubCast\t\a checks if the object references by \a is a
+subtype of type \t (\t can be either a class \C or the dynamic type \any).
+The shallow cast \ShaCast\t\a merely checks that the object has all the
+requested methods specified by type \t. In a full fledged language, this
+cast could also test for tags of primitive types. \kafka, also has two, so
+called, generative casts. The behavioral cast \BehCast\t\a generates a
+wrapper object that monitors that methods invoked on \a abide by the
+interface of type \t. The monotone cast \MonCast\t\a returns a wrapper which
+monitors all invocations to \a from any reference.
+
+\renewcommand{\u}[1]{\underline{#1}\xspace}
+
+Another contribution is the translation from gradual type systems into
+\kafka. Each gradually typed expression \HT{\u\e}{\u\T} is translated to a
+\kafka term, \HT\e\T, each type \u\T has a corresponding \kafka type \T,
+and, similarly, each expression \u\e has an equivalent \e. While soundness
+in \kafka is straightforward, gradual type system are a more interesting
+story in that respect.  In \kafka, a well-typed program can only get stuck
+at a cast or a dynamically resolved call.  With gradual types, an expression
+\Call{\u\x}\m{\u{\x'}} where \u\x is declared to be of class \u\C can have
+significantly different behavior depending on choices made while designing
+the type system. TypeScript and Dart have \emph{optional types}; a
+well-typed program can get stuck at any method call as \u\C translates to
+\any. Languages such as C\# and StrongScript have \emph{concrete types}; a
+well-typed program will not get stuck at statically resolved method calls,
+\u\C maps to itself \C. Typed Racket has \emph{promised types}; a well-typed
+program will not get stuck at the call to \m, because \u\x is guarantee to
+refer to a \u\C or to a wrapper that implements all the methods of \u\C.  A
+wrapper has a target object, the wrapper's role is to check if the target
+behaves like an instance of \u\C.
 
 
-
-This paper explores the design space of gradual type systems for
-object-oriented languages. We aim to expose the main forces influencing the
-design of practical systems, and to provide advice for the next generation
-of gradually typed languages. To this end, we have designed a minimialistic
-object-based language that supports statically and dynamically typed code
-fragments. On top of this common core, we then build models of several
-practical gradual type systems and illustrate their differences in terms of
-catching errors. While our work has a formal flavor, we are careful to
-discuss the practical implications of different choices in the light of
-our experience with the implementation of several gradually typed systems.
-
-The fundamental property that a type system object-based language should
-guarantee is that an expression of the form 
-\vspace{-1mm}\[ \xt{x.m(y)} \]
-
-\vspace{-1mm}\noindent does not result in, to borrow Smalltalk terminology,
-a \emph{message not understood} error.  That is to say, method \xt{m} exists
-in the object bound to variable \x. Many static type systems only
-provide a partial guarantee as they make an exception for \xt{null} or
-\xt{undefined} references; the call may fail as the test whether \x is
-bound to an object is deferred to execution.
-
-At the heart of the design of a gradual type system lies the choice of
-definition of \emph{soundness} and the static and dynamic mechanisms
-employed to enforce it. The literature is ripe with proposals with subtly
-different properties and mechanisms.  One key distinction is what it means
-for a variable \x to be of type \T. In a traditional statically typed
-language, \x will refer to either an instance of the class denoted by \T or
-one of its sub-classes; we say that \T is a \emph{concrete type}. In some
-proposals, a variable \x of type \T can refer to an instance of any class,
-in this case we say that \T is \emph{unconstrained type}. Lastly, in some
-systems \x is allowed to refer to any value but the language implementation
-will ensure that the value behaves as if it was of type \T, we call this a
-\emph{promised type}.
-
-While statically typed languages such as Scala only offer concrete types and
-dynamically typed languages like Python have a single, implicit,
-unconstrained type, gradually typed language have experimented with various
-combinations.  C\# has concrete typed but also support a single
-unconstrained type \xt{dyn}~\cite{Bierman10}. Thorn~\cite{popl10} and
-StrongScript~\cite{ecoop15} both support concrete types as well as
-unconstrained types. Languages such as Facebook's Hack and
-TypeScript~\cite{typescript13} support only unconstrained types.  Finally
-Reticulated Python~\cite{siek14} and Typed Racket~\cite{tf-dls06} support
-promised types.
+\section{Background}
 
 
-\section{Inside the Cottages}
-%explanation..
+\vspace{-5mm}
 
-In this paper, we will look at gradual type systems that present each of the
-above interpretations of gradual typing, some of which allow several at the 
-same time. We begin with a discussion of Strongscript, a extension of Typescript
-that provides \emph{concrete types} as well as \emph{unconstrained types}, then
-examine Typed Racket, providing \emph{promised types}, and finish with a
-discussion of two type systems avaliable for Reticulated Python, both offering
-a different perspective on \emph{promised types}. 
+\epigraph{ ``If you know the enemy and know yourself...''}
+
+\vspace{-5mm}
+
+\noindent The intellectual lineage of gradual types can be traced back to
+attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
+side is the Strongtalk optional type system~\cite{Bracha93} which led to
+Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types are
+solely to catch errors at checking time, they should never affect the
+runtime behavior of programs. The rationale for this is that types are
+viewed as an add-on that can be turned off without affecting semantics.  In
+the words of Richards~\emph{et al.}~\cite{ecoop15}, an optional type system
+is \emph{trace preserving}, which means that if a term \e reduces to value
+\a, adding type annotations will never cause \e to get stuck. This property
+is valuable to developers as it prevents type annotations from introducing
+errors, also it follows that type annotations do not effect performance. The
+optional type systems currently in wide use include Hack~\cite{hack13},
+TypeScript~\cite{BAT14} and Dart~\cite{dart13}.  StrongScript~\cite{ecoop15}
+and Thorn~\cite{popl10} allow programmers to choose between optional and
+concrete types.
+
+On the functional side, the ancestry is dominated by the work of Felleisen
+and his students.  The Typed Scheme~\cite{tf-popl08} design that later
+became Typed Racket is strongly influenced by their earlier work on
+higher-order contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a
+vehicle for teaching programming to high-school students and undergraduates.
+For that reason, being able to explain the source of errors was viewed as an
+important design constraint as well as preventing surprises -- a variable
+annotated as a \C should behave as a \C. If it doesn't, then that should be
+reported at the first discrepancy. The approach to typing is thus quite
+different from optional types. In Typed Racket, whenever a value crosses a
+boundary between typed and untyped code, the value will be wrapped in a
+contract that monitors it's behavior. This allows to ensure that the type of
+mutable values remains consistent with their declared type and that
+functions respect their declared interface. When a value misbehaves, blame
+can be assigned to module where the value originated. In Typed Racket, the
+granularity of typing is the module, thus each module is either entirely
+typed or entirely untyped.
+
+Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as any
+type system that allows programmers to control the degree of static checking
+for a program by choosing to annotate function parameters with types, or
+not. Their contribution was formalization in a lambda calculus with
+references and a proof of soundness that stated that all type errors would
+be caught. They defined the type consistency relation $\t \sim \tp$ which
+states that a type that agree on non-\any position are compatible.  In their
+follow up~\cite{SiekTaha07} they extended the work to a stateless object
+calculus and combined consistency with structural subtyping. Extending the
+approach to mutable objects proved challenging. Reticulated
+Python~\cite{siek14} attempts to find a reasonable compromise between
+soundness and efficiency.  The language has three modes: in \emph{guarded}
+mode, Python behaves as Typed Racket with contracts applied to values,
+\emph{transient} mode performs first order checks before each call, and the
+\emph{monotonic} mode is similar to guarded except there is at most one
+wrapper per object and casts can only remove occurences of \any from its
+type.
+
+Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
+4.0~\cite{Bierman10}, Thorn~\cite{oopsla09},
+StrongScript~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
+Felleisen-style contracts and mostly nominal subtyping. C\# 4.0 adds the
+type {\sf dynamic} (i.e.~\any) to the language and dynamically resolved
+method invocation when the receiver is of type \any.  This means C\# has a
+dynamic sublanguage that allows developer to write unchecked code, but it
+also has a strongly type sublanguage in which values are guaranteed to be of
+their declared type.  Thorn and StrongScript extend the C\# approach with
+the addition of optional types (called like types).  Thorn is a new language
+implemented by translation to the JVM.\footnote{The translation strategy is
+  quite close to that presented here.} The presence of concrete types means
+that the compiler can optimize code (unbox data and inline methods) and
+programmers are guaranteed that type errors will not occur within concretely
+typed code.  StrongScript takes Thorn and reimplements it within the context
+of TypeScript.  The interesting design choices there are that while
+TypeScript originally relied on structural subtyping, StrongScript changed
+the language to follow a nominal discipline. It is interesting to note that
+this change did not affect the semantics of benchmark
+applications. Moreover, to deal with higher-order functions which TypeScript
+inherits from JavaScript, the language does use contract for functions.
+
+
+\subsection{Overview}
+
+\figref{over} gives a synthetic overview of gradual type systems for objects
+that have publicly available implementations. All languages are class-based,
+even TypeScript which simply does not have types for plain JavaScript
+objects. Most languages have a nominal type system as this is fairly natural
+for class-based systems with inheritance. The exceptions are TypeScript,
+likely because of its JavaScript roots, Reticulated Python because
+consistency does not mix with nominal types and Typed Racket because of its
+support for first-class classes.
+
+
+\newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
+\newcommand{\X}{\EM{\bullet}}
+\newcommand{\XX}{\EM{\bullet^1}}
+
+\begin{figure}[!ht]
+  \center
+~ \\[2cm]
+  {\small
+\begin{tabular}{r|lllllllllllllr}
+& & \rot{Nominal}
+  & \rot{Optional types}
+  & \rot{Concrete types}
+  & \rot{Promised types}
+  & \rot{Class based}
+  & \rot{First-class Class}
+  & \rot{Soundness claim}
+  & \rot{Unboxed prim.}
+  & \rot{Subtype cast}
+  & \rot{Shallow cast}
+  & \rot{Generative cast}
+  & \rot{Blame assignment}
+  & \rot{Pathologies}
+  \\
+Dart         &&\X &\X &   &   &\X &   &    &    &\X &   &   &   &  - 
+\\\hline
+Hack         &&\X &\X &   &   &\X &   &    &    &\X &   &   &   &  -  
+\\\hline
+TypeScript   &&   &\X &   &   &\X &   &    &    &   &   &   &   &  -  
+\\\hline
+C\#          &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   &  -  
+\\\hline
+Thorn        &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   & 0.8x
+\\\hline
+StrongScript &&\X &\X &\X &\X &\X &   &\XX &    &\X &   &\X &   & 1.1x   
+\\\hline
+Gradualtalk  &&\X &   &   &\X &\X &   & \X &    &   &   &\X &\X &  5x
+\\\hline
+Typed Racket &&   &   &   &\X &\X &\X &\X  &    &   &\X &\X &\X & 121x 
+\\\hline
+Reticulated Python    \\
+\it Transient&&   &\X &   &   & \X &  & \X &    &   &\X &   &\X & 10x \\
+\it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  27x\\
+\it Guarded  &&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  21x\\
+\end{tabular}}
+\caption{Overview of implemented systems.}\label{over}
+\end{figure}
+
+Optional types are the main mode of execution for Dart, Hack and
+TypeScript. Thogh Dart has a checked mode that can catch more errors (but is
+still not sound [CHECK]). Types in Transient Python are also optional, in
+the sense that a variable \x can refer to any value, but casts are applied
+before use.  
+
+Concrete types are supported by C\#, StrongScript and Thorn. In the case of
+Thorn and C\# when primitives are concretely typed they can be unbox and do
+not require tagging.
+
+Subtype casts are used in most nominal languages, they are fast and easy to
+implement. Shallow casts are used by Racket and Python to ensure that
+wrappers are applied to objects that have the right methods.
+
+Generative casts are casts that require associating information with
+objects, they typically allocate data structures.
+
+Blame assignment allows to track where an error comes from.
+
+Performance pathologies are self reported worst cases. These numbers should
+not be considered definitive performance indicator as they are self-reported
+values taken from very small sample sizes.
+
 
 \subsection{Strongscript}
 
@@ -224,10 +435,10 @@ test(evil)
 
 This issue goes undetected because Typescript \emph{only} checks the static
 compatibility of types. It was able to tell that an A is not a B, but cannot
-determine that the real value of \xt{evil} is incompatible with A. As a result,
-Typescript provides no guarantee that a value inhabiting a type is actually of
-that type, and therefore is unsound. The designers of Typescript made this choice
-for two major reasons:
+determine that the real value of \xt{evil} is incompatible with A. As a
+result, Typescript provides no guarantee that a value inhabiting a type is
+actually of that type, and therefore is unsound. The designers of Typescript
+made this choice for two major reasons:
 
 \begin{itemize}
 \item Incorrect types do not create errors. Even if the program is
@@ -403,12 +614,13 @@ underlying value has no function \xt{f}, then this call will fail, but this
 would be a runtime type error, exactly the kind of problem that we wish to
 avoid.
 
-The solution to this problem comes from how Typed Racket controls the interaction between 
-modules, at the \emph{module boundaries}, where the system has to ensure that the untyped code
-respects the type annotations. To ensure that the type annotations are respected, Typed Racket uses
- contracts. The idea behind using contracts~\cite{findler-hof} that they allow the system
-to check the types on the values going into typed code from untyped code, and values
-flowing out of untyped code into typed code.
+The solution to this problem comes from how Typed Racket controls the
+interaction between modules, at the \emph{module boundaries}, where the
+system has to ensure that the untyped code respects the type annotations. To
+ensure that the type annotations are respected, Typed Racket uses
+contracts. The idea behind using contracts~\cite{ff-icfp02} that they allow
+the system to check the types on the values going into typed code from
+untyped code, and values flowing out of untyped code into typed code.
 
 \begin{figure}[h]
 % to generate, run
@@ -1020,7 +1232,7 @@ handles the case where the target type of the cast is \any.
 \IRule{BC1}{
   \App\s\a = \obj\C{\b\a}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D{}{}\\\\
+  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -1030,7 +1242,7 @@ handles the case where the target type of the cast is \any.
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}\D{}{}\\\\
+  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -1052,25 +1264,30 @@ For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
 untyped methods, a dynamic call is blanketed by casts to \any.
 
-%TODO: Still does need e.m
-\newcommand{\rtranst}[3]{#1 \vdash #2 \looparrowright_t #3}
+\newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_t #4}
 \begin{mathpar}
-\IRule{REW1}{ }{ \rtranst{\b\mt}\x\x }
+\IRule{REW1}{ }{ \rtranst{\b{\mt_s}}{\b{\mt_t}}\x\x }
+\\
+\IRule{REW2}{ \Mtype\f{}\t \in \b{\mt_t} }{\rtranst{\b{\mt_s}}{\b{\mt_t}}{\Get\this\f}{\BehCast\t{\Get\this\f}} }
 
-\IRule{REW2}{ }{\rtranst{\b\mt}{\Get\this\f}{\SubCast\any{\Get\this\f}} }
+\IRule{REW3}{ \e \neq \this \\ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\e}{\ep} }{\rtranst{\b{\mt_s}}{\b{\mt_t}}{\Get\e\f}{\Get\ep\f}}
 
-\IRule{REW3}{ \e \neq \this \\ \rtranst{\b\mt}{\e}{\ep} }{\rtranst{\b\mt}{\Get\e\f}{\Get\ep\f}}
+\IRule[width=20em]{REW4}{ \Mtype\f\t\t \in \b{\mt_s} \\ \Mtype\f\tp\tp \in \b{\mt_t} \\ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\e}{\ep} }{\rtranst{\b{\mt_s}}{\b{\mt_t}}{\Set\this\f\e}{\BehCast\tp{\Set\this\f{\BehCast\t\ep}}}}
 
-\IRule{REW4}{ \Mtype\f\t\t \in \b\mt }{\rtranst{\b\mt}{\Set\this\f\e}{\SubCast\any{\Set\this\f{\BehCast\t\e}}}}
+\IRule[width=20em]{REW5}{ \e_1 \neq \this \\ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\e_1}{\e_2} \\ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\ep_1}{\ep_2} }{\rtranst{\b{\mt_s}}{\b{\mt_t}}{\Set{\e_1}\f{\ep_1}}{\Set{\e_2}\f{\ep_2}}}
 
-\IRule{REW5}{ \e_1 \neq \this \\ \rtranst{\b\mt}{\e_1}{\e_2} \\ \rtranst{\b\mt}{\ep_1}{\ep_2} }{\rtranst{\b\mt}{\Set{\e_1}\f{\ep_1}}{\Set{\e_2}\f{\ep_2}}}
+\IRule[width=25em]{REW6}{ \Mtype\m{\t_1}{\tp_1} \in \b{\mt_s} \\ \Mtype\m{\t_2}{\tp_2} \in \b{\mt_t}  \\ 
+\rtranst{\b{\mt_s}}{\b{\mt_t}}{\e}{\ep}}{\rtranst{\b{\mt_s}}{\b{\mt_t}}{\Call{\this}\m{\e}}{\BehCast{\tp_1}{\Call{\this}\m{\BehCast{\t_2}{\ep}}}}}
 
-\IRule{REW6}{ \rtranst{\b\mt}{\e_1}{\e_2} \\ \rtranst{\b\mt}{\ep_1}{\ep_2}}{\rtranst{\b\mt}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+\IRule[width=20em]{REW7}{ \e_1 \neq \this \\ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\e_1}{\e_2} \\ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\ep_1}{\ep_2}}{\rtranst{\b{\mt_s}}{\b{\mt_t}}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
 
-\IRule{REW7}{ \rtranst{\b\mt}{\b\e}{\b\ep} }{\rtranst{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{REW8}{ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\e_1}{\e_2} \\ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\ep_1}{\ep_2}}{\rtranst{\b{\mt_s}}{\b{\mt_t}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+
+\IRule{REW9}{ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\b\e}{\b\ep} }{\rtranst{\b\mt_s}{\b\mt_t}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
-
+\newcommand{\ignorethis}[1]{}
+\ignorethis{
 \newcommand{\rtransut}[3]{#1 \vdash #2 \looparrowright_u #3}
 \begin{mathpar}
 \IRule{REU1}{ }{ \rtransut{\b\mt}\x\x }
@@ -1087,6 +1304,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \IRule{REU7}{ \rtransut{\b\mt}{\b\e}{\b\ep} }{\rtransut{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
+}
 
 
 \begin{figure}[!ht]
@@ -1101,50 +1319,48 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\BehCast\tp{\Get{\Get\this\that}\f}~}
-&    \All f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+&    \All \f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\
 \SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
-&    \All f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
+&    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
 \SPP \Mdef\m\x\t\tp {~\BehCast\tp{{[\BehCast\Cp\x / \x] \ep}}~}
-&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
-&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
 &&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
 \\
 \SPP \Mdef\m\x\t\tp{~\BehCast\tp{[\BehCast\any\x/\x]\ep}~}
-&     \All m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
-&    \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
+&    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
 \\
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
-&    \All f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
+&    \All \f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
-&    \All m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\ep~}
-&    \All m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
+&    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}\bmtp{\e}{\ep}
 \\
 \SP \}
 \\
-\wrapAny\C\bmt\D = \\
+\wrapAny\C\bmd\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
 &  \All \m  \Mtype\f{}\t \in \bmt\\
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &  \All \f  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any{~\BehCast\any{\Call{\Get\this\that}\m{\BehCast\Cp\x}}~}
-&  \All \m  \Mtype\m\Cp\Cpp \in \bmt\\
-\SPP   \Mdef\m\x\any\any{~\DynCall{(\BehCast\any{\Get\this\that})}\m{\BehCast\Cp\x}~}
-&  \All \m  \Mtype\m\any\any \in \bmt\\
+\SPP   \Mdef\m\x\t\tp {~\BehCast\any{{[\BehCast\t\x / \x] \ep}}~}
+&  \All \m \Mdef\m\x\t\tp\e\in\b\md  &\wedge& \rtranst{\bmt}\cdot{\e}{\ep}\\
 \SP \}\\
 \end{array}\]
 %}%%END IGNORE
@@ -2421,6 +2637,12 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
  \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \names{\b\md} ~.~ \typez{\Ftype\fp\tp}
 
 \end{cases}
+\end{equation*}
+
+$\getmds(\C,\K)$ refers to the method definitions that are explicitly written inside of the class $\C$, according to the class table $\K$.
+
+\begin{equation*}
+\getmds\C\K = \b\md ~~\mathit{if}~~ \Class\C{\b{\fd}}{\b\md} \in \K
 \end{equation*}
 
 \hrulefill
