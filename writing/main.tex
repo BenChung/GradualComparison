@@ -10,8 +10,8 @@
 \title{Gradual Types for Objects Redux}
 \titlerunning{Gradual Types for Objects Redux}
 %% provide for each author the \author and \affil macro, even if same
-\author[1]{Anonymous}
-\affil[1]{}
+\author[1]{A. Nonymous, et al.}
+%\affil[1]{}
 \authorrunning{Anon} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
 \Copyright{Anon}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
 %\subjclass{Dummy classification -- please refer to \url{http://www.acm.org/about/class/ccs98-html}}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation". 
@@ -90,28 +90,39 @@ implementation strategies seems daunting.\footnote{Most practical
   Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and
   121x for Typed Racket~\cite{popl16}. These numbers merely indicate the
   existence of configurations of type annotations that hurt performance.
-  They are neither comparable between each other, nor worst case performance
-  indicators as most languages have not been used enough to have rigorous
-  evaluations.  }  Predictably, industrial strength systems have chosen to
-compromise on soundness to avoid degrading performance.\footnote{Languages
-  such as Dart, Typescript, Hack all have unchecked, or partially checked,
-  execution modes that will not catch all type errors.}
-
+  They are neither comparable between each other, nor worst case indicators.
+  Most systems lack rigorous evaluations.  } Predictably, industrial
+strength systems have chosen to compromise on soundness to avoid degrading
+performance.\footnote{Industrial languages such as Dart, Typescript, Hack
+  have unchecked, or partially checked, execution modes that will not catch
+  all type errors.}
 
 The goal of this paper is to explore the design space of gradual type system
 for object-oriented languages. We aim to expose some of the forces that have
-influenced existing systems and discuss the implication of design decisions.
-Hopefully we can lay out some research questions that future research in the
-field can address. In order to present the essence of gradual typing for
-objects we introduce \kafka, a statically typed class-based calculus with
-mutable state and structural subtyping. Untyped method calls are supported
-with a distinct dynamic dispatch operation. The calculus allows for class
-generation, in particular, it allows the generation of transparent wrapper
-classes. We define the semantics of various gradual type systems by
-translation from a surface syntax into \kafka extended with generative
-casts.
+influenced existing systems and discuss the implication of key design
+decisions. While there are significant challenges that, in the end, may
+prevent adoption of some of the more ambitious type systems, there are are
+also opportunities for improving on existing techniques.  This paper will
+hopefully lay out an agenda for future investigations.
 
 
+To capture the essence of gradual typing for object, we will compile
+different type system to the same core calculus. The
+
+In order to present the essence of
+gradual typing for objects we introduce \kafka, a statically typed
+class-based calculus with mutable state and structural subtyping. Untyped
+method calls are supported with a distinct dynamic dispatch operation. The
+calculus allows for class generation, in particular, it allows the
+generation of transparent wrapper classes. We define the semantics of
+various gradual type systems by translation from a surface syntax into
+\kafka extended with generative casts.
+
+% Class based
+% Nominal subtyping
+% First class classes
+% Soundness claim
+% 
 
 This paper explores the design space of gradual type systems for
 object-oriented languages. We aim to expose the main forces influencing the
