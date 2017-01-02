@@ -1031,7 +1031,7 @@ handles the case where the target type of the cast is \any.
 \IRule{BC1}{
   \App\s\a = \obj\C{\b\a}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D{}{}\\\\
+  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -1041,7 +1041,7 @@ handles the case where the target type of the cast is \any.
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\\\
-  \k = \wrap\C{\classoff\C\K}\D{}{}\\\\
+  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -1151,7 +1151,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \\
 \SP \}
 \\
-\wrapAny\C\bmt\bmd\D = \\
+\wrapAny\C\bmd\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
@@ -2436,6 +2436,12 @@ We write \classoff\C\K to denote the signutare lookup for every method, includin
  \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \names{\b\md} ~.~ \typez{\Ftype\fp\tp}
 
 \end{cases}
+\end{equation*}
+
+$\getmds(\C,\K)$ refers to the method definitions that are explicitly written inside of the class $\C$, according to the class table $\K$.
+
+\begin{equation*}
+\getmds\C\K = \b\md ~~\mathit{if}~~ \Class\C{\b{\fd}}{\b\md} \in \K
 \end{equation*}
 
 \hrulefill
