@@ -64,9 +64,11 @@ discuss the implication of the respective designs.
 
 \section{Introduction}
 
-\epigraph{\vspace{-12mm}
-  ``Because half the problem is seeing the problem''
-\vspace{-15mm}}
+\vspace{-5mm}
+
+\epigraph{``Because half the problem is seeing the problem''}
+
+\vspace{-5mm}
 
 \noindent
 A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
@@ -184,13 +186,44 @@ wrapper has a target object, the wrapper's role is to check if the target
 behaves like an instance of \u\C.
 
 
+\section{Background}
+
+
+\vspace{-5mm}
+
+\epigraph{ ``If you know the enemy and know yourself...''}
+
+\vspace{-5mm}
+
+\noindent The intellectual lineage of gradual types can be traced back to
+attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
+side is the Strongtalk optional type system~\cite{Bracha93} which led to
+Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types are
+solely to catch errors at checking time, they should never affect the
+runtime behavior of programs. The rationale for this is that types are
+viewed as an add-on that can be turned off without affecting semantics.  In
+the words of Richards~\emph{et al.}~\cite{ecoop15}, an optional type system
+is \emph{trace preserving}, which means that if a term \e reduces to value
+\a, adding type annotations will never cause \e to get stuck. This property
+is valuable to developers as it prevents type annotations from introducing
+errors, also it follows that type annotations do not effect performance. The
+optional type systems currently in wide use include Hack~\cite{hack13},
+TypeScript~\cite{BAT14} and Dart~\cite{dart13}.  StrongScript~\cite{ecoop15}
+and Thorn~\cite{popl10} allow programmers to choose between optional and
+concrete types.
+
+On the functional side, the ancestry is dominated by the work of Felleisen
+and his students.  The Typed Scheme~\cite{tf-popl08} design that later
+became Typed Racket is strongly influenced by their earlier work on
+higher-order contracts~\cite{ff-icfp02}. The approach is quite different
+from optional types. 
+
 % Class based
 % Nominal subtyping
 % First class classes
 % Soundness claim
 
-\section{Inside the Cottages}
-%explanation..
+REWRITEREWRITEREWRITEREWRITEREWRITEREWRITEREWRITEREWRITE
 
 In this paper, we will look at gradual type systems that present each of the
 above interpretations of gradual typing, some of which allow several at the 
@@ -253,10 +286,10 @@ test(evil)
 
 This issue goes undetected because Typescript \emph{only} checks the static
 compatibility of types. It was able to tell that an A is not a B, but cannot
-determine that the real value of \xt{evil} is incompatible with A. As a result,
-Typescript provides no guarantee that a value inhabiting a type is actually of
-that type, and therefore is unsound. The designers of Typescript made this choice
-for two major reasons:
+determine that the real value of \xt{evil} is incompatible with A. As a
+result, Typescript provides no guarantee that a value inhabiting a type is
+actually of that type, and therefore is unsound. The designers of Typescript
+made this choice for two major reasons:
 
 \begin{itemize}
 \item Incorrect types do not create errors. Even if the program is
@@ -432,12 +465,13 @@ underlying value has no function \xt{f}, then this call will fail, but this
 would be a runtime type error, exactly the kind of problem that we wish to
 avoid.
 
-The solution to this problem comes from how Typed Racket controls the interaction between 
-modules, at the \emph{module boundaries}, where the system has to ensure that the untyped code
-respects the type annotations. To ensure that the type annotations are respected, Typed Racket uses
- contracts. The idea behind using contracts~\cite{findler-hof} that they allow the system
-to check the types on the values going into typed code from untyped code, and values
-flowing out of untyped code into typed code.
+The solution to this problem comes from how Typed Racket controls the
+interaction between modules, at the \emph{module boundaries}, where the
+system has to ensure that the untyped code respects the type annotations. To
+ensure that the type annotations are respected, Typed Racket uses
+contracts. The idea behind using contracts~\cite{ff-icfp02} that they allow
+the system to check the types on the values going into typed code from
+untyped code, and values flowing out of untyped code into typed code.
 
 \begin{figure}[h]
 % to generate, run
