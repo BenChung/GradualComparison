@@ -164,39 +164,24 @@ monitors all invocations to \a from any reference.
 
 \renewcommand{\u}[1]{\underline{#1}\xspace}
 
-Another contribution of this work is the translation from gradual type
-system into \kafka. Each expression \HT{\u\e}{\u\T} in the gradually typed
-language is translated to the \kafka term \HT\e\T, for each gradual type
-\u\T there is a corresponding type \T in \kafka, and, similarly, each
-expression \u\e has an equivalent \e. While \kafka has simple notion of
-soundness, soundness of gradual types is a more interesting story. At the
-\kafka level, a well type program can get stuck at a cast or at a
-dynamically resolved call. For a gradually typed system, an expression of
-the form \Call{\u\x}\m{\u{\x'}} where \u\x is declared to belong to some
-class \u\C can have significantly different behaviors. In optional type
-systems, e.g.  TypeScript, the type \u\C translates to \any, the actual
-value denoted by \u\x can be an object of any class. In this case, we say
-that \u\C is an \emph{unconstrained} type. The TypeScript compiler can still
-catch static errors when \u\x is used in a way that is inconsistent with
-\u\C.  In type systems that support \emph{concrete types}, such as C\# and
-StrongScript, \u\C maps directly to \C and the object denoted by \u\x must
-of the class \C or a subtype. Lastly, in sound gradual type systems like
-that of Typed Racket, \u\C is a \emph{promised type}, that is \u\x can
-either refer to an instance of class \C or to a wrapper over an object that
-has all the methods of \C but may, or may not, behave as \C. In case it
-doesn't the computation will get stuck.
-
-
-While statically typed languages such as Scala only offer concrete types and
-dynamically typed languages like Python have a single, implicit,
-unconstrained type, gradually typed language have experimented with various
-combinations.  C\# has concrete typed but also support a single
-unconstrained type \xt{dyn}~\cite{Bierman10}. Thorn~\cite{popl10} and
-StrongScript~\cite{ecoop15} both support concrete types as well as
-unconstrained types. Languages such as Facebook's Hack and
-TypeScript~\cite{typescript13} support only unconstrained types.  Finally
-Reticulated Python~\cite{siek14} and Typed Racket~\cite{tf-dls06} support
-promised types.
+Another contribution is the translation from gradual type systems into
+\kafka. Each gradually typed expression \HT{\u\e}{\u\T} is translated to a
+\kafka term, \HT\e\T, each type \u\T has a corresponding \kafka type \T,
+and, similarly, each expression \u\e has an equivalent \e. While soundness
+in \kafka is straightforward, gradual type system are a more interesting
+story in that respect.  In \kafka, a well-typed program can only get stuck
+at a cast or a dynamically resolved call.  With gradual types, an expression
+\Call{\u\x}\m{\u{\x'}} where \u\x is declared to be of class \u\C can have
+significantly different behavior depending on choices made while designing
+the type system. TypeScript and Dart have \emph{optional types}; a
+well-typed program can get stuck at any method call as \u\C translates to
+\any. Languages such as C\# and StrongScript have \emph{concrete types}; a
+well-typed program will not get stuck at statically resolved method calls,
+\u\C maps to itself \C. Typed Racket has \emph{promised types}; a well-typed
+program will not get stuck at the call to \m, because \u\x is guarantee to
+refer to a \u\C or to a wrapper that implements all the methods of \u\C.  A
+wrapper has a target object, the wrapper's role is to check if the target
+behaves like an instance of \u\C.
 
 
 % Class based
