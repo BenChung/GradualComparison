@@ -299,10 +299,22 @@ applications. Moreover, to deal with higher-order functions which TypeScript
 inherits from JavaScript, the language does use contract for functions.
 
 
+\subsection{Overview}
+
+\figref{over} gives a synthetic overview of gradual type systems for objects
+that have publicly available implementations. All languages are class-based,
+even TypeScript which simply does not have types for plain JavaScript
+objects. Most languages have a nominal type system as this is fairly natural
+for class-based systems with inheritance. The exceptions are TypeScript,
+likely because of its JavaScript roots, Reticulated Python because
+consistency does not mix with nominal types and Typed Racket because of its
+support for first-class classes.
+
 
 \newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
 \newcommand{\X}{\EM{\bullet}}
 \newcommand{\XX}{\EM{\bullet^1}}
+
 \begin{figure}[!ht]
   \center
 ~ \\[2cm]
@@ -346,15 +358,29 @@ Reticulated Python    \\
 \caption{Overview of implemented systems.}\label{over}
 \end{figure}
 
-REWRITEREWRITEREWRITEREWRITEREWRITEREWRITEREWRITEREWRITE
+Optional types are the main mode of execution for Dart, Hack and
+TypeScript. Thogh Dart has a checked mode that can catch more errors (but is
+still not sound [CHECK]). Types in Transient Python are also optional, in
+the sense that a variable \x can refer to any value, but casts are applied
+before use.  
 
-In this paper, we will look at gradual type systems that present each of the
-above interpretations of gradual typing, some of which allow several at the 
-same time. We begin with a discussion of Strongscript, a extension of Typescript
-that provides \emph{concrete types} as well as \emph{unconstrained types}, then
-examine Typed Racket, providing \emph{promised types}, and finish with a
-discussion of two type systems avaliable for Reticulated Python, both offering
-a different perspective on \emph{promised types}. 
+Concrete types are supported by C\#, StrongScript and Thorn. In the case of
+Thorn and C\# when primitives are concretely typed they can be unbox and do
+not require tagging.
+
+Subtype casts are used in most nominal languages, they are fast and easy to
+implement. Shallow casts are used by Racket and Python to ensure that
+wrappers are applied to objects that have the right methods.
+
+Generative casts are casts that require associating information with
+objects, they typically allocate data structures.
+
+Blame assignment allows to track where an error comes from.
+
+Performance pathologies are self reported worst cases. These numbers should
+not be considered definitive performance indicator as they are self-reported
+values taken from very small sample sizes.
+
 
 \subsection{Strongscript}
 
