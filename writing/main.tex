@@ -301,19 +301,25 @@ inherits from JavaScript, the language does use contract for functions.
 
 \subsection{Overview}
 
-\figref{over} gives a synthetic overview of gradual type systems for objects
-that have publicly available implementations. All languages are class-based,
-even TypeScript which simply does not have types for plain JavaScript
-objects. Most languages have a nominal type system as this is fairly natural
-for class-based systems with inheritance. The exceptions are TypeScript,
-likely because of its JavaScript roots, Reticulated Python because
-consistency does not mix with nominal types and Typed Racket because of its
-support for first-class classes.
+\figref{over} gives a synthetic overview of systems with publicly available
+implementations. All languages here are class-based, even TypeScript which
+does not have types for plain JavaScript objects. Most languages base
+subtyping on the name of classes and on explicit subtype declarations,
+rather than on structural similarities between classes.  Exceptions include
+Gradualtalk which is nominal but also supports structural subtype if
+programmers want to use it.  TypeScript uses structural subtyping, but does
+not implement a runtime structural check. This is probably because of the
+JavaScript roots of the language, annecdotal evidence suggests that
+structural subtyping is not always exercised~\cite{ecoop15}. Python is
+structural because the consistency relation is fundamentally structural.
+Racket is structural because of it heavy use of first-class classes and
+class generation.
 
 
 \newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
 \newcommand{\X}{\EM{\bullet}}
-\newcommand{\XX}{\EM{\bullet^1}}
+\newcommand{\XX}{\EM{\bullet^2}}
+\newcommand{\XY}{\EM{\bullet^1}}
 
 \begin{figure}[!ht]
   \center
@@ -346,7 +352,7 @@ Thorn        &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   & 0.8x
 \\\hline
 StrongScript &&\X &\X &\X &\X &\X &   &\XX &    &\X &   &\X &   & 1.1x   
 \\\hline
-Gradualtalk  &&\X &   &   &\X &\X &   & \X &    &   &   &\X &\X &  5x
+Gradualtalk  &&\XY&   &   &\X &\X &   & \X &    &   &   &\X &\X &  5x
 \\\hline
 Typed Racket &&   &   &   &\X &\X &\X &\X  &    &   &\X &\X &\X & 121x 
 \\\hline
