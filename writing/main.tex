@@ -1052,7 +1052,7 @@ For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
 untyped methods, a dynamic call is blanketed by casts to \any.
 
-
+%TODO: Still does need e.m
 \newcommand{\rtranst}[3]{#1 \vdash #2 \looparrowright_t #3}
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b\mt}\x\x }
@@ -1106,15 +1106,17 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &    \All f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x\t\tp {~\BehCast\tp{{[\BehCast\Cp\x / \x] \e}}~}
-&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp
+\SPP \Mdef\m\x\t\tp {~\BehCast\tp{{[\BehCast\Cp\x / \x] \ep}}~}
+&     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
 &     \All m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
 &&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
 \\
-\SPP \Mdef\m\x\t\tp{~\BehCast\tp{[\BehCast\any\x/\x]\e}~}
-&     \All m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp
+\SPP \Mdef\m\x\t\tp{~\BehCast\tp{[\BehCast\any\x/\x]\ep}~}
+&     \All m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
@@ -1122,11 +1124,13 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
 &    \All f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
 \\
-\SPP \Mdef\m\x{\Cp}{\Cpp} {~\e~}
-&    \All m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp
+\SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
+&    \All m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
+&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
 \\
-\SPP \Mdef\m\x\any\any {~\e~}
-&    \All m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp
+\SPP \Mdef\m\x\any\any {~\ep~}
+&    \All m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
+&&&&\wedge&\rtranst{\bmt}{\e}{\ep}
 \\
 \SP \}
 \\
