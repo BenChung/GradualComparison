@@ -123,25 +123,36 @@ dispatch.\footnote{Both languages support reflective method invocation based
 environments, primitive types can be unboxed as the static typing an
 accurately final types.
 
-One contribution of this work is \kafka, a statically typed, class-based,
-object calculus with mutable state and structural subtyping.
+One contribution of this work is \kafka, a statically typed object calculus.
+\kafka is class based (with an explicit class table \K), has mutable state
+(a heap address \a refers to an object, each field \f is reifed into a pair
+of getter and setter methods), and allows the dynamic generation of wrapper
+classes (by update of the class table \K and allocation of new objects \a).
+Methods can be statically resolved, denoted by a simple call \Call\a\m\x
+operation, or can be dynamically resolved, denoted by a dynamic call
+\DynCall\a\m\x. The \kafka type system is based on structural subtyping,
+this is not an essential part of the design, it could be replaced with a
+traditional nominal system with multiple subtyping as in Java or C\#.  The
+last noteworthy feature is that to support transparent wrappers, \kafka has
+a distinguished \that field which does not appear in a class' type.
 
+The heart of the translation to \kafka is the insertion of explicit casts.
+\kafka includes four cast operations. Two of the cast are purely structural.
+The subtype cast \SubCast\t\a checks if the object references by \a is a
+subtype of type \t (\t can be either a class \C or the dynamic type \any).
+The shallow cast \ShaCast\t\a merely checks that the object has all the
+requested methods specified by type \t. In a full fledged language, this
+cast could also test for tags of primitive types. \kafka, also has two, so
+called, generative casts. The behavioral cast \BehCast\t\a generates a
+wrapper object that monitors that methods invoked on \a abide by the
+interface of type \t. The monotone cast \MonCast\t\a returns a wrapper which
+monitors all invocations to \a from any reference. 
 
-
-In order to present the essence of
-gradual typing for objects we introduce \kafka, a statically typed
-class-based calculus with mutable state and structural subtyping. Untyped
-method calls are supported with a distinct dynamic dispatch operation. The
-calculus allows for class generation, in particular, it allows the
-generation of transparent wrapper classes. We define the semantics of
-various gradual type systems by translation from a surface syntax into
-\kafka extended with generative casts.
 
 % Class based
 % Nominal subtyping
 % First class classes
 % Soundness claim
-% 
 
 This paper explores the design space of gradual type systems for
 object-oriented languages. We aim to expose the main forces influencing the
@@ -151,8 +162,8 @@ object-based language that supports statically and dynamically typed code
 fragments. On top of this common core, we then build models of several
 practical gradual type systems and illustrate their differences in terms of
 catching errors. While our work has a formal flavor, we are careful to
-discuss the practical implications of different choices in the light of
-our experience with the implementation of several gradually typed systems.
+discuss the practical implications of different choices in the light of our
+experience with the implementation of several gradually typed systems.
 
 The fundamental property that a type system object-based language should
 guarantee is that an expression of the form 
