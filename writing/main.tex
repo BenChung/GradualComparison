@@ -1280,7 +1280,7 @@ For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
 untyped methods, a dynamic call is blanketed by casts to \any.
 
-\newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_t #4}
+\newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright #4}
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt_s}}{\b{\mt_t}}\x\x }
 \\
@@ -1301,26 +1301,6 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \IRule{REW9}{ \rtranst{\b{\mt_s}}{\b{\mt_t}}{\b\e}{\b\ep} }{\rtranst{\b\mt_s}{\b\mt_t}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
-
-\newcommand{\ignorethis}[1]{}
-\ignorethis{
-\newcommand{\rtransut}[3]{#1 \vdash #2 \looparrowright_u #3}
-\begin{mathpar}
-\IRule{REU1}{ }{ \rtransut{\b\mt}\x\x }
-
-\IRule{REU2}{ \Mtype\f{}\t \in \b\mt }{\rtransut{\b\mt}{\Get\this\f}{\BehCast\t{\Get\this\f}} }
-
-\IRule{REU3}{ \e \neq \this \\ \rtransut{\b\mt}{\e}{\ep} }{\rtransut{\b\mt}{\Get\e\f}{\Get\ep\f}}
-
-\IRule{REU4}{ \Mtype\f\t\t \in \b\mt }{\rtransut{\b\mt}{\Set\this\f\e}{\BehCast\t{\Set\this\f{\SubCast\any\e}}}}
-
-\IRule{REU5}{ \e_1 \neq \this \\ \rtransut{\b\mt}{\e_1}{\e_2} \\ \rtransut{\b\mt}{\ep_1}{\ep_2} }{\rtransut{\b\mt}{\Set{\e_1}\f{\ep_1}}{\Set{\e_2}\f{\ep_2}}}
-
-\IRule{REU6}{ \rtransut{\b\mt}{\e_1}{\e_2} \\ \rtransut{\b\mt}{\ep_1}{\ep_2}}{\rtransut{\b\mt}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
-
-\IRule{REU7}{ \rtransut{\b\mt}{\b\e}{\b\ep} }{\rtransut{\b\mt}{\New\C{\b\e}}{\New\C{\b\ep}}}
-\end{mathpar}
-}
 
 
 \begin{figure}[!ht]
