@@ -1283,6 +1283,8 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \newcommand{\rtranst}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_{beh} #4}
 
+\begin{figure}[!ht]
+\hrulefill
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\x\x }
 \\
@@ -1304,10 +1306,15 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \IRule{REW9}{ \rtranst{\b{\mt}}{\b{\mtp}}{\b\e}{\b\ep} }{\rtranst{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hrulefill
+\caption{Behavioral dynamic expression translation.}\label{behtrans}
+\end{figure}
 
 \begin{figure}[!ht]
 \hrulefill 
-\scriptsize
+\footnotesize
 
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1362,7 +1369,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SP \}\\
 \end{array}\]
 %}%%END IGNORE
-  \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
+%   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
 
 \hrulefill
 %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1586,6 +1593,7 @@ class. Similarly, a field cannot be declared in a class that already has a
 getter or setter method for that field. This is enforced by the
 \texttt{overloading} function in class well-formedness.)
 
+\begin{figure}[!ht]
 \hrulefill
 
 \opdef{
@@ -1620,7 +1628,12 @@ getter or setter method for that field. This is enforced by the
     \tmeet\C\D\P\K = \E\,\K
 }
 \end{mathpar}
-\\
+
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hrulefill
+\caption{Behavioral dynamic expression translation.}\label{monmeet}
+\end{figure}
 
 
 The \texttt{methmeet} function is used by the \texttt{typemeet} functions to
@@ -1638,13 +1651,61 @@ for them according to the new wrapper \C.
 \newcommand{\rtranstz}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_{mon} #4}
 
 \begin{figure}[!ht]
+\hrulefill
+\begin{mathpar}
+\IRule{REW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\x\x }
+\\
+\IRule{REW2}{ \Mtype\f{}\t \in \b{\mtp} }{\rtranstz{\b{\mt}}{\b{\mtp}}{\Get\this\f}{\MonCast\t{\Get\this\f}} }
+
+\IRule{REW3}{ \e \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep} }{\rtranstz{\b{\mt}}{\b{\mtp}}{\Get\e\f}{\Get\ep\f}}
+
+\IRule[width=20em]{REW4}{ \Mtype\f\t\t \in \b{\mt} \\ \Mtype\f\tp\tp \in \b{\mtp} \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep} }{\rtranstz{\b{\mt}}{\b{\mtp}}{\Set\this\f\e}{\MonCast\tp{\Set\this\f{\MonCast\t\ep}}}}
+
+\IRule[width=20em]{REW5}{ \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2} }{\rtranstz{\b{\mt}}{\b{\mtp}}{\Set{\e_1}\f{\ep_1}}{\Set{\e_2}\f{\ep_2}}}
+
+\IRule[width=25em]{REW6}{ \Mtype\m{\t_1}{\tp_1} \in \b{\mt} \\ \Mtype\m{\t_2}{\tp_2} \in \b{\mtp}  \\ 
+\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}{\rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\m{\e}}{\MonCast{\tp_1}{\Call{\this}\m{\MonCast{\t_2}{\ep}}}}}
+
+\IRule[width=20em]{REW7}{ \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}{\rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}}
+
+\IRule{REW8}{ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}{\rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+
+\IRule{REW9}{ \rtranstz{\b{\mt}}{\b{\mtp}}{\b\e}{\b\ep} }{\rtranstz{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}}
+\end{mathpar}
+
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hrulefill
+\caption{Monotonic dynamic expression translation.}\label{montrans}
+\end{figure}
+
+
+\begin{figure}[!ht]
 \hrulefill 
-\scriptsize
+\footnotesize
 \vspace{4mm}
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
     \classgen{\C, \b\md, \bmt, \bmtp, \D} = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
+\SPP \Mdefz\f{\tp}{~\MonCast\tp{\Get{\Get\this\that}\f}~}
+&    \All \f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+\\
+\SPP \Mdef\f\x\tp\tp {~\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t\x}}~}
+&    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
+\\
+\SPP \Mdef\m\x\t\tp {~\MonCast\tp{{[\MonCast\Cp\x / \x] \ep}}~}
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
+\\
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\MonCast{\t}\x}}~}
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
+&&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
+\\
+\SPP \Mdef\m\x\t\tp{~\MonCast\tp{[\MonCast\any\x/\x]\ep}~}
+&     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
+\\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
 \\
@@ -1659,14 +1720,25 @@ for them according to the new wrapper \C.
 &    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
 &&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
 \\
+\SP \}
+\\
+\wrapAny\C\bmd\bmt\D = \\
+\SP \class~\D~\{\\
+\SPP \Fdef \that \C\\ 
+\SPP   \Mdefz\f\any{~\MonCast\any{\Get{{\Get\this\that}}\f}~}
+&  \All \m  \Mtype\f{}\t \in \bmt\\
+\SPP   \Mdef\f\x\any\any{~\MonCast\any{\Set{\Get\this\that}\f{\MonCast\t\x}}~}
+&  \All \f  \Mtype\f\t\t \in \bmt\\
+\SPP   \Mdef\m\x\t\tp {~\MonCast\any{{[\MonCast\t\x / \x] \ep}}~}
+&  \All \m \Mdef\m\x\t\tp\e\in\b\md  &\wedge& \rtranstz{\bmt}\cdot{\e}{\ep}\\
 \SP \}\\
 \end{array}\]
 \hrulefill
 %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \caption{Monotonic class generation.}\label{classgen}
+\caption{Monotonic class generation.}\label{classgen}
 \end{figure}
 
-
+% 
 % \begin{figure}[!ht]
 % \footnotesize
 % %\IGNOREUNLESSNEEDED{
@@ -1694,28 +1766,28 @@ for them according to the new wrapper \C.
 % &
 %  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 % \\[1mm]\hline
-% % \SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
-% % &
-% %  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
-% % \\[1mm]\hline
-% % \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\t{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}}
-% % & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
-% % \\[1mm]\hline
-% % \SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
-% % &
-% % \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
-% % \\[1mm]\hline
-% % \SPP \Mdef\m\x\any\any{ \DynCall{(\SubCast\any{\Get\this\that})}\m{\SubCast\any\x}}
-% % &
-% % \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
-% % \\[1mm]\hline
+% \SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
+% &
+%  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
+% \\[1mm]\hline
+% \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\t{\Call{\Get\this\that}\f{\SubCast\any{\MonCast\t\x}}}}}
+% & \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\not\in\bmtp 
+% \\[1mm]\hline
+% \SPP \Mdef\m\x\any\any { \SubCast\any{{\Call{\Get\this\that}\m{\SubCast\any\x}}}}
+% &
+% \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp\not\in \bmtp 
+% \\[1mm]\hline
+% \SPP \Mdef\m\x\any\any{ \DynCall{(\SubCast\any{\Get\this\that})}\m{\SubCast\any\x}}
+% &
+% \All m \Mtype\m\any\any\in\bmt &\wedge& \Mtype\m\t\tp \not\in\bmtp
+% \\[1mm]\hline
 % \SPP \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\Cp\x}}}}
 % &
 %  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp\in\bmtp \\
-% %  \\[1mm]\hline
-% % \SPP \Mdef\m\x\Cp\Cpp { \Call{\Get\this\that}\m\x} \tikzmarkend{a}
-% % &
-% %  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp \not\in \bmtp \\
+%  \\[1mm]\hline
+% \SPP \Mdef\m\x\Cp\Cpp { \Call{\Get\this\that}\m\x} \tikzmarkend{a}
+% &
+%  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp \not\in \bmtp \\
 % \SP\}
 % \end{array}
 % \]
@@ -1725,7 +1797,9 @@ for them according to the new wrapper \C.
 % \end{figure}
 
 \begin{figure}
-
+\hrulefill
+\footnotesize
+\vspace{4mm}
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
 \typegen{\bmt}{\D} = \\
@@ -1746,8 +1820,11 @@ for them according to the new wrapper \C.
 \SP\}
 \end{array}
 \]
+\hrulefill
 \caption{Equivalent Type Generation} \label{typegen}
 \end{figure}
+
+\clearpage
 
 \section{Translations}
 
