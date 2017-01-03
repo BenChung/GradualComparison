@@ -1419,7 +1419,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \begin{figure}[!ht]
 \hrulefill
 \begin{mathpar}
-\IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\e\x }
+\IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{\x[\e/\x]} }
 \\
 \IRule[width=25em]{REW2}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp}  \\ 
 \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{\BehCast{\tp_1}{\Call{\this}\n{\b{\BehCast{\t_2}{\ep}}}}}}
@@ -1431,7 +1431,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 
 \IRule{REW5}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
 
-\IRule{REW6}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\b\e}{\b\ep} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{REW6}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
 \vspace{-2mm}
@@ -1467,7 +1467,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \\
 \SPP \Mdef\m\x\t\tp{~\BehCast\tp{\ep}~}
 &     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{(\BehCast\any\x)}\x\e\x{\e}{\ep}
+&&&&\wedge&\rtranst{\bmt}\bmtp{(\BehCast\any\x)}\x\e{\ep}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
