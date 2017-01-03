@@ -11,8 +11,6 @@
 \renewcommand*{\textflush}{flushright}
 \renewcommand*{\epigraphsize}{\normalsize\itshape}
 
-
-
 \definecolor{vlightgray}{gray}{0.93}
 
 \lstdefinelanguage{JavaScript}{
@@ -36,10 +34,10 @@
 }
 
 
-
-
 \usepackage[textsize=tiny]{todonotes}
+
 % Author macros::begin %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \title{Gradual Types for Objects Redux}
 \titlerunning{Gradual Types for Objects Redux}
 %% provide for each author the \author and \affil macro, even if same
@@ -136,10 +134,9 @@ daunting.\footnote{Most practical \emph{sound} type system reports order of
   Racket~\cite{popl16}. These numbers merely indicate the existence of
   configurations that hurt performance.  They are neither comparable nor
   worst case indicators.  Most systems lack rigorous evaluations.  }
-Predictably, industrial strength systems have chosen to compromise on
-soundness to avoid degrading performance.\footnote{Industrial languages
-  (Dart, Typescript, Hack) have unchecked modes that won't catch all type
-  errors.}
+Predictably, industry has chosen to compromise on soundness to avoid
+degrading performance.\footnote{Industrial languages (Dart, Typescript,
+  Hack) have unchecked modes that won't catch all type errors.}
 
 The goal of this paper is to explore the design space of gradual type system
 for object-oriented languages. We aim to expose some of the forces that have
@@ -365,7 +362,9 @@ Reticulated Python    \\
 \it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  27x\\
 \it Guarded  &&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  21x\\
 \end{tabular}}
-\caption{Overview of implemented systems.}\label{over}
+  \caption{Overview of implemented systems. (1) Gradualtalk has optional
+    structural constraints. (2) Concretely typed expressions are sound in
+    C\#, Thorn and StrongScript.}\label{over}
 \end{figure}
 
 Optional types are the default execution mode for Dart, Hack and TypeScript.
@@ -399,6 +398,29 @@ Python performance can be viewed as a worst case scenario for concrete types
 -- i.e. there is a shallow cast at almost every call. Finally languages
 with generative casts tend to suffer prohibitive slow downs in pathological 
 cases.
+
+\subsection{Blame}
+Blame assignment is a topic of investigation in its own right
+(e.g.~\cite{Wadler09,SW09,Ahmed09}). Anecdotal evidence from Typed Racket
+users suggests that context provided by blame when a run-time type error
+occurs is valuable. It helps developers pinpoint the provenance of the
+ill-typed value or function that caused the error. A fitting analogy are the
+stack traces printed by Java when a program terminates abruptly. Developers
+working with languages like C++ must run their program in a debugger to
+obtain the same information. In Java, stack traces have little run-time cost
+because they piggyback on another feature of the language, namely precise
+exceptions.\footnote{ Precise exception have a price, they inhibit some
+  compiler optimizations, but supporting stack traces only requires the
+  compiler to retain names of methods on the stack and collect them when an
+  exception is thrown.} It is likely that recording blame may be more costly
+as some information must be associated with every value at every cast.
+
+\subsection{Trace preservation}
+
+
+\subsection{Soundness}
+
+\subsection{Performance}
 
 
 \subsection{Strongscript}
