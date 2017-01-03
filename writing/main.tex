@@ -1816,27 +1816,22 @@ method.
 The function \ftypes\a\C\s\K returns the old references and the new types
 for them according to the new wrapper \C.
 
-\newcommand{\rtranstz}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_{mon} #4}
+\newcommand{\rtranstz}[6]{#1 \Rightarrow #2 ~ #3 / #4 \vdash #5 \looparrowright_{mon} #6}
 
 \begin{figure}[!ht]
 \hrulefill
 \begin{mathpar}
-\IRule{MREW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
+\IRule{MREW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
 \\
 \IRule[width=25em]{MREW2}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ \n = \f \vee \t_1 \neq \any  \\ 
-\b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{\MonCast{\tp_1}{\Call{\this}\n{\b{\MonCast{\t_2}{\ep}}}}}}
+\b{\rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{\MonCast{\tp_1}{\Call{\this}\n{\b{\MonCast{\t_2}{\ep}}}}}}
 \\
-% \IRule[width=18em]{REW3}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
-% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\m{\e}}{\BehCast{\tp_1}{\DynCall{\this}\m{{\BehCast{\any}{\ep}}}}}}
 
-% \IRule[width=25em]{REW4}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
-% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{{\Call{\this}\n{\b{{\ep}}}}}}
+\IRule[width=20em]{MREW3}{ \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}}
 
-\IRule[width=20em]{MREW3}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}}
+\IRule{MREW4}{ \rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
 
-\IRule{MREW4}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
-
-\IRule{MREW5}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{MREW5}{ \b{\rtranstz{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranstz{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
 \vspace{-2mm}
@@ -1860,17 +1855,17 @@ for them according to the new wrapper \C.
 \SPP \Mdef\f\x\tp\tp {~\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t\x}}~}
 &    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x\t\tp {~\MonCast\tp{{[\MonCast\Cp\x / \x] \ep}}~}
+\SPP \Mdef\m\x\t\tp {~\MonCast\tp{{\ep}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\Cp\x)}\x{\e}{\ep}
 \\
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\MonCast{\t}\x}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
 &&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
 \\
-\SPP \Mdef\m\x\t\tp{~\MonCast\tp{[\MonCast\any\x/\x]\ep}~}
+\SPP \Mdef\m\x\t\tp{~\MonCast\tp{\ep}~}
 &     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\any\x)}\x\e{\ep}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
@@ -1880,23 +1875,12 @@ for them according to the new wrapper \C.
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
 &    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
-% \\
-% \SPP \Mdef\m\x\any\any {~\ep~}
-% &    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-% &&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep}
+&&&&\wedge&\rtranstz{\bmt}\bmtp\x\x{\e}{\ep}
 \\
-\SP \}
+\SPP \Mdef\m\x\any\any {~\ep~}
+&    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
+&&&&\wedge&\rtranstz{\bmt}\bmtp\x\x{\e}{\ep}
 \\
-\classgen{\C, \bmd, \bmt, \D} = \\
-\SP \class~\D~\{\\
-\SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{~\MonCast\any{\Get{{\Get\this\that}}\f}~}
-&  \All \m  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\MonCast\any{\Set{\Get\this\that}\f{\MonCast\t\x}}~}
-&  \All \f  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\t\tp {~\MonCast\any{{[\MonCast\t\x / \x] \ep}}~}
-&  \All \m \Mdef\m\x\t\tp\e\in\b\md  &\wedge& \rtranstz{\bmt}\cdot{\e}{\ep}\\
 \SP \}\\
 \end{array}\]
 \hrulefill
