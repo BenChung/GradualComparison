@@ -1565,12 +1565,15 @@ converted to the expected return type with another behavioral cast.
 \subsubsection{Monotone Casts}
 
 
-The monotone cast \MonCast\C\a imposes the type denoted by \C on the object
-at \a.
+The monotone cast \MonCast\C\a imposes the type \C onto the object
+at \a, as well as every object transitively reachable from it.
 
-
-and,
-transitively, on other objects reachable from it. 
+The monotone cast is generative, as it triggers the creation of new classes
+that are the meet of the existing types and the requested type. Generativity
+is required when objects are aliased at different types.  This cast also
+perform update in place of the class of objects, for example \obj\C{\a}
+becomes \obj\D{\a}. To deal correctly with fields, we restrict monotone
+casts to wrapper objects.
 
 
 In the extreme, one cast could cause all objects in the heap to be
@@ -1580,18 +1583,6 @@ object at \a (and transitively so for types appearing in \t and reachable
 from \a).  When a type \C does not have any occurence of the dynamic type,
 denoted by \statictype\C\K\V, monotone casts will leave the object and the
 heap unchanged.
-
-The monotone cast is generative, it triggers the creation of new classes
-that are the meet of the existing types and the requested type. Generativity
-is required when objects are aliased at different types.  This cast also
-perform update in place of the class of objects, for example \obj\C{\a}
-becomes \obj\D{\a}. To deal correctly with fields, we restrict monotone
-casts to wrapper objects.
-
-The semantics of monotone casts is somewhat involved, some auxiliary
-functions are left in appendix.
-
-
 
 The key challenge is that after a monotone
 cast in a heap \s, every reference should still be valid.  If a reference
