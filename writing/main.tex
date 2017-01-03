@@ -419,6 +419,84 @@ be associated with values at every cast.
 
 \subsection{Trace preservation}
 
+\begin{verbatim}
+class A
+   m(a : A):A {this} 
+
+class B
+   m'(b : B):B {this}
+
+class T
+   t( b :B) {this}
+
+new T().t(new A())
+
+Fails in Transient, TR, Thorn, Mono
+Succ: in Dart
+
+----------------------------------
+
+class A
+   m(a : A):A {this} 
+
+class B
+   m(b : B):B {this}
+
+class T
+   t( b :B) {this}
+
+new T().t(new A())
+
+Fails in Thorn
+Succ: in Tran, Mon, TR, Dart
+----------------------------------
+
+class A
+   f: *
+   m(a : A):A {this.f(new C()} 
+
+class B
+  f: T
+  m(a : A):A {this}
+
+class C{}
+
+class T
+   t( b :B) {b.m(b)}
+
+new T().t(new A())
+
+Fails in TR, Thorn, Mono
+Succ in Tran, Dart
+
+----------------------------------
+
+class A
+   m(a : *):* {this}
+
+class B
+  m(a : D):D {this}
+
+class C
+  m(a : D'):D'
+
+class D{m'}
+class D'{m'}
+class E{ f : B  f' : C}
+
+class T
+   t( b :B) {new E(b,b)}
+
+new T().t(new A())
+
+Fails in Thorn, Mono
+Succ in Tran, Dart, TR
+
+\end{verbatim}
+
+Trans
+
+
 [Say: OOP with structural subtyping makes it easier to make contract errors.]
 
 
