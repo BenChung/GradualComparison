@@ -1,9 +1,11 @@
 \documentclass[a4paper,USenglish]{tex/lipics-v2016}
-\usepackage{xspace,listings,url,framed,amssymb,
+\usepackage{xspace,listings,url,framed,amssymb,colortbl,
             amsmath,tex/mathpartir,hyperref,doi,
             stmaryrd, graphicx, tikz, colortbl} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \input{macros}
+
+\definecolor{Gray}{gray}{0.9}
 
 \usepackage{epigraph}
 \setlength{\epigraphwidth}{0.75\linewidth}
@@ -28,7 +30,7 @@
   belowskip=\smallskipamount %0em
 }
 \lstset{
-  language=JavaScript,  extendedchars=true,  basicstyle=\small\ttfamily,
+  language=JavaScript,  extendedchars=true,  basicstyle=\footnotesize\ttfamily,
   showstringspaces=false,   showspaces=false,  numberstyle=\small,
   numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
 }
@@ -419,82 +421,125 @@ be associated with values at every cast.
 
 \subsection{Trace preservation}
 
-\begin{verbatim}
-class A
-   m(a : A):A {this} 
 
-class B
-   m'(b : B):B {this}
+\newpage
 
-class T
-   t( b :B) {this}
+\begin{figure}[!ht]
+\begin{tabular}{cc}
+  \begin{tabular}{|cc|}\hline
+&    \\
+  \begin{minipage}{4.6cm}
+    \begin{lstlisting}
+class A {
+   m(x: A): A {this}}
 
-new T().t(new A())
+class I {
+   n(x: I): I {this}}
 
-Fails in Transient, TR, Thorn, Mono
-Succ: in Dart
+class T {
+   t(x: I): T {this}}
+      \end{lstlisting}    
+  \end{minipage}
+&
+  \begin{minipage}{4.75cm}
+    \begin{lstlisting}
+class A {
+   m(x: A): A {this}}
 
-----------------------------------
+class I {
+   m(x: C): I {this}}
 
-class A
-   m(a : A):A {this} 
-
-class B
-   m(b : B):B {this}
-
-class T
-   t( b :B) {this}
-
-new T().t(new A())
-
-Fails in Thorn
-Succ: in Tran, Mon, TR, Dart
-----------------------------------
-
-class A
+class T {
+   t(x: I): T {this}}
+      \end{lstlisting}    
+  \end{minipage}
+\\[2mm]
+(Litmus test 1) & (Litmus test 2)\\[3mm]
+  \begin{minipage}{4.6cm}
+    \begin{lstlisting}
+class A {
    f: *
-   m(a : A):A {this.f(new C()} 
+   m(x: A): A {
+     this.f(new C()}}
 
-class B
-  f: T
-  m(a : A):A {this}
+class I {
+  f: D
+  m(x: I): I {this}}
 
-class C{}
 
-class T
-   t( b :B) {b.m(b)}
 
+class T {
+   t(x: B) {x.m(x)}
+      \end{lstlisting}    
+  \end{minipage}
+&
+  \begin{minipage}{4.75cm}
+    \begin{lstlisting}
+class A {
+   m(x: *): * {this}}
+
+class I1 {
+  m(x: C): C {this}}
+
+class I2 {
+  m(x: D): D {this}}
+
+class E {f: I1 g: I2}
+
+class T {
+   t(x: A) {new E(x,x)}}
+      \end{lstlisting}    
+  \end{minipage}
+\\[2mm]
+(Litmus test 3) &  (Litmus test 4)\\\hline
+  \end{tabular}
+  &
+\begin{minipage}{4cm}
+\begin{tabular}{|c|}\hline\\
+  \begin{minipage}{4cm}
+    \begin{lstlisting}
+class C { 
+  n(x: C): C {this}}
+
+class D {
+  o(x: D): D {this}}
+    \end{lstlisting}    
+  \end{minipage}
+  \, \\
+  (Auxiliary classes)\\\hline
+\end{tabular}
+\\ \\ \\  
+\begin{tabular}{|c|}\hline\\
+  \begin{minipage}{4cm}
+    \begin{lstlisting}
 new T().t(new A())
+    \end{lstlisting}    
+  \end{minipage}
+  \, \\
+  (Program)\\\hline
+\end{tabular}
+\end{minipage}
+\end{tabular}
 
-Fails in TR, Thorn, Mono
-Succ in Tran, Dart
+~\\
 
-----------------------------------
+\center
+\renewcommand{\V}{\EM{\checkmark}}
+\begin{tabular}{|r|llll|}\hline
+                             & L1 & L2 & L3 & L4\\\hline
+\rowcolor{Gray}
+Thorn                        &    &    &    &   \\
+Typed Racket                 &    & \V &    & \V \\
+\rowcolor{Gray}
+Monotonic Ret.Python         &    & \V &    &   \\
+Transient Ret.Python         &    & \V & \V & \V \\
+\rowcolor{Gray}
+Dart                         & \V & \V & \V & \V \\\hline
+\end{tabular}  
+  \caption{Semantic litmus tests.}\label{litmus}
+\end{figure}
 
-class A
-   m(a : *):* {this}
 
-class B
-  m(a : D):D {this}
-
-class C
-  m(a : D'):D'
-
-class D{m'}
-class D'{m'}
-class E{ f : B  f' : C}
-
-class T
-   t( b :B) {new E(b,b)}
-
-new T().t(new A())
-
-Fails in Thorn, Mono
-Succ in Tran, Dart, TR
-
-\end{verbatim}
-
-Trans
 
 
 [Say: OOP with structural subtyping makes it easier to make contract errors.]
