@@ -409,19 +409,50 @@ stack traces printed by Java when a program terminates abruptly. Developers
 working with languages like C++ must run their program in a debugger to
 obtain the same information. In Java, stack traces have little run-time cost
 because they piggyback on another feature of the language, namely precise
-exceptions.\footnote{ Precise exception have a price, they inhibit some
-  compiler optimizations, but supporting stack traces only requires the
-  compiler to retain names of methods on the stack and collect them when an
-  exception is thrown.} It is likely that recording blame may be more costly
-as some information must be associated with every value at every cast.
+exceptions.\footnote{ Java's precise exceptions have a price, they inhibit
+  some compiler optimizations, but for stack traces the compiler only need
+  retain names of methods on the stack and record them on {\sf throw}.} It
+is likely that recording blame may be more costly as some information must
+be associated with values at every cast.
+
+[Do: fix references to the most recent results on Blame.]
 
 \subsection{Trace preservation}
+
+[Say: OOP with structural subtyping makes it easier to make contract errors.]
 
 
 \subsection{Soundness}
 
+[Say: All dynamic OO language have a dynamic type system that catches type errors.  So the difference between Sound and unsound is (a) the place where the error is caught, (b) cases when the gradul type system departs from the underlying type system.]  
+
 \subsection{Performance}
 
+The only exhaustive study of performance of gradual typing~\cite{popl16} was
+provocatively titled ``Is sound gradual typing dead?''.  Takikawa~\emph{et
+  al.}  reported that 14 out of 16 small real-world programs had performance
+cliffs past which partially typed code would run between 2x and 121x slower
+than untyped code. Few if any commercial system could justify that increased
+assurance is worth is worth a performance regression of this
+scale.\footnote{Otherwise one would accept some of the research prototypes
+  adding memory safety to C would have become mainstream.} While there is
+ongoing research towards reducing the overheads of
+contracts~\cite{pycket15}, preliminary results suggest that the ...
+
+
+[Say: primitive and immutable value checks are cheap]
+
+[Say: first order functions w/o recursion are cheap ]
+
+[Say: higher order/recursive functions are expensive]
+
+[Say: TR works well as long as you don't exchange large mutable values or hof]
+
+[Say: OOP is all about large graphs and hof ==> ouch ]
+
+[Say: consistency makes it impossible to unbox.]
+
+\section{Gradual Typing in Practice}
 
 \subsection{Strongscript}
 
