@@ -1830,24 +1830,24 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 
 \begin{mathpar}
 \IRule{PT}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
+  {\classtrans{\src\K}{\src\K}{\K'}} \\ \GenCast{\src\K}{\cdot}{\src\e}{\ep}{\src\t} 
+}{\progtrans{\src\e~\src\K}{\e'~{\K'}}}
 
 \IRule{CR1}{ 
-  \b{\methtrans \K\C\md{\md'}{}} \\
-  \classtrans \K\Kp\Kpp
+  \b{\methtrans {\src\K}{\src\C}{\src\md}{\md'}{}} \\
+  \classtrans {\src\K}{\src\Kp}\Kpp
 }{
-   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+   \classtrans {\src\K}{\src{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
 
 \IRule{CR2}{ 
 }{
-  \classtrans \K\cdot\cdot
+  \classtrans {\src\K}\cdot\cdot
 }
 
 \IRule{MT}{
-  \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp
+  \AnaCast {\src\K}{\HT\this{\src\C}~\HT\x{\src\t}}{\src\e}\ep{\src\tp}
 }{
-  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\t\tp\ep}{}
+  \methtrans {\src\K}{\src\C}{\Mdef\m\x{\src\t}{\src\tp}{\src\e}}{\Mdef\m\x\t\tp\ep}{}
 }
 \end{mathpar}
 
@@ -1965,7 +1965,7 @@ The Typed Racket formalism we present is not strictly limited to the Typed Racke
 As a result, we present the interaction between modules written in both Typed Racket and Racket. Notably, we do not represent the limitation that typed code can only exist in one language and untyped code in the other, as it does not have a considerable impact on the semantics of the language, at least at the level we are considering.
 
 \begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
+\IRule{A1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
 \IRule[width=30em]{A2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
@@ -1980,7 +1980,7 @@ As a result, we present the interaction between modules written in both Typed Ra
 }
 
 \IRule{A11}{
-  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
