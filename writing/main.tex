@@ -173,11 +173,11 @@ generation of wrapper classes (by update of the class table \K and
 allocation of new objects \a).  Methods can be statically resolved, denoted
 by a simple call \Call\a\m\x, or can be dynamically resolved, denoted by a
 dynamic call \DynCall\a\m\x. The \kafka type system is based on structural
-subtyping, although this is not essential, we could just as well use a
-nominal type system with multiple subtyping as in Java or C\#.  The dynamic
-type is written \any. To support transparent wrappers, a distinguished \that
-field is available to wrapper classes without but does not show up in the
-class' type signature.
+type equivalence (although not essential, it could just as well use nominal
+types with multiple subtyping \`a la Java).  The dynamic type is written
+\any. To support transparent wrappers, a distinguished \that field is
+available to wrapper classes without but does not show up in the class' type
+signature.
 
 The heart of a gradual type system implementation is the insertion of
 explicit casts at type boundaries.  Four different casts are built-in the
@@ -281,8 +281,8 @@ type.
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09},
 StrongScript~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
-Felleisen-style contracts and mostly nominal subtyping. C\# 4.0 adds the
-type {\sf dynamic} (i.e.~\any) to the language and dynamically resolved
+Felleisen-style contracts and mostly nominal type equivalence. C\# 4.0 adds
+the type {\sf dynamic} (i.e.~\any) to the language and dynamically resolved
 method invocation when the receiver is of type \any.  This means C\# has a
 dynamic sublanguage that allows developer to write unchecked code, but it
 also has a strongly type sublanguage in which values are guaranteed to be of
@@ -304,19 +304,18 @@ inherits from JavaScript, the language does use contract for functions.
 \subsection{Surveying the design space}
 
 \figref{over} gives a synthetic overview of systems with publicly available
-implementations. All languages here are class-based, even TypeScript which
-does not have types for plain JavaScript objects. Most languages base
-subtyping on the name of classes and on explicit subtype declarations,
-rather than on structural similarities between classes.  Exceptions include
-Gradualtalk which is nominal but also supports structural subtype if
-programmers want to use it.  TypeScript uses structural subtyping, but does
-not implement a runtime structural check. This is probably because of the
-JavaScript roots of the language, annecdotal evidence suggests that
-structural subtyping is not always exercised~\cite{ecoop15}.  The
-consistency relation used in Reticulated Python is fundamentally structural.
-For Racket, the heavy use of first-class classes and class generation
-naturally leads to choosing structural subtyping as many of the classes
-being manipulated have no names.
+implementations. All languages here are class-based, except TypeScript which
+also has types for plain JavaScript objects. Most languages base subtyping
+on the name of classes and on explicit subtype declarations, rather than on
+structural similarities between classes.  Exceptions include Gradualtalk
+which is nominal but also supports structural subtype if programmers want to
+use it.  TypeScript uses structural subtyping, but does not implement a
+runtime structural check. This is probably because of the JavaScript roots
+of the language, annecdotal evidence suggests that structural subtyping is
+not always exercised~\cite{ecoop15}.  The consistency relation used in
+Reticulated Python is fundamentally structural.  For Racket, the heavy use
+of first-class classes and class generation naturally leads to choosing
+structural subtyping as many of the classes being manipulated have no names.
 
 
 \newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
@@ -487,13 +486,13 @@ class T {
     \begin{lstlisting}
 class A {
    f: *
-   m(x: A): A { this.f(
+   m(x: A): A {
+    this.f(
       new A(new C())}}
 
 class I {
   f: D
   m(x: I): I {this}}
-
 
 
 class T {
@@ -553,16 +552,13 @@ new T().t(new A())
 
 \center
 \renewcommand{\V}{\EM{\checkmark}}
-\begin{tabular}{|r|llll|}\hline
-                             & L1 & L2 & L3 & L4\\\hline
-\rowcolor{Gray}
-Thorn                        &    &    &    &   \\
-Typed Racket                 &    & \V &    & \V \\
-\rowcolor{Gray}
-Monotonic Ret.Python         &    & \V &    &   \\
-Transient Ret.Python         &    & \V & \V & \V \\
-\rowcolor{Gray}
-Dart                         & \V & \V & \V & \V \\\hline
+\begin{tabular}{|r|l@{~}l@{~}l@{~}l|}\hline
+                     & L1 & L2 & L3 & L4\\\hline\rowcolor{Gray}
+Thorn                &    &    &    &   \\
+Typed Racket         &    & \V &    & \V \\\rowcolor{Gray}
+Monotonic  RetPy     &    & \V &    &   \\
+Transient RetPy      &    & \V & \V & \V \\\rowcolor{Gray}
+TypeScript           & \V & \V & \V & \V \\\hline
 \end{tabular}  
   \caption{Semantic litmus tests.}\label{litmus}
 \end{figure}
@@ -605,210 +601,95 @@ contracts~\cite{pycket15}, preliminary results suggest that the ...
 
 \section{Gradual Typing in Practice}
 
-\subsection{Strongscript}
+We review five type systems.
 
-Strongscript is an evolution of Typescript, an industrial unsound optional
-typing approach for Javascript. Both Strongscript and Typescript aim to
-offer a method for Javascript programmers to migrate their dynamic code
-to typed code, but to discuss Strongscript, we first need to explain its 
-basis in Typescript.
+We use the \kafka syntax for our examples even if it will only be explained later.
 
-\begin{figure}[h]
-\begin{verbatim}
-class A { a() : number { return 0; } }
-class B { b() : string { return "b"; } }
+It should be self explanatory.
 
-function test(x: A) {
-  return x.a();
+\newcommand{\code}[1]{{\tt #1}\xspace}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{TypeScript}
+
+Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
+with classes and type annotations. Type equivalence is structural and
+subtyping of recursive types is supported (types arise from class
+declarations). Missing annotations are treated as \any. The role of types is
+to catch simple errors such the misspelling of the method of class \code A:
+
+\begin{lstlisting}
+  class A { }
+    m(x: C): A { this } }
+
+  new A().n(new C())
+\end{lstlisting}
+
+Well-typed code is translated to plain JavaScript with all types erased and
+methods resolved dynamically. In our translation to \kafka the above program
+(with the correct method name \code m) translate to the following.
+
+\begin{lstlisting}
+  class A { }
+    m(x: *): * { this } }
+
+  new A()@m(new C())
+\end{lstlisting}
+
+The snippet now uses dynamic calls (written \code @) and methods signature
+are set to \any. It is easy to trick the compiler into accepting incorrect
+cdoe, the following would be compile and would throw a JavaScript exception.
+
+\begin{lstlisting}
+  (<*>new A()) . n(new C())
+\end{lstlisting}
+
+TypeScript's designers saw unsoundness as a way to ensure that (a) types do
+not prevent a program from running, e.g. when importing a new library with
+type annotations inconsistent with clent code; and that (b) existing
+browsers can run TypeScript code with no overheads.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Thorn}
+
+Thorn~\cite{oopsla09} is an object-oriented language with multiple
+inheritance, nominal type equivalence and a combination of optional and
+concrete types.  Optional types (written here \code{?T}) are treated exactly
+as in TypeScript, they are translated to dynamic and method invocations are
+resolved dynamically. Concrete types (written \code{T}), on the other hand,
+are treated as they would be in Java. A variable \code{x:~C} is guaranteed
+to be of class \code C or of a subtype thereof.
+
+\begin{lstlisting}
+class A {
+  m(x: ?C): ?C { x }
+  n(x:  C):  C { x }
 }
-test(new B())
-\end{verbatim}
-\caption{Typescript Example 1: Static type error}
-\label{fig:tsex1}
-\end{figure}
 
-Figure~\ref{fig:tsex1} presents a simple typed program that is statically 
-rejected by Typescript, where we try to call a non-existent method on an object,
-an issue which Typescript notices and rejects statically. Typescript did this
-by noticing that the type A is not compatible with the type B.
+new A().m( new D() )  // OK -- warning
+new A().m( new C() )  // OK -- C <: ?C
+new A().n( new D() )  // ERR -- D !<: C
+\end{lstlisting}
 
-However, consider figure~\ref{fig:tsex2}, where we place the instance of B
-into an any-typed variable, then call test with that variable. Since the
-semantics of this program are identical to the previous example, one could
-expect that Typescript would notice the issue and report a static type
-error. When we run the Typescript compiler, the program is accepted by the
-compiler, and execution produces a ``message not understood'' error at the
-invocation site on line 5, inside the function where we expected to see no
-errors.
+In the above code snippet, class \code A has one method taking an optional
+type and the other taking a concrete type. Assume \code C and \code D are
+unrelated. The first call is allowed because the type of \code m is treated
+as \any (the Thorn compiler does emit a warning). The second call is ruled
+out as incorrect.
 
-\begin{figure}[h]
-\begin{verbatim}
-class A { a() : number { return 0; } }
-class B { b() : string { return "b"; } }
+Translating Thorn to \kafka is straightforward. Optional types are translated
+to \any. Method calls with either receiver 
 
-function test(x:A) {
-	return x.a();
-}
-var evil:any = new B()
-test(evil)
-\end{verbatim}
-\caption{Typescript Example 2: Dynamic type error}
-\label{fig:tsex2}
-\end{figure}
-
-This issue goes undetected because Typescript \emph{only} checks the static
-compatibility of types. It was able to tell that an A is not a B, but cannot
-determine that the real value of \xt{evil} is incompatible with A. As a
-result, Typescript provides no guarantee that a value inhabiting a type is
-actually of that type, and therefore is unsound. The designers of Typescript
-made this choice for two major reasons:
-
-\begin{itemize}
-\item Incorrect types do not create errors. Even if the program is
-  ill-typed, yet ran before types were added, it will still run in typed
-  configuration, albeit while breaking the programmer's type-based
-  intuition. This allows programs to be typed more easily.
-\item Not checking types at runtime incurs no runtime overhead. As discussed
-  later, ensuring the type correctness of a program at runtime incurs a
-  substantial performance penalty. By not having any runtime component,
-  Typescript has the same performance as Javascript does.
-\end{itemize}
-
-Simply adding soundness to all types would run straight into both of these
-issues, as it would cause running programs to stop working and would 
-also incur runtime overhead. Strongscript sets out to add soundness to
-Typescript, so it has to deal with these problems and coexist with this
-\emph{unconstrained} ecosystem, while simultaneously preventing the issue
-identified in figure~\ref{fig:tsex2}.
-
-To provide soundness while still avoiding compatibility problems with 
-Typescript, Strongscript provides programmers with a choice of type
-safety guarantee - a programmer can choose to write \emph{unconstrained}
-types (denoted $\t$, for compatibility with Typescript) or \emph{concrete}
-types (denoted $\t\xt{!}$), sidestepping both problems with a fully sound
-gradual typing system and devolving responsibility for the choice onto
-the programmer.
-
-\begin{figure}[h]
-\begin{verbatim}
-class A { a() : number { return 0; } }
-class B { b() : string { return "b"; } }
-
-function test(x : A!) {
-  return x.a();
-}
-var evil:any = new B()
-test(evil)
-\end{verbatim}
-\caption{Strongscript: Dynamic type error}
-\label{fig:ssex}
-\end{figure}
-
-In figure~\ref{fig:ssex}, we have the same program that caused Typescript to
-have a runtime type error, but with one key change: now, instead of taking
-type $\xt{A}$, the function test takes type $\xt{A!}$, and therefore has a
-soundness requirement. Like Typescript, Strongscript cannot reason about the
-real value of evil statically - all it sees is that evil is of type $\any$,
-and something of type $\any$ \emph{could} work with something expecting type
-$\xt{A}$. As a result, this program is still allowed statically by
-Strongscript.
-
-To solve this problem and preserve type safety, Strongscript dynamically
-checks that the argument is type correct. While we do not get a static type
-error, when we try to run the program, we get a dynamic type error at line
-8, where we try to pass a B where an A is expected.
-
-In this manner, a programmer can use the Strongscript types to control
-enforcement and the resulting restrictions on code in a gradually typed
-program. However, Strongscript provides another interesting property that
-relates the \emph{unconstrained} and the \emph{concrete} types, illustrated
-in figure~\ref{fig:ssex}.
-
-\begin{figure}[h]
-\begin{verbatim}
-class A { a() : number { return 0; } }
-class B { b() : string { return "b"; } }
-
-function test(x : A) {
-  return x.a();
-}
-var nice:A = new A()
-test(nice)
-\end{verbatim}
-\caption{Strongscript: Correct, unconstrained typed program}
-\label{fig:ssex2}
-\end{figure}
-
-Here, in figure~\ref{fig:ssex2}, we have modified the previous examples to execute correctly and typecheck
-successfully with only \emph{unconstrained} types. As a result, we can simply 
-transform it into the program seen in figure~\ref{fig:ssex3} and no errors, runtime
-or compile time, are produced.
-
-\begin{figure}[h]
-\begin{verbatim}
-class A { a() : number { return 0; } }
-class B { b() : string { return "b"; } }
-
-function test(x : A) {
-  return x.a();
-}
-var nice:A = new A()
-test(nice)
-\end{verbatim}
-\caption{Strongscript: Correct, concretely typed program}
-\label{fig:ssex3}
-\end{figure}
-
-The last property we will discuss about Strongscript is its use of 
-\emph{concrete} types. Concrete gradual typing is based on \emph{type identity},
-rather than \emph{type compatibility}, a topic we will discuss in the context of
-Reticulated Python. To illustrate this, consider figure~\ref{fig:ssex4}.
-
-\begin{figure}[h]
-\begin{verbatim}
-class A { a() : number { return 0; } }
-class B { b() : any { return 0; } }
-
-function test(x : !A) {
-  return x.a();
-}
-var undecided = new B()
-test(undecided)
-\end{verbatim}
-\caption{Strongscript: Concrete typing}
-\label{fig:ssex4}
-\end{figure}
-
-In this example, we have modified A and B such that if you pretended that B
-was an A (that is, if the function b was assumed to have a return type
-of number), then nothing would go wrong. As a result, it would be type
-safe (up to cast errors) to let B stand in for an A in the program.
-
-However, Strongscript will report an error on line 9, as instead of asking
-\emph{could} the program work, it expects the runtime types to line up exactly.
-This choice makes the type system very efficient - all that is required
-at the cast site is a simple tag check - but also means that you cannot simply
-add types alone to a Strongscript program when going from untyped to typed,
-changes to the code have to be made (in this case, we would have to type
-B and declare a subtyping relationship between A and B for the program to
-run without type errors).
-
-We will explore this topic in greater depth in our discussion of Reticulated
-Python, but this issue is why most sound gradual typing systems do not use
-concrete types, and rather use some variation on \emph{promised types}, 
-where an untyped value in a typed location is expected to \emph{act} as
-if it was typed, rather than actually being of that type. The rest of our
-discussion will be devoted to understanding the differences between these 
-systems, starting with Typed Racket.
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typed Racket}
 
-Typed Racket is an extension of Racket, designed to allow programmers to type
-their untyped Racket code. It differs in two key ways from Strongscript, using \emph{promised
-types}, as mentioned before, but also in where it allows
-programmers to add types in the first place. Gradual typing evokes images of 
-programmers altering their programs to add more types. However, an important question arises about 
-that mental picture: what does it mean to gradually add types to a program?
+Typed Racket is an extension of Racket, designed to allow programmers to
+type their untyped Racket code. It differs in two key ways from
+Strongscript, using \emph{promised types}, as mentioned before, but also in
+where it allows programmers to add types in the first place. Gradual typing
+evokes images of programmers altering their programs to add more
+types. However, an important question arises about that mental picture: what
+does it mean to gradually add types to a program?
 
 The answer taken by Strongscript and the other gradual typing systems we
 discuss in this paper is that programmers should be able to add a type
@@ -899,6 +780,7 @@ limited in that they cannot absolutely establish type correctness across
 casts, unlike concrete type systems. As a result, errors occur when untyped
 code is used, rather than at the boundary crossing.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reticulated Python}
 
 Reticulated Python is an extension of Python adding sound gradual types by
@@ -914,112 +796,7 @@ promised typing approaches, checking to ensure that untyped code behaves as
 if it were typed from the perspective of a typed observer. However, the
 mechanism for achieving this differs in each case.
 
-\subsubsection{Guarded}
-
-The guarded semantics for Reticulated Python is broadly similar to the
-semantics of Typed Racket, as it uses wrappers to ensure that untyped code
-behaves as expected.  However, it differs in one key area: where Typed
-Racket expects typed and untyped code to be in different compilation
-modules, the guarded semantics allows types to be added anywhere in the
-program.
-
-\begin{figure}[h]
-\begin{verbatim}
-class A1:
-  def a(a : Any) : Any:
-    return a + 2
-class A2:
-  def a(a : Int) : Int:
-    return a + 2
-
-def test(a:A2):Int
-  return a.a(2) + 1
-
-test(A1())
-\end{verbatim}
-\caption{Guarded: a working program.}
-\label{fig:guard1}
-\end{figure}
-
-In figure~\ref{fig:guard1}, we see a correct program which runs
-successfully. Class A1 is dynamically typed, and class A2 is fully
-statically typed, while the test method expects a statically typed instance
-of A2. We are then able to pass a dynamically typed instance of class A1
-into this test method as the guarded semantics will insert a wrapper around
-A1 that makes sure it acts like an A2.
-
-To see this more clearly, we can modify the above example into
-figure~\ref{fig:guard2}. Here, A1 does not act like an A2 - when passed an
-argument, it will try and concatenate the string ``foo'' onto the end, and
-will return a string (if it can). As a result, we know that this will
-produce an error, but the question is: where?
-
-\begin{figure}[h]
-\begin{verbatim}
-class A1:
-  def a(a : Any) : Any:
-    return a + "foo"
-class A2:
-  def a(a : Int) : Int:
-    return a + 2
-
-def test(a:A2):Int
-  return a.a(2) + 1
-
-test(A1())
-\end{verbatim}
-\caption{Guarded: A1 does not follow the types of A2, and therefore invocation fails.}
-\label{fig:guard2}
-\end{figure}
-
-In this case, the error appears after the function A1.a returns, but before
-the value is passed back to the caller. A wrapper is added around A1 that
-checks that the return value is an instance of type int, and when it is not,
-an error is produced.
-
-The guarded semantics is one of the most intuitive of the systems we have
-covered - errors are produced exactly when the value produced breaks the
-type guarantee. However, it suffers from the same issues as were identified
-in~\cite{practical-gt} for Typed Racket, with considerable ``wrapper
-bloat'', caused when a value passes between typed and untyped code a large
-number of times.
-
-\begin{figure}[h]
-\begin{verbatim}
-class A1:
-  def a(a : Any) : Any:
-    return a + "foo"
-class A2:
-  def a(a : Int) : Int:
-    return a + 2
-
-def a1(a:A1):A1
-  return a
-
-def a2(a:A2):A2
-  return a
-
-a = A1()
-for i=1,1000:
-  a = a1(a2(a))
-\end{verbatim}
-\caption{Guarded: Adding a considerable number of wrappers.}
-\label{fig:guard3}
-\end{figure}
-
-This problem is illustrated in figure~\ref{fig:guard3}. The functions a1 and
-a2 act as casts to A1 and A2, respectively, and we apply each to the same
-value 1000 times, alternating between a1 and a2. The problem here arises
-from the naive interpretation of wrapping, where each time we go from A1 to
-A2 we acquire a new weapper. At the end of this program, a call to a would
-go through 1000 different objects!
-
-While approaches to help simplify this particular problem exist, little
-progress has been made in eliminating it entirely, at least to acceptible
-levels. As a concequence, two other systems have been added in Reticulated
-Python that take a different perspective on the issue of how to ensure
-soundness, but at lower cost in memory and levels of indirection.
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Transient}
 
 In both the Strongscript and Typed Racket approaches, if you wrote a method
@@ -1111,6 +888,7 @@ sophisticated implementation may be able to avoid some of these checks, even
 better performance of typed code can be made possible by using a different
 type safety guarantee.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Monotonic}
 A key downfall of the approaches we discussed previously is that they
 cause performance impacts in fully-typed code, especially at heap access
@@ -1408,15 +1186,11 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \end{figure}
 
 
-\newpage
-
 \subsection{Structural Casts}
 
 \kafka offers two kinds of structural casts. One which performs a structural
 subtype check and one that only check for the persence of methods with given
 names.
-
-% \newpage
 
 
 
@@ -1637,7 +1411,6 @@ converted to the expected return type with another behavioral cast.
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\clearpage
 
 \subsubsection{Monotone Casts}
 
@@ -2040,7 +1813,6 @@ for them according to the new wrapper \C.
 \caption{Equivalent Type Generation} \label{typegen}
 \end{figure}
 
-\clearpage
 
 \section{Translations}
 
@@ -3516,7 +3288,8 @@ Every place a type \Type{\mt} where $\mt=\Mtype\m{\b{\tp1}}{\tp2}$ flows from ty
 \end{definition}
 
 To model Typed Racket, we then need to enforce the property that objects are wrapped at typed/untyped boundaries, and ensuring that untyped code cannot use typed code internally through casts. We do this by altering the completion process, giving us a new definition. We use the wrappers we generated using definition 4 to enforce the type guarantees
-\newpage
+
+
 \begin{definition} A Typed Racket class table is completed if for every 
  \Class \C {\b{\fd}} {\b{\md}} in the class table: 
  \begin{itemize}
@@ -3574,8 +3347,6 @@ $\t = \ldots \B {\WType{\Mtype\m\t\t}}$
 \caption{Transient}
 \end{figure}
 
-\clearpage
-\newpage
 
 \section{Monotonic}
 
