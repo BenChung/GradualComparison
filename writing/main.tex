@@ -1841,63 +1841,62 @@ for them according to the new wrapper \C.
 \end{figure}
 
 
-\begin{figure}[!ht]
-\hrulefill 
-\footnotesize
-\vspace{4mm}
-\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \classgen{\C, \b\md, \bmt, \bmtp, \D} = \\
-\SP \class ~\D ~ \{\\
-\SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\MonCast\tp{\Get{\Get\this\that}\f}~}
-&    \All \f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\
-\SPP \Mdef\f\x\tp\tp {~\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t\x}}~}
-&    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
-\\
-\SPP \Mdef\m\x\t\tp {~\MonCast\tp{{\ep}}~}
-&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\Cp\x)}\x{\e}{\ep}
-\\
-\SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\MonCast{\t}\x}}~}
-&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
-&&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
-\\
-\SPP \Mdef\m\x\t\tp{~\MonCast\tp{\ep}~}
-&     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\any\x)}\x\e{\ep}
-\\
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
-&    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
-\\
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
-&    \All \f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
-\\
-\SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
-&    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp\x\x{\e}{\ep}
-\\
-\SPP \Mdef\m\x\any\any {~\ep~}
-&    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp\x\x{\e}{\ep}
-\\
-\SP \}\\
-\end{array}\]
-\hrulefill
-%%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\caption{Monotonic class generation.}\label{classgen}
-\end{figure}
+% \begin{figure}[!ht]
+% \hrulefill 
+% \footnotesize
+% \vspace{4mm}
+% \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+%     \classgen{\C, \b\md, \bmt, \bmtp, \D} = \\
+% \SP \class ~\D ~ \{\\
+% \SPP \Fdef\that\C \\
+% \SPP \Mdefz\f{\tp}{~\MonCast\tp{\Get{\Get\this\that}\f}~}
+% &    \All \f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+% \\
+% \SPP \Mdef\f\x\tp\tp {~\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t\x}}~}
+% &    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
+% \\
+% \SPP \Mdef\m\x\t\tp {~\MonCast\tp{{\ep}}~}
+% &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+% &&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\Cp\x)}\x{\e}{\ep}
+% \\
+% \SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\MonCast{\t}\x}}~}
+% &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
+% &&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
+% \\
+% \SPP \Mdef\m\x\t\tp{~\MonCast\tp{\ep}~}
+% &     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+% &&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\any\x)}\x\e{\ep}
+% \\
+% % \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
+% % &    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
+% % \\
+% % \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
+% % &    \All \f \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
+% % \\
+% % \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
+% % &    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
+% % &&&&\wedge&\rtranstz{\bmt}\bmtp\x\x{\e}{\ep}
+% % \\
+% % \SPP \Mdef\m\x\any\any {~\ep~}
+% % &    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
+% % &&&&\wedge&\rtranstz{\bmt}\bmtp\x\x{\e}{\ep}
+% % \\
+% \SP \}\\
+% \end{array}\]
+% \hrulefill
+% %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \caption{Monotonic class generation.}\label{classgen}
+% \end{figure}
 
 % 
 \begin{figure}[!ht]
-\hrulefill
 \footnotesize
 %\IGNOREUNLESSNEEDED{
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
 \classgen{\C, \bmt, \bmtp, \D,\K}= \\
-% \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.65,-0.5)(0,0.25) 
-\SP \class~\D~\{ \\
+% \SP \tikzmarkin[set fill color=gray!20!white, set border color=gray!20!white]{a}(3.65,-0.5)(0,0.25) 
+\class~\D~\{ \\
 \SPP \Fdef\that\C
 \\[1mm]
 \SPP \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}} 
@@ -1916,8 +1915,8 @@ for them according to the new wrapper \C.
 \\[1mm]\hline
 \SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
 &
- \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\[1mm]\hline
+ \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp \\
+% \\[1mm]\hline
 % \SPP \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}}
 % &
 %  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp 
@@ -1940,6 +1939,42 @@ for them according to the new wrapper \C.
 % \SPP \Mdef\m\x\Cp\Cpp { \Call{\Get\this\that}\m\x} \tikzmarkend{a}
 % &
 %  \All m \Mtype\m\Cp\Cpp \in\bmt &\wedge& \Mtype\m\t\tp \not\in \bmtp \\
+\SP\}
+\end{array}
+\]
+%} 
+%\includegraphics[width=1\textwidth]{figures/classgenDefinition}
+\caption{Class generation.}\label{classgen}
+\end{figure}
+
+
+\begin{figure}[!ht]
+\hrulefill
+\footnotesize
+%\IGNOREUNLESSNEEDED{
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\classgen{\C, \b\md, \bmt, \bmtp, \D}= \\
+\SP \class~\D~\{ \\
+\SPP \Fdef\that\C
+\\[1mm]
+\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
+      \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
+&
+\All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
+\\[1mm]\hline
+\SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
+&
+ \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+\\[1mm]\hline
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast\tp{{\ep}}}~}
+&     \All \m \Mdef\m\x\t\tp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\t\x)}\x{\e}{\ep}
+\\[1mm]\hline
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\MonCast{\t}\x}}~}
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
+&&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
+\\[1mm]\hline
 \SP\}
 \end{array}
 \]
