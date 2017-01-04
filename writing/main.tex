@@ -1850,34 +1850,38 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 
 \begin{mathpar}
 \IRule{PT}{
-  {\classtrans{\src\K}{\src\K}{\K'}} \\ \GenCast{\src\K}{\cdot}{\src\e}{\ep}{\src\t} 
-}{\progtrans{\src\e~\src\K}{\e'~{\K'}}}
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule{CR1}{ 
-  \b{\methtrans {\src\K}{\src\C}{\src\md}{\md'}{}} \\
-  \classtrans {\src\K}{\src\Kp}\Kpp
+  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+  \classtrans {\K}{\Kp}\Kpp
 }{
-   \classtrans {\src\K}{\src{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
 
 \IRule{CR2}{ 
 }{
-  \classtrans {\src\K}\cdot\cdot
+  \classtrans {\K}\cdot\cdot
 }
 
 \IRule{MT}{
-  \AnaCast {\src\K}{\HT\this{\src\C}~\HT\x{\src\t}}{\src\e}\ep{\src\tp}
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
 }{
-  \methtrans {\src\K}{\src\C}{\Mdef\m\x{\src\t}{\src\tp}{\src\e}}{\Mdef\m\x\t\tp\ep}{}
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\t\tp\ep}{}
 }
 \end{mathpar}
 
-\subsection{Strongscript}
+\subsection{Thorn}
+
+Notably, Thorn adds an ``unsound'' type $\dt\C$ to its type system, which has its own subtyping relation, and compiles down to \any in \kafka.
 
 \newcommand{\bC}{\xt{!C}}
 
 \begin{tabular}{l@{~~}l@{}l@{}l}
-\t  &::= ~ \any \B \C \B \bC \\ 
+\t  &::= ~ \any \B \C \B \dt\C \\ 
 \end{tabular}
+
+
 
 \newcommand{\ba}{\xt{!}}
 
