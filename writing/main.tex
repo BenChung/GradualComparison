@@ -421,8 +421,36 @@ be associated with values at every cast.
 
 \subsection{Trace preservation}
 
+The semantics of the various type systems have subtle distinctions. Ideally,
+one would like to reject programs that will fail, but there is a tension
+because some of the dynamically typed code exploits the fact that it is
+dynamically typed.  Type systems are correctly pesmistic and will flag
+potential errors.
 
-\newpage
+To illustrate the difficulties we provide four litmus tests, these are small
+programs written in \kafka syntax but that can also be expressed in all the
+languages of interest.
+
+Each of these programs consists of a class table composed of the respective
+litmus classes, some auxiliary code and a main expression.
+
+In all cases the main expression is a call to the method t of class T with an argument of class A.
+
+In all cases, the program is well typed statically.
+
+In the optionally typed semantics of e.g. Dart, all tests run to
+completition without getting stuck.
+
+Using concrete types in Thorn, all of these programs will get stuck with
+subtype cast expression error. As class A is not a subtype of I, nor I'.
+Thus in each test the program qill get stuck when A is passed where an I
+expected.
+
+With optional types and the Transient RP semantics, L1 fails because transient
+checks that A has all the method names of I. Which it does not.
+L2,L3 and L4 succeed, because Transient only checks names at calls.
+
+
 
 \begin{figure}[!ht]
 \begin{tabular}{cc}
@@ -459,8 +487,8 @@ class T {
     \begin{lstlisting}
 class A {
    f: *
-   m(x: A): A {
-     this.f(new C()}}
+   m(x: A): A { this.f(
+      new A(new C())}}
 
 class I {
   f: D
@@ -478,13 +506,13 @@ class T {
 class A {
    m(x: *): * {this}}
 
-class I1 {
+class I {
   m(x: C): C {this}}
 
 class I2 {
   m(x: D): D {this}}
 
-class E {f: I1 g: I2}
+class E {f: I g: I2}
 
 class T {
    t(x: A) {new E(x,x)}}
