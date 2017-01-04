@@ -1840,7 +1840,7 @@ for them according to the new wrapper \C.
 \caption{Monotonic dynamic expression translation.}\label{montrans}
 \end{figure}
 
-
+% 
 % \begin{figure}[!ht]
 % \hrulefill 
 % \footnotesize
@@ -1887,7 +1887,7 @@ for them according to the new wrapper \C.
 % %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \caption{Monotonic class generation.}\label{classgen}
 % \end{figure}
-
+% 
 % 
 % \begin{figure}[!ht]
 % \footnotesize
@@ -1954,7 +1954,7 @@ for them according to the new wrapper \C.
 %\IGNOREUNLESSNEEDED{
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
-\classgen{\C, \b\md, \bmt, \bmtp, \D}= \\
+\classgen{\C, \b\md, \bmt, \bmtp, \D, \K}= \\
 \SP \class~\D~\{ \\
 \SPP \Fdef\that\C
 \\[1mm]
@@ -1970,6 +1970,11 @@ for them according to the new wrapper \C.
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast\tp{{\ep}}}~}
 &     \All \m \Mdef\m\x\t\tp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
 &&&&\wedge&\rtranstz{\bmt}\bmtp{(\MonCast\t\x)}\x{\e}{\ep}
+\\[1mm]\hline
+\SPP \Mdef\m\x\t\tp {\ep~}
+&     \All \m \Mdef\m\x\t\tp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&&\wedge&\rtranstz{\bmt}\bmtp{\x}\x{\e}{\ep} \\
+&&&&\wedge&\statictype{\C}{\K}{\cdot}
 \\[1mm]\hline
 \SP\}
 \end{array}
@@ -2375,24 +2380,24 @@ At the surface language level, the Monotonic semantics are very similar to that 
 \end{mathpar}
 
 
-\newcommand{\isstatic}[2]{\text{static}(#1,#2)}
+\newcommand{\isstatic}[3]{\text{static}(#1,#2,#3)}
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t \\ \x \neq \this}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{A2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule[width=30em]{A3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K}{\cdot} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{{\e_4}}}{\t_2}
 }
 
 \IRule[width=30em]{A4}{
-    \HasType\E\this\C \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \HasType\E\this\C \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\this}\n{\b{\e_2}}}{\Call{\this}\n{\b{\e_4}}}{\t_2}
 }
