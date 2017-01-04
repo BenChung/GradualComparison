@@ -2849,7 +2849,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 
 \begin{mathpar}
 \IRule{ENMT1}{
-  \md = \Mdef\m\x\t\tp{ \MonCast\tp{\Call{\Get\this\that}\m{{\MonCast\t\x}}}} \\
+  \md =  \Mdef\m\x\any\any {~\SubCast\any{\MonCast\tp{{\ep}}}~} \\
   \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
   \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\
   \mdpp = \Mdef\m\x\tpp\tppp {\MonCast\tppp\x} \\
@@ -2859,7 +2859,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 }
 
 \IRule{ENMT2}{
-  \md = \Mdef\m\x\any\any {\SubCast\any{\MonCast\tp{\Call{\Get\this\that}\m{\MonCast\Cp{\MonCast\t\x}}}}}\\ 
+  \md = \Mdef\m\x\t\tp {\ep~}\\ 
   \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
   \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\  
   \mdpp =\Mdef\m\x\tpp\tppp {\MonCast\tppp\x}\\
@@ -2868,18 +2868,8 @@ types $\b\mtpp$ and a class table $\Kp$.
   \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
 }
 
-\IRule{ENDT}{
-  \md = \Mdef\m\x\any\any{\SubCast\any{\MonCast\tp{\DynCall{(\SubCast\any{\,\Get\this\that})}\m{\SubCast\any{\MonCast\t\x}}}}} \\ 
-  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
-  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\   
-  \mdpp =\Mdef\m\x\tpp\tppp {\MonCast\tppp\x}\\
-  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
 \IRule{ENFS}{
-  \md = \Mdef\f\x\any\any{\SubCast\any{\MonCast\t{\Set{\Get\this\that}\f{\MonCast\tp{\MonCast\t\x}}}}} \\ 
+  \md = \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}} \\ 
   \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
   \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\   
   \mdpp = \Mdef\f\x\tpp\tppp {\MonCast\tppp\x} \\
@@ -2889,7 +2879,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 }
 
 \IRule{ENFG}{
-  \md = \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}} \\ 
+  \md =  \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}} \\ 
   \enfortype\t\W\K = \tp\,\Wp\,\Kp \\
   \mdpp = \Mdefz\f\tp {\MonCast\tp{\Get{\Get\this\that}\f}} \\
   \enformt{\b\md}{\Wp}{\Kp} = \b\mddp \\
