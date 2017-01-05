@@ -1,7 +1,7 @@
 \documentclass[a4paper,USenglish]{tex/lipics-v2016}
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
             amsmath,tex/mathpartir,hyperref,doi,
-            stmaryrd, graphicx, tikz, colortbl} % double brackets llbracket
+            stmaryrd, graphicx, tikz, colortbl, xparse} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \input{macros}
 
@@ -178,6 +178,7 @@ types with multiple subtyping \`a la Java).  The dynamic type is written
 \any. To support transparent wrappers, a distinguished \that field is
 available to wrapper classes without but does not show up in the class' type
 signature.
+
 
 The heart of a gradual type system implementation is the insertion of
 explicit casts at type boundaries.  Four different casts are built-in the
@@ -2335,10 +2336,8 @@ a class table \K.   The set of subtypings can be omitted if empty.
 }
 
 \IRule{SRec}{
- \Class\D{\b\fd}{\b\md}\in\K\\
  \M' = \M~\C\Sub\D\\
- \f:\t \in\b\fd \wedge \f \neq \that \implies \StrSub{\M'}\K \C \f:\t\\
- \md\in\b\md \implies \StrSub{\M'}\K \C \md\\
+\mt \in \classoff\C\K \implies \exists \mt' \in \classoff\D\K. \StrSub{\M'}\K\mt{\mt'}
 }{
  \StrSub \M\K \C \D 
 }
@@ -2348,29 +2347,22 @@ Several auxiliary rules are used in the subtype judgement.
 
 \begin{mathpar}
 \IRule{SMet}{
-  \Mdef\m\x{\t_2}{\t_2'}\e\In\App\K\C \\
-  \StrSub \M\K \t {\t_2} \\
-  \StrSub \M\K {\t_2'} \tp
+  \StrSub \M\K {\t[1]} {\t[2]} \\
+  \StrSub \M\K {\tp[2]} {\tp[1]}
 }{
- \StrSub \M\K \C {\Mdef\m\x\t\tp\e}
-}
-
-\IRule{SFie}{
-  \Fdef\f\t\In\App\K\C
-}{
- \StrSub \M\K \C {\Fdef\f\t}
-}
-
-\IRule{SSet}{
-  \Fdef\f\t\In\App\K\C
-}{
- \StrSub \M\K \C {\Mdef\f\x\t\t\e}
+ \StrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
 }
 
 \IRule{SGet}{
-  \Fdef\f\t\In\App\K\C
+  \StrSub \M\K {\t[1]} {\t[2]}
 }{
- \StrSub \M\K \C {\Mdefz\f\t\e}
+ \StrSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
+}
+
+\IRule{SSet}{
+  \StrSub \M\K {\t[1]} {\t[2]}
+}{
+ \StrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
 }
 \end{mathpar}
 
