@@ -454,9 +454,8 @@ L2,L3 and L4 succeed, because Transient only checks names at calls.
 
 \begin{figure}[!ht]
 \begin{tabular}{cc}
-  \begin{tabular}{|cc|}\hline
-&    \\
-  \begin{minipage}{4.6cm}
+  \begin{tabular}{|@{}cc@{\hspace{1mm}}|}\hline
+  \begin{minipage}{4.3cm}
     \begin{lstlisting}
 class A {
    m(x: A): A {this}}
@@ -469,24 +468,24 @@ class T {
       \end{lstlisting}    
   \end{minipage}
 &
-  \begin{minipage}{4.75cm}
+  \begin{minipage}{4.6cm}
     \begin{lstlisting}
 class A {
-   m(x: A): A {this}}
+  m(x: A): A {this}}
 
 class I {
-   m(x: C): I {this}}
+  m(x: C): I {this}}
 
 class T {
-   t(x: I): T {this}}
+  t(x: I): T {this}}
       \end{lstlisting}    
   \end{minipage}
 \\[2mm]
 (Litmus test 1) & (Litmus test 2)\\[3mm]
-  \begin{minipage}{4.6cm}
+  \begin{minipage}{4.3cm}
     \begin{lstlisting}
 class A {
-   m(x: *): * {this}}
+  m(x: *): * {this}}
 
 class I {
   m(x: C): C {this}}
@@ -497,25 +496,27 @@ class I2 {
 class E {f: I g: I2}
 
 class T {
-   t(x: A): E {
+  t(x: A): E {
       new E(x,x)}}
       \end{lstlisting}    
   \end{minipage}
 &
-  \begin{minipage}{4.75cm}
+  \begin{minipage}{4.6cm}
     \begin{lstlisting}
 class A {
-   f: *
-   m(x: A): A {
+  f: *
+  m(x: A): A {
     this.f(
       new A(new C())}}
+
 
 class I {
   f: D
   m(x: I): I {this}}
 
+
 class T {
-   t(x: I): I {x.m(x)}
+  t(x: I): I {x.m(x)}
       \end{lstlisting}    
   \end{minipage}
 \\[2mm]
@@ -523,7 +524,7 @@ class T {
   \end{tabular}
   &
 \begin{minipage}{4cm}
-\begin{tabular}{|c|}\hline\\
+\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
   \begin{minipage}{4cm}
     \begin{lstlisting}
 class C { 
@@ -533,27 +534,28 @@ class D {
   o(x: D): D {this}}
     \end{lstlisting}    
   \end{minipage}
-  \, \\
+ \\
   (Auxiliary classes)\\\hline
 \end{tabular}
 \\ \\ \\  
-\begin{tabular}{|c|}\hline\\
+\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
   \begin{minipage}{4cm}
     \begin{lstlisting}
 new T().t(new A())
     \end{lstlisting}    
   \end{minipage}
-  \, \\
+  \\
   (Program 1-3)\\\hline
 \end{tabular}
 \\ \\ \\  
-\begin{tabular}{|c|}\hline\\
+\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
   \begin{minipage}{4cm}
     \begin{lstlisting}
-new T().t(new A(new D()))
+new T().t(
+    new A(new D()))
     \end{lstlisting}    
   \end{minipage}
-  \, \\
+  \\
   (Program 4)\\\hline
 \end{tabular}
 \end{minipage}
@@ -2035,9 +2037,7 @@ Several auxiliary rules are used in the subtype judgement.
 
 \subsection{Typed Racket}
 
-The Typed Racket formalism we present is not strictly limited to the Typed Racket language - as in that case, we would be modelling a normal typed object calculus, and not a gradual type system.
-
-As a result, we present the interaction between modules written in both Typed Racket and Racket. Notably, we do not represent the limitation that typed code can only exist in one language and untyped code in the other, as it does not have a considerable impact on the semantics of the language, at least at the level we are considering.
+Typed Racket, in and of itself, is not a gradually typed language, as the Typed Racket language allows no untyped code. Its gradual nature, instead, comes from Typed Racket's interactions with (untyped) Racket, where a Typed Racket module can interact with a Racket one. As a result, when we refer to Typed Racket here, we refer to the combination of both Typed Racket and Racket.
 
 \begin{mathpar}
 \IRule{A1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}

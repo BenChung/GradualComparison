@@ -19,7 +19,7 @@
   (t anyt C)
   (fd (f t))
   (md (m (x t) t e) (f t e))
-  (C D f m n x ::= (variable-except : any anyt))
+  (C D f m n x ::= (variable-except :))
   (Γ · (x : t Γ))
   (K (k ...))
   (p (e K))
@@ -85,7 +85,7 @@
    (anacast K Γ e_2 anyt e_4)
    ------"A8"
    (syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
-  [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
+  [(where (k_1 ... (class C (f : t) ..._1 md ...) k_2 ...) K)
    (anacast K Γ e_1 t e_2) ...
    ------"A11"
    (syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
@@ -154,7 +154,7 @@
                         (class T (t (x I) T this)))))
 (define litmusK2f (term (compose-K ,litmusAux ,litmusK2)))
 
-(define litmusK4 (term ((class A
+(define litmusK3 (term ((class A
                           (f anyt)
                           (m (x A) A
                              (call this f (new A (new C)))))
@@ -163,10 +163,8 @@
                           (m (x I) I this))
                         (class T
                           (t (x I) I (call x m x))))))
-(define litmusK4f (term (compose-K ,litmusAux ,litmusK4)))
+(define litmusK3f (term (compose-K ,litmusAux ,litmusK3)))
 
 (define litmus1 (term (,litmusProg ,litmusK1f)))
 (define litmus2 (term (,litmusProg ,litmusK2f)))
-
-(define litmusProg4 (term (call (new T) t (new A (new D)))))
-(define litmus4 (term (,litmusProg4 ,litmusK4f)))
+(define litmus3 (term (,litmusProg ,litmusK3f)))
