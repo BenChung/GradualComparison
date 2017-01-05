@@ -1884,8 +1884,8 @@ Notably, Thorn adds an ``unsound'' type $\dt\C$ to its type system, which has it
 
 Over this new type, we define a subtyping relation, $\t \Sub_t \t$ as follows:
 
-\newcommand{\ThorSub}[4]{#1~#2 \vdash #3 \Sub_t #4}
-\opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
+\newcommand{\ThorSub}[4]{\EM{#1~#2 \vdash #3 \Sub_t #4}}
+\opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
 \begin{mathpar}
 \IRule{THSRef}{
 }{
@@ -1896,17 +1896,15 @@ Over this new type, we define a subtyping relation, $\t \Sub_t \t$ as follows:
 
 \IRule{THSLower}{\ThorSub \M\K\C\D}{\ThorSub\M\K{\dt\C}{\D}}
 
-\IRule{THSAss}{
+\IRule{SAss}{
 \C \Sub \D \in \M
 }{
  \ThorSub \M\K \C \D
 }
 
-\IRule{THSRec}{
- \Class\D{\b\fd}{\b\md}\in\K\\
+\IRule{SRec}{
  \M' = \M~\C\Sub\D\\
- \f:\t \in\b\fd \wedge \f \neq \that \implies \ThorSub{\M'}\K \C \f:\t\\
- \md\in\b\md \implies \ThorSub{\M'}\K \C \md\\
+\mt \in \classoff\C\K \implies \exists \mt' \in \classoff\D\K. \ThorSub{\M'}\K\mt{\mt'}
 }{
  \ThorSub \M\K \C \D 
 }
@@ -1915,30 +1913,23 @@ Over this new type, we define a subtyping relation, $\t \Sub_t \t$ as follows:
 Several auxiliary rules are used in the subtype judgement. 
 
 \begin{mathpar}
-\IRule{THSMet}{
-  \Mdef\m\x{\t_2}{\t_2'}\e\In\App\K\C \\
-  \ThorSub \M\K \t {\t_2} \\
-  \ThorSub \M\K {\t_2'} \tp
+\IRule{SMet}{
+  \ThorSub \M\K {\t[1]} {\t[2]} \\
+  \ThorSub \M\K {\tp[2]} {\tp[1]}
 }{
- \ThorSub \M\K \C {\Mdef\m\x\t\tp\e}
+ \ThorSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
 }
 
-\IRule{THSFie}{
-  \Fdef\f\t\In\App\K\C
+\IRule{SGet}{
+  \ThorSub \M\K {\t[1]} {\t[2]}
 }{
- \ThorSub \M\K \C {\Fdef\f\t}
+ \ThorSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
 }
 
-\IRule{THSSet}{
-  \Fdef\f\t\In\App\K\C
+\IRule{SSet}{
+  \ThorSub \M\K {\t[1]} {\t[2]}
 }{
- \ThorSub \M\K \C {\Mdef\f\x\t\t\e}
-}
-
-\IRule{THSGet}{
-  \Fdef\f\t\In\App\K\C
-}{
- \ThorSub \M\K \C {\Mdefz\f\t\e}
+ \ThorSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
 }
 \end{mathpar}
 
