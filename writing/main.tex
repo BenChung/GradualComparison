@@ -2037,48 +2037,53 @@ Several auxiliary rules are used in the subtype judgement.
 
 \subsection{Typed Racket}
 
-Typed Racket, in and of itself, is not a gradually typed language, as the Typed Racket language allows no untyped code. Its gradual nature, instead, comes from Typed Racket's interactions with (untyped) Racket, where a Typed Racket module can interact with a Racket one. As a result, when we refer to Typed Racket here, we refer to the combination of both Typed Racket and Racket.
+Typed Racket, in and of itself, is not a gradually typed language, as the Typed Racket language allows no untyped code. Its gradual nature, instead, comes from Typed Racket's interactions with (untyped) Racket, where a Typed Racket module can interact with a Racket one. As a result, when we refer to Typed Racket here, we refer to the combination of both Typed Racket and Racket. Moreover, this separation means that Typed Racket programs are typed on a module by module basis, rather than an expression by expression one.
+
+Since we are largely unconcerned about the details of surface syntax, and want to highlight the interesting semantic details of all behavioural approaches independent of the surface language, our surface level translation will still allow programmers to write partially typed classes, unlike the actual Typed Racket language, where a single class cannot be both typed and untyped simultaneously.
 
 \begin{mathpar}
-\IRule{A1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+\IRule{TRA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
-\IRule[width=30em]{A2}{
+\IRule[width=30em]{TRA2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
-\IRule{A8}{
+\IRule{TRA3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule{A11}{
+\IRule{TRA4}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
-Typed Racket uses the simplest translation, as it does not introduce any new types, and relies entirely on wrappers to ensure correctness. As a result, we can use just two rules for calling - one for typed, the other for typed - and the rest of the cases simply reduce trivially.
+Our translation to KafKa from this basis is then relatively simple. Translation with the bidirectional system proceeds in the typical manner through all of the synthetic cases, and the analytic cases are typical, as well.
 
 \begin{mathpar}
-\IRule{AASC1}{
+\IRule{TRAASC1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{AASC2}{
+\IRule{TRAASC2}{
   \GenCast\K\Env\e\ep\tp
 }{
   \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
 }
 \end{mathpar}
 
-Likewise, as Typed Racket imposes no restrictions on what is technically possible to assert types on, we do not either. If the system cannot statically show compatibility, then it will wrap whatever it encountered to ensure that its behaviour is correct, then pass it on.
+The only rule of real note in our Typed Racket translation to \kafka is TRAASC2. Here, we see that if the Typed Racket translation ever enconters a non-subtype, then it will insert both a behavioural and name cast around the potentially ill-typed target, under every circumstance.
 
+We do this as Typed Racket only does runtime checking on the nature of the values that pass in from Racket, and therefore, even nonsensical types can be asserted for untyped code, discovered on use. We represent this via the aggressive wrapping in TRAASC2, where a type can be of any other type.
+
+Lastly, TRAASC2 will insert both a behavioural and shape cast, of which the formers purpose is obvious, but the latter of which less so. We insert the shape cast as our behavioural cast is very weak, passing virtually every object through it in a wrapper, even if the object underneath diverges from the type asserted by, for example, missing methods. To compensate for this, we also add the shape cast, which ensures that all of the required methods are present.
 \subsection{Reticulated Python}
 
 Reticulated Python is somewhat more complicated, as it implements three different semantics, though not simultaneously. As a result, we will show translations for each of its three semantics options.
