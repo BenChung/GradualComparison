@@ -147,8 +147,35 @@
 
 ; Thorn
 
+
 (define-extended-language Thorn KafKa
   (t .... (weak C)))
+
+
+(define-judgment-form Thorn
+  #:mode (thorn-progtrans I O)
+  #:contract (thorn-progtrans p p)
+  [(thorn-classtrans K_1 K_1 K_2) (thorn-syncast K_1 · e_1 e_2 t)
+   ------- "PT"
+   (thorn-progtrans (e_1 K_1) (e_2 K_2))])
+
+
+(define-judgment-form Thorn
+  #:mode (thorn-classtrans I I O)
+  #:contract (thorn-classtrans K K K)
+  [(thorn-classtrans K (k_1 ...) (k_2 ...))
+   (thorn-methtrans K C md md_1) ...
+   ------- "CR1"
+   (thorn-classtrans K ((class C fd ... md ...) k_1 ...) ((class C fd ... md_1 ...) k_2 ...))]
+  [------
+   (thorn-classtrans K () ())])
+
+(define-judgment-form Thorn
+  #:mode (thorn-methtrans I I I O)
+  #:contract (thorn-methtrans K C md md)
+  [(thorn-anacast K (this : C (x : t ·)) e t_1 e_1)
+   ------"MT"
+   (thorn-methtrans K C (m (x t) t_1 e) (m (x t) t_1 e_1))])
 
 (define-extended-language Thorn<: Thorn
   (M ((C <: D) ...)))
@@ -193,19 +220,19 @@
    -----"THA1"
    (thorn-syncast K Γ x x t)]
   [(thorn-syncast K Γ e_1 e_3 C)
-   (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes-thorn C K))
    (thorn-anacast K Γ e_2 t_1 e_4) ...
    -----"THA2"
    (thorn-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
   
   [(thorn-syncast K Γ e_1 e_3 (weak C))
-   (where (mt_1 ... (m t_1 D) mt_2 ...) (mtypes C K))
+   (where (mt_1 ... (m t_1 D) mt_2 ...) (mtypes-thorn C K))
    (thorn-anacast K Γ e_2 t_1 e_4)
    -----"THA3"
    (thorn-syncast K Γ (call e_1 m e_2) (subcast D (dcall e_3 m e_4)) D)]
   
   [(thorn-syncast K Γ e_1 e_3 (weak C))
-   (where (mt_1 ... (m t_1 t_2) mt_2 ...) (mtypes C K))
+   (where (mt_1 ... (m t_1 t_2) mt_2 ...) (mtypes-thorn C K))
    (side-condition ,(not (redex-match Thorn D (term t_2))))
    (thorn-anacast K Γ e_2 t_1 e_4)
    -----"THA4"
