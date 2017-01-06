@@ -46,61 +46,61 @@
   [(lookup-env (x_!_1 : t Γ) (name x x_!_1)) (lookup-env Γ x)])
 
 (define-judgment-form KafKa
-  #:mode (progtrans I O)
-  #:contract (progtrans p p)
-  [(classtrans K_1 K_1 K_2) (syncast K_1 · e_1 e_2 t)
+  #:mode (tr-progtrans I O)
+  #:contract (tr-progtrans p p)
+  [(tr-classtrans K_1 K_1 K_2) (tr-syncast K_1 · e_1 e_2 t)
    ------- "PT"
-   (progtrans (e_1 K_1) (e_2 K_2))])
+   (tr-progtrans (e_1 K_1) (e_2 K_2))])
 
 
 (define-judgment-form KafKa
-  #:mode (classtrans I I O)
-  #:contract (classtrans K K K)
-  [(classtrans K (k_1 ...) (k_2 ...))
-   (methtrans K C md md_1) ...
+  #:mode (tr-classtrans I I O)
+  #:contract (tr-classtrans K K K)
+  [(tr-classtrans K (k_1 ...) (k_2 ...))
+   (tr-methtrans K C md md_1) ...
    ------- "CR1"
-   (classtrans K ((class C fd ... md ...) k_1 ...) ((class C fd ... md_1 ...) k_2 ...))]
+   (tr-classtrans K ((class C fd ... md ...) k_1 ...) ((class C fd ... md_1 ...) k_2 ...))]
   [------
-   (classtrans K () ())])
+   (tr-classtrans K () ())])
 
 (define-judgment-form KafKa
-  #:mode (methtrans I I I O)
-  #:contract (methtrans K C md md)
-  [(anacast K (this : C (x : t ·)) e t_1 e_1)
+  #:mode (tr-methtrans I I I O)
+  #:contract (tr-methtrans K C md md)
+  [(tr-anacast K (this : C (x : t ·)) e t_1 e_1)
    ------"MT"
-   (methtrans K C (m (x t) t_1 e) (m (x t) t_1 e_1))])
+   (tr-methtrans K C (m (x t) t_1 e) (m (x t) t_1 e_1))])
 
 (define-judgment-form KafKa
-  #:mode (syncast I I I O O)
-  #:contract (syncast K Γ e e t)
+  #:mode (tr-syncast I I I O O)
+  #:contract (tr-syncast K Γ e e t)
   [(where t (lookup-env Γ x))
    -----"A1"
-   (syncast K Γ x x t)]
-  [(syncast K Γ e_1 e_3 C)
+   (tr-syncast K Γ x x t)]
+  [(tr-syncast K Γ e_1 e_3 C)
    (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
-   (anacast K Γ e_2 t_1 e_4) ...
+   (tr-anacast K Γ e_2 t_1 e_4) ...
    -----"A2"
-   (syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
-  [(syncast K Γ e_1 e_3 anyt)
-   (anacast K Γ e_2 anyt e_4)
+   (tr-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
+  [(tr-syncast K Γ e_1 e_3 anyt)
+   (tr-anacast K Γ e_2 anyt e_4)
    ------"A8"
-   (syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+   (tr-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
-   (anacast K Γ e_1 t e_2) ...
+   (tr-anacast K Γ e_1 t e_2) ...
    ------"A11"
-   (syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
+   (tr-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
 
 (define-judgment-form KafKa
-  #:mode (anacast I I I I O)
-  #:contract (anacast K Γ e t e)
-  [(syncast K Γ e e_1 t_1)
+  #:mode (tr-anacast I I I I O)
+  #:contract (tr-anacast K Γ e t e)
+  [(tr-syncast K Γ e e_1 t_1)
    (<: () K t t_1)
    -----"AASC1"
-   (anacast K Γ e t e_1)]
-  [(syncast K Γ e e_1 t_1)
+   (tr-anacast K Γ e t e_1)]
+  [(tr-syncast K Γ e e_1 t_1)
    (side-condition ,(not (judgment-holds (<: () K t_1 t))))
    -----"AASC2"
-   (anacast K Γ e t (behcast t (namcast t e)))])
+   (tr-anacast K Γ e t (behcast t (namcast t e)))])
 
 (define-extended-language KafKa<: KafKa
   (M ((C <: D) ...)))
@@ -177,7 +177,7 @@
    (thorn-syncast K Γ x x t)]
   [(thorn-syncast K Γ e_1 e_3 C)
    (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
-   (anacast K Γ e_2 t_1 e_4) ...
+   (thorn-anacast K Γ e_2 t_1 e_4) ...
    -----"A2"
    (thorn-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
   [(thorn-syncast K Γ e_1 e_3 anyt)
@@ -188,6 +188,18 @@
    (thorn-anacast K Γ e_1 t e_2) ...
    ------"A11"
    (thorn-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
+
+(define-judgment-form Thorn
+  #:mode (thorn-anacast I I I I O)
+  #:contract (thorn-anacast K Γ e t e)
+  [(thorn-syncast K Γ e e_1 t_1)
+   (<: () K t t_1)
+   -----"AASC1"
+   (thorn-anacast K Γ e t e_1)]
+  [(thorn-syncast K Γ e e_1 t_1)
+   (side-condition ,(not (judgment-holds (<: () K t_1 t))))
+   -----"AASC2"
+   (thorn-anacast K Γ e t (behcast t (namcast t e)))])
 
 (define-metafunction KafKa
   mtypes : C K -> (mt ...)
