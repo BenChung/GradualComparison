@@ -45,6 +45,49 @@
   [(lookup-env (x : t Γ) x) t]
   [(lookup-env (x_!_1 : t Γ) (name x x_!_1)) (lookup-env Γ x)])
 
+(define-metafunction KafKa
+  mtypes : C K -> (mt ...)
+  [(mtypes C (k_1 ... (class C (f t) ... (m (x t_1) ... t_2 e) ...) k_2 ...)) ((f t) ... (f t t) ... (m t_1 ... t_2) ...)]
+  [(mtypes C_!_1 ((class C_!_1 fd ... md ...) ...)) ()])
+
+(define-metafunction KafKa
+  compose-K : K ... -> K
+  [(compose-K (k_1 ...) (k_2 ...) K ...) (compose-K (k_1 ... k_2 ...) K ...)]
+  [(compose-K K) K])
+
+
+(define-extended-language KafKa<: KafKa
+  (M ((C <: D) ...)))
+
+(define-judgment-form KafKa<:
+  #:mode (<: I I I I)
+  [-------"SRef"
+   (<: M K t t)]
+  [-------"SAss"
+   (<: ( (C_1 <: C_2) ... (C <: D) (C_3 <: C_4) ...) K C D)]
+  [(where (mt ...) (mtypes D K))
+   (where M_1 ((C <: D) (C_1 <: C_2) ...))
+   (where ((C_!_1 <: D_!_1) ...) M)
+   (where (C_!_2 C_!_2) (C D))
+   (<: M_1 K mt (mtypes C K)) ...
+   --------"SRec"
+   (<: (name M ((C_1 <: C_2) ...)) K (name C C_!_1) (name D D_!_1))]
+  [(<: M K mt mt_2)
+   ---------"SRecRecurs"
+   (<: M K mt (mt_1 ... mt_2 mt_3 ...))]
+  [(<: M K t_1 t_2)
+   (<: M K t_4 t_3)
+   ----------"SMet"
+   (<: M K (m t_1 t_3) (m t_2 t_4))]
+  [(<: M K t_1 t_2)
+   ----------"SGet"
+   (<: M K (f t_1) (f t_2))]
+  [----------"SThat"
+   (<: M K (that t_1 ... t_2) mt)])
+
+
+;Typed Racket
+
 (define-judgment-form KafKa
   #:mode (tr-progtrans I O)
   #:contract (tr-progtrans p p)
@@ -102,40 +145,14 @@
    -----"AASC2"
    (tr-anacast K Γ e t (behcast t (namcast t e)))])
 
-(define-extended-language KafKa<: KafKa
-  (M ((C <: D) ...)))
-
-(define-judgment-form KafKa<:
-  #:mode (<: I I I I)
-  [-------"SRef"
-   (<: M K t t)]
-  [-------"SAss"
-   (<: ( (C_1 <: C_2) ... (C <: D) (C_3 <: C_4) ...) K C D)]
-  [(where (mt ...) (mtypes D K))
-   (where M_1 ((C <: D) (C_1 <: C_2) ...))
-   (where ((C_!_1 <: D_!_1) ...) M)
-   (where (C_!_2 C_!_2) (C D))
-   (<: M_1 K mt (mtypes C K)) ...
-   --------"SRec"
-   (<: (name M ((C_1 <: C_2) ...)) K (name C C_!_1) (name D D_!_1))]
-  [(<: M K mt mt_2)
-   ---------"SRecRecurs"
-   (<: M K mt (mt_1 ... mt_2 mt_3 ...))]
-  [(<: M K t_1 t_2)
-   (<: M K t_4 t_3)
-   ----------"SMet"
-   (<: M K (m t_1 t_3) (m t_2 t_4))]
-  [(<: M K t_1 t_2)
-   ----------"SGet"
-   (<: M K (f t_1) (f t_2))]
-  [----------"SThat"
-   (<: M K (that t_1 ... t_2) mt)])
+; Thorn
 
 (define-extended-language Thorn KafKa
   (t .... (weak C)))
 
 (define-extended-language Thorn<: Thorn
   (M ((C <: D) ...)))
+
 (define-judgment-form Thorn<:
   #:mode (<:t I I I I)
   [-------"THSRef"
@@ -217,23 +234,22 @@
    -----"THAASC2"
    (thorn-anacast K Γ e_1 C (subcast C e_2))]
   
-  [(thorn-syncast K Γ e e_1 t_1)
-   (side-condition ,(not (judgment-holds (<: () K t_1 t))))
-   -----"AASC2"
-   (thorn-anacast K Γ e t (behcast t (namcast t e)))])
+  [(thorn-syncast K Γ e_1 e_2 anyt)
+   -----"THAASC3"
+   (thorn-anacast K Γ e_1 C (subcast C e_2))]
+  
+  [(thorn-syncast K Γ e_1 e_2 anyt)
+   -----"THAASC4"
+   (thorn-anacast K Γ e_1 (weak C) e_2)]
 
-(define-metafunction KafKa
-  mtypes : C K -> (mt ...)
-  [(mtypes C (k_1 ... (class C (f t) ... (m (x t_1) ... t_2 e) ...) k_2 ...)) ((f t) ... (f t t) ... (m t_1 ... t_2) ...)]
-  [(mtypes C_!_1 ((class C_!_1 fd ... md ...) ...)) ()])
+  [(thorn-syncast K Γ e_1 e_2 t)
+   (side-condition ,(not (redex-match Thorn anyt (term t))))
+   -----"THAASC5"
+   (thorn-anacast K Γ e_1 anyt e_2)])
+
 
 (define-metafunction/extension mtypes Thorn
   mtypes-thorn : C K -> (mt ...))
-
-(define-metafunction KafKa
-  compose-K : K ... -> K
-  [(compose-K (k_1 ...) (k_2 ...) K ...) (compose-K (k_1 ... k_2 ...) K ...)]
-  [(compose-K K) K])
 
 (define litmusAux (term ((class C (n (x C) C this)) (class D (o (x D) D this)))))
 (define litmusProg (term (call (new T) t (new A))))
