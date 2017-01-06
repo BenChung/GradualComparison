@@ -180,12 +180,18 @@
    (thorn-anacast K Γ e_2 t_1 e_4) ...
    -----"A2"
    (thorn-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
-  [-----"A3"
-   (thorn-syncast
+  
+  [(thorn-syncast K Γ e_1 e_3 (weak C))
+   (where (mt_1 ... (m t_1 D) mt_2 ...) (mtypes C K))
+   (thorn-anacast K Γ e_2 t_1 e_4)
+   -----"A3"
+   (thorn-syncast K Γ (call e_1 m e_2) (subcast D (dcall e_3 m e_4)) D)]
+  
   [(thorn-syncast K Γ e_1 e_3 anyt)
    (thorn-anacast K Γ e_2 anyt e_4)
    ------"A4"
    (thorn-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+  
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (thorn-anacast K Γ e_1 t e_2) ...
    ------"A5"
