@@ -207,10 +207,16 @@
 (define-judgment-form Thorn
   #:mode (thorn-anacast I I I I O)
   #:contract (thorn-anacast K Γ e t e)
-  [(thorn-syncast K Γ e e_1 t_1)
-   (<: () K t t_1)
-   -----"AASC1"
-   (thorn-anacast K Γ e t e_1)]
+  [(thorn-syncast K Γ e_1 e_2 C_2)
+   (<:t () K C_2 C_1)
+   -----"THAASC1"
+   (thorn-anacast K Γ e_1 C_1 e_2)]
+  
+  [(thorn-syncast K Γ e_1 e_2 (weak D))
+   (<:t () K D C)
+   -----"THAASC2"
+   (thorn-anacast K Γ e_1 C (subcast C e_2))]
+  
   [(thorn-syncast K Γ e e_1 t_1)
    (side-condition ,(not (judgment-holds (<: () K t_1 t))))
    -----"AASC2"
