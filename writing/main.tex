@@ -2012,6 +2012,12 @@ The remainder of the subtyping judgment is identical to the \kafka subtyping rel
 }
 \end{mathpar}
 
+The synthetic cases are effectively, as the name implies, the traditional ``bottom-up'' style of typing judgment. Here, we are asked to produce te type for a term while producing an equivalent \kafka term that is of the translated type. As a result, a number of the rules, including THA1, THA2, THA5, and THA6 are all effectively direct translations of the traditional typing rules for their cases.
+
+However, THA3 and THA4 are of special interest. Both apply when the receiver type is a weak type - that is, unsound, so its types are not guaranteed - and case analyze on the declared return type. In THA3, we see the case where the returnn type is a concrete type, or a sound type, being returned from an unsound type, which requires the insertion of a runtime cast, and in THA4 we see the the alternative case.
+
+At the same time, note that both THA3 and THA4 produce dynamic calls on the receiver, despite the receiver having a source language type. This is because we translate Thorn weak types down to \kafka's \any, which causes all calls on optional types to be considered by \kafka to be dynamic invocations.
+
 \hrulefill
 
 \begin{mathpar}
