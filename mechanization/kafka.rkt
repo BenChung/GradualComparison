@@ -278,6 +278,59 @@
 (define-metafunction/extension mtypes Thorn
   mtypes-thorn : C K -> (mt ...))
 
+; Reticulated
+
+(define (make-free-class bound)
+  (term ,(string->symbol (string-join (list "gen" (number->string (length bound))) ""))))
+
+(define-metafunction KafKa
+  free-class : K -> C
+  [(free-class ((class C fd ... md ...) ...)) ,(make-free-class (term (C ...)))])
+
+(define-extended-language KMeet KafKa
+  (P ((C C ↦ C) ...))
+  (mts (mt ...)))
+(define-judgment-form KMeet
+  #:mode (tmeet I I I I O O)
+  #:contract (tmeet t t P K C K)
+  [-----"TM1"
+   (tmeet C anyt P K C K)]
+  [-----"TM2"
+   (tmeet anyt C P K C K)]
+  [-----"TM3"
+   (tmeet t t P K t K)]
+  [(where E (free-class K))
+   (where (((name C_1 C_!_1) (name C_2 D_!_1) ↦ C_3) ...) P)
+   (where P_1 ((C D ↦ E) (C_1 C_2 ↦ C_3) ...))
+   (where (mt ...) (mtypes C K))
+   (where (mt_1 ...) (mtypes D K))
+   (mmeet (mt ...) (mt_1 ...) P_1 K (mt_2 ...) (k ...))
+   (where K_2 ((typegen (mt_2 ...) E) k ...))
+   -----"TM4"
+   (tmeet (name C C_!_1) (name D D_!_1) P K E K_2)])
+
+(define-judgment-form KMeet
+  #:mode (mmeet I I I I O O)
+  #:contract (mmeet mts mts P K mts K)
+  [----"MM1"
+   (mmeet mts () P K mts K)]
+  [(tmeet t t_1 P K t_2 K_1)
+   ----"MM2"
+   (mmeet ((f t)) (mt_1 ... (f t_1) mt_2 ...) P K ((f t_2)) K_1)]
+  [(tmeet t t_1 P K t_2 K_1)
+   ----"MM3"
+   (mmeet ((f t t)) (mt_1 ... (f t_1 t_1) mt_2 ...) P K ((f t_2 t_2)) K_1)]
+  [(tmeet t_3 t_1 P K t_5 K_1)
+   (tmeet t_2 t_4 P K_1 t_6 K_2)
+   ----"MM4"
+   (mmeet ((m t_1 t_2)) (mt_1 ... (m t_3 t_4) mt_2 ...) P K ((m t_5 t_6)) K_1)]
+  [(mmeet (mt) (mt_2 ...) P K (mt_3) K_1)
+   (mmeet (mt_1 ...) (mt_2 ...) P K_1 (mt_4 ...) K_2)
+   ----"MM5"
+   (mmeet (mt mt_1 ...) (mt_2 ...) P K (mt_3 mt_4 ...) K_2)])
+
+;litmus
+
 (define litmusAux (term ((class C (n (x C) C this)) (class D (o (x D) D this)))))
 (define litmusProg (term (call (new T) t (new A))))
 
@@ -290,6 +343,14 @@
                         (class I (n (x C) I this))
                         (class T (t (x I) T this)))))
 (define litmusK2f (term (compose-K ,litmusAux ,litmusK2)))
+
+(define litmusK3 (term ((class A (m (x anyt) anyt this))
+                        (class I (m (x C) C this))
+                        (class I2 (m (x D) D this))
+                        (class E (f I) (g I2))
+                        (class T (t (x A) E (new E x x))))))
+
+(define litmusK3f (term (compose-K ,litmusAux ,litmusK3)))
 
 (define litmusK4 (term ((class A
                           (f anyt)
@@ -304,6 +365,7 @@
 
 (define litmus1 (term (,litmusProg ,litmusK1f)))
 (define litmus2 (term (,litmusProg ,litmusK2f)))
+(define litmus3 (term (,litmusProg ,litmusK3f)))
 
 (define litmusProg4 (term (call (new T) t (new A (new D)))))
 (define litmus4 (term (,litmusProg4 ,litmusK4f)))
