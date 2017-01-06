@@ -1886,7 +1886,7 @@ Instead, we use a \emph{bidirectional} translation mechanism, based on the work 
 
 \subsection{Thorn}
 
-Notably, Thorn adds an ``unsound'' type $\dt\C$ to its type system, which has its own subtyping relation, and compiles down to \any in \kafka.
+Thorn adds an ``unsound'' type $\dt\C$ to its type system, which has its own subtyping relation, and compiles down to \any in \kafka. This unsound type still enforces the same static requirements as its sound counterpart, but generates no runtime casts and therefore has low overhead.
 
 \newcommand{\bC}{\xt{!C}}
 
@@ -1899,56 +1899,12 @@ Over this new type, we define a subtyping relation, $\t \Sub_t \t$ as follows:
 \newcommand{\ThorSub}[4]{\EM{#1~#2 \vdash #3 \Sub_t #4}}
 \opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
 \begin{mathpar}
-\IRule{THSRef}{
-}{
- \ThorSub\M\K \t \t
-}
-
 \IRule{THSWeak}{\ThorSub \M\K\C\D}{\ThorSub\M\K{\dt\C}{\dt\D}}
 
 \IRule{THSLower}{\ThorSub \M\K\C\D}{\ThorSub\M\K{\C}{\dt\D}}
-
-\IRule{SAss}{
-\C \Sub \D \in \M
-}{
- \ThorSub \M\K \C \D
-}
-
-\IRule{SRec}{
- \M' = \M~\C\Sub\D\\
-\mt \in \classoff\D\K \implies \exists \mt' \in \classoff\C\K. \ThorSub{\M'}\K\mt{\mt'}
-}{
- \ThorSub \M\K \C \D 
-}
 \end{mathpar}
 
-Several auxiliary rules are used in the subtype judgement. 
-
-\begin{mathpar}
-\IRule{SMet}{
-  \ThorSub \M\K {\t[1]} {\t[2]} \\
-  \ThorSub \M\K {\tp[2]} {\tp[1]}
-}{
- \ThorSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-
-\IRule{SGet}{
-  \ThorSub \M\K {\t[1]} {\t[2]}
-}{
- \ThorSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
-}
-
-\IRule{SSet}{
-  \ThorSub \M\K {\t[1]} {\t[2]}
-}{
- \ThorSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
-}
-
-\IRule{SThat}{
-}{
-  \ThorSub\M\K{\Mtype\that{\b{\t[1]}}{\t[1]}}{\mt}
-}
-\end{mathpar}
+The remainder of the subtyping judgment is identical to the \kafka subtyping relation, which can be seen in the appendix. With this, we can define the synthetic and analytic cases of cast insertion for Thorn.
 
 \newcommand{\ba}{\xt{!}}
 
@@ -1960,8 +1916,8 @@ Several auxiliary rules are used in the subtype judgement.
 }
 
 \IRule[width=30em]{A2}{
-    \GenCast\K\Env{\e_1}{\e_3}\bC \\ 
-    \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ 
+    \GenCast\K\Env{\e_1}{\e_3}\C \\ 
+    \src{\n(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
     \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
