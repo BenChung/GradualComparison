@@ -131,10 +131,52 @@
   [----------"SThat"
    (<: M K (that t_1 ... t_2) mt)])
 
+(define-extended-language Thorn KafKa
+  (t .... (weak C)))
+
+(define-extended-language Thorn<: Thorn
+  (M ((C <: D) ...)))
+(define-judgment-form Thorn<:
+  #:mode (<:t I I I I)
+  [-------"THSRef"
+   (<:t M K t t)]
+  [(<:t M K C D)
+   -------"THSWeak"
+   (<:t M K (weak C) (weak D))]
+  [(<:t M K C D)
+   -------"THSLower"
+   (<:t M K C (weak D))]
+  [-------"THSAss"
+   (<:t ( (C_1 <: C_2) ... (C <: D) (C_3 <: C_4) ...) K C D)]
+  [(where (mt ...) (mtypes-thorn D K))
+   (where M_1 ((C <: D) (C_1 <: C_2) ...))
+   (where ((C_!_1 <: D_!_1) ...) M)
+   (where (C_!_2 C_!_2) (C D))
+   (<:t M_1 K mt (mtypes-thorn C K)) ...
+   --------"THSRec"
+   (<:t (name M ((C_1 <: C_2) ...)) K (name C C_!_1) (name D D_!_1))]
+  [(<:t M K mt mt_2)
+   ---------"THSRecRecurs"
+   (<:t M K mt (mt_1 ... mt_2 mt_3 ...))]
+  [(<:t M K t_1 t_2)
+   (<:t M K t_4 t_3)
+   ----------"THSMet"
+   (<:t M K (m t_1 t_3) (m t_2 t_4))]
+  [(<:t M K t_1 t_2)
+   ----------"THSGet"
+   (<:t M K (f t_1) (f t_2))]
+  [----------"THSThat"
+   (<:t M K (that t_1 ... t_2) mt)])
+
+
+
 (define-metafunction KafKa
   mtypes : C K -> (mt ...)
   [(mtypes C (k_1 ... (class C (f t) ... (m (x t_1) ... t_2 e) ...) k_2 ...)) ((f t) ... (f t t) ... (m t_1 ... t_2) ...)]
   [(mtypes C_!_1 ((class C_!_1 fd ... md ...) ...)) ()])
+
+(define-metafunction/extension mtypes Thorn
+  mtypes-thorn : C K -> (mt ...))
 
 (define-metafunction KafKa
   compose-K : K ... -> K
