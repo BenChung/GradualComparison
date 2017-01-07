@@ -1540,6 +1540,7 @@ have been retyped.
   \obj\Cp{\b\app} = \App\s\ap \\
   \classoff\Cp\Kpp = \b\mt \\
   \classoff\D\Kpp = \b\mtp \\  
+  \names{\b\mtp} \subseteq \names{\b\mt}\\
   \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
   \sp = \Map\s{\Bind\a{\E\{\ap\}}}
 }{
@@ -1658,7 +1659,12 @@ invoke \RuleRef{TM4} again to compute the meet of the arugments to \m. We use \P
 
 \RuleRef{TM4} invokes \xt{mmeet} with an enriched \P, in much the same manner that the subtyping relation does, inserting the future
 result of the meet of \xt{A} and \xt{B} (which, in this example, is \xt{E}) into \P, which will then be used by \RuleRef{TM5} to terminate
-the recursion.
+the recursion. We make a notable simplifcation in figure \ref{fig:tmeet_rec_ex}, however, where the covariant and contravariant cases of meet
+produce the same result - our formal system instead generates different classes (which are identical to the \xt{E} in the figure) for each of 
+these cases.
+
+This last property comes out of a property of conistency. If we consider two types, $\C = \Type{\Mtype\m\any\any}$ and $\D = \Type{\Mtype\m\any\any, \Mtype\n\any\any}$, clearly $\D <: \C$ but not $\C <: \D$, and therefore, using the consistent subtyping relation from~\cite{SiekTaha07}, 
+$\D \lesssim \C$ but not $\C \lesssim \D$. As a concequence, 
 
 The \texttt{mtypes} function takes a class name $\C$ and the class table
 $\K$, and outputs a list of typing signatures $\b\mt$ for every method in
@@ -2612,7 +2618,12 @@ types $\b\mtpp$ and a class table $\Kp$.
   \mmeet{\b\mt}{\cdot}\P\K =\b{\mt} ~\K
 }
 
-\IRule{MM2}{ 
+\IRule{MM2}{
+}{
+  \mmeet{\cdot}{\b\mt}\P\K =\b{\mt} ~\K
+}
+
+\IRule{MM3}{ 
   \Mtype\f{}{\t} = \mt \\
   \Mtype\f{}{\tp} \in \b{\mtp} \\
   \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
@@ -2621,7 +2632,7 @@ types $\b\mtpp$ and a class table $\Kp$.
    \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
 }
 
-\IRule{MM3}{ 
+\IRule{MM4}{ 
   \Mtype\f{\t}{\t} = \mt \\
   \Mtype\f{\tp}{\tp} \in \b{\mtp} \\
   \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
@@ -2631,7 +2642,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 }
 
 
-\IRule{MM4}{ 
+\IRule{MM5}{ 
   \Mtype\m{\t_1}{\t_2} = \mt \\
   \Mtype\m{\t_3}{\t_4} \in \b{\mtp} \\
   \tmeet{\t_3}{\t_1}\P\K = \t_5~\Kp \\
@@ -2641,7 +2652,7 @@ types $\b\mtpp$ and a class table $\Kp$.
    \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kpp 
 }
 
-\IRule{MM5}{
+\IRule{MM6}{
   \mmeet{\mt}{\b{\mt_2}}\P\K = \mt_3~\Kp\\
   \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kp = \b{\mt_4}~\Kpp
 }{
