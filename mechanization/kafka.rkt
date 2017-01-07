@@ -26,6 +26,7 @@
   (a number)
   (v a)
   (P E)
+  (mts (mt ...))
   (σ · (number ↦ {number ... C} σ))
   (E (call E m e)
      (call E f)
@@ -288,8 +289,7 @@
   [(free-class ((class C fd ... md ...) ...)) ,(make-free-class (term (C ...)))])
 
 (define-extended-language KMeet KafKa
-  (P ((C C ↦ C) ...))
-  (mts (mt ...)))
+  (P ((C C ↦ C) ...)))
 (define-judgment-form KMeet
   #:mode (tmeet I I I I O O)
   #:contract (tmeet t t P K C K)
@@ -307,7 +307,9 @@
    (mmeet (mt ...) (mt_1 ...) P_1 K (mt_2 ...) (k ...))
    (where K_2 ((typegen (mt_2 ...) E) k ...))
    -----"TM4"
-   (tmeet (name C C_!_1) (name D D_!_1) P K E K_2)])
+   (tmeet (name C C_!_1) (name D D_!_1) P K E K_2)]
+  [-----"TM5"
+   (tmeet C D ((D_1 D_2 ↦ D_3) ... (C D ↦ C_1) (D_4 D_5 ↦ D_6 ...)) K C_1 K)])
 
 (define-judgment-form KMeet
   #:mode (mmeet I I I I O O)
@@ -328,6 +330,11 @@
    (mmeet (mt_1 ...) (mt_2 ...) P K_1 (mt_4 ...) K_2)
    ----"MM5"
    (mmeet (mt mt_1 ...) (mt_2 ...) P K (mt_3 mt_4 ...) K_2)])
+
+(define-metafunction KafKa
+  typegen : mts C -> k
+  [(typegen ((m t_1 t_2) mt ...) C) (class C (m (x t_1) t_2 (behcast t_2 x)) md ...) (where (class C md ...) (typegen (mt ...) C))]
+  [(typegen ((f t) mt ...) C) (class C (f t (behcast t (new C))) md ...) (where (class C md ...) (typegen (mt ...) C))])
 
 ;litmus
 
