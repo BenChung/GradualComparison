@@ -318,19 +318,21 @@
   #:contract (mmeet mts mts P K mts K)
   [----"MM1"
    (mmeet mts () P K mts K)]
-  [(tmeet t t_1 P K t_2 K_1)
-   ----"MM2"
-   (mmeet ((f t)) (mt_1 ... (f t_1) mt_2 ...) P K ((f t_2)) K_1)]
+  [----"MM2"
+   (mmeet () mts P K mts K)]
   [(tmeet t t_1 P K t_2 K_1)
    ----"MM3"
+   (mmeet ((f t)) (mt_1 ... (f t_1) mt_2 ...) P K ((f t_2)) K_1)]
+  [(tmeet t t_1 P K t_2 K_1)
+   ----"MM4"
    (mmeet ((f t t)) (mt_1 ... (f t_1 t_1) mt_2 ...) P K ((f t_2 t_2)) K_1)]
   [(tmeet t_3 t_1 P K t_5 K_1)
    (tmeet t_2 t_4 P K_1 t_6 K_2)
-   ----"MM4"
+   ----"MM5"
    (mmeet ((m t_1 t_2)) (mt_1 ... (m t_3 t_4) mt_2 ...) P K ((m t_5 t_6)) K_1)]
   [(mmeet (mt) (mt_4 ...) P K (mt_5) K_1)
    (mmeet (mt_2 mt_3 ...) (mt_4 ...) P K_1 (mt_6 ...) K_2)
-   ----"MM5"
+   ----"MM6"
    (mmeet (mt mt_2 mt_3 ...) (mt_4 ...) P K (mt_5 mt_6 ...) K_1)])
 
 (define-metafunction KafKa
