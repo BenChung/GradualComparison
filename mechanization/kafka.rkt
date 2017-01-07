@@ -19,7 +19,7 @@
   (t anyt C)
   (fd (f t))
   (md (m (x t) t e) (f t e))
-  (C D f m n x ::= (variable-except : any anyt))
+  (C D f m n x ::= variable-not-otherwise-mentioned)
   (Γ · (x : t Γ))
   (K (k ...))
   (p (e K))
@@ -288,6 +288,9 @@
   free-class : K -> C
   [(free-class ((class C fd ... md ...) ...)) ,(make-free-class (term (C ...)))])
 
+(define-metafunction KafKa
+  [(debug any_A) 2 (side-condition (write (term any_A)))])
+
 (define-extended-language KMeet KafKa
   (P ((C C ↦ C) ...)))
 (define-judgment-form KMeet
@@ -299,42 +302,47 @@
    (tmeet anyt C P K C K)]
   [-----"TM3"
    (tmeet t t P K t K)]
-  [(where E (free-class K))
+  [(where C_E (free-class K))
    (where (((name C_1 C_!_1) (name C_2 D_!_1) ↦ C_3) ...) P)
-   (where P_1 ((C D ↦ E) (C_1 C_2 ↦ C_3) ...))
+   (where P_1 ((C D ↦ C_E) (C_1 C_2 ↦ C_3) ...))
    (where (mt ...) (mtypes C K))
    (where (mt_1 ...) (mtypes D K))
    (mmeet (mt ...) (mt_1 ...) P_1 K (mt_2 ...) (k ...))
-   (where K_2 ((typegen (mt_2 ...) E) k ...))
+   (where K_2 ((typegen (mt_2 ...) C_E) k ...))
    -----"TM4"
-   (tmeet (name C C_!_1) (name D D_!_1) P K E K_2)]
+   (tmeet (name C C_!_1) (name D D_!_1) P K C_E K_2)]
   [-----"TM5"
    (tmeet C D ((D_1 D_2 ↦ D_3) ... (C D ↦ C_1) (D_4 D_5 ↦ D_6 ...)) K C_1 K)])
 
 (define-judgment-form KMeet
   #:mode (mmeet I I I I O O)
   #:contract (mmeet mts mts P K mts K)
-  [----"MM1"
+  [(where 2 (debug ("MM1")))
+   ----"MM1"
    (mmeet mts () P K mts K)]
-  [(tmeet t t_1 P K t_2 K_1)
+  [(where 2 (debug ("MM2" t)))
+   (tmeet t t_1 P K t_2 K_1)
    ----"MM2"
    (mmeet ((f t)) (mt_1 ... (f t_1) mt_2 ...) P K ((f t_2)) K_1)]
-  [(tmeet t t_1 P K t_2 K_1)
+  [(where 2 (debug ("MM3" t t_1)))
+   (tmeet t t_1 P K t_2 K_1)
    ----"MM3"
    (mmeet ((f t t)) (mt_1 ... (f t_1 t_1) mt_2 ...) P K ((f t_2 t_2)) K_1)]
-  [(tmeet t_3 t_1 P K t_5 K_1)
+  [(where 2 (debug ("MM4" t_1 t_2 t_3 t_4)))
+   (tmeet t_3 t_1 P K t_5 K_1)
    (tmeet t_2 t_4 P K_1 t_6 K_2)
    ----"MM4"
    (mmeet ((m t_1 t_2)) (mt_1 ... (m t_3 t_4) mt_2 ...) P K ((m t_5 t_6)) K_1)]
-  [(mmeet (mt) (mt_2 ...) P K (mt_3) K_1)
-   (mmeet (mt_1 ...) (mt_2 ...) P K_1 (mt_4 ...) K_2)
+  [(mmeet (mt) (mt_4 ...) P K (mt_5) K_1)
+   (mmeet (mt_2 mt_3 ...) (mt_4 ...) P K_1 (mt_6 ...) K_2)
    ----"MM5"
-   (mmeet (mt mt_1 ...) (mt_2 ...) P K (mt_3 mt_4 ...) K_2)])
+   (mmeet (mt mt_2 mt_3 ...) (mt_4 ...) P K (mt_5 mt_6 ...) K_1)])
 
 (define-metafunction KafKa
   typegen : mts C -> k
   [(typegen ((m t_1 t_2) mt ...) C) (class C (m (x t_1) t_2 (behcast t_2 x)) md ...) (where (class C md ...) (typegen (mt ...) C))]
-  [(typegen ((f t) mt ...) C) (class C (f t (behcast t (new C))) md ...) (where (class C md ...) (typegen (mt ...) C))])
+  [(typegen ((f t) mt ...) C) (class C (f t (behcast t (new C))) md ...) (where (class C md ...) (typegen (mt ...) C))]
+  [(typegen () C) (class C)])
 
 ;litmus
 
@@ -376,3 +384,7 @@
 
 (define litmusProg4 (term (call (new T) t (new A (new D)))))
 (define litmus4 (term (,litmusProg4 ,litmusK4f)))
+
+;other examples from the paper
+
+(define meetex1 (term ((class A (m (x anyt) A this)) (class B (m (x B) anyt this)))))
