@@ -2370,7 +2370,7 @@ Because of fields, we cannot fully represent the transient semantics in \kafka, 
 \IRule{MTT}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\t\x, \e}.{\EMxt{f2}}()}}}{}}
+}{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
 The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, \kafka does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.

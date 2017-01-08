@@ -388,8 +388,8 @@
    (trans-methtrans K C (m (x any) any e) (m (x anyt) anyt e_1))]
   [(trans-anacast K (this : C (x : anyt ·)) e anyt e_1)
    ------"MTT"
-   (trans-methtrans K C (m (x t) t_1 e)
-                    (m (x anyt) anyt (subcast anyt (call (new A2 (namcast t x) e_1) f2))))])
+   (trans-methtrans K C (m (x C_1) C_2 e)
+                    (m (x anyt) anyt (subcast anyt (call (new A2 (namcast C_1 x) e_1) f2))))])
 
 (define-judgment-form KafKa
   #:mode (trans-syncast I I I O O)
@@ -406,9 +406,14 @@
    (trans-anacast K Γ e_2 anyt e_4)
    ------"GRA3"
    (trans-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+  [(where C (lookup-env Γ this))
+   (where (mt_1 ... (f t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (trans-anacast K Γ e t_1 e_1) ...
+   ------"GRA4"
+   (trans-syncast K Γ (call this f e ..._1) (call this f e_1 ...) anyt)]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (trans-anacast K Γ e_1 t e_2) ...
-   ------"GRA4"
+   ------"GRA5"
    (trans-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
 
 (define-judgment-form KafKa
