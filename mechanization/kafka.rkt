@@ -401,7 +401,7 @@
    (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
    (trans-anacast K Γ e_2 t_1 e_4) ...
    -----"GRA2"
-   (trans-syncast K Γ (call e_1 m e_2 ..._1) (namcast t_2 (call e_1 m e_4 ...)) t_2)]
+   (trans-syncast K Γ (call e_1 m e_2 ..._1) (namcast t_2 (dcall (subcast anyt e_1) m (subcast anyt e_4) ...)) t_2)]
   [(trans-syncast K Γ e_1 e_3 anyt)
    (trans-anacast K Γ e_2 anyt e_4)
    ------"GRA3"
@@ -421,7 +421,7 @@
   [(trans-syncast K Γ e e_1 t_1)
    (consistent K t t_1)
    -----"GRAASC2"
-   (trans-anacast K Γ e t e)])
+   (trans-anacast K Γ e t e_1)])
 
 
 
