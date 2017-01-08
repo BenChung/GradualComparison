@@ -1527,13 +1527,13 @@ under type \any, when we try to invoke method \m on this apparently dynamic
 object, we will get a cast failure, when monotonic checks to make sure that the
 provided argument is of type \E. 
 
-The monotone cast is generative, as it triggers the creation of new classes
-that are the meet of the existing types and the requested type. Generativity
-is required when objects are aliased at different types.  This cast also
-perform update in place of the class of objects, for example \obj\C{\a}
-becomes \obj\D{\a}. To deal correctly with fields, we restrict monotone
-casts to wrapper objects.
-
+Because of this property, the monotone cast is generative. In order to guarantee
+the future type correctness of all references, monotonic has to generate guards
+that check the argument and return type of every method, and at least check the
+type of any field set, ensuring that they maintain consistency with the 
+maximally static type. Additionally, because monotonic has to ensure that 
+prior references respect future type invariants, it has to do in-place updates
+of any object whose type is altered by a cast update.
 
 In the extreme, one cast could cause all objects in the heap to be
 retyped. To prevent pathological cases, monotone casts, only modify the heap
