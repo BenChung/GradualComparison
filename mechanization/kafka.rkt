@@ -292,7 +292,17 @@
   [(debug any_A) 2 (side-condition (writeln (term any_A)))])
 
 (define-extended-language KMeet KafKa
-  (P ((C C ↦ C) ...)))
+  (Pb (C C ↦ C))
+  (P (Pb ...)))
+
+(define-judgment-form KMeet
+  #:mode (in-P I I I O)
+  #:contract (in-P C C P C)
+  [------"IP1"
+   (in-P C D (Pb_1 ... (C D ↦ C_1) Pb_2 ...) C_1)]
+  [------"IP2"
+   (in-P C D (Pb_1 ... (D C ↦ C_1) Pb_2 ...) C_1)])
+
 (define-judgment-form KMeet
   #:mode (tmeet I I I I O O)
   #:contract (tmeet t t P K t K)
@@ -304,14 +314,16 @@
    (tmeet t t P K t K)]
   [(where C_E (free-class K C_3 ...))
    (where P_1 ((C D ↦ C_E) (C_1 C_2 ↦ C_3) ...))
+   (side-condition ,(not (judgment-holds (in-P C D P C_4))))
    (where (mt ...) (mtypes C K))
    (where (mt_1 ...) (mtypes D K))
    (mmeet (mt ...) (mt_1 ...) P_1 K (mt_2 ...) (k ...))
    (where K_2 ((typegen (mt_2 ...) C_E) k ...))
    -----"TM4"
-   (tmeet (name C C_!_1) (name D D_!_1) (((name C_1 C_!_1) (name C_2 D_!_1) ↦ C_3) ...) K C_E K_2)]
-  [-----"TM5"
-   (tmeet C D ((D_1 D_2 ↦ D_3) ... (C D ↦ C_1) (D_4 D_5 ↦ D_6) ...) K C_1 K)])
+   (tmeet (name C C_!_1) (name D D_!_1) (name P ((C_1 C_2 ↦ C_3) ...)) K C_E K_2)]
+  [(in-P C D P C_1)
+   -----"TM5"
+   (tmeet C D P K C_1 K)])
 
 (define-judgment-form KMeet
   #:mode (mmeet I I I I O O)
@@ -340,6 +352,18 @@
   [(typegen ((m t_1 t_2) mt ...) C) (class C (m (x t_1) t_2 (subcast t_2 x)) md ...) (where (class C md ...) (typegen (mt ...) C))]
   [(typegen ((f t) mt ...) C) (class C (f t (subcast t (new C))) md ...) (where (class C md ...) (typegen (mt ...) C))]
   [(typegen () C) (class C)])
+
+(define-judgment-form KafKa
+  #:mode (consistent I I I)
+  #:contract (consistent K t t)
+  [(tmeet t_1 t_2 () K t K_1)
+   ----"C1"
+   (consistent K t_1 t_2)])
+
+ ; transient
+
+
+
 
 ;litmus
 
