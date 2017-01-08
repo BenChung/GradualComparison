@@ -1560,6 +1560,98 @@ though with the interesting caveat that we now need to make sure that
 \emph{all} method invocations follow the typed calling conventions, rather
 than just the ones that inherit this particular type assertion.
 
+In \kafka, we implement the monotonic cast in a generative manner, as noted 
+previously. However, we cannot take the simple in-place replacement route, as
+\cite{Siek2015} did, due to the nature of \kafka. In order to ensure that the
+type of a field is respected, the monotonic cast will have to add in a setter
+that checks the value that it is given against the type of the field, when
+a lesser-typed call site is used to set the field. However, \kafka prohibits
+both a field and a getter or setter from existing, as a concequence of its 
+treatment of fields and getters and setters uniformly. 
+
+Because of this issue, we instead implement the monotonic cast by adding a 
+single wrapper over each object, similar to the ``identity preserving membrane''
+described in \cite{keil_et_al:DARTS:2015:5511}. The wrappers will preserve the
+externally-facing interface (up to a point) and the relations between classes,
+while ensuring that all properties guaranteed in the monotonic system remain.
+
+As a result of this (and the static translation required to allow the monotonic
+semantics to work correctly), instead of the simple figure~\ref{fig:mono_ex1}, 
+\kafka will actually execute as depicted in figure~\ref{fig:mono_ex2}. Note that
+for compactness, we elide class definitions that are in figure
+~\ref{fig:mono_ex1}, and class definitions that will be generated but that
+do not appear in the dynamic execution of the program.
+
+\begin{figure}[h!]
+\begin{tabular}{ll}
+\begin{minipage}[b]{4.5cm}
+\lstset{framesep=4pt}
+\begin{lstlisting}
+class CW { f : * }
+class DW { 
+  m (x:*):* {x}
+}
+d:* = new DW(new D())
+a:* = new CW(new C(d))
+[heap snapshot 1]
+
+class EW { f : F }
+class FW { 
+  m (x:E):E {x}
+}
+
+e:E = <E>a
+[heap snapshot 2]
+d.m(d)
+\end{lstlisting}
+\vspace{-9.2em}
+\end{minipage}
+&
+\begin{tabular}{l}
+Heap snapshot 1: \\
+\begin{minipage}{8cm}
+\begin{tikzpicture}[framed,my shape/.style={
+rectangle split, rectangle split parts=#1, draw, anchor=text east}]
+\node (ref) at (0,0) {$\HT\a\any$};
+\node (refb) at (0,-1.5) {$\HT{\xt{d}}\any$};
+
+\node (C1) [my shape=2,right of=ref, anchor = text west]
+{\C\nodepart{two}$\f : \any$};
+
+\node (D1) [my shape=2,right=of C1.two east, anchor=text west,shift={(0,-.1)}]
+{\D\nodepart{two}$\Mtype\m\any\any$};
+
+\draw[->,very thick] (ref.east) -> (C1.text west);
+\draw[->,very thick] (refb.east) -> ($(D1.text west)+(0,-.1)$);
+\draw[->,very thick] (C1.two east) -> ($(D1.text west)+(0,.1)$);
+\end{tikzpicture}
+\end{minipage}\\
+Heap snapshot 2: \\
+\begin{minipage}{8cm}
+\begin{tikzpicture}[framed,my shape/.style={
+rectangle split, rectangle split parts=#1, draw, anchor=text east}]
+\node (ref) at (0,0) {$\HT\a\any$};
+\node (refb) at (0,-1.5) {$\HT{\xt{d}}\any$};
+\node (refe) at (0,-.5) {$\HT{\xt{e}}\E$};
+
+\node (C1) [my shape=2,right of=ref, anchor = text west,shift={(0,-.1)}]
+{\C\nodepart{two}$\f : \xt{F}$};
+
+\node (D1) [my shape=2,right=of C1.two east, anchor=text west,shift={(0,-.1)}]
+{\D\nodepart{two}$\Mtype\m{\xt{E}}{\xt{E}}$};
+
+\draw[->,very thick] (ref.east) -> ($(C1.text west)+(0,.1)$);
+\draw[->,very thick] (refb.east) -> ($(D1.text west)+(0,-.1)$);
+\draw[->,very thick] (refe.east) -> ($(C1.text west)+(0,-.1)$);
+\draw[->,very thick] (C1.two east) -> ($(D1.text west)+(0,.1)$);
+\end{tikzpicture}
+\end{minipage}
+\end{tabular}
+\vspace{1em}
+\end{tabular}
+\caption{Execution under the monotonic semantics}
+\label{fig:mono_ex2}
+\end{figure}
 
 Meta-variable \S denotes a map from addresses to classes, thus
 \Map\S{\Bind\a\C} gives type \C to address \a. The function \htype\a\S\s\K
