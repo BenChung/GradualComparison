@@ -383,10 +383,10 @@
 (define-judgment-form KafKa
   #:mode (trans-methtrans I I I O)
   #:contract (trans-methtrans K C md md)
-  [(trans-anacast K (this : C (x : anyt ·)) e any e_1)
-   ------"MTU"
-   (trans-methtrans K C (m (x any) any e) (m (x anyt) anyt e_1))]
   [(trans-anacast K (this : C (x : anyt ·)) e anyt e_1)
+   ------"MTU"
+   (trans-methtrans K C (m (x anyt) anyt e) (m (x anyt) anyt e_1))]
+  [(trans-anacast K (this : C (x : C_1 ·)) e anyt e_1)
    ------"MTT"
    (trans-methtrans K C (m (x C_1) C_2 e)
                     (m (x anyt) anyt (subcast anyt (call (new A2 (namcast C_1 x) e_1) f2))))])
