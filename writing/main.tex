@@ -1442,7 +1442,7 @@ type correctness of every reference in the program.
 \begin{figure}[h!]
 \begin{tabular}{ll}
 \begin{minipage}[b]{4cm}
-\vspace{1em}\lstset{framesep=4pt}
+\lstset{framesep=4pt}
 \begin{lstlisting}
 class C { f : * }
 class D { 
@@ -1450,9 +1450,23 @@ class D {
 }
 d:* = new D()
 a:* = new C(d)
+[heap snapshot 1]
+
+class E { f : F }
+class F { 
+  m (x:E):E {x}
+}
+
+e:E = <E>a
+[heap snapshot 2]
+d.m(d)
 \end{lstlisting}
+\vspace{-9.2em}
 \end{minipage}
 &
+\begin{tabular}{l}
+Heap snapshot 1: \\
+\begin{minipage}{8cm}
 \begin{tikzpicture}[framed,my shape/.style={
 rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \node (ref) at (0,0) {$\HT\a\any$};
@@ -1468,9 +1482,30 @@ rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \draw[->,very thick] (refb.east) -> ($(D1.text west)+(0,-.1)$);
 \draw[->,very thick] (C1.two east) -> ($(D1.text west)+(0,.1)$);
 \end{tikzpicture}
+\end{minipage}\\
+Heap snapshot 2: \\
+\begin{minipage}{8cm}
+\begin{tikzpicture}[framed,my shape/.style={
+rectangle split, rectangle split parts=#1, draw, anchor=text east}]
+\node (ref) at (0,0) {$\HT\a\any$};
+\node (refb) at (0,-1.5) {$\HT{\xt{d}}\any$};
+\node (refe) at (0,-.5) {$\HT{\xt{e}}\E$};
+
+\node (C1) [my shape=2,right of=ref, anchor = text west,shift={(0,-.1)}]
+{\C\nodepart{two}$\f : \xt{F}$};
+
+\node (D1) [my shape=2,right=of C1.two east, anchor=text west,shift={(0,-.1)}]
+{\D\nodepart{two}$\Mtype\m{\xt{E}}{\xt{E}}$};
+
+\draw[->,very thick] (ref.east) -> ($(C1.text west)+(0,.1)$);
+\draw[->,very thick] (refb.east) -> ($(D1.text west)+(0,-.1)$);
+\draw[->,very thick] (refe.east) -> ($(C1.text west)+(0,-.1)$);
+\draw[->,very thick] (C1.two east) -> ($(D1.text west)+(0,.1)$);
+\end{tikzpicture}
+\end{minipage}
+\end{tabular}
 \end{tabular}
 \end{figure}
-
 The monotone cast is generative, as it triggers the creation of new classes
 that are the meet of the existing types and the requested type. Generativity
 is required when objects are aliased at different types.  This cast also
@@ -2152,7 +2187,7 @@ The remainder of the subtyping judgment is identical to the \kafka subtyping rel
 }
 \end{mathpar}
 
-The synthetic cases are effectively, as the name implies, the traditional ``bottom-up'' style of typing judgment. Here, we are asked to produce te type for a term while producing an equivalent \kafka term that is of the translated type. As a result, a number of the rules, including THA1, THA2, THA5, and THA6 are all effectively direct translations of the traditional typing rules for their cases.
+The synthetic cases are effectively, as the name implies, the traditional ``bottom-up'' style of typing judgment. Here, we are asked to produce te type for a term while producing an equivalent \kafka term that is of the translated type. As a result, a number of the rules, including \RuleRef{THA1}, \RuleRef{THA2}, \RuleRef{THA5}, and \RuleRef{THA6} are all effectively direct translations of the traditional typing rules for their cases.
 
 However, THA3 and THA4 are of special interest. Both apply when the receiver type is a weak type - that is, unsound, so its types are not guaranteed - and case analyze on the declared return type. In THA3, we see the case where the returnn type is a concrete type, or a sound type, being returned from an unsound type, which requires the insertion of a runtime cast, and in THA4 we see the the alternative case.
 
