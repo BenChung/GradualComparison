@@ -1504,8 +1504,29 @@ rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \end{tikzpicture}
 \end{minipage}
 \end{tabular}
+\vspace{1em}
 \end{tabular}
+\caption{Execution under the monotonic semantics}
+\label{fig:mono_ex1}
 \end{figure}
+
+This is illustrated in figure~\ref{fig:mono_ex1}. Here, we create a new 
+instance of class \D, then create an instance of class \C that points at that
+object. At this point, the field \f on \C has type \any, and the method \m
+on \D has fully dynamic argument and return type.
+
+However, we then introduce classes \E and \xt{F}, which are structurally 
+identical to \C and \D, but specify types for the field and method. If we then
+cast our instance of \C, \a in the program, to \C, monotonic will ensure that
+any access to field \f or to method \m from anywhere else in the program will
+follow the type invariants asserted by the cast to \E.
+
+As a result, our reference to the instance of \D, named \xt{d} and saved from
+earlier in the program, now has hidden invariants applied to it. Despite being
+under type \any, when we try to invoke method \m on this apparently dynamic 
+object, we will get a cast failure, when monotonic checks to make sure that the
+provided argument is of type \E. 
+
 The monotone cast is generative, as it triggers the creation of new classes
 that are the meet of the existing types and the requested type. Generativity
 is required when objects are aliased at different types.  This cast also
