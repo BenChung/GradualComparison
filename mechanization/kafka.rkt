@@ -362,6 +362,63 @@
 
  ; transient
 
+(define-judgment-form KafKa
+  #:mode (trans-progtrans I O)
+  #:contract (trans-progtrans p p)
+  [(trans-classtrans K_1 K_1 (k ...)) (tr-syncast K_1 · e_1 e_2 t)
+   ------- "PT"
+   (trans-progtrans (e_1 K_1) (e_2 ((class A2 (f1 anyt) (f2 anyt)) k ...)))])
+
+
+(define-judgment-form KafKa
+  #:mode (trans-classtrans I I O)
+  #:contract (trans-classtrans K K K)
+  [(trans-classtrans K (k_1 ...) (k_2 ...))
+   (trans-methtrans K C md md_1) ...
+   ------- "CR1"
+   (trans-classtrans K ((class C fd ... md ...) k_1 ...) ((class C fd ... md_1 ...) k_2 ...))]
+  [------
+   (trans-classtrans K () ())])
+
+(define-judgment-form KafKa
+  #:mode (trans-methtrans I I I O)
+  #:contract (trans-methtrans K C md md)
+  [(trans-anacast K (this : C (x : any ·)) e any e_1)
+   ------"MTU"
+   (trans-methtrans K C (m (x any) any e) (m (x any) any e_1))])
+
+(define-judgment-form KafKa
+  #:mode (trans-syncast I I I O O)
+  #:contract (trans-syncast K Γ e e t)
+  [(where t (lookup-env Γ x))
+   -----"A1"
+   (trans-syncast K Γ x x t)]
+  [(trans-syncast K Γ e_1 e_3 C)
+   (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (trans-anacast K Γ e_2 t_1 e_4) ...
+   -----"A2"
+   (trans-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
+  [(trans-syncast K Γ e_1 e_3 anyt)
+   (trans-anacast K Γ e_2 anyt e_4)
+   ------"A8"
+   (trans-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+  [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
+   (trans-anacast K Γ e_1 t e_2) ...
+   ------"A11"
+   (trans-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
+
+(define-judgment-form KafKa
+  #:mode (trans-anacast I I I I O)
+  #:contract (trans-anacast K Γ e t e)
+  [(trans-syncast K Γ e e_1 t_1)
+   (<: () K t t_1)
+   -----"AASC1"
+   (trans-anacast K Γ e t e_1)]
+  [(trans-syncast K Γ e e_1 t_1)
+   (side-condition ,(not (judgment-holds (<: () K t_1 t))))
+   -----"AASC2"
+   (trans-anacast K Γ e t (behcast t (namcast t e)))])
+
 
 
 
