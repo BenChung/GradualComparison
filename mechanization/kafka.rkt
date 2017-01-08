@@ -399,6 +399,7 @@
    (trans-syncast K Γ x (namcast t x) t)]
   [(trans-syncast K Γ e_1 e_3 C)
    (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (side-condition ,(not (redex-match KafKa this (term e_1))))
    (trans-anacast K Γ e_2 t_1 e_4) ...
    -----"GRA2"
    (trans-syncast K Γ (call e_1 m e_2 ..._1) (namcast t_2 (dcall (subcast anyt e_1) m (subcast anyt e_4) ...)) t_2)]

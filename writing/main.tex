@@ -2303,9 +2303,9 @@ The remainder of the subtyping judgment is identical to the \kafka subtyping rel
 
 The synthetic cases are effectively, as the name implies, the traditional ``bottom-up'' style of typing judgment. Here, we are asked to produce te type for a term while producing an equivalent \kafka term that is of the translated type. As a result, a number of the rules, including \RuleRef{THA1}, \RuleRef{THA2}, \RuleRef{THA5}, and \RuleRef{THA6} are all effectively direct translations of the traditional typing rules for their cases.
 
-However, THA3 and THA4 are of special interest. Both apply when the receiver type is a weak type - that is, unsound, so its types are not guaranteed - and case analyze on the declared return type. In THA3, we see the case where the returnn type is a concrete type, or a sound type, being returned from an unsound type, which requires the insertion of a runtime cast, and in THA4 we see the the alternative case.
+However, \RuleRef{THA3} and \RuleRef{THA4} are of special interest. Both apply when the receiver type is a weak type - that is, unsound, so its types are not guaranteed - and case analyze on the declared return type. In \RuleRef{THA3}, we see the case where the returnn type is a concrete type, or a sound type, being returned from an unsound type, which requires the insertion of a runtime cast, and in THA4 we see the the alternative case.
 
-At the same time, note that both THA3 and THA4 produce dynamic calls on the receiver, despite the receiver having a source language type. This is because we translate Thorn weak types down to \kafka's \any, which causes all calls on optional types to be considered by \kafka to be dynamic invocations.
+At the same time, note that both \RuleRef{THA3} and \RuleRef{THA4} produce dynamic calls on the receiver, despite the receiver having a source language type. This is because we translate Thorn weak types down to \kafka's \any, which causes all calls on optional types to be considered by \kafka to be dynamic invocations.
 
 \hrulefill
 
@@ -2357,9 +2357,9 @@ In effect, if there is some most specific type for two given types, then the two
 
 \paragraph{Transient}
 
-The transient semantics is notably different from the other systems, as illustrated by the invariants we can assume about its primary cast, $\ShaCast\t\e$. Here, we simply assert that $\e$ has the same \emph{names} as $\t$ does, and, as a result, the closest type representation we have is the $\any$ type, as illustrated in the typing for \kafka. All Transient guarantees is that the methods on the named type will be callable with some argument, and some return value, and it is up to the callee to check that the arguments are right and up to the caller to ensure that the return value is right.
+The transient semantics is notably different from the other systems, as illustrated by the invariants we can assume about its primary cast, $\ShaCast\t\e$. Here, we simply assert that $\e$ has the same \emph{names} as $\t$ does, and, as a result, the closest type representation we have is the $\any$ type, as illustrated in rule \RuleRef{W9} for \kafka. All Transient guarantees is that the methods on the named type will be callable with some argument, and some return value, and it is up to the callee to check that the arguments are right and up to the caller to ensure that the return value is right.
 
-Because of fields, we cannot fully represent the transient semantics in \kafka, as field accessors and getters can only be called in a fully typed context. However, we can approximate it, by only allowing field getters and setters to be called in the context of \this, thereby removing all possible ambiguity over the receiver of the field getter or setter.
+As a result of this, our translation of transient requires a large number of changes to allow it to be well formed in \kafka. The most notable of these changes is visible in rule \RuleRef{MTT}, where we are forced to erase every type from the arguments to a function, as typed arguments may not be respsected in the dynamics. We then ensure that the type invariant holds by using a tuple class (to simulate sequencing, which \kafka does not natively support) to check the type of the argument, then return the value of the body (which is inserted into the second field of the tuple class).
 
 
 \begin{mathpar}
@@ -2373,13 +2373,8 @@ Because of fields, we cannot fully represent the transient semantics in \kafka, 
 }{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
-The first task for us to do in transient is to define a mechanism for calls to self-protect. The transient semantics provides no type guarantees about the arguments to functions, which must check their own arguments when called. However, \kafka does not allow us to call typed functions with arguments of unknown type, meaning that we have to take a translation approach on a per-method basis.
-
-Our translation for untyped methods is very simple, as they make no type-based assumptions internally, as seen in MTU. However, in MTT, we see the considerably more complex typed method translation. As this method must be callable with any argument, the argument type of the untyped function must be \any, then translate the body of the method to account for the altered argument type.
-
-As seen in the expression translation below, we cast every variable to the statically expected type whenever it is seen in the program. However, this is insufficient, as if the method does not use its argument, then without further checking, it can succeed even if the argument value is ill-formed. Solving this problem is challenging, as \kafka does not allow us to write multiple line expressions. What \kafka does have, though, is the ability to write multiple expressions in a new statement with a guaranteed evaluation order, which is sufficient for our purposes. 
-
-To check the type of the argument, we then create a new instance of the empty utility class \EMxt{A2}, which has two fields, \EMxt{f1} and \EMxt{f2}, then set \EMxt{f1} to the casted value of the argument \x. While this value is used nowhere else in the program, the program will get stuck at this cast if the value is not of the specified type, maintaining the required. We then instantiate \EMxt{f2} to the translated body of the function, then return the value of \EMxt{f2}, producing the expected result. 
+Internally, the translations required to support the transient surface level semantics from within KafKa are also substantial. As noted previously, we are not obligated by transient to check method argument types before entry, and as a result, every call, typed or untyped, in transient is an untyped call. Likewise, every typed method call must be guarded with a cast to ensure that the return type of the method is correct, translations that are implemented in \RuleRef{GRA2}.
+ 
 
 
 \begin{mathpar}
@@ -2410,7 +2405,7 @@ To check the type of the argument, we then create a new instance of the empty ut
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
-Transient expression translation contains only one real suprise, A3. Transient does not provide a sufficiently strong type invariant as to satisfy \kafka's field access typechecking, causing us to be unable to call a field setter or getter on any argument. As a concequence, we can only call fields on the self reference \this, which is handled as a special case as A3, since the combination of A1 and A2 is not sufficient to typecheck a field access due to the weakness of the type invariant.
+Notably, however, transient's complete lack of statically typable calls means that a pure implementation of transient into \kafka would then entail that no fields were ever accessed using the setter or getter, as \kafka forbids untyped access to fields. To overcome this issue, we add rule \RuleRef{GRA4}, which allows the definition of self-referential field access. In a transient system, the only type that is absolutely known at any time is the self-reference, which we can then use to access fields on the self object. As a result, transient programs translated to \kafka will have to wrap field accessors in method calls to enable them to function.
 
 \begin{mathpar}
 \IRule{GRAASC1}{
@@ -2428,7 +2423,9 @@ Transient expression translation contains only one real suprise, A3. Transient d
 }
 \end{mathpar}
 
-The next point of interest for the transient semantics is AASC2, which handles the case where we expect one type and get another that is not a subtype of the first type, but is consistent. In the behavioural and the soon to be discussed monotonic semantics, we would insert a cast at this point, as it is needed to ensure that the value at this point satisfies the type invariant. However, since transient only checks types at their use site, it does not need to check a type at the site of the type assertion.
+The last notable rule in our translation is \RuleRef{GRAASC2}. In other systems with consistency, such as the monotonic system that we are about to cover, when consistency is used to conclude an analytic judgment, a cast must be inserted, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
+
+However, in transient, the rest of the program makes no type assumptions that may be violated by consistency. Even though our translation takes a particularly weak perspective on the interpretation of a transient type into \kafka, even a type system that fully represents a transient type (e.g. one that tracks method names, only) will accept structurally conistent values under the same type. As a result, we can allow consistent values to be used with no additional casts.
 
 \paragraph{Monotonic}
 
