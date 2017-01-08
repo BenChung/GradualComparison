@@ -1583,6 +1583,7 @@ for compactness, we elide class definitions that are in figure
 do not appear in the dynamic execution of the program.
 
 \begin{figure}[h!]
+FIXME
 \begin{tabular}{ll}
 \begin{minipage}[b]{4.5cm}
 \lstset{framesep=4pt}
@@ -2382,22 +2383,22 @@ To check the type of the argument, we then create a new instance of the empty ut
 
 
 \begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
+\IRule{GRA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
 
-\IRule[width=30em]{A2}{
+\IRule[width=30em]{GRA2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\ShaCast{\t_2}{\Call{\e_3}\m{\b{\e_4}}}}     {\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\ShaCast{\t_2}{(\DynCall{\SubCast{\any}{\e_3})}\m{\SubCast{\any}{\e_4}}}}     {\t_2}
 }
 
-\IRule{A8}{
+\IRule{GRA3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule{A11}{
+\IRule{GRA4}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
@@ -2406,14 +2407,14 @@ To check the type of the argument, we then create a new instance of the empty ut
 Transient expression translation contains only one real suprise, A3. Transient does not provide a sufficiently strong type invariant as to satisfy \kafka's field access typechecking, causing us to be unable to call a field setter or getter on any argument. As a concequence, we can only call fields on the self reference \this, which is handled as a special case as A3, since the combination of A1 and A2 is not sufficient to typecheck a field access due to the weakness of the type invariant.
 
 \begin{mathpar}
-\IRule{AASC1}{
+\IRule{GRAASC1}{
   \GenCast\K\E\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\E\e\ep\t
 }
 
-\IRule{AASC2}{
+\IRule{GRAASC2}{
   \GenCast\K\E\e\ep\tp \\
   \consistent\K\tp\t
 }{

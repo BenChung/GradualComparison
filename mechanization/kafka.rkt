@@ -388,26 +388,27 @@
    (trans-methtrans K C (m (x any) any e) (m (x anyt) anyt e_1))]
   [(trans-anacast K (this : C (x : anyt ·)) e anyt e_1)
    ------"MTT"
-   (trans-methtrans K C (m (x t) t_1 e) (m (x anyt) anyt (subcast any (call (new A2 (namcast t x) e_1) f2))))])
+   (trans-methtrans K C (m (x t) t_1 e)
+                    (m (x anyt) anyt (subcast anyt (call (new A2 (namcast t x) e_1) f2))))])
 
 (define-judgment-form KafKa
   #:mode (trans-syncast I I I O O)
   #:contract (trans-syncast K Γ e e t)
   [(where t (lookup-env Γ x))
-   -----"A1"
-   (trans-syncast K Γ x x t)]
+   -----"GRA1"
+   (trans-syncast K Γ x (namcast t x) t)]
   [(trans-syncast K Γ e_1 e_3 C)
    (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
    (trans-anacast K Γ e_2 t_1 e_4) ...
-   -----"A2"
-   (trans-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
+   -----"GRA2"
+   (trans-syncast K Γ (call e_1 m e_2 ..._1) (namcast t_2 (call e_1 m e_4 ...)) t_2)]
   [(trans-syncast K Γ e_1 e_3 anyt)
    (trans-anacast K Γ e_2 anyt e_4)
-   ------"A8"
+   ------"GRA3"
    (trans-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (trans-anacast K Γ e_1 t e_2) ...
-   ------"A11"
+   ------"GRA4"
    (trans-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
 
 (define-judgment-form KafKa
@@ -415,12 +416,12 @@
   #:contract (trans-anacast K Γ e t e)
   [(trans-syncast K Γ e e_1 t_1)
    (<: () K t t_1)
-   -----"AASC1"
+   -----"GRAASC1"
    (trans-anacast K Γ e t e_1)]
   [(trans-syncast K Γ e e_1 t_1)
-   (side-condition ,(not (judgment-holds (<: () K t_1 t))))
-   -----"AASC2"
-   (trans-anacast K Γ e t (behcast t (namcast t e)))])
+   (consistent K t t_1)
+   -----"GRAASC2"
+   (trans-anacast K Γ e t e)])
 
 
 
