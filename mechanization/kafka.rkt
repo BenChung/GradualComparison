@@ -91,7 +91,11 @@
                            ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))
                       (--> ((in-hole E (dcall a_1 m a_2)) (name K (k_1 ... (class C fd ... md_1 ... (m (x anyt) anyt e) md_2 ...) k_2 ...))
                                                           (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...)))
-                           ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))))
+                           ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))
+                      (--> ((in-hole E (subcast anyt a)) K σ) ((in-hole E a) K σ))
+                      (--> ((in-hole E (subcast D a)) K (name σ (σa_1 ... (a ↦ {a_1 ... C}) σa_2 ...)))
+                           ((in-hole E a) K σ)
+                           (judgment-holds (<: () K C D)))))
   
 
 (define-metafunction KafKa
