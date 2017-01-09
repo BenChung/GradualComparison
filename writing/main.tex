@@ -1055,6 +1055,20 @@ in order to best accomodate the various systems, we introduce some unusual
 features. A \kafka program is defined by the combination of a class table 
 \K, which consists of a list of classes \k, and a evaluation expression \e.
 
+\kafka classes can contain both methods and fields, the latter of which
+can be declared either via an explicit field declaration in the class
+(e.g. \HT\f\t) or by a pair of a getter (\Get\this\f) and setter 
+(\Set\this\f\x). Semantically, both explicit and implicit fields behave 
+identically, which has the concequence that untyped field access is forbidden, 
+as explicit field semantics would then become dependent on the approach to 
+typing used.
+
+Methods in \kafka are segregated into typed (methods whose argument and
+return type is not \any) and untyped methods, the former of which can be
+called with the statically resolved \Call\e\m\e form, and the latter of
+which can only be called with the dynamically checked \DynCall\e\m\e 
+expression.
+
 To execute a \kafka program, the system will use a heap (which we denote
 \s) that maps memory locations \a to objects, each of which is a combination
 of a list of field values \a and the class name \C, with notation
@@ -1068,18 +1082,7 @@ is a value. \footnote{Intuitively we would
   expect that the program can only get stuck at dynamic calls or at
   structural casts. But generative casts add some complexity to that
   statement.}
-
-Operations on fields require a typed receiver, for example in the expression
-\Get\this\f, \this is always of the type of the current class. Field access
-through a getter method, works as follows. If the receiver's class has a
-getter method, that method is evaluated, otherwise the field corresponding
-the getter's name is updated.
-
-Methods are segregated into typed method (methods whose argument is not
-\any) and untyped method (methods whose argument is \any). The former can be
-called by statically resolveds method, the latter must be called by
-dynamically resolved methods.
-
+  
 The function \names{} returns the names of methods. 
 
 The function \untyped{} returns the methods whose types are \any.
