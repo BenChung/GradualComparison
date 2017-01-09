@@ -27,9 +27,9 @@
   (Γ · (x : t Γ))
   (K (k ...))
   (p (e K))
+  (P (e K σ))
   (a number)
   (v a)
-  (P E)
   (mts (mt ...))
   (σa (a ↦ {a ... C}))
   (σ (σa ...))
@@ -47,12 +47,13 @@
 
 
 (define (find-hole list)
+  (write list)
   (set-first (set-subtract (list->set (stream->list (in-range 0 (+ 1 (length list))))) (list->set list))))
 
 
 (define-metafunction KafKa
   alloc : σ a ... C -> (a σ)
-  [(alloc (((name σa (a_1 ↦ { a_2 ... C_1})) ...) a ... C)) (a_3 (a_3 ↦ {a ... C} σa ...)) (where a_3 ,(find-hole (term (a_1 ...))))])
+  [(alloc ((name σa (a_1 ↦ { a_2 ... C_1})) ...) a ... C) (a_3 ((a_3 ↦ {a ... C}) σa ...)) (where a_3 ,(find-hole (term (a_1 ...))))])
 
 (define-metafunction KafKa
   lookup-env : Γ x -> t
@@ -60,23 +61,37 @@
   [(lookup-env (x_!_1 : t Γ) (name x x_!_1)) (lookup-env Γ x)])
 
 (define-metafunction KafKa
-  dispatch-typed : a m a ... σ K -> (e σ)
-  [(dispatch-typed a_1 f
-                   (name σ (σa_1 ... (a_1 ↦ {a_3 ..._1 a_4 a_5 ..._2 C}) σa_2 ...))
-                   (k_1 ... (class C fd_1 ..._1 (f t) fd_2 ..._2 md ...) k_2 ...))
-   (a_4 σ)]
-  [(dispatch-typed a_1 f a_2
-                   (σa_1 ... (a_1 ↦ {a_3 ..._1 a_4 a_5 ..._2 C}) σa_2 ...)
-                   (k_1 ... (class C fd_1 ..._1 (f t) fd_2 ..._2 md ...) k_2 ...))
-   (a_2 (σa_1 ... (a_1 ↦ {a_3 ... a_2 a_5 ... C}) σa_2 ...))]
-  [(dispatch-typed a_1 f
-                   (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...))
-                   (k_1 ... (class C fd ... md_1 ... (f t e) md_2 ...) k_2 ...))
-   ((substitute e this a_1) σ)]
-  [(dispatch-typed a_1 f a_2
-                   (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...))
-                   (k_1 ... (class C fd ... md_1 ... (f (x t_1) t e) md_2 ...) k_2 ...))
+  dispatch-untyped : a m a σ K -> e
+  [(dispatch-untyped a_1 m a_2
+                     (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...))
+                     (k_1 ... (class C fd ... md_1 ... (m (x anyt) anyt e) md_2 ...) k_2 ...))
    ((substitute (substitute e x a_2) this a_1) σ)])
+
+(define Kred
+  (reduction-relation KafKa
+                      #:domain P
+                      (--> ((in-hole E (new C a ...)) K σ)
+                           ((in-hole E a_1) K σ_1)
+                           (where (a_1 σ_1) (alloc σ a ... C)))
+                      (--> ((in-hole E (call a_1 f))
+                            (name K (k_1 ... (class C fd_1 ..._1 (f t) fd_2 ..._2 md ...) k_2 ...))
+                            (name σ (σa_1 ... (a_1 ↦ {a_3 ..._1 a_4 a_5 ..._2 C}) σa_2 ...)))
+                           ((in-hole E a_4) K σ))
+                      (--> ((in-hole E (call a_1 f a_2)) (name K (k_1 ... (class C fd_1 ..._1 (f t) fd_2 ..._2 md ...) k_2 ...))
+                                                         (name σ (σa_1 ... (a_1 ↦ {a_3 ..._1 a_4 a_5 ..._2 C}) σa_2 ...)))
+                           ((in-hole E a_2) K (σa_1 ... (a_1 ↦ {a_3 ... a_2 a_5 ... C}) σa_2 ...)))
+                      (--> ((in-hole E (call a f)) (name K (k_1 ... (class C fd ... md_1 ... (f t e) md_2 ...) k_2 ...))
+                                                   (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...)))
+                           ((in-hole E (substitute e this a_1)) K σ))
+                      (--> ((in-hole E (call a_1 f a_2)) (name K (k_1 ... (class C fd ... md_1 ... (f (x t_1) t e) md_2 ...) k_2 ...))
+                                                         (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...)))
+                           ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))
+                      (--> ((in-hole E (call a_1 m a_2)) (name K (k_1 ... (class C fd ... md_1 ... (m (x C_1) C e) md_2 ...) k_2 ...))
+                                                         (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...)))
+                           ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))
+                      (--> ((in-hole E (dcall a_1 m a_2)) (name K (k_1 ... (class C fd ... md_1 ... (m (x anyt) anyt e) md_2 ...) k_2 ...))
+                                                          (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...)))
+                           ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))))
   
 
 (define-metafunction KafKa
@@ -122,7 +137,6 @@
    (<: M K (f t_1) (f t_2))]
   [----------"SThat"
    (<: M K (that t_1 ... t_2) mt)])
-
 
 ;Typed Racket
 
@@ -515,3 +529,14 @@
 
 (define meetex1 (term ((class A (mm (x anyt) A this)) (class B (mm (x B) anyt this)))))
 (define meetex2 (term ((class A (mm (x A) anyt this)) (class B (mm (x B) anyt this)))))
+
+;tests for redex
+
+(define fieldprog (term ((class A (f (x anyt) anyt x) (f anyt (new A))))))
+
+(test--> Kred (term ((new A) ,litmusK1f ())) (term (0 ,litmusK1f ((0 ↦ {A})))))
+(test--> Kred (term ((call 0 mm 0) ,litmusK1f ((0 ↦ {A})))) (term (0 ,litmusK1f ((0 ↦ {A})))))
+(test--> Kred (term ((call 0 ff) ,litmusK4f ((0 ↦ {1 A})))) (term (1 ,litmusK4f ((0 ↦ {1 A})))))
+(test--> Kred (term ((call 0 ff 2) ,litmusK4f ((0 ↦ {1 A})))) (term (2 ,litmusK4f ((0 ↦ {2 A})))))
+(test--> Kred (term ((call 0 f) ,fieldprog ((0 ↦ {A})))) (term ((new A) ,fieldprog ((0 ↦ {A})))))
+(test--> Kred (term ((call 0 f 1) ,fieldprog ((0 ↦ {A})))) (term (1 ,fieldprog ((0 ↦ {A})))))
