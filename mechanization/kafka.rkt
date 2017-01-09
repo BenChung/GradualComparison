@@ -27,7 +27,8 @@
   (v a)
   (P E)
   (mts (mt ...))
-  (σ · (number ↦ {number ... C} σ))
+  (σa (a ↦ {a ... C}))
+  (σ (σa ...))
   (E (call E m e)
      (call E f)
      (call v m E)
@@ -41,10 +42,38 @@
      hole))
 
 
+(define (find-hole list)
+  (set-first (set-subtract (list->set (stream->list (in-range 0 (+ 1 (length list))))) (list->set list))))
+
+
+(define-metafunction KafKa
+  alloc : σ a ... C -> (a σ)
+  [(alloc (((name σa (a_1 ↦ { a_2 ... C_1})) ...) a ... C)) (a_3 (a_3 ↦ {a ... C} σa ...)) (where a_3 ,(find-hole (term (a_1 ...))))])
+
 (define-metafunction KafKa
   lookup-env : Γ x -> t
   [(lookup-env (x : t Γ) x) t]
   [(lookup-env (x_!_1 : t Γ) (name x x_!_1)) (lookup-env Γ x)])
+
+(define-metafunction KafKa
+  dispatch-typed : a m a ... σ K -> (e σ)
+  [(dispatch-typed a_1 f
+                   (name σ (σa_1 ... (a_1 ↦ {a_3 ..._1 a_4 a_5 ..._2 C}) σa_2 ...))
+                   (k_1 ... (class C fd_1 ..._1 (f t) fd_2 ..._2 md ...) k_2 ...))
+   (a_4 σ)]
+  [(dispatch-typed a_1 f a_2
+                   (σa_1 ... (a_1 ↦ {a_3 ..._1 a_4 a_5 ..._2 C}) σa_2 ...)
+                   (k_1 ... (class C fd_1 ..._1 (f t) fd_2 ..._2 md ...) k_2 ...))
+   (a_2 (σa_1 ... (a_1 ↦ {a_3 ... a_2 a_5 ... C}) σa_2 ...))]
+  [(dispatch-typed a_1 f
+                   (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...))
+                   (k_1 ... (class C fd ... md_1 ... (f t e) md_2 ...) k_2 ...))
+   ((substitute e this a_1) σ)]
+  [(dispatch-typed a_1 f a_2
+                   (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...))
+                   (k_1 ... (class C fd ... md_1 ... (f (x t_1) t e) md_2 ...) k_2 ...))
+   ((substitute (substitute e x a_2) this a_1) σ)])
+  
 
 (define-metafunction KafKa
   mtypes : C K -> (mt ...)
