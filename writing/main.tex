@@ -1058,13 +1058,15 @@ of a list of field values \a and the class name \C, with notation
 we call it a configuration, and one configuration \K\e\s reducing to another
 configuration \Kp\ep\sp is denoted \Reduce\K\e\s\Kp\ep\sp.
 
+We define our reduction semantics, seen in figure~\ref{fig:semantics}
+
 The execution can halt either if it gets stuck, if it encounters an expression
 that is not a value and that no evaluation rule applies to, or if the expression
 is a value. \footnote{Intuitively we would
   expect that the program can only get stuck at dynamic calls or at
   structural casts. But generative casts add some complexity to that
   statement.}
-  
+
 The function \names{} returns the names of methods. 
 
 The function \untyped{} returns the methods whose types are \any.
@@ -1181,6 +1183,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 
 \hrulefill
 \caption{\kafka Semantics.}
+\label{fig:semantics}
 \end{figure}
 
 \paragraph{Translations}
@@ -1202,7 +1205,24 @@ inference mechanism, that allows identifying cast insertion locations in a modul
 
 \kafka offers two kinds of structural casts. One which performs a structural
 subtype check and one that only check for the persence of methods with given
-names.
+names. 
+
+The first type of cast is the simplest, as it only checks that the runtime type
+tag (\C) is a subtype of the required type (\D), and is notated \SubCast\D\e. 
+Here, the runtime check conists only of ensuring that the subtyping judgment
+holds, which can be done easily and does not require any additional runtime 
+components beyond the cast. Moreover, this kind of cast establishes value idenity
+exactly, allowing us to type it with the cast type, shown in \RuleRef{W8}.
+
+This is not true, however, of the name cast, which only checks for the presence
+of methods with the given name. While simple - it does not even need
+a separate judgment form in figure \ref{fig:semantics} - the name cast is
+extremely weak, and cannot ensure that type identity is preserved up to the 
+level required to give it a strong \kafka type. As a result, any use of it is
+typed \any, as seen in \RuleRef{W9}.
+
+To illustrate the use of the first cast, using subtyping, we will examine the 
+translation from a subset of the Thorn language to \kafka. 
 
 \paragraph{Translation: Thorn}
 
