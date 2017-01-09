@@ -591,7 +591,9 @@ TypeScript           & \V & \V & \V & \V \\\hline
 
 \subsection{Soundness}
 
-[Say: All dynamic OO language have a dynamic type system that catches type errors.  So the difference between Sound and unsound is (a) the place where the error is caught, (b) cases when the gradul type system departs from the underlying type system.]  
+[Say: All dynamic OO language have a dynamic type system that catches type errors.  
+So the difference between Sound and unsound is (a) the place where the error is caught, 
+(b) cases when the gradul type system departs from the underlying type system.]  
 
 \subsection{Performance}
 
@@ -1163,7 +1165,7 @@ fields and methods definition is not relevant (i.e. we can reorder when convenie
 \label{fig:semantics}
 \end{figure}
 
-\paragraph{Translations}
+\subsection{Translations}
 
 \kafka provides the basis to describe the operations of a typical object-oriented languages. 
 \kafka requires programmers to write casts wherever a type boundary is encountered, 
@@ -1177,6 +1179,12 @@ by Siek and Taha~\cite{SiekTaha06} described cast insertion, however, our mechan
 that it cannot be bottom-up. Instead, our translation is \emph{bidirectional}, as described by 
 Pierce and Turner~\cite{lti-pierce}. Bidirectional typechecking is a local type 
 inference mechanism, that allows identifying cast insertion locations in a modular way.
+
+Casts are the key to the different interpretations of gradual typing, as
+they are one of the two places that, in \kafka, a program can get stuck
+at. The approaches that we will be comparing have different definitions of
+casting, and their varying approach to runtime type assertions forms an
+important part of how they interact with untyped parts of the program.
 
 \subsection{Structural Casts}
 
@@ -1198,10 +1206,10 @@ extremely weak, and cannot ensure that type identity is preserved up to the
 level required to give it a strong \kafka type. As a result, any use of it is
 typed \any, as seen in \RuleRef{W9}.
 
-To illustrate the use of the first cast, using subtyping, we will examine the 
-translation from a subset of the Thorn language to \kafka. 
+To illustrate the first cast, through subtyping, we present the 
+translation of a subset of the programming language Thorn to \kafka. 
 
-\paragraph{Translation: Thorn}
+\section{Translation: Thorn}
 
 The translation for Thorn contains an ``unsound'' type $\dt\C$, which has its own subtyping relation, and compiles 
 down to \any in \kafka. This unsound type still enforces the same static requirements as its sound counterpart, but 
@@ -1324,15 +1332,187 @@ all calls on optional types by \kafka to be dynamic.
 }
 \end{mathpar}
 
-\subsection{Generative Casts}
 
-Casts are the key to the different interpretations of gradual typing, as
-they are one of the two places that, in \kafka, a program can get stuck
-at. The approaches that we will be comparing have different definitions of
-casting, and their varying approach to runtime type assertions forms an
-important part of how they interact with untyped parts of the program.
+\section{Translation: Reticulated Python - Transient Semantics}
 
-\subsubsection{Behavioral Casts}
+Reticulated Python implements several different semantics, through not simultaneously in the same language. 
+
+The transient semantics is illustrated by the cast, $\ShaCast\t\e$. It asserts that $\e$ has the same \emph{names} as $\t$,
+and the closest type representation in \kafka is the $\any$ type, as illustrated in \RuleRef{W9}. The transient semantics 
+guarantees that the methods on the named type will be callable with some argument, and some return value. It is up to 
+the callee to check the arguments are correct and the caller to ensure the return value is correct.
+
+Therefore, the translation of the transient semantics require a several rules in order to be well formed in \kafka. 
+The most notablely is the rule \RuleRef{MTT}, it is forced to erase every type from the arguments to the function, 
+as typed arguments may not be respected in the dynamics semantics. The type invariant is ensured to hold by using 
+a tuple class (to simulate sequencing, which \kafka does not natively support) to check the type of the argument, and then return 
+the value of the body (inserted into the second field of the tuple class).
+
+
+\begin{mathpar}
+\IRule{MTU}{
+  \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
+}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
+
+\IRule{MTT}{
+  \t \neq \any \\
+  \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
+}{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
+\end{mathpar}
+
+Internally, the translations required to support the transient semantics from within KafKa are also substantial. 
+As noted previously, the translation is not obligated by transient to check method argument types before entry, and as a result, every call, 
+typed or untyped, in transient is an untyped call. Likewise, every typed method call must be guarded with a cast to ensure that 
+the return type of the method is correct, as shown in \RuleRef{GRA2}.
+ 
+
+\begin{mathpar}
+\IRule{GRA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
+
+
+\IRule[width=30em]{GRA2}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{(\DynCall{\SubCast{\any}{\e_3})}\m{\SubCast{\any}{\e_4}}}}{\t_2}
+}
+
+\IRule{GRA3}{
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule[width=20em]{GRA4}{
+    \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
+}
+
+\IRule{GRA5}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+The lack of statically typable calls in the transient semantics means that a pure implementation of transient in 
+\kafka would entail no fields ever being accessed using the setter or getter, as \kafka forbids accessing untyped fields.
+To overcome this issue rule \RuleRef{GRA4} is added, which allows the definition of self-referential field access. In a transient 
+system, the only type that is absolutely known at any time is the self-reference, which is use to access fields on the 
+self object. As a result, in \kafka the translation will wrap field accessors in method calls.
+
+\begin{mathpar}
+\IRule{GRAASC1}{
+  \GenCast\K\E\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+
+\IRule{GRAASC2}{
+  \GenCast\K\E\e\ep\tp \\
+  \consistent\K\tp\t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+\end{mathpar}
+
+The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency such as the monotonic system, 
+consistency is used to conclude an analytic judgment, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
+However, in transient, the rest of the program makes no type assumptions that may be violated by consistency. Even when the 
+translation takes a particularly weak perspective on the interpretation of a transient type into \kafka. Even a type system that
+fully represents a transient type (e.g. one that tracks method names, only) will accept structurally conistent values under the 
+same type. As a result, consistent values are allowed to be used with no additional casts.
+
+\section{Translation: Typed Racket}
+
+
+Typed Racket is not a typical gradually typed language, as it has no untyped code.
+The gradual nature of Typed Racket, instead, comes from the interactions between Typed Racket modules and 
+(untyped) Racket modules. Therefore, we refer to Typed Racket as the combination of both 
+Typed Racket and (untyped) Racket. Typed Racket programs are typed on a module by module basis, 
+rather than expression by expression.
+
+The Type Racket source level translation allow programmers to write partially typed classes, in order to 
+highlight the semantic of each behavioural approache independent of the surface language.
+
+At the top level classes, denoted with an underscore, are translated to \kafka classes. The 
+main expression of the source language is also translated to an expression in \kafka, as shown in PT.
+The translation for methods is shown in MT, where it simply translates the expression inside the method body.
+
+\begin{mathpar}
+\IRule{PT}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule{CR1}{ 
+  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+
+\IRule{CR2}{ 
+}{
+  \classtrans {\K}\cdot\cdot
+}
+
+\IRule{MT}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\t\tp\ep}{}
+}
+\end{mathpar}
+
+
+\begin{mathpar}
+\IRule{TRA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+
+\IRule[width=30em]{TRA2}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
+}
+
+\IRule{TRA3}{
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule{TRA4}{
+  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+
+The remaining translations is relatively straightforward. The translation within our 
+bidirectional system, including the synthetic and analytic cases, proceeds in the typical manner.
+
+\begin{mathpar}
+\IRule{TRAASC1}{
+  \GenCast\K\Env\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\Env\e\ep\t
+}
+
+\IRule{TRAASC2}{
+  \GenCast\K\Env\e\ep\tp
+}{
+  \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
+}
+\end{mathpar}
+
+The TRAASC2 rule describes when the Typed Racket translation encounters a casting type that's not a subtype
+of the original type. A behavioural and name cast will be inserted around the potentially ill-typed target.
+This is because Typed Racket only does runtime checking on the nature of the values that are passed in from Racket,
+and therefore, even nonsensical types can be asserted for untyped code. TRAASC2 accounts for this by aggressive wrapping, 
+where a type can be of any other type.
+
+Lastly, TRAASC2 will insert a name cast as the behavioural cast is very weak, passing virtually 
+every object through it in a wrapper, even if the object underneath diverges from the type asserted by it. A classic example
+being missing methods. To compensate for this, we also add the name cast, which ensures that all of the required methods are present.
+
+\subsection{Behavioral Casts}
 
 A behavioral cast \BehCast\t\a will return a fresh \ap that refers to an
 object that behaves as if it was of type \t. In case, the underlying object
@@ -1544,188 +1724,110 @@ converted to the expected return type with another behavioral cast.
 \label{ctod}
 \end{figure}
 
-\paragraph{Translation: Typed Racket}
 
-Typed Racket is not a typical gradually typed language, as it has no untyped code.
-The gradual nature of Typed Racket, instead, comes from the interactions between Typed Racket modules and 
-(untyped) Racket modules. Therefore, we refer to Typed Racket as the combination of both 
-Typed Racket and (untyped) Racket. Typed Racket programs are typed on a module by module basis, 
-rather than expression by expression.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The Type Racket source level translation allow programmers to write partially typed classes, in order to 
-highlight the semantic of each behavioural approache independent of the surface language.
 
-At the top level classes, denoted with an underscore, are translated to \kafka classes. The 
-main expression of the source language is also translated to an expression in \kafka, as shown in PT.
-The translation for methods is shown in MT, where it simply translates the expression inside the method body.
+\section{Translation: Reticulated Python - Monotonic Semantics}
 
+At the surface language level, the Monotonic semantics are very similar to that used by the transient semantics and Typed Racket, 
+as casts are inserted at type boundaries.
+
+The most notable difference between Reticulated Python and other gradually typed languages is the use of \emph{consistency},
+an operator broadly that means one type is compatible with another type. In our system, we define conistency as follows:
+\begin{mathpar}
+\IRule{C1}{\tmeet\t\tp\cdot\K = \tpp}{\consistent\K{\t}{\tp}}
+\end{mathpar}
+
+% broken: partially typed calls
+
+\newcommand{\monowrap}[2]{\xt{mwrap}(#1,#2)}
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
-\IRule{CR1}{ 
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \classtrans {\K}{\Kp}\Kpp
+\IRule{MCT1}{
+  \D \text{ fresh}\\
+  \k = \classgen{\C,{\classoff\C\K},{\classoff\C\K},\D,\K}
 }{
-   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+  \monowrap{\C}{\K} = \D~\k
+}
+
+\IRule{MCT2}{
+}{
+  \monowrap{\any}{\K} = \any
+}
+
+\IRule{CR1}{ 
+  \b{\methtrans \K\C\md{\md'}{\K_m}} \\
+  \classtrans \K\Kp\Kpp \\
+  \b{\monowrap\t\Kpp = \tp~\Kppp}
+}{
+   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\tp}}{\b{\md'}}~\Kpp~\K_m~\b{\Kppp}}}
 
 \IRule{CR2}{ 
 }{
-  \classtrans {\K}\cdot\cdot
+  \classtrans \K\cdot\cdot
 }
 
 \IRule{MT}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
+  \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp \\
+  \monowrap{\t_1}\K = \t_2~\K_1 \\
+  \monowrap{\tp_1}\K = \tp_2~\K_2
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\t\tp\ep}{}
+  \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2}
 }
 \end{mathpar}
 
 
+\newcommand{\isstatic}[3]{\text{static}(#1,#2,#3)}
 \begin{mathpar}
-\IRule{TRA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
-\IRule[width=30em]{TRA2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+\IRule[width=30em]{A2}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
-\IRule{TRA3}{
+\IRule[width=30em]{A3}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K}{\cdot} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{{\e_4}}}{\t_2}
+}
+
+\IRule{A8}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule{TRA4}{
-  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\IRule{A11}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
+  \D~\text{fresh} \\
+  \D = \classgen{\C,\classoff\C\K,\classoff\C\K,\D,\K} \\
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
 
-The remaining translations is relatively straightforward. The translation within our 
-bidirectional system, including the synthetic and analytic cases, proceeds in the typical manner.
-
 \begin{mathpar}
-\IRule{TRAASC1}{
+\IRule{AASC1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TRAASC2}{
-  \GenCast\K\Env\e\ep\tp
+\IRule{AASC2}{
+  \GenCast\K\Env\e\ep\tp \\
+  \consistent\K\t\tp
 }{
-  \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
+  \AnaCast\K\Env\e{\MonCast\t\ep}\t
 }
 \end{mathpar}
 
-The TRAASC2 rule describes when the Typed Racket translation encounters a casting type that's not a subtype
-of the original type. A behavioural and name cast will be inserted around the potentially ill-typed target.
-This is because Typed Racket only does runtime checking on the nature of the values that are passed in from Racket,
-and therefore, even nonsensical types can be asserted for untyped code. TRAASC2 accounts for this by aggressive wrapping, 
-where a type can be of any other type.
-
-Lastly, TRAASC2 will insert a name cast as the behavioural cast is very weak, passing virtually 
-every object through it in a wrapper, even if the object underneath diverges from the type asserted by it. A classic example
-being missing methods. To compensate for this, we also add the name cast, which ensures that all of the required methods are present.
-
-\paragraph{Translation: Reticulated Python - Transient}
-
-Reticulated Python implements several different semantics, through not simultaneously in the same language. 
-
-The transient semantics is illustrated by the cast, $\ShaCast\t\e$. It asserts that $\e$ has the same \emph{names} as $\t$,
-and the closest type representation in \kafka is the $\any$ type, as illustrated in \RuleRef{W9}. The transient semantics 
-guarantees that the methods on the named type will be callable with some argument, and some return value. It is up to 
-the callee to check the arguments are correct and the caller to ensure the return value is correct.
-
-Therefore, the translation of the transient semantics require a several rules in order to be well formed in \kafka. 
-The most notablely is the rule \RuleRef{MTT}, it is forced to erase every type from the arguments to the function, 
-as typed arguments may not be respected in the dynamics semantics. The type invariant is ensured to hold by using 
-a tuple class (to simulate sequencing, which \kafka does not natively support) to check the type of the argument, and then return 
-the value of the body (inserted into the second field of the tuple class).
-
-
-\begin{mathpar}
-\IRule{MTU}{
-  \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
-}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
-
-\IRule{MTT}{
-  \t \neq \any \\
-  \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
-\end{mathpar}
-
-Internally, the translations required to support the transient semantics from within KafKa are also substantial. 
-As noted previously, the translation is not obligated by transient to check method argument types before entry, and as a result, every call, 
-typed or untyped, in transient is an untyped call. Likewise, every typed method call must be guarded with a cast to ensure that 
-the return type of the method is correct, as shown in \RuleRef{GRA2}.
- 
-
-\begin{mathpar}
-\IRule{GRA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
-
-
-\IRule[width=30em]{GRA2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{(\DynCall{\SubCast{\any}{\e_3})}\m{\SubCast{\any}{\e_4}}}}{\t_2}
-}
-
-\IRule{GRA3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule[width=20em]{GRA4}{
-    \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
-}
-
-\IRule{GRA5}{
-  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-\end{mathpar}
-
-The lack of statically typable calls in the transient semantics means that a pure implementation of transient in 
-\kafka would entail no fields ever being accessed using the setter or getter, as \kafka forbids accessing untyped fields.
-To overcome this issue rule \RuleRef{GRA4} is added, which allows the definition of self-referential field access. In a transient 
-system, the only type that is absolutely known at any time is the self-reference, which is use to access fields on the 
-self object. As a result, in \kafka the translation will wrap field accessors in method calls.
-
-\begin{mathpar}
-\IRule{GRAASC1}{
-  \GenCast\K\E\e\ep\tp \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCast\K\E\e\ep\t
-}
-
-\IRule{GRAASC2}{
-  \GenCast\K\E\e\ep\tp \\
-  \consistent\K\tp\t
-}{
-  \AnaCast\K\E\e\ep\t
-}
-\end{mathpar}
-
-The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency such as the monotonic system, 
-consistency is used to conclude an analytic judgment, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
-However, in transient, the rest of the program makes no type assumptions that may be violated by consistency. Even when the 
-translation takes a particularly weak perspective on the interpretation of a transient type into \kafka. Even a type system that
-fully represents a transient type (e.g. one that tracks method names, only) will accept structurally conistent values under the 
-same type. As a result, consistent values are allowed to be used with no additional casts.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\subsubsection{Monotone Casts}
+\subsection{Monotone Casts}
 
 
 The monotone cast \MonCast\C\a imposes the type \C onto the object
@@ -2323,108 +2425,10 @@ for them according to the new wrapper \C.
 \end{figure}
 
 
-\paragraph{Translation: Reticulated Python - Monotonic}
-
-At the surface language level, the Monotonic semantics are very similar to that used by the transient semantics and Typed Racket, 
-as casts are inserted at type boundaries.
-
-The most notable difference between Reticulated Python and other gradually typed languages is the use of \emph{consistency},
-an operator broadly that means one type is compatible with another type. In our system, we define conistency as follows:
-\begin{mathpar}
-\IRule{C1}{\tmeet\t\tp\cdot\K = \tpp}{\consistent\K{\t}{\tp}}
-\end{mathpar}
-
-% broken: partially typed calls
-
-\newcommand{\monowrap}[2]{\xt{mwrap}(#1,#2)}
-\begin{mathpar}
-\IRule{PT}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule{MCT1}{
-  \D \text{ fresh}\\
-  \k = \classgen{\C,{\classoff\C\K},{\classoff\C\K},\D,\K}
-}{
-  \monowrap{\C}{\K} = \D~\k
-}
-
-\IRule{MCT2}{
-}{
-  \monowrap{\any}{\K} = \any
-}
-
-\IRule{CR1}{ 
-  \b{\methtrans \K\C\md{\md'}{\K_m}} \\
-  \classtrans \K\Kp\Kpp \\
-  \b{\monowrap\t\Kpp = \tp~\Kppp}
-}{
-   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\tp}}{\b{\md'}}~\Kpp~\K_m~\b{\Kppp}}}
-
-\IRule{CR2}{ 
-}{
-  \classtrans \K\cdot\cdot
-}
-
-\IRule{MT}{
-  \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp \\
-  \monowrap{\t_1}\K = \t_2~\K_1 \\
-  \monowrap{\tp_1}\K = \tp_2~\K_2
-}{
-  \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2}
-}
-\end{mathpar}
-
-
-\newcommand{\isstatic}[3]{\text{static}(#1,#2,#3)}
-\begin{mathpar}
-\IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
-
-\IRule[width=30em]{A2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
-}
-
-\IRule[width=30em]{A3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K}{\cdot} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{{\e_4}}}{\t_2}
-}
-
-\IRule{A8}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule{A11}{
-  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
-  \D~\text{fresh} \\
-  \D = \classgen{\C,\classoff\C\K,\classoff\C\K,\D,\K} \\
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}}
-\end{mathpar}
-
-\begin{mathpar}
-\IRule{AASC1}{
-  \GenCast\K\Env\e\ep\tp \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCast\K\Env\e\ep\t
-}
-
-\IRule{AASC2}{
-  \GenCast\K\Env\e\ep\tp \\
-  \consistent\K\t\tp
-}{
-  \AnaCast\K\Env\e{\MonCast\t\ep}\t
-}
-\end{mathpar}
-
-
 \section{Related Work}
-
+% gradualisor
+% AGT
+% Blame calculus
 
 \section{Conclusion}
 
