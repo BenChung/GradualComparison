@@ -950,7 +950,7 @@ incompatible with our new type, monotonic will reject it at that point.
 
 We present \kafka, a gradually typed object-oriented languages.
 \kafka is a statically typed class-based calculus with dynamic dispatch, 
-following the design of C\# 4.0. The dynamic type of \kafka is denoted by \any.
+following the design of C\#. The dynamic type of \kafka is denoted by \any.
 \kafka is structurally typed, it does not have null values, or supports
 inheritance between classes. Fields are accessed by getter and setter methods, 
 their presence in class types is observed by the presence of the respective 
@@ -959,16 +959,15 @@ getters and setters.
 Statically dispatched method calls (i.e. calls where the type of the
 receiver is not \any) are denoted by \Call\x\m\e. Methods are limited to a
 single argument for simplicity. Dynamically dispatched method calls 
-(i.e. call where the type of the receiver is \any) are denoted by \DynCall\x\m\e.
+(i.e. calls where the type of the receiver is \any) are denoted by \DynCall\x\m\e.
 Object creation is denoted by denoted \New\C{\b\e}, a class name (\C) and 
 a sequence of arguments (\b\e) in the order of definition of fields.
 
-Meta-variable \x ranges over argument names, \a over memory locations, \f
-over field names (as well as getter and setter methods), \m over method
-names, \C, \D, and \E over class names.  We use \n to refer either to
-methods or field names. \this is a distinguished variable name denoting 
-the current object, and \that is a distinguished field name denoting the 
-target of a wrapper class. \D is a meta-variable used to range over dynamically 
+The meta-variables \x ranges over argument names, \a over memory locations, \f
+over field names (as well as getter and setter method names), \m over method
+names, \C, \D, and \E over class names.  We use \this to denote a distinguished 
+variable name for the current object, and \that to denote a distinguished field 
+name for the target of the wrapper class. \D is a meta-variable used to range over dynamically 
 generated class names. \a is ranges over heap addresses. \k ranges over 
 class definitions consisting of a class name, followed by a, possibly empty, 
 sequence of field definitions, \fd, and a, possibly empty, sequence of 
@@ -980,8 +979,7 @@ method definitions, \md.
 \begin{minipage}{6.3cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x         &\B \this         &\B \that        &\B \New\C{\b\e} \\
    &\B \Get\e\f     &\B \Set\e\f\e    &\B \Call\e\m\e  &\B \DynCall\e\m\e \\
-   &\B \SubCast\t\e &\B \ShaCast\t\e  &\B \BehCast\t\e &\B  \MonCast\t\e \\
-   &\B \a \\ 
+   &\B \SubCast\t\e &\B \ShaCast\t\e  &\B \a \\ 
 \end{tabular}\end{minipage}
 \begin{minipage}{6cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\b\fd}{\b\md}
@@ -1002,28 +1000,28 @@ method definitions, \md.
 % \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
 
 
-\kafka has four different kinds of cast expressions, two are structural and
-two are generative. The structural subtype cast, denoted \SubCast\t\a,
-asserts that the object at location \a is of type \t.  The structural
-shallow cast, denoted \ShaCast\t\a, asserts that the object at location \a
-has methods with names matching those of \t. This does not make any
-guarantee about the type of arguments.  The generative behavioral cast,
-denoted \BehCast\t\a, will ensure that either \a behaves as a \t or that it
-get stuck. The generative monotonic cast, denoted \MonCast\t\a, is a
-behavioral cast that, in addition, imposes constraints on fields.
+\kafka have two structural cast expressions. The structural subtype cast, denoted by \SubCast\t\a,
+asserts that the object at location \a is of type \t.  The structural shallow cast, 
+denoted by \ShaCast\t\a, asserts the object at location \a has methods with names matching
+to those of type \t, while not making any guarantee about the type of the arguments.  
 
+% The generative behavioral cast, denoted \BehCast\t\a, will ensure that 
+% either \a behaves as a \t or that it get stuck. The generative monotonic 
+% cast, denoted \MonCast\t\a, is a behavioral cast that, in addition, imposes 
+% constraints on fields.
 
 \subsection{Semantics}
 
+\begin{figure}[!h]
 \begin{tikzpicture}
 % states
-\draw (0,0) node[anchor=west] {$\K~\e$}
-      (2,0) node[anchor=west] {$\Kp~\ep$}
-      (4,0) node[anchor=west] {$\Kpp~\a$};
+\draw (0,0) node[anchor=west] {$\K~\e~$}
+      (2,0) node[anchor=west] {$\Kp~\ep~\s$}
+      (4,0) node[anchor=west] {$\Kpp~\a~\s$};
 
 % transitions
 \draw (1-0.1,-0.1) node[anchor=west] {$\progtrans{}{}$}
-      (3,0) node[anchor=west] {$\longrightarrow^*$};
+      (3.1,0) node[anchor=west] {$\longrightarrow^*$};
 
 %requirements
 \draw (2,-0.5) node[anchor=west] {$\WFp\Kp\ep$};
@@ -1031,55 +1029,46 @@ behavioral cast that, in addition, imposes constraints on fields.
 
 \draw (4-0.1,-1) node[anchor=west] {$\EnvType {}{}\Kpp\a\t$};
 \end{tikzpicture}
+\caption{\kafka Reductions.}\label{redu}
+\end{figure}
 
-\kafka's semantics are a typical small step operational semantics, though,
-in order to best accomodate the various systems, we introduce some unusual
-features. A \kafka program is defined by the combination of a class table 
-\K, which consists of a list of classes \k, and a evaluation expression \e.
+The semantics for \kafka are typical of small step operational semantics, 
+with some unusual features to accomodate the translations of various
+gradual type systems and their cast semantics. A \kafka program is defined 
+by the combination of a class table \K (consists of a list of classes \k)
+and an evaluation expression \e. 
 
-\kafka classes can contain both methods and fields, the latter of which
-can be declared either via an explicit field declaration in the class
+\kafka classes contain methods and fields, the latter can be declared 
+either via an explicit field declaration in the class
 (e.g. \HT\f\t) or by a pair of a getter (\Get\this\f) and setter 
-(\Set\this\f\x). Semantically, both explicit and implicit fields behave 
+(\Set\this\f\x) methods. Semantically, both explicit and implicit fields behave 
 identically, which has the concequence that untyped field access is forbidden, 
-as explicit field semantics would then become dependent on the approach to 
-typing used.
-
+as explicit field semantics would become dependent on the approach to typing. 
 Methods in \kafka are segregated into typed (methods whose argument and
-return type is not \any) and untyped methods, the former of which can be
+return type is not \any) and untyped methods, the former of which can be 
 called with the statically resolved \Call\e\m\e form, and the latter of
 which can only be called with the dynamically checked \DynCall\e\m\e 
-expression.
+expression. Executions halt when it gets stuck, encounters an expression that is 
+not a value and cannot apply any more evaluation rules, or the expression is a value.
 
-To execute a \kafka program, the system will use a heap (which we denote
-\s) that maps memory locations \a to objects, each of which is a combination
-of a list of field values \a and the class name \C, with notation
-\Map\s{\Bind\a{\obj\C{\b\a}}}. When a program \K\e and heap \s are combined,
-we call it a configuration, and one configuration \K\e\s reducing to another
-configuration \Kp\ep\sp is denoted \Reduce\K\e\s\Kp\ep\sp.
+A heap (\s) in \kafka is a set of mappings from memory locations to objects,
+denoted by \Map\s{\Bind\a{\obj\C{\b\a}}}. Objects in the heap are the 
+combination of a list of field values \a and the class name \C.
+A configuration is the combination of a program \K\e and a heap \s, 
+and reducing one configuration \K\e\s to another configuration \Kp\ep\sp 
+is denoted \Reduce\K\e\s\Kp\ep\sp. The reductions rules for \kafka are presented 
+in figure \ref{sema}, with the evaluation contexts, denoted by \EE, presented 
+at the bottom.
 
-The execution can halt either if it gets stuck, if it encounters an expression
-that is not a value and that no evaluation rule applies to, or if the expression
-is a value. \footnote{Intuitively we would
-  expect that the program can only get stuck at dynamic calls or at
-  structural casts. But generative casts add some complexity to that
-  statement.}
-  
-The function \names{} returns the names of methods. 
-
-The function \untyped{} returns the methods whose types are \any.
-
+The auxiliary function \names{} returns the names of methods, and the
+auxiliary function \untyped{} returns the methods whose types are \any.
 The auxiliary function \xt{read} return the location \ap pointing to the
 field \f of the object at location \a. The auxiliary function \xt{write}
 return the heap \sp with the field \f of the object at location \a updated
-to the location \ap.
-
-We write \App\K\C to denote the lookup of class \C in class table \K.
-
-We write  \Mdef\m\x\t\tp\e \In \k to denote that method \m occurs in class \k.
-
-Ordering within lists of fields and methods definition is not relevant. (ie we can reorder when convenient)
-
+to the location \ap. \App\K\C denotes the lookup of class \C in class table \K.
+\Mdef\m\x\t\tp\e \In \k denotes that method \m occurs in class \k. All auxiliary 
+functions are defined in the appendix. Note that the ordering within lists of 
+fields and methods definition is not relevant (i.e. we can reorder when convenient). 
 
 \begin{figure}[!h]
 \hrulefill
@@ -1141,17 +1130,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 }{ 
   \ReduceA \K{\ShaCast \D\a}\s \K\a\s
 }
-\CondRule{E11}{  %% Behavioral cast
-  \behcast \a\t\s\K  \Kp\ap\sp
-}{ 
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
-}
-\CondRule{E12}{  %% Monotonic cast
-  \moncast \a\t\s\K  \Kp\sp
-}{ 
-  \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
-}
-\CondRule{E13}{  %% E[e] -> E[e']
+\CondRule{E11}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
 }{
  \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
@@ -1180,7 +1159,7 @@ Ordering within lists of fields and methods definition is not relevant. (ie we c
 \end{minipage}
 
 \hrulefill
-\caption{\kafka Semantics.}
+\caption{\kafka Semantics.}\label{sema}
 \end{figure}
 
 \paragraph{Translations}
