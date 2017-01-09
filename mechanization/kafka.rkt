@@ -21,7 +21,7 @@
   (fd (f t))
   (md (m (x t) t e) (f (x t) t e) (f t e))
   (m (variable-prefix m))
-  (f (variable-prefix f))
+  (f (variable-prefix f) that)
   (n m f)
   (C D x ::= variable-not-otherwise-mentioned)
   (Γ · (x : t Γ))
@@ -201,6 +201,135 @@
    -----"AASC2"
    (tr-anacast K Γ e t (behcast t (namcast t e)))])
 
+(define-metafunction KafKa
+  wrap-t : C (md ...) (mt ...) (mt ...) D -> k
+  [(wrap-t C (md_1 ...) (mt_1 ...) (mt_2 ...) D)
+   (class D (that C) md ...)
+   (where (md ...) ,(judgment-holds (wrap-t-mths (md_1 ...) (mt_1 ...) (mt_2 ...) md) md))])
+
+(define-metafunction KafKa
+  wrap-ut : C (md ...) (mt ...) D -> k
+  [(wrap-ut C (md ...) (mt ...) D)
+   (class D (that C) md ...)
+   (where (md ...) ,(judgment-holds (wrap-ut-mths (md ...) (mt ...) md)))])
+
+(define-judgment-form KafKa
+  #:mode (wrap-t-mths I I I O)
+  #:contract (wrap-t-mths (md ...) (mt ...) (mt ...) md)
+  [----- "R1"
+   (wrap-t-mths _
+                (mt_1 ... (f t) mt_2 ...)
+                (mt_3 ... (f t_1) mt_4 ...)
+                (f t_1 (behcast t_1 (call (call this that) f))))]
+  [----- "R2"
+   (wrap-t-mths _
+                (mt_1 ... (f t t) mt_2 ...)
+                (mt_3 ... (f t_1 t_1) mt_4 ...)
+                (f (y t_1) t_1 (behcast t_1 (call (call this that) f (behcast t y)))))]
+  [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behcast C_1 x) x e e_1)
+   ----- "R3"
+   (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
+                (m (x t) t_1 (behcast t_1 e_1)))]
+  [(side-condition ,(not (redex-match KafKa (m (md_3 ... (m (x anyt) anyt) md_4 ...)) (term (m (md_1 ... md_2 ...))))))
+   ---- "R4"
+   (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
+                (m (x anyt) anyt (subcast anyt (call this m (behcast t x)))))]
+  [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behcast anyt x) x e e_1)
+   ---- "R5"
+   (wrap-t-mths (md_1 ... (m (x anyt) anyt e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
+                (m (x t) t_1 (behcast t_1 e_1)))]
+  [(side-condition ,(not (redex-match KafKa ((f t) (mt_1 ... (f t) mt_2 ...)) (term ((f t) (mt_3 ...))))))
+   --- "R6"
+   (wrap-t-mths (md ...) (mt_1 ... (f t) mt_2 ..) (mt_3 ...)
+                (f t (call (call this that) f)))]
+  [(side-condition ,(not (redex-match KafKa ((f t t) (mt_1 ... (f t) mt_2 ...)) (term ((f t t) (mt_3 ...))))))
+   --- "R7"
+   (wrap-t-mths (md ...) (mt_1 ... (f t t) mt_2 ..) (mt_3 ...)
+                (f (y t) t (call (call this that) f y)))]
+  [(side-condition ,(not (redex-match KafKa (m (mt_1 ... (m t_1 t_2) mt_2 ...)) (term (m (mt_1 ...))))))
+   (beh-lift (mt ...) (mt_1 ...) x x e e_1)
+   ---- "R8"
+   (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ...)
+                (m (x C_1) C_2 e_1))]
+  [(side-condition ,(not (redex-match KafKa (m (mt_1 ... (m t_1 t_2) mt_2 ...)) (term (m (mt_1 ...))))))
+   (beh-lift (mt ...) (mt_1 ...) x x e e_1)
+   ---- "R9"
+   (wrap-t-mths (md_1 ... (m (x anyt) anyt e) md_2 ...) (mt ...) (mt_1 ...)
+                (m (x anyt) anyt e_1))])
+
+(define-judgment-form KafKa
+  #:mode (wrap-ut-mths I I O)
+  #:contract (wrap-ut-mths (md ...) (mt ...) md)
+  [---- "R1"
+   (wrap-ut-mths (md ...)
+                 (mt_1 ... (f t) mt_2 ...)
+                 (f anyt (behcast anyt (call (call this that) f))))]
+  [---- "R2"
+   (wrap-ut-mths (md ...)
+                 (mt_1 ... (f t t) mt_2 ...)
+                 (f (y anyt) anyt (behcast anyt (call (call this that) f (behcast t y)))))]
+  [(beh-lift (mt ...) ((dynamize mt) ...) (behcast t x) x e e_1)
+   ---- "R3"
+   (wrap-ut-mths (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...)
+                 (m (x anyt) anyt (behcast anyt e_1)))])
+
+(define-metafunction KafKa
+  dynamize : mt -> mt
+  ((dynamize (f t)) (f anyt))
+  ((dynamize (f t t)) (f anyt anyt))
+  ((dynamize (m t_1 t_2)) (m anyt anyt)))
+                 
+
+(define-metafunction KafKa
+  get-mds : C K -> (md ...)
+  [(get-mds C (k_1 ... (class C fd ... md ...) k_2 ...)) (md ...)])
+  
+
+(define-judgment-form KafKa
+  #:mode (beh-lift I I I I I O)
+  #:contract (beh-lift (mt ...) (mt ...) e x e e)
+  [-------------- "REW1"
+   (beh-lift (mt_1 ...) (mt_2 ...) e_1 x x e_1)]
+  [-------------- "REW2"
+   (beh-lift (mt_1 ...) (mt_2 ...) e_1 (name x x_!_1) (name x_1 x_!_1) x_1)]
+  [(beh-lift mt_i mt_t e_1 x e e_2) ...
+   (side-condition ,(or
+                      (redex-match KafKa f (term n))
+                      (not (redex-match KafKa anyt (term t_2)))))
+   -------------- "REW3"
+   (beh-lift (name mt_i (mt_1 ... (n t_1 ..._1 t_2) mt_3 ...))
+             (name mt_t (mt_2 ... (n t_3 ..._1 t_4) mt_4 ...)) e_1 x
+             (call this n e ..._1) (call this n (behcast t_3 e_2) ...))]
+  [(beh-lift mt_i mt_t e_1 x e e_2)
+   -------------- "REW4"
+   (beh-lift (name mt_i (mt_1 ... (m t_1 t_2) mt_3 ...))
+             (name mt_t (mt_2 ... (m anyt anyt) mt_4 ...)) e_1 x
+             (call this m e) (dcall this m (behcast anyt e_2)))]
+  [(beh-lift mt_i mt_t e_1 x e e_2) ...
+   (side-condition ,(not (redex-match KafKa ((n t_1 ..._1)
+                                             (mt_1 ... (n t_2 ..._1 t_3) mt_2 ...))
+                                      (term ((n t_1 ...) (mt_2 ...))))))
+   -------------- "REW5"
+   (beh-lift (name mt_i (mt_1 ... (n t_1 ..._1 t_2) mt_3 ...))
+             (name mt_t (mt_2 ...)) e_1 x
+             (call this n e ..._1) (call this n e_2 ...))]
+  [(beh-lift mt_i mt_t e_a x e e_2)
+   (beh-lift mt_i mt_t e_a x e_1 e_3) ...
+   (side-condition ,(not (redex-match KafKa this (term e))))
+   -------------- "REW6"
+   (beh-lift (name mt_i (mt_1 ...))
+             (name mt_t (mt_2 ...)) e_a x
+             (call e n e_1 ..._1) (call e_2 n e_3 ...))]
+  [(beh-lift mt_i mt_t e_a x e e_2)
+   (beh-lift mt_i mt_t e_a x e_1 e_3)
+   -------------- "REW7"
+   (beh-lift (name mt_i (mt_1 ...))
+             (name mt_t (mt_2 ...)) e_a x
+             (dcall e m e_1) (dcall e_2 m e_3))]
+  [(beh-lift (mt_1 ...) (mt_2 ...) e_a x e e_1) ...
+   -------------- "REW8"
+   (beh-lift (mt_1 ...) (mt_2 ...) e_a x
+             (new C e ...) (new C e_1 ...))])
 ; Thorn
 
 
@@ -499,7 +628,7 @@
 (define litmusK1f (term (compose-K ,litmusAux ,litmusK1)))
 
 (define litmusK2 (term ((class A (mm (x A) A this))
-                        (class I (mn (x C) I this))
+                        (class I (mm (x C) I this))
                         (class T (mt (x I) T this)))))
 (define litmusK2f (term (compose-K ,litmusAux ,litmusK2)))
 

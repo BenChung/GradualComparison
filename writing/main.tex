@@ -1057,7 +1057,7 @@ combination of a list of field values \a and the class name \C.
 A configuration is the combination of a program \K\e and a heap \s, 
 and reducing one configuration \K\e\s to another configuration \Kp\ep\sp 
 is denoted \Reduce\K\e\s\Kp\ep\sp. The reductions rules for \kafka are presented 
-in figure \ref{sema}, with the evaluation contexts, denoted by \EE, presented 
+in figure \ref{fig:semantics}, with the evaluation contexts, denoted by \EE, presented 
 at the bottom.
 
 The auxiliary function \names{} returns the names of methods, and the
@@ -1159,7 +1159,8 @@ fields and methods definition is not relevant (i.e. we can reorder when convenie
 \end{minipage}
 
 \hrulefill
-\caption{\kafka Semantics.}\label{sema}
+\caption{\kafka Semantics.}
+\label{fig:semantics}
 \end{figure}
 
 \paragraph{Translations}
@@ -1181,7 +1182,24 @@ inference mechanism, that allows identifying cast insertion locations in a modul
 
 \kafka offers two kinds of structural casts. One which performs a structural
 subtype check and one that only check for the persence of methods with given
-names.
+names. 
+
+The first type of cast is the simplest, as it only checks that the runtime type
+tag (\C) is a subtype of the required type (\D), and is notated \SubCast\D\e. 
+Here, the runtime check conists only of ensuring that the subtyping judgment
+holds, which can be done easily and does not require any additional runtime 
+components beyond the cast. Moreover, this kind of cast establishes value idenity
+exactly, allowing us to type it with the cast type, shown in \RuleRef{W8}.
+
+This is not true, however, of the name cast, which only checks for the presence
+of methods with the given name. While simple - it does not even need
+a separate judgment form in figure \ref{fig:semantics} - the name cast is
+extremely weak, and cannot ensure that type identity is preserved up to the 
+level required to give it a strong \kafka type. As a result, any use of it is
+typed \any, as seen in \RuleRef{W9}.
+
+To illustrate the use of the first cast, using subtyping, we will examine the 
+translation from a subset of the Thorn language to \kafka. 
 
 \paragraph{Translation: Thorn}
 
@@ -1379,21 +1397,23 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \hrulefill
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
+
+\IRule{REW2}{ \x \neq \x' }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\x'}{\x'} }
 \\
-\IRule[width=25em]{REW2}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ \n = \f \vee \t_1 \neq \any  \\ 
+\IRule[width=25em]{REW3}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ \n = \f \vee \tp[2] \neq \any  \\ 
 \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{\BehCast{\tp_1}{\Call{\this}\n{\b{\BehCast{\t_2}{\ep}}}}}}
 \\
-\IRule[width=18em]{REW3}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
+\IRule[width=18em]{REW4}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
 \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\m{\e}}{\BehCast{\tp_1}{\DynCall{\this}\m{{\BehCast{\any}{\ep}}}}}}
 
-\IRule[width=25em]{REW4}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
+\IRule[width=25em]{REW5}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
 \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{{\Call{\this}\n{\b{{\ep}}}}}}
 
-\IRule[width=20em]{REW5}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}}
+\IRule[width=20em]{REW6}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}}
 
-\IRule{REW6}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+\IRule{REW7}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
 
-\IRule{REW7}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{REW8}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
 \vspace{-2mm}
@@ -1421,15 +1441,15 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \\
 \SPP \Mdef\m\x\t\tp {~\BehCast\tp{{\ep}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{(\BehCast\Cp\x)}\x{\e}{\ep}
+&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp{(\BehCast\Cp\x)}\x{\e}{\ep}}
 \\
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
-&&&&\wedge&\Mdef\m\x\any\any{\e'}\not\in\b\md
+&&&\multicolumn{3}{l}{\wedge~\Mdef\m\x\any\any{\e'}\not\in\b\md}
 \\
 \SPP \Mdef\m\x\t\tp{~\BehCast\tp{\ep}~}
-&     \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp{(\BehCast\any\x)}\x\e{\ep}
+&    \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp{(\BehCast\any\x)}\x\e{\ep}}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
@@ -1439,11 +1459,11 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
 &    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp\x\x{\e}{\ep}
+&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
 \\
 \SPP \Mdef\m\x\any\any {~\ep~}
 &    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-&&&&\wedge&\rtranst{\bmt}\bmtp\x\x{\e}{\ep}
+&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
 \\
 \SP \}
 \\
@@ -1455,7 +1475,9 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
 &  \All \f  \Mtype\f\t\t \in \bmt\\
 \SPP   \Mdef\m\x\any\any {~\BehCast\any{{\ep}}~}
-&  \All \m \Mdef\m\x\t\t\e\in\b\md  &\wedge& \rtranst{\bmt}{\dyn{\bmt}}{(\BehCast\t\x)}\x{\e}{\ep}\\
+&  \All \m \Mdef\m\x\t\t\e\in\b\md \\
+&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}{\dyn{\bmt}}{(\BehCast\t\x)}\x{\e}{\ep}}
+\\
 \SP \}\\
 \end{array}\]
 %}%%END IGNORE
