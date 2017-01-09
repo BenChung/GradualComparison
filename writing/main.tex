@@ -85,7 +85,7 @@ caught at type checking time and while other will be caught as the program
 executes. After a decade of research on gradual types it has become clear
 that the combination of mutable state, self references and subtyping
 presents serious challenges to implementers of gradual type systems.  This
-papers reviews the state of the art in gradual typing for objects. We
+paper reviews the state of the art in gradual typing for objects. We
 introduce \kafka, a class-based object calculus with a static type system,
 dynamic method dispatch, transparent wrappers and dynamic class
 generation. We model key features of several type systems for dynamic
@@ -110,8 +110,8 @@ calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a
 dynamic type, denoted \any, and a subtype relation that combined structural
 subtyping with a consistency relation between terms that differ in dynamic
 type annotations.  Soundness at the boundaries between typed and untyped
-code is ensured by inserting casts as was already done in their previous
-work that targeted functional languages~\cite{SiekTaha06}.  Ten years later,
+code is ensured by inserting casts as shown in their previous work 
+targeting functional languages~\cite{SiekTaha06}.  Ten years later,
 many systems support the gradual addition of types to untyped
 object-oriented programs.\footnote{Languages which allow mixing typed and
   untyped with objects include
@@ -129,7 +129,7 @@ Typed Racket~\cite{Takikawa:2012},
 TypeScript~\cite{BAT14}.}
 %%
 Yet, faithful realizations of Seik and Taha's elegant idea have proved to be
-surprisingly elusive.  One reason for this may be that the paper did not
+surprisingly elusive.  One possible reason being that the original paper did not
 consider state.  The combination of mutable state, aliasing and subtyping
 complicates enforcement strategies as one must consider situations where an
 object is being accessed at different types. While several solutions have
@@ -151,29 +151,30 @@ for object-oriented languages. We aim to expose some of the forces that have
 influenced existing systems and discuss the implication of key design
 decisions. While there are significant challenges that, in the end, may
 prevent adoption of some of the more ambitious type systems, there are are
-also opportunities for improving on existing techniques.  This paper will
-hopefully lay out an agenda for future investigations.
+also opportunities for improving on existing techniques.  This paper also aims to
+lay the agenda for future investigations.
 
 In order to capture the essence of gradual typing for objects and to
 highlight the challenges implementers face, we present translations of
 gradual type system into a common target language. Targeting a common
 language lets us reason about the different systems in the same framework
-and makes comparisons possible. But which language should we target?  While
-the common language should be simple to avoid linguistic clutter, key
+and allow for comparisons. But which language should we target? The common 
+language should be simple to avoid linguistic clutter, while the key
 features of object-oriented languages should be expressed directly rather
 than by encoding. We propose to target a typed object-oriented language
 inspired by modern runtime systems such as the Java Virtual Machine and the
-.Net environment.  Both have reasonably efficient implementations. They have
+.Net environment. They each have
 a static type systems with classes and subtyping but allow for dynamically
 resolved method dispatch.\footnote{Both languages can invoke methods
   reflectively based on the method's name. Since C\# 4.0, dynamic resolution
   is part of the language~\cite{BAT14}. In Java, \xt{invokedynamic} allows
-  for custom method dispatch.} In both environments, primitive types can be
+  for custom method dispatch.} As well as reasonably efficient implementations,
+and in both environments, primitive types can be
 unboxed as the static typing an accurately final types.
 
-One contribution of this work is thus the design of \kafka, a statically
+One contribution of this work is the design of \kafka, a statically
 typed object calculus.  \kafka is class based (with an explicit class table
-\K), has mutable state (a heap address \a refers to an object, each field \f
+\K), with mutable state (a heap address \a refers to an object, each field \f
 is reifed into a pair of getter and setter methods), and allows the dynamic
 generation of wrapper classes (by update of the class table \K and
 allocation of new objects \a).  Methods can be statically resolved, denoted
@@ -187,27 +188,27 @@ signature.
 
 
 The heart of a gradual type system implementation is the insertion of
-explicit casts at type boundaries.  Four different casts are built-in the
-language, two of these are called structural because they only inspect the
-structure of the objects, the other two are generative as they create
-wrappers.  The subtype cast \SubCast\t\a is a structural cast that checks if
+explicit casts at type boundaries.  Four different casts are built-in \kafka, 
+two of these are called structural because they only inspect the
+structure of the objects, while the other two are called generative as they create
+new wrapper classes.  The subtype cast \SubCast\t\a is a structural cast that checks if
 the object references by \a is a subtype of type \t, \t can be either a
 class \C or the dynamic type \any.  The shallow cast \ShaCast\t\a merely
 checks that the object has all the methods of type \t without looking at
 their signatures. A behavioral cast \BehCast\t\a generates a wrapper object
 that monitors that methods invoked on \a abide by the interface of type
-\t. The monotone cast \MonCast\t\a returns a wrapper which monitors all
-invocations to the object referenced by \a, furthermore the wrapper can only
+\t. The monotone cast \MonCast\t\a returns a wrapper monitoring all
+invocations to the object referenced by \a, furthermore this wrapper can only
 be refined by removing occurences of \any in its type.
 
 \renewcommand{\u}[1]{\underline{#1}\xspace}
 
-Another contribution of the work is the translation of gradual type
+Another contribution of the work is the translation of the gradual type
 systems. Each gradually typed expression \HT{\u\e}{\u\T} is translated to a
 \kafka term, \HT\e\T, each type \u\T has a corresponding \kafka type \T,
 and, similarly, each expression \u\e has an equivalent \e. While soundness
 in \kafka is straightforward (except the generative casts which have more
-involved proofs), the soundnes of the gradual type system is more
+involved proofs), the soundness of the gradual type system is more
 interesting.  In \kafka, a well-typed program can only get stuck at a cast
 or a dynamically resolved call.  With gradual types, an expression
 \Call{\u\x}\m{\u{\x'}} where \u\x is declared to be of class \u\C can have
@@ -219,7 +220,7 @@ well-typed program will not get stuck at statically resolved method calls,
 \u\C maps to itself \C. Typed Racket has \emph{promised types}; a well-typed
 program will not get stuck at the call to \m, because \u\x is guarantee to
 refer to a \u\C or to a wrapper that implements all the methods of \u\C.  A
-wrapper has a target object, the wrapper's role is to check if the target
+wrapper has a target object, and the wrapper's role is to check if the target
 behaves like an instance of \u\C.
 
 
@@ -1076,7 +1077,7 @@ the getter's name is updated.
 
 Methods are segregated into typed method (methods whose argument is not
 \any) and untyped method (methods whose argument is \any). The former can be
-called by statically resolved method, the latter must be called by
+called by statically resolveds method, the latter must be called by
 dynamically resolved methods.
 
 The function \names{} returns the names of methods. 
@@ -2131,28 +2132,34 @@ for them according to the new wrapper \C.
 
 \section{Translations}
 
-\kafka provides us with a basis through which we can describe the operation
-of more typical languages. \kafka requires that the programmer write casts
-wherever a type boundary is encountered, which is not representative of how
-actual gradually typed programming languages behave. Most gradually typed
-programming languages abstract away from the actual casts that are inserted,
-automatically inserting them and using them at runtime, invisibly to the
-programmer up until it produces an error.
+\kafka provides the basis to describe the operations of a typical object-oriented languages. 
+\kafka requires programmers to write casts wherever a type boundary is encountered, 
+which is not representative of how actual gradually typed programming languages behave. 
+Most gradual type languages abstract away from inserting casts, instead
+they would be automatically inserted and used at runtime, remaining invisibly to programmers
+unless errors are produced.
 
-To represent this, we introduce a \emph{translation} mechanism, that performs much the same duty that this step does. This step works very similarly to how Siek and Taha~\cite{SiekTaha06} described cast insertion, though, thanks to our more complex source and target languages, we cannot entirely use the simple, bottom-up approach that Siek and Taha did.
-
-Instead, we use a \emph{bidirectional} translation mechanism, based on the work originally done by Pierce and Turner~\cite{lti-pierce}. Bidirectional typechecking is, in effect, a local type inference mechanism, and allows us to cleanly identify cast insertion locations in a modular way.
+We introduce a \emph{translation} mechanism that works similarly to the cast insertion described 
+by Siek and Taha~\cite{SiekTaha06} described cast insertion, however, our mechanism differs in
+that it cannot be bottom-up. Instead, our translation is \emph{bidirectional}, as described by 
+Pierce and Turner~\cite{lti-pierce}. Bidirectional typechecking is a local type 
+inference mechanism, that allows identifying cast insertion locations in a modular way.
 
 
 \subsection{Typed Racket}
 
-Typed Racket, in and of itself, is not a gradually typed language, as the Typed Racket language allows no untyped code. Its gradual nature, instead, comes from Typed Racket's interactions with (untyped) Racket, where a Typed Racket module can interact with a Racket one. As a result, when we refer to Typed Racket here, we refer to the combination of both Typed Racket and Racket. Moreover, this separation means that Typed Racket programs are typed on a module by module basis, rather than an expression by expression one.
+Typed Racket is not a typical gradually typed language, as it has no untyped code.
+The gradual nature of Typed Racket, instead, comes from the interactions between Typed Racket modules and 
+(untyped) Racket modules. Therefore, we refer to Typed Racket as the combination of both 
+Typed Racket and (untyped) Racket. Typed Racket programs are typed on a module by module basis, 
+rather than expression by expression.
 
-Since we are largely unconcerned about the details of surface syntax, and want to highlight the interesting semantic details of all behavioural approaches independent of the surface language, our surface level translation will still allow programmers to write partially typed classes, unlike the actual Typed Racket language, where a single class cannot be both typed and untyped simultaneously.
+The Type Racket source level translation allow programmers to write partially typed classes, in order to 
+highlight the semantic of each behavioural approache independent of the surface language.
 
-We begin with Typed Racket as its surface to \kafka translation is the most straightforward. At the top level, we translate the classes, where source language terms are denoted with an underscore, to \kafka classes, then translate the source language main expression to one in \kafka, producing some return type we do not know, seen in rule PT.
-
-The other rule of note is MT. In MT, we know that the method body must be of the form 
+At the top level classes, denoted with an underscore, are translated to \kafka classes. The 
+main expression of the source language is also translated to an expression in \kafka, as shown in PT.
+The translation for methods is shown in MT, where it simply translates the expression inside the method body.
 
 \begin{mathpar}
 \IRule{PT}{
@@ -2199,7 +2206,8 @@ The other rule of note is MT. In MT, we know that the method body must be of the
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
-Our translation to KafKa from this basis is then relatively simple. Translation with the bidirectional system proceeds in the typical manner through all of the synthetic cases, and the analytic cases are typical, as well.
+The remaining translations is relatively straightforward. The translation within our 
+bidirectional system, including the synthetic and analytic cases, proceeds in the typical manner.
 
 \begin{mathpar}
 \IRule{TRAASC1}{
@@ -2216,15 +2224,21 @@ Our translation to KafKa from this basis is then relatively simple. Translation 
 }
 \end{mathpar}
 
-The only rule of real note in our Typed Racket translation to \kafka is TRAASC2. Here, we see that if the Typed Racket translation ever enconters a non-subtype, then it will insert both a behavioural and name cast around the potentially ill-typed target, under every circumstance.
+The TRAASC2 rule describes when the Typed Racket translation encounters a casting type that's not a subtype
+of the original type. A behavioural and name cast will be inserted around the potentially ill-typed target.
+This is because Typed Racket only does runtime checking on the nature of the values that are passed in from Racket,
+and therefore, even nonsensical types can be asserted for untyped code. TRAASC2 accounts for this by aggressive wrapping, 
+where a type can be of any other type.
 
-We do this as Typed Racket only does runtime checking on the nature of the values that pass in from Racket, and therefore, even nonsensical types can be asserted for untyped code, discovered on use. We represent this via the aggressive wrapping in TRAASC2, where a type can be of any other type.
-
-Lastly, TRAASC2 will insert both a behavioural and shape cast, of which the formers purpose is obvious, but the latter of which less so. We insert the shape cast as our behavioural cast is very weak, passing virtually every object through it in a wrapper, even if the object underneath diverges from the type asserted by, for example, missing methods. To compensate for this, we also add the shape cast, which ensures that all of the required methods are present.
+Lastly, TRAASC2 will insert a name cast as the behavioural cast is very weak, passing virtually 
+every object through it in a wrapper, even if the object underneath diverges from the type asserted by it. A classic example
+being missing methods. To compensate for this, we also add the name cast, which ensures that all of the required methods are present.
 
 \subsection{Thorn}
 
-Thorn adds an ``unsound'' type $\dt\C$ to its type system, which has its own subtyping relation, and compiles down to \any in \kafka. This unsound type still enforces the same static requirements as its sound counterpart, but generates no runtime casts and therefore has low overhead.
+The translation for Thorn contains an ``unsound'' type $\dt\C$, which has its own subtyping relation, and compiles 
+down to \any in \kafka. This unsound type still enforces the same static requirements as its sound counterpart, but 
+generates no runtime casts and therefore has lower overhead.
 
 \newcommand{\bC}{\xt{!C}}
 
@@ -2242,7 +2256,8 @@ Over this new type, we define a subtyping relation, $\t \Sub_t \t$ as follows:
 \IRule{THSLower}{\ThorSub \M\K\C\D}{\ThorSub\M\K{\C}{\dt\D}}
 \end{mathpar}
 
-The remainder of the subtyping judgment is identical to the \kafka subtyping relation, which can be seen in the appendix. With this, we can define the synthetic and analytic cases of cast insertion for Thorn.
+The remainder of the subtyping judgment is identical to subtyping in \kafka, and 
+it defines the synthetic and analytic cases for the cast insertion of Thorn.
 
 \newcommand{\ba}{\xt{!}}
 
@@ -2294,11 +2309,17 @@ The remainder of the subtyping judgment is identical to the \kafka subtyping rel
 }
 \end{mathpar}
 
-The synthetic cases are effectively the traditional ``bottom-up'' style of typing judgment. Here, we are asked to produce te type for a term while producing an equivalent \kafka term that is of the translated type. As a result, a number of the rules, including \RuleRef{THA1}, \RuleRef{THA2}, \RuleRef{THA5}, and \RuleRef{THA6} are all effectively direct translations of the traditional typing rules for their cases.
+The synthetic cases describes the traditional ``bottom-up'' style of typing judgment. Each case produce an equivalent 
+\kafka term for the translated type. Therefore, \RuleRef{THA1}, \RuleRef{THA2}, \RuleRef{THA5}, and \RuleRef{THA6} are all effectively 
+direct translations of the traditional typing rules for their cases.
 
-However, \RuleRef{THA3} and \RuleRef{THA4} are of special interest. Both apply when the receiver type is a weak type - that is, unsound, so its types are not guaranteed - and case analyze on the declared return type. In \RuleRef{THA3}, we see the case where the returnn type is a concrete type, or a sound type, being returned from an unsound type, which requires the insertion of a runtime cast, and in THA4 we see the the alternative case.
+The exception being \RuleRef{THA3} and \RuleRef{THA4}, as they are applied when the receiver type is a weak type, an unsound type, 
+and case analyze is performed on the declared return type. In \RuleRef{THA3}, the return type is a concrete type, or a sound type, 
+from an unsound type, and therefore requires an insertion of a runtime cast, and the alternative case is shown in \RuleRef{THA4}.
 
-At the same time, note that both \RuleRef{THA3} and \RuleRef{THA4} produce dynamic calls on the receiver, despite the receiver having a source language type. This is because we translate Thorn weak types down to \kafka's \any, which causes all calls on optional types to be considered by \kafka to be dynamic invocations.
+It is important to note that both \RuleRef{THA3} and \RuleRef{THA4} produce dynamic calls on the receiver, despite the 
+receiver having a source language type. This is because Thorn's weak types are translated to \kafka's \any, which causes 
+all calls on optional types by \kafka to be dynamic.
 
 \hrulefill
 
@@ -2338,21 +2359,31 @@ At the same time, note that both \RuleRef{THA3} and \RuleRef{THA4} produce dynam
 
 \subsection{Reticulated Python}
 
-Reticulated Python is somewhat more complicated, as it implements three different semantics, though not simultaneously. As a result, we will show translations for each of its three semantics options.
+Reticulated Python implements three different semantics, through not simultaneously in the same language. 
+A separate translation is, therefore, present for each of the three semantics.
 
-The most notable difference between Reticulated and the other systems at the surface level is the use of \emph{consistency}, an operator broadly meaning that one type is compatible with another type. In our system, we define conistency as follows:
+The most notable difference between Reticulated Python and the gradually typed languages is the use of \emph{consistency},
+an operator broadly that means one type is compatible with another type. In our system, we define conistency as follows:
 \newcommand{\consistent}[3]{#1 \vdash #2 ~\sim~ #3}
 \begin{mathpar}
 \IRule{C1}{\tmeet\t\tp\cdot\K = \tpp}{\consistent\K{\t}{\tp}}
 \end{mathpar}
 
-In effect, if there is some most specific type for two given types, then the two types are consistent - it is possible that a value of one could be converted into the other with a runtime cast.
+In effect, if there is some most specific type for two given types, then the two types are consistent. 
+% It is possible that a value of one could be converted into the other with a runtime cast.
 
 \paragraph{Transient}
 
-The transient semantics is notably different from the other systems, as illustrated by the invariants we can assume about its primary cast, $\ShaCast\t\e$. Here, we simply assert that $\e$ has the same \emph{names} as $\t$ does, and, as a result, the closest type representation we have is the $\any$ type, as illustrated in rule \RuleRef{W9} for \kafka. All Transient guarantees is that the methods on the named type will be callable with some argument, and some return value, and it is up to the callee to check that the arguments are right and up to the caller to ensure that the return value is right.
+The transient semantics is illustrated by the cast, $\ShaCast\t\e$. It asserts that $\e$ has the same \emph{names} as $\t$,
+and the closest type representation in \kafka is the $\any$ type, as illustrated in \RuleRef{W9}. The transient semantics 
+guarantees that the methods on the named type will be callable with some argument, and some return value. It is up to 
+the callee to check the arguments are correct and the caller to ensure the return value is correct.
 
-As a result of this, our translation of transient requires a large number of changes to allow it to be well formed in \kafka. The most notable of these changes is visible in rule \RuleRef{MTT}, where we are forced to erase every type from the arguments to a function, as typed arguments may not be respsected in the dynamics. We then ensure that the type invariant holds by using a tuple class (to simulate sequencing, which \kafka does not natively support) to check the type of the argument, then return the value of the body (which is inserted into the second field of the tuple class).
+Therefore, the translation of the transient semantics require a several rules in order to be well formed in \kafka. 
+The most notablely is the rule \RuleRef{MTT}, it is forced to erase every type from the arguments to the function, 
+as typed arguments may not be respected in the dynamics semantics. The type invariant is ensured to hold by using 
+a tuple class (to simulate sequencing, which \kafka does not natively support) to check the type of the argument, and then return 
+the value of the body (inserted into the second field of the tuple class).
 
 
 \begin{mathpar}
@@ -2366,9 +2397,11 @@ As a result of this, our translation of transient requires a large number of cha
 }{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
-Internally, the translations required to support the transient surface level semantics from within KafKa are also substantial. As noted previously, we are not obligated by transient to check method argument types before entry, and as a result, every call, typed or untyped, in transient is an untyped call. Likewise, every typed method call must be guarded with a cast to ensure that the return type of the method is correct, translations that are implemented in \RuleRef{GRA2}.
+Internally, the translations required to support the transient semantics from within KafKa are also substantial. 
+As noted previously, the translation is not obligated by transient to check method argument types before entry, and as a result, every call, 
+typed or untyped, in transient is an untyped call. Likewise, every typed method call must be guarded with a cast to ensure that 
+the return type of the method is correct, as shown in \RuleRef{GRA2}.
  
-
 
 \begin{mathpar}
 \IRule{GRA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
@@ -2398,7 +2431,11 @@ Internally, the translations required to support the transient surface level sem
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
-Notably, however, transient's complete lack of statically typable calls means that a pure implementation of transient into \kafka would then entail that no fields were ever accessed using the setter or getter, as \kafka forbids untyped access to fields. To overcome this issue, we add rule \RuleRef{GRA4}, which allows the definition of self-referential field access. In a transient system, the only type that is absolutely known at any time is the self-reference, which we can then use to access fields on the self object. As a result, transient programs translated to \kafka will have to wrap field accessors in method calls to enable them to function.
+The lack of statically typable calls in the transient semantics means that a pure implementation of transient in 
+\kafka would entail no fields ever being accessed using the setter or getter, as \kafka forbids accessing untyped fields.
+To overcome this issue rule \RuleRef{GRA4} is added, which allows the definition of self-referential field access. In a transient 
+system, the only type that is absolutely known at any time is the self-reference, which is use to access fields on the 
+self object. As a result, in \kafka the translation will wrap field accessors in method calls.
 
 \begin{mathpar}
 \IRule{GRAASC1}{
@@ -2416,13 +2453,17 @@ Notably, however, transient's complete lack of statically typable calls means th
 }
 \end{mathpar}
 
-The last notable rule in our translation is \RuleRef{GRAASC2}. In other systems with consistency, such as the monotonic system that we are about to cover, when consistency is used to conclude an analytic judgment, a cast must be inserted, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
-
-However, in transient, the rest of the program makes no type assumptions that may be violated by consistency. Even though our translation takes a particularly weak perspective on the interpretation of a transient type into \kafka, even a type system that fully represents a transient type (e.g. one that tracks method names, only) will accept structurally conistent values under the same type. As a result, we can allow consistent values to be used with no additional casts.
+The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency such as the monotonic system, 
+consistency is used to conclude an analytic judgment, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
+However, in transient, the rest of the program makes no type assumptions that may be violated by consistency. Even when the 
+translation takes a particularly weak perspective on the interpretation of a transient type into \kafka. Even a type system that
+fully represents a transient type (e.g. one that tracks method names, only) will accept structurally conistent values under the 
+same type. As a result, consistent values are allowed to be used with no additional casts.
 
 \paragraph{Monotonic}
 
-At the surface language level, the Monotonic semantics are very similar to that used by the guarded semantics and Typed Racket/Racket. We insert casts at locations at type boundaries.
+At the surface language level, the Monotonic semantics are very similar to that used by the guarded semantics and Typed Racket/Racket.
+We insert casts at locations at type boundaries.
 
 
 % broken: partially typed calls
@@ -2512,6 +2553,12 @@ At the surface language level, the Monotonic semantics are very similar to that 
   \AnaCast\K\Env\e{\MonCast\t\ep}\t
 }
 \end{mathpar}
+
+\section{Related Work}
+
+
+\section{Conclusion}
+
 
 \bibliographystyle{unsrturl}
 \bibliography{../bib/jv,../bib/all,../bib/ben}
