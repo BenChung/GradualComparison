@@ -1049,31 +1049,24 @@ behavioral cast that, in addition, imposes constraints on fields.
 \draw (4-0.1,-1) node[anchor=west] {$\EnvType {}{}\Kpp\a\t$};
 \end{tikzpicture}
 
-The semantics of \kafka is defined by a small step operational semantics with
-evaluation contexts.
+\kafka's semantics are a typical small step operational semantics, though,
+in order to best accomodate the various systems, we introduce some unusual
+features. A \kafka program is defined by the combination of a class table 
+\K, which consists of a list of classes \k, and a evaluation expression \e.
 
-Evaluation context deterministically identifiy the next expression to evaluate.
+To execute a \kafka program, the system will use a heap (which we denote
+\s) that maps memory locations \a to objects, each of which is a combination
+of a list of field values \a and the class name \C, with notation
+\Map\s{\Bind\a{\obj\C{\b\a}}}. When a program \K\e and heap \s are combined,
+we call it a configuration, and one configuration \K\e\s reducing to another
+configuration \Kp\ep\sp is denoted \Reduce\K\e\s\Kp\ep\sp.
 
-Program error is denoted by a stuck term.
-
-The semantics operate over an explicit class table, denoted \K, which is a
-sequence of class definitions.
-
-A heap, denoted \s, maps memory locations to
-objects. We use the notation \Map\s{\Bind\a{\obj\C{\b\a}}} to denote the
-heap \s extended by the binding of location \a to object \obj\C{\b\a}.
-
-A configuration \K\e\s evaluates in one step to a new configuration, denoted
-\Reduce \K\e\s \Kp\ep\sp.
-
-Execution terminate if \ep\xspace is a value, \a, or if there is no applicable
-reduction, in which case the program is stuck.\footnote{Intuitively we would
+The execution can halt either if it gets stuck, if it encounters an expression
+that is not a value and that no evaluation rule applies to, or if the expression
+is a value. \footnote{Intuitively we would
   expect that the program can only get stuck at dynamic calls or at
   structural casts. But generative casts add some complexity to that
   statement.}
-
-New object creation picks a fresh memory location  and binds it to the
-newly created.
 
 Operations on fields require a typed receiver, for example in the expression
 \Get\this\f, \this is always of the type of the current class. Field access
