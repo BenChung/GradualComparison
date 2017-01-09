@@ -948,49 +948,31 @@ incompatible with our new type, monotonic will reject it at that point.
 
 \section{Kafka: A Core Calculus}
 
-We propose to explore the semantics of gradually typed object-oriented
-languages by compilation to a core calculus, named \kafka.
-
-Following the design of C\# 4.0, \kafka is a statically typed class-based
-calculus with dynamic dispatch.
-
-In order to support the notion of consistency, we choose a structural type
-system for \kafka.  The calculus does not have inheritance between classes.
-
-\kafka does not have null values.\footnote{What would the type of null be?}
-
-Fields are accessed by getter and setter methods, their presence in class
-types is observed by the presence of the respective getters and setters.
-
-
-Following C\#, \kafka allows a dynamic type, denoted \any. 
+We present \kafka, a gradually typed object-oriented languages.
+\kafka is a statically typed class-based calculus with dynamic dispatch, 
+following the design of C\# 4.0. The dynamic type of \kafka is denoted by \any.
+\kafka is structurally typed, it does not have null values, or supports
+inheritance between classes. Fields are accessed by getter and setter methods, 
+their presence in class types is observed by the presence of the respective 
+getters and setters.
 
 Statically dispatched method calls (i.e. calls where the type of the
-receiver is not \any) are denoted \Call\x\m\e. Methods are limited to a
-single argument for simplicity.
-
-Dynamically dispatched method calls (i.e. call where the type of the receiver
-is \any) are denoted \DynCall\x\m\e.
-
-A new object is created with a class name and a sequence of arguments in the
-order of definition of fields, denoted \New\C{\b\e}.
+receiver is not \any) are denoted by \Call\x\m\e. Methods are limited to a
+single argument for simplicity. Dynamically dispatched method calls 
+(i.e. call where the type of the receiver is \any) are denoted by \DynCall\x\m\e.
+Object creation is denoted by denoted \New\C{\b\e}, a class name (\C) and 
+a sequence of arguments (\b\e) in the order of definition of fields.
 
 Meta-variable \x ranges over argument names, \a over memory locations, \f
 over field names (as well as getter and setter methods), \m over method
 names, \C, \D, and \E over class names.  We use \n to refer either to
-methods or field names.
-
-\this is a distinguished variable name that denotes the current object.
-
-\that is a distinguished field name that denotes the target of a wrapper.
-
-\D is a meta-variable used to range over dynamically generated class names.
-
-\a is ranges over heap addresses.
-
-\k ranges over class definitions consisting of a class name, followed by
-a, possibly empty, sequence of field definitions, \fd, and a, possibly empty,
-sequence of method definitions, \md.
+methods or field names. \this is a distinguished variable name denoting 
+the current object, and \that is a distinguished field name denoting the 
+target of a wrapper class. \D is a meta-variable used to range over dynamically 
+generated class names. \a is ranges over heap addresses. \k ranges over 
+class definitions consisting of a class name, followed by a, possibly empty, 
+sequence of field definitions, \fd, and a, possibly empty, sequence of 
+method definitions, \md.
 
 \begin{figure}[!h]
 \hrulefill
