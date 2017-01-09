@@ -1420,21 +1420,23 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \hrulefill
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
+
+\IRule{REW2}{ \x \neq \x' }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\x'}{\x'} }
 \\
-\IRule[width=25em]{REW2}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ \n = \f \vee \tp[2] \neq \any  \\ 
+\IRule[width=25em]{REW3}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ \n = \f \vee \tp[2] \neq \any  \\ 
 \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{\BehCast{\tp_1}{\Call{\this}\n{\b{\BehCast{\t_2}{\ep}}}}}}
 \\
-\IRule[width=18em]{REW3}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
+\IRule[width=18em]{REW4}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
 \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\m{\e}}{\BehCast{\tp_1}{\DynCall{\this}\m{{\BehCast{\any}{\ep}}}}}}
 
-\IRule[width=25em]{REW4}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
+\IRule[width=25em]{REW5}{ \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
 \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\n{\b\e}}{{\Call{\this}\n{\b{{\ep}}}}}}
 
-\IRule[width=20em]{REW5}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}}
+\IRule[width=20em]{REW6}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}}
 
-\IRule{REW6}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+\IRule{REW7}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
 
-\IRule{REW7}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
+\IRule{REW8}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
 \vspace{-2mm}
