@@ -7,6 +7,7 @@
   (e x
      v
      (call e m e)
+     (call e f e)
      (call e f)
      (dcall e m e)
      (new C e ...)
@@ -15,11 +16,14 @@
      (behcast t e)
      (moncast t e))
   (k (class C fd ... md ...))
-  (mt (m t t) (m t))
+  (mt (m t t) (f t t) (f t))
   (t anyt C)
   (fd (f t))
-  (md (m (x t) t e) (f t e))
-  (C D f m n x ::= variable-not-otherwise-mentioned)
+  (md (m (x t) t e) (f (x t) t e) (f t e))
+  (m (variable-prefix m))
+  (f (variable-prefix f))
+  (n m f)
+  (C D x ::= variable-not-otherwise-mentioned)
   (Γ · (x : t Γ))
   (K (k ...))
   (p (e K))
@@ -110,6 +114,10 @@
    ----------"SMet"
    (<: M K (m t_1 t_3) (m t_2 t_4))]
   [(<: M K t_1 t_2)
+   (<: M K t_4 t_3)
+   ----------"SSet"
+   (<: M K (f t_1 t_3) (f t_2 t_4))]
+  [(<: M K t_1 t_2)
    ----------"SGet"
    (<: M K (f t_1) (f t_2))]
   [----------"SThat"
@@ -150,10 +158,10 @@
    -----"A1"
    (tr-syncast K Γ x x t)]
   [(tr-syncast K Γ e_1 e_3 C)
-   (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (where (mt_1 ... (n t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
    (tr-anacast K Γ e_2 t_1 e_4) ...
    -----"A2"
-   (tr-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
+   (tr-syncast K Γ (call e_1 n e_2 ..._1) (call e_1 n e_4 ...) t_2)]
   [(tr-syncast K Γ e_1 e_3 anyt)
    (tr-anacast K Γ e_2 anyt e_4)
    ------"A8"
@@ -250,10 +258,10 @@
    -----"THA1"
    (thorn-syncast K Γ x x t)]
   [(thorn-syncast K Γ e_1 e_3 C)
-   (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes-thorn C K))
+   (where (mt_1 ... (n t_1 ..._1 t_2) mt_2 ...) (mtypes-thorn C K))
    (thorn-anacast K Γ e_2 t_1 e_4) ...
    -----"THA2"
-   (thorn-syncast K Γ (call e_1 m e_2 ..._1) (call e_1 m e_4 ...) t_2)]
+   (thorn-syncast K Γ (call e_1 n e_2 ..._1) (call e_1 n e_4 ...) t_2)]
   
   [(thorn-syncast K Γ e_1 e_3 (weak C))
    (where (mt_1 ... (m t_1 D) mt_2 ...) (mtypes-thorn C K))
@@ -379,6 +387,7 @@
 (define-metafunction KafKa
   typegen : mts C -> k
   [(typegen ((m t_1 t_2) mt ...) C) (class C (m (x t_1) t_2 (subcast t_2 x)) md ...) (where (class C md ...) (typegen (mt ...) C))]
+  [(typegen ((f t t) mt ...) C) (class C (f (x t) t x) md ...) (where (class C md ...) (typegen (mt ...) C))]
   [(typegen ((f t) mt ...) C) (class C (f t (subcast t (new C))) md ...) (where (class C md ...) (typegen (mt ...) C))]
   [(typegen () C) (class C)])
 
@@ -463,46 +472,46 @@
 
 ;litmus
 
-(define litmusAux (term ((class C (n (x C) C this)) (class D (o (x D) D this)))))
-(define litmusProg (term (call (new T) t (new A))))
+(define litmusAux (term ((class C (mn (x C) C this)) (class D (mo (x D) D this)))))
+(define litmusProg (term (call (new T) mt (new A))))
 
-(define litmusK1 (term ((class A (m (x A) A this))
-                        (class I (n (x I) I this))
-                        (class T (t (x I) T this)))))
+(define litmusK1 (term ((class A (mm (x A) A this))
+                        (class I (mn (x I) I this))
+                        (class T (mt (x I) T this)))))
 (define litmusK1f (term (compose-K ,litmusAux ,litmusK1)))
 
-(define litmusK2 (term ((class A (m (x A) A this))
-                        (class I (n (x C) I this))
-                        (class T (t (x I) T this)))))
+(define litmusK2 (term ((class A (mm (x A) A this))
+                        (class I (mn (x C) I this))
+                        (class T (mt (x I) T this)))))
 (define litmusK2f (term (compose-K ,litmusAux ,litmusK2)))
 
-(define litmusK3 (term ((class A (m (x anyt) anyt this))
-                        (class I (m (x C) C this))
-                        (class I2 (m (x D) D this))
-                        (class E (f I) (g I2))
-                        (class T (t (x A) E (new E x x))))))
+(define litmusK3 (term ((class A (mm (x anyt) anyt this))
+                        (class I (mm (x C) C this))
+                        (class I2 (mm (x D) D this))
+                        (class E (ff I) (fg I2))
+                        (class T (mt (x A) E (new E x x))))))
 
 (define litmusK3f (term (compose-K ,litmusAux ,litmusK3)))
 
 (define litmusK4 (term ((class A
-                          (f anyt)
-                          (m (x A) A
-                             (call this f (new A (new C)))))
+                          (ff anyt)
+                          (mm (x A) A
+                             (call this ff (new A (new C)))))
                         (class I
-                          (f D)
-                          (m (x I) I this))
+                          (ff D)
+                          (mm (x I) I this))
                         (class T
-                          (t (x I) I (call x m x))))))
+                          (mt (x I) I (call x mm x))))))
 (define litmusK4f (term (compose-K ,litmusAux ,litmusK4)))
 
 (define litmus1 (term (,litmusProg ,litmusK1f)))
 (define litmus2 (term (,litmusProg ,litmusK2f)))
 (define litmus3 (term (,litmusProg ,litmusK3f)))
 
-(define litmusProg4 (term (call (new T) t (new A (new D)))))
+(define litmusProg4 (term (call (new T) mt (new A (new D)))))
 (define litmus4 (term (,litmusProg4 ,litmusK4f)))
 
 ;other examples from the paper
 
-(define meetex1 (term ((class A (m (x anyt) A this)) (class B (m (x B) anyt this)))))
-(define meetex2 (term ((class A (m (x A) anyt this)) (class B (m (x B) anyt this)))))
+(define meetex1 (term ((class A (mm (x anyt) A this)) (class B (mm (x B) anyt this)))))
+(define meetex2 (term ((class A (mm (x A) anyt this)) (class B (mm (x B) anyt this)))))
