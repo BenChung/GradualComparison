@@ -429,34 +429,27 @@ be associated with values at every cast.
 
 \subsection{Trace preservation}
 
-The semantics of the various type systems have subtle distinctions. Ideally,
+The semantics of the various type systems are subtle in their distinctions. Ideally,
 one would like to reject programs that will fail, but there is a tension
 because some of the dynamically typed code exploits the fact that it is
-dynamically typed.  Type systems are correctly pesmistic and will flag
+dynamically typed.  Type systems are correctly pesmistic in flagging
 potential errors.
 
 To illustrate the difficulties we provide four litmus tests, these are small
-programs written in \kafka syntax but that can also be expressed in all the
-languages of interest.
+programs written in \kafka syntax, but can also be expressed in all the
+languages of interest. Each test consists of a class table 
+composed of the respective litmus classes, some auxiliary code and a main expression.
+In all cases, the main expression is a call to the method t of class T with 
+an argument of class A. In each case, the programs are well typed statically.
 
-Each of these programs consists of a class table composed of the respective
-litmus classes, some auxiliary code and a main expression.
-
-In all cases the main expression is a call to the method t of class T with an argument of class A.
-
-In all cases, the program is well typed statically.
-
-In the optionally typed semantics of e.g. Dart, all tests run to
-completition without getting stuck.
-
-Using concrete types in Thorn, all of these programs will get stuck with
-subtype cast expression error. As class A is not a subtype of I, nor I'.
-Thus in each test the program qill get stuck when A is passed where an I
-expected.
-
-With optional types and the Transient RP semantics, L1 fails because transient
-checks that A has all the method names of I. Which it does not.
-L2,L3 and L4 succeed, because Transient only checks names at calls.
+In the optionally typed semantics, e.g. Dart, all tests run to
+completition without getting stuck. Using concrete types in Thorn, 
+all of these tests will get stuck with subtype cast expression error. 
+As class A is not a subtype of I, nor I'. Therefore, every litmus test will 
+get stuck whenever A is passed when an I is expected.
+For optional types and the Reticulated Python with Transient semantics, 
+the L1 test will fail as transient checks that A has all the method names of I. 
+However, the tests L2, L3 and L4 will all succeed, as Transient only checks names at calls.
 
 
 
@@ -624,9 +617,12 @@ contracts~\cite{pycket15}, preliminary results suggest that the ...
 
 \section{Gradual Typing in Practice}
 
-We review five type systems.
+Gradual types systems in the real world comes in all different constraints and complexity,
+with their own strengths and weakeness.
 
 We use the \kafka syntax for our examples even if it will only be explained later.
+
+The examples presented in this section are written in our 
 
 It should be self explanatory.
 
@@ -1130,6 +1126,16 @@ fields and methods definition is not relevant (i.e. we can reorder when convenie
 }{ 
   \ReduceA \K{\ShaCast \D\a}\s \K\a\s
 }
+% \CondRule{E11}{  %% Behavioral cast
+%   \behcast \a\t\s\K  \Kp\ap\sp
+% }{ 
+%   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
+% }
+% \CondRule{E12}{  %% Monotonic cast
+%   \moncast \a\t\s\K  \Kp\sp
+% }{ 
+%   \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
+% }
 \CondRule{E11}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
 }{
