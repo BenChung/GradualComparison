@@ -199,25 +199,26 @@ monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to
 the object referenced by \a, furthermore this wrapper can only be refined by
 removing occurences of \any in its type.
 
-Another contribution of our work is the translation of gradual type
-systems. Each gradually typed expression \HT{\u\e}{\u\T} is translated to a
-well-typed \kafka term, \HT\e\T, each type \u\T has a corresponding \kafka
-type \T, and, similarly, each expression \u\e has an equivalent \e. While
-soundness in \kafka is straightforward (except for generative casts which
-are more involved), the soundness of the source gradual type systems is more
-interesting.  In \kafka, a well-typed program can only get stuck at a cast
-or a dynamically resolved call.  With gradual types, an expression
-\Call{\u\x}\m{\u{\x'}} where \u\x is declared to be of class \u\C can have
-significantly different behavior depending on choices made while designing
-the gradual type system. TypeScript and Dart have \emph{optional types}; a
-well-typed program can get stuck at any method call as \u\C translates to
-\any. Languages such as C\# and StrongScript have \emph{concrete types}; a
-well-typed program will not get stuck at statically resolved method calls,
-and \u\C maps to itself \C. Typed Racket has \emph{promised types}; a
-well-typed program will not get stuck at the call to \m, because \u\x is
-guarantee to refer to a \u\C or to a wrapper that implements all the methods
-of \u\C.  A wrapper has a target object, and the wrapper's role is to check
-if the target behaves like an instance of \u\C.
+Another contribution is the translation of five type systems representative
+of the main strains of gradual typing for objects. Each gradually typed
+expression \HT{\u\e}{\u\T} in the source is translated to a well-typed
+\kafka term, \HT\e\T, each type \u\T has a corresponding \kafka type \T,
+and, similarly, each expression \u\e has an equivalent \e. While soundness
+in \kafka is straightforward (except for generative casts), soundness of the
+source gradual type systems is more interesting.  In \kafka, a well-typed
+program can only get stuck at a cast or a dynamically resolved call.  With
+gradual types, an expression \Call{\u\x}\m{\u{\x'}} where \u\x is declared
+to be of class \u\C can have significantly different behavior depending on
+choices made while designing the gradual type system. TypeScript has
+\emph{optional types}; a well-typed program can get stuck at any method call
+as \u\C translates to \any. Thorn has \emph{concrete types}; a well-typed
+program will not get stuck at statically resolved method calls, and \u\C
+maps to itself \C. Typed Racket has \emph{promised types}; a well-typed
+program will not get stuck at a call to \m, because \u\x refers to an
+object, or wrapper, that implements \m.  Wrappers may fail if their target
+does not behave like a \u\C. Finally we describe the monotonic
+and transient variants of Reticulated Python which have somewhat surprising
+semantic properties.
 
 
 \section{Background}
