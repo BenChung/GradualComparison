@@ -623,7 +623,7 @@ a brief introduction for five gradual types systems, focusing on their role with
 the gradual typing landscape. We aim to illustrate the niche of each system, and what 
 make them unique. 
 
-Each description contains examples written using the straight-forward syntax
+Several description contains examples written using the straight-forward syntax
 provided by \kafka instead of the original language, allowing us to start explaining
 the different gradual typing idioms within the same context.
 
@@ -637,7 +637,7 @@ Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
 subtyping of recursive types is supported (types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
-to catch simple errors such the misspelling of the method of class \code A:
+to catch simple errors, such as misspelling the method names of a class.
 
 \begin{lstlisting}
   class A { }
@@ -647,8 +647,8 @@ to catch simple errors such the misspelling of the method of class \code A:
 \end{lstlisting}
 
 Well-typed code is translated to plain JavaScript with all types erased and
-methods resolved dynamically. In our translation to \kafka the above program
-(with the correct method name \code m) translate to the following.
+methods resolved dynamically. In our translation to \kafka, the above program
+(with the correct method name) would translate to the following.
 
 \begin{lstlisting}
   class A { }
@@ -657,17 +657,17 @@ methods resolved dynamically. In our translation to \kafka the above program
   new A()@m(new C())
 \end{lstlisting}
 
-The snippet now uses dynamic calls (written \code @) and methods signature
-are set to \any. It is easy to trick the compiler into accepting incorrect
-cdoe, the following would be compile and would throw a JavaScript exception.
+The translated code uses the dynamic calls (written \code @) with its methods signature
+set to \any. However, it is easy to trick the compiler into accepting incorrect
+code, as the following code would compile, but throws a JavaScript exception.
 
 \begin{lstlisting}
   (<*>new A()) . n(new C())
 \end{lstlisting}
 
-TypeScript's designers saw unsoundness as a way to ensure that (a) types do
+The designers of TypeScript saw unsoundness as a way to ensure (a) types do
 not prevent a program from running, e.g. when importing a new library with
-type annotations inconsistent with clent code; and that (b) existing
+type annotations inconsistent with clent code; and (b) existing
 browsers can run TypeScript code with no overheads.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
