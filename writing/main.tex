@@ -1428,12 +1428,29 @@ The gradual nature of Typed Racket, instead, comes from the interactions between
 Typed Racket and (untyped) Racket. Typed Racket programs are typed on a module by module basis, 
 rather than expression by expression.
 
-The Type Racket source level translation allow programmers to write partially typed classes, in order to 
-highlight the semantic of each behavioural approache independent of the surface language.
+Additionally, unlike the Thorn system, Typed Racket does not base its type 
+system on object \emph{identity}, but rather on object \emph{behaviour}. If an 
+untyped object is brought in from (untyped) Racket and a Typed Racket type 
+applied to it, then Typed Racket cannot check it to ensure that the type 
+assertion is statically verified, like Thorn can, but instead has to \emph{wrap}
+it to verify that it will behave to the type specification in the future.
 
-At the top level classes, denoted with an underscore, are translated to \kafka classes. The 
-main expression of the source language is also translated to an expression in \kafka, as shown in PT.
-The translation for methods is shown in MT, where it simply translates the expression inside the method body.
+However, Typed Racket is still sound, as the only failures will come from inside
+the wrappers. If an object breaks its type, then the wrapper will catch it 
+before it reaches the typed code, and therefore, from the perspective of the 
+typed code, the object is fully typed.
+
+In our model of Typed Racket and Racket programs, we break from this ``macro''
+model of gradual typing, as it does not effect the fundamental semantics of the
+gradual typing system. Instead, we apply the same requirements that \kafka has
+onto Typed Racket classes - that is, each function must either declare a type
+or be fully dynamically typed, both options allowing mixed typed/untyped code
+in their bodies.
+
+As a result of the strong type invariants that are exposed to the static code,
+our translation from our version of the Typed Racket language to \kafka is 
+fairly simple, with the only rule that differs substantialyl from the 
+optionally-typed case being \RuleRef{TRAASC2}.
 
 \begin{mathpar}
 \IRule{PT}{
