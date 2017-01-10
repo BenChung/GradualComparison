@@ -1015,22 +1015,18 @@ to those of type \t, while not making any guarantee about the type of the argume
 \subsection{Semantics}
 
 \begin{figure}[!h]
-\begin{tikzpicture}
-% states
-\draw (0,0) node[anchor=west] {$\K~\e~$}
-      (2,0) node[anchor=west] {$\Kp~\ep~\s$}
-      (4,0) node[anchor=west] {$\Kpp~\a~\s$};
-
-% transitions
-\draw (1-0.1,-0.1) node[anchor=west] {$\progtrans{}{}$}
-      (3.1,0) node[anchor=west] {$\longrightarrow^*$};
-
-%requirements
-\draw (2,-0.5) node[anchor=west] {$\WFp\Kp\ep$};
-\draw (2-0.1,-1) node[anchor=west] {$\EnvType {}{}\Kp\ep\t$};
-
-\draw (4-0.1,-1) node[anchor=west] {$\EnvType {}{}\Kpp\a\t$};
-\end{tikzpicture}
+\begin{tabular}{|ccc|ccc|}
+\hline
+\multicolumn{3}{|l|}{Statics} & \multicolumn{3}{l|}{Dynamics}\\
+\hline
+$\K~\e$ & $\progtrans{}{}$ & $\Kp~\ep$ & 
+$\Kp~\ep~\cdot$ & $\longrightarrow^*$ & $\Kpp~\a~\s$ \\
+\hline
+\multicolumn{3}{|l|}{Guarantees} & \multicolumn{3}{l|}{Guarantees}\\
+&& $\WFp\Kp\ep$ & 
+$\EnvType {\cdot}{\cdot}\Kp\e\t$ & $\implies$ & 
+$\EnvType {\cdot}{\s}\Kpp\a\t$ \\\hline
+\end{tabular}
 \caption{\kafka Reductions.}\label{redu}
 \end{figure}
 
