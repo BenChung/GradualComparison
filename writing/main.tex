@@ -1324,18 +1324,19 @@ into typed references without impediment
 
 
 \section{Translation: Thorn}
+\newcommand{\bC}{\xt{!C}}
 
 The translation for Thorn contains an ``unsound'' type $\dt\C$, which has its own subtyping relation, and compiles 
 down to \any in \kafka. This unsound type still enforces the same static requirements as its sound counterpart, but 
-generates no runtime casts and therefore has lower overhead.
+generates no runtime casts and therefore has lower overhead. Over this new type, we define a subtyping relation, 
+$\t \Sub_t \t$.
 
-\newcommand{\bC}{\xt{!C}}
 
 \begin{tabular}{l@{~~}l@{}l@{}l}
-\t  &::= ~ \any \B \C \B \dt\C \\ 
+\\
+\t  &::= ~ \any \B \C \B \dt\C \\
+\\
 \end{tabular}
-
-Over this new type, we define a subtyping relation, $\t \Sub_t \t$ as follows:
 
 \newcommand{\ThorSub}[4]{\EM{#1~#2 \vdash #3 \Sub_t #4}}
 \opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
@@ -1530,11 +1531,12 @@ self object. As a result, in \kafka the translation will wrap field accessors in
 }
 \end{mathpar}
 
-The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency such as the monotonic system, 
+The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency, such as the monotonic system, 
 consistency is used to conclude an analytic judgment, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
-However, in transient, the rest of the program makes no type assumptions that may be violated by consistency. Even when the 
+Consistency within \kafka is defined in a later section, detailing the monotonic cast semantic and the translation for the monotonic system.   
+However, in the transient semantics, the rest of the program makes no type assumptions that may be violated by consistency. Even when the 
 translation takes a particularly weak perspective on the interpretation of a transient type into \kafka. Even a type system that
-fully represents a transient type (e.g. one that tracks method names, only) will accept structurally conistent values under the 
+fully represents a transient type (e.g. one that tracks only method names) will accept structurally consistent values under the 
 same type. As a result, consistent values are allowed to be used with no additional casts.
 
 \section{Translation: Typed Racket}
@@ -1946,7 +1948,7 @@ as casts are inserted at type boundaries.
 The most notable difference between Reticulated Python and other gradually typed languages is the use of \emph{consistency},
 an operator broadly that means one type is compatible with another type. In our system, we define conistency as follows:
 \begin{mathpar}
-\IRule{C1}{\tmeet\t\tp\cdot\K = \tpp}{\consistent\K{\t}{\tp}}
+\IRule{C1}{\tmeet\t\tp\cdot\K = \tpp\,\Kp}{\consistent\K{\t}{\tp}}
 \end{mathpar}
 
 % broken: partially typed calls
