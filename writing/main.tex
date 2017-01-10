@@ -1654,11 +1654,6 @@ have an untyped object gaining a type assertion (\RuleRef{TRAASC2}), we use the
 name cast to ensure that the value has all of the required method names 
 (modelling Typed Racket's dynamics), and then use the behavioural cast operator.
 
-Likewise, when converting from a statically typed expression to an untyped one,
-as seen in \RuleRef{TRAASC3}, we use the behavioural cast operator, applying a 
-wrapper. We do not need to use a name cast here, as no methods are strictly 
-required on a any-typed expression, and as a result, no additional checks are 
-needed.
 
 \begin{mathpar}
 \IRule{TRAASC1}{
@@ -1669,15 +1664,10 @@ needed.
 }
 
 \IRule{TRAASC2}{
-  \GenCast\K\Env\e\ep\any
+  \GenCast\K\Env\e\ep\tp \\
+  \t \neq \tp
 }{
   \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
-}
-
-\IRule{TRAASC3}{
-  \GenCast\K\Env\e\ep\C
-}{
-  \AnaCast\K\Env\e{\BehCast\any\ep}\any
 }
 \end{mathpar}
 
@@ -1711,7 +1701,7 @@ handles the case where the target type of the cast is \any.
 {  \small
   \begin{mathpar}
 \IRule{BC1}{
-  \App\s\a = \obj\C{\b\ap}  \\
+  \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\\\
   \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\\\\
   \fresh\app \\
