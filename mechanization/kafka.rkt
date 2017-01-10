@@ -34,8 +34,10 @@
   (σa (a ↦ {a ... C}))
   (σ (σa ...))
   (E (call E m e)
+     (call E f e)
      (call E f)
      (call v m E)
+     (call v f E)
      (dcall E m e)
      (dcall v m E)
      (new C v ... E e ...)
@@ -45,6 +47,8 @@
      (moncast t E)
      hole))
 
+(define-metafunction KafKa
+  [(debug any_A) 2 (side-condition (writeln (term any_A)))])
 
 (define (find-hole list)
   (set-first (set-subtract (list->set (stream->list (in-range 0 (+ 1 (length list))))) (list->set list))))
@@ -85,7 +89,7 @@
                       (--> ((in-hole E (call a_1 f a_2)) (name K (k_1 ... (class C fd ... md_1 ... (f (x t_1) t e) md_2 ...) k_2 ...))
                                                          (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...)))
                            ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))
-                      (--> ((in-hole E (call a_1 m a_2)) (name K (k_1 ... (class C fd ... md_1 ... (m (x C_1) C e) md_2 ...) k_2 ...))
+                      (--> ((in-hole E (call a_1 m a_2)) (name K (k_1 ... (class C fd ... md_1 ... (m (x C_1) C_2 e) md_2 ...) k_2 ...))
                                                          (name σ (σa_1 ... (a_1 ↦ {a_3 ... C}) σa_2 ...)))
                            ((in-hole E (substitute (substitute e x a_2) this a_1)) K σ))
                       (--> ((in-hole E (dcall a_1 m a_2)) (name K (k_1 ... (class C fd ... md_1 ... (m (x anyt) anyt e) md_2 ...) k_2 ...))
@@ -218,15 +222,13 @@
   #:mode (tr-anacast I I I I O)
   #:contract (tr-anacast K Γ e t e)
   [(tr-syncast K Γ e e_1 t_1)
-   (<: () K t t_1)
+   (<: () K t_1 t)
    -----"TRAASC1"
    (tr-anacast K Γ e t e_1)]
-  [(tr-syncast K Γ e e_1 anyt)
+  [(tr-syncast K Γ e e_1 t_1)
+   (side-condition ,(not (judgment-holds (<: () K t t_1))))
    -----"TRAASC2"
-   (tr-anacast K Γ e t (behcast t (namcast t e)))]
-  [(tr-syncast K Γ e e_1 C)
-   -----"TRAASC3"
-   (tr-anacast K Γ e anyt (behcast anyt e))])
+   (tr-anacast K Γ e t (behcast t (namcast t e)))])
 
 (define Kred-beh
   (extend-reduction-relation
@@ -236,7 +238,7 @@
         (where (K_1 a_1 σ_1) (behcast-impl a t σ K)))))
 
 (define-metafunction KafKa
-  behcast-impl : a C σ K -> (K a σ)
+  behcast-impl : a t σ K -> (K a σ)
   ((behcast-impl a C_1 σ (name K (k ...)))
    ((k_1 k ...) a_2 σ_1)
    (where (σa_1 ... (a ↦ {a_1 ... C}) σa_2 ...) σ)
@@ -260,8 +262,9 @@
 (define-metafunction KafKa
   wrap-ut : C (md ...) (mt ...) D -> k
   [(wrap-ut C (md ...) (mt ...) D)
-   (class D (that C) md ...)
-   (where (md ...) ,(judgment-holds (wrap-ut-mths (md ...) (mt ...) md)))])
+   (class D (that C) md_1 ...)
+   (where (md_1 ...) ,(judgment-holds (wrap-ut-mths (md ...) (mt ...) md_1) md_1))
+   ])
 
 (define-metafunction KafKa
   behnamcast : t e -> e
@@ -383,7 +386,19 @@
   [(beh-lift (mt_1 ...) (mt_2 ...) e_a x e e_1) ...
    -------------- "REW8"
    (beh-lift (mt_1 ...) (mt_2 ...) e_a x
-             (new C e ...) (new C e_1 ...))])
+             (new C e ...) (new C e_1 ...))]
+  [(beh-lift (mt_1 ...) (mt_2 ...) e_a x e e_1)
+   -------------- "REW9"
+   (beh-lift (mt_1 ...) (mt_2 ...) e_a x
+             (behcast t e) (behcast t e_1))]
+  [(beh-lift (mt_1 ...) (mt_2 ...) e_a x e e_1)
+   -------------- "REW10"
+   (beh-lift (mt_1 ...) (mt_2 ...) e_a x
+             (namcast t e) (namcast t e_1))]
+  [(beh-lift (mt_1 ...) (mt_2 ...) e_a x e e_1)
+   -------------- "REW11"
+   (beh-lift (mt_1 ...) (mt_2 ...) e_a x
+             (subcast t e) (subcast t e_1))])
 ; Thorn
 
 
@@ -518,10 +533,6 @@
   mtypes-thorn : C K -> (mt ...))
 
 ; Reticulated
-
-
-(define-metafunction KafKa
-  [(debug any_A) 2 (side-condition (writeln (term any_A)))])
 
 (define-extended-language KMeet KafKa
   (Pb (C C ↦ C))
