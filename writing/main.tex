@@ -674,12 +674,11 @@ browsers can run TypeScript code with no overheads.
 \subsection{Thorn}
 
 Thorn~\cite{oopsla09} is an object-oriented language with multiple
-inheritance, nominal type equivalence and a combination of optional and
-concrete types.  Optional types (written here \code{?T}) are treated exactly
-as in TypeScript, they are translated to dynamic and method invocations are
-resolved dynamically. Concrete types (written \code{T}), on the other hand,
-are treated as they would be in Java. A variable \code{x:~C} is guaranteed
-to be of class \code C or of a subtype thereof.
+inheritance, nominal type equivalence, and a combination of optional and
+concrete types. Optional types (\code{?T}) are treated exactly
+as in TypeScript, they are translated to dynamic types and method invocations are
+resolved dynamically. Concrete types (written \code{T}) are treated as they would be in Java. 
+A variable \code{x:~C} is guaranteed to be of class \code C or of a subtype thereof.
 
 \begin{lstlisting}
 class A {
@@ -688,18 +687,19 @@ class A {
 }
 
 new A().m( new D() )  // OK -- warning
-new A().m( new C() )  // OK -- C <: ?C
 new A().n( new D() )  // ERR -- D !<: C
 \end{lstlisting}
 
-In the above code snippet, class \code A has one method taking an optional
-type and the other taking a concrete type. Assume \code C and \code D are
+In the above code snippet, class \code A has a method taking an optional
+type and another taking a concrete type. Assume the types \code C and \code D are
 unrelated. The first call is allowed because the type of \code m is treated
 as \any (the Thorn compiler does emit a warning). The second call is ruled
-out as incorrect.
-
+as incorrect, there are no subtype relation between \code C and \code D.
 Translating Thorn to \kafka is straightforward. Optional types are translated
-to \any. Method calls with either receiver 
+to \any. Concrete types are translated with the structural subtype casted
+in \kafka. 
+
+%TODO: finish this sentence: Method calls with either receiver 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typed Racket}
@@ -714,36 +714,35 @@ does it mean to gradually add types to a program?
 
 The answer taken by Strongscript and the other gradual typing systems we
 discuss in this paper is that programmers should be able to add a type
-anywhere one is syntactically valid. However, this idea is somewhat
+anywhere it is syntactically valid. However, this idea is somewhat
 artificial - some programmers will add types slowly, one function at a time,
 while others will type whole compilation modules at a time.
 
-The approach taken by Typed Racket is built around this latter style of
+The approach taken by Typed Racket is built around the latter style of
 gradual typing.  Instead of adding types to individual functions, it allows
 programmers to type their programs one module at a time, where each module
 is a separate compilation unit.  This approach constrains the way that
-programmers can add types to programs, and one that avoids having to reason
+programmers can add types to programs, and avoids having to reason
 about what it means to have a partially typed method, since in Typed Racket
 everything in a module is either fully typed or completely untyped.
 
-Additionally, Typed Racket is the first of the \emph{promised type} systems
+Additionally, Typed Racket is the first \emph{promised type} systems
 we will be discussing. Suppose that you have a variable $\x$ under type $\t$
 where $\t$ has some method $\xt{f}$. Naturally, you would expect to be able
-to call $\xt{f}$ (as \verb|(send x f)|), and would expect that your type
+to call $\xt{f}$ (written in Typed Racket as \verb|(send x f)|), and would expect that your type
 would guarantee that this function call would both work and return a value
 of the correct type.
 
 However, there are a number of places where this basic assumption can be
-violated, as a result of the interaction of typed and untyped code. If the
+violated, as a result of the interaction between typed and untyped code. If the
 underlying value has no function \xt{f}, then this call will fail, but this
-would be a runtime type error, exactly the kind of problem that we wish to
-avoid.
+would be a runtime type error, exactly the kind of problem we wish to avoid.
 
 The solution to this problem comes from how Typed Racket controls the
 interaction between modules, at the \emph{module boundaries}, where the
 system has to ensure that the untyped code respects the type annotations. To
-ensure that the type annotations are respected, Typed Racket uses
-contracts. The idea behind using contracts~\cite{ff-icfp02} that they allow
+ensure the type annotations are respected, Typed Racket uses
+contracts. The idea behind using contracts~\cite{ff-icfp02} is that they allow
 the system to check the types on the values going into typed code from
 untyped code, and values flowing out of untyped code into typed code.
 
@@ -804,11 +803,11 @@ code is used, rather than at the boundary crossing.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Reticulated Python}
 
-Reticulated Python is an extension of Python adding sound gradual types by
+Reticulated Python is an extension of Python with sound gradual types by
 Vitousek et al~\cite{siek14}, providing Python programmers with
 the ability to add types to their programs. Unlike the other languages we
-have examined here, though, Reticulated Python supports multiple different
-semantics for these types, providing different guarantees and imposing
+have examined so far, Reticulated Python supports multiple different
+semantics for their types, providing different guarantees and imposing
 different restrictions.
 
 Three different gradual typing semantics are currently avaliable in
@@ -820,11 +819,11 @@ mechanism for achieving this differs in each case.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Transient}
 
-In both the Strongscript and Typed Racket approaches, if you wrote a method
-(denoted $\m$ here) under type $\xt{int} \rightarrow \xt{int}$, you could be
+In both Strongscript and Typed Racket, if you wrote a method 
+under type $\xt{int} \rightarrow \xt{int}$, you could be
 assured that you would only ever be called with an argument that was
-actually an int. To achieve this guarantee, the systems alternately
-performed inline runtime casts based on runtime type information and
+actually an int. To achieve this guarantee, the systems perform 
+inline runtime casts based on runtime type information and
 inserted wrappers to check that the types were respected \emph{before} an
 actual function call was made. Likewise, a function that was declared to
 return an int would always return an int, ensured either by wrapping or by
@@ -913,7 +912,7 @@ type safety guarantee.
 \subsubsection{Monotonic}
 A key downfall of the approaches we discussed previously is that they
 cause performance impacts in fully-typed code, especially at heap access
-sites.The monotonic semantics for Reticulated Python aims to recover this,
+sites. The monotonic semantics for Reticulated Python aims to recover this,
 in exchange for a new dynamically-enforced guarantee.
 
 To see why the impact exists, consider the following code
