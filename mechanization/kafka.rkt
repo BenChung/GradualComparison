@@ -95,7 +95,10 @@
                       (--> ((in-hole E (subcast anyt a)) K σ) ((in-hole E a) K σ))
                       (--> ((in-hole E (subcast D a)) K (name σ (σa_1 ... (a ↦ {a_1 ... C}) σa_2 ...)))
                            ((in-hole E a) K σ)
-                           (judgment-holds (<: () K C D)))))
+                           (judgment-holds (<: () K C D)))
+                      (--> ((in-hole E (namcast D a)) K (name σ (σa_1 ... (a ↦ {a_1 ... C}) σa_2 ...)))
+                           ((in-hole E a) K σ)
+                           (judgment-holds (namesub C D K)))))
   
 
 (define-metafunction KafKa
@@ -108,6 +111,22 @@
   [(compose-K (k_1 ...) (k_2 ...) K ...) (compose-K (k_1 ... k_2 ...) K ...)]
   [(compose-K K) K])
 
+(define-metafunction KafKa
+  names : mt -> n
+  ((names (m t_1 t_2)) m)
+  ((names (f t t)) f)
+  ((names (f t)) f))
+
+(define-judgment-form KafKa
+  #:mode (namesub I I I)
+  #:contract (namesub C C K)
+  [(where (mt_1 ...) (mtypes C_1 K))
+   (where (mt_2 ...) (mtypes C_2 K))
+   (where (n_1 ...) ((names mt_1) ...))
+   (where (n_2 ...) ((names mt_2) ...))
+   (side-condition ,(subset? (term (n_1 ...)) (term (n_2 ...))))
+   ------
+   (namesub C_1 C_2 K)])
 
 (define-extended-language KafKa<: KafKa
   (M ((C <: D) ...)))
@@ -198,7 +217,7 @@
    (tr-anacast K Γ e t e_1)]
   [(tr-syncast K Γ e e_1 anyt)
    -----"TRAASC2"
-   (tr-anacast K Γ e t (behcast t e))]
+   (tr-anacast K Γ e t (behcast t (namcast t e)))]
   [(tr-syncast K Γ e e_1 C)
    -----"TRAASC3"
    (tr-anacast K Γ e anyt (behcast anyt e))])
@@ -215,6 +234,10 @@
    (class D (that C) md ...)
    (where (md ...) ,(judgment-holds (wrap-ut-mths (md ...) (mt ...) md)))])
 
+(define-metafunction KafKa
+  behnamcast : t e -> e
+  ((behnamcast t e) (behcast t (namcast t e))))
+
 (define-judgment-form KafKa
   #:mode (wrap-t-mths I I I O)
   #:contract (wrap-t-mths (md ...) (mt ...) (mt ...) md)
@@ -222,24 +245,24 @@
    (wrap-t-mths _
                 (mt_1 ... (f t) mt_2 ...)
                 (mt_3 ... (f t_1) mt_4 ...)
-                (f t_1 (behcast t_1 (call (call this that) f))))]
+                (f t_1 (behnamcast t_1 (call (call this that) f))))]
   [----- "R2"
    (wrap-t-mths _
                 (mt_1 ... (f t t) mt_2 ...)
                 (mt_3 ... (f t_1 t_1) mt_4 ...)
-                (f (y t_1) t_1 (behcast t_1 (call (call this that) f (behcast t y)))))]
+                (f (y t_1) t_1 (behnamcast t_1 (call (call this that) f (behcast t y)))))]
   [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behcast C_1 x) x e e_1)
    ----- "R3"
    (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
-                (m (x t) t_1 (behcast t_1 e_1)))]
+                (m (x t) t_1 (behnamcast t_1 e_1)))]
   [(side-condition ,(not (redex-match KafKa (m (md_3 ... (m (x anyt) anyt) md_4 ...)) (term (m (md_1 ... md_2 ...))))))
    ---- "R4"
    (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
-                (m (x anyt) anyt (subcast anyt (call this m (behcast t x)))))]
+                (m (x anyt) anyt (subcast anyt (call this m (behnamcast t x)))))]
   [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behcast anyt x) x e e_1)
    ---- "R5"
    (wrap-t-mths (md_1 ... (m (x anyt) anyt e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
-                (m (x t) t_1 (behcast t_1 e_1)))]
+                (m (x t) t_1 (behnamcast t_1 e_1)))]
   [(side-condition ,(not (redex-match KafKa ((f t) (mt_1 ... (f t) mt_2 ...)) (term ((f t) (mt_3 ...))))))
    --- "R6"
    (wrap-t-mths (md ...) (mt_1 ... (f t) mt_2 ..) (mt_3 ...)
@@ -270,7 +293,7 @@
    (wrap-ut-mths (md ...)
                  (mt_1 ... (f t t) mt_2 ...)
                  (f (y anyt) anyt (behcast anyt (call (call this that) f (behcast t y)))))]
-  [(beh-lift (mt ...) ((dynamize mt) ...) (behcast t x) x e e_1)
+  [(beh-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) x e e_1)
    ---- "R3"
    (wrap-ut-mths (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...)
                  (m (x anyt) anyt (behcast anyt e_1)))])
