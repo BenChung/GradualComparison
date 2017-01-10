@@ -1825,7 +1825,7 @@ to rule \RuleRef{REW3}.
 \begin{figure}[!ht]
 \hrulefill 
 \footnotesize
-
+\newcommand{\bscast}[2]{\EM{\BehCast{#1}{\ShaCast{#1}{#2}}}}
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\IGNOREUNLESSNEEDED{
@@ -1833,23 +1833,23 @@ to rule \RuleRef{REW3}.
     \wrap\C{\b\md}\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\BehCast\tp{\Get{\Get\this\that}\f}~}
+\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
 &    \All \f \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\
-\SPP \Mdef\f\x\tp\tp {~\BehCast\tp{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that}\f{\bscast\t\x}}~}
 &    \All \f \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
-\SPP \Mdef\m\x\t\tp {~\BehCast\tp{{\ep}}~}
+\SPP \Mdef\m\x\t\tp {~\bscast\tp{{\ep}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp{(\BehCast\Cp\x)}\x{\e}{\ep}}
+&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp{(\bscast\Cp\x)}\x{\e}{\ep}}
 \\
-\SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\BehCast{\t}\x}}~}
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\Call\this\m{\bscast{\t}\x}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
 &&&\multicolumn{3}{l}{\wedge~\Mdef\m\x\any\any{\e'}\not\in\b\md}
 \\
-\SPP \Mdef\m\x\t\tp{~\BehCast\tp{\ep}~}
+\SPP \Mdef\m\x\t\tp{~\bscast\tp{\ep}~}
 &    \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp{(\BehCast\any\x)}\x\e{\ep}}
+&&&\multicolumn{3}{l}{\wedge~\rtranst{\bmt}\bmtp{(\bscast\any\x)}\x\e{\ep}}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \All \f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
@@ -1872,7 +1872,7 @@ to rule \RuleRef{REW3}.
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
 &  \All \m  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\BehCast\t\x}}~}
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
 &  \All \f  \Mtype\f\t\t \in \bmt\\
 \SPP   \Mdef\m\x\any\any {~\BehCast\any{{\ep}}~}
 &  \All \m \Mdef\m\x\t\t\e\in\b\md \\

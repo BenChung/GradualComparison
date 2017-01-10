@@ -173,20 +173,20 @@
   #:mode (tr-syncast I I I O O)
   #:contract (tr-syncast K Γ e e t)
   [(where t (lookup-env Γ x))
-   -----"A1"
+   -----"TRA1"
    (tr-syncast K Γ x x t)]
   [(tr-syncast K Γ e_1 e_3 C)
    (where (mt_1 ... (n t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
    (tr-anacast K Γ e_2 t_1 e_4) ...
-   -----"A2"
+   -----"TRA2"
    (tr-syncast K Γ (call e_1 n e_2 ..._1) (call e_1 n e_4 ...) t_2)]
   [(tr-syncast K Γ e_1 e_3 anyt)
    (tr-anacast K Γ e_2 anyt e_4)
-   ------"A8"
+   ------"TRA3"
    (tr-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (tr-anacast K Γ e_1 t e_2) ...
-   ------"A11"
+   ------"TRA4"
    (tr-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
 
 (define-judgment-form KafKa
@@ -194,12 +194,14 @@
   #:contract (tr-anacast K Γ e t e)
   [(tr-syncast K Γ e e_1 t_1)
    (<: () K t t_1)
-   -----"AASC1"
+   -----"TRAASC1"
    (tr-anacast K Γ e t e_1)]
-  [(tr-syncast K Γ e e_1 t_1)
-   (side-condition ,(not (judgment-holds (<: () K t_1 t))))
-   -----"AASC2"
-   (tr-anacast K Γ e t (behcast t (namcast t e)))])
+  [(tr-syncast K Γ e e_1 anyt)
+   -----"TRAASC2"
+   (tr-anacast K Γ e t (behcast t e))]
+  [(tr-syncast K Γ e e_1 C)
+   -----"TRAASC3"
+   (tr-anacast K Γ e anyt (behcast anyt e))])
 
 (define-metafunction KafKa
   wrap-t : C (md ...) (mt ...) (mt ...) D -> k
