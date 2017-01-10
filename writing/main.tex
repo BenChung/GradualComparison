@@ -1213,6 +1213,116 @@ typed \any, as seen in \RuleRef{W9}.
 To illustrate the first cast, through subtyping, we present the 
 translation of a subset of the programming language Thorn to \kafka. 
 
+\section{Translation: TypeScript}
+
+TypeScript is an example of a \emph{optional} type system, where the types have
+no static guarantee whatsoever, and, as a result, the type system has no effect
+on the semantics of the language. As a result, TypeScript types are all \any,
+no matter the declared type.
+
+To model TypeScript on top of \kafka, we will use a very simple translation 
+mechanism, where every type becomes \any and every call becomes a dynamic call.
+We only have to ensure that the output program is type correct with respect to
+\kafka.
+
+We proceed through translation top-down, starting with the whole program 
+translation depicted in figure~\ref{redu} (\RuleRef{PT}), then proceeding 
+through the included expression and recursing into the classes, where we 
+translate the included methods (\RuleRef{CR2} and \RuleRef{MT}).
+
+\begin{mathpar}
+\IRule{PT}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule{CR1}{ 
+  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+
+\IRule{CR2}{ 
+}{
+  \classtrans {\K}\cdot\cdot
+}
+
+\IRule{MT}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any\ep}{}
+}
+\end{mathpar}
+
+Beyond the top level translation, we have two judgments that perform cast 
+insertion on expressions, following Pierce and Turner~\cite{pierce:1998:local},
+the synthetic cast insertion judgment $\GenCast\K\Env\e\ep\t$, which states that
+, against context \Env and class table \K, source expression \e translates to
+\kafka expression \ep producing source type \t, and the analytic judgment
+$\AnaCast\K\Env\e\ep\t$, which ensures that the translated \kafka expression 
+$\ep$ will model source type \t, coming from source expression \e.
+
+Inside of this bidirectional framework, we then have a fairly typical set of
+translation judgments for translating optionally typed TypeScript programs into
+\kafka.
+
+\begin{mathpar}
+\IRule{TSA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+
+\IRule[width=30em]{TSA2}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\m{\b{\e_4}}}{\t_2}
+}
+
+\IRule{TSA3}{
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule[width=20em]{TSA4}{
+    \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
+}
+
+\IRule{TSA5}{
+  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
+\end{mathpar}
+
+For TypeScript the synthetic case of translation is uninteresting, with the 
+exception of \RuleRef{TSA4}, which allows TypeScript programs to access fields
+via the self-reference, whose type is always absolutely known.
+
+\begin{mathpar}
+\IRule{TSAASC1}{
+  \GenCast\K\Env\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\Env\e\ep\t
+}
+
+\IRule{TSAASC2}{
+  \GenCast\K\Env\e\ep\any
+}{
+  \AnaCast\K\Env\e\ep\t
+}
+
+\IRule{TSAASC3}{
+  \GenCast\K\Env\e\ep\C
+}{
+  \AnaCast\K\Env\e\ep\any
+}
+\end{mathpar}
+
+Of more interest are TypeScript's analytic rules. Here, \RuleRef{TSAASC1}
+requires the interaction between typed parts of the program to be well-typed,
+but \RuleRef{TSAASC2} and \RuleRef{TSAASC3} allow untyped values to be passed
+into typed references without impediment
+
+
 \section{Translation: Thorn}
 
 The translation for Thorn contains an ``unsound'' type $\dt\C$, which has its own subtyping relation, and compiles 
@@ -1443,11 +1553,6 @@ applied to it, then Typed Racket cannot check it to ensure that the type
 assertion is statically verified, like Thorn can, but instead has to \emph{wrap}
 it to verify that it will behave to the type specification in the future.
 
-However, Typed Racket is still sound, as the only failures will come from inside
-the wrappers. If an object breaks its type, then the wrapper will catch it 
-before it reaches the typed code, and therefore, from the perspective of the 
-typed code, the object is fully typed.
-
 In our model of Typed Racket and Racket programs, we break from this ``macro''
 model of gradual typing, as it does not effect the fundamental semantics of the
 gradual typing system. Instead, we apply the same requirements that \kafka has
@@ -1455,10 +1560,46 @@ onto Typed Racket classes - that is, each function must either declare a type
 or be fully dynamically typed, both options allowing mixed typed/untyped code
 in their bodies.
 
+In order to support this behavioural semantics, we will have to extend the core 
+\kafka language with a new cast operation, ensuring that object {behaviour}
+matches the types on the object. For an expression \e and type \t, we will 
+write this as  \BehCast\t\e, and it has basic typing and semantic rules depicted 
+in figure~\ref{fig:behrules}.
+
+\begin{figure}[h!]
+\begin{minipage}{0.35\textwidth}
+\begin{mathpar}
+\IRule{W10}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\BehCast\t\e}\t
+}
+\end{mathpar}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{tabular}{l@{}l@{~}l@{~}l}
+\CondRule{E11}{  %% Behavioral cast  
+  \behcast \a\t\s\K  \Kp\ap\sp    
+}{    
+  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
+}
+\end{tabular}
+\end{minipage}
+\caption{Behavioural cast static and dynamic rules}
+\label{fig:behrules}
+\end{figure}
+
+We will go into the details of $\behcast\a\t\s\K$ later, but observe that, 
+despite not performing any dynamic check, we are able to say that the type is
+correct according to the \kafka type system. This arises from the wrapper 
+ensuring that the object is observably type correct, with any mismatch between
+the typed and untyped code getting caught before the bad value reaches typed
+code.
+
 As a result of the strong type invariants that are exposed to the static code,
 our translation from our version of the Typed Racket language to \kafka is 
-fairly simple, with the only rule that differs substantialyl from the 
-optionally-typed case being \RuleRef{TRAASC2}.
+fairly simple, only differing substantially from the optionally-typed system in 
+two key analytic cases.
 
 \begin{mathpar}
 \IRule{PT}{
@@ -1483,7 +1624,6 @@ optionally-typed case being \RuleRef{TRAASC2}.
 }
 \end{mathpar}
 
-
 \begin{mathpar}
 \IRule{TRA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
@@ -1505,8 +1645,18 @@ optionally-typed case being \RuleRef{TRAASC2}.
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
-The remaining translations is relatively straightforward. The translation within our 
-bidirectional system, including the synthetic and analytic cases, proceeds in the typical manner.
+\RuleRef{TRAASC2} and \RuleRef{TRAASC3} are the most important cases of cast 
+insertion for our Typed Racket translation, and represent Racket objects 
+crossing into Typed Racket and vice versa, respectively. In the case where we 
+have an untyped object gaining a type assertion (\RuleRef{TRAASC2}), we use the
+name cast to ensure that the value has all of the required method names 
+(modelling Typed Racket's dynamics), and then use the behavioural cast operator.
+
+Likewise, when converting from a statically typed expression to an untyped one,
+as seen in \RuleRef{TRAASC3}, we use the behavioural cast operator, applying a 
+wrapper. We do not need to use a name cast here, as no methods are strictly 
+required on a any-typed expression, and as a result, no additional checks are 
+needed.
 
 \begin{mathpar}
 \IRule{TRAASC1}{
@@ -1517,30 +1667,31 @@ bidirectional system, including the synthetic and analytic cases, proceeds in th
 }
 
 \IRule{TRAASC2}{
-  \GenCast\K\Env\e\ep\tp
+  \GenCast\K\Env\e\ep\any
 }{
   \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
 }
+
+\IRule{TRAASC3}{
+  \GenCast\K\Env\e\ep\C
+}{
+  \AnaCast\K\Env\e{\BehCast\any\ep}\any
+}
 \end{mathpar}
 
-The TRAASC2 rule describes when the Typed Racket translation encounters a casting type that's not a subtype
-of the original type. A behavioural and name cast will be inserted around the potentially ill-typed target.
-This is because Typed Racket only does runtime checking on the nature of the values that are passed in from Racket,
-and therefore, even nonsensical types can be asserted for untyped code. TRAASC2 accounts for this by aggressive wrapping, 
-where a type can be of any other type.
+Now that we have seen how the guarantees provided by the behavioural casts can 
+be used to ensure the safety of typed code, we will now examine how the 
+behavioural cast can be implemented into \kafka.
 
-Lastly, TRAASC2 will insert a name cast as the behavioural cast is very weak, passing virtually 
-every object through it in a wrapper, even if the object underneath diverges from the type asserted by it. A classic example
-being missing methods. To compensate for this, we also add the name cast, which ensures that all of the required methods are present.
 
 \subsection{Behavioral Casts}
 
 A behavioral cast \BehCast\t\a will return a fresh \ap that refers to an
-object that behaves as if it was of type \t. In case, the underlying object
-departs from that expected behavior, the computation will get
-stuck. Behavioral casts are generative as they create a new wrapper class
-which monitors the target object for conformance to the interface of \t.
-\figref{behave} details the semantics of this cast. \ruleref{BC1} is the
+object that behaves as if it was of type \t, and, if the underlying object
+departs from the behaviour that was required of it, the wrapper object will get
+stuck at an internal cast. Behavioural casts must be generative, as they produce
+a new object which monitors the target object for conformance to the interface 
+of \t. \figref{behave} details the semantics of this cast. \ruleref{BC1} is the
 cast where an object \obj\C{\b\a} is cast to a class \Cp. This leads to the
 creation of a wrapper class \k (under a new name \D). The class is appended
 to the class table \K.  The cast returns a reference \ap to an instance of
@@ -1623,6 +1774,54 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \caption{Behavioral dynamic expression translation.}\label{behtrans}
 \end{figure}
 
+A key issue that is encountered in any wrapper-based approach surrounds the 
+handling of the \this keyword, and deciding what happens if the object ``under''
+the type invariant calls itself. From a pure type correctness standpoint, 
+the wrapped object need not observe the requirements of the type that it is
+observed under, but Typed Racket requires that, if an object is called through a
+warpper, then that object should observe the requirements of that wrapper 
+internally.
+
+\begin{figure}[!ht]
+\begin{lstlisting}
+class C { 
+  m(x:*):* { this@n(x) }
+  n(x:*):* { x }}
+class D { 
+  m(x:C):C { new C() }
+  n(x:D):D { new D()}}
+(<*>(<D>new C()))@m(new C())
+\end{lstlisting}
+\caption{Internal behaviour is effected by external types}
+\label{fig:intbeh}
+\end{figure}
+
+This can be seen in in figure~\ref{fig:intbeh}. Here, the instance of \C will 
+always return another instance of \C, using the internal method \n to actually
+create the new object. However, if we then create another class \D that requires
+\n to return type \D and apply a Typed Racket cast to \D on the instance of \C,
+then call \m, we find that an error is produced when \C's implementation of \n
+returns a \C instead of a \D.
+
+Checking this functionality with wrappers is difficult, as \kafka does not allow
+the wrapper to set the object identity for the called object, and therefore 
+internal calls are left unchecked by the wrapper. To ensure that internal calls
+are safe, we have to prevent the call from reaching the wrapped object, by 
+lifting the body of the wrapped method into the wrapper object.
+
+However, a considerable technical hurdle to this approach is that the expression
+\e inside the called method is only well-typed with respect to the wrapped class
+, not the wrapper that sits on top of it. We overcome this issue through a 
+special ``type-fixing'' operation, shown in figure~\ref{behtrans}, which 
+ensures the type correctness of wrapped method bodies once lifted into the 
+wrapper.
+
+To illustrate the operational principle behind the expression translation 
+mechanism, consider figure~\ref{fig:intbeh}, where we call \n via \m. If we 
+consider unrolling a wrapper intermediate between \m and \n into \m, we find 
+that \m has body \BehCast\D{\Call\this\n{\BehCast\D\x}}, which is equivalent
+to rule \RuleRef{REW3}.
+
 \begin{figure}[!ht]
 \hrulefill 
 \footnotesize
@@ -1689,7 +1888,7 @@ untyped methods, a dynamic call is blanketed by casts to \any.
   \caption{Wrapper class generation.}\label{wrap}
 \end{figure}
 
-Multiple wrappers can be layered on top of a target object. Each time a
+Another challenge is that multiple wrappers can be layered on top of a target object. Each time a
 reference crosses a boundary between typed and untyped code, it will accrue
 an additional wrapper. When a method is invoked on a wrapper chair, that
 method will be invoked on every wrapper, until finding its way to the target
@@ -2678,12 +2877,6 @@ types in Transient will drift towards \any.
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
-}
-
-\IRule{W10}{
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\BehCast\t\e}\t
 }
 
 \IRule{W11}{
