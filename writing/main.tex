@@ -188,14 +188,15 @@ signature.
 
 
 The heart of a gradual type system implementation is the insertion of
-explicit casts at type boundaries.  Four different casts are built-in \kafka, 
-two of these are called structural because they only inspect the
-structure of the objects, while the other two are called generative as they create
-new wrapper classes.  The subtype cast \SubCast\t\a is a structural cast that checks if
+explicit casts at type boundaries.  Two different structual casts are built-in
+to \kafka, these are called structural because they only inspect the
+structure of the objects. \kafka also supports two additional casts
+called generative as they create new wrapper classes.  
+The subtype cast \SubCast\t\a is a structural cast that checks if
 the object references by \a is a subtype of type \t, \t can be either a
 class \C or the dynamic type \any.  The shallow cast \ShaCast\t\a merely
 checks that the object has all the methods of type \t without looking at
-their signatures. A behavioral cast \BehCast\t\a generates a wrapper object
+their signatures. The behavioral cast \BehCast\t\a generates a wrapper object
 that monitors that methods invoked on \a abide by the interface of type
 \t. The monotone cast \MonCast\t\a returns a wrapper monitoring all
 invocations to the object referenced by \a, furthermore this wrapper can only
