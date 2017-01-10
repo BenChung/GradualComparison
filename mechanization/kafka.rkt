@@ -47,7 +47,6 @@
 
 
 (define (find-hole list)
-  (write list)
   (set-first (set-subtract (list->set (stream->list (in-range 0 (+ 1 (length list))))) (list->set list))))
 
 
@@ -161,6 +160,13 @@
   [----------"SThat"
    (<: M K (that t_1 ... t_2) mt)])
 
+(define (make-free-class bound)
+  (term ,(string->symbol (string-join (list "gen" (number->string (length bound))) ""))))
+
+(define-metafunction KafKa
+  free-class : K C ... -> C
+  [(free-class ((class C fd ... md ...) ...) D ...) ,(make-free-class (term (C ... D ...)))])
+
 ;Typed Racket
 
 (define-judgment-form KafKa
@@ -222,6 +228,29 @@
    -----"TRAASC3"
    (tr-anacast K Γ e anyt (behcast anyt e))])
 
+(define Kred-beh
+  (extend-reduction-relation
+   Kred KafKa
+   (--> ((in-hole E (behcast t a)) K σ)
+        ((in-hole E a_1) K_1 σ_1)
+        (where (K_1 a_1 σ_1) (behcast-impl a t σ K)))))
+
+(define-metafunction KafKa
+  behcast-impl : a C σ K -> (K a σ)
+  ((behcast-impl a C_1 σ (name K (k ...)))
+   ((k_1 k ...) a_2 σ_1)
+   (where (σa_1 ... (a ↦ {a_1 ... C}) σa_2 ...) σ)
+   (where D (free-class (k ...)))
+   (where k_1 (wrap-t C (get-mds C K) (mtypes C K) (mtypes C_1 K) D))
+   (where (a_2 σ_1) (alloc σ a D)))
+  ((behcast-impl a anyt σ (name K (k ...)))
+   ((k_1 k ...) a_2 σ_1)
+   (where (σa_1 ... (a ↦ {a_1 ... C}) σa_2 ...) σ)
+   (where D (free-class (k ...)))
+   (where k_1 (wrap-ut C (get-mds C K) (mtypes C K) D))
+   (where (a_2 σ_1) (alloc σ a D))))
+   
+               
 (define-metafunction KafKa
   wrap-t : C (md ...) (mt ...) (mt ...) D -> k
   [(wrap-t C (md_1 ...) (mt_1 ...) (mt_2 ...) D)
@@ -490,12 +519,6 @@
 
 ; Reticulated
 
-(define (make-free-class bound)
-  (term ,(string->symbol (string-join (list "gen" (number->string (length bound))) ""))))
-
-(define-metafunction KafKa
-  free-class : K C ... -> C
-  [(free-class ((class C fd ... md ...) ...) D ...) ,(make-free-class (term (C ... D ...)))])
 
 (define-metafunction KafKa
   [(debug any_A) 2 (side-condition (writeln (term any_A)))])
