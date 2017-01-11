@@ -2061,11 +2061,11 @@ an operator broadly that means one type is compatible with another type. In our 
 }
 
 \IRule{MT}{
-  \AnaCast \K{\HT\this\C~\HT\x\t}\e\ep\tp \\
-  \monowrap{\t_1}\K = \t_2~\K_1 \\
-  \monowrap{\tp_1}\K = \tp_2~\K_2
+  \AnaCastMono \K{\HT\this\C~\HT\x\t}\e\ep\tp{\K_1} \\
+  \monowrap{\t_1}\K = \t_2~\K_2 \\
+  \monowrap{\tp_1}\K = \tp_2~\K_3
 }{
-  \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2}
+  \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2~\K_3}
 }
 \end{mathpar}
 
@@ -3310,7 +3310,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 \IRule{ST4}{
  \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K \\
  \sign{\b\md} = \b{\Mtype\m\tp\tpp} \\ 
- \b\Cp = \b\C, \b\t, \b\tp, \b\tpp 
+ \b\Cp = \b\C, \D
 }{ 
   \statictype\D\K{\b\C} = \statictype{\b\t}\K{\b\Cp} \cap \statictype{\b\tp}\K{\b\Cp} \cap \statictype{\b\tpp}\K{\b\Cp}
 }
