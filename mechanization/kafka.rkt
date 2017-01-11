@@ -774,30 +774,30 @@
   monWrap : C (md ...) (mt ...) (mt ...) C K -> k
   ((monWrap C (md ...) (mt ...) (mt_1 ...) D K)
    (class D (that C) md ...)
-   (where (md ...) ,(judgment-holds (mono-wrap (md ...) (mt ...) (mt_1 ...) md) md))))
+   (where (md ...) ,(judgment-holds (mono-wrap (md ...) (mt ...) (mt_1 ...) K md) md))))
 
 (define-judgment-form KafKa
-  #:mode (mono-wrap I I I O)
-  #:contract (mono-wrap (md ...) (mt ...) (mt ...) md)
+  #:mode (mono-wrap I I I I O)
+  #:contract (mono-wrap (md ...) (mt ...) (mt ...) K md)
   [(side-condition ,(not (redex-match KafKa that (term f))))
    ---- "R1"
    (mono-wrap (md ...)
                  (mt_1 ... (f t t) mt_2 ...)
-                 (mt_3 ... (f t_1 t_1) mt_4 ...)
+                 (mt_3 ... (f t_1 t_1) mt_4 ...) K
                  (f (y anyt) anyt (moncast anyt (moncast t_1 (call (call this that) f (moncast t (moncast t_1 y)))))))]
   [(side-condition ,(not (redex-match KafKa that (term f))))
    ---- "R2"
-   (mono-wrap (md ...) (mt_1 ... (f t) mt_2 ...) (mt_3 ... (f t_1) mt_4 ...)
+   (mono-wrap (md ...) (mt_1 ... (f t) mt_2 ...) (mt_3 ... (f t_1) mt_4 ...) K
                  (f anyt (moncast anyt (moncast t_1 (call (call this that) f)))))]
   [(mon-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) e_1)
    ---- "R3"
-   (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...)
+   (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...) K
                  (m (x anyt) anyt (moncast anyt (moncast t_1 (substitute e_1 x (moncast t x))))))]
   [(mon-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) e_1)
+   (where #t (static t_3 K ()))
    ---- "R4"
-   (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...)
-                 (m (x anyt) anyt (moncast anyt (moncast t_1 (substitute e_1 x (moncast t x)))))
-                 (judgment-holds (static C t_3 ())))])
+   (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...) K
+                 (m (x t_2) t_3 (moncast t_3 (substitute e_1 x (moncast t x)))))])
 
 (define-judgment-form KafKa
   #:mode (mon-lift I I I O)
