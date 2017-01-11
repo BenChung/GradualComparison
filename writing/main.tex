@@ -2753,13 +2753,11 @@ a class table \K.   The set of subtypings can be omitted if empty.
 
 \IRule{SRec}{
  \M' = \M~\C\Sub\D\\
-\mt \in \classoff\D\K \implies \exists \mt' \in \classoff\C\K. \StrSub{\M'}\K\mt{\mt'}
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \StrSub{\M'}\K\mt{\mtp}
 }{
  \StrSub \M\K \C \D 
 }
 \end{mathpar}
-
-Several auxiliary rules are used in the subtype judgement. 
 
 \begin{mathpar}
 \IRule{SMet}{
@@ -2780,20 +2778,19 @@ Several auxiliary rules are used in the subtype judgement.
 }{
  \StrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
 }
-
-\IRule{SThat}{
-}{
-  \StrSub\M\K{\Mtype\that{\b{\t[1]}}{\t[1]}}{\mt}
-}
+% \IRule{SThat}{
+% }{
+%   \StrSub\M\K{\Mtype\that{\b{\t[1]}}{\t[1]}}{\mt}
+% }
 \end{mathpar}
 
 \subsection{Well-formedness}
 
 The overloading function is meant to check that every typed method is
 defined once. Every untyped method is defined once. A class has either a
-field \f or a pair of getter and setters.
+field \f or a pair of getter and setters. \\
 
-\opdef{\WFp\e\K}{Well-formed program}
+\opdef{~\WFp\e\K}{Well-formed program}
 
 \begin{mathpar}
 \IRule{WP}{
@@ -2809,19 +2806,21 @@ field \f or a pair of getter and setters.
 \begin{mathpar}
 \IRule{WC}{
  \xt{overloading}(\b\fd,\b\md)\OK \\
- \fd\in\b\fd\implies \WF \none\s\K \fd \\
- \md\in\b\md\implies \WF \none\s\K \md 
+ \fd\in\b\fd\implies \WF {\text{this}:\C~}\s\K \fd \\
+ \md\in\b\md\implies \WF {\text{this}:\C~}\s\K \md 
 }{
  \WF {}\s\K {\Class \C {\b\fd}{\b\md}}
 }
 \end{mathpar}
 
 The \xt{overloading} auxiliary function states that there are no overloaded 
-field or method names within the given field and method definitions.
+field or method names within the given field and method definitions. \\
+
+\opdef{~\WF \Env\s\K \md}{Well-formed methods}
 
 \begin{mathpar}
 \IRule[width=18em]{WT}{
- \EnvType {\Env{\Ftype\x\C}}\s\K\e\D\\
+ \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\D\\
  \WFtype\K\C \\
  \WFtype\K\D \\
 }{
@@ -2829,22 +2828,16 @@ field or method names within the given field and method definitions.
 }
 
 \IRule[width=18em]{WU}{
- \EnvType {\Env \Ftype\x\any}\s\K \e\any\\
+ \EnvType {\Env~\Ftype\x\any~}\s\K \e\any\\
 }{
  \WF \Env\s\K{\Mdef\m\x\any\any\e}
 }
 
 \IRule{WS}{
- \EnvType {\Env{\Ftype\x\tp}}\s\K \e\t \\
+ \EnvType {\Env{~\Ftype\x\tp}~}\s\K \e\t \\
  \WFtype \K\t 
 }{
  \WF  \Env\s\K {\Mdef\f\x\t\t\e}
-}
-
-\IRule{WF}{
- \WFtype \K\t 
-}{
- \WF  \Env\s\K {\Fdef\f\t}
 }
 
 \IRule{WG}{
@@ -2853,17 +2846,30 @@ field or method names within the given field and method definitions.
 }{
  \WF \Env\s\K {\Mdefz\f\t\e}
 }
+\end{mathpar}
 
+\opdef{~\WF  \Env\s\K {\Fdef\f\t}}{Well-formed fields}
 
+\begin{mathpar}
+\IRule{WF}{
+ \WFtype \K\t 
+}{
+ \WF  \Env\s\K {\Fdef\f\t}
+}
+\end{mathpar}
+
+\opdef{~\WFtype\K\t}{Well-formed types}
+
+\begin{mathpar}
 \IRule{WA}{
 }{
- \WFtype \K \any
+ \WFtype\K\any
 }
 
 \IRule{WC}{
  \C \in \K
 }{
- \WFtype  \K\C
+ \WFtype\K\C
 }
 \end{mathpar}
 
@@ -2880,7 +2886,7 @@ types in Transient will drift towards \any.
 
 ~\\
 
-\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s}
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 \begin{mathpar}
 
 \IRule{W1}{
@@ -2963,6 +2969,21 @@ types in Transient will drift towards \any.
 }{
   \EnvType \Env\s\K\a\C
 }
+
+\IRule{W13}{
+  \Env(\text{this}) = \D \\
+  \Class \D {\text{that}:\C}{...} \in\,\K \\
+}{
+  \EnvType \Env\s\K{\Get{\text{this}}{\text{that}}}\C
+}
+
+\IRule{W14}{
+  \Env(\text{this}) = \D \\
+  \Class \D {\text{that}:\C}{...} \in\,\K\\
+  \EnvType \Env\s\K\e\C \\
+}{
+  \EnvType \Env\s\K{\Set{\text{this}}{\text{that}}\e}\C
+}
 \end{mathpar}
 
 
@@ -3028,6 +3049,8 @@ the object stored at \a in \s.
 
 \subsection{Class wrapper for Behavorial semantics}
 
+% TODO: FIX the formatting.
+
 \begin{figure}[!ht]
 \hrulefill 
 \scriptsize
@@ -3040,10 +3063,10 @@ the object stored at \a in \s.
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
-&    \All \f \f\neq\that\,\wedge~\Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+&    \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\
 \SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that}\f{\bscast\t\x}}~}
-&    \All \f \f\neq\that\wedge~\Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
+&    \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
 \\
 \SPP \Mdef\m\x\t\tp {~\bscast\tp{{\ep}}~}
 &     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
@@ -3058,10 +3081,10 @@ the object stored at \a in \s.
 &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp{(\bscast\any\x)}\x\e{\ep}}
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
-&    \All \f \f\neq\that\,\wedge~\Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
+&    \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
 \\
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
-&    \All \f \f\neq\that\,\wedge\,\Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
+&    \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
 \\
 \SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
 &    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
@@ -3077,9 +3100,9 @@ the object stored at \a in \s.
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
-&  \All \f \f\neq\that\,\wedge\, \Mtype\f{}\t \in \bmt\\
+&  \Mtype\f{}\t \in \bmt\\
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
-&  \All \f  \f\neq\that\,\wedge\,\Mtype\f\t\t \in \bmt\\
+&  \Mtype\f\t\t \in \bmt\\
 \SPP   \Mdef\m\x\any\any {~\BehCast\any{{\ep}}~}
 &  \All \m \Mdef\m\x\t\t\e\in\b\md \\
 &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}{\dyn{\bmt}}{(\BehCast\t\x)}\x{\e}{\ep}}
@@ -3107,7 +3130,7 @@ signatures of the original class $\b\mt$, the method signatures of the cast
 class $\b\mtp$, the environment $\P$, a class table $\K$, and outputs method
 types $\b\mtpp$ and a class table $\Kp$. 
 
-\hrulefill
+% \hrulefill
 
 \opdef{
   $\mmeet{\b\mt}{\b\mtp}\P\K = \b\mtpp\,\Kp$
@@ -3164,7 +3187,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 
 \subsection{Htype function}
 
-\hrulefill
+% \hrulefill
 
 \begin{mathpar}
 \IRule{HT1}{
@@ -3183,7 +3206,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 
 \subsection{Lifting function}
 
-\hrulefill
+% \hrulefill
 \begin{align*}
 \W &::= \cdot \B \Map\W{\Bind\C\D}
 \end{align*}
@@ -3211,7 +3234,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 \end{mathpar}
 \\
 
-\hrulefill
+% \hrulefill
 
 \begin{mathpar}
 \IRule{ENMT1}{
@@ -3261,8 +3284,6 @@ types $\b\mtpp$ and a class table $\Kp$.
 
 \subsection{Static function}
 
-\hrulefill
-
 \opdef{
   $\statictype\D\K{\b\C} = \texttt{Bool}$
 }{
@@ -3298,7 +3319,7 @@ types $\b\mtpp$ and a class table $\Kp$.
 
 \subsection{Wftype function}
 
-We write \wftype{\b\f}\C\K to denote the type lookup for a particular set of fields in \C.
+\wftype{\b\f}\C\K denotes the function that looks up the type of a particular set of fields in \C.
 
 \begin{equation*}
 \wftype{\b\f}\C\K = \b\t ~~\mathit{if}~~ \begin{cases}
@@ -3311,29 +3332,26 @@ We write \wftype{\b\f}\C\K to denote the type lookup for a particular set of fie
 
 \subsection{Mtype function}
 
-We write \classoff\C\K to denote the signutare lookup for every method, including field getters and setters, in \C.
+\classoff\C\K returns the type signutare for every method, including field getters and setters, in the class \C.
 
 \begin{equation*}
 \classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
 
  \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K\\
- \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\fp\tp \in \b{\Ftype\f\t} ~|~ \fp \notin \names{\b\md} ~.~ \typez{\Ftype\fp\tp}
+ \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\f\t \in \b{\Ftype\f\t} ~|~ \f \notin \names{\b\md} ~\wedge~ \f\neq\that ~.~ \typez{\Ftype\f\t}
 
 \end{cases}
 \end{equation*}
 
 \subsection{getmds function}
 
-
-$\getmds(\C,\K)$ refers to the method definitions that are explicitly written inside of the class \C, according to the class table \K.
+$\getmds(\C,\K)$ denotes the function that returns the method definitions inside the class \C.
 
 \begin{equation*}
 \getmds\C\K = \b\md ~~\mathit{if}~~ \Class\C{\b{\fd}}{\b\md} \in \K
 \end{equation*}
 
 \subsection{Ftype function}
-
-\hrulefill
 
 \begin{mathpar}
 \IRule{FT1}{
@@ -3346,9 +3364,6 @@ $\getmds(\C,\K)$ refers to the method definitions that are explicitly written in
 }
 \end{mathpar}
 
-\hrulefill
-
-% &\B~   &\B \Mtype\f{}\t
 
 \subsection{Dynamic function}
 
@@ -3377,7 +3392,44 @@ $\getmds(\C,\K)$ refers to the method definitions that are explicitly written in
 }
 \end{mathpar}
 
+\subsection{Signature function}
 
+\begin{mathpar}
+\IRule{SGE}{
+}{
+  \sign{\cdot} = \cdot
+}
+
+\IRule{SG1}{
+  \md = \Mdef\m\x\t\t\e \\
+  \sign{\b\md} = \b\mt \\
+}{
+  \sign{\md\,\b\md} = \Mtype\m\t\t~~\b\mt
+}
+
+\IRule{SG2}{
+  \md = \Mdef\f\x\t\t\e \\
+  \sign{\b\md} = \b\mt \\
+}{
+  \sign{\md\,\b\md} = \Mtype\f\t\t~~\b\mt
+}
+
+\IRule{SG3}{
+  \md = \Mdefz\f\t\e \\ 
+  \sign{\b\md} = \b\mt \\
+}{
+  \sign{\md\,\b\md} = \Mtype\f{}\t~~\b\mt
+}
+\end{mathpar}
+
+\subsection{Typing function}
+
+\begin{mathpar}
+\IRule{TY1}{
+}{
+  \typez{\Ftype\f\t} = \Mtype\f\t\t~~\Mtype\f{}\t
+}
+\end{mathpar}
 
 % \section{Monotonic figure scratch}
 
