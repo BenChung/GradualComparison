@@ -1157,8 +1157,7 @@ fields and methods definition is not relevant (i.e. we can reorder when convenie
    &\B~
        \SubCast\t\EE  &\B
        \ShaCast\t\EE  &\B
-       \BehCast\t\EE &\B
-       \MonCast\t\EE  &\B
+% MOVEME       \MonCast\t\EE  &\B
        \New\C{\b \a\,\EE\,\b\e}
   &\B \EM{\square}
 \end{tabular}
@@ -1584,7 +1583,8 @@ in figure~\ref{fig:behrules}.
   \behcast \a\t\s\K  \Kp\ap\sp    
 }{    
   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
-}
+} \\
+\multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
 \end{tabular}
 \end{minipage}
 \caption{Behavioural cast static and dynamic rules}
@@ -2172,25 +2172,25 @@ an operator broadly that means one type is compatible with another type. In our 
 \begin{mathpar}
 \IRule{A1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
-\IRule[width=30em]{A2}{
+\IRule[width=30em]{MOA2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
-\IRule[width=30em]{A3}{
+\IRule[width=30em]{MOA3}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K}{\cdot} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{{\e_4}}}{\t_2}
 }
 
-\IRule{A8}{
+\IRule{MOA4}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule{A11}{
+\IRule{MOA5}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \D~\text{fresh} \\
@@ -2199,14 +2199,14 @@ an operator broadly that means one type is compatible with another type. In our 
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{AASC1}{
+\IRule{MOAASC1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{AASC2}{
+\IRule{MOAASC2}{
   \GenCast\K\Env\e\ep\tp \\
   \consistent\K\t\tp
 }{

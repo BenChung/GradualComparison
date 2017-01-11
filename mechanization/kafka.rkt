@@ -679,7 +679,83 @@
    -----"GRAASC2"
    (trans-anacast K Γ e t e_1)])
 
+; monotonic
 
+
+(define-judgment-form KafKa
+  #:mode (mono-progtrans I O)
+  #:contract (mono-progtrans p p)
+  [(mono-classtrans K_1 K_1 (k ...)) (tr-syncast K_1 · e_1 e_2 t)
+   ------- "PT"
+   (mono-progtrans (e_1 K_1) (e_2 ((class A2 (f1 anyt) (f2 anyt)) k ...)))])
+
+(define-judgment-form KafKa
+  #:mode (mono-class-wrap I I O O)
+  #:contract (mono-class-wrap t K t K)
+  [(where D (free-class K))
+   (where k (monWrap C (mtypes C K) (mtypes C K) D K))
+   ------- "MW1"
+   (mono-class-wrap C K D (k))]
+  [------ "MW2"
+   (mono-class-wrap anyt K anyt ())])
+
+(define-judgment-form KafKa
+  #:mode (mono-classtrans I I O)
+  #:contract (mono-classtrans K K K)
+  [(mono-classtrans K (k_1 ...) (k_2 ...))
+   (mono-methtrans K C md md_1 (k_m ...)) ...
+   (mono-class-wrap t (k_2 ...) t_1 (k_3 ...)) ...
+   ------- "CR1"
+   (mono-classtrans K ((class C (f t) ... md ...) k_1 ...) ((class C (f t_1) ... md_1 ...) k_2 ... k_m ... ... k_3 ... ...))]
+  [------
+   (mono-classtrans K () ())])
+
+(define-judgment-form KafKa
+  #:mode (mono-methtrans I I I O O)
+  #:contract (mono-methtrans K C md md K)
+  [(mono-anacast K (this : C (x : t_1 ·)) e t_2 e_1)
+   (mono-class-wrap t_1 K t_3 (k_1 ...))
+   (mono-class-wrap t_2 K t_4 (k_2 ...))
+   ------"MT"
+   (mono-methtrans K C (m (x t_1) t_2 e) (m (x t_3) t_4 e_1) (k_1 ... k_2 ...))])
+
+(define-judgment-form KafKa
+  #:mode (mono-syncast I I I O O)
+  #:contract (mono-syncast K Γ e e t)
+  [(where t (lookup-env Γ x))
+   -----"MOA1"
+   (mono-syncast K Γ x x t)]
+  [(mono-syncast K Γ e_1 e_3 C)
+   (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (side-condition ,(not (redex-match KafKa this (term e_1))))
+   (mono-anacast K Γ e_2 t_1 e_4) ...
+   -----"MOA2"
+   (mono-syncast K Γ (call e_1 n e_2 ..._1) (call e_3 n e_4 ...) t_2)]
+  [(mono-syncast K Γ e_1 e_3 anyt)
+   (mono-anacast K Γ e_2 anyt e_4)
+   ------"MOA3"
+   (mono-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+  [(where C (lookup-env Γ this))
+   (where (mt_1 ... (f t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (mono-anacast K Γ e t_1 e_1) ...
+   ------"MOA4"
+   (mono-syncast K Γ (call this f e ..._1) (call this f e_1 ...) anyt)]
+  [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
+   (mono-anacast K Γ e_1 t e_2) ...
+   ------"MOA5"
+   (mono-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
+
+(define-judgment-form KafKa
+  #:mode (mono-anacast I I I I O)
+  #:contract (mono-anacast K Γ e t e)
+  [(mono-syncast K Γ e e_1 t_1)
+   (<: () K t t_1)
+   -----"MOAASC1"
+   (mono-anacast K Γ e t e_1)]
+  [(mono-syncast K Γ e e_1 t_1)
+   (consistent K t t_1)
+   -----"MOAASC2"
+   (mono-anacast K Γ e t e_1)])
 
 
 ;litmus
