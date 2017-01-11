@@ -273,12 +273,14 @@
 (define-judgment-form KafKa
   #:mode (wrap-t-mths I I I O)
   #:contract (wrap-t-mths (md ...) (mt ...) (mt ...) md)
-  [----- "R1"
+  [(side-condition ,(not (redex-match KafKa that (term f))))
+   ----- "R1"
    (wrap-t-mths _
                 (mt_1 ... (f t) mt_2 ...)
                 (mt_3 ... (f t_1) mt_4 ...)
                 (f t_1 (behnamcast t_1 (call (call this that) f))))]
-  [----- "R2"
+  [(side-condition ,(not (redex-match KafKa that (term f))))
+   ----- "R2"
    (wrap-t-mths _
                 (mt_1 ... (f t t) mt_2 ...)
                 (mt_3 ... (f t_1 t_1) mt_4 ...)
@@ -296,10 +298,12 @@
    (wrap-t-mths (md_1 ... (m (x anyt) anyt e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
                 (m (x t) t_1 (behnamcast t_1 e_1)))]
   [(side-condition ,(not (redex-match KafKa ((f t) (mt_1 ... (f t) mt_2 ...)) (term ((f t) (mt_3 ...))))))
+   (side-condition ,(not (redex-match KafKa that (term f))))
    --- "R6"
    (wrap-t-mths (md ...) (mt_1 ... (f t) mt_2 ..) (mt_3 ...)
                 (f t (call (call this that) f)))]
   [(side-condition ,(not (redex-match KafKa ((f t t) (mt_1 ... (f t) mt_2 ...)) (term ((f t t) (mt_3 ...))))))
+   (side-condition ,(not (redex-match KafKa that (term f))))
    --- "R7"
    (wrap-t-mths (md ...) (mt_1 ... (f t t) mt_2 ..) (mt_3 ...)
                 (f (y t) t (call (call this that) f y)))]
@@ -317,11 +321,13 @@
 (define-judgment-form KafKa
   #:mode (wrap-ut-mths I I O)
   #:contract (wrap-ut-mths (md ...) (mt ...) md)
-  [---- "R1"
+  [(side-condition ,(not (redex-match KafKa that (term f))))
+   ---- "R1"
    (wrap-ut-mths (md ...)
                  (mt_1 ... (f t) mt_2 ...)
                  (f anyt (behcast anyt (call (call this that) f))))]
-  [---- "R2"
+  [(side-condition ,(not (redex-match KafKa that (term f))))
+   ---- "R2"
    (wrap-ut-mths (md ...)
                  (mt_1 ... (f t t) mt_2 ...)
                  (f (y anyt) anyt (behcast anyt (call (call this that) f (behcast t y)))))]
