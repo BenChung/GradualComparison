@@ -1,7 +1,7 @@
 \documentclass[a4paper,USenglish]{tex/lipics-v2016}
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
             amsmath,tex/mathpartir,hyperref,doi,
-            stmaryrd, graphicx, tikz, colortbl, xparse} % double brackets llbracket
+            stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \usetikzlibrary{arrows}
 \usetikzlibrary{shapes.geometric}
@@ -33,7 +33,8 @@
   morestring=[b]',  morestring=[b]",
   backgroundcolor=\color{vlightgray},
   aboveskip=\medskipamount, %0em,
-  belowskip=\smallskipamount %0em
+  belowskip=\smallskipamount, %0em
+  escapeinside={(*@}{@*)}
 }
 \lstset{
   language=JavaScript,  extendedchars=true,  basicstyle=\footnotesize\ttfamily,
@@ -1732,7 +1733,222 @@ object and a set of methods that mirrors the methods of the target object
 but with additionals casts to some of their arguments and return values.
 For getters, setters and typed methods, the wrapper simply adds a behavioral
 casts to argument, issues a typed call, and then casts of the result. For
-untyped methods, a dynamic call is blanketed by casts to \any.
+untyped methods, a dynamic call is surrounded by casts to \any, ensuring that
+typed object's type requirements will be respected.
+
+
+\begin{figure}[!ht]
+\begin{tabular}{ER{4.5cm}ER{3.5cm}E}
+wrap( & 
+\begin{lstlisting}
+class C {
+  f : *
+  m (x : *) : * { x }}
+\end{lstlisting}& , &
+\begin{lstlisting}
+class D {
+  f : A
+  m (x : A) : B}
+\end{lstlisting}&) =
+\end{tabular}
+\begin{tabular}{@{}l@{}r@{}}
+\hspace{4.8cm} \,&
+\begin{minipage}{\textwidth-5cm}
+\begin{lstlisting}
+class D {
+  that : C
+  f() : A { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{-1.5mm}@*) this.that().f()}
+  f(x : A) : A { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{-1.5mm}@*) this.that().f( (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{-1.5mm}@*) x)}
+  m(x : A) : B { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-4mm}@*)  x }
+}
+\end{lstlisting}
+\end{minipage}
+\end{tabular}
+\caption{Untyped to typed class wrapper}
+\label{fig:rktex1}
+\end{figure}
+
+In our approach, we implement the wrapper generation as a metafunction, called
+\xt{wrap}. In the formal system, \xt{wrap} uses 5 arguments, the source class
+name, the list of methods in the source class, the list of method types the
+source  class has, the list of method types that the wrapper is guaranteeing,
+and the target class name, but for the purposes of clarity, we will use a class
+definitions directly for the name, definition, and type, and use another class
+without method definitions for the target type and class name.
+
+A simple example of this can be seen in figure~\ref{fig:rktex1}. Here, we have 
+an initial class \C, which we want to make act like a \D. \C has two declarations,
+a field \f and a method \m, both of which are untyped. The protections around 
+the field \f are typical, using \kafka's abstraction over fields, allowing both
+actual fields and getter/setter pairs to be treated identically, but the generated
+proxy for \m is unusual.
+
+\begin{figure}[!ht]
+\begin{tabular}{ER{4.5cm}ER{3.5cm}E}
+wrap( & 
+\begin{lstlisting}
+class C { 
+  m (x : *) : * { x }}
+\end{lstlisting}& , &
+\begin{lstlisting}
+class D { 
+  m (x : A) : B}
+\end{lstlisting}&) =
+\end{tabular}
+\begin{tabular}{@{}l@{}r@{}}
+\hspace{4cm} \,&
+\begin{minipage}{\textwidth-4cm}
+\begin{lstlisting}
+class D {
+  m(x : A) : B { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(<*>this.that())@m((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-1mm}@*)x) }
+}
+\end{lstlisting}
+\end{minipage}
+\end{tabular}
+\caption{Naive wrapper generation}
+\label{fig:rktex2}
+\end{figure}
+
+Figure~\ref{fig:rktex2} would be a more usual version of wrapper generation, 
+where we forward the call to \m to the wrapped object, as the semantics would 
+normally imply. Here, nothing bad happens, as the wrapped object is safely 
+isolated from the typed caller with casts, and no anomalous behaviour is seen.
+
+However, this is not representative of the actual Typed Racket system. In Typed
+Racket, self-calls are also effected by the type guaranteed by the
+wrapper~\cite{Takikawa:2012}, as seen in figure~\ref{fig:arktex3}. Here, the
+(untyped) \xt{A\%} object implements the bar method by calling \xt{foo}, and,
+because the externally applied type \xt{A} ascribes  the return type of \xt{foo}
+to be \xt{Integer}, when the untyped method \xt{bar} calls the untyped method
+\xt{foo} and foo returns a non- integer, we see a contract violation.
+
+\begin{figure}
+\begin{tabular}{cc}
+\includegraphics[scale=.7]{figures/internal.pdf}&\hspace{-2cm}
+\begin{minipage}{.5\textwidth}
+\vspace{-4.3cm}
+\tiny
+\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+foo: broke its own contract
+  promised: Integer
+  produced: "hello"
+  in: the foo method in
+      the range of
+      (->
+       (object/c
+        (bar (-> any/c Integer))
+        (foo (-> any/c Integer))))
+  contract from: (interface for gen)
+  contract on: gen
+  blaming: (interface for gen)
+\end{lstlisting}
+\end{minipage}
+\end{tabular}
+\caption{Typed Racket ensures that internal untyped calls respect external types}
+\label{fig:arktex3}
+\end{figure}
+
+To model this in \kafka, we need to use a different approach to translation. At
+the most basic level, if we use the same naive translation approach seen in
+figure~\ref{fig:rktex2}, we would end up calling into the wrapped object, which
+would then call the \xt{foo} method without any type guards, and the program
+would only encounter a cast error once \xt{bar} returned.
+
+Illustrating this issue is figure~\ref{fig:intbeh}. Here, we have a class \C
+that we force to become another class \D, which is typed in such a way that \C's
+implementation of \n will violate the type guarantees imposed by \D. Under the
+naive translation scheme, illustrated in the figure, the arguments to \m will be
+cast to \any, then passed onwards into the untyped object. Then, the untyped
+object \C will simply use its own definition of the \m method, which calls
+directly into the \n method on that same object, thereby circumventing the type
+applied  to it by the type cast.
+
+Interestingly, this property is not required for type soundness. Under this naive
+translation, no type guarantee is broken, as the typed code never ``sees'' \n
+violate the type contract. As a result, this naive translation is technically
+sound, but does not accurately capture the semantics of Typed Racket.
+
+\begin{figure}[!ht]
+\begin{tabular}{l@{\hspace{0.05\textwidth}}l}
+\begin{minipage}{0.34\textwidth}
+\begin{lstlisting}
+class A {n(x:*):*{x}}
+class B {m(x:*):*{x}}
+class C { 
+  m(x:A):A { this.n(x) }
+  n(x:A):A { x }}
+class D { 
+  m(x:A):A { new A() }
+  n(x:B):B { new B()}}
+(<D>new C()).m(new C())
+\end{lstlisting}
+\end{minipage} &
+\begin{minipage}{0.6\textwidth}
+\begin{lstlisting}
+class DW {
+  that : C
+  m(x:A):A { this.that().m(x) }
+  n(x:B):B { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)this.that().n((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x) }
+}
+\end{lstlisting}
+\end{minipage} \\
+Example Program & Naive wrapper
+\end{tabular}
+\caption{Failing program and naive wrapper}
+\label{fig:intbeh}
+\end{figure}
+
+To solve this problem, we have to guarantee that any self reference in the
+underlying wrapped object will go through the wrapper. As we cannot do this
+under the \kafka dynamics, we have to solve it in the way we generate the
+wrapper classes.
+
+We enforce the wrapper's type guarantee on the underlying object's methods by
+lifting the body of the methods up into the wrapper, thereby making any self-
+reference in the underlying object trivially refer to the wrapper, a translation
+we illustrate in figure~\ref{fig:intbeh2}. However, as noted there, this
+translation is still type incorrect - we are trying to make an untyped call to a
+typed call site.
+
+
+\begin{figure}[!ht]
+\begin{tabular}{l@{\hspace{0.05\textwidth}}l}
+\begin{minipage}{0.4\textwidth}
+\begin{lstlisting}
+class DW {
+  that : C
+  m(x:A):A { this.n(x) }
+  n(x:B):B { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x }
+}
+\end{lstlisting}
+\end{minipage} &
+\begin{minipage}{0.55\textwidth}
+\begin{lstlisting}
+class DW {
+  that : C
+  m(x:A):A { 
+    (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)this.n((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x) }
+  n(x:B):B { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x }
+}
+\end{lstlisting}
+\end{minipage} \\
+Type-incorrect wrapper & Type-corrected wrapper
+\end{tabular}
+\caption{Wrapper generation}
+\label{fig:intbeh2}
+\end{figure}
+
+We overcome this issue through a special ``type-fixing'' operation, shown in
+figure~\ref{behtrans}, which ensures the type correctness of wrapped method
+bodies once lifted into the wrapper. This, finally, defines a behavioural cast
+semantics that preserves the execution behaviour of Typed Racket.
+
+
 
 \newcommand{\rtranst}[6]{#1 \Rightarrow #2 ~ #3 / #4 \vdash #5 \looparrowright_{beh} #6}
 
@@ -1765,53 +1981,14 @@ untyped methods, a dynamic call is blanketed by casts to \any.
 \caption{Behavioral dynamic expression translation.}\label{behtrans}
 \end{figure}
 
-A key issue that is encountered in any wrapper-based approach surrounds the 
-handling of the \this keyword, and deciding what happens if the object ``under''
-the type invariant calls itself. From a pure type correctness standpoint, 
-the wrapped object need not observe the requirements of the type that it is
-observed under, but Typed Racket requires that, if an object is called through a
-warpper, then that object should observe the requirements of that wrapper 
-internally.
+The corrected translation is depicted on the right side of
+figure~\ref{fig:intbeh2}, which shows the final behaviour of the wrapper, which
+is both type correct and semantics- preserving. Notably, what we have
+accomplished with the dynamic expression translation mechanism in
+figure~\ref{behtrans} is equivalent to the set of casts that would have occured
+if we had been able to insert the wrapper as the receiver for self references,
+effectively inling the call through the wrapper.
 
-\begin{figure}[!ht]
-\begin{lstlisting}
-class C { 
-  m(x:*):* { this@n(x) }
-  n(x:*):* { x }}
-class D { 
-  m(x:C):C { new C() }
-  n(x:D):D { new D()}}
-(<*>(<D>new C()))@m(new C())
-\end{lstlisting}
-\caption{Internal behaviour is effected by external types}
-\label{fig:intbeh}
-\end{figure}
-
-This can be seen in in figure~\ref{fig:intbeh}. Here, the instance of \C will 
-always return another instance of \C, using the internal method \n to actually
-create the new object. However, if we then create another class \D that requires
-\n to return type \D and apply a Typed Racket cast to \D on the instance of \C,
-then call \m, we find that an error is produced when \C's implementation of \n
-returns a \C instead of a \D.
-
-Checking this functionality with wrappers is difficult, as \kafka does not allow
-the wrapper to set the object identity for the called object, and therefore 
-internal calls are left unchecked by the wrapper. To ensure that internal calls
-are safe, we have to prevent the call from reaching the wrapped object, by 
-lifting the body of the wrapped method into the wrapper object.
-
-However, a considerable technical hurdle to this approach is that the expression
-\e inside the called method is only well-typed with respect to the wrapped class
-, not the wrapper that sits on top of it. We overcome this issue through a 
-special ``type-fixing'' operation, shown in figure~\ref{behtrans}, which 
-ensures the type correctness of wrapped method bodies once lifted into the 
-wrapper.
-
-To illustrate the operational principle behind the expression translation 
-mechanism, consider figure~\ref{fig:intbeh}, where we call \n via \m. If we 
-consider unrolling a wrapper intermediate between \m and \n into \m, we find 
-that \m has body \BehCast\D{\Call\this\n{\BehCast\D\x}}, which is equivalent
-to rule \RuleRef{REW3}.
 
 \begin{figure}[!ht]
 \hrulefill 
@@ -1879,24 +2056,24 @@ to rule \RuleRef{REW3}.
   \caption{Wrapper class generation.}\label{wrap}
 \end{figure}
 
-Another challenge is that multiple wrappers can be layered on top of a target object. Each time a
-reference crosses a boundary between typed and untyped code, it will accrue
-an additional wrapper. When a method is invoked on a wrapper chair, that
-method will be invoked on every wrapper, until finding its way to the target
-object. A key property of the wrapper generation functions of \figref{wrap}
-is that methods should not be ``lost''. That is to say, any method in the
-target object, even if it is not in the type it is being cast to, will be
-retained in the wrapper.  This property is somewhat unconventional, and its
-need is illustrated in \figref{ctod}. Class \C and \D are preexisting.  They
-are not related by subtyping as \any is not a supertype of \E. The first
-cast from \C to \D, results in the generation of class \EMxt{CtoD}. The
-wrapper class is a subtype of \D but it also has method \mp only found in
-class \C.  The cast from \EMxt{CtoD} back to \C leads to the generation of
-wrapper class \EMxt{CtoDtoC}. The latter is a subtype of \C and has a rather
-interesting method \m which is dynamic and thus must be invoked dynamically.
-The receiver is cast to \any using a subtype cast. The argument on the other
-hand is converted to dynamic with a behavioral cast. The return value is
-converted to the expected return type with another behavioral cast.
+Another challenge is that multiple wrappers can be layered on top of a target
+object. Each time a reference crosses a boundary between typed and untyped code,
+it will accrue an additional wrapper. When a method is invoked on a wrapper
+chair, that method will be invoked on every wrapper, until finding its way to
+the target object. A key property of the wrapper generation functions of
+\figref{wrap} is that methods should not be ``lost''. That is to say, any method
+in the target object, even if it is not in the type it is being cast to, will be
+retained in the wrapper.  This property is somewhat unconventional, and its need
+is illustrated in \figref{ctod}. Class \C and \D are preexisting.  They are not
+related by subtyping as \any is not a supertype of \E. The first cast from \C to
+\D, results in the generation of class \EMxt{CtoD}. The wrapper class is a
+subtype of \D but it also has method \mp only found in class \C.  The cast from
+\EMxt{CtoD} back to \C leads to the generation of wrapper class \EMxt{CtoDtoC}.
+The latter is a subtype of \C and has a rather interesting method \m which is
+dynamic and thus must be invoked dynamically. The receiver is cast to \any using
+a subtype cast. The argument on the other hand is converted to dynamic with a
+behavioral cast. The return value is converted to the expected return type with
+another behavioral cast.
 
 
 %%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2374,7 +2551,7 @@ will compute the result type as a new \texttt{C}, where both the argument and re
 are typed.
 
 \begin{figure}[!ht]
-\begin{tabular}{r@{\hspace{1mm}}l@{}l@{}l@{}l@{\hspace{1.5mm}}l@{\hspace{1mm}}l@{}l}
+\begin{tabular}{EEEEEVEV}
 \texttt{tmeet(}
 & \texttt{A}
   & \texttt{,}
@@ -2383,27 +2560,23 @@ are typed.
   $\cdot$
   & \texttt{,}
   &
-  \begin{minipage}{4.3cm}
-    \begin{lstlisting}
+\begin{lstlisting}
 class A {
    m(x: *): A {this}}
 
 class B {
    m(x: B): * {this}}
-      \end{lstlisting}    
-  \end{minipage}
+\end{lstlisting}    
 & 
 \texttt{) = C,}
   &
-  \begin{minipage}{4.3cm}
-    \begin{lstlisting}
+\begin{lstlisting}
 class A { ... }
 class B { ... }
 class C {
   m(x: B): A {this}
 }
-    \end{lstlisting}    
-  \end{minipage}
+\end{lstlisting}    
 \end{tabular}
 \caption{Simple example of \texttt{tmeet} use}
 \label{fig:tmeet_ex}
@@ -2414,7 +2587,7 @@ which, via \xt{mmeet}, computes the meet of each of the arguments to \xt{m}, inv
 and \RuleRef{TM2} for the argument and return type of \xt{m}.
 
 \begin{figure}[!ht]
-\begin{tabular}{r@{\hspace{1mm}}l@{}l@{}l@{}l@{\hspace{1.5mm}}l@{\hspace{1mm}}l@{}l}
+\begin{tabular}{l@{}l@{}l@{}l@{}l@{\hspace{1.5mm}}l@{\hspace{1mm}}l@{}l}
 \texttt{tmeet(}
 & \texttt{A}
   & \texttt{,}
