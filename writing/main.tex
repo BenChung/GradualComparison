@@ -1853,12 +1853,12 @@ would only encounter a cast error once \xt{bar} returned.
 
 Illustrating this issue is figure~\ref{fig:intbeh}. Here, we have a class \C
 that we force to become another class \D, which is typed in such a way that \C's
-implementation of \n will violate the type guarantees imposed by \D. Under the
-naive translation scheme, illustrated in the figure, the arguments to \m will be
-cast to \any, then passed onwards into the untyped object. Then, the untyped
-object \C will simply use its own definition of the \m method, which calls
-directly into the \n method on that same object, thereby circumventing the type
-applied  to it by the type cast.
+implementation of \n will violate the type guarantees imposed by \D and enforced
+by the wrapper, \xt{DW}. Under the naive translation scheme, illustrated in the
+figure, the arguments to \m will be cast to \any, then passed onwards into the
+untyped object. Then, the untyped object \C will simply use its own definition
+of the \m method, which calls directly into the \n method on that same object,
+thereby circumventing the type applied  to it by the type cast.
 
 Interestingly, this property is not required for type soundness. Under this naive
 translation, no type guarantee is broken, as the typed code never ``sees'' \n
@@ -1884,7 +1884,10 @@ class D {
 \begin{lstlisting}
 class DW {
   that : C
+
+
   m(x:A):A { this.that().m(x) }
+
   n(x:B):B { 
     (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)this.that().n((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x) }
 }
