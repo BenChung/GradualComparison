@@ -362,7 +362,7 @@
    -------------- "REW3"
    (beh-lift (name mt_i (mt_1 ... (n t_1 ..._1 t_2) mt_3 ...))
              (name mt_t (mt_2 ... (n t_3 ..._1 t_4) mt_4 ...)) e_1 x
-             (call this n e ..._1) (call this n (behcast t_3 e_2) ...))]
+             (call this n e ..._1) (behcast t_2 (call this n (behcast t_3 e_2) ...)))]
   [(beh-lift mt_i mt_t e_1 x e e_2)
    -------------- "REW4"
    (beh-lift (name mt_i (mt_1 ... (m t_1 t_2) mt_3 ...))
@@ -769,6 +769,50 @@
    ,(and (andmap (λ x (car x)) (term ((static t K (t_4 ... D)) ...)))
          (andmap (λ x (car x)) (andmap (λ l (andmap (λ x (car x)) l)) (term (((static t_1 K (t_4 ... D)) ...) ...))))
          (andmap (λ x (car x)) (term ((static t_2 K (t_4 ... D)) ...))))))
+
+(define-metafunction KafKa
+  monWrap : C (md ...) (mt ...) (mt ...) C K -> k
+  ((monWrap C (md ...) (mt ...) (mt_1 ...) D K)
+   (class D (that C) md ...)
+   (where (md ...) ,(judgment-holds (mono-wrap (md ...) (mt ...) (mt_1 ...) md) md))))
+
+(define-judgment-form KafKa
+  #:mode (mono-wrap I I I O)
+  #:contract (mono-wrap (md ...) (mt ...) (mt ...) md)
+  [(side-condition ,(not (redex-match KafKa that (term f))))
+   ---- "R1"
+   (mono-wrap (md ...)
+                 (mt_1 ... (f t t) mt_2 ...)
+                 (mt_3 ... (f t_1 t_1) mt_4 ...)
+                 (f (y anyt) anyt (moncast anyt (moncast t_1 (call (call this that) f (moncast t (moncast t_1 y)))))))]
+  [(side-condition ,(not (redex-match KafKa that (term f))))
+   ---- "R2"
+   (mono-wrap (md ...) (mt_1 ... (f t) mt_2 ...) (mt_3 ... (f t_1) mt_4 ...)
+                 (f anyt (moncast anyt (moncast t_1 (call (call this that) f)))))]
+  [(mon-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) e_1)
+   ---- "R3"
+   (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...)
+                 (m (x anyt) anyt (moncast anyt (moncast t_1 (substitute e_1 x (moncast t x))))))])
+
+(define-judgment-form KafKa
+  #:mode (mon-lift I I I O)
+  #:contract (mon-lift (mt ...) (mt ...) e e)
+  [-------------- "MREW1"
+   (mon-lift (mt_1 ...) (mt_2 ...) x x)]
+  [(mon-lift mt_i mt_t e_2) ...
+   (side-condition ,(or
+                      (redex-match KafKa f (term n))
+                      (not (redex-match KafKa anyt (term t_2)))))
+   -------------- "MREW2"
+   (mon-lift (name mt_i (mt_1 ... (n t_1 ..._1 t_2) mt_3 ...))
+             (name mt_t (mt_2 ... (n t_3 ..._1 t_4) mt_4 ...))
+             (call this n e ..._1) (moncast t_2 (call this n (moncast t_3 e_2) ...)))]
+  [(mon-lift mt_i mt_t e_1 e_3)
+   (mon-lift mt_i mt_t e_2 e_4) ...
+   (side-condition ,(not (redex-match KafKa this (term e_1))))
+   -------------- "MREW3"
+   (mon-lift (call e_1 n e_2 ..._1) (call e_3 n e_4 ...))])
+     
 
 ;litmus
 
