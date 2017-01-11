@@ -2993,8 +2993,10 @@ We write \readf\s\a\f\K to denote a read of field \f from the object
 stored at \a in \s.
 
 \begin{equation*}
-\readf \s\a\f\K = \ap ~~\mathit{if}~~  \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots} \AND
+\readf \s\a\f\K = \ap 
+  ~~\mathit{if}~~ \begin{cases}  \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots}\\
  \Class\C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}\in\K
+ \end{cases}
 \end{equation*}
 
 \subsection{Write field}
@@ -3016,8 +3018,8 @@ the object stored at \a in \s.
 
 \subsection{Expression translation for Behavorial semantics}
 
-\begin{figure}[!ht]
-\hrulefill
+% \begin{figure}[!ht]
+% \hrulefill
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
 
@@ -3039,20 +3041,20 @@ the object stored at \a in \s.
 \IRule{REW8}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
 \end{mathpar}
 
-\vspace{-2mm}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\hrulefill
-\caption{Behavioral dynamic expression translation.}\label{behtrans}
-\end{figure}
+% \vspace{-2mm}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \hrulefill
+% \caption{Behavioral dynamic expression translation.}\label{behtrans}
+% \end{figure}
 
-\clearpage
+% \clearpage
 
 \subsection{Class wrapper for Behavorial semantics}
 
 % TODO: FIX the formatting.
 
-\begin{figure}[!ht]
-\hrulefill 
+% \begin{figure}[!ht]
+% \hrulefill 
 \scriptsize
 \newcommand{\bscast}[2]{\EM{\BehCast{#1}{\ShaCast{#1}{#2}}}}
 \vspace{4mm}
@@ -3112,12 +3114,14 @@ the object stored at \a in \s.
 %}%%END IGNORE
 %   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
 % TODO: untyped(mt)
-\hrulefill
-%%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \caption{Wrapper class generation.}\label{wrap}
-\end{figure}
+% \hrulefill
+% %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   \caption{Wrapper class generation.}\label{wrap}
+% \end{figure}
 
 % \clearpage
+
+\normalsize
 
 \section{Generative Monotone Casts}
 
