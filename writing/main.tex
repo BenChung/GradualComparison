@@ -2609,7 +2609,7 @@ for them according to the new wrapper \C.
 \IRule[width=25em]{MREW2}{ 
   \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
   \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ 
-  \n = \f \vee \t_1 \neq \any  \\ 
+  \n = \f \vee \t_2 \neq \any  \\ 
   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
 }{
   \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\n{\b\e}}{\MonCast{\tp_1}{\Call{\this}\n{\b{\MonCast{\t_2}{\ep}}}}}
@@ -2617,20 +2617,28 @@ for them according to the new wrapper \C.
 \\
 
 \IRule[width=20em]{MREW3}{ 
+  \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
+  \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
+  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
+}{
+  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\n{\b\e}}{{\Call{\this}\n{\b{{\ep}}}}}
+}
+
+\IRule[width=20em]{MREW4}{ 
   \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
 }{
   \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}
 }
 
-\IRule{MREW4}{ 
+\IRule{MREW5}{ 
   \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 	
   \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}
 }{
   \rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}
 }
-
-\IRule{MREW5}{
+red
+\IRule{MREW6}{
   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}} 
 }{
   \rtranstz{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}
