@@ -693,7 +693,7 @@
   #:mode (mono-class-wrap I I O O)
   #:contract (mono-class-wrap t K t K)
   [(where D (free-class K))
-   (where k (monWrap C (mtypes C K) (mtypes C K) D K))
+   (where k (monWrap C (get-mds C K) (mtypes C K) (mtypes C K) D K))
    ------- "MW1"
    (mono-class-wrap C K D (k))]
   [------ "MW2"
@@ -713,60 +713,62 @@
 (define-judgment-form KafKa
   #:mode (mono-methtrans I I I O O)
   #:contract (mono-methtrans K C md md K)
-  [(mono-anacast K (this : C (x : t_1 ·)) e t_2 e_1)
-   (mono-class-wrap t_1 K t_3 (k_1 ...))
-   (mono-class-wrap t_2 K t_4 (k_2 ...))
+  [(mono-anacast K (this : C (x : t_1 ·)) e t_2 e_1 (k_1 ...))
+   (mono-class-wrap t_1 K t_3 (k_2 ...))
+   (mono-class-wrap t_2 K t_4 (k_3 ...))
    ------"MT"
-   (mono-methtrans K C (m (x t_1) t_2 e) (m (x t_3) t_4 e_1) (k_1 ... k_2 ...))])
+   (mono-methtrans K C (m (x t_1) t_2 e) (m (x t_3) t_4 e_1) (k_1 ... k_2 ... k_3 ...))])
 
 (define-judgment-form KafKa
-  #:mode (mono-syncast I I I O O)
-  #:contract (mono-syncast K Γ e e t)
+  #:mode (mono-syncast I I I O O O)
+  #:contract (mono-syncast K Γ e e t K)
   [(where t (lookup-env Γ x))
    -----"MOA1"
-   (mono-syncast K Γ x x t)]
-  [(mono-syncast K Γ e_1 e_3 C)
+   (mono-syncast K Γ x x t ())]
+  [(mono-syncast K Γ e_1 e_3 C (k_1 ...))
    (where (mt_1 ... (n t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
    (where #t ,(or (redex-match? KafKa f (term n)) (car (term ((static t_1 K ()) ...)))))
-   (mono-anacast K Γ e_2 t_1 e_4) ...
+   (mono-anacast K Γ e_2 t_1 e_4 (k_2 ...)) ...
    -----"MOA2"
-   (mono-syncast K Γ (call e_1 n e_2 ..._1) (call e_3 n e_4 ...) t_2)]
-  [(mono-syncast K Γ e_1 e_3 C)
+   (mono-syncast K Γ (call e_1 n e_2 ..._1) (call e_3 n e_4 ...) t_2 (k_1 ... k_2 ... ...))]
+  [(mono-syncast K Γ e_1 e_3 C (k_1 ...))
    (where (mt_1 ... (m t_1 t_2) mt_2 ...) (mtypes C K))
    (where #f (static t_1 K ()))
-   (mono-anacast K Γ e_2 t_2 e_4)
+   (mono-anacast K Γ e_2 t_2 e_4 (k_2 ...))
    ------"MOA3"
-   (mono-syncast K Γ (call e_1 m e_2) (dcall ((subcast anyt e_3) m (subcast anyt e_4)) anyt) t_2)]
-  [(mono-syncast K Γ e_1 e_3 anyt)
-   (mono-anacast K Γ e_2 anyt e_4)
+   (mono-syncast K Γ (call e_1 m e_2) (dcall ((subcast anyt e_3) m (subcast anyt e_4)) anyt) t_2 (k_1 ... k_2 ...))]
+  [(mono-syncast K Γ e_1 e_3 anyt (k_1 ...))
+   (mono-anacast K Γ e_2 anyt e_4 (k_2 ...))
    ------"MOA4"
-   (mono-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+   (mono-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt (k_1 ... k_2 ...))]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
-   (mono-anacast K Γ e_1 t e_2) ...
+   (mono-anacast K Γ e_1 t e_2 (k_3 ...)) ...
+   (where D (fresh-class K))
+   (where k (monWrap C (get-mds C K) (mtypes C K) (mtypes C K) D K))
    ------"MOA5"
-   (mono-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C)])
+   (mono-syncast K Γ (new C e_1 ..._1) (new C e_2 ...) C (k k_3 ... ...))])
 
 (define-judgment-form KafKa
-  #:mode (mono-anacast I I I I O)
-  #:contract (mono-anacast K Γ e t e)
-  [(mono-syncast K Γ e e_1 t_1)
+  #:mode (mono-anacast I I I I O O)
+  #:contract (mono-anacast K Γ e t e K)
+  [(mono-syncast K Γ e e_1 t_1 K_1)
    (<: () K t t_1)
    -----"MOAASC1"
-   (mono-anacast K Γ e t e_1)]
-  [(mono-syncast K Γ e e_1 t_1)
+   (mono-anacast K Γ e t e_1 K_1)]
+  [(mono-syncast K Γ e e_1 t_1 K_1)
    (consistent K t t_1)
    -----"MOAASC2"
-   (mono-anacast K Γ e t e_1)])
+   (mono-anacast K Γ e t e_1 K_1)])
 
 (define-metafunction KafKa
   static : t K (t ...) -> boolean
   ((static anyt K (t ...)) #f)
   ((static D K (t_1 ... D t_2 ...)) #t)
   ((static D (k_1 ... (class D) k_2 ...) (t ...)) #t)
-  ((static D (name K (k_1 ... (class D (f t) ... (n (x t_1) ... t_2 e) ...) k_2)) (t_4 ...))
-   ,(and (andmap ((λ x x) (term ((static t K (t_4 ... t)) ...)))
-         (andmap (λ x x) (andmap (λ l (andmap (λ x x) l)) (term (((static t_1 K (t_4 ... t_1)) ...) ...))))
-         (andmap (λ x x) (term ((static t_2 K (t_4 ... t_2)) ...)))))))
+  ((static D (name K (k_1 ... (class D (f t) ... (n (x t_1) ... t_2 e) ...) k_2 ...)) (t_4 ...))
+   ,(and (andmap (λ x (car x)) (term ((static t K (t_4 ... D)) ...)))
+         (andmap (λ x (car x)) (andmap (λ l (andmap (λ x (car x)) l)) (term (((static t_1 K (t_4 ... D)) ...) ...))))
+         (andmap (λ x (car x)) (term ((static t_2 K (t_4 ... D)) ...))))))
 
 ;litmus
 
