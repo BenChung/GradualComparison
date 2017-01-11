@@ -792,14 +792,19 @@
   [(mon-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) e_1)
    ---- "R3"
    (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...)
-                 (m (x anyt) anyt (moncast anyt (moncast t_1 (substitute e_1 x (moncast t x))))))])
+                 (m (x anyt) anyt (moncast anyt (moncast t_1 (substitute e_1 x (moncast t x))))))]
+  [(mon-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) e_1)
+   ---- "R4"
+   (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...)
+                 (m (x anyt) anyt (moncast anyt (moncast t_1 (substitute e_1 x (moncast t x)))))
+                 (judgment-holds (static C t_3 ())))])
 
 (define-judgment-form KafKa
   #:mode (mon-lift I I I O)
   #:contract (mon-lift (mt ...) (mt ...) e e)
   [-------------- "MREW1"
    (mon-lift (mt_1 ...) (mt_2 ...) x x)]
-  [(mon-lift mt_i mt_t e_2) ...
+  [(mon-lift mt_i mt_t e e_2) ...
    (side-condition ,(or
                       (redex-match KafKa f (term n))
                       (not (redex-match KafKa anyt (term t_2)))))
@@ -807,11 +812,30 @@
    (mon-lift (name mt_i (mt_1 ... (n t_1 ..._1 t_2) mt_3 ...))
              (name mt_t (mt_2 ... (n t_3 ..._1 t_4) mt_4 ...))
              (call this n e ..._1) (moncast t_2 (call this n (moncast t_3 e_2) ...)))]
+  [(mon-lift mt_i mt_t e e_2) ...
+   (side-condition ,(not (redex-match KafKa (n (mt_1 ... (n t ... t_1) mt_2 ...) (term (n (mt_2 ...)))))))
+   -------------- "MREW3"
+   (mon-lift (name mt_i (mt_1 ... (n t_1 ..._1 t_2) mt_3 ...))
+             (name mt_t (mt_2 ...))
+             (call this n e ..._1) (call this n e_2 ...))]
   [(mon-lift mt_i mt_t e_1 e_3)
    (mon-lift mt_i mt_t e_2 e_4) ...
    (side-condition ,(not (redex-match KafKa this (term e_1))))
-   -------------- "MREW3"
-   (mon-lift (call e_1 n e_2 ..._1) (call e_3 n e_4 ...))])
+   -------------- "MREW4"
+   (mon-lift mt_i mt_t (call e_1 n e_2 ..._1) (call e_3 n e_4 ...))]
+  [(mon-lift mt_i mt_t e_1 e_3)
+   (mon-lift mt_i mt_t e_2 e_4) ...
+   -------------- "MREW5"
+   (mon-lift mt_i mt_t (dcall e_1 n e_2 ..._1) (dcall e_3 n e_4 ...))]
+  [(mon-lift mt_i mt_t e_1 e_2) ...
+   -------------- "MREW6"
+   (mon-lift mt_i mt_t (new C e_1 ...) (new C e_2 ...))]
+  [(mon-lift mt_i mt_t e_1 e_2)
+   -------------- "MREW7"
+   (mon-lift mt_i mt_t (moncast t e_1) (moncast t e_2))]
+  [(mon-lift mt_i mt_t e_1 e_2)
+   -------------- "MREW8"
+   (mon-lift mt_i mt_t (behcast t e_1) (behcast t e_2))])
      
 
 ;litmus

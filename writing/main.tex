@@ -2637,7 +2637,7 @@ for them according to the new wrapper \C.
 }{
   \rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}
 }
-red
+
 \IRule{MREW6}{
   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}} 
 }{
@@ -2670,14 +2670,14 @@ red
 &
  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
 \\[1mm]\hline
-\SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast\tp{{[{(\MonCast\t\x)}/\x]\ep}}}~}
-&     \All \m \Mdef\m\x\t\tp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast{\tp[2]}{{[{(\MonCast{\t[1]}\x)}/\x]\ep}}}~}
+&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
 &&&&\wedge&\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}
 \\[1mm]\hline
-\SPP \Mdef\m\x\t\tp {\ep~}
-&     \All \m \Mdef\m\x\t\tp{\e}\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
+\SPP \Mdef\m\x{\t[2]}{\tp[2]} {\MonCast{\tp[2]}{[{(\MonCast{\t[1]}\x)}/\x]\ep}~}
+&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
 &&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep} \\
-&&&&\wedge&\statictype{\C}{\K}{\cdot}
+&&&&\wedge&\statictype{\t[2]}{\K}{\cdot}
 \\[1mm]\hline
 \SP\}
 \end{array}
