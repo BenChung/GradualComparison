@@ -1742,12 +1742,10 @@ typed object's type requirements will be respected.
 wrap( & 
 \begin{lstlisting}
 class C {
-  f : *
   m (x : *) : * { x }}
 \end{lstlisting}& , &
 \begin{lstlisting}
 class D {
-  f : A
   m (x : A) : B}
 \end{lstlisting}&) =
 \end{tabular}
@@ -1757,9 +1755,6 @@ class D {
 \begin{lstlisting}
 class D {
   that : C
-  f() : A { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{-1.5mm}@*) this.that().f()}
-  f(x : A) : A { 
-    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{-1.5mm}@*) this.that().f( (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{-1.5mm}@*) x)}
   m(x : A) : B { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-4mm}@*)  x }
 }
 \end{lstlisting}
@@ -1983,7 +1978,7 @@ semantics that preserves the execution behaviour of Typed Racket.
 
 The corrected translation is depicted on the right side of
 figure~\ref{fig:intbeh2}, which shows the final behaviour of the wrapper, which
-is both type correct and semantics- preserving. Notably, what we have
+is both type correct and semantics-preserving. Notably, what we have
 accomplished with the dynamic expression translation mechanism in
 figure~\ref{behtrans} is equivalent to the set of casts that would have occured
 if we had been able to insert the wrapper as the receiver for self references,
