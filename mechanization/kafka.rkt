@@ -726,20 +726,21 @@
    -----"MOA1"
    (mono-syncast K Γ x x t)]
   [(mono-syncast K Γ e_1 e_3 C)
-   (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
-   (side-condition ,(not (redex-match KafKa this (term e_1))))
+   (where (mt_1 ... (n t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
+   (where #t ,(or (redex-match? KafKa f (term n)) (car (term ((static t_1 K ()) ...)))))
    (mono-anacast K Γ e_2 t_1 e_4) ...
    -----"MOA2"
    (mono-syncast K Γ (call e_1 n e_2 ..._1) (call e_3 n e_4 ...) t_2)]
+  [(mono-syncast K Γ e_1 e_3 C)
+   (where (mt_1 ... (m t_1 t_2) mt_2 ...) (mtypes C K))
+   (where #f (static t_1 K ()))
+   (mono-anacast K Γ e_2 t_2 e_4)
+   ------"MOA3"
+   (mono-syncast K Γ (call e_1 m e_2) (dcall ((subcast anyt e_3) m (subcast anyt e_4)) anyt) t_2)]
   [(mono-syncast K Γ e_1 e_3 anyt)
    (mono-anacast K Γ e_2 anyt e_4)
-   ------"MOA3"
-   (mono-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
-  [(where C (lookup-env Γ this))
-   (where (mt_1 ... (f t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
-   (mono-anacast K Γ e t_1 e_1) ...
    ------"MOA4"
-   (mono-syncast K Γ (call this f e ..._1) (call this f e_1 ...) anyt)]
+   (mono-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (mono-anacast K Γ e_1 t e_2) ...
    ------"MOA5"
@@ -757,6 +758,15 @@
    -----"MOAASC2"
    (mono-anacast K Γ e t e_1)])
 
+(define-metafunction KafKa
+  static : t K (t ...) -> boolean
+  ((static anyt K (t ...)) #f)
+  ((static D K (t_1 ... D t_2 ...)) #t)
+  ((static D (k_1 ... (class D) k_2 ...) (t ...)) #t)
+  ((static D (name K (k_1 ... (class D (f t) ... (n (x t_1) ... t_2 e) ...) k_2)) (t_4 ...))
+   ,(and (andmap ((λ x x) (term ((static t K (t_4 ... t)) ...)))
+         (andmap (λ x x) (andmap (λ l (andmap (λ x x) l)) (term (((static t_1 K (t_4 ... t_1)) ...) ...))))
+         (andmap (λ x x) (term ((static t_2 K (t_4 ... t_2)) ...)))))))
 
 ;litmus
 
