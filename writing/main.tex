@@ -2169,19 +2169,17 @@ an operator broadly that means one type is compatible with another type. In our 
 }
 \end{mathpar}
 
-
-\newcommand{\isstatic}[3]{\text{static}(#1,#2,#3)}
 \begin{mathpar}
 \IRule{MOA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x\x\t}
 
 \IRule[width=30em]{MOA2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \isstatic{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \statictype{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
 \IRule[width=30em]{MOA3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\isstatic{\t_1}{\K}{\cdot} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\statictype{\t_1}{\K}{\cdot} \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{{\e_4}}}{\t_2}
 }
