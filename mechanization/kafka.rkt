@@ -3,6 +3,7 @@
 (require redex)
 (require redex/reduction-semantics)
 
+(caching-enabled? #f) 
 (define-language KafKa
   (e x
      v
@@ -773,8 +774,8 @@
 (define-metafunction KafKa
   monWrap : C (md ...) (mt ...) (mt ...) C K -> k
   ((monWrap C (md ...) (mt ...) (mt_1 ...) D K)
-   (class D (that C) md ...)
-   (where (md ...) ,(judgment-holds (mono-wrap (md ...) (mt ...) (mt_1 ...) K md) md))))
+   (class D (that C) md_1 ...)
+   (where (md_1 ...) ,(judgment-holds (mono-wrap (md ...) (mt ...) (mt_1 ...) K md) md))))
 
 (define-judgment-form KafKa
   #:mode (mono-wrap I I I I O)
@@ -789,11 +790,12 @@
    ---- "R2"
    (mono-wrap (md ...) (mt_1 ... (f t) mt_2 ...) (mt_3 ... (f t_1) mt_4 ...) K
                  (f anyt (moncast anyt (moncast t_1 (call (call this that) f)))))]
-  [(mon-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) e_1)
+  [(mon-lift (mt ...) ((dynamize mt) ...) e e_1)
    ---- "R3"
    (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...) K
                  (m (x anyt) anyt (moncast anyt (moncast t_1 (substitute e_1 x (moncast t x))))))]
-  [(mon-lift (mt ...) ((dynamize mt) ...) (behnamcast t x) e_1)
+  [(where 2 (debug ((mt ...) ((dynamize mt) ...))))
+   (mon-lift (mt ...) ((dynamize mt) ...) e e_1)
    (where #t (static t_3 K ()))
    ---- "R4"
    (mono-wrap (md_1 ... (m (x t) t_1 e) md_2 ...) (mt ...) (mt_1 ... (m t_2 t_3) mt_2 ...) K
