@@ -144,7 +144,7 @@ daunting.\footnote{Most practical \emph{sound} type system reports order of
   configurations that hurt performance.  They are neither comparable nor
   worst case indicators.  Most systems lack rigorous evaluations.  }
 Predictably, developers of industrial languages have chosen to compromise on
-soundness to avoid degrading performance.\footnote{ Dart, Typescript and
+soundness to avoid degrading performance.\footnote{Dart, Typescript and
   Hack have unchecked modes that won't catch all type errors neither statically
 or dynamically.}
 
@@ -166,8 +166,8 @@ by encoding. We propose to target a typed object-oriented language inspired
 by modern language runtimes such as the Java Virtual Machine and .Net.  They
 have a static type system with classes and subtyping but they also allow for
 dynamic resolution of method dispatch.\footnote{Both runtimes support
-  reflective invocation based on method names. Dynamic resolution was added
-  to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
+reflective invocation based on method names. Dynamic resolution was added
+to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
   custom method dispatch.} As well as reasonably efficient implementations,
 and in both environments, primitive types can be unboxed as the static
 typing an accurately final types.
@@ -2183,6 +2183,8 @@ This last decision is further evidenced in our expression translation, most
 notably in the new handling of calls to both methods and fields, shown in
 \RuleRef{MOA2}, \RuleRef{MOA3}, and \RuleRef{MOA4}.
 
+% TODO: example herezies.
+
 \begin{mathpar}
 \IRule{MOA1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
 
@@ -2211,6 +2213,7 @@ notably in the new handling of calls to both methods and fields, shown in
   \k = \classgen{\C,\getmds\C\K,\classoff\C\K,\classoff\C\K,\D,\K} \\
   }{\GenCastMono\K\Env{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}{\K~\k}}
 \end{mathpar}
+
 
 \begin{mathpar}
 \IRule{MOAASC1}{
@@ -2774,12 +2777,12 @@ for them according to the new wrapper \C.
 \\[1mm]\hline
 \SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast{\tp[2]}{{[{(\MonCast{\t[1]}\x)}/\x]\ep}}}~}
 &     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}
+&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}}
 \\[1mm]\hline
 \SPP \Mdef\m\x{\t[2]}{\tp[2]} {\MonCast{\tp[2]}{[{(\MonCast{\t[1]}\x)}/\x]\ep}~}
 &     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&&&\wedge&\rtranstz{\bmt}\bmtp{\e}{\ep} \\
-&&&&\wedge&\statictype{\t[2]}{\K}{\cdot}
+&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{\e}{\ep}} \\
+&&\wedge&\multicolumn{3}{l}{\statictype{\t[2]}{\K}{\cdot}}
 \\[1mm]\hline
 \SP\}
 \end{array}
