@@ -1593,17 +1593,15 @@ in figure~\ref{fig:behrules}.
 \label{fig:behrules}
 \end{figure}
 
-We will go into the details of $\behcast\a\t\s\K$ later, but observe that, 
+We will go into the details of $\behcastz\a\t\s\K$ later, but observe that, 
 despite not performing any dynamic check, we are able to say that the type is
 correct according to the \kafka type system. This arises from the wrapper 
-ensuring that the object is observably type correct, with any mismatch between
+ensuring objects are observably type correct, with any mismatch between
 the typed and untyped code getting caught before the bad value reaches typed
-code.
-
-As a result of the strong type invariants that are exposed to the static code,
-our translation from our version of the Typed Racket language to \kafka is 
-fairly simple, only differing substantially from the optionally-typed system in 
-two key analytic cases.
+code. The translation from our version of Typed Racket to \kafka is 
+fairly simple as a result of the strong type invariants that are exposed 
+to the static code. The Type Racket translation only differs substantially from the 
+optionally-typed system in two key analytic cases, \RuleRef{TRAASC2} and \RuleRef{TRAASC3}.
 
 \begin{mathpar}
 \IRule{PT}{
@@ -1674,24 +1672,24 @@ name cast to ensure that the value has all of the required method names
 \end{mathpar}
 
 Now that we have seen how the guarantees provided by the behavioural casts can 
-be used to ensure the safety of typed code, we will now examine how the 
-behavioural cast can be implemented into \kafka.
+be used to ensure the safety of typed code, we will explain how the 
+behavioural cast is implemented in \kafka.
 
 
 \subsection{Behavioral Casts}
 
-A behavioral cast \BehCast\t\a will return a fresh \ap that refers to an
-object that behaves as if it was of type \t, and, if the underlying object
-departs from the behaviour that was required of it, the wrapper object will get
+A behavioral cast \BehCast\t\a returns a fresh \ap that refers to an
+object that behaves as if it is of type \t, and if the underlying object
+departs from that behaviour then the wrapper object will get
 stuck at an internal cast. Behavioural casts must be generative, as they produce
 a new object which monitors the target object for conformance to the interface 
-of \t. \figref{behave} details the semantics of this cast. \ruleref{BC1} is the
-cast where an object \obj\C{\b\a} is cast to a class \Cp. This leads to the
-creation of a wrapper class \k (under a new name \D). The class is appended
-to the class table \K.  The cast returns a reference \ap to an instance of
-this wrapper class pointing to the original object. The wrapper class is a
-structural subtype of the target class, so \D\Sub\C holds. \ruleref{BC2}
-handles the case where the target type of the cast is \any.
+of \t. \figref{behave} details the semantics of the behavioral cast. 
+\ruleref{BC1} refers to when an object \obj\C{\b\a} is cast to a class \Cp,
+leading to the creation of a wrapper class \k (under a new name \D). 
+Class \D is appended to the class table \K.  The cast returns a reference \ap to an instance of
+this wrapper class \k pointing to the original object \a. The wrapper class \k is a
+structural subtype of the class in the target type \C, hence \D\Sub\C holds. \ruleref{BC2}
+handles the case when the target type of the cast is \any.
 
 
 \begin{figure}[!ht]
@@ -1729,14 +1727,12 @@ handles the case where the target type of the cast is \any.
 \caption{Behavioral casts.}\label{behave}
 \end{figure}
 
-\figref{wrap} details the construction of wrapper classes. A wrapper is a
-class that has the distinguished field \that, at the type of the target
-object and a set of methods that mirrors the methods of the target object
-but with additionals casts to some of their arguments and return values.
-For getters, setters and typed methods, the wrapper simply adds a behavioral
-casts to argument, issues a typed call, and then casts of the result. For
-untyped methods, a dynamic call is surrounded by casts to \any, ensuring that
-typed object's type requirements will be respected.
+A wrapper is a class that has the distinguished field \that as the type of the target object, and a set of 
+methods that mirrors the methods of the target object, but with additionals 
+casts to some of their arguments and return values. For getters, setters and typed methods, 
+the wrapper simply adds a behavioral casts to argument, issues a typed call, and 
+then casts of the result of the call. For untyped methods, a dynamic call is casted to \any, 
+ensuring the type requirements of the typed object is respected.
 
 
 \begin{figure}[!ht]
@@ -1766,20 +1762,21 @@ class D {
 \label{fig:rktex1}
 \end{figure}
 
-In our approach, we implement the wrapper generation as a metafunction, called
-\xt{wrap}. In the formal system, \xt{wrap} uses 5 arguments, the source class
-name, the list of methods in the source class, the list of method types the
-source  class has, the list of method types that the wrapper is guaranteeing,
-and the target class name, but for the purposes of clarity, we will use a class
+In our system, the wrapper generation is implemented as a metafunction, called
+\xt{wrap}. The \xt{wrap} function is formally presented in section \ref{wrap} of the appendix. 
+The \xt{wrap} function takes 5 arguments, the source class
+name, the list of methods in the source class, the list of method types in the
+source class, the list of method types guaranteed by the wrapper class,
+and the target class name. For the purposes of clarity, we will use a class
 definitions directly for the name, definition, and type, and use another class
 without method definitions for the target type and class name.
 
-A simple example of this can be seen in figure~\ref{fig:rktex1}. Here, we have 
-an initial class \C, which we want to make act like a \D. \C has two declarations,
-a field \f and a method \m, both of which are untyped. The protections around 
-the field \f are typical, using \kafka's abstraction over fields, allowing both
-actual fields and getter/setter pairs to be treated identically, but the generated
-proxy for \m is unusual.
+A simple example of the \xt{wrap} function is presented in figure~\ref{fig:rktex1}. 
+Here, we have a class \C, which we would like to act like class \D. 
+\C has an untyped method \m. The \xt{wrap} function creates the wrapper class \D 
+with \that field with type \D and a proxy method for \m. 
+However, the proxy method for \m is unusual as it is not calling 
+the method \m of the wrapped object, instead it is perform the actual call of \m. 
 
 \begin{figure}[!ht]
 \begin{tabular}{ER{4.5cm}ER{3.5cm}E}
@@ -1808,18 +1805,18 @@ class D {
 \label{fig:rktex2}
 \end{figure}
 
-Figure~\ref{fig:rktex2} would be a more usual version of wrapper generation, 
-where we forward the call to \m to the wrapped object, as the semantics would 
-normally imply. Here, nothing bad happens, as the wrapped object is safely 
-isolated from the typed caller with casts, and no anomalous behaviour is seen.
+Figure~\ref{fig:rktex2} presents a more sensible version of the wrapper generation. 
+Where the call to \m is forwarded to the wrapped object, as the semantics would 
+normally imply for a wrapper. Here, the wrapped object is safely isolated from the typed caller 
+with casts, and no anomalous behaviour is seen.
 
 However, this is not representative of the actual Typed Racket system. In Typed
 Racket, self-calls are also effected by the type guaranteed by the
-wrapper~\cite{Takikawa:2012}, as seen in figure~\ref{fig:arktex3}. Here, the
-(untyped) \xt{A\%} object implements the bar method by calling \xt{foo}, and,
-because the externally applied type \xt{A} ascribes  the return type of \xt{foo}
-to be \xt{Integer}, when the untyped method \xt{bar} calls the untyped method
-\xt{foo} and foo returns a non- integer, we see a contract violation.
+wrapper~\cite{Takikawa:2012}, as shown in figure~\ref{fig:arktex3}. Here, the
+(untyped) \xt{A\%} object implements the \xt{bar} method by calling \xt{foo}, 
+as the externally applied type \xt{A} ascribes the return type of \xt{foo}
+to be \xt{Integer}. When the untyped method \xt{bar} calls the untyped method
+\xt{foo}, and returns a non-integer value, a contract violation is triggered.
 
 \begin{figure}
 \begin{tabular}{cc}
@@ -1847,20 +1844,19 @@ foo: broke its own contract
 \label{fig:arktex3}
 \end{figure}
 
-To model this in \kafka, we need to use a different approach to translation. At
-the most basic level, if we use the same naive translation approach seen in
-figure~\ref{fig:rktex2}, we would end up calling into the wrapped object, which
-would then call the \xt{foo} method without any type guards, and the program
-would only encounter a cast error once \xt{bar} returned.
+To model this behavior in \kafka, we need to use a different approach to translation. 
+At the most basic level, the simple naive translation approach, as seen in
+figure~\ref{fig:rktex2}, would call the wrapped object, which would then call 
+the \xt{foo} method without any type guards, and the program would 
+only encounter a cast error once \xt{bar} returned.
 
-Illustrating this issue is figure~\ref{fig:intbeh}. Here, we have a class \C
-that we force to become another class \D, which is typed in such a way that \C's
-implementation of \n will violate the type guarantees imposed by \D and enforced
-by the wrapper, \xt{DW}. Under the naive translation scheme, illustrated in the
-figure, the arguments to \m will be cast to \any, then passed onwards into the
-untyped object. Then, the untyped object \C will simply use its own definition
+We present figure~\ref{fig:intbeh} to better illustrate this issue. Here, we have a class \C
+that we are forcing to become class \D, which is typed in such a way that \C's
+implementation of \n will violate the type guarantees imposed by \D and the wrapper \xt{DW}. 
+Under the naive translation scheme, in figure~\ref{fig:intbeh}, the arguments to \m will be cast to \any, 
+then passed into the untyped object. The untyped object \C will simply use its own definition
 of the \m method, which calls directly into the \n method on that same object,
-thereby circumventing the type applied  to it by the type cast.
+thereby circumventing the type applied to it by the type cast.
 
 Interestingly, this property is not required for type soundness. Under this naive
 translation, no type guarantee is broken, as the typed code never ``sees'' \n
@@ -1907,11 +1903,10 @@ under the \kafka dynamics, we have to solve it in the way we generate the
 wrapper classes.
 
 We enforce the wrapper's type guarantee on the underlying object's methods by
-lifting the body of the methods up into the wrapper, thereby making any self-
-reference in the underlying object trivially refer to the wrapper, a translation
-we illustrate in figure~\ref{fig:intbeh2}. However, as noted there, this
-translation is still type incorrect - we are trying to make an untyped call to a
-typed call site.
+lifting the body of the methods up into the wrapper, thereby making any self
+reference in the underlying object trivially refer to the wrapper, illustrated 
+in figure~\ref{fig:intbeh2}. However, this translation is still typed incorrectly, 
+we are making an untyped call to a typed call site.
 
 
 \begin{figure}[!ht]
@@ -1945,34 +1940,34 @@ Type-incorrect wrapper & Type-corrected wrapper
 \end{figure}
 
 We overcome this issue through a special ``type-fixing'' operation, shown in
-figure~\ref{behtrans}, which ensures the type correctness of wrapped method
-bodies once lifted into the wrapper. This, finally, defines a behavioural cast
-semantics that preserves the execution behaviour of Typed Racket.
+section~\ref{behtrans} of the appendix, which ensures method bodies have the correct type 
+once lifted into the wrapper. This, finally, defines a behavioural cast semantics 
+that preserves the execution behaviour of Typed Racket.
 
-The corrected translation is depicted on the right side of
-figure~\ref{fig:intbeh2}, which shows the final behaviour of the wrapper, which
+The corrected translation, on the right side of
+figure~\ref{fig:intbeh2}, shows the correct behaviour of the wrapper, and
 is both type correct and semantics-preserving. Notably, what we have
-accomplished with the dynamic expression translation mechanism in
-figure~\ref{behtrans} is equivalent to the set of casts that would have occured
+accomplished with the dynamic expression translation mechanism, in
+section~\ref{behtrans}, is equivalent to the set of casts that would have occured
 if we had been able to insert the wrapper as the receiver for self references,
 effectively inling the call through the wrapper.
 
-Another challenge is that multiple wrappers can be layered on top of a target
-object. Each time a reference crosses a boundary between typed and untyped code,
+Another challenge with Typed Racket is when multiple wrappers are layered 
+over the target object. Each time a reference crosses a boundary between typed and untyped code,
 it will accrue an additional wrapper. When a method is invoked on a wrapper
-chair, that method will be invoked on every wrapper, until finding its way to
-the target object. A key property of the wrapper generation functions of
-\figref{wrap} is that methods should not be ``lost''. That is to say, any method
+chain, that method will be invoked on every wrapper in the chain, until finding its way to
+the target object. A key property of the wrapper generation functions, presented in section
+\ref{wrap}, is that methods should not be ``lost''. That is to say, any method
 in the target object, even if it is not in the type it is being cast to, will be
-retained in the wrapper.  This property is somewhat unconventional, and its need
-is illustrated in \figref{ctod}. Class \C and \D are preexisting.  They are not
-related by subtyping as \any is not a supertype of \E. The first cast from \C to
+retained by the wrapper.  This property is somewhat unconventional, and it is 
+illustrated in \figref{ctod} when executing the expression \BehCast\C{(\BehCast\D{\New\C{}})}. 
+Class \C and \D are not related by subtyping as \any is not a supertype of \E. The inner cast from \C to
 \D, results in the generation of class \EMxt{CtoD}. The wrapper class is a
 subtype of \D but it also has method \mp only found in class \C.  The cast from
 \EMxt{CtoD} back to \C leads to the generation of wrapper class \EMxt{CtoDtoC}.
 The latter is a subtype of \C and has a rather interesting method \m which is
 dynamic and thus must be invoked dynamically. The receiver is cast to \any using
-a subtype cast. The argument on the other hand is converted to dynamic with a
+a structual subtype cast. The argument on the other hand is converted to dynamic with a
 behavioral cast. The return value is converted to the expected return type with
 another behavioral cast.
 
@@ -3024,7 +3019,7 @@ the object stored at \a in \s.
 
 \section{Generative Behavioral Casts}
 
-\subsection{Expression translation for Behavorial semantics}
+\subsection{Expression translation for Behavioral semantics}\label{behtrans}
 
 % \begin{figure}[!ht]
 % \hrulefill
@@ -3057,7 +3052,7 @@ the object stored at \a in \s.
 
 % \clearpage
 
-\subsection{Class wrapper for Behavorial semantics}
+\subsection{Class wrapper for Behavioral semantics}\label{wrap}
 
 % TODO: FIX the formatting.
 
