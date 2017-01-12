@@ -2012,16 +2012,123 @@ another behavioral cast.
 
 \section{Translation: Reticulated Python - Monotonic Semantics}
 
-At the surface language level, the Monotonic semantics are very similar to that used by the transient semantics and Typed Racket, 
-as casts are inserted at type boundaries.
+At the surface language level, the Monotonic semantics are very similar to that
+used by the transient semantics, using consistency on top of a similar type
+system to the one used by TypeScript.
 
-The most notable difference between Reticulated Python and other gradually typed languages is the use of \emph{consistency},
-an operator broadly that means one type is compatible with another type. In our system, we define conistency as follows:
 \begin{mathpar}
-\IRule{C1}{\tmeet\t\tp\cdot\K = \tpp\,\Kp}{\consistent\K{\t}{\tp}}
+\IRule{C1}{\tmeet\t\tp\cdot\K = \tpp\,\Kp}{\consistent\K{\t}{\tp}} 
 \end{mathpar}
 
-% broken: partially typed calls
+Common to both transient and monotonic is the idea of consistency, which will
+become substantially more important in our discussion of the monotonic
+semantics. Consistency is effectively the idea that two types \emph{do not
+contradict one another}. For example, the types \xt{int} and \any are
+consistent, but the types \xt{int} and \xt{string} are not, since no member of
+one could be in the other.
+
+To implement consistency in our formal system, we will use the \texttt{tmeet}
+operator, which we will see again later in our discussion of monotonic. The
+purpose of \xt{tmeet} is to find the type common to both given types, which, if
+it exists, implies that conistency holds. Using the earlier example, the result
+of \xt{tmeet} of \xt{int} and \any would be \xt{int}, as \xt{int} is the most
+restrictive of the two given types.
+
+In effect, \texttt{tmeet} takes the place of the $\sqcap$ operator
+in~\cite{Siek2015}, fufilling the same purpose. In short, the \texttt{tmeet}
+operator takes two types and finds a third type that retains all of the type
+assertions in the two input types.
+
+For example, consider figure~\ref{fig:tmeet_ex}, where we compute the meet of
+two types, both of which have the same function, but alternate the typing for
+that function, where \texttt{A} has the return type typed, whereas \texttt{B}
+has the argument typed. \texttt{tmeet} will compute the result type as a new
+\texttt{C}, where both the argument and return type  are typed.
+
+\begin{figure}[!ht]
+\begin{tabular}{EEEEEVEV}
+\texttt{tmeet(}
+& \texttt{A}
+  & \texttt{,}
+  \texttt{B}
+  & \texttt{,}
+  $\cdot$
+  & \texttt{,}
+  &
+\begin{lstlisting}
+class A {
+   m(x: *): A {this}}
+
+class B {
+   m(x: B): * {this}}
+\end{lstlisting}    
+& 
+\texttt{) = C,}
+  &
+\begin{lstlisting}
+class A { ... }
+class B { ... }
+class C {
+  m(x: B): A {this}
+}
+\end{lstlisting}    
+\end{tabular}
+\caption{Simple example of \texttt{tmeet} use}
+\label{fig:tmeet_ex}
+\end{figure}
+
+This example uses 3 of \texttt{tmeet}'s 4 arugments, with an empty \P, first
+invoking \RuleRef{TM4}, which, via \xt{mmeet}, computes the meet of each of the
+arguments to \xt{m}, invoking \RuleRef{TM1} and \RuleRef{TM2} for the argument
+and return type of \xt{m}.
+
+\begin{figure}[!ht]
+\begin{tabular}{l@{}l@{}l@{}l@{}l@{\hspace{1.5mm}}l@{\hspace{1mm}}l@{}l}
+\texttt{tmeet(}
+& \texttt{A}
+  & \texttt{,}
+  \texttt{B}
+  & \texttt{,}
+  $\cdot$
+  & \texttt{,}
+  &
+  \begin{minipage}{4.3cm}
+    \begin{lstlisting}
+class A {
+   m(x: A): A {this}}
+
+class B {
+   m(x: B): B {this}}
+      \end{lstlisting}    
+  \end{minipage}
+& 
+\texttt{) = E,}
+  &
+  \begin{minipage}{4.3cm}
+    \begin{lstlisting}
+class A { ... }
+class B { ... }
+class E {
+  m(x: E): E {this}
+}
+    \end{lstlisting}    
+  \end{minipage}
+\end{tabular}
+\caption{\texttt{tmeet} over recursive classes}
+\label{fig:tmeet_rec_ex}
+\end{figure}
+
+The third argument, \P, becomes important when we consider programs like the one
+in example~\ref{fig:tmeet_rec_ex}, where the meet  of \xt{A} and \xt{B}
+recursively depends on the meet of \xt{A} and \xt{B}. If we proceeded naievely,
+without \P, \RuleRef{TM4} would invoke \RuleRef{TM4} again to compute the meet
+of the arugments to \m. We use \P and \RuleRef{TM5} to avoid this.
+
+\RuleRef{TM4} invokes \xt{mmeet} with an enriched \P, in much the same manner
+that the subtyping relation does, inserting the future result of the meet of
+\xt{A} and \xt{B} (which, in this example, is \xt{E}) into \P, which will then
+be used by \RuleRef{TM5} to terminate the recursion.
+
 
 \newcommand{\monowrap}[2]{\xt{mwrap}(#1,#2)}
 \begin{mathpar}
@@ -2061,6 +2168,20 @@ an operator broadly that means one type is compatible with another type. In our 
   \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2~\K_3}
 }
 \end{mathpar}
+
+
+Now that we have discussed the key operator used by monotonic, we will now
+present the surface to \kafka translation. Of special note is \RuleRef{MCT1},
+and the two rules which use it, \RuleRef{MT} and \RuleRef{CR1}. In these rules,
+we are actively replacing every type the user wrote with ones generated by the 
+\xt{monWrap} function. The details of the \xt{monWrap} function will be 
+discussed later, but for the purposes of the translation, we can assume that the
+\xt{monWrap} function will replace every typed function with an untyped one unless
+there are no \any types transitively contained within the function's argument.
+
+This last decision is further evidenced in our expression translation, most
+notably in the new handling of calls to both methods and fields, shown in
+\RuleRef{MOA2}, \RuleRef{MOA3}, and \RuleRef{MOA4}.
 
 \begin{mathpar}
 \IRule{MOA1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
@@ -2259,76 +2380,172 @@ for compactness, we elide class definitions that are in figure
 do not appear in the dynamic execution of the program.
 
 \begin{figure}[h!]
-FIXME
-\begin{tabular}{ll}
-\begin{minipage}[b]{4.5cm}
-\lstset{framesep=4pt}
+\centering
+\begin{minipage}{5cm}
+\begin{tabular}{l}
+Translated Program:\\
 \begin{lstlisting}
-class CW { f : * }
-class DW { 
-  m (x:*):* {x}
-}
 d:* = new DW(new D())
 a:* = new CW(new C(d))
 [heap snapshot 1]
-
-class EW { f : F }
-class FW { 
-  m (x:E):E {x}
-}
-
 e:E = <E>a
 [heap snapshot 2]
 d.m(d)
 \end{lstlisting}
-\vspace{-9.2em}
+\end{tabular}
+\end{minipage}
+\begin{tabular}{@{}l@{\hspace{3mm}}l@{}}
+Class \C Wrappers: & Class \D Wrappers: \\
+\begin{minipage}{7cm}
+\begin{lstlisting}
+class CW { 
+    that : C
+    f():* { <*>this.that().f() }
+    f(x:*):* { 
+      <*>this.that().f(<*>x)}
+}
+class ECW {
+  that : C
+  f():* { <*><FW>this.that.f() }
+  f(x:*):* {
+      <*><F>this.that().f(<*><FW>x)}
+}
+\end{lstlisting}
 \end{minipage}
 &
-\begin{tabular}{l}
-Heap snapshot 1: \\
-\begin{minipage}{8cm}
+\begin{minipage}{7cm}
+\begin{lstlisting}
+class DW { 
+  that : D
+  m (x:*):* { <*><*>x }
+}
+
+
+
+class FDW {
+  that : D
+  m(x:*):* { <*><EW><*><EW>x }
+  m(x:E):E { <EW><*><EW>x }
+}
+\end{lstlisting}
+\end{minipage}
+\\
+Heap snapshot 1: & 
+Heap snapshot 2: \\
+\begin{minipage}{7cm}
 \begin{tikzpicture}[framed,my shape/.style={
 rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \node (ref) at (0,0) {$\HT\a\any$};
-\node (refb) at (0,-1.5) {$\HT{\xt{d}}\any$};
+\node (refb) at (0,-2) {$\HT{\xt{d}}\any$};
 
 \node (C1) [my shape=2,right of=ref, anchor = text west]
-{\C\nodepart{two}$\f : \any$};
+{\xt{CW}\nodepart{two}$\that : \C$};
 
-\node (D1) [my shape=2,right=of C1.two east, anchor=text west,shift={(0,-.1)}]
-{\D\nodepart{two}$\Mtype\m\any\any$};
+\node (C2) [my shape=2,right=of C1.two east, anchor=text west,shift={(0,-.1)}]
+{\xt{C}\nodepart{two}$\f : \any$};
+
+\node (D1) [my shape=2,below=of C1.two west, anchor=text west,shift={(0,-.1)}]
+{\xt{DW}\nodepart{two}$\that : \D$};
+
+\node (D2) [my shape=2,right=of D1.two east, anchor=text west,shift={(0,-.1)}]
+{\xt{D}\nodepart{two}$\Mtype\m\any\any$};
 
 \draw[->,very thick] (ref.east) -> (C1.text west);
 \draw[->,very thick] (refb.east) -> ($(D1.text west)+(0,-.1)$);
-\draw[->,very thick] (C1.two east) -> ($(D1.text west)+(0,.1)$);
+\draw[->,very thick] (C1.two east) -> ($(C2.text west)+(0,.1)$);
+\draw[->,very thick] (C2.two west) -- ($(D1.text west) + (-0.5,0.5)$) -- ($(D1.text west) + (-0.5,.1)$) -> ($(D1.text west)+(0,.1)$);
+\draw[->,very thick] (D1.two east) -> ($(D2.text west) + (0,.1)$);
 \end{tikzpicture}
-\end{minipage}\\
-Heap snapshot 2: \\
-\begin{minipage}{8cm}
+\end{minipage} &
+\begin{minipage}{7cm}
 \begin{tikzpicture}[framed,my shape/.style={
 rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \node (ref) at (0,0) {$\HT\a\any$};
-\node (refb) at (0,-1.5) {$\HT{\xt{d}}\any$};
-\node (refe) at (0,-.5) {$\HT{\xt{e}}\E$};
+\node (refb) at (0,-2) {$\HT{\xt{d}}\any$};
 
-\node (C1) [my shape=2,right of=ref, anchor = text west,shift={(0,-.1)}]
-{\C\nodepart{two}$\f : \xt{F}$};
+\node (C1) [my shape=2,right of=ref, anchor = text west]
+{\xt{ECW}\nodepart{two}$\that : \C$};
 
-\node (D1) [my shape=2,right=of C1.two east, anchor=text west,shift={(0,-.1)}]
-{\D\nodepart{two}$\Mtype\m{\xt{E}}{\xt{E}}$};
+\node (C2) [my shape=2,right=of C1.two east, anchor=text west,shift={(0,-.1)}]
+{\xt{C}\nodepart{two}$\f : \any$};
 
-\draw[->,very thick] (ref.east) -> ($(C1.text west)+(0,.1)$);
+\node (D1) [my shape=2,below=of C1.two west, anchor=text west,shift={(0,-.1)}]
+{\xt{FDW}\nodepart{two}$\that : \D$};
+
+\node (D2) [my shape=2,right=of D1.two east, anchor=text west,shift={(0,-.1)}]
+{\xt{D}\nodepart{two}$\Mtype\m\any\any$};
+
+\draw[->,very thick] (ref.east) -> (C1.text west);
 \draw[->,very thick] (refb.east) -> ($(D1.text west)+(0,-.1)$);
-\draw[->,very thick] (refe.east) -> ($(C1.text west)+(0,-.1)$);
-\draw[->,very thick] (C1.two east) -> ($(D1.text west)+(0,.1)$);
+\draw[->,very thick] (C1.two east) -> ($(C2.text west)+(0,.1)$);
+\draw[->,very thick] (C2.two west) -- ($(D1.text west) + (-0.5,0.5)$) -- ($(D1.text west) + (-0.5,.1)$) -> ($(D1.text west)+(0,.1)$);
+\draw[->,very thick] (D1.two east) -> ($(D2.text west) + (0,.1)$);
 \end{tikzpicture}
 \end{minipage}
-\end{tabular}
-\vspace{1em}
 \end{tabular}
 \caption{Execution under the monotonic semantics}
 \label{fig:mono_ex2}
 \end{figure}
+
+Figure~\ref{fig:mono_ex2} illustrates the nature of these wrappers and how they
+are added into the heap. In this example, as in figure~\ref{fig:mono_ex1}, we
+show the state of the heap at two discrete times, before and after we cast the
+\a reference to \xt{E}. Each wrapper is associated with a specific type that it
+enforces, with \xt{CW} and \xt{DW} enforcing \C and \D, respectively, and wrap
+over an underlying object of known type, enforcing its type guarantees, as seen
+in \xt{CW} and \xt{DW}.
+
+Our monotonic semantics also lifts method bodies into wrapper classes, as the
+Typed Racket semantics does, but for a different reason. While Typed Racket
+needed it to enforce the observed type on an underlying untyped object, we need
+the combination of the wrapper and underlying object to act as if they are
+\emph{exactly} the monotonically specified type. The result of this can be seen
+in the translation above for \m.
+
+The other notable decision that is illustrated here is the erasure on every call
+site for \m, with the exception of the final definition in \xt{FDW}, which will
+be dicussed later. Under the monotonic semantics, every call site that has
+\emph{some untyped component anywhere} can be adjusted further, ensuring that
+any partially typed call may be invalidated in the future. As a concequence,
+every call to even a \emph{surfically typed} call site (e.g. one with a argument
+type that may contain a \any very deeply embedded in the type) must be treated
+as an untyped call site.
+
+In monotonic, if we encounter a cast on a reference, that cast needs to be
+enforced upon that reference for the rest of its lifetime. \kafka's monotonic
+cast operator handles this by taking the previously-existing type on the object,
+computing the meet of that old type and the new type, and then producing a new
+wrapper for the object that replaces the previous wrapper. \xt{ECW} and \xt{FDW}
+are two examples of the result of this operation, created when we casted \a to
+\xt{E}.
+
+To ensure that types for fields are respected, we take a conservative approach, 
+as seen in \xt{ECW}. When a field on an underlying object is set, we first cast
+it to the required type (in this case \xt{FW}, the wrapper type that would 
+protect objects of type \xt{F}, which is used instead of \xt{F} for techincal
+reasons), then further cast it to the type of the underlying storage cell, which
+in this case, is of type \any. For retreiving values, we reverse this process.
+
+This is being overly conservative. From the semantics of the meet operation, we
+know that the first cast to the protected type is sufficient to ensure 
+compatibility with the underlying memory cell type, and we also know that casting
+to the required type before returning is ignoring the heap conistency invariant 
+that monotonic provides, allowing for casts on retreival to be ignored. However,
+the \kafka type system does not allow us to make either of these shortcuts while
+still retaining semantic correctness, and as a result, we are forced to double 
+up casts on getters and setters, as seen in \xt{ECW}.
+
+Also of interest is the alterations that happened in \xt{FDW}. Here, when we 
+specialized \xt{D} to \xt{F}, we both added in a lot of additional (and, in this
+case, not required) casts, as well as a wholly new call site for \m. This new
+call site is fully typed, despite the previous note that we could not add in 
+typed call sites as they might change in the future.
+
+In this case, we are able to insert the additional static call site because we 
+know that \xt{E} will not be able to be further altered under the monotonic 
+semantics, as \xt{E} and every type referenced from it have no instances of the
+type \any in them, which could be altered in the future by another monotonic
+cast.
 
 Meta-variable \S denotes a map from addresses to classes, thus
 \Map\S{\Bind\a\C} gives type \C to address \a. The function \htype\a\S\s\K
@@ -2427,106 +2644,6 @@ have been retyped.
 % For the case we call \tmeet\P\K\C\D, the function will have to create a new
 % class \E that is the result of meeting \C with \D.
 
-The \texttt{tmeet} function takes four arguments, the original type
-$\t$, the cast type $\tp$, an environment $\P$, a class table $\K$, and
-outputs a type $\tpp$ and a class table $\Kp$. The environment $\P$ is a set
-of mappings from a pair of types ($\t,\tp$) to a type $\tpp$. 
-
-In effect, \texttt{tmeet} takes the place of the $\sqcap$ operator in~\cite{Siek2015},
-fufilling the same purpose. In short, the \texttt{tmeet} operator takes two types
-and finds a third type that retains all of the type assertions in the two input types.
-
-For example, consider figure~\ref{fig:tmeet_ex}, where we compute the meet of two types,
-both of which have the same function, but alternate the typing for that function, where
-\texttt{A} has the return type typed, whereas \texttt{B} has the argument typed. \texttt{tmeet}
-will compute the result type as a new \texttt{C}, where both the argument and return type 
-are typed.
-
-\begin{figure}[!ht]
-\begin{tabular}{EEEEEVEV}
-\texttt{tmeet(}
-& \texttt{A}
-  & \texttt{,}
-  \texttt{B}
-  & \texttt{,}
-  $\cdot$
-  & \texttt{,}
-  &
-\begin{lstlisting}
-class A {
-   m(x: *): A {this}}
-
-class B {
-   m(x: B): * {this}}
-\end{lstlisting}    
-& 
-\texttt{) = C,}
-  &
-\begin{lstlisting}
-class A { ... }
-class B { ... }
-class C {
-  m(x: B): A {this}
-}
-\end{lstlisting}    
-\end{tabular}
-\caption{Simple example of \texttt{tmeet} use}
-\label{fig:tmeet_ex}
-\end{figure}
-
-This example uses 3 of \texttt{tmeet}'s 4 arugments, with an empty \P, first invoking \RuleRef{TM4},
-which, via \xt{mmeet}, computes the meet of each of the arguments to \xt{m}, invoking \RuleRef{TM1}
-and \RuleRef{TM2} for the argument and return type of \xt{m}.
-
-\begin{figure}[!ht]
-\begin{tabular}{l@{}l@{}l@{}l@{}l@{\hspace{1.5mm}}l@{\hspace{1mm}}l@{}l}
-\texttt{tmeet(}
-& \texttt{A}
-  & \texttt{,}
-  \texttt{B}
-  & \texttt{,}
-  $\cdot$
-  & \texttt{,}
-  &
-  \begin{minipage}{4.3cm}
-    \begin{lstlisting}
-class A {
-   m(x: A): * {this}}
-
-class B {
-   m(x: B): * {this}}
-      \end{lstlisting}    
-  \end{minipage}
-& 
-\texttt{) = E,}
-  &
-  \begin{minipage}{4.3cm}
-    \begin{lstlisting}
-class A { ... }
-class B { ... }
-class E {
-  m(x: E): * {this}
-}
-    \end{lstlisting}    
-  \end{minipage}
-\end{tabular}
-\caption{\texttt{tmeet} over recursive classes}
-\label{fig:tmeet_rec_ex}
-\end{figure}
-
-The third argument, \P, becomes important when we consider programs like the one in example~\ref{fig:tmeet_rec_ex}, where the meet 
-of \xt{A} and \xt{B} recursively depends on the meet of \xt{A} and \xt{B}. If we proceeded naievely, without \P, \RuleRef{TM4} would
-invoke \RuleRef{TM4} again to compute the meet of the arugments to \m. We use \P and \RuleRef{TM5} to avoid this.
-
-\RuleRef{TM4} invokes \xt{mmeet} with an enriched \P, in much the same manner that the subtyping relation does, inserting the future
-result of the meet of \xt{A} and \xt{B} (which, in this example, is \xt{E}) into \P, which will then be used by \RuleRef{TM5} to terminate
-the recursion. We make a notable simplifcation in figure \ref{fig:tmeet_rec_ex}, however, where the covariant and contravariant cases of meet
-produce the same result - our formal system instead generates different classes (which are identical to the \xt{E} in the figure) for each of 
-these cases.
-
-This last property comes out of a property of conistency. If we consider two types, $\C = \Type{\Mtype\m\any\any}$ and 
-$\D = \Type{\Mtype\m\any\any, \Mtype\n\any\any}$, clearly $\D <: \C$ but not $\C <: \D$, and therefore, using the consistent subtyping relation from~\cite{SiekTaha07}, 
-$\D \lesssim \C$ but not $\C \lesssim \D$. As a concequence, 
 
 
 \begin{figure}[!ht]
