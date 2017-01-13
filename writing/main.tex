@@ -1013,60 +1013,43 @@ to those of type \t, while not making any guarantee about the type of the argume
 
 \subsection{Semantics}
 
-\begin{figure}[!h]
-\begin{tabular}{|ccc|ccc|}
-\hline
-\multicolumn{3}{|l|}{Static:} & \multicolumn{3}{l|}{Dynamic:}\\
-\hline
-$\K~\e$ & $\progtrans{}{}$ & $\Kp~\ep$ & 
-$\Kp~\ep~\cdot$ & $\longrightarrow^*$ & $\Kpp~\a~\s$ \\
-\hline
-\multicolumn{3}{|l|}{Guarantee:} & \multicolumn{3}{l|}{Guarantee:}\\
-\hline
-&& $\WFp\Kp\ep$ & 
-$\EnvType {\cdot}{\cdot}\Kp\e\t$ & $\implies$ & 
-$\EnvType {\cdot}{\s}\Kpp\a\t$ \\\hline
-\end{tabular}
-\caption{\kafka Reductions.}\label{redu}
-\end{figure}
+The semantics for \kafka are typical of small step operational semantics,  with
+some unusual features to accomodate the translations of various gradual type
+systems and their cast semantics. A \kafka program is defined  by the
+combination of a class table \K (consists of a list of classes \k) and an
+evaluation expression \e. 
 
-The semantics for \kafka are typical of small step operational semantics, 
-with some unusual features to accomodate the translations of various
-gradual type systems and their cast semantics. A \kafka program is defined 
-by the combination of a class table \K (consists of a list of classes \k)
-and an evaluation expression \e. 
-
-\kafka classes contain methods and fields, the latter can be declared 
-either via an explicit field declaration in the class
-(e.g. \HT\f\t) or by a pair of a getter (\Get\this\f) and setter 
-(\Set\this\f\x) methods. Semantically, both explicit and implicit fields behave 
-identically, which has the concequence that untyped field access is forbidden, 
-as explicit field semantics would become dependent on the approach to typing. 
-Methods in \kafka are segregated into typed (methods whose argument and
-return type is not \any) and untyped methods, the former of which can be 
-called with the statically resolved \Call\e\m\e form, and the latter of
-which can only be called with the dynamically checked \DynCall\e\m\e 
-expression. Executions halt when it gets stuck, encounters an expression that is 
-not a value and cannot apply any more evaluation rules, or the expression is a value.
+\kafka classes contain methods and fields, the latter can be declared  either
+via an explicit field declaration in the class (e.g. \HT\f\t) or by a pair of a
+getter (\Get\this\f) and setter  (\Set\this\f\x) methods. Semantically, both
+explicit and implicit fields behave  identically, which has the concequence that
+untyped field access is forbidden,  as explicit field semantics would become
+dependent on the approach to typing.  Methods in \kafka are segregated into
+typed (methods whose argument and return type is not \any) and untyped methods,
+the former of which can be  called with the statically resolved \Call\e\m\e
+form, and the latter of which can only be called with the dynamically checked
+\DynCall\e\m\e  expression. Executions halt when it gets stuck, encounters an
+expression that is  not a value and cannot apply any more evaluation rules, or
+the expression is a value.
 
 A heap (\s) in \kafka is a set of mappings from memory locations to objects,
-denoted by \Map\s{\Bind\a{\obj\C{\b\a}}}. Objects in the heap are the 
-combination of a list of field values \a and the class name \C.
-A configuration is the combination of a program \K\e and a heap \s, 
-and reducing one configuration \K\e\s to another configuration \Kp\ep\sp 
-is denoted \Reduce\K\e\s\Kp\ep\sp. The reductions rules for \kafka are presented 
-in figure \ref{fig:semantics}, with the evaluation contexts, denoted by \EE, presented 
-at the bottom.
+denoted by \Map\s{\Bind\a{\obj\C{\b\a}}}. Objects in the heap are the
+combination of a list of field values \a and the class name \C. A configuration
+is the combination of a program \K\e and a heap \s,  and reducing one
+configuration \K\e\s to another configuration \Kp\ep\sp  is denoted
+\Reduce\K\e\s\Kp\ep\sp. The reduction rules for \kafka are presented  in figure
+\ref{fig:semantics}, with the evaluation contexts, denoted by \EE, presented  at
+the bottom.
 
-The auxiliary function \names{} returns the names of methods, and the
-auxiliary function \untyped{} returns the methods whose types are \any.
-The auxiliary function \xt{read} return the location \ap pointing to the
-field \f of the object at location \a. The auxiliary function \xt{write}
-return the heap \sp with the field \f of the object at location \a updated
-to the location \ap. \App\K\C denotes the lookup of class \C in class table \K.
-\Mdef\m\x\t\tp\e \In \k denotes that method \m occurs in class \k. All auxiliary 
-functions are defined in the appendix. Note that the ordering within lists of 
-fields and methods definition is not relevant (i.e. we can reorder when convenient). 
+The auxiliary function \names{} returns the names of methods, and the auxiliary
+function \untyped{} returns the methods whose types are \any. The auxiliary
+function \xt{read} return the location \ap pointing to the field \f of the
+object at location \a. The auxiliary function \xt{write} return the heap \sp
+with the field \f of the object at location \a updated to the location \ap.
+\App\K\C denotes the lookup of class \C in class table \K. \Mdef\m\x\t\tp\e \In
+\k denotes that method \m occurs in class \k. All auxiliary  functions are
+defined in the appendix. Note that the ordering within lists of  fields and
+methods definition is not relevant (i.e. we can reorder when convenient).
 
 \begin{figure}[!h]
 \hrulefill
@@ -1209,8 +1192,9 @@ of methods with the given name. While simple, the name cast is
 extremely weak and cannot ensure type identity is preserved as required to
 produce a strong \kafka type. As a result, any use of this cast is typed to \any.
 
-To illustrate the first cast, through subtyping, we present the 
-translation of a subset of the programming language Thorn to \kafka. 
+We will begin our discussion of applying gradual typing to objects by examining
+the optionally-typed TypeScript, which will provide an overview of our static 
+translation system from a source language to \kafka.
 
 \section{Translation: TypeScript}
 
@@ -1319,8 +1303,40 @@ via the self-reference, whose type is always absolutely known.
 Of more interest are TypeScript's analytic rules. Here, \RuleRef{TSAASC1}
 requires the interaction between typed parts of the program to be well-typed,
 but \RuleRef{TSAASC2} and \RuleRef{TSAASC3} allow untyped values to be passed
-into typed references without impediment
+into typed references without any extra checks, and are what causes TypeScript
+to be unsound.
 
+\begin{figure}[!h]
+\Large
+\begin{tabular}{rcccl}
+$\src{\K~\e}$ & $\progtrans{}{}$ & $\Kp~\ep$ $\Kp~\ep~\cdot$ & $\longrightarrow^*$ & $\Kpp~\a~\s$ \\
+&& $\WFp\Kp\ep$ & & 
+$\EnvType {\cdot}{\s}\Kpp\a\t$ \\
+& & $\EnvType {\cdot}{\cdot}\Kp\e\t$ && \\ 
+\end{tabular}
+\caption{\kafka Translation and execution.}\label{redu}
+\end{figure}
+
+Once translation has been completed, we can then hand the translated result over
+to \kafka for execution, as depicted in figure~\ref{redu}. The source language
+terms $\K$ and $\e$ (marked with an underline, as elsewhere) will be translated
+via the above approach into \kafka, which can then execute the translated 
+program.
+
+This system guarantees a few key properties. If a program translates, then it 
+should be well-formed in \kafka, and if it is well formed in \kafka, then it
+should execute correctly (not getting stuck, except at casts and dynamic calls) 
+in the \kafka semantics. Notably, the TypeScript translation we have just 
+described techincally does produce terms that typecheck in \kafka, as it erases
+all types in the source during translation, allowing the \kafka type system to
+conclude that any program that passes translation will not get stuck except
+at dynamic call sites.
+
+Because of this type erasure, this translation from TypeScript to \kafka is quite
+a weak one, as befits TypeScript's optional and unsound nature. We will begin our
+examination of stronger guarantees by examining Thorn, a gradual type system that
+combines many features of TypeScript with the additional ability to write sound,
+dynamically checked types.
 
 \section{Translation: Thorn}
 \newcommand{\bC}{\xt{!C}}
