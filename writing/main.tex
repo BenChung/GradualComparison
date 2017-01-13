@@ -13,6 +13,8 @@
 
 \definecolor{Gray}{gray}{0.9}
 
+\newcommand{\code}[1]{{\tt #1}\xspace}
+
 \usepackage{epigraph}
 \setlength{\epigraphwidth}{0.75\linewidth}
 \setlength{\epigraphrule}{0pt}
@@ -94,8 +96,6 @@ translation to \kafka and discuss the implications of the respective
 designs.
 \end{abstract} 
 
-
-
 \section{Introduction}
 
 \vspace{-5mm}
@@ -142,8 +142,8 @@ for Typed Racket~\cite{popl16}. These numbers merely indicate the existence of
 configurations that hurt performance.  They are neither comparable nor worst
 case indicators. Most systems lack rigorous evaluations. } Predictably,
 developers of industrial languages have chosen to compromise on soundness to
-avoid degrading performance.\footnote{Dart, Typescript and Hack have unchecked
-modes that won't catch all type errors neither statically or dynamically.}
+avoid degrading performance.\footnote{Dart, Typescript and Hack use unchecked
+modes for production, all type errors will not be reported.}
 
 This paper explores the design space of gradual type systems for object-oriented
 languages. We aim to expose some of the forces that have influenced existing
@@ -215,6 +215,8 @@ does not behave like a \u\C. Finally we describe the monotonic
 and transient variants of Reticulated Python which have somewhat surprising
 semantic properties.
 
+\newpage %% Sanity check.  If you see it, then something went wrong.
+
 \section{Background}
 
 \vspace{-5mm}
@@ -238,65 +240,76 @@ errors, also it follows that type annotations do not effect performance. The
 optional type systems currently in wide use include Hack~\cite{hack13},
 TypeScript~\cite{BAT14} and Dart~\cite{dart13}.  StrongScript~\cite{ecoop15}
 and Thorn~\cite{popl10} allow programmers to choose between optional and
-concrete types.
+concrete types -- the latter have the same semantics as types in traditional
+statically typed languages such as Java.
 
 On the functional side, the ancestry is dominated by the work of Felleisen
 and his students.  The Typed Scheme~\cite{tf-popl08} design that later
-became Typed Racket is strongly influenced by their earlier work on
-higher-order contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a
-vehicle for teaching programming to high-school students and undergraduates.
-For that reason, being able to explain the source of errors was viewed as an
-important design constraint as well as preventing surprises -- a variable
-annotated as a \C should behave as a \C. If it doesn't, then that should be
-reported at the first discrepancy. The approach to typing is thus quite
-different from optional types. In Typed Racket, whenever a value crosses a
-boundary between typed and untyped code, the value will be wrapped in a
-contract that monitors it's behavior. This allows to ensure that the type of
-mutable values remains consistent with their declared type and that
-functions respect their declared interface. When a value misbehaves, blame
-can be assigned to module where the value originated. In Typed Racket, the
-granularity of typing is the module, thus each module is either entirely
-typed or entirely untyped.
+became Typed Racket is strongly influenced by earlier work on higher-order
+contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a vehicle for
+teaching programming to high-school students and undergraduates.  For that
+reason, being able to explain the source of errors was viewed as an
+important design constraint, another constraint was to prevent surprises --
+a variable annotated as a \C should behave as a \C. If it didn't, then that
+fact must be reported at the first discrepancy. The Typed Racket approach to
+gradual typing is thus quite different from optional types. In Typed Racket,
+whenever a value crosses a boundary between typed and untyped code, the
+value will be wrapped in a contract that monitors it's behavior. This allows
+to ensure that the type of mutable values remains consistent with their
+declared type and that functions respect their declared interface. When a
+value misbehaves, blame can be assigned to module where the value
+originated. In Typed Racket, the granularity of typing is the module, thus
+each module is either entirely typed or entirely untyped. This design choice
+means that a compilation unit never has to deal with a mixture of typed and
+untyped code. Also if closely coupled functions are in the same package,
+they will not incur boundary crossing costs.
 
-Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as any
+Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
 for a program by choosing to annotate function parameters with types, or
-not. Their contribution was formalization in a lambda calculus with
-references and a proof of soundness that stated that all type errors would
-be caught. They defined the type consistency relation $\t \sim \tp$ which
-states that a type that agree on non-\any position are compatible.  In their
-follow up~\cite{SiekTaha07} they extended the work to a stateless object
-calculus and combined consistency with structural subtyping. Extending the
-approach to mutable objects proved challenging. Reticulated
-Python~\cite{siek14} attempts to find a reasonable compromise between
-soundness and efficiency.  The language has three modes: in \emph{guarded}
-mode, Python behaves as Typed Racket with contracts applied to values,
-\emph{transient} mode performs first order checks before each call, and the
-\emph{monotonic} mode is similar to guarded except there is at most one
-wrapper per object and casts can only remove occurrences of \any from its
-type.
+not.'' Their contribution was a formalization of the idea in a lambda
+calculus with references and a proof of soundness that stated that all type
+errors would be caught. They defined the type consistency relation $\t \sim
+\tp$ which states that a type that agree on non-\any position are
+compatible.  In their follow up work~\cite{SiekTaha07} they extended their
+result to a stateless object calculus and combined consistency with
+structural subtyping. Extending the approach to mutable objects proved
+challenging. Reticulated Python~\cite{siek14} attempts to find a reasonable
+compromise between soundness and efficiency.  The language has three modes:
+in \emph{guarded} mode, Python behaves as Typed Racket with contracts
+applied to values, \emph{transient} mode performs first order checks before
+each call, and the \emph{monotonic} mode is similar to the guarded mode
+except in that there is at most one wrapper per object and casts can only
+remove occurrences of \any from an object's type.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09},
 StrongScript~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
-Felleisen-style contracts and mostly nominal type equivalence. C\# 4.0 adds
-the type {\sf dynamic} (i.e.~\any) to the language and dynamically resolved
-method invocation when the receiver is of type \any.  This means C\# has a
-dynamic sublanguage that allows developer to write unchecked code, but it
-also has a strongly type sublanguage in which values are guaranteed to be of
-their declared type.  Thorn and StrongScript extend the C\# approach with
-the addition of optional types (called like types).  Thorn is
-implemented by translation to the JVM.\footnote{The translation strategy is
-  quite close to that presented here.} The presence of concrete types means
-that the compiler can optimize code (unbox data and in-line methods) and
-programmers are guaranteed that type errors will not occur within concretely
-typed code.  StrongScript takes Thorn and re-implements it within the context
-of TypeScript.  The interesting design choices there are that while
-TypeScript originally relied on structural subtyping, StrongScript changed
-the language to follow a nominal discipline. It is interesting to note that
-this change did not affect the semantics of benchmark
-applications. Moreover, to deal with higher-order functions which TypeScript
-inherits from JavaScript, the language does use contract for functions.
+Felleisen-style contracts and mostly nominal type equivalence (structural
+equivalence can be specified on demand, but it is, in practice, rarely
+used). C\# 4.0 adds the type {\sf dynamic} (i.e.~\any) to the C\# language
+and adds dynamically resolved method invocation when the receiver of method
+call is of type \any.  This means C\# has a dynamic sublanguage that allows
+developer to write unchecked code, but it also has a strongly type
+sublanguage in which values are guaranteed to be of their declared type.
+The implementation of C\# in the~.Net framework replaces \any by the type
+{\sf object} and adds casts where needed. A dynamically resolved method call
+operation is supported as part of the reflective interface of~.Net.  Thorn
+and StrongScript extend the C\# approach with the addition of optional types
+(called {\em like types} in Thorn).  Thorn is implemented by translation to
+the JVM.\footnote{The translation strategy is surprisingly close to what we
+  present later in the paper. The main difference is that the JVM does not
+  have a type \any so, like in C\#, \code{Object} is used.} The presence of
+concrete types means that the compiler can optimize code (unbox data and
+in-line methods) and programmers are guaranteed that type errors will not
+occur within concretely typed code.  StrongScript takes Thorn and
+re-implements it within the context of TypeScript.  The interesting design
+choices there are that while TypeScript originally relied on structural
+subtyping, StrongScript changed the language to follow a nominal
+discipline. It is interesting to note that this change did not affect the
+semantics of benchmark applications. Moreover, to deal with higher-order
+functions which TypeScript inherits from JavaScript, the language does use
+contract for functions.
 
 
 \subsection{Surveying the design space}
@@ -620,7 +633,6 @@ structural subtyping. The dynamic type is denoted \any, and method calls
 that are dynamically resolved are written \DynCall\x\m\xp.
 
 
-\newcommand{\code}[1]{{\tt #1}\xspace}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{TypeScript}
