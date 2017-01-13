@@ -704,6 +704,42 @@ cast being inserted as \code{?C} cannot be guaranteed to hold an instance of
 types to \any and inserts structural casts to \code{C} when \any or
 \code{?C} is assigned to a \code{C}.
 
+
+\subsection{Transient Python}
+
+The Transiennt variant of Reticulated Python~\cite{siek14} aims for
+soundness with a predictable cost model. The declared types of arguments is
+defensively checked in every method. Consider method \m, it expects an
+instance of class \C, but it can be called with a value having type \any.
+
+\begin{lstlisting}
+class A {
+  m(x: C): D { x.n(new C()) }
+  n(x: *): * { x } }
+
+new A().m( new A().n( new C() ) ) // OK
+new A().m( new A().n( new D() ) ) // Runtime ERR
+\end{lstlisting}
+
+\noindent
+Transient Python will deem both call to \code m well-typed. Yet, the second
+is going to end up with a type error as a \code D is passed to method
+expecting a \code C.  When traslating to \kafka, all types are erased
+and casts are inserted.
+
+\begin{lstlisting}
+class A {
+  m(x: *): * { (*@\ShaStart \tt D \ShaEnd@*)((*@\ShaStart \tt C \ShaEnd @*)x)@n(new C()) }
+  n(x: *): * { x } }
+\end{lstlisting}
+
+\noindent The translated class \code A has check that the argument to \code
+m has all the methods defined by \code C. For this we rely on \kafka's
+\emph{shallow structural cast}, written {\ShaStart \tt C \ShaEnd x}, these
+cast only check for the presence of method names not for the conformance of
+types.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typed Racket}
 
@@ -735,7 +771,7 @@ their \emph{promised} types. The translation to \kafka is seemingly simple.
 Typed code remains untouched, while untyped code is extended with
 \emph{behavioral generative casts} at creation of typed classes. Thus the
 body of \code m would become
-\DynCall{(\BehCast\any{\New{\mathtt{B}}{}})}{\mathtt n}{\mathtt x}.  The
+{\tt ({\BehStart \any \BehEnd}new B())@n(x)}.  The
 instance of class \code B is cast to type \any, and the call becomes a
 dynamically resolved call as \any may not have method \code m. The
 behavioral cast has the effect of creating a new wrapper class that has all
@@ -756,113 +792,14 @@ wrapper has a field \that which refers to an instance of \code B. When the
 wrapper is called from a typed context, all it does is forward calls to the
 target. In an untyped context, the wrapper will cast the argument to the
 promised type of arguments and cast results back to \any. Each of these
-casts introduces new wrappers.
-
-TODO TALK SHALLOW CAST
-
-The key properties of this translation are
+casts introduces new wrappers. A shallow structural cast is also used to
+catch obvious mismatches early.  The key properties of this translation are
 that typed code can rely on the presence of methods of the right type (thus
 use static method resolution) but any call can fail within a wrapper.
 
 
-\subsection{Reticulated Python}
+\subsection{Monotonic Python}
 
-Reticulated Python is an extension of Python with sound gradual types by
-Vitousek et al~\cite{siek14}, providing Python programmers with
-the ability to add types to their programs. Unlike the other languages we
-have examined so far, Reticulated Python supports multiple different
-semantics for their types, providing different guarantees and imposing
-different restrictions.
-
-Three different gradual typing semantics are currently available in
-Reticulated Python: transient, monotonic, and guarded. All three systems are
-promised typing approaches, checking to ensure that untyped code behaves as
-if it were typed from the perspective of a typed observer. However, the
-mechanism for achieving this differs in each case.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Transient}
-
-In both Strongscript and Typed Racket, if you wrote a method 
-under type $\xt{int} \rightarrow \xt{int}$, you could be
-assured that you would only ever be called with an argument that was
-actually an int. To achieve this guarantee, the systems perform 
-in-line runtime casts based on runtime type information and
-inserted wrappers to check that the types were respected \emph{before} an
-actual function call was made. Likewise, a function that was declared to
-return an int would always return an int, ensured either by wrapping or by
-adding casts inside of it.
-
-Transient takes the opposite perspective. Instead of the caller being
-responsible for checking the types on the arguments and the callee ensuring
-the return type is correct, the transient semantics for Reticulated Python
-has the callee enforce the types on the arguments and the caller enforce the
-type of the return value.
-
-To illustrate this, consider figure~\ref{fig:guard2}. If we look at the
-execution trace that produces the error, we find the following sequence of
-events happened:
-\begin{enumerate}
-\item Evaluate \verb|A1()| to value \xt{v}
-\item Wrap \xt{v} with wrapper \xt{A2W}, producing \xt{vw}
-\item Invoke \verb|test| with \xt{vw}
-\item Call \verb|a| with 2 on \xt{vw}
-\item \xt{A2W} checks that 2 is an integer
-\item Append 2 to the string ``foo'' inside \xt{A1.a}
-\item Return ``2foo'' 
-\item \xt{A2W} finds that ``2foo'' is not an integer, and errors.
-\end{enumerate}
-
-Likewise, in figure~\ref{fig:guard3}, we would end up with steps 5 and (a
-successful) step 8 repeated 1000 times in the execution trace. However, we
-can ``bake in'' the checks added by \xt{A2W} into the program itself,
-resulting in figure~\ref{fig:trans1}.
-
-\begin{figure}[h]
-\begin{verbatim}
-class A1:
-  def a(a : Any) : Any:
-    return a + "foo"
-class A2:
-  def a(a : Int) : Int:
-    check(a, Int)
-    return a + 2
-
-def test(a:A2):Int
-  return check(a.a(2), Int) + 1
-
-test(A1())
-\end{verbatim}
-\caption{Transient: Type checks baked into source.}
-\label{fig:trans1}
-\end{figure}
-
-This embedding preserves the execution trace that we saw in the guarded
-semantics, but also completely avoids the problems inherent to having
-wrappers added at type transitions. However, while the transient semantics
-is able to preserve the execution trace, the site at which the error happens
-is somewhat different.
-
-This leads to the second implication of the transient semantics: all typed
-code now has to add type checks, as seen in \verb|A2.a| in
-figure~\ref{fig:trans1}. No typed code can trust any type, be that a type
-that is passed in (for the case where untyped code calls typed code), or a
-type returned from another function (as the other function could be
-untyped).
-
-While this approach completely avoids the problem identified in
-figure~\ref{fig:guard3}, it raises a new performance issue: this check
-cannot be statically removed. Any nominally typed variable can now no longer
-be statically trusted to respect its type, and as a result, every invocation
-must be checked for type safety. Therefore, the transient semantics will run
-into performance issues, if naively implemented, as more types are added,
-contradicting the typical wisdom about types and performance. While a more
-sophisticated implementation may be able to avoid some of these checks, even
-better performance of typed code can be made possible by using a different
-type safety guarantee.
-
-
-\subsubsection{Monotonic}
 A key downfall of the approaches we discussed previously is that they
 cause performance impacts in fully-typed code, especially at heap access
 sites. The monotonic semantics for Reticulated Python aims to recover this,
