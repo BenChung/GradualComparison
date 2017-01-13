@@ -104,18 +104,16 @@ designs.
 
 \vspace{-5mm}
 
-\noindent
-A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type system
-for a variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a
-dynamic type, denoted \any, and a subtype relation that combined structural
-subtyping with a consistency relation between terms that differ in dynamic
-type annotations.  Soundness at the boundaries between typed and untyped
-code is ensured by inserting casts as shown in their previous work for
-functional languages~\cite{SiekTaha06}.  Ten years later, many systems
-support the gradual addition of types to untyped object-oriented
-programs.\footnote{Languages which allow mixing typed and untyped with
-  objects include
+\noindent A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type
+system for a variant of Abadi and Cardelli's object-based
+calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a dynamic
+type, denoted \any, and a subtype relation that combined structural subtyping
+with a consistency relation between terms that differ in dynamic type
+annotations.  Soundness at the boundaries between typed and untyped code is
+ensured by inserting casts as shown in their previous work for functional
+languages~\cite{SiekTaha06}.  Ten years later, many systems support the gradual
+addition of types to untyped object-oriented programs.\footnote{Languages which
+allow mixing typed and untyped with objects include
 %%
 C\#~\cite{Bierman10},
 Dart~\cite{dart13}, 
@@ -129,76 +127,73 @@ Thorn~\cite{oopsla09},
 Typed Racket~\cite{Takikawa:2012}, 
 TypeScript~\cite{BAT14}.}
 %%
-Yet, faithful realizations of Seik and Taha's elegant idea have proved to be
-surprisingly elusive.  One possible reason being that the original paper did
-not consider state.  The combination of mutable state, aliasing and
-subtyping complicates enforcement strategies as one must consider situations
-where an object is being accessed at different types. While several
-solutions have been proposed to address this, the performance implications
-of the implementation strategies of these solutions seem
-daunting.\footnote{Most practical \emph{sound} type system reports order of
-  magnitude pathologies, e.g.~5x slow downs for
-  Gradualtalk~\cite{allende13}, 10x for Reticulated Python~\cite{siek14},
-  22x for Safe Typescript~\cite{safe-typescript}, and 121x for Typed
-  Racket~\cite{popl16}. These numbers merely indicate the existence of
-  configurations that hurt performance.  They are neither comparable nor
-  worst case indicators.  Most systems lack rigorous evaluations.  }
-Predictably, developers of industrial languages have chosen to compromise on
-soundness to avoid degrading performance.\footnote{Dart, Typescript and
-  Hack have unchecked modes that won't catch all type errors neither statically
-or dynamically.}
 
-This paper explores the design space of gradual type system for
-object-oriented languages. We aim to expose some of the forces that have
-influenced existing systems and discuss the implication of key design
-decisions. While there are significant challenges that, in the end, may
-prevent adoption of some of the more ambitious type systems, there are are
-also opportunities for improving on existing techniques.  This paper also
-aims to lay the agenda for future investigations.
+Despite its age and popularity, faithful realizations of Seik and Taha's elegant
+idea have proved to be surprisingly elusive, one possible reason being that the
+original paper did not consider state. The combination of mutable state,
+aliasing and subtyping complicates enforcement strategies as one must consider
+situations where an object is being accessed at different types. While several
+solutions have been proposed to address this, the performance implications of
+the implementation strategies of these solutions seem daunting.\footnote{Most
+practical \emph{sound} type system reports order of magnitude pathologies,
+e.g.~5x slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
+Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and 121x
+for Typed Racket~\cite{popl16}. These numbers merely indicate the existence of
+configurations that hurt performance.  They are neither comparable nor worst
+case indicators. Most systems lack rigorous evaluations. } Predictably,
+developers of industrial languages have chosen to compromise on soundness to
+avoid degrading performance.\footnote{Dart, Typescript and Hack have unchecked
+modes that won't catch all type errors neither statically or dynamically.}
 
-To capture the essence of gradual typing for objects and highlight the
-challenges implementers face, we present translations of gradual type system
-into a common target language. Targeting the same language lets us reason
-about the type systems in the same framework and allows for comparison. But
-which language should we target? The language should avoid linguistic
-clutter while expressing key object-oriented features directly rather than
-by encoding. We propose to target a typed object-oriented language inspired
-by modern language runtimes such as the Java Virtual Machine and .Net.  They
-have a static type system with classes and subtyping but they also allow for
-dynamic resolution of method dispatch.\footnote{Both runtimes support
-reflective invocation based on method names. Dynamic resolution was added
-to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
-  custom method dispatch.} As well as reasonably efficient implementations,
-and in both environments, primitive types can be unboxed as the static
-typing an accurately final types.
+This paper explores the design space of gradual type systems for object-oriented
+languages. We aim to expose some of the forces that have influenced existing
+systems and discuss the implication of key design decisions. While there are
+significant challenges that, in the end, may prevent adoption of some of the
+more ambitious type systems, there are are also opportunities for improving on
+existing techniques.  This paper also aims to lay the agenda for future
+investigations.
 
-A contribution of this work is the design of \kafka, a statically typed
-object calculus.  \kafka is class based (with an explicit class table \K),
-with mutable state (a heap address \a refers to an object, each field \f is
-reifed into a pair of getter and setter methods), and allows the dynamic
-generation of wrapper classes (by update of the class table \K and
-allocation of new objects \a).  Methods can be statically resolved, denoted
-by a simple call \Call\a\m\x, or can be dynamically resolved, denoted by a
-dynamic call \DynCall\a\m\x. The \kafka type system is based on structural
-type equivalence (although not essential, it could just as well use nominal
-types with multiple subtyping \`a la Java).  The dynamic type is written
-\any. To support transparent wrappers, a distinguished \that field is
-available to wrapper classes but does not show up in type
-signatures.
+To capture the essence of gradual typing for objects and to highlight the
+challenges implementers face, we present translations of representative subsets
+of gradually typed languages into a common target language. Targeting the same
+language lets us reason about the type systems in the same framework and allows
+for comparison. But which language should we target? The language should avoid
+linguistic clutter while expressing key object-oriented features directly rather
+than by encoding. We propose to target a typed object- oriented language
+inspired by modern language runtimes such as the Java Virtual Machine and the
+CLR in .Net. They have a static type system with classes and subtyping but they
+also allow for dynamic resolution of method dispatch.\footnote{Both runtimes
+support reflective invocation based on method names. Dynamic resolution was
+added to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
+custom method dispatch.} As well as reasonably efficient implementations, and in
+both environments, primitive types can be unboxed as the static typing an
+accurately final types.
 
-The heart of any gradual type system implementation is the explicit casts
-that are inserted at type boundaries.  Two different \emph{structual} casts
-are built-in to \kafka; they only inspect the structure of objects.  The
-subtype cast \SubCast\t\a is a structural cast that checks if the object
-references by \a is a subtype of type \t, \t can be either a class \C or the
-dynamic type \any.  The shallow cast \ShaCast\t\a merely checks that the
+A contribution of this work is the design of \kafka, a statically typed object
+calculus.  \kafka is class based (with an explicit class table \K), with mutable
+state (a heap address \a refers to an object, each field \f is reifed into a
+pair of getter and setter methods), and allows the dynamic generation of wrapper
+classes (by update of the class table \K and allocation of new objects \a).
+Methods can be statically resolved, denoted by a simple call \Call\a\m\x, or can
+be dynamically resolved, denoted by a dynamic call \DynCall\a\m\x. The \kafka
+type system has two types, \C, which represents a structural type (named \C, to
+allow for recursive typing, and stored in a class table \K), and the dynamic
+type \any, which we refer to as \t.
+
+The heart of any gradual type system implementation is the explicit casts that
+are inserted at type boundaries.  Two different \emph{structual} casts are
+built-in to \kafka; they only inspect the structure of objects.  The subtype
+cast \SubCast\t\a is a structural cast that checks if the object references by
+\a is a subtype of type \t. The shallow cast \ShaCast\t\a merely checks that the
 object has all the methods of type \t without looking at their signatures.
 \kafka also supports two \emph{generative} casts which create new wrapper
-classes.  The behavioural cast \BehCast\t\a generates a wrapper object that
-monitors that methods invoked on \a abide by the interface of type \t. The
-monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to
-the object referenced by \a, furthermore this wrapper can only be refined by
-removing occurences of \any in its type.
+classes. 
+
+%The behavioral cast \BehCast\t\a generates a wrapper object that
+%monitors that methods invoked on \a abide by the interface of type \t. The
+%monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to the
+%object referenced by \a, furthermore this wrapper can only be refined by
+%removing occurences of \any in its type.
 
 Another contribution is the translation of five type systems representative
 of the main strains of gradual typing for objects. Each gradually typed
@@ -293,7 +288,7 @@ method invocation when the receiver is of type \any.  This means C\# has a
 dynamic sublanguage that allows developer to write unchecked code, but it
 also has a strongly type sublanguage in which values are guaranteed to be of
 their declared type.  Thorn and StrongScript extend the C\# approach with
-the addition of optional types (called like types).  Thorn is a new language
+the addition of optional types (called like types).  Thorn is
 implemented by translation to the JVM.\footnote{The translation strategy is
   quite close to that presented here.} The presence of concrete types means
 that the compiler can optimize code (unbox data and inline methods) and
@@ -375,13 +370,14 @@ Reticulated Python    \\
 \end{figure}
 
 Optional types are the default execution mode for Dart, Hack and TypeScript.
-Dart has a checked mode that can be turned on to catch some type errors.
-The Transient variant of Reticulated Python is essentially optionally typed,
-any value can flow into a variable regardless of its type
-annotation. Run-time checks are applied before method invocation.  C\#,
-StrongScript and Thorn support both optional and concrete types.  In the
-case of Thorn and C\#, when primitives are concretely typed they can be
-unboxed and do not require tagging.
+Dart has a checked mode that can be turned on to catch some type errors. The
+Transient variant of Reticulated Python is, in some senses, optionally typed,
+any value can flow into a variable regardless of its type annotation, providing
+its ability to provide an ``open world'' soundness guarantee~\cite{siek14}.
+Run-time checks are applied before method invocation.  C\#, StrongScript and
+Thorn support both optional and concrete types.  In the case of Thorn and C\#,
+when primitives are concretely typed they can be unboxed and do not require
+tagging.
 
 The choice of casts follows from other design decisions. Languages with
 concrete types naturally tend to use subtype casts to establish the type of
@@ -1155,12 +1151,13 @@ methods definition is not relevant (i.e. we can reorder when convenient).
 
 \subsection{Translations}
 
-\kafka provides the basis to describe the operations of a typical object-oriented languages. 
-\kafka requires programmers to write casts wherever a type boundary is encountered, 
-which is not representative of how actual gradually typed programming languages behave. 
-Most gradual type languages abstract away from inserting casts, instead
-they would be automatically inserted and used at runtime, remaining invisibly to programmers
-unless errors are produced.
+\kafka provides the basis to describe the operations of a typical object-
+oriented languages.  \kafka is a fully statically typed language, which requires
+programmers to write casts wherever a type boundary is encountered,  which is
+not representative of how actual gradually typed programming languages behave.
+Most gradual type languages abstract away from inserting casts, instead they
+would be automatically inserted and used at runtime, remaining invisibly to
+programmers unless errors are produced.
 
 We introduce a \emph{translation} mechanism that works similarly to the cast insertion described 
 by Siek and Taha~\cite{SiekTaha06} described cast insertion, however, our mechanism differs in
@@ -1168,11 +1165,11 @@ that it cannot be bottom-up. Instead, our translation is \emph{bidirectional}, a
 Pierce and Turner~\cite{lti-pierce}. Bidirectional typechecking is a local type 
 inference mechanism, that allows identifying cast insertion locations in a modular way.
 
-Casts are the key to the different interpretations of gradual typing, as
-they are one of the two places that, in \kafka, a program can get stuck
-at. The approaches that we will be comparing have different definitions of
-casting, and their varying approach to runtime type assertions forms an
-important part of how they interact with untyped parts of the program.
+Casts are the key to the different interpretations of gradual typing, as they
+are one of the two places that, in \kafka, a program can get stuck at. The
+approaches that we will be comparing have different definitions of casting, and
+their varying approach to runtime type assertions forms an important part of how
+they deal with typed values interacting with untyped  code and vice versa.
 
 \subsection{Structural Casts}
 
@@ -1181,11 +1178,12 @@ subtype check and one that only check for the persence of methods with given
 names. 
 
 The first type of cast is the simplest, as it only checks that the runtime type
-tag (\C) is a subtype of the required type (\D), and is notated \SubCast\D\e. 
+tag (\C) is a subtype of the required type (\D), and is notated \SubCast\D\e.
 Here, the runtime check conists only of ensuring that the subtyping judgment
-holds, which can be done easily and does not require any additional runtime 
-components beyond the cast. Moreover, this kind of cast establishes value idenity
-exactly, allowing us to type it with the cast type.
+holds between the desired and dynamically known type, which can be done easily
+and does not require any additional runtime  components beyond the cast.
+Moreover, this kind of cast establishes value idenity exactly, allowing us to
+type it with the cast type.
 
 This is not true, however, of the name cast, which only checks for the presence
 of methods with the given name. While simple, the name cast is
@@ -1200,8 +1198,8 @@ translation system from a source language to \kafka.
 
 TypeScript is an example of a \emph{optional} type system, where the types have
 no static guarantee whatsoever, and, as a result, the type system has no effect
-on the semantics of the language. As a result, TypeScript types are all \any,
-no matter the declared type.
+on the semantics of the language. As a result, TypeScript types are all, in
+effect \any, no matter the declared type.
 
 To model TypeScript on top of \kafka, we will use a very simple translation 
 mechanism, where every type becomes \any and every call becomes a dynamic call.
@@ -1243,7 +1241,7 @@ translate the included methods (\RuleRef{CR2} and \RuleRef{MT}).
 Beyond the top level translation, we have two judgments that perform cast 
 insertion on expressions, following Pierce and Turner~\cite{pierce:1998:local},
 the synthetic cast insertion judgment $\GenCast\K\Env\e\ep\t$, which states that
-, against context \Env and class table \K, source expression \e translates to
+against context \Env and class table \K, source expression \e translates to
 \kafka expression \ep producing source type \t, and the analytic judgment
 $\AnaCast\K\Env\e\ep\t$, which ensures that the translated \kafka expression 
 $\ep$ will model source type \t, coming from source expression \e.
@@ -1344,7 +1342,7 @@ all types in the source during translation, allowing the \kafka type system to
 conclude that any program that passes translation will not get stuck except
 at dynamic call sites.
 
-Because of this type erasure, this translation from TypeScript to \kafka is quite
+Because of this type erasure, the translation from TypeScript to \kafka is quite
 a weak one, as befits TypeScript's optional and unsound nature. We will begin our
 examination of stronger guarantees by examining Thorn, a gradual type system that
 combines many features of TypeScript with the additional ability to write sound,
@@ -1385,8 +1383,10 @@ $\t \Sub_t \t$.
 \end{figure}
 
 
-The remainder of the subtyping judgment is identical to subtyping in \kafka, and 
-it defines the synthetic and analytic cases for the cast insertion of Thorn.
+The remainder of the subtyping judgment is identical to subtyping in \kafka, and
+it is used in the synthetic and analytic cases for the cast insertion of Thorn,
+to allow them to reason about the source-level typing of the input Thorn
+program.
 
 \begin{figure}
 \begin{mathpar}
@@ -1440,17 +1440,24 @@ it defines the synthetic and analytic cases for the cast insertion of Thorn.
 \label{fig:thorntrans_exp}
 \end{figure}
 
-The synthetic cases describes the traditional ``bottom-up'' style of typing judgment. Each case produce an equivalent 
-\kafka term for the translated type. Therefore, \RuleRef{THA1}, \RuleRef{THA2}, \RuleRef{THA5}, and \RuleRef{THA6} are all effectively 
-direct translations of the traditional typing rules for their cases.
+The synthetic cases describe the traditional ``bottom-up'' style of typing
+judgment. Each case produce an equivalent  \kafka term for the given Thorn
+expression, and under the \kafka type that matches the Thorn type. Rules
+\RuleRef{THA1}, \RuleRef{THA2}, \RuleRef{THA5}, and \RuleRef{THA6} are all
+effectively  direct translations of the traditional typing rules for variables,
+calls, dynamic invocation, and new, respectively.
 
-The exception being \RuleRef{THA3} and \RuleRef{THA4}, as they are applied when the receiver type is a weak type, an unsound type, 
-and case analyze is performed on the declared return type. In \RuleRef{THA3}, the return type is a concrete type, or a sound type, 
-from an unsound type, and therefore requires an insertion of a runtime cast, and the alternative case is shown in \RuleRef{THA4}.
+However, two rules, \RuleRef{THA3} and \RuleRef{THA4}, break this pattern. These
+two rules are applied when the receiver type is a weak type, an unsound type,
+and case analyze is performed on the declared return type. In \RuleRef{THA3},
+the return type is a concrete type, or a sound type,  from an unsound type, and
+therefore requires an insertion of a runtime cast, and the alternative case is
+shown in \RuleRef{THA4}.
 
-It is important to note that both \RuleRef{THA3} and \RuleRef{THA4} produce dynamic calls on the receiver, despite the 
-receiver having a source language type. This is because Thorn's weak types are translated to \kafka's \any, which causes 
-all calls on optional types by \kafka to be dynamic.
+It is important to note that both \RuleRef{THA3} and \RuleRef{THA4} produce
+dynamic calls on the receiver, despite the  receiver having a source language
+type. This is because Thorn's weak types are translated to \kafka's \any, which
+causes  all calls on optional types by \kafka to be dynamic.
 
 \begin{figure}
 \begin{mathpar}
@@ -1492,18 +1499,24 @@ all calls on optional types by \kafka to be dynamic.
 
 \section{Translation: Reticulated Python - Transient Semantics}
 
-Reticulated Python implements several different semantics, through not simultaneously in the same language. 
+Reticulated Python implements several different semantics, through not
+simultaneously in the same language.
 
-The transient semantics is illustrated by the cast, $\ShaCast\t\e$. It asserts that $\e$ has the same \emph{names} as $\t$,
-and the closest type representation in \kafka is the $\any$ type, as illustrated in \RuleRef{W9}. The transient semantics 
-guarantees that the methods on the named type will be callable with some argument, and some return value. It is up to 
-the callee to check the arguments are correct and the caller to ensure the return value is correct.
+The transient semantics is illustrated by the cast, $\ShaCast\t\e$. It asserts
+that $\e$ has the same \emph{names} as $\t$, and the closest type representation
+in \kafka is the $\any$ type, as illustrated in \RuleRef{W9}. The transient
+semantics  guarantees that the methods on the named type will be callable with
+some argument, and some return value. It is up to  the callee to check the
+arguments are correct and the caller to ensure the return value is correct.
 
-Therefore, the translation of the transient semantics require a several rules in order to be well formed in \kafka. 
-The most notablely is the rule \RuleRef{MTT}, it is forced to erase every type from the arguments to the function, 
-as typed arguments may not be respected in the dynamics semantics. The type invariant is ensured to hold by using 
-a tuple class (to simulate sequencing, which \kafka does not natively support) to check the type of the argument, and then return 
-the value of the body (inserted into the second field of the tuple class).
+Therefore, the translation of the transient semantics require a several rules in
+order to be well formed in \kafka.  The most notablely is the rule
+\RuleRef{MTT}, it is forced to erase every type from the arguments to the
+function,  as typed arguments may not be respected in the dynamics semantics. To
+enforce the type invariant, despite \kafka's lack of sequencing, we use a tuple
+class to check the type of the argument, and then return  the value of the body
+(inserted into the second field of the tuple class). As a result, our translation
+of transient into \kafka preserves the transient semantics's behaviour.
 
 \begin{figure}
 \begin{mathpar}
@@ -1520,9 +1533,11 @@ the value of the body (inserted into the second field of the tuple class).
 \label{fig:tratrans_cla}
 \end{figure}
 
-Internally, the translations required to support the transient semantics from within KafKa are also substantial. 
-As noted previously, the translation is not obligated by transient to check method argument types before entry, and as a result, every call, 
-typed or untyped, in transient is an untyped call. Likewise, every typed method call must be guarded with a cast to ensure that 
+Internally, the translations required to support the transient semantics from
+within KafKa are also substantial.  As noted previously, the translation is not
+obligated by transient to check method argument types before entry, and as a
+result, every call,  typed or untyped, in transient is an untyped call.
+Likewise, every typed method call must be guarded with a cast to ensure that
 the return type of the method is correct, as shown in \RuleRef{GRA2}.
  
 \begin{figure}
@@ -1558,11 +1573,14 @@ the return type of the method is correct, as shown in \RuleRef{GRA2}.
 \end{figure}
 
 
-The lack of statically typable calls in the transient semantics means that a pure implementation of transient in 
-\kafka would entail no fields ever being accessed using the setter or getter, as \kafka forbids accessing untyped fields.
-To overcome this issue rule \RuleRef{GRA4} is added, which allows the definition of self-referential field access. In a transient 
-system, the only type that is absolutely known at any time is the self-reference, which is use to access fields on the 
-self object. As a result, in \kafka the translation will wrap field accessors in method calls.
+The lack of statically typable calls in the transient semantics means that a
+pure implementation of transient in  \kafka would entail no fields ever being
+accessed using the setter or getter, as \kafka forbids accessing fields through
+dynamic call sites. To overcome this issue rule \RuleRef{GRA4} is added, which
+allows the definition of self-referential field access. In a transient  system,
+the only type that is absolutely known at any time is the self-reference, which
+is use to access fields on the  self object. As a result, in \kafka the
+translation will wrap field accessors in method calls.
 
 \begin{figure}
 \begin{mathpar}
@@ -1595,11 +1613,13 @@ same type. As a result, consistent values are allowed to be used with no additio
 \section{Translation: Typed Racket}
 
 
-Typed Racket is not a typical gradually typed language, as it has no untyped code.
-The gradual nature of Typed Racket, instead, comes from the interactions between Typed Racket modules and 
-(untyped) Racket modules. Therefore, we refer to Typed Racket as the combination of both 
-Typed Racket and (untyped) Racket. Typed Racket programs are typed on a module by module basis, 
-rather than expression by expression.
+Typed Racket is not a typical gradually typed language, as it has no untyped
+code. The gradual nature of Typed Racket, instead, comes from the interactions
+between Typed Racket modules and  (untyped) Racket modules. As a result of this
+divide, Typed Racket and Racket modules effectively create a single gradually
+typed language, which only allows programmers to either write fully typed or
+untyped modules. To simplify the dicussion, we will refer to the combintion of
+untyped Racket and Typed Racket modules as Typed Racket.
 
 Additionally, unlike the Thorn system, Typed Racket does not base its type 
 system on object \emph{identity}, but rather on object \emph{behaviour}. If an 
