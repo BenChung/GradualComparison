@@ -238,49 +238,43 @@ is \emph{trace preserving}, which means that if a term \e reduces to value
 is valuable to developers as it prevents type annotations from introducing
 errors, also it follows that type annotations do not effect performance. The
 optional type systems currently in wide use include Hack~\cite{hack13},
-TypeScript~\cite{BAT14} and Dart~\cite{dart13}.  StrongScript~\cite{ecoop15}
-and Thorn~\cite{popl10} allow programmers to choose between optional and
-concrete types -- the latter have the same semantics as types in traditional
-statically typed languages such as Java.
+TypeScript~\cite{BAT14} and Dart~\cite{dart13}. 
 
 On the functional side, the ancestry is dominated by the work of Felleisen
 and his students.  The Typed Scheme~\cite{tf-popl08} design that later
 became Typed Racket is strongly influenced by earlier work on higher-order
 contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a vehicle for
-teaching programming to high-school students and undergraduates.  For that
-reason, being able to explain the source of errors was viewed as an
+teaching programming, thus being able to explain the source of errors was an
 important design constraint, another constraint was to prevent surprises --
-a variable annotated as a \C should behave as a \C. If it didn't, then that
-fact must be reported at the first discrepancy. The Typed Racket approach to
-gradual typing is thus quite different from optional types. In Typed Racket,
-whenever a value crosses a boundary between typed and untyped code, the
-value will be wrapped in a contract that monitors it's behavior. This allows
-to ensure that the type of mutable values remains consistent with their
-declared type and that functions respect their declared interface. When a
-value misbehaves, blame can be assigned to module where the value
-originated. In Typed Racket, the granularity of typing is the module, thus
-each module is either entirely typed or entirely untyped. This design choice
-means that a compilation unit never has to deal with a mixture of typed and
-untyped code. Also if closely coupled functions are in the same package,
-they will not incur boundary crossing costs.
+a variable annotated as a \C should behave as a \C. If not that fact must be
+reported at the first discrepancy. The Typed Racket approach to gradual
+typing is thus quite different from optional types. Whenever a value crosses
+a boundary between typed and untyped code, it is wrapped in a contract that
+monitors its behavior. This ensures that the type of mutable values remains
+consistent with their declared type and that functions respect their
+declared interface. When a value misbehaves, blame can be assigned to the
+boundary the value crossed. The granularity of typing is the module, thus a
+module is either entirely typed or entirely untyped. This means that a
+compilation unit only deals with uniform code (typed or untyped) and that
+closely coupled functions that co-located in a module will not incur
+boundary crossing costs.
 
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
 for a program by choosing to annotate function parameters with types, or
 not.'' Their contribution was a formalization of the idea in a lambda
-calculus with references and a proof of soundness that stated that all type
-errors would be caught. They defined the type consistency relation $\t \sim
-\tp$ which states that a type that agree on non-\any position are
-compatible.  In their follow up work~\cite{SiekTaha07} they extended their
+calculus with references and a proof of soundness. They defined the type
+consistency relation $\t \sim \tp$ which states that types that agree on
+non-\any position are compatible.  In~\cite{SiekTaha07} they extended their
 result to a stateless object calculus and combined consistency with
 structural subtyping. Extending the approach to mutable objects proved
-challenging. Reticulated Python~\cite{siek14} attempts to find a reasonable
-compromise between soundness and efficiency.  The language has three modes:
-in \emph{guarded} mode, Python behaves as Typed Racket with contracts
-applied to values, \emph{transient} mode performs first order checks before
-each call, and the \emph{monotonic} mode is similar to the guarded mode
-except in that there is at most one wrapper per object and casts can only
-remove occurrences of \any from an object's type.
+challenging. Reticulated Python~\cite{siek14} attempts to find a compromise
+between soundness and efficiency.  The language has three modes:
+\emph{guarded} mode behaves as Racket with contracts applied to values,
+\emph{transient} mode performs first order checks before each call, and
+\emph{monotonic} mode is similar to the guarded mode except in there are no
+wrapper chains and casts only remove occurrences of \any from an object's
+type.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09},
@@ -302,14 +296,7 @@ the JVM.\footnote{The translation strategy is surprisingly close to what we
   have a type \any so, like in C\#, \code{Object} is used.} The presence of
 concrete types means that the compiler can optimize code (unbox data and
 in-line methods) and programmers are guaranteed that type errors will not
-occur within concretely typed code.  StrongScript takes Thorn and
-re-implements it within the context of TypeScript.  The interesting design
-choices there are that while TypeScript originally relied on structural
-subtyping, StrongScript changed the language to follow a nominal
-discipline. It is interesting to note that this change did not affect the
-semantics of benchmark applications. Moreover, to deal with higher-order
-functions which TypeScript inherits from JavaScript, the language does use
-contract for functions.
+occur within concretely typed code. 
 
 %\subsection{Surveying the design space}
 
@@ -364,60 +351,52 @@ Reticulated Python    \\
 \end{figure}
 
 \noindent
-\figref{over} gives an overview of type systems with publicly available
+\figref{over} reviews type systems with publicly available
 implementations. All languages here are class-based, except TypeScript which
 has both classes and plain JavaScript objects. Most languages base subtyping
 on explicit name-based subtype declarations, rather than on structural
 similarities.  TypeScript uses structural subtyping, but does not implement
 a runtime check; this is likely due to the JavaScript roots of the language,
 anecdotal evidence suggests that structural subtyping is rarely
-needed~\cite{ecoop15}.  The consistency relation used in Reticulated Python
-is fundamentally structural.  For Racket, the heavy use of first-class
-classes and class generation naturally leads to structural subtyping as many
-of the classes being manipulated have no names.  Optional types are the
-default execution mode for Dart, Hack and TypeScript.  Dart has a checked
-mode that can be turned on to catch some type errors. The Transient variant
-of Reticulated Python is, in some senses, optionally typed, any value can
-flow into a variable regardless of its type annotation, providing its
-ability to provide an ``open world'' soundness guarantee~\cite{siek14}.
-C\#, StrongScript and Thorn support both optional and concrete types.  In
-Thorn and C\#, when primitives are concretely typed they can be unboxed and
-do not require tagging.
-The choice of casts follows from other design decisions. Languages with
-concrete types naturally tend to use subtype casts to establish the type of
-values. For nominal systems there are highly optimized algorithms. Shallow
-casts are casts that only checking the presence of methods not their
-signature. These are used by Racket and Python to ensure some basic form of
-type conformance. Generative casts are used when information such as a type
-or a blame label must be associated with a reference or an object.
+needed~\cite{ecoop15}. StongScripts extends TypeScript but changes subtyping
+back to nominal.  The consistency relation used in Reticulated Python is
+fundamentally structural.  For Racket, the heavy use of first-class classes
+and class generation naturally leads to structural subtyping as many of the
+classes being manipulated have no names.  Optional types are the default
+execution mode for Dart, Hack and TypeScript.  Transient Python is, in some
+senses, optionally typed as any value can flow into a variable regardless of
+its type annotation, this leads to an ``open world'' soundness
+guarantee~\cite{siek14}.  In Thorn and C\#, when primitives are concretely
+typed they can be unboxed without tagging.  The choice of casts follows from
+other design decisions. Languages with concrete types naturally tend to use
+subtype casts to establish the type of values. For nominal systems there are
+highly optimized algorithms. Shallow casts are casts that only checking the
+presence of methods not their signature. These are used by Racket and Python
+to ensure some basic form of type conformance. Generative casts are used
+when information such as a type or a blame label must be associated with a
+reference or an object.
 
 Blame assignment is a topic of investigation in its own right. Anecdotal
-evidence from Typed Racket users suggests that context provided by blame
-when a run-time type error occurs helps developers pinpoint the provenance
-of the ill-typed value or function that caused the error. A fitting analogy
-are the stack traces printed by Java when a program terminates
-abruptly. Developers working with languages like C++ must run their program
-in a debugger to obtain the same information. In Java, stack traces have
-little run-time cost because they piggyback on another feature of the
-language, namely precise exceptions. Of course, precise exceptions have a
-price as they inhibit some compiler optimizations. It is likely that
-recording blame is costly as some information must be associated with values
-at every cast but there is no data on how much implementations pay for it.
+evidence suggests that the context provided by blame helps developers
+pinpoint the provenance of the ill-typed values. A fitting analogy are the
+stack traces printed by Java when a program terminates abruptly. Developers
+working in, e.g, C++ must run their program in a debugger to obtain the same
+information. Stack traces have little run-time cost because they piggyback
+on another feature, namely precise exceptions, which does come at a price as
+it inhibits some compiler optimizations. It is likely that recording blame
+is costly, but there is no data on how much implementations pay for it.
 
 The last column of \figref{over} lists self-reported performance
 pathologies.  These numbers are not comparable as they refer to different
-programs and different configurations of type annotations. They are also not
-likely to be worst case scenarios as many of these languages do not have a
-sufficient corpus of code written in them to conduct a thorough evaluation.
-Lastly, these implementations have not been optimized.  Nevertheless, one
-can observe that for optional types no overhead is expected as the type
-annotations are erased during compilation. Concrete types introduce very
-cheap casts, and lead to code that is can be compiled more efficiently. So
-experiments suggest performance improvements.  The Transient Reticulated
-Python performance can be viewed as a worst case scenario for concrete types
--- i.e. there is a shallow cast at almost every call. Finally languages
-with generative casts tend to suffer prohibitive slow downs in pathological 
-cases.
+programs and different configurations of type annotations. They are not
+worst case scenarios either; most languages lack a sufficient corpus of code
+to conduct a thorough evaluation.  Nevertheless, one can observe that for
+optional types no overhead is expected as the type annotations are erased
+during compilation. Concrete types insert efficient casts, and lead to code
+that is can be optimized.  The Transient Python performance can be viewed as
+a worst case scenario for concrete types -- i.e. there is a shallow cast at
+almost every call. Finally languages with generative casts tend to suffer
+prohibitive slow downs in pathological cases.
 
 \section{Gradual Typing in Practice}
 
