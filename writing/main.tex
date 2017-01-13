@@ -180,20 +180,19 @@ type system has two types, \C, which represents a structural type (named \C, to
 allow for recursive typing, and stored in a class table \K), and the dynamic
 type \any, which we refer to as \t.
 
-The heart of any gradual type system implementation is the explicit casts that
-are inserted at type boundaries.  Two different \emph{structural} casts are
-built-in to \kafka; they only inspect the structure of objects.  The subtype
-cast \SubCast\t\a is a structural cast that checks if the object references by
-\a is a subtype of type \t. The shallow cast \ShaCast\t\a merely checks that the
-object has all the methods of type \t without looking at their signatures.
-\kafka also supports two \emph{generative} casts which create new wrapper
-classes. 
-
-%The behavioral cast \BehCast\t\a generates a wrapper object that
-%monitors that methods invoked on \a abide by the interface of type \t. The
-%monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to the
-%object referenced by \a, furthermore this wrapper can only be refined by
-%removing occurences of \any in its type.
+The heart of any gradual type system implementation is the explicit casts
+that are inserted at type boundaries.  Two different \emph{structural} casts
+are built-in to \kafka; they only inspect the structure of objects.  The
+subtype cast \SubCast\t\a is a structural cast that checks if the object
+references by \a is a subtype of type \t. The shallow cast \ShaCast\t\a
+merely checks that the object has all the methods of type \t without looking
+at their signatures.  To support some of the more complex type systems,
+\kafka is extended by \emph{generative} casts which create new wrapper
+classes.  The behavioral cast \BehCast\t\a generates a wrapper object that
+monitors that methods invoked on \a abide by the interface of type \t. The
+monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to
+the object referenced by \a, furthermore this wrapper can only be refined by
+removing occurences of \any in its type.
 
 Another contribution is the translation of five type systems representative
 of the main strains of gradual typing for objects. Each gradually typed
@@ -632,106 +631,117 @@ Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
 subtyping of recursive types is supported (types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
-to catch simple errors, such as misspelling the method names of a class.
+to catch simple errors, such as misspelling the method names of a class, and
+to assist IDEs. A typical example is the program below. The first call is
+type correct, the second is erroneous as it provides an instance of \code A
+where \code C is expected. The third call is statically correct as the
+instance of \code A is cast to a \code C by the \code{id} method.
 
 \begin{lstlisting}
-  class A { }
-    m(x: C): A { this } }
+ class A { 
+    m(x: C): A { this }
+    n(x: *): C { x } }
 
-  new A().n(new C())
+ new A().o(new C()) // ERR wrong method
+ new A().m(new A()) // ERR wrong type
+ new A().m(new A().n(new A())) // OK 
 \end{lstlisting}
 
+
+\noindent
 Well-typed code is translated to plain JavaScript with all types erased and
-methods resolved dynamically. In our translation to \kafka, the above program
-(with the correct method name) would translate to the following.
+methods resolved dynamically.  The last call would translate to the
+following \kafka program.
 
 \begin{lstlisting}
-  class A { }
-    m(x: *): * { this } }
+ class A { }
+    m(x: *): * { this }
+    n(x: *): * { x } }
 
-  new A()@m(new C())
+  new A()@m(new A()@n(new A()))    
 \end{lstlisting}
 
-The translated code uses the dynamic calls (written \code @) with its methods signature
-set to \any. However, it is easy to trick the compiler into accepting incorrect
-code, as the following code would compile, but throws a JavaScript exception.
-
-\begin{lstlisting}
-  (<*>new A()) . n(new C())
-\end{lstlisting}
-
-The designers of TypeScript saw unsoundness as a way to ensure (a) types do
-not prevent a program from running, e.g. when importing a new library with
-type annotations inconsistent with client code; and (b) existing
-browsers can run TypeScript code with no overheads.
+\noindent
+The translated code uses the dynamically resolved calls (written \code @)
+with method signatures set to \any.  The designers of TypeScript saw
+unsoundness as a way to ensure (a) types do not get in the way of running
+correct programs, e.g. when importing a new library with type annotations
+inconsistent with client code; and (b) an insurance for backwards
+compatibility, ignoring types means all browsers can run TypeScript code --
+with no overheads.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Thorn}
 
 Thorn~\cite{oopsla09} is an object-oriented language with multiple
 inheritance, nominal type equivalence, and a combination of optional and
-concrete types. Optional types (\code{?T}) are treated exactly
-as in TypeScript, they are translated to dynamic types and method invocations are
-resolved dynamically. Concrete types (written \code{T}) are treated as they would be in Java. 
-A variable \code{x:~C} is guaranteed to be of class \code C or of a subtype thereof.
+concrete types. Optional types (written \code{?T}), as in TypeScript, are
+translated to dynamic types with dynamically resolved method
+invocation. Concrete types (written \code{T}) behave as one would expect: a
+variable \code{x:~C} is guaranteed to refer to an instance of \code C or a
+subtype thereof. Consider the following program with calls to concretely
+typed method \code n and optionally typed \code m, and assume \code D is not
+a subtype of \C.
 
 \begin{lstlisting}
 class A {
   m(x: ?C): ?C { x }
-  n(x:  C):  C { x }
-}
+  n(x:  C):  C { x } }
 
-new A().m( new D() )  // OK -- warning
-new A().n( new D() )  // ERR -- D !<: C
+new A().m( new D() ) // OK -- warning
+new A().n( new D() ) // ERR -- D !<: C
+new A().m( new A.n(new C()) // OK
+new A().n( new A.m(new C()) // Cast
 \end{lstlisting}
 
-In the above code snippet, class \code A has a method taking an optional
-type and another taking a concrete type. Assume the types \code C and \code D are
-unrelated. The first call is allowed because the type of \code m is treated
-as \any (the Thorn compiler does emit a warning). The second call is ruled
-as incorrect, there are no subtype relation between \code C and \code D.
-Translating Thorn to \kafka is straightforward. Optional types are translated
-to \any. Concrete types are translated with the structural subtype casted
-in \kafka. 
-
-%TODO: finish this sentence: Method calls with either receiver 
+\noindent
+The first call to \code m is allowed because the argument of \code m is
+treated as type \any, a warning is emitted. The second call is ruled
+incorrect as a concrete type is expected for \code n. The third call is
+allowed as a \code C is a subtype of \code{?C}. The last call result in a
+cast being inserted as \code{?C} cannot be guaranteed to hold an instance of
+\code{C} or a subtype.  The translation of Thorn to \kafka, turns optional
+types to \any and inserts structural casts to \code{C} when \any or
+\code{?C} is assigned to a \code{C}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typed Racket}
 
-Typed Racket is an extension of Racket, designed to allow programmers to
-type their untyped Racket code. It differs in two key ways from
-Strongscript, using \emph{promised types}, as mentioned before, but also in
-where it allows programmers to add types in the first place. Gradual typing
-evokes images of programmers altering their programs to add more
-types. However, an important question arises about that mental picture: what
-does it mean to gradually add types to a program?
+Typed Racket has an expressive object system which allows to type first
+class classes~\cite{Takikawa:2012}, we restrict our presentation to the core
+of the system. Typed Racket has a class-based object system with structural
+subtyping.  Classes are either typed, in which case all variables have types
+different from \any, or untyped, and then all types are \any.  In this
+example, \code A is untyped, it constructs an instance of the typed class
+\code{B} and invokes method \code{n} with dynamically typed argument
+\code{x}.
 
-The answer taken by Strongscript and the other gradual typing systems we
-discuss in this paper is that programmers should be able to add a type
-anywhere it is syntactically valid. However, this idea is somewhat
-artificial - some programmers will add types slowly, one function at a time,
-while others will type whole compilation modules at a time.
+\begin{lstlisting}
+ class A {
+   m(x: *): * { new B().n(x) } }
 
-The approach taken by Typed Racket is built around the latter style of
-gradual typing.  Instead of adding types to individual functions, it allows
-programmers to type their programs one module at a time, where each module
-is a separate compilation unit.  This approach constrains the way that
-programmers can add types to programs, and avoids having to reason
-about what it means to have a partially typed method, since in Typed Racket
-everything in a module is either fully typed or completely untyped.
+ class B {
+   n(x: B): C { x.n(x) } }
 
-Additionally, Typed Racket is the first \emph{promised type} systems
-we will be discussing. Suppose that you have a variable $\x$ under type $\t$
-where $\t$ has some method $\xt{f}$. Naturally, you would expect to be able
-to call $\xt{f}$ (written in Typed Racket as \verb|(send x f)|), and would expect that your type
-would guarantee that this function call would both work and return a value
-of the correct type.
+new A().m( new A())
+\end{lstlisting}
 
-However, there are a number of places where this basic assumption can be
-violated, as a result of the interaction between typed and untyped code. If the
-underlying value has no function \xt{f}, then this call will fail, but this
-would be a runtime type error, exactly the kind of problem we wish to avoid.
+\noindent Class \code B expects that the argument to method \code n is of
+type \code B, yet in this program it will be passed an instance of \code A.
+The approach taken by Typed Racket is to mediate at boundaries between typed
+and untyped code by inserting wrappers around the values being
+exchanged. These wrappers ensure that values exchanged behave according to
+their \emh{promised} types.
+
+\begin{lstlisting}
+ class A {
+   m(x: *): * { \BehCast{new B()}.n(x) } }
+
+ class B {
+   n(x: B): C { x.n(x) } }
+
+new A().m( new A())
+\end{lstlisting}
 
 The solution to this problem comes from how Typed Racket controls the
 interaction between modules, at the \emph{module boundaries}, where the
@@ -740,21 +750,6 @@ ensure the type annotations are respected, Typed Racket uses
 contracts. The idea behind using contracts~\cite{ff-icfp02} is that they allow
 the system to check the types on the values going into typed code from
 untyped code, and values flowing out of untyped code into typed code.
-
-\begin{figure}[h]
-% to generate, run
-% racket format-racket.rkt ../examples/typed_racket/untyped1.rkt untyped-rkt1.pdf
-% racket format-racket.rkt ../examples/typed_racket/typed1.rkt typed-rkt1.pdf
-\includegraphics{figures/untyped-rkt1.pdf}
-\caption{untyped1.rkt: a simple Racket file}
-\label{fig:ut1r}
-\end{figure}
-
-\begin{figure}
-\includegraphics{figures/typed-rkt1.pdf}
-\caption{typed1.rkt: Typed Racket file using untyped1.rkt}
-\label{fig:t1r}
-\end{figure}
 
 This construction, whereby every module is either entirely typed or entirely
 untyped allows Typed Racket to take a unique approach to enforcement, built
@@ -776,13 +771,6 @@ makes it into a string. This type annotation is clearly wrong, but Typed
 Racket has no way of checking that it is correct when it is applied. Rather,
 we are allowed to use the \xt{id} function, and only find out that the type
 is wrong when it returns a number where we expected a string.
-
-\begin{figure}[h]
-% racket format-racket.rkt ../examples/typed_racket/typed2.rkt typed-rkt2.pdf
-\includegraphics{figures/typed-rkt2.pdf}
-\caption{typed2.rkt: Invalid type annotation}
-\label{fig:tr2}
-\end{figure}
 
 However, the use of promised typing provides a major advantage: untyped code
 does not need to be aware of types. In order to use a \emph{concrete} type
@@ -1534,7 +1522,7 @@ of transient into \kafka preserves the transient semantics's behaviour.
 \end{figure}
 
 Internally, the translations required to support the transient semantics from
-within \kafKa are also substantial.  As noted previously, the translation is not
+within \kafka are also substantial.  As noted previously, the translation is not
 obligated by transient to check method argument types before entry, and as a
 result, every call,  typed or untyped, in transient is an untyped call.
 Likewise, every typed method call must be guarded with a cast to ensure that
