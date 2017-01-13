@@ -629,8 +629,8 @@ Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
 subtyping of recursive types is supported (types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
-to catch simple errors, such as misspelling the method names of a class, and
-to assist IDEs. A typical example is the program below. The first call is
+to catch simple errors, such as misspelt method names, and assisting IDEs. 
+A typical example is shown in the program below. The first call is
 type correct, the second is erroneous as it provides an instance of \code A
 where \code C is expected. The third call is statically correct as the
 instance of \code A is cast to a \code C by the \code{id} method.
@@ -798,17 +798,16 @@ use static method resolution) but any call can fail within a wrapper.
 
 \subsection{Monotonic Python}
 
-A key downfall of the approaches we discussed previously is that they
-cause performance impacts in fully-typed code, especially at heap access
-sites. The monotonic semantics for Reticulated Python aims to recover this,
-in exchange for a new dynamically-enforced guarantee.
+A drawback of the Typed Racket approach is the impact of performance on fully-typed 
+code, especially at heap access sites. The monotonic semantics for Reticulated Python 
+aims to prevent this cost in exchange for a new dynamically-enforced guarantee.
 
-To see why the impact exists, consider figure~\ref{fig:mutup_b}. Here, we have
-incompatible types \xt{A} and \xt{B}, alongside both a typed and an untyped
+To see why there is an impact, consider figure~\ref{fig:mutup_b}. We present two
+incompatible types \xt{A} and \xt{B}, alongside a typed and an untyped
 memory cell (\D and \C, respectively). If we create a \C, cast it to a \D
 (which, initially, is correct), then pass the original \C to the \xt{evil}
-function, the reference to \f under type \xt{B} from \xt{d} will be invisibly
-invalidated internally, causing the final field access to \f on \xt{d} to be
+function, the reference to \f under type \xt{B} from \xt{d} will be 
+invalidated internally, causing the field access to \f on \xt{d} to be
 ill-typed without any visible cause.
 
 \begin{figure}[h!]
@@ -841,7 +840,7 @@ state, since we would be adding a string to an integer, despite statically
 typing the value of $\a$ as an integer, as we were able to assign to the
 underlying reference from an untyped context. 
 
-This is the key issue for many of the systems we have discussed. Thorn
+This is true for many systems we have discussed. Thorn
 statically rejects this program, as the cast does not make sense in its type
 sysem. Typed Racket will produce an error when \xt{f} is retrieved, as will
 Transient. Both accomplish this with expensive checks at every dereference,
@@ -849,8 +848,8 @@ which may impact performance. Moreover, this may seem to be the wrong place to
 produce an error, as it was \xt{evil} that mistreated the code, after all.
 Since, subjectively, there seem to be fewer sets than gets and it would be
 better to error on a set than a get, it would be nice to have the gradual type
-system produce an error when \xt{evil} mistreated the reference, rather than
-later when we try to use the reference.
+system produce an error when \xt{evil} mistreated the reference, rather than 
+when the reference is later used.
 
 Realizing this idea is the monotonic semantics, described by Siek et
 al~\cite{Siek2015}. Monotonic maintains the property that \emph{every reference
@@ -858,16 +857,15 @@ is well typed}, catching the error in figure~\ref{fig:mutup_b} in \xt{evil}, as
 the assignment of an \xt{A} into \f is invalidating the earlier reference
 (\xt{c}) that asserted that \f would only ever contain \xt{B} references.
 
-This guarantee has several interesting concequences, both for design and
-implementation. The monotonic semantics ensures that the type pointing to a
-value is always going to be correct up to \any types, so as a result, we can now
+The monotonic semantics ensures the type pointing to a
+value is always going to be correct up to \any types, as a result, we can now
 dereference without any additional checks, allowing (fully statically typed)
-dereferences to be as fast as ones in a statically typed language. Moreover, as
-a result of this property, the monotonic semantics can execute fully typed
+dereferences to be as fast as a statically typed language. Moreover, 
+the monotonic semantics can execute fully typed
 programs as fast as a fully typed language can, unlike the transient approach.
 
-The main design issue is that a language that uses the monotonic
-semantics has a very ``brittle'' approach to typing - any type that touches an
+The main design issue is that the monotonic
+semantics has a very ``brittle'' approach to typing, any type that touches an
 object will forever brand that object to be consistent with that type.
 
 \begin{figure}[h!]
@@ -895,16 +893,16 @@ c.f(new A())
 \label{fig:invisbreak}
 \end{figure}
 
-If we switch the roles of the user code and the \xt{evil} method, as seen in
-figure~\ref{fig:invisbreak}, then this effect is clearly illustrated. From the
+If the roles of the user code and the \xt{evil} method are switched, as seen in
+figure~\ref{fig:invisbreak}, then the brittleness of monotonic is clearly illustrated. From the
 perspective of the user, the code that they are writing is perfectly type safe,
 as \C can have either \xt{A} or \xt{B} for \f, and \xt{evil} takes a \C.
 Therefore, naively, the user would expect this code to execute normally.
 However, the same mechanism that caused the earlier version of \xt{evil} to
 break will cause the user code to break here, because now it is the user
 breaking \xt{evil}'s type assertion, despite the cast reference being unusused.
-As a result, adding types to distantly- connected parts of a program or slight
-implementation changes in library code can cause substantial knock-on effects
+As a result, adding types to distantly connected parts of a program or, slight
+changes in library code, can cause substantial knock-on effects
 under the monotonic semantics.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
