@@ -1041,7 +1041,7 @@ configuration \K\e\s to another configuration \Kp\ep\sp  is denoted
 \ref{fig:semantics}, with the evaluation contexts, denoted by \EE, presented  at
 the bottom.
 
-The auxiliary function \names{} returns the names of methods, and the auxiliary
+The auxiliary function \xt{names} returns the names of methods, and the auxiliary
 function \untyped{} returns the methods whose types are \any. The auxiliary
 function \xt{read} return the location \ap pointing to the field \f of the
 object at location \a. The auxiliary function \xt{write} return the heap \sp
@@ -1213,6 +1213,7 @@ translation depicted in figure~\ref{redu} (\RuleRef{PT}), then proceeding
 through the included expression and recursing into the classes, where we 
 translate the included methods (\RuleRef{CR2} and \RuleRef{MT}).
 
+\begin{figure}[!h]
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
@@ -1235,6 +1236,9 @@ translate the included methods (\RuleRef{CR2} and \RuleRef{MT}).
   \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any\ep}{}
 }
 \end{mathpar}
+\caption{TypeScript translation for program, class, and method}
+\label{fig:tstrans_cla}
+\end{figure}
 
 Beyond the top level translation, we have two judgments that perform cast 
 insertion on expressions, following Pierce and Turner~\cite{pierce:1998:local},
@@ -1248,6 +1252,7 @@ Inside of this bidirectional framework, we then have a fairly typical set of
 translation judgments for translating optionally typed TypeScript programs into
 \kafka.
 
+\begin{figure}[!h]
 \begin{mathpar}
 \IRule{TSA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
@@ -1274,11 +1279,15 @@ translation judgments for translating optionally typed TypeScript programs into
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
+\caption{TypeScript translation for expressions}
+\label{fig:tstrans_exp}
+\end{figure}
 
 For TypeScript the synthetic case of translation is uninteresting, with the 
 exception of \RuleRef{TSA4}, which allows TypeScript programs to access fields
 via the self-reference, whose type is always absolutely known.
 
+\begin{figure}[!h]
 \begin{mathpar}
 \IRule{TSAASC1}{
   \GenCast\K\Env\e\ep\tp \\
@@ -1299,6 +1308,9 @@ via the self-reference, whose type is always absolutely known.
   \AnaCast\K\Env\e\ep\any
 }
 \end{mathpar}
+\caption{TypeScript translation for bidirectional expressions}
+\label{fig:tstrans_exp2}
+\end{figure}
 
 Of more interest are TypeScript's analytic rules. Here, \RuleRef{TSAASC1}
 requires the interaction between typed parts of the program to be well-typed,
@@ -1346,26 +1358,37 @@ down to \any in \kafka. This unsound type still enforces the same static require
 generates no runtime casts and therefore has lower overhead. Over this new type, we define a subtyping relation, 
 $\t \Sub_t \t$.
 
-
+\begin{figure}
 \begin{tabular}{l@{~~}l@{}l@{}l}
 \\
 \t  &::= ~ \any \B \C \B \dt\C \\
 \\
 \end{tabular}
 
-\newcommand{\ThorSub}[4]{\EM{#1~#2 \vdash #3 \Sub_t #4}}
 \opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
-\begin{mathpar}
-\IRule{THSWeak}{\ThorSub \M\K\C\D}{\ThorSub\M\K{\dt\C}{\dt\D}}
 
-\IRule{THSLower}{\ThorSub \M\K\C\D}{\ThorSub\M\K{\C}{\dt\D}}
+\begin{mathpar}
+\IRule{THSWeak}{
+  \ThorSub \M\K\C\D
+}{
+  \ThorSub\M\K{\dt\C}{\dt\D}
+}
+
+\IRule{THSLower}{
+  \ThorSub \M\K\C\D
+}{
+  \ThorSub\M\K{\C}{\dt\D}
+}
 \end{mathpar}
+\caption{Thorn cast static and dynamic rules}
+\label{fig:thornrules}
+\end{figure}
+
 
 The remainder of the subtyping judgment is identical to subtyping in \kafka, and 
 it defines the synthetic and analytic cases for the cast insertion of Thorn.
 
-\newcommand{\ba}{\xt{!}}
-
+\begin{figure}
 \begin{mathpar}
 \IRule{THA1}{
   \HasType\Env\x\t
@@ -1413,6 +1436,9 @@ it defines the synthetic and analytic cases for the cast insertion of Thorn.
   \GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}\C
 }
 \end{mathpar}
+\caption{Thorn translation for expressions}
+\label{fig:thorntrans_exp}
+\end{figure}
 
 The synthetic cases describes the traditional ``bottom-up'' style of typing judgment. Each case produce an equivalent 
 \kafka term for the translated type. Therefore, \RuleRef{THA1}, \RuleRef{THA2}, \RuleRef{THA5}, and \RuleRef{THA6} are all effectively 
@@ -1426,8 +1452,7 @@ It is important to note that both \RuleRef{THA3} and \RuleRef{THA4} produce dyna
 receiver having a source language type. This is because Thorn's weak types are translated to \kafka's \any, which causes 
 all calls on optional types by \kafka to be dynamic.
 
-\hrulefill
-
+\begin{figure}
 \begin{mathpar}
 \IRule{THAASC1}{
   \GenCast\K\Env{\e_1}{\e_2}{\C_2} \\
@@ -1461,7 +1486,9 @@ all calls on optional types by \kafka to be dynamic.
   \AnaCast\K\Env{\e_1}{\e_2}{\any}
 }
 \end{mathpar}
-
+\caption{Thorn translation for bidirectional expressions}
+\label{fig:thorntrans_exp2}
+\end{figure}
 
 \section{Translation: Reticulated Python - Transient Semantics}
 
@@ -1478,7 +1505,7 @@ as typed arguments may not be respected in the dynamics semantics. The type inva
 a tuple class (to simulate sequencing, which \kafka does not natively support) to check the type of the argument, and then return 
 the value of the body (inserted into the second field of the tuple class).
 
-
+\begin{figure}
 \begin{mathpar}
 \IRule{MTU}{
   \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
@@ -1489,13 +1516,16 @@ the value of the body (inserted into the second field of the tuple class).
   \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
 }{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
+\caption{Transient translation for methods}
+\label{fig:tratrans_cla}
+\end{figure}
 
 Internally, the translations required to support the transient semantics from within KafKa are also substantial. 
 As noted previously, the translation is not obligated by transient to check method argument types before entry, and as a result, every call, 
 typed or untyped, in transient is an untyped call. Likewise, every typed method call must be guarded with a cast to ensure that 
 the return type of the method is correct, as shown in \RuleRef{GRA2}.
  
-
+\begin{figure}
 \begin{mathpar}
 \IRule{GRA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
@@ -1523,6 +1553,10 @@ the return type of the method is correct, as shown in \RuleRef{GRA2}.
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
+\caption{Transient translation for expressions}
+\label{fig:tratrans_exp}
+\end{figure}
+
 
 The lack of statically typable calls in the transient semantics means that a pure implementation of transient in 
 \kafka would entail no fields ever being accessed using the setter or getter, as \kafka forbids accessing untyped fields.
@@ -1530,6 +1564,7 @@ To overcome this issue rule \RuleRef{GRA4} is added, which allows the definition
 system, the only type that is absolutely known at any time is the self-reference, which is use to access fields on the 
 self object. As a result, in \kafka the translation will wrap field accessors in method calls.
 
+\begin{figure}
 \begin{mathpar}
 \IRule{GRAASC1}{
   \GenCast\K\E\e\ep\tp \\
@@ -1545,6 +1580,9 @@ self object. As a result, in \kafka the translation will wrap field accessors in
   \AnaCast\K\E\e\ep\t
 }
 \end{mathpar}
+\caption{Transient translation for bidirectional expressions}
+\label{fig:tratrans_exp2}
+\end{figure}
 
 The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency, such as the monotonic system, 
 consistency is used to conclude an analytic judgment, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
@@ -1603,7 +1641,7 @@ rules are presented in figure~\ref{fig:behrules}.
 \multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
 \end{tabular}
 \end{minipage}
-\caption{Behavioural cast static and dynamic rules}
+\caption{Type Racket cast static and dynamic rules}
 \label{fig:behrules}
 \end{figure}
 
@@ -1617,6 +1655,7 @@ fairly simple as a result of the strong type invariants that are exposed
 to the static code. The Type Racket translation only differs substantially from the 
 optionally-typed system in two key analytic cases, \RuleRef{TRAASC2} and \RuleRef{TRAASC3}.
 
+\begin{figure}[h!]
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
@@ -1639,7 +1678,12 @@ optionally-typed system in two key analytic cases, \RuleRef{TRAASC2} and \RuleRe
   \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\t\tp\ep}{}
 }
 \end{mathpar}
+\caption{Type Racket translation for program, class, and method}
+\label{fig:behtrans_cla}
+\end{figure}
 
+
+\begin{figure}[h!]
 \begin{mathpar}
 \IRule{TRA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
@@ -1660,6 +1704,9 @@ optionally-typed system in two key analytic cases, \RuleRef{TRAASC2} and \RuleRe
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
+\caption{Type Racket translation for expressions}
+\label{fig:behtrans_exp}
+\end{figure}
 
 \RuleRef{TRAASC2} and \RuleRef{TRAASC3} are the most important cases of cast 
 insertion for our Typed Racket translation, and represent Racket objects 
@@ -1669,6 +1716,7 @@ name cast to ensure that the value has all of the required method names
 (modelling Typed Racket's dynamics), and then use the behavioural cast operator.
 
 
+\begin{figure}[h!]
 \begin{mathpar}
 \IRule{TRAASC1}{
   \GenCast\K\Env\e\ep\tp \\
@@ -1684,6 +1732,10 @@ name cast to ensure that the value has all of the required method names
   \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
 }
 \end{mathpar}
+\caption{Type Racket translation for bidirectional expressions}
+\label{fig:behtrans_exp2}
+\end{figure}
+
 
 Now that we have seen how the guarantees provided by the behavioural casts can 
 be used to ensure the safety of typed code, we will explain how the 
@@ -2155,7 +2207,7 @@ Figure \ref{fig:monrules} presents the typing and semantics rules for the monoto
   \methtrans \K\C{\Mdef\m\x{\t_1}{\tp_1}\e}{\Mdef\m\x{\t_2}{\tp_2}\ep}{\K_1~\K_2~\K_3}
 }
 \end{mathpar}
-\caption{Monotonic translation for programs, classes, and methods}
+\caption{Monotonic translation for program, class, and method}
 \label{fig:mono-trans1}
 \end{figure}
 
@@ -2227,7 +2279,7 @@ handling of calls to methods need to approperiately casted if the typing nature 
 }
 \end{mathpar}
 
-\caption{Monotonic translation for expressions, via subtyping and consistency}
+\caption{Monotonic translation for bidirectional expressions}
 \label{fig:mono-trans3}
 \end{figure}
 
@@ -2569,16 +2621,48 @@ a mapping from addresses to classes, creating a blueprint for the sub-heap affec
 by the monotonic cast. The second function (\xt{spec}) updates the heap and class table with the
 objects and types listed in \S.
 
+\begin{figure}[!ht]
+\opdef{
+  $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
+}{
+}
+\begin{align*}
+\P &::= \cdot \B \Map\P{\Bind{(\C,\D)}\Dp}
+\end{align*}
+\begin{mathpar}
+\IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
+
+\IRule{TM2}{ }{\tmeet\any\C\P\K = \C\,\K}
+
+\IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
+
+\IRule{TM4}{
+  \fresh\E\\
+  (\C,\D) \not\in\P \\
+  \Pp = \Map\P{\Bind{(\C,\D)}\E} \\
+  \mtypes\C\K = {\b\mt}\\
+  \mtypes\D\K = {\b\mtp}\\
+  \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
+  \Kpp = \Kp~\typegen{\b\mtpp}\E\\
+}{
+    \tmeet\C\D\P\K = \E\,\Kpp
+}
+
+\IRule{TM5}{
+    \P(\C,\D) = \E
+}{
+    \tmeet\C\D\P\K = \E\,\K
+}
+\end{mathpar}
+\caption{The \texttt{tmeet} function}
+\label{fig:tmeet_fun}
+\end{figure}
+
 The \xt{retype} function utilizes the meet operation in determining the correct
 casting type for every object transitively reachable from the cast object. 
-The workings of the meet operator, and the \xt{tmeet} function,
-its implementation, is described in detail with the example presented in
-figure~\ref{fig:tmeet_rec_ex}.
+Figure~\ref{fig:tmeet_fun} presents the \xt{tmeet} function, which computes
+the meet between two types.
 
-This example uses 3 of \texttt{tmeet}'s 4 arugments, with an empty \P, first
-invoking \RuleRef{TM4}, which, via \xt{mmeet}, computes the meet of each of the
-arguments to \xt{m}, invoking \RuleRef{TM1} and \RuleRef{TM2} for the argument
-and return type of \xt{m}.
 
 \begin{figure}[!ht]
 \begin{tabular}{l@{}l@{}l@{}l@{}l@{\hspace{1.5mm}}l@{\hspace{1mm}}l@{}l}
@@ -2616,17 +2700,18 @@ class E {
 \label{fig:tmeet_rec_ex}
 \end{figure}
 
-The third argument, \P, becomes important when we consider programs like the one
-in example~\ref{fig:tmeet_rec_ex}, where the meet  of \xt{A} and \xt{B}
-recursively depends on the meet of \xt{A} and \xt{B}. If we proceeded naievely,
+The third argument of the \xt{tmeet} function, \P, becomes important when we consider the example
+in figure~\ref{fig:tmeet_rec_ex}, where the meet  of \xt{A} and \xt{B}
+recursively depends on the meet of \xt{A} and \xt{B}. If we proceeded naively,
 without \P, \RuleRef{TM4} would invoke \RuleRef{TM4} again to compute the meet
 of the arugments to \m. We use \P and \RuleRef{TM5} to avoid this.
 
 \RuleRef{TM4} invokes \xt{mmeet} with an enriched \P, in much the same manner
 that the subtyping relation does, inserting the future result of the meet of
-\xt{A} and \xt{B} (which, in this example, is \xt{E}) into \P, which will then
+\xt{A} and \xt{B} (\xt{E} in this example) into \P, will then
 be used by \RuleRef{TM5} to terminate the recursion.
 
+\clearpage
 
 \section{Conclusion}
 
@@ -3125,39 +3210,6 @@ that have to be retyped.
 \end{mathpar}
 
 \subsection{Meet function}\label{monmeet}
-
-\opdef{
-  $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
-}{
-}
-\begin{align*}
-\P &::= \cdot \B \Map\P{\Bind{(\C,\D)}\Dp}
-\end{align*}
-\begin{mathpar}
-\IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
-
-\IRule{TM2}{ }{\tmeet\any\C\P\K = \C\,\K}
-
-\IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
-
-\IRule{TM4}{
-  \fresh\E\\
-  (\C,\D) \not\in\P \\
-  \Pp = \Map\P{\Bind{(\C,\D)}\E} \\
-  \mtypes\C\K = {\b\mt}\\
-  \mtypes\D\K = {\b\mtp}\\
-  \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
-  \Kpp = \Kp~\typegen{\b\mtpp}\E\\
-}{
-    \tmeet\C\D\P\K = \E\,\Kpp
-}
-
-\IRule{TM5}{
-    \P(\C,\D) = \E
-}{
-    \tmeet\C\D\P\K = \E\,\K
-}
-\end{mathpar}
 
 The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
 perform the meet over the typing of each method within a class definition.
