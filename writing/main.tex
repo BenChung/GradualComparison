@@ -160,9 +160,9 @@ language lets us reason about the type systems in the same framework and allows
 for comparison. But which language should we target? The language should avoid
 linguistic clutter while expressing key object-oriented features directly rather
 than by encoding. We propose to target a typed object- oriented language
-inspired by modern language runtimes such as the Java Virtual Machine and the
+inspired by modern language runtime such as the Java Virtual Machine and the
 CLR in .Net. They have a static type system with classes and subtyping but they
-also allow for dynamic resolution of method dispatch.\footnote{Both runtimes
+also allow for dynamic resolution of method dispatch.\footnote{Both runtime
 support reflective invocation based on method names. Dynamic resolution was
 added to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
 custom method dispatch.} As well as reasonably efficient implementations, and in
@@ -171,7 +171,7 @@ accurately final types.
 
 A contribution of this work is the design of \kafka, a statically typed object
 calculus.  \kafka is class based (with an explicit class table \K), with mutable
-state (a heap address \a refers to an object, each field \f is reifed into a
+state (a heap address \a refers to an object, each field \f is reified into a
 pair of getter and setter methods), and allows the dynamic generation of wrapper
 classes (by update of the class table \K and allocation of new objects \a).
 Methods can be statically resolved, denoted by a simple call \Call\a\m\x, or can
@@ -181,7 +181,7 @@ allow for recursive typing, and stored in a class table \K), and the dynamic
 type \any, which we refer to as \t.
 
 The heart of any gradual type system implementation is the explicit casts that
-are inserted at type boundaries.  Two different \emph{structual} casts are
+are inserted at type boundaries.  Two different \emph{structural} casts are
 built-in to \kafka; they only inspect the structure of objects.  The subtype
 cast \SubCast\t\a is a structural cast that checks if the object references by
 \a is a subtype of type \t. The shallow cast \ShaCast\t\a merely checks that the
@@ -276,7 +276,7 @@ soundness and efficiency.  The language has three modes: in \emph{guarded}
 mode, Python behaves as Typed Racket with contracts applied to values,
 \emph{transient} mode performs first order checks before each call, and the
 \emph{monotonic} mode is similar to guarded except there is at most one
-wrapper per object and casts can only remove occurences of \any from its
+wrapper per object and casts can only remove occurrences of \any from its
 type.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
@@ -291,9 +291,9 @@ their declared type.  Thorn and StrongScript extend the C\# approach with
 the addition of optional types (called like types).  Thorn is
 implemented by translation to the JVM.\footnote{The translation strategy is
   quite close to that presented here.} The presence of concrete types means
-that the compiler can optimize code (unbox data and inline methods) and
+that the compiler can optimize code (unbox data and in-line methods) and
 programmers are guaranteed that type errors will not occur within concretely
-typed code.  StrongScript takes Thorn and reimplements it within the context
+typed code.  StrongScript takes Thorn and re-implements it within the context
 of TypeScript.  The interesting design choices there are that while
 TypeScript originally relied on structural subtyping, StrongScript changed
 the language to follow a nominal discipline. It is interesting to note that
@@ -312,7 +312,7 @@ structural similarities between classes.  Exceptions include Gradualtalk
 which is nominal but also supports structural subtype if programmers want to
 use it.  TypeScript uses structural subtyping, but does not implement a
 runtime structural check. This is probably because of the JavaScript roots
-of the language, annecdotal evidence suggests that structural subtyping is
+of the language, anecdotal evidence suggests that structural subtyping is
 not always exercised~\cite{ecoop15}.  The consistency relation used in
 Reticulated Python is fundamentally structural.  For Racket, the heavy use
 of first-class classes and class generation naturally leads to choosing
@@ -425,7 +425,7 @@ be associated with values at every cast.
 The semantics of the various type systems are subtle in their distinctions. Ideally,
 one would like to reject programs that will fail, but there is a tension
 because some of the dynamically typed code exploits the fact that it is
-dynamically typed.  Type systems are correctly pesmistic in flagging
+dynamically typed.  Type systems are correctly pessimistic in flagging
 potential errors.
 
 To illustrate the difficulties we provide four litmus tests, these are small
@@ -436,7 +436,7 @@ In all cases, the main expression is a call to the method t of class T with
 an argument of class A. In each case, the programs are well typed statically.
 
 In the optionally typed semantics, e.g. Dart, all tests run to
-completition without getting stuck. Using concrete types in Thorn, 
+completion without getting stuck. Using concrete types in Thorn, 
 all of these tests will get stuck with subtype cast expression error. 
 As class A is not a subtype of I, nor I'. Therefore, every litmus test will 
 get stuck whenever A is passed when an I is expected.
@@ -580,7 +580,7 @@ TypeScript           & \V & \V & \V & \V \\\hline
 
 [Say: All dynamic OO language have a dynamic type system that catches type errors.  
 So the difference between Sound and unsound is (a) the place where the error is caught, 
-(b) cases when the gradul type system departs from the underlying type system.]  
+(b) cases when the gradual type system departs from the underlying type system.]  
 
 \subsection{Performance}
 
@@ -662,7 +662,7 @@ code, as the following code would compile, but throws a JavaScript exception.
 
 The designers of TypeScript saw unsoundness as a way to ensure (a) types do
 not prevent a program from running, e.g. when importing a new library with
-type annotations inconsistent with clent code; and (b) existing
+type annotations inconsistent with client code; and (b) existing
 browsers can run TypeScript code with no overheads.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -805,7 +805,7 @@ have examined so far, Reticulated Python supports multiple different
 semantics for their types, providing different guarantees and imposing
 different restrictions.
 
-Three different gradual typing semantics are currently avaliable in
+Three different gradual typing semantics are currently available in
 Reticulated Python: transient, monotonic, and guarded. All three systems are
 promised typing approaches, checking to ensure that untyped code behaves as
 if it were typed from the perspective of a typed observer. However, the
@@ -818,7 +818,7 @@ In both Strongscript and Typed Racket, if you wrote a method
 under type $\xt{int} \rightarrow \xt{int}$, you could be
 assured that you would only ever be called with an argument that was
 actually an int. To achieve this guarantee, the systems perform 
-inline runtime casts based on runtime type information and
+in-line runtime casts based on runtime type information and
 inserted wrappers to check that the types were respected \emph{before} an
 actual function call was made. Likewise, a function that was declared to
 return an int would always return an int, ensured either by wrapping or by
@@ -897,7 +897,7 @@ figure~\ref{fig:guard3}, it raises a new performance issue: this check
 cannot be statically removed. Any nominally typed variable can now no longer
 be statically trusted to respect its type, and as a result, every invocation
 must be checked for type safety. Therefore, the transient semantics will run
-into performance issues, if naievly implemented, as more types are added,
+into performance issues, if naively implemented, as more types are added,
 contradicting the typical wisdom about types and performance. While a more
 sophisticated implementation may be able to avoid some of these checks, even
 better performance of typed code can be made possible by using a different
@@ -1010,7 +1010,7 @@ to those of type \t, while not making any guarantee about the type of the argume
 \subsection{Semantics}
 
 The semantics for \kafka are typical of small step operational semantics,  with
-some unusual features to accomodate the translations of various gradual type
+some unusual features to accommodate the translations of various gradual type
 systems and their cast semantics. A \kafka program is defined  by the
 combination of a class table \K (consists of a list of classes \k) and an
 evaluation expression \e. 
@@ -1018,7 +1018,7 @@ evaluation expression \e.
 \kafka classes contain methods and fields, the latter can be declared  either
 via an explicit field declaration in the class (e.g. \HT\f\t) or by a pair of a
 getter (\Get\this\f) and setter  (\Set\this\f\x) methods. Semantically, both
-explicit and implicit fields behave  identically, which has the concequence that
+explicit and implicit fields behave  identically, which has the consequence that
 untyped field access is forbidden,  as explicit field semantics would become
 dependent on the approach to typing.  Methods in \kafka are segregated into
 typed (methods whose argument and return type is not \any) and untyped methods,
@@ -1174,15 +1174,15 @@ they deal with typed values interacting with untyped  code and vice versa.
 \subsection{Structural Casts}
 
 \kafka offers two kinds of structural casts. One which performs a structural
-subtype check and one that only check for the persence of methods with given
+subtype check and one that only check for the presence of methods with given
 names. 
 
 The first type of cast is the simplest, as it only checks that the runtime type
 tag (\C) is a subtype of the required type (\D), and is notated \SubCast\D\e.
-Here, the runtime check conists only of ensuring that the subtyping judgment
+Here, the runtime check consists only of ensuring that the subtyping judgment
 holds between the desired and dynamically known type, which can be done easily
 and does not require any additional runtime  components beyond the cast.
-Moreover, this kind of cast establishes value idenity exactly, allowing us to
+Moreover, this kind of cast establishes value identity exactly, allowing us to
 type it with the cast type.
 
 This is not true, however, of the name cast, which only checks for the presence
@@ -1337,7 +1337,7 @@ This system guarantees a few key properties. If a program translates, then it
 should be well-formed in \kafka, and if it is well formed in \kafka, then it
 should execute correctly (not getting stuck, except at casts and dynamic calls) 
 in the \kafka semantics. Notably, the TypeScript translation we have just 
-described techincally does produce terms that typecheck in \kafka, as it erases
+described technically does produce terms that type check in \kafka, as it erases
 all types in the source during translation, allowing the \kafka type system to
 conclude that any program that passes translation will not get stuck except
 at dynamic call sites.
@@ -1510,7 +1510,7 @@ some argument, and some return value. It is up to  the callee to check the
 arguments are correct and the caller to ensure the return value is correct.
 
 Therefore, the translation of the transient semantics require a several rules in
-order to be well formed in \kafka.  The most notablely is the rule
+order to be well formed in \kafka.  The most notably is the rule
 \RuleRef{MTT}, it is forced to erase every type from the arguments to the
 function,  as typed arguments may not be respected in the dynamics semantics. To
 enforce the type invariant, despite \kafka's lack of sequencing, we use a tuple
@@ -1534,7 +1534,7 @@ of transient into \kafka preserves the transient semantics's behaviour.
 \end{figure}
 
 Internally, the translations required to support the transient semantics from
-within KafKa are also substantial.  As noted previously, the translation is not
+within \kafKa are also substantial.  As noted previously, the translation is not
 obligated by transient to check method argument types before entry, and as a
 result, every call,  typed or untyped, in transient is an untyped call.
 Likewise, every typed method call must be guarded with a cast to ensure that
@@ -1618,7 +1618,7 @@ code. The gradual nature of Typed Racket, instead, comes from the interactions
 between Typed Racket modules and  (untyped) Racket modules. As a result of this
 divide, Typed Racket and Racket modules effectively create a single gradually
 typed language, which only allows programmers to either write fully typed or
-untyped modules. To simplify the dicussion, we will refer to the combintion of
+untyped modules. To simplify the discussion, we will refer to the combination of
 untyped Racket and Typed Racket modules as Typed Racket.
 
 Additionally, unlike the Thorn system, Typed Racket does not base its type 
@@ -1638,7 +1638,7 @@ in their bodies.
 In order to support this behavioural semantics, we will have to extend the core 
 \kafka language with a new cast operation, ensuring that object {behaviour}
 matches the types on the object. For an expression \e and type \t, 
-the cast \BehCast\t\e depictes the behavioural cast, and the typing and semantic 
+the cast \BehCast\t\e depicts the behavioural cast, and the typing and semantic 
 rules are presented in figure~\ref{fig:behrules}.
 
 \begin{figure}[h!]
@@ -1733,7 +1733,7 @@ insertion for our Typed Racket translation, and represent Racket objects
 crossing into Typed Racket and vice versa, respectively. In the case where we 
 have an untyped object gaining a type assertion (\RuleRef{TRAASC2}), we use the
 name cast to ensure that the value has all of the required method names 
-(modelling Typed Racket's dynamics), and then use the behavioural cast operator.
+(modeling Typed Racket's dynamics), and then use the behavioural cast operator.
 
 
 \begin{figure}[h!]
@@ -1814,7 +1814,7 @@ handles the case when the target type of the cast is \any.
 \end{figure}
 
 A wrapper is a class that has the distinguished field \that as the type of the target object, and a set of 
-methods that mirrors the methods of the target object, but with additionals 
+methods that mirrors the methods of the target object, but with additional 
 casts to some of their arguments and return values. For getters, setters and typed methods, 
 the wrapper simply adds a behavioural casts to argument, issues a typed call, and 
 then casts of the result of the call. For untyped methods, a dynamic call is casted to \any, 
@@ -1848,7 +1848,7 @@ class D {
 \label{fig:rktex1}
 \end{figure}
 
-In our system, the wrapper generation is implemented as a metafunction, called
+In our system, the wrapper generation is implemented as a meta function, called
 \xt{wrap}. The \xt{wrap} function takes 5 arguments, the source class
 name, the list of methods in the source class, the list of method types in the
 source class, the list of method types guaranteed by the wrapper class,
@@ -2033,9 +2033,9 @@ The corrected translation, on the right side of
 figure~\ref{fig:intbeh2}, shows the correct behaviour of the wrapper, and
 is both type correct and semantics-preserving. Notably, what we have
 accomplished with the dynamic expression translation mechanism, in
-section~\ref{behtrans}, is equivalent to the set of casts that would have occured
+section~\ref{behtrans}, is equivalent to the set of casts that would have occurred
 if we had been able to insert the wrapper as the receiver for self references,
-effectively inling the call through the wrapper.
+effectively in-lining the call through the wrapper.
 
 Another challenge with Typed Racket is when multiple wrappers are layered 
 over the target object. Each time a reference crosses a boundary between typed and untyped code,
@@ -2052,7 +2052,7 @@ subtype of \D but it also has method \mp only found in class \C.  The cast from
 \EMxt{CtoD} back to \C leads to the generation of wrapper class \EMxt{CtoDtoC}.
 The latter is a subtype of \C and has a rather interesting method \m which is
 dynamic and thus must be invoked dynamically. The receiver is cast to \any using
-a structual subtype cast. The argument on the other hand is converted to dynamic with a
+a structural subtype cast. The argument on the other hand is converted to dynamic with a
 behavioural cast. The return value is converted to the expected return type with
 another behavioural cast.
 
@@ -2235,7 +2235,7 @@ Figure \ref{fig:monrules} presents the typing and semantics rules for the monoto
 The translation from the monotonic surface language to \kafka begins 
 in figure \ref{fig:mono-trans1}. The rule \RuleRef{PT} translates 
 monotonic programs, \RuleRef{CR1} and \RuleRef{CR2} translates monotonic class,
-and \RuleRef{MT} translates monontonic methods. In the \RuleRef{MT} 
+and \RuleRef{MT} translates monotonic methods. In the \RuleRef{MT} 
 and \RuleRef{CR1} rules, we are actively replacing every type the user wrote with ones generated by the 
 \xt{monWrap} function. The details of the \xt{monWrap} function will be 
 discussed later, but for the purposes of the translation, we can assume that the
@@ -2280,7 +2280,7 @@ The \texttt{static} function states whether a type contains only typed methods.
 The rule \RuleRef{MOA2} translates typed methods, \RuleRef{MOA2} translate methods that are not purely typed.
 \RuleRef{MOA4} translate untyped methods, \RuleRef{MOA2} translate object creation.
 The purpose of the \xt{monWrap} function is further evidenced as the 
-handling of calls to methods need to approperiately casted if the typing nature is unclear.
+handling of calls to methods need to appropriately casted if the typing nature is unclear.
 
 \begin{figure}[!ht]
 \begin{mathpar}
@@ -2415,9 +2415,9 @@ of any object whose type is altered by a cast update.
 
 In the extreme case, a single cast could cause every object in the heap to be
 retyped. To prevent pathological cases, the monotonic casts only modify the heap
-if the target \C has fewer occurences of \any than the original type of the
+if the target \C has fewer occurrences of \any than the original type of the
 object at \a (and transitively so for types appearing in \t and reachable
-from \a).  When a type \C does not have any occurence of the dynamic type,
+from \a).  When a type \C does not have any occurrence of the dynamic type,
 denoted by \statictype\C\K\V, the monotonic casts will leave the object and the
 heap unchanged.
 
@@ -2432,7 +2432,7 @@ reference. To accomplish this, the cast ensure two properties hold:
   the types that they are referred to. The behaviour of the class needs
   to check that its types are not violated by lesser-typed call sites.
 \end{itemize}
-The second property is strongly reminisicent of the behavioural semantics,
+The second property is strongly reminiscent of the behavioural semantics,
 though with the interesting caveat that all method invocations 
 must follow the typed calling conventions, rather
 than just the ones that inherit this particular type assertion.
@@ -2453,7 +2453,7 @@ while ensuring all properties in the monotonic system are guaranteed.
 
 As a result of generating the wrappers (and the static translation), the simple example 
 shown in figure~\ref{fig:mono_ex1} does not correctly exhibit the behavior of the 
-monotonic cast semantics in \kafka. The monotonic cast semantices of \kafka are
+monotonic cast semantics in \kafka. The monotonic cast semantics of \kafka are
 depicted by the example presented in figure~\ref{fig:mono_ex2}.
 For compactness, the class definitions in figure~\ref{fig:mono_ex1}, and the class definitions that will be generated but
 not appear in the dynamic execution have been elide.
@@ -2733,7 +2733,7 @@ The meta-variable \P becomes crucial when considering the example
 in figure~\ref{fig:tmeet_rec_ex}, where the meet  of \xt{A} and \xt{B}
 recursively depends on the meet of \xt{A} and \xt{B}. If we proceeded naively,
 without \P, \RuleRef{TM4} would invoke \RuleRef{TM4} again to compute the meet
-of the arugments to \m. We use \P and \RuleRef{TM5} to avoid this.
+of the arguments to \m. We use \P and \RuleRef{TM5} to avoid this.
 
 \RuleRef{TM4} invokes \xt{mmeet} with an enriched \P, in much the same manner
 that the subtyping relation does, inserting the future result of the meet of
