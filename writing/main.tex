@@ -2371,16 +2371,16 @@ Class \C Wrappers: & Class \D Wrappers: \\
 \begin{minipage}{7cm}
 \begin{lstlisting}
 class CW { 
-    that : C
-    f():* { <*>this.that().f() }
-    f(x:*):* { 
-      <*>this.that().f(<*>x)}
+  that : C
+  f():* { <*>this.that().f() }
+  f(x:*):* { 
+    <*>this.that().f(<*>x)}
 }
 class ECW {
   that : C
   f():* { <*><FW>this.that.f() }
   f(x:*):* {
-      <*><F>this.that().f(<*><FW>x)}
+    <*><FW>this.that().f(<*><FW>x)}
 }
 \end{lstlisting}
 \end{minipage}
@@ -2397,7 +2397,7 @@ class DW {
 class FDW {
   that : D
   m(x:*):* { <*><EW><*><EW>x }
-  m(x:E):E { <EW><*><EW>x }
+  m(x:EW):EW { <EW><*><EW>x }
 }
 \end{lstlisting}
 \end{minipage}
@@ -2509,6 +2509,25 @@ know that \xt{E} will not be able to be further altered under the monotonic
 semantics, as \xt{E} and every type referenced from it have no instances of the
 type \any in them, which might be altered in the future by another monotonic
 cast.
+
+%\begin{figure}
+%\begin{tabular}{ccc}
+%\begin{minipage}
+%\begin{lstlisting}
+%class A { f:* }
+%class B { f:* f2:* }
+%class C { f:D }
+%class D { f:E f2:* }
+%class E { f:E f2:E }
+%\end{lstlisting}
+%&
+%\begin{tikzpicture}
+%\node (a) at (0,0) {\a : \any};
+%\node (a1) [below=of a] {\ap : \any};
+%\end{tikzpicture}
+%&
+%\end{tabular}
+%\end{figure}
 
 \begin{figure}
 \begin{mathpar}
