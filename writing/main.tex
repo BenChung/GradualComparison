@@ -803,35 +803,110 @@ cause performance impacts in fully-typed code, especially at heap access
 sites. The monotonic semantics for Reticulated Python aims to recover this,
 in exchange for a new dynamically-enforced guarantee.
 
-To see why the impact exists, consider the following code
+To see why the impact exists, consider figure~\ref{fig:mutup_b}. Here, we have
+incompatible types \xt{A} and \xt{B}, alongside both a typed and an untyped
+memory cell (\D and \C, respectively). If we create a \C, cast it to a \D
+(which, initially, is correct), then pass the original \C to the \xt{evil}
+function, the reference to \f under type \xt{B} from \xt{d} will be invisibly
+invalidated internally, causing the final field access to \f on \xt{d} to be
+ill-typed without any visible cause.
 
-\begin{verbatim}
-function evil(x : *) : * {
-	x := "foo bar"
-}
+\begin{figure}[h!]
+\begin{tabular}{@{}c@{}c@{}}
+\begin{lstlisting}[linewidth=0.45\textwidth]
+class A { m( x : A ):A { this }}
+class B { n( x : B ):B { this }}
+class C { f:* }
+class D { f:B }
+class Evil {
+  evil(x:C):C {x.f(new A())}}
+\end{lstlisting}
+&
+\hspace{0.6cm}
+\begin{lstlisting}[linewidth=0.5\textwidth]
+c = new C(new B())
+d = <D> c
 
-Ref<Int> a = Ref(3)
-evil(a)
-Int y = !x + 2
-\end{verbatim}
+new Evil().evil(c)
+
+d.f().n(new B())
+\end{lstlisting}
+\end{tabular}
+\caption{Mutable updates and consistency can break type guarantees}
+\label{fig:mutup_b}
+\end{figure}
 
 If we stripped all checks from this code, we would end up with a stuck
 state, since we would be adding a string to an integer, despite statically
 typing the value of $\a$ as an integer, as we were able to assign to the
-underlying reference from an untyped context.
+underlying reference from an untyped context. 
 
-The approaches discussed for Typed Racket and the transient semantics
-handle this case differently, but both require that the typed code perform
-a typecheck at the dereference of $\x$. Problematically, these checks
-have to be performed even in a fully typed program, because it is impossible
-to know which pointers have been exposed to dynamic code.
+This is the key issue for many of the systems we have discussed. Thorn
+statically rejects this program, as the cast does not make sense in its type
+sysem. Typed Racket will produce an error when \xt{f} is retrieved, as will
+Transient. Both accomplish this with expensive checks at every dereference,
+which may impact performance. Moreover, this may seem to be the wrong place to
+produce an error, as it was \xt{evil} that mistreated the code, after all.
+Since, subjectively, there seem to be fewer sets than gets and it would be
+better to error on a set than a get, it would be nice to have the gradual type
+system produce an error when \xt{evil} mistreated the reference, rather than
+later when we try to use the reference.
 
-The key feature of the monotonic semantics is that it imposes these checks
-on the dynamic code - any dynamic reference has to respect the types imposed
-by a typed reference. In the above example, the monotonic semantics would
-produce an error when we tried to assign a string into $\x$ - despite the
-static typing working out, because the reference has a type which is
-incompatible with our new type, monotonic will reject it at that point.
+Realizing this idea is the monotonic semantics, described by Siek et
+al~\cite{Siek2015}. Monotonic maintains the property that \emph{every reference
+is well typed}, catching the error in figure~\ref{fig:mutup_b} in \xt{evil}, as
+the assignment of an \xt{A} into \f is invalidating the earlier reference
+(\xt{c}) that asserted that \f would only ever contain \xt{B} references.
+
+This guarantee has several interesting concequences, both for design and
+implementation. The monotonic semantics ensures that the type pointing to a
+value is always going to be correct up to \any types, so as a result, we can now
+dereference without any additional checks, allowing (fully statically typed)
+dereferences to be as fast as ones in a statically typed language. Moreover, as
+a result of this property, the monotonic semantics can execute fully typed
+programs as fast as a fully typed language can, unlike the transient approach.
+
+The main design issue is that a language that uses the monotonic
+semantics has a very ``brittle'' approach to typing - any type that touches an
+object will forever brand that object to be consistent with that type.
+
+\begin{figure}[h!]
+\begin{tabular}{@{}c@{}c@{}}
+\begin{lstlisting}[linewidth=0.45\textwidth]
+class A { m( x : A ):A { this }}
+class B { n( x : B ):B { this }}
+class C { f:* }
+class D { f:B }
+class Evil {
+  evil(x:C):C {<C><D>x}}
+\end{lstlisting}
+&
+\hspace{0.6cm}
+\begin{lstlisting}[linewidth=0.5\textwidth]
+c = new C(new B())
+
+
+new Evil().evil(c)
+
+c.f(new A())
+\end{lstlisting}
+\end{tabular}
+\caption{Hidden type assertions can break seemingly-correct code}
+\label{fig:invisbreak}
+\end{figure}
+
+If we switch the roles of the user code and the \xt{evil} method, as seen in
+figure~\ref{fig:invisbreak}, then this effect is clearly illustrated. From the
+perspective of the user, the code that they are writing is perfectly type safe,
+as \C can have either \xt{A} or \xt{B} for \f, and \xt{evil} takes a \C.
+Therefore, naively, the user would expect this code to execute normally.
+However, the same mechanism that caused the earlier version of \xt{evil} to
+break will cause the user code to break here, because now it is the user
+breaking \xt{evil}'s type assertion, despite the cast reference being unusused.
+As a result, adding types to distantly- connected parts of a program or slight
+implementation changes in library code can cause substantial knock-on effects
+under the monotonic semantics.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Kafka: A Core Calculus}
