@@ -71,7 +71,7 @@
 \EventLocation{}
 \EventLogo{}
 \SeriesVolume{42}
-\ArticleNo{23}
+\ArticleNo{00}
 % Editor-only macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -3580,7 +3580,123 @@ for them according to the new wrapper \C.
 }
 \end{mathpar}
 
-% \section{Monotonic figure scratch}
+\section{Monotonic examples in Reticulated Python}
+
+\begin{lstlisting}[language=python]
+class C:
+	def m1(self,v:Int,g:Dyn)->Dyn:
+		return 2
+
+class D:
+	def m1(self,v:Dyn,g:Int)->Dyn:
+		return 2
+
+class E:
+	def m1(self,v:Int,g:Int)->Dyn:
+		return 2
+
+def castC(e:C) -> C:
+	return e
+
+e = E()
+c = castC(e)
+c.m1(2,2)
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=python]
+class C:
+	def m1(self,x:C,v:Int,g:Dyn)->Dyn:
+		return 2
+
+class D:
+	def m1(self,x:D,v:Dyn,g:Int)->Dyn:
+		return 2
+
+class E:
+	def m1(self,x:E,v:Int,g:Int)->Dyn:
+		return 2
+
+def castD(e:D) -> D:
+	return e
+
+c = C()
+d = castD(c)
+c.m1(c,2,2)
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=python]
+class C:
+	def m1(self,x:C)->Dyn:
+		return 2
+
+class E:
+	def m1(self,x:E)->Int:
+		return 2
+
+c = C()
+c.m1(c)
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=python]
+class C:
+	def m1(self,x:C)->Dyn:
+		return 2
+
+class E:
+	def m1(self,x:E)->Int:
+		return 2
+
+def castE(e:E) -> E:
+	return e
+
+c = C()
+e = castE(c)
+c.m1(C())
+\end{lstlisting}
+
+
+%% Example -- please check
+
+%% class A {
+%%   fa : B
+%%   ma(x : A): B { fa.mb(a) }
+%% }
+%% class B {
+%%   fb : any
+%%   mb(x:A):B { this }
+%% }
+%% class C {}
+
+%% class Ap {
+%%   fa : Bp
+%%   ma(x : Ap): Bp {...}
+%% }
+%% class Bp {
+%%   fb: C 
+%%   ma(x : Ap): Bp {...}
+%% }
+
+%% a = new A(new B(new C()))
+%% ap = <| Ap |> a
+
+%% class WA {
+%%   that : A
+%%   fa() : B { that.fa() }
+%%   fa(x:B):B { that.fa(x) }
+%%   ma(x:B):B { that.ma(x) }
+%% }
+%% class WB {
+%%   that : any
+%%   fb() : any { that.fb() }
+%%   fb(x:any):any { that.fb(x) }
+%%   mb(x:B):B { that.mb(x) }
+%% }
+%% class WBp {
+%%   that : A
+%%   ...
 
 %% Example -- please check
 
@@ -3683,51 +3799,51 @@ for them according to the new wrapper \C.
 %%   ...
 
 
-\section{Proofs of Related Theorems}
-\subsection{Accessory Lemmas}
-
-\paragraph{Evaluation Extends Class Tables}
-
-If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
-
-\paragraph{Weakening of Subtyping}
-
-If $\StrSub\cdot\K\t\tp$ then $\StrSub\cdot{\K~\Kp}\t\tp$.
-
-\paragraph{Correctness of \classoff{\C}{\K}}
-
-If $\Mtype\n{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable) $\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\n{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$
-
-\subsection{Soundness of \kafka Typing}
-
-Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is of one of the following forms:
-\begin{itemize} 
-\item $\a$
-\item $\DynCall\ep\m{\epp}$
-\item $\SubCast\tp\ep$
-\item $\ShaCast\tp\ep$
-\item $\BehCast\tp\ep$
-\item $\MonCast\tp\ep $
-\end{itemize}
-We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. Note that we refer to rule preconditions from left to right.
-\begin{itemize}
-  \item W1
-
-        Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
-  \item W2
-
-        We apply the IH to the first precondition. If we get stuck in the IH, then the entire expression gets stuck or terminates, trivially. Therefore, the interesting case is when $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\tp$. By 
-  \item W3, W4, W5
-  \item W6
-  \item W7
-  \item W8
-  \item W9
-  \item W10
-  \item W11
-  \item W12
-\end{itemize}
-
-\subsection{Type Correctness of Translation}
+% \section{Proofs of Related Theorems}
+% \subsection{Accessory Lemmas}
+% 
+% \paragraph{Evaluation Extends Class Tables}
+% 
+% If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
+% 
+% \paragraph{Weakening of Subtyping}
+% 
+% If $\StrSub\cdot\K\t\tp$ then $\StrSub\cdot{\K~\Kp}\t\tp$.
+% 
+% \paragraph{Correctness of \classoff{\C}{\K}}
+% 
+% If $\Mtype\n{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable) $\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\n{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$
+% 
+% \subsection{Soundness of \kafka Typing}
+% 
+% Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is of one of the following forms:
+% \begin{itemize} 
+% \item $\a$
+% \item $\DynCall\ep\m{\epp}$
+% \item $\SubCast\tp\ep$
+% \item $\ShaCast\tp\ep$
+% \item $\BehCast\tp\ep$
+% \item $\MonCast\tp\ep $
+% \end{itemize}
+% We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. Note that we refer to rule preconditions from left to right.
+% \begin{itemize}
+%   \item W1
+% 
+%         Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
+%   \item W2
+% 
+%         We apply the IH to the first precondition. If we get stuck in the IH, then the entire expression gets stuck or terminates, trivially. Therefore, the interesting case is when $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\tp$. By 
+%   \item W3, W4, W5
+%   \item W6
+%   \item W7
+%   \item W8
+%   \item W9
+%   \item W10
+%   \item W11
+%   \item W12
+% \end{itemize}
+% 
+% \subsection{Type Correctness of Translation}
 
 
 \end{document}
@@ -4184,42 +4300,4 @@ For every class $\C$ and every $\t$ where $\stcons\C\t$, we can generate a most 
 %\input{figures/castins}
 \end{figure}
 
-%% Example -- please check
 
-%% class A {
-%%   fa : B
-%%   ma(x : A): B { fa.mb(a) }
-%% }
-%% class B {
-%%   fb : any
-%%   mb(x:A):B { this }
-%% }
-%% class C {}
-
-%% class Ap {
-%%   fa : Bp
-%%   ma(x : Ap): Bp {...}
-%% }
-%% class Bp {
-%%   fb: C 
-%%   ma(x : Ap): Bp {...}
-%% }
-
-%% a = new A(new B(new C()))
-%% ap = <| Ap |> a
-
-%% class WA {
-%%   that : A
-%%   fa() : B { that.fa() }
-%%   fa(x:B):B { that.fa(x) }
-%%   ma(x:B):B { that.ma(x) }
-%% }
-%% class WB {
-%%   that : any
-%%   fb() : any { that.fb() }
-%%   fb(x:any):any { that.fb(x) }
-%%   mb(x:B):B { that.mb(x) }
-%% }
-%% class WBp {
-%%   that : A
-%%   ...
