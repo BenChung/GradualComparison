@@ -194,7 +194,7 @@ references by \a is a subtype of type \t, \t can be either a class \C or the
 dynamic type \any.  The shallow cast \ShaCast\t\a merely checks that the
 object has all the methods of type \t without looking at their signatures.
 \kafka also supports two \emph{generative} casts which create new wrapper
-classes.  The behavioral cast \BehCast\t\a generates a wrapper object that
+classes.  The behavioural cast \BehCast\t\a generates a wrapper object that
 monitors that methods invoked on \a abide by the interface of type \t. The
 monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to
 the object referenced by \a, furthermore this wrapper can only be refined by
@@ -1563,9 +1563,9 @@ in their bodies.
 
 In order to support this behavioural semantics, we will have to extend the core 
 \kafka language with a new cast operation, ensuring that object {behaviour}
-matches the types on the object. For an expression \e and type \t, we will 
-write this as  \BehCast\t\e, and it has basic typing and semantic rules depicted 
-in figure~\ref{fig:behrules}.
+matches the types on the object. For an expression \e and type \t, 
+the cast \BehCast\t\e depictes the behavioural cast, and the typing and semantic 
+rules are presented in figure~\ref{fig:behrules}.
 
 \begin{figure}[h!]
 \begin{minipage}{0.35\textwidth}
@@ -1591,7 +1591,7 @@ in figure~\ref{fig:behrules}.
 \label{fig:behrules}
 \end{figure}
 
-We will go into the details of $\behcastz\a\t\s\K$ later, but observe that, 
+The details for the function $\behcastz\a\t\s\K$ will be presented later in this section, but observe that, 
 despite not performing any dynamic check, we are able to say that the type is
 correct according to the \kafka type system. This arises from the wrapper 
 ensuring objects are observably type correct, with any mismatch between
@@ -1674,14 +1674,14 @@ be used to ensure the safety of typed code, we will explain how the
 behavioural cast is implemented in \kafka.
 
 
-\subsection{Behavioral Casts}
+\subsection{Behavioural Casts}
 
-A behavioral cast \BehCast\t\a returns a fresh \ap that refers to an
+A behavioural cast \BehCast\t\a returns a fresh \ap that refers to an
 object that behaves as if it is of type \t, and if the underlying object
 departs from that behaviour then the wrapper object will get
 stuck at an internal cast. Behavioural casts must be generative, as they produce
 a new object which monitors the target object for conformance to the interface 
-of \t. \figref{behave} details the semantics of the behavioral cast. 
+of \t. \figref{behave} details the semantics of the behavioural cast. 
 \ruleref{BC1} refers to when an object \obj\C{\b\a} is cast to a class \Cp,
 leading to the creation of a wrapper class \k (under a new name \D). 
 Class \D is appended to the class table \K.  The cast returns a reference \ap to an instance of
@@ -1722,13 +1722,13 @@ handles the case when the target type of the cast is \any.
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \hrulefill
-\caption{Behavioral casts.}\label{behave}
+\caption{Behavioural casts.}\label{behave}
 \end{figure}
 
 A wrapper is a class that has the distinguished field \that as the type of the target object, and a set of 
 methods that mirrors the methods of the target object, but with additionals 
 casts to some of their arguments and return values. For getters, setters and typed methods, 
-the wrapper simply adds a behavioral casts to argument, issues a typed call, and 
+the wrapper simply adds a behavioural casts to argument, issues a typed call, and 
 then casts of the result of the call. For untyped methods, a dynamic call is casted to \any, 
 ensuring the type requirements of the typed object is respected.
 
@@ -1966,8 +1966,8 @@ subtype of \D but it also has method \mp only found in class \C.  The cast from
 The latter is a subtype of \C and has a rather interesting method \m which is
 dynamic and thus must be invoked dynamically. The receiver is cast to \any using
 a structual subtype cast. The argument on the other hand is converted to dynamic with a
-behavioral cast. The return value is converted to the expected return type with
-another behavioral cast.
+behavioural cast. The return value is converted to the expected return type with
+another behavioural cast.
 
 
 %%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2072,6 +2072,35 @@ Calling the \texttt{tmeet} function on \texttt{A} and \texttt{B} will compute th
 whose method have will have typed argument and return type. The \texttt{tmeet} function will be described 
 in more detail later in this section, when the monotonic cast semantic is presented.
 
+
+\begin{figure}[h!]
+\begin{minipage}{0.35\textwidth}
+\begin{mathpar}
+\IRule{W10}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\MonCast\t\e}\t
+}
+\end{mathpar}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{tabular}{l@{}l@{~}l@{~}l}
+\CondRule{E11}{  %% Monotonic cast  
+  \moncast \a\t\s\K  \Kp\ap\sp    
+}{    
+  \ReduceA  \K{\MonCast \t\a}\s \Kp\ap\sp   
+} \\
+\multicolumn{4}{l}{\EE ::= \ldots \B \MonCast\t\EE }
+\end{tabular}
+\end{minipage}
+\caption{Monotonic cast static and dynamic rules}
+\label{fig:monrules}
+\end{figure}
+
+Similar to the behavioural semantics, the monotonic semantics is implemented to the core of \kafka
+as a cast extension. For an expression \e and type \t, we write \MonCast\t\a to depict the monotonic cast.
+Figure \ref{fig:monrules} presents the typing and semantics rules for the monotonic cast.
+
 \begin{figure}[!ht]
 \newcommand{\monowrap}[2]{\xt{mwrap}(#1,#2)}
 \begin{mathpar}
@@ -2115,8 +2144,9 @@ in more detail later in this section, when the monotonic cast semantic is presen
 \label{fig:mono-trans1}
 \end{figure}
 
+
 The translation from the monotonic surface language to \kafka begins 
-in figure \ref{fig:mono-trans2}. The rule \RuleRef{PT} translates 
+in figure \ref{fig:mono-trans1}. The rule \RuleRef{PT} translates 
 monotonic programs, \RuleRef{CR1} and \RuleRef{CR2} translates monotonic class,
 and \RuleRef{MT} translates monontonic methods. In the \RuleRef{MT} 
 and \RuleRef{CR1} rules, we are actively replacing every type the user wrote with ones generated by the 
@@ -2190,11 +2220,10 @@ The bidirectional nature of the monotonic translation require the two
 expression translation rules, \RuleRef{MOAASC1} and \RuleRef{MOAASC2}, 
 in figure \ref{fig:mono-trans3}.
 
-\subsection{Monotone Casts}
+\subsection{Monotonic Casts}
 
-
-The monotone cast \MonCast\C\a imposes the type \C onto the object
-at \a, as well as every object transitively reachable from it. The motivation 
+The monotonic cast \MonCast\C\a imposes the type \C onto the object
+at \a and every object transitively reachable from \a. The motivation 
 for this cast comes from~\cite{Siek2015}, where it is used to maintain the
 type correctness of every reference in the program.
 
@@ -2207,6 +2236,7 @@ class C { f : * }
 class D { 
   m (x:*):* {x}
 }
+
 d:* = new D()
 a:* = new C(d)
 [heap snapshot 1]
@@ -2271,77 +2301,75 @@ rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \label{fig:mono_ex1}
 \end{figure}
 
-This is illustrated in figure~\ref{fig:mono_ex1}. Here, we create a new 
-instance of class \D, then create an instance of class \C that points at that
-object. At this point, the field \f on \C has type \any, and the method \m
-on \D has fully dynamic argument and return type.
+Figure~\ref{fig:mono_ex1} illustrates the semantics of the monotonic cast. 
+A new instance of class \D is created and then an instance of class \C 
+is created pointing to it. At this point, as shown by heap snapshot 1, 
+the field \f on \C has type \any, and the method \m on \D has fully dynamic 
+argument and return type. Next we introduce classes \E and \xt{F}, which are structurally 
+identical to \C and \D, but have specific types for their fields and methods. 
+If the instance of class \C in the program, referenced by \a, is casted to \E, 
+the monotonic semantics will ensure any access to field \f or method \m from 
+anywhere in the program will follow the type invariants asserted by class \E.
 
-However, we then introduce classes \E and \xt{F}, which are structurally 
-identical to \C and \D, but specify types for the field and method. If we then
-cast our instance of \C, \a in the program, to \C, monotonic will ensure that
-any access to field \f or to method \m from anywhere else in the program will
-follow the type invariants asserted by the cast to \E.
-
-As a result, our reference to the instance of \D, named \xt{d} and saved from
-earlier in the program, now has hidden invariants applied to it. Despite being
-under type \any, when we try to invoke method \m on this apparently dynamic 
-object, we will get a cast failure, when monotonic checks to make sure that the
+However, as shown in heap snapshot 2, the variable \xt{d} still refers to 
+the instance of \D, from earlier in the program, and \xt{d}
+does not know the existence of the new invariants applied to class \D. Despite being
+typed \any, when \xt{d} try to invoke method \m on the apparently dynamic 
+object, a cast failure will occur. The monotonic semantics ensures that the
 provided argument is of type \E. 
 
-Because of this property, the monotone cast is generative. In order to guarantee
-the future type correctness of all references, monotonic has to generate guards
-that check the argument and return type of every method, and at least check the
+This example highlights the need for the monotonic cast semantics to be generative.
+In order to guarantee the type correctness of all references, monotonic has to generate guards
+that check the argument and return type of every method, and the
 type of any field set, ensuring that they maintain consistency with the 
-maximally static type. Additionally, because monotonic has to ensure that 
+maximally static type. Additionally, since monotonic has to ensure that 
 prior references respect future type invariants, it has to do in-place updates
 of any object whose type is altered by a cast update.
 
-In the extreme, one cast could cause all objects in the heap to be
-retyped. To prevent pathological cases, monotone casts, only modify the heap
+In the extreme case, a single cast could cause every object in the heap to be
+retyped. To prevent pathological cases, the monotonic casts only modify the heap
 if the target \C has fewer occurences of \any than the original type of the
 object at \a (and transitively so for types appearing in \t and reachable
 from \a).  When a type \C does not have any occurence of the dynamic type,
-denoted by \statictype\C\K\V, monotone casts will leave the object and the
+denoted by \statictype\C\K\V, the monotonic casts will leave the object and the
 heap unchanged.
 
-The key challenge is that after a monotone
-cast in a heap \s, every reference should still be valid.  If a reference
-has a type other than \any, then the cast will preserve correctness of that
+A key challenge is for every reference in the heap \s to still be valid after a monotonic
+cast. If a reference has a type other than \any, then the cast will preserve correctness of that
 reference. To accomplish this, the cast ensure two properties hold:
 \begin{itemize}
-\item The values that \emph{currently} exist cannot violate any of the types
+\item The values that currently exist cannot violate any of the types
   that point to them. Casting needs to recursively ensure that all values
   referred to by the current object are of the claimed type.
 \item Functions can not be called with or return values that violate any of
-  the types that they are referred to with. The behaviour of the class needs
+  the types that they are referred to. The behaviour of the class needs
   to check that its types are not violated by lesser-typed call sites.
 \end{itemize}
 The second property is strongly reminisicent of the behavioural semantics,
-though with the interesting caveat that we now need to make sure that
-\emph{all} method invocations follow the typed calling conventions, rather
+though with the interesting caveat that all method invocations 
+must follow the typed calling conventions, rather
 than just the ones that inherit this particular type assertion.
 
-In \kafka, we implement the monotonic cast in a generative manner, as noted 
-previously. However, we cannot take the simple in-place replacement route, as
-\cite{Siek2015} did, due to the nature of \kafka. In order to ensure that the
-type of a field is respected, the monotonic cast will have to add in a setter
-that checks the value that it is given against the type of the field, when
+The monotonic cast semantics in \kafka cannot be implemented using the simple 
+in-place replacement technique\cite{Siek2015}. In order to ensure the
+type of a field is respected, the monotonic cast will have to insert a setter method
+that checks the value it is given against the type of the field, when
 a lesser-typed call site is used to set the field. However, \kafka prohibits
-both a field and a getter or setter from existing, as a concequence of its 
-treatment of fields and getters and setters uniformly. 
+the explicit existence of a field and its getter and setter methods, 
+as a consequence of having uniform treatment for fields and their getter and setter methods. 
 
-Because of this issue, we instead implement the monotonic cast by adding a 
+This treatment of fields means the monotonic cast semantics is implemented by adding a 
 single wrapper over each object, similar to the ``identity preserving membrane''
 described in \cite{keil_et_al:DARTS:2015:5511}. The wrappers will preserve the
 externally-facing interface (up to a point) and the relations between classes,
-while ensuring that all properties guaranteed in the monotonic system remain.
+while ensuring all properties in the monotonic system are guaranteed.
 
-As a result of this (and the static translation required to allow the monotonic
-semantics to work correctly), instead of the simple figure~\ref{fig:mono_ex1}, 
-\kafka will actually execute as depicted in figure~\ref{fig:mono_ex2}. Note that
-for compactness, we elide class definitions that are in figure
-~\ref{fig:mono_ex1}, and class definitions that will be generated but that
-do not appear in the dynamic execution of the program.
+As a result of generating the wrappers (and the static translation), the simple example 
+shown in figure~\ref{fig:mono_ex1} does not correctly exhibit the behavior of the 
+monotonic cast semantics in \kafka. The monotonic cast semantices of \kafka are
+depicted by the example presented in figure~\ref{fig:mono_ex2}.
+For compactness, the class definitions in figure~\ref{fig:mono_ex1}, and the class definitions that will be generated but
+not appear in the dynamic execution have been elide.
 
 \begin{figure}[h!]
 \centering
@@ -2451,162 +2479,87 @@ rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \label{fig:mono_ex2}
 \end{figure}
 
-Figure~\ref{fig:mono_ex2} illustrates the nature of these wrappers and how they
-are added into the heap. In this example, as in figure~\ref{fig:mono_ex1}, we
-show the state of the heap at two discrete times, before and after we cast the
-\a reference to \xt{E}. Each wrapper is associated with a specific type that it
-enforces, with \xt{CW} and \xt{DW} enforcing \C and \D, respectively, and wrap
-over an underlying object of known type, enforcing its type guarantees, as seen
-in \xt{CW} and \xt{DW}.
+Figure~\ref{fig:mono_ex2} aims to illustrate the nature of the monotonic wrappers. 
+In this example, the state of the heap is highlighted
+at two discrete times, before and after the cast of the reference \a to
+the type \xt{E}. The wrapper \xt{CW} and \xt{DW} is associated with enforcing 
+the class \C and \D, respectively, and wrap over an underlying object of 
+known type, enforcing its type guarantees.
 
-Our monotonic semantics also lifts method bodies into wrapper classes, as the
-Typed Racket semantics does, but for a different reason. While Typed Racket
-needed it to enforce the observed type on an underlying untyped object, we need
-the combination of the wrapper and underlying object to act as if they are
-\emph{exactly} the monotonically specified type. The result of this can be seen
-in the translation above for \m.
+The monotonic semantics will lift method bodies into wrapper classes, as seen in
+the Typed Racket semantics but for different reasons. While Typed Racket
+needs to enforce the observed type on an underlying untyped object. The
+monotonic semantics need the combination of the wrapper and underlying object 
+to act as if they are exactly the monotonically specified type. 
+The result of this can be seen in the translation above for \m.
 
-The other notable decision that is illustrated here is the erasure on every call
-site for \m, with the exception of the final definition in \xt{FDW}, which will
-be dicussed later. Under the monotonic semantics, every call site that has
-\emph{some untyped component anywhere} can be adjusted further, ensuring that
-any partially typed call may be invalidated in the future. As a concequence,
-every call to even a \emph{surfically typed} call site (e.g. one with a argument
-type that may contain a \any very deeply embedded in the type) must be treated
-as an untyped call site.
+A notable behavior of the monotonic semantics illustrated in figure~\ref{fig:mono_ex2}
+is the erasure on every call site for \m, with the exception of the final definition in \xt{FDW}. 
+Under the monotonic semantics, every call site with some untyped component somewhere
+will be adjusted further, ensuring any partially typed call may be invalidated in the future. 
+As a concequence, every call, even to a surfically typed call site (one with an argument
+type that may contain a \any deeply embedded in the type), must be treated as an untyped call site.
 
-In monotonic, if we encounter a cast on a reference, that cast needs to be
+In the monotonic semantics, if we encounter a cast on a reference, that cast needs to be
 enforced upon that reference for the rest of its lifetime. \kafka's monotonic
-cast operator handles this by taking the previously-existing type on the object,
-computing the meet of that old type and the new type, and then producing a new
-wrapper for the object that replaces the previous wrapper. \xt{ECW} and \xt{FDW}
-are two examples of the result of this operation, created when we casted \a to
-\xt{E}.
-
+cast semantics handles this by taking the previously-existing type on the object,
+computing the meet of that old type and the new type, producing a new
+wrapper for the object that replaces the previous wrapper. The wrappers \xt{ECW} and \xt{FDW}
+are created when \a is casted to \xt{E}.
 To ensure that types for fields are respected, we take a conservative approach, 
 as seen in \xt{ECW}. When a field on an underlying object is set, we first cast
-it to the required type (in this case \xt{FW}, the wrapper type that would 
-protect objects of type \xt{F}, which is used instead of \xt{F} for techincal
-reasons), then further cast it to the type of the underlying storage cell, which
-in this case, is of type \any. For retreiving values, we reverse this process.
+it to the required type (in this case \xt{FW}). Then a further $\star$ cast is applied 
+to the type of the underlying storage cell. For retreiving values, we reverse this process.
 
-This is being overly conservative. From the semantics of the meet operation, we
+The result wrappers are sometimes overly conservative. From the semantics of the meet operation, we
 know that the first cast to the protected type is sufficient to ensure 
 compatibility with the underlying memory cell type, and we also know that casting
 to the required type before returning is ignoring the heap conistency invariant 
 that monotonic provides, allowing for casts on retreival to be ignored. However,
 the \kafka type system does not allow us to make either of these shortcuts while
 still retaining semantic correctness, and as a result, we are forced to double 
-up casts on getters and setters, as seen in \xt{ECW}.
-
-Also of interest is the alterations that happened in \xt{FDW}. Here, when we 
-specialized \xt{D} to \xt{F}, we both added in a lot of additional (and, in this
-case, not required) casts, as well as a wholly new call site for \m. This new
-call site is fully typed, despite the previous note that we could not add in 
-typed call sites as they might change in the future.
-
+up casts on the getter and setter methods, as seen in \xt{ECW}.
+Another point of interest is the alteration happening in \xt{FDW}. When the class \xt{D}
+is specialized to \xt{F}, a lot of additional (and, in this case, not necessary) casts
+are inserted, as well as a wholly new call site for \m. This new
+call site is fully typed, despite previously stating that we could not add any 
+typed call sites as they might be changed in the future.
 In this case, we are able to insert the additional static call site because we 
 know that \xt{E} will not be able to be further altered under the monotonic 
 semantics, as \xt{E} and every type referenced from it have no instances of the
-type \any in them, which could be altered in the future by another monotonic
+type \any in them, which might be altered in the future by another monotonic
 cast.
 
-Meta-variable \S denotes a map from addresses to classes, thus
-\Map\S{\Bind\a\C} gives type \C to address \a. The function \htype\a\S\s\K
-returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
-\App\S\a or if $\a\not\in\S$ and \obj\C{\b\a}=\App\s\a.
-
-
-The monotone cast function \moncast\a\t\s\K\Kp\sp takes the address of the
-cast target \a, a target type \t, the current heap \s and class table \K, and
-will return an update heap \sp and an updated class table \Kp.
-
-We use \Dom\S to get a sequence of addresses that have to be retyped.
-
+\begin{figure}
 \begin{mathpar}
 \IRule{CM}{
-  \retype \a\t\cdot\s\K = \S\,\Kp\\
+  \retype \a\t\cdot\s\K = \S~\Kp\\
   \spec {\Dom\S} \S\s\Kp = \sp~\Kpp
 }{
   \moncast \a\t\s\K \Kpp \sp\\
 }
 \end{mathpar}
+\caption{Monotonic cast semantics}
+\label{fig:mono_sem}
+\end{figure}
 
+The monotonic cast semantics is formally defined by the \xt{moncast} rule, 
+which takes the address of the cast object \a, a target type \t, the current heap \s, 
+and class table \K, and gives an update heap \sp and an updated class table \Kp.
 
-We write \t\EQ\tp to denote that both \StrSub{}\K\t\tp and
-\StrSub{}\K\tp\t hold.
+The functionarlity of the \xt{moncast} rule is broken into two functions.
+The first function (\xt{retype}) identities the correct target type for every object affect by
+the monotonic cast, storing the gathered objects and their types in the meta-variable \S, 
+a mapping from addresses to classes, creating a blueprint for the sub-heap affected 
+byt the monotonic cast. 
+The second function (\xt{spec}) updates the heap and class table with the
+objects and types listed in \S.
 
-The retype function \retype{\b\a}{\b\t}\S\s\K, take a list of object
-addresses \b\a and a list of types to ascribe to them \b\t, and updates the
-heap \s and class table \K.
-
-% TODO: Gettype from mtype
-
-\begin{mathpar}
-\IRule{CRM1}{
-%   \unwrap{\htype \a\S\s}{\K} = \C~\Kp\\
-  \htype \a\S\s\K = \C~\Kp\\
-  \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
-  \C\not\EQ\D  \\
-  \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
-  \Sp = \Map\S{\Bind\a\D } \\
-  \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\K'''
-}{
-  \retype \a\t\S\s\K = \Spp\,\K'''
-}
-
-\IRule{CRM2}{
-%   \unwrap{\htype \a\S\s}{\K} = \tp\,\Kp\\
-%   \tmeet\tp\t\cdot\Kp = \tpp\,\Kpp \\
-  \htype \a\S\s\K = \tp\,\Kp\\
-  \tmeet\tp\t\cdot\Kp = \tpp\,\Kp \\
-  \tp\EQ\tpp \\
-}{
-  \retype \a\t\S\s\K = \S~\Kpp
-}
-
-\IRule{CRM3}{
-  \retype\a\t\S\s\K = \Sp\,\Kp\\
-  \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
-}{
-  \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
-}
-\end{mathpar}
-
-The heap specialization function \spec{\b\a}\S\s\K takes a
-sequence of object addresses \b\a, a heap typing \S, a heap \s
-and a class table \K and returns a new heap where the objects
-have been retyped.
-
-\begin{mathpar}
-\IRule{CMS1}{
-  \E \text{ fresh}\\
-  \D = \App\S\a \\
-  \obj\C{\ap} = \App\s\a \\
-  \obj\Cp{\b\app} = \App\s\ap \\
-  \classoff\Cp\Kpp = \b\mt \\
-  \classoff\D\Kpp = \b\mtp \\  
-  \names{\b\mtp} \subseteq \names{\b\mt}\\
-  \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
-  \sp = \Map\s{\Bind\a{\E\{\ap\}}}
-}{
-  \spec \a\S\s\K = \sp~\Kp
-}
-
-\IRule{CMS2}{
-  \spec \a\S\s\K = \sp\\
-  \spec {\b\a}\S\sp\K =\spp
-}{
-   \spec {\a\,\b\a}\S\s\K = \spp
-}
-\end{mathpar}
-
-
-% The \texttt{typemeet} function \tmeet\P\K\t\tp compute the meet of types \t
-% and \tp, it returns a new type if needed and an updated class table.
-% 
-% For the case we call \tmeet\P\K\C\D, the function will have to create a new
-% class \E that is the result of meeting \C with \D.
+The \xt{retype} function utilies the meet operation in determining the correct
+casting type for every object transitively reachable from the cast object. 
+The workings of the meet operator, and the \xt{tmeet} function,
+its implementation, is described in detail with the example presented in
+figure~\ref{fig:tmeet_rec_ex}.
 
 This example uses 3 of \texttt{tmeet}'s 4 arugments, with an empty \P, first
 invoking \RuleRef{TM4}, which, via \xt{mmeet}, computes the meet of each of the
@@ -2660,176 +2613,6 @@ that the subtyping relation does, inserting the future result of the meet of
 \xt{A} and \xt{B} (which, in this example, is \xt{E}) into \P, which will then
 be used by \RuleRef{TM5} to terminate the recursion.
 
-\begin{figure}[!ht]
-\hrulefill
-
-\opdef{
-  $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
-}{
-}
-\begin{align*}
-\P &::= \cdot \B \Map\P{\Bind{(\C,\D)}\Dp}
-\end{align*}
-\begin{mathpar}
-\IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
-
-\IRule{TM2}{ }{\tmeet\any\C\P\K = \C\,\K}
-
-\IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
-
-\IRule{TM4}{
-  \fresh\E\\
-  (\C,\D) \not\in\P \\
-  \Pp = \Map\P{\Bind{(\C,\D)}\E} \\
-  \mtypes\C\K = {\b\mt}\\
-  \mtypes\D\K = {\b\mtp}\\
-  \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
-  \Kpp = \Kp~\typegen{\b\mtpp}\E\\
-}{
-    \tmeet\C\D\P\K = \E\,\Kpp
-}
-
-\IRule{TM5}{
-    \P(\C,\D) = \E
-}{
-    \tmeet\C\D\P\K = \E\,\K
-}
-\end{mathpar}
-
-\vspace{-2mm}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\hrulefill
-\caption{Type meet.}\label{monmeet}
-\end{figure}
-
-
-The \texttt{methmeet} function is used by the \texttt{typemeet} functions to
-perform the meet over the typing of each method within a class definition.
-The \texttt{methmeet} function also takes four arguments, the method
-signatures of the original class $\b\mt$, the method signatures of the cast
-class $\b\mtp$, the environment $\P$, a class table $\K$, and outputs method
-types $\b\mtpp$ and a class table $\Kp$. The \texttt{MM2} rule operators
-over the method typing signature of field setter, field getter, and regular
-method.
-
-The function \ftypes\a\C\s\K returns the old references and the new types
-for them according to the new wrapper \C.
-
-\newcommand{\rtranstz}[4]{#1 \Rightarrow #2 \vdash #3 \looparrowright_{mon} #4}
-
-\begin{figure}[!ht]
-\hrulefill
-\begin{mathpar}
-\IRule{MREW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\x\x }
-\\
-\IRule[width=25em]{MREW2}{ 
-  \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ 
-  \n = \f \vee \t_2 \neq \any  \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\n{\b\e}}{\MonCast{\tp_1}{\Call{\this}\n{\b{\MonCast{\t_2}{\ep}}}}}
-}
-\\
-
-\IRule[width=20em]{MREW3}{ 
-  \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\n{\b\e}}{{\Call{\this}\n{\b{{\ep}}}}}
-}
-
-\IRule[width=20em]{MREW4}{ 
-  \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}
-}
-
-\IRule{MREW5}{ 
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 	
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}
-}
-
-\IRule{MREW6}{
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}} 
-}{
-  \rtranstz{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}
-}
-\end{mathpar}
-
-\vspace{-2mm}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\hrulefill
-\caption{Monotonic dynamic expression translation.}\label{montrans}
-\end{figure}
-
-\begin{figure}[!ht]
-\hrulefill
-\footnotesize
-%\IGNOREUNLESSNEEDED{
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
-\arrayrulecolor{white}
-\classgen{\C, \b\md, \bmt, \bmtp, \D, \K}= \\
-\SP \class~\D~\{ \\
-\SPP \Fdef\that\C
-\\[1mm]
-\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
-      \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
-&
-\All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
-\\[1mm]\hline
-\SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
-&
- \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\[1mm]\hline
-\SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast{\tp[2]}{{[{(\MonCast{\t[1]}\x)}/\x]\ep}}}~}
-&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}}
-\\[1mm]\hline
-\SPP \Mdef\m\x{\t[2]}{\tp[2]} {\MonCast{\tp[2]}{[{(\MonCast{\t[1]}\x)}/\x]\ep}~}
-&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{\e}{\ep}} \\
-&&\wedge&\multicolumn{3}{l}{\statictype{\t[2]}{\K}{\cdot}}
-\\[1mm]\hline
-\SP\}
-\end{array}
-\]
-%} 
-\hrulefill
-\caption{Monotonic class generation.}\label{classgen}
-\end{figure}
-
-\begin{figure}
-\hrulefill
-\footnotesize
-\vspace{4mm}
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
-\arrayrulecolor{white}
-\typegen{\bmt}{\D} = \\
-\SP \class~\D~\{
-\\[1mm]
-\SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
-&
-\All m \Mtype\m\t\tp\in\bmt
-\\[1mm]\hline
-\SPP \Mdef\f\x\t\t {\x}
-&
-\All f \Mtype\f\t\t\in\bmt
-\\[1mm]\hline
-\SPP \Mdefz\f\t{{\MonCast\t{\New\D{}}}}
-&
- \All f \Mtype\f{}\t \in \bmt
-\\[1mm]
-\SP\}
-\end{array}
-\]
-\hrulefill
-\caption{Equivalent Type Generation} \label{typegen}
-\end{figure}
 
 \section{Conclusion}
 
@@ -2852,10 +2635,10 @@ However, the aim of this paper is not only to provide a deeper understanding for
 individual gradual typing system, but a road map for the direction of gradual typing in general.
 
 In the future, we intend on exploring the possibility of mixing and matching the varies 
-cast semantics within \kafka. In particular, the interaction between the Behavioral cast semantics 
+cast semantics within \kafka. In particular, the interaction between the behavioural cast semantics 
 and the Monotonic cast semantics should be considered worth exploring.
 The decision to describe the Monotonic cast semantics via wrapper generation was influenced
-by the existence of the getter and setter methods necessary for the Behavioral cast semantic.
+by the existence of the getter and setter methods necessary for the behavioural cast semantic.
 It would be worthwhile to consider designing a system similar to \kafka using the in place 
 replacement technique. 
 
@@ -2959,7 +2742,6 @@ The \xt{overloading} auxiliary function states that there are no overloaded
 field or method names within the given field and method definitions. \\
 
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
-
 \begin{mathpar}
 \IRule[width=18em]{WT}{
  \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\D\\
@@ -2991,7 +2773,6 @@ field or method names within the given field and method definitions. \\
 \end{mathpar}
 
 \opdef{~\WF  \Env\s\K {\Fdef\f\t}}{Well-formed fields}
-
 \begin{mathpar}
 \IRule{WF}{
  \WFtype \K\t 
@@ -3001,7 +2782,6 @@ field or method names within the given field and method definitions. \\
 \end{mathpar}
 
 \opdef{~\WFtype\K\t}{Well-formed types}
-
 \begin{mathpar}
 \IRule{WA}{
 }{
@@ -3014,8 +2794,6 @@ field or method names within the given field and method definitions. \\
  \WFtype\K\C
 }
 \end{mathpar}
-
-
 
 \subsection{Expression typing}
 
@@ -3100,26 +2878,26 @@ types in Transient will drift towards \any.
   \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
 }
 
-\IRule{W11}{
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\MonCast\t\e}\t
-}
+% \IRule{W11}{
+%   \EnvType \Env\s\K\e\tp
+% }{
+%   \EnvType \Env\s\K{\MonCast\t\e}\t
+% }
 
-\IRule{W12}{
+\IRule{W11}{
   \s(\a) = \obj\C{\b\ap}
 }{
   \EnvType \Env\s\K\a\C
 }
 
-\IRule{W13}{
+\IRule{W12}{
   \Env(\text{this}) = \D \\
   \Class \D {\text{that}:\C}{...} \in\,\K \\
 }{
   \EnvType \Env\s\K{\Get{\text{this}}{\text{that}}}\C
 }
 
-\IRule{W14}{
+\IRule{W13}{
   \Env(\text{this}) = \D \\
   \Class \D {\text{that}:\C}{...} \in\,\K\\
   \EnvType \Env\s\K\e\C \\
@@ -3156,9 +2934,9 @@ the object stored at \a in \s.
 
 % \clearpage
 
-\section{Generative Behavioral Casts}
+\section{Generative Behavioural Casts}
 
-\subsection{Expression translation for Behavioral semantics}\label{behtrans}
+\subsection{Expression translation for Behavioural semantics}\label{behtrans}
 
 % \begin{figure}[!ht]
 % \hrulefill
@@ -3191,7 +2969,7 @@ the object stored at \a in \s.
 
 % \clearpage
 
-\subsection{Class wrapper for Behavioral semantics}\label{wrap}
+\subsection{Class wrapper for Behavioural semantics}\label{wrap}
 
 % TODO: FIX the formatting.
 
@@ -3267,14 +3045,115 @@ the object stored at \a in \s.
 
 \section{Generative Monotone Casts}
 
-\subsection{Meet function}
+\subsection{Retype function}\label{retype}
+
+Formally, the \ct{retype} function takes a list of object
+addresses \b\a and a list of types to ascribe to them \b\t, and updates the
+heap \s and class table \K. 
+
+\begin{mathpar}
+\IRule{CRM1}{
+%   \unwrap{\htype \a\S\s}{\K} = \C~\Kp\\
+  \htype \a\S\s\K = \C~\Kp\\
+  \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
+  \C\not\EQ\D  \\
+  \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
+  \Sp = \Map\S{\Bind\a\D } \\
+  \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\K'''
+}{
+  \retype \a\t\S\s\K = \Spp\,\K'''
+}
+
+\IRule{CRM2}{
+%   \unwrap{\htype \a\S\s}{\K} = \tp\,\Kp\\
+%   \tmeet\tp\t\cdot\Kp = \tpp\,\Kpp \\
+  \htype \a\S\s\K = \tp\,\Kp\\
+  \tmeet\tp\t\cdot\Kp = \tpp\,\Kp \\
+  \tp\EQ\tpp \\
+}{
+  \retype \a\t\S\s\K = \S~\Kpp
+}
+
+\IRule{CRM3}{
+  \retype\a\t\S\s\K = \Sp\,\Kp\\
+  \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
+}{
+  \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
+}
+\end{mathpar}
+
+\subsection{Spec function}\label{mono:spec}
+
+Formally, the \ct{spec} (heap specialization) function takes a
+sequence of object addresses \b\a, a heap typing \S, a heap \s
+and a class table \K and returns a new heap where the objects
+have been retyped. \Dom\S retrieves the list of addresses 
+that have to be retyped.
+
+\begin{mathpar}
+\IRule{CMS1}{
+  \E \text{ fresh}\\
+  \D = \App\S\a \\
+  \obj\C{\ap} = \App\s\a \\
+  \obj\Cp{\b\app} = \App\s\ap \\
+  \classoff\Cp\Kpp = \b\mt \\
+  \classoff\D\Kpp = \b\mtp \\  
+  \names{\b\mtp} \subseteq \names{\b\mt}\\
+  \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
+  \sp = \Map\s{\Bind\a{\E\{\ap\}}}
+}{
+  \spec \a\S\s\K = \sp~\Kp
+}
+
+\IRule{CMS2}{
+  \spec \a\S\s\K = \sp\\
+  \spec {\b\a}\S\sp\K =\spp
+}{
+   \spec {\a\,\b\a}\S\s\K = \spp
+}
+\end{mathpar}
+
+\subsection{Meet function}\label{monmeet}
+
+\opdef{
+  $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
+}{
+}
+\begin{align*}
+\P &::= \cdot \B \Map\P{\Bind{(\C,\D)}\Dp}
+\end{align*}
+\begin{mathpar}
+\IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
+
+\IRule{TM2}{ }{\tmeet\any\C\P\K = \C\,\K}
+
+\IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
+
+\IRule{TM4}{
+  \fresh\E\\
+  (\C,\D) \not\in\P \\
+  \Pp = \Map\P{\Bind{(\C,\D)}\E} \\
+  \mtypes\C\K = {\b\mt}\\
+  \mtypes\D\K = {\b\mtp}\\
+  \mmeet{\b\mt}{\b\mtp}\Pp\K = \b\mtpp\,\Kp\\
+  \Kpp = \Kp~\typegen{\b\mtpp}\E\\
+}{
+    \tmeet\C\D\P\K = \E\,\Kpp
+}
+
+\IRule{TM5}{
+    \P(\C,\D) = \E
+}{
+    \tmeet\C\D\P\K = \E\,\K
+}
+\end{mathpar}
 
 The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
 perform the meet over the typing of each method within a class definition.
 The \texttt{mmeet} function also takes four arguments, the method
 signatures of the original class $\b\mt$, the method signatures of the cast
 class $\b\mtp$, the environment $\P$, a class table $\K$, and outputs method
-types $\b\mtpp$ and a class table $\Kp$. 
+types $\b\mtpp$ and a class table $\Kp$. \\
 
 % \hrulefill
 
@@ -3331,9 +3210,121 @@ types $\b\mtpp$ and a class table $\Kp$.
 \end{mathpar}
 \\
 
+\subsection{Monotonic dynamic expression translation}\label{montrans}
+
+
+\begin{mathpar}
+\IRule{MREW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\x\x }
+\\
+\IRule[width=25em]{MREW2}{ 
+  \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
+  \Mtype\n{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ 
+  \n = \f \vee \t_2 \neq \any  \\ 
+  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
+}{
+  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\n{\b\e}}{\MonCast{\tp_1}{\Call{\this}\n{\b{\MonCast{\t_2}{\ep}}}}}
+}
+\\
+
+\IRule[width=20em]{MREW3}{ 
+  \Mtype\n{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
+  \Mtype\n{\b{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
+  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
+}{
+  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\n{\b\e}}{{\Call{\this}\n{\b{{\ep}}}}}
+}
+
+\IRule[width=20em]{MREW4}{ 
+  \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
+  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
+}{
+  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\n{\b{\ep_1}}}{\Call{\e_2}\n{\b{\ep_2}}}
+}
+
+\IRule{MREW5}{ 
+  \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 	
+  \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}
+}{
+  \rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}
+}
+
+\IRule{MREW6}{
+  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}} 
+}{
+  \rtranstz{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}
+}
+\end{mathpar}
+
+
+\subsection{Monotonic class generation}\label{classgen}
+
+\footnotesize
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\classgen{\C, \b\md, \bmt, \bmtp, \D, \K}= \\
+\SP \class~\D~\{ \\
+\SPP \Fdef\that\C
+\\[1mm]
+\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
+      \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
+&
+\All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
+\\[1mm]\hline
+\SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
+&
+ \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+\\[1mm]\hline
+\SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast{\tp[2]}{{[{(\MonCast{\t[1]}\x)}/\x]\ep}}}~}
+&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
+&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}}
+\\[1mm]\hline
+\SPP \Mdef\m\x{\t[2]}{\tp[2]} {\MonCast{\tp[2]}{[{(\MonCast{\t[1]}\x)}/\x]\ep}~}
+&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
+&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{\e}{\ep}} \\
+&&\wedge&\multicolumn{3}{l}{\statictype{\t[2]}{\K}{\cdot}}
+\\[1mm]\hline
+\SP\}
+\end{array}
+\]
+\normalsize
+
+
+
+
+
+\subsection{Monotonic equivalent type generation}\label{typegen}
+
+\footnotesize
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\typegen{\bmt}{\D} = \\
+\SP \class~\D~\{
+\\[1mm]
+\SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
+&
+\All m \Mtype\m\t\tp\in\bmt
+\\[1mm]\hline
+\SPP \Mdef\f\x\t\t {\x}
+&
+\All f \Mtype\f\t\t\in\bmt
+\\[1mm]\hline
+\SPP \Mdefz\f\t{{\MonCast\t{\New\D{}}}}
+&
+ \All f \Mtype\f{}\t \in \bmt
+\\[1mm]
+\SP\}
+\end{array}
+\]
+\normalsize
+
+
+
+
 \subsection{Htype function}
 
-% \hrulefill
+The function \htype\a\S\s\K
+returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
+\App\S\a or if $\a\not\in\S$ and \obj\C{\b\a}=\App\s\a.
 
 \begin{mathpar}
 \IRule{HT1}{
@@ -3505,6 +3496,9 @@ $\getmds(\C,\K)$ denotes the function that returns the method definitions inside
 \end{equation*}
 
 \subsection{Ftype function}
+
+The function \ftypes\a\C\s\K returns the old references and the new types
+for them according to the new wrapper \C.
 
 \begin{mathpar}
 \IRule{FT1}{
