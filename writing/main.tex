@@ -1465,23 +1465,18 @@ causes  all calls on optional types by \kafka to be dynamic.
 \section{Translation: Reticulated Python - Transient Semantics}
 
 Reticulated Python implements several different semantics, through not
-simultaneously in the same language.
-
-The transient semantics is illustrated by the cast, $\ShaCast\t\e$. It asserts
-that $\e$ has the same \emph{names} as $\t$, and the closest type representation
-in \kafka is the $\any$ type, as illustrated in \RuleRef{W9}. The transient
-semantics  guarantees that the methods on the named type will be callable with
+simultaneously in the same language. The transient semantics is illustrated 
+by the structural name cast, $\ShaCast\t\e$, and 
+it asserts that $\e$ has the same \emph{names} as $\t$. The transient
+semantics guarantee the methods of a class type will be callable with
 some argument, and some return value. It is up to  the callee to check the
 arguments are correct and the caller to ensure the return value is correct.
 
-Therefore, the translation of the transient semantics require a several rules in
-order to be well formed in \kafka.  The most notably is the rule
-\RuleRef{MTT}, it is forced to erase every type from the arguments to the
-function,  as typed arguments may not be respected in the dynamics semantics. To
-enforce the type invariant, despite \kafka's lack of sequencing, we use a tuple
-class to check the type of the argument, and then return  the value of the body
-(inserted into the second field of the tuple class). As a result, our translation
-of transient into \kafka preserves the transient semantics's behaviour.
+The translation of the transient semantics require several additional rules in
+order to be well formed in \kafka.  Notably the rule \RuleRef{MTT} in figure~\ref{fig:tratrans_cla}, 
+forces every type from the arguments to the function to be erased,  
+as typed arguments may not be respected in the dynamics semantics. Type invariants are enforced
+with a tuple class checking the type of the argument, and returns the value of the body. 
 
 \begin{figure}
 \begin{mathpar}
@@ -1498,12 +1493,12 @@ of transient into \kafka preserves the transient semantics's behaviour.
 \label{fig:tratrans_cla}
 \end{figure}
 
-Internally, the translations required to support the transient semantics from
-within \kafka are also substantial.  As noted previously, the translation is not
+The translation also requires substantial support from 
+with \kafka to support the transient semantics. The translation is not
 obligated by transient to check method argument types before entry, and as a
 result, every call,  typed or untyped, in transient is an untyped call.
 Likewise, every typed method call must be guarded with a cast to ensure that
-the return type of the method is correct, as shown in \RuleRef{GRA2}.
+the return type of the method is correct, as shown in \RuleRef{GRA2} of figure~\ref{fig:tratrans_exp}.
  
 \begin{figure}
 \begin{mathpar}
@@ -1540,7 +1535,7 @@ the return type of the method is correct, as shown in \RuleRef{GRA2}.
 
 The lack of statically typable calls in the transient semantics means that a
 pure implementation of transient in  \kafka would entail no fields ever being
-accessed using the setter or getter, as \kafka forbids accessing fields through
+accessed using the setter or getter methods, as \kafka forbids accessing fields through
 dynamic call sites. To overcome this issue rule \RuleRef{GRA4} is added, which
 allows the definition of self-referential field access. In a transient  system,
 the only type that is absolutely known at any time is the self-reference, which
@@ -1567,12 +1562,12 @@ translation will wrap field accessors in method calls.
 \label{fig:tratrans_exp2}
 \end{figure}
 
-The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency, such as the monotonic system, 
+The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency, 
 consistency is used to conclude an analytic judgment, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
 Consistency within \kafka is defined in a later section, detailing the monotonic cast semantic and the translation for the monotonic system.   
 However, in the transient semantics, the rest of the program makes no type assumptions that may be violated by consistency. Even when the 
 translation takes a particularly weak perspective on the interpretation of a transient type into \kafka. Even a type system that
-fully represents a transient type (e.g. one that tracks only method names) will accept structurally consistent values under the 
+fully represents a transient type (one that only tracks  method names) will accept structurally consistent values under the 
 same type. As a result, consistent values are allowed to be used with no additional casts.
 
 \section{Translation: Typed Racket}
