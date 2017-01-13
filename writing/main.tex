@@ -1314,25 +1314,19 @@ $\EnvType {\cdot}{\s}\Kpp\a\t$ \\
 \caption{\kafka Translation and execution.}\label{redu}
 \end{figure}
 
-Once translation has been completed, we can then hand the translated result over
-to \kafka for execution, as depicted in figure~\ref{redu}. The source language
-terms $\K$ and $\e$ (marked with an underline, as elsewhere) will be translated
-via the above approach into \kafka, which can then execute the translated 
-program.
-
-This system guarantees a few key properties. If a program translates, then it 
-should be well-formed in \kafka, and if it is well formed in \kafka, then it
-should execute correctly (not getting stuck, except at casts and dynamic calls) 
-in the \kafka semantics. Notably, the TypeScript translation we have just 
-described technically does produce terms that type check in \kafka, as it erases
+Figure~\ref{redu} depicts the source language terms $\K$ and $\e$ 
+(marked with an underline) being translated into a \kafka program which is then executed.
+The translation guarantees a few key properties. A translated program 
+should be well-formed in \kafka. Well formed \kafka programs  
+should execute the \kafka semantics correctly (not get stuck, except at casts and dynamic calls). 
+The TypeScript translation produces terms that type check in \kafka, as it erases
 all types in the source during translation, allowing the \kafka type system to
-conclude that any program that passes translation will not get stuck except
+conclude that any program that passes the translation will not get stuck except
 at dynamic call sites.
-
-Because of this type erasure, the translation from TypeScript to \kafka is quite
-a weak one, as befits TypeScript's optional and unsound nature. We will begin our
-examination of stronger guarantees by examining Thorn, a gradual type system that
-combines many features of TypeScript with the additional ability to write sound,
+The translation from TypeScript to \kafka is considered weak due to the type erasure, 
+as it befits TypeScript's optional and unsound nature. Next we will examine languages
+with stronger guarantees by translating the language Thorn, a gradual type system with
+many features of TypeScript combined with the additional ability to write sound,
 dynamically checked types.
 
 \section{Translation: Thorn}
