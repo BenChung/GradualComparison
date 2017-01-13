@@ -920,30 +920,50 @@ under the monotonic semantics.
 
 \section{Kafka: A Core Calculus}
 
-We present \kafka, a gradually typed object-oriented languages.
-\kafka is a statically typed class-based calculus with dynamic dispatch, 
-following the design of C\#. The dynamic type of \kafka is denoted by \any.
-\kafka is structurally typed, it does not have null values, or supports
-inheritance between classes. Fields are accessed by getter and setter methods, 
-their presence in class types is observed by the presence of the respective 
-getters and setters.
+The basis of our formal approach is the \kafka core calculus. At heart, \kafka
+is a class-based, object-oriented, statically typed, language with dynamic
+dispatch, modelled off of common intermediate languages like the JVM's Java
+Bytecode or the .NET CLR's Common Intermediate Language, and taking inspiration
+from C\#'s approach to gradual typing~\cite{Bierman10}.
 
-Statically dispatched method calls (i.e. calls where the type of the
-receiver is not \any) are denoted by \Call\x\m\e. Methods are limited to a
-single argument for simplicity. Dynamically dispatched method calls 
-(i.e. calls where the type of the receiver is \any) are denoted by \DynCall\x\m\e.
-Object creation is denoted by denoted \New\C{\b\e}, a class name (\C) and 
-a sequence of arguments (\b\e) in the order of definition of fields.
+\kafka has two types: the any type any, and the class type C (also referred to
+with \D and \E). In \kafka, class types \C refer to classes of the same name,
+which can contain fields (\HT\f\t, or \fd) and methods, which can be normal
+methods (\Mdef\m\x\t\t\e), getters (\Mdefz\f\t\e), or setters (\Mdef\f\x\t\t\e),
+and are referred to as \md.
 
-The meta-variables \x ranges over argument names, \a over memory locations, \f
-over field names (as well as getter and setter method names), \m over method
-names, \C, \D, and \E over class names.  We use \this to denote a distinguished 
-variable name for the current object, and \that to denote a distinguished field 
-name for the target of the wrapper class. \D is a meta-variable used to range over dynamically 
-generated class names. \a is ranges over heap addresses. \k ranges over 
-class definitions consisting of a class name, followed by a, possibly empty, 
-sequence of field definitions, \fd, and a, possibly empty, sequence of 
-method definitions, \md.
+At the expression level, \kafka is largely typical, offering variables (which
+are bound through method arguments), new expressions of the form \New\C{\b\e},
+and two different types of call, the statically-resolved call \Call\e\m\e and
+the dynamic call \DynCall\e\m\e, alongside field dereference \Get\e\f and field
+assignment \Set\e\f\e. Additionally, we reserve the \this and \that keywords,
+the first for use as a self-reference, and the latter as part of our support for
+wrappers.
+
+%We present \kafka, a gradually typed object-oriented languages.
+%\kafka is a statically typed class-based calculus with dynamic dispatch, 
+%following the design of C\#. The dynamic type of \kafka is denoted by \any.
+%\kafka is structurally typed, it does not have null values, or supports
+%inheritance between classes. Fields are accessed by getter and setter methods, 
+%their presence in class types is observed by the presence of the respective 
+%getters and setters.%
+
+%Statically dispatched method calls (i.e. calls where the type of the
+%receiver is not \any) are denoted by \Call\x\m\e. Methods are limited to a
+%single argument for simplicity. Dynamically dispatched method calls 
+%(i.e. calls where the type of the receiver is \any) are denoted by \DynCall\x\m\e.
+%Object creation is denoted by denoted \New\C{\b\e}, a class name (\C) and 
+%a sequence of arguments (\b\e) in the order of definition of fields.%
+
+%The meta-variables \x ranges over argument names, \a over memory locations, \f
+%over field names (as well as getter and setter method names), \m over method
+%names, \C, \D, and \E over class names.  We use \this to denote a distinguished 
+%variable name for the current object, and \that to denote a distinguished field 
+%name for the target of the wrapper class. \D is a meta-variable used to range over dynamically 
+%generated class names. \a is ranges over heap addresses. \k ranges over 
+%class definitions consisting of a class name, followed by a, possibly empty, 
+%sequence of field definitions, \fd, and a, possibly empty, sequence of 
+%method definitions, \md.
 
 \begin{figure}[!h]
 \hrulefill
@@ -974,10 +994,11 @@ method definitions, \md.
 % \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
 
 
-\kafka have two structural cast expressions. The structural subtype cast, denoted by \SubCast\t\a,
-asserts that the object at location \a is of type \t.  The structural shallow cast, 
-denoted by \ShaCast\t\a, asserts the object at location \a has methods with names matching
-to those of type \t, while not making any guarantee about the type of the arguments.  
+\kafka has two structural cast expressions. The structural subtype cast,
+denoted by \SubCast\t\a, asserts that the object at location \a is of type \t.
+The structural shallow cast,  denoted by \ShaCast\t\a, asserts the object at
+location \a has methods with names matching to those of type \t, while not
+making any guarantee about the type of the arguments.
 
 % The generative behavioral cast, denoted \BehCast\t\a, will ensure that 
 % either \a behaves as a \t or that it get stuck. The generative monotonic 
@@ -986,43 +1007,57 @@ to those of type \t, while not making any guarantee about the type of the argume
 
 \subsection{Semantics}
 
-The semantics for \kafka are typical of small step operational semantics,  with
-some unusual features to accommodate the translations of various gradual type
-systems and their cast semantics. A \kafka program is defined  by the
-combination of a class table \K (consists of a list of classes \k) and an
-evaluation expression \e. 
+\kafka uses a typical small step operational semantics, with special support for
+features to ease the translation of gradual type systems to it. While kafka
+itself is fully statically typed, it provides several key features that allow it
+to act as a common core for gradual typing translation, including special
+support for wrappers and limited function overriding.
 
-\kafka classes contain methods and fields, the latter can be declared  either
-via an explicit field declaration in the class (e.g. \HT\f\t) or by a pair of a
-getter (\Get\this\f) and setter  (\Set\this\f\x) methods. Semantically, both
-explicit and implicit fields behave  identically, which has the consequence that
-untyped field access is forbidden,  as explicit field semantics would become
-dependent on the approach to typing.  Methods in \kafka are segregated into
-typed (methods whose argument and return type is not \any) and untyped methods,
-the former of which can be  called with the statically resolved \Call\e\m\e
-form, and the latter of which can only be called with the dynamically checked
-\DynCall\e\m\e  expression. Executions halt when it gets stuck, encounters an
-expression that is  not a value and cannot apply any more evaluation rules, or
-the expression is a value.
+Evaluation in \kafka is based around \emph{configurations}, which combine a
+class table $\K$, an introductory expression $\e$, and a heap \s, and the
+evaluation rule for \kafka's single introduction form, \xt{new}, is typical,
+allocating and instantiating a new object of the specified type with the given
+values.
 
-A heap (\s) in \kafka is a set of mappings from memory locations to objects,
-denoted by \Map\s{\Bind\a{\obj\C{\b\a}}}. Objects in the heap are the
-combination of a list of field values \a and the class name \C. A configuration
-is the combination of a program \K\e and a heap \s,  and reducing one
-configuration \K\e\s to another configuration \Kp\ep\sp  is denoted
-\Reduce\K\e\s\Kp\ep\sp. The reduction rules for \kafka are presented  in figure
-\ref{fig:semantics}, with the evaluation contexts, denoted by \EE, presented  at
-the bottom.
+\kafka's design as a translation target for gradually typed programming languages
+shows the most clearly in its call semantics, which provides support for both
+field access and method invocation. In \kafka, direct field accesses and assignments
+are indistinguishable from getter and setter invocations, similar to properties 
+in C\#. However, this design also means that \emph{all field operations must
+be correctly typed}, as otherwise, the type invariants of an underlying field 
+would be violated.
 
-The auxiliary function \xt{names} returns the names of methods, and the auxiliary
-function \untyped{} returns the methods whose types are \any. The auxiliary
-function \xt{read} return the location \ap pointing to the field \f of the
-object at location \a. The auxiliary function \xt{write} return the heap \sp
-with the field \f of the object at location \a updated to the location \ap.
-\App\K\C denotes the lookup of class \C in class table \K. \Mdef\m\x\t\tp\e \In
-\k denotes that method \m occurs in class \k. All auxiliary  functions are
-defined in the appendix. Note that the ordering within lists of  fields and
-methods definition is not relevant (i.e. we can reorder when convenient).
+%\kafka classes contain methods and fields, the latter can be declared  either
+%via an explicit field declaration in the class (e.g. \HT\f\t) or by a pair of a
+%getter (\Get\this\f) and setter  (\Set\this\f\x) methods. Semantically, both
+%explicit and implicit fields behave  identically, which has the consequence that
+%untyped field access is forbidden,  as explicit field semantics would become
+%dependent on the approach to typing.  Methods in \kafka are segregated into
+%typed (methods whose argument and return type is not \any) and untyped methods,
+%the former of which can be  called with the statically resolved \Call\e\m\e
+%form, and the latter of which can only be called with the dynamically checked
+%\DynCall\e\m\e  expression. Executions halt when it gets stuck, encounters an
+%expression that is  not a value and cannot apply any more evaluation rules, or
+%the expression is a value.
+%
+%A heap (\s) in \kafka is a set of mappings from memory locations to objects,
+%denoted by \Map\s{\Bind\a{\obj\C{\b\a}}}. Objects in the heap are the
+%combination of a list of field values \a and the class name \C. A configuration
+%is the combination of a program \K\e and a heap \s,  and reducing one
+%configuration \K\e\s to another configuration \Kp\ep\sp  is denoted
+%\Reduce\K\e\s\Kp\ep\sp. The reduction rules for \kafka are presented  in figure
+%\ref{fig:semantics}, with the evaluation contexts, denoted by \EE, presented  at
+%the bottom.
+%
+%The auxiliary function \xt{names} returns the names of methods, and the
+%auxiliary function \untyped{} returns the methods whose types are \any. The
+%auxiliary function \xt{read} return the location \ap pointing to the field \f of
+%the object at location \a. The auxiliary function \xt{write} return the heap \sp
+%with the field \f of the object at location \a updated to the location \ap.
+%\App\K\C denotes the lookup of class \C in class table \K. \Mdef\m\x\t\tp\e \In
+%\k denotes that method \m occurs in class \k. All auxiliary  functions are
+%defined in the appendix. Note that the ordering within lists of  fields and
+%methods definition is not relevant (i.e. we can reorder when convenient).
 
 \begin{figure}[!h]
 \hrulefill
@@ -1125,6 +1160,15 @@ methods definition is not relevant (i.e. we can reorder when convenient).
 \caption{\kafka Semantics.}
 \label{fig:semantics}
 \end{figure}
+
+The other major feature that \kafka offers relates to the final two calling
+forms, \Call\e\m\e, which is a static invocation, and \DynCall\e\m\e, which is a
+dynamic invocation. In \kafka, methods can be either typed (e.g. have arguments
+and return type which are all not \any), or untyped (both argument and return
+type are \any). Typed methods can be invoked with the static invocation
+\Call\e\m\e, and untyped methods are invoked with the untyped invocation
+\DynCall\e\m\e, providing the ability to define two methods of the same name but
+where one is typed and the other is untyped.
 
 \subsection{Translations}
 
@@ -1333,7 +1377,7 @@ down to \any in \kafka. This unsound type still enforces the same static require
 generates no runtime casts and therefore has lower overhead. Over this new type, we define a subtyping relation, 
 $\t \Sub_t \t$.
 
-\begin{figure}
+\begin{figure}[h!]
 \begin{tabular}{l@{~~}l@{}l@{}l}
 \\
 \t  &::= ~ \any \B \C \B \dt\C \\
@@ -1365,7 +1409,7 @@ it is used in the synthetic and analytic cases for the cast insertion of Thorn,
 to allow them to reason about the source-level typing of the input Thorn
 program.
 
-\begin{figure}
+\begin{figure}[h!]
 \begin{mathpar}
 \IRule{THA1}{
   \HasType\Env\x\t
