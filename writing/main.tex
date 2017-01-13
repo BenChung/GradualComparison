@@ -1915,8 +1915,8 @@ figure~\ref{fig:rktex2}, would call the wrapped object, which would then call
 the \xt{foo} method without any type guards, and the program would 
 only encounter a cast error once \xt{bar} returned.
 
-We present figure~\ref{fig:intbeh} to better illustrate this issue. Here, we have a class \C
-that we are forcing to become class \D, which is typed in such a way that \C's
+We present an example in figure~\ref{fig:intbeh} to better illustrate this issue. The example describes a class \C
+that is being forced to become class \D, which is typed in such a way that \C's
 implementation of \n will violate the type guarantees imposed by \D and the wrapper \xt{DW}. 
 Under the naive translation scheme, in figure~\ref{fig:intbeh}, the arguments to \m will be cast to \any, 
 then passed into the untyped object. The untyped object \C will simply use its own definition
@@ -2564,7 +2564,7 @@ A notable behavior of the monotonic semantics illustrated in figure~\ref{fig:mon
 is the erasure on every call site for \m, with the exception of the final definition in \xt{FDW}. 
 Under the monotonic semantics, every call site with some untyped component somewhere
 will be adjusted further, ensuring any partially typed call may be invalidated in the future. 
-As a concequence, every call, even to a surfically typed call site (one with an argument
+As a consequence, every call, even to a superficially typed call site (one with an argument
 type that may contain a \any deeply embedded in the type), must be treated as an untyped call site.
 
 In the monotonic semantics, if we encounter a cast on a reference, that cast needs to be
@@ -2576,13 +2576,13 @@ are created when \a is casted to \xt{E}.
 To ensure that types for fields are respected, we take a conservative approach, 
 as seen in \xt{ECW}. When a field on an underlying object is set, we first cast
 it to the required type (in this case \xt{FW}). Then a further $\star$ cast is applied 
-to the type of the underlying storage cell. For retreiving values, we reverse this process.
+to the type of the underlying storage cell. For retrieving values, we reverse this process.
 
 The result wrappers are sometimes overly conservative. From the semantics of the meet operation, we
 know that the first cast to the protected type is sufficient to ensure 
 compatibility with the underlying memory cell type, and we also know that casting
-to the required type before returning is ignoring the heap conistency invariant 
-that monotonic provides, allowing for casts on retreival to be ignored. However,
+to the required type before returning is ignoring the heap consistency invariant 
+that monotonic provides, allowing for casts on retrieval to be ignored. However,
 the \kafka type system does not allow us to make either of these shortcuts while
 still retaining semantic correctness, and as a result, we are forced to double 
 up casts on the getter and setter methods, as seen in \xt{ECW}.
@@ -2627,7 +2627,7 @@ objects and types listed in \S.
 }{
 }
 \begin{align*}
-\P &::= \cdot \B \Map\P{\Bind{(\C,\D)}\Dp}
+\P &::= \cdot \B \Map\P{\Bind{(\C,\D)}\E}
 \end{align*}
 \begin{mathpar}
 \IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
@@ -2661,8 +2661,17 @@ objects and types listed in \S.
 The \xt{retype} function utilizes the meet operation in determining the correct
 casting type for every object transitively reachable from the cast object. 
 Figure~\ref{fig:tmeet_fun} presents the \xt{tmeet} function, which computes
-the meet between two types.
-
+the meet between two types. The \xt{tmeet} function takes four arguments,
+the two types being meet, a meta-variable \P, and the class table \K. 
+The meta-variable \P denotes a list of mappings 
+from a pair of types to the type produced from their meet. The rules
+\RuleRef{TM1} and \RuleRef{TM2} describe the meet of a $\star$. The rule
+\RuleRef{TM3} describes the identity meet. The rule \RuleRef{TM5} describes
+the recursive case of our meet operation. 
+The rule \RuleRef{TM4} retrieves the method typing for each type, computes 
+the meet of those method typing (by calling an auxiliary function (\xt{mmeet}),
+and updates the class table with a new class containing the method typing 
+produced from the meet.
 
 \begin{figure}[!ht]
 \begin{tabular}{l@{}l@{}l@{}l@{}l@{\hspace{1.5mm}}l@{\hspace{1mm}}l@{}l}
@@ -2696,11 +2705,11 @@ class E {
     \end{lstlisting}    
   \end{minipage}
 \end{tabular}
-\caption{\texttt{tmeet} over recursive classes}
+\caption{\texttt{tmeet} example over recursive classes}
 \label{fig:tmeet_rec_ex}
 \end{figure}
 
-The third argument of the \xt{tmeet} function, \P, becomes important when we consider the example
+The meta-variable \P becomes crucial when considering the example
 in figure~\ref{fig:tmeet_rec_ex}, where the meet  of \xt{A} and \xt{B}
 recursively depends on the meet of \xt{A} and \xt{B}. If we proceeded naively,
 without \P, \RuleRef{TM4} would invoke \RuleRef{TM4} again to compute the meet
@@ -2710,8 +2719,6 @@ of the arugments to \m. We use \P and \RuleRef{TM5} to avoid this.
 that the subtyping relation does, inserting the future result of the meet of
 \xt{A} and \xt{B} (\xt{E} in this example) into \P, will then
 be used by \RuleRef{TM5} to terminate the recursion.
-
-\clearpage
 
 \section{Conclusion}
 
