@@ -1130,21 +1130,33 @@ translation judgments.
 
 
 \IRule[width=30em]{TSA2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_2}\C \\ 
+    \Mtype\m\t\tp\in \classoff\C\K \\ 
+    \AnaCast\K\Env{\ep_1}{\ep_2}\t
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\m{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}\tp
 }
 
 \IRule{TSA3}{
-    \AnaCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+    \AnaCast\K\Env{\e_1}{\e_2}\any \\
+    \AnaCast\K\Env{\ep_1}{\ep_2}\any
 }{
-    \GenCast\K\Env{\DynCall{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+    \GenCast\K\Env{\DynCall{\e_1}\m{{\ep_1}}}{\DynCall{\e_2}\m{{\ep_2}}}\any
 }
 
 \IRule[width=20em]{TSA4}{
-    \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
+    \HasType{\src\Env}{\src\this}{\src\C} \\ 
+    \Mtype{\src\f}{\src\t}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
+    \AnaCast\K\Env\e\ep\t
 }{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
+    \GenCast\K\Env{\Call\this\f\e}{\Call\this\f\ep}\any
+}
+
+\IRule[width=20em]{TSA5}{
+    \HasType{\src\Env}{\src\this}{\src\C} \\ 
+    \Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K} 
+}{
+    \GenCast\K\Env{\Call\this\f{}}{\Call\this\f{}}\any
 }
 
 \IRule{TSA5}{
@@ -1967,12 +1979,14 @@ class C {
 \label{fig:tmeet_ex}
 \end{figure}
 
-Consider the simple example in figure~\ref{fig:tmeet_ex}, where we compute the meet of
-\texttt{A} and \texttt{B}, both classes have the same function, but with alternating the typing. 
-The function in class \texttt{A} has the return type typed, whereas the function in class \texttt{B} has the argument typed. 
-Calling the \texttt{tmeet} function on \texttt{A} and \texttt{B} will compute the new type \texttt{C}, 
-whose method have will have typed argument and return type. The \texttt{tmeet} function will be described 
-in more detail once the monotonic cast semantic is presented.
+Consider the simple example in figure~\ref{fig:tmeet_ex}, where we compute
+the meet of \texttt{A} and \texttt{B}, both classes have the same function,
+but with alternating the typing.  The function in class \texttt{A} has the
+return type typed, whereas the function in class \texttt{B} has the argument
+typed.  Calling the \texttt{tmeet} function on \texttt{A} and \texttt{B}
+will compute the new type \texttt{C}, whose method have will have typed
+argument and return type. The \texttt{tmeet} function will be described in
+more detail once the monotonic cast semantic is presented.
 
 
 \begin{figure}[h!]
