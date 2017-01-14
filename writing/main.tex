@@ -1603,14 +1603,14 @@ name cast to ensure that the value has all of the required method names
 \begin{mathpar}
 \IRule{TRAASC1}{
   \GenCast\K\Env\e\ep\tp \\
-  \K \vdash \tp \Sub \t
+  \K \vdash \src\tp \Sub \src\t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
 \IRule{TRAASC2}{
   \GenCast\K\Env\e\ep\tp \\
-  \t \neq \tp
+  \src\t \neq \src\tp
 }{
   \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
 }
@@ -2069,7 +2069,7 @@ there are no \any types transitively contained within the function's argument.
 \IRule{MOA1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
 
 \IRule[width=30em]{MOA2}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \statictype{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
+    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \statictype{\src{\t_1}}{\src\K}{\cdot} \vee \n=\f \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
 }{
     \GenCastMono\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
 }
