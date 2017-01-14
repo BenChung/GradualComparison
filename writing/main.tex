@@ -643,7 +643,7 @@ class I {
  n(x:I):I {this}}
 
 class T {
- s(x:I):I {this}
+ s(x:I):T {this}
  t(x:*):* {this.s(x)}}
       \end{lstlisting}    
   \end{minipage}
@@ -1112,9 +1112,9 @@ translation judgments for translating optionally typed TypeScript programs into
 }
 
 \IRule{TSA3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+    \AnaCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+    \GenCast\K\Env{\DynCall{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
 \IRule[width=20em]{TSA4}{
@@ -1268,10 +1268,10 @@ program.
 }
 
 \IRule{THA5}{
-    \GenCast\K\Env{\e_1}{\e_3}\any \\ 
+    \AnaCast\K\Env{\e_1}{\e_3}\any \\ 
     \AnaCast\K\Env{\e_2}{\e_4}\any
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
+    \GenCast\K\Env{\DynCall{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
 }
 
 \IRule{THA6}{
@@ -1500,7 +1500,7 @@ rules are presented in figure~\ref{fig:behrules}.
 \multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
 \end{tabular}
 \end{minipage}
-\caption{Type Racket cast static and dynamic rules}
+\caption{Typed Racket cast static and dynamic rules}
 \label{fig:behrules}
 \end{figure}
 
@@ -2050,9 +2050,9 @@ there are no \any types transitively contained within the function's argument.
 }
 
 \IRule{MOA4}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
+    \AnaCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
 }{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
+    \GenCastMono\K\Env{\DynCall{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
 }
 
 \IRule{MOA5}{
