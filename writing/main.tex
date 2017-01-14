@@ -235,7 +235,7 @@ the words of Richards~\emph{et al.}~\cite{ecoop15}, an optional type system
 is \emph{trace preserving}, which means that if a term \e reduces to value
 \a, adding type annotations will never cause \e to get stuck. This property
 is valuable to developers as it prevents type annotations from introducing
-errors, also it follows that type annotations do not effect performance. The
+errors, and it follows that type annotations do not effect performance. The
 optional type systems currently in wide use include Hack~\cite{hack13},
 TypeScript~\cite{BAT14} and Dart~\cite{dart13}. 
 
@@ -357,20 +357,20 @@ on explicit name-based subtype declarations, rather than on structural
 similarities.  TypeScript uses structural subtyping, but does not implement
 a runtime check; this is likely due to the JavaScript roots of the language,
 anecdotal evidence suggests that structural subtyping is rarely
-needed~\cite{ecoop15}. StongScripts extends TypeScript but changes subtyping
+needed~\cite{ecoop15}. StongScript extends TypeScript but changes subtyping
 back to nominal.  The consistency relation used in Reticulated Python is
 fundamentally structural.  For Racket, the heavy use of first-class classes
 and class generation naturally leads to structural subtyping as many of the
 classes being manipulated have no names.  Optional types are the default
 execution mode for Dart, Hack and TypeScript.  Transient Python is, in some
 senses, optionally typed as any value can flow into a variable regardless of
-its type annotation, this leads to an ``open world'' soundness
+its type annotation, leading to its ``open world'' soundness
 guarantee~\cite{siek14}.  In Thorn and C\#, primitives are concretely
 typed they can be unboxed without tagging.  The choice of casts follows from
 other design decisions. Languages with concrete types naturally tend to use
 subtype casts to establish the type of values. For nominal systems there are
-highly optimized algorithms. Shallow casts are casts that only checking the
-presence of methods not their signature. These are used by Racket and Python
+highly optimized algorithms. Shallow casts are casts that only check the
+presence of methods, but not their signature. These are used by Racket and Python
 to ensure some basic form of type conformance. Generative casts are used
 when information such as a type or a blame label must be associated with a
 reference or an object.
@@ -385,17 +385,17 @@ on another feature, namely precise exceptions, which does come at a price as
 it inhibits some compiler optimizations. It is likely that recording blame
 is costly, but there is no data on how much implementations pay for it.
 
-The last column of \figref{over} lists self-reported performance
-pathologies.  These numbers are not comparable as they refer to different
-programs and different configurations of type annotations. They are not
-worst case scenarios either; most languages lack a sufficient corpus of code
-to conduct a thorough evaluation.  Nevertheless, one can observe that for
-optional types no overhead is expected as the type annotations are erased
-during compilation. Concrete types insert efficient casts, and lead to code
-that is can be optimized.  The Transient Python performance can be viewed as
-a worst case scenario for concrete types -- i.e. there is a shallow cast at
-almost every call. Finally, languages with generative casts tend to suffer
-prohibitive slow downs in pathological cases.
+The last column of \figref{over} lists self-reported performance pathologies.
+These numbers are not comparable as they refer to different programs and
+different configurations of type annotations. They are not worst case scenarios
+either; most languages lack a sufficient corpus of code to conduct a thorough
+evaluation.  Nevertheless, one can observe that for optional types no overhead
+is expected, as the type annotations are erased during compilation. Concrete
+types insert efficient casts, and lead to code that can be optimized.  The
+performance of the transient semantics for Reticulated Python can be viewed as a
+worst case scenario for concrete types -- i.e. there is a shallow cast at almost
+every call. Finally, languages with generative casts tend to suffer prohibitive
+slow downs in pathological cases.
 
 \section{Gradual Typing in Practice}
 
@@ -405,33 +405,31 @@ prohibitive slow downs in pathological cases.
 
 \vspace{-5mm}
 
-\noindent
-While gradual type systems for objects come in many shapes and size, with
-different constraints and complexity, as well as their own strength and
-weakness. This section gives a brief introduction to the five representative
-systems that we are studying in this paper. We conclude with a discussion of
-the trace preservation property and how they differ in terms of catching
-errors. Rather than speaking directly to the source systems, we present
-their \kafka modelization. The details of this modelization are the topic of
-the rest of the paper, so this section can be read as a preview. We leave
-blame for future work, and discuss semantics in terms of their translation
-to a typed class-based calculus with structural subtyping. 
+\noindent While gradual type systems for objects come in many shapes and sizes,
+with different constraints and complexity, as well as their own strength and
+weaknesses. This section gives a brief introduction to the five representative
+systems that we are studying in this paper. We conclude with a discussion of the
+trace preservation property and how the systems differ in terms of catching
+errors. Rather than speaking directly to the source systems, we present their
+\kafka modelization. The details of this modelization are the topic of the rest
+of the paper, so this section can be read as a preview. We leave blame for
+future work, and discuss semantics in terms of their translation to a typed
+class-based calculus with structural subtyping.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{TypeScript}
 
-Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
-with classes and type annotations. Type equivalence is structural and
-subtyping of recursive types is supported (types arise from class
-declarations). Missing annotations are treated as \any. The role of types is
-to catch simple errors, such as misspelt method names and assisting IDEs.  A
-typical example is shown here. The first expression is ill-typed because
-method \code o does not exist, the second is erroneous as it
-provides an instance of \code A where \code C is expected. The third
-expression is statically correct as the instance of \code A is cast to a
-\code C by the \code{n} method.
+Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript with
+classes and type annotations. Type equivalence is structural and subtyping of
+recursive types is supported (types arise from class declarations). Missing
+annotations are treated as \any. The role of types is to catch simple errors,
+such as misspelt method names, as well as assisting IDEs.  A typical example is
+shown here. The first expression is ill-typed because method \code o does not
+exist, the second is erroneous as it provides an instance of \code A where \code
+C is expected. The third expression is statically correct as the instance of
+\code A is cast to a \code C by the \code{n} method.
 
 \begin{lstlisting}
  class A { 
@@ -455,28 +453,26 @@ definition and the last expression:
  new A()@m(new A()@n(new A()))    
 \end{lstlisting}
 
-\noindent
-Dynamically resolved calls (written \code @) are calls that may fail because
-the receiver need not have the requested method. Method signatures see their
-types set to \any.  The designers of TypeScript saw unsoundness as a way to
-ensure, ({\em a}) types do not get in the way of running correct programs,
-e.g. when importing a new library with type annotations inconsistent with
-client code; and ({\em b}) an insurance for backwards compatibility,
-ignoring types means all browsers can run TypeScript code -- with no
-overheads.
+\noindent Dynamically resolved calls (written \code @) are calls that may fail
+because the receiver need not have the requested method. Method signatures see
+their types set to \any.  The designers of TypeScript saw unsoundness as a way
+to ensure, ({\em a}) that types do not get in the way of running correct
+programs, e.g. when importing a new library with type annotations inconsistent
+with existing client code; and ({\em b}) an insurance for backwards
+compatibility, as ignoring types means all browsers can run TypeScript code --
+with no additional overhead.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Thorn}
 
-Thorn~\cite{oopsla09} is an object-oriented language with multiple
-inheritance, nominal type equivalence, and a combination of optional and
-concrete types. Optional types (written \code{?T}), as in TypeScript, are
-translated to dynamic types with dynamically resolved method
-invocation. Concrete types (written \code{T}) behave as one would expect: a
-variable \code{x:C} is guaranteed to refer to an instance of \code C or a
-subtype thereof. Consider the following program with calls to concretely
-typed method \code n and optionally typed \code m, and assume \code D is not
-a subtype of \C.
+Thorn~\cite{oopsla09} is an object-oriented language with multiple inheritance,
+nominal type equivalence, and a combination of optional and concrete types.
+Optional types (written \code{?T}) are translated to the \any type with
+dynamically resolved method invocation, as in TypeScript. Concrete types
+(written \code{T}) behave as one would expect: a variable \code{x:C} is
+guaranteed to refer to an instance of \code C or a subtype thereof. Consider the
+following program with calls to concretely typed method \code n and optionally
+typed \code m, and assume that \code D is not a subtype of \C.
 
 \begin{lstlisting}
  class A {
@@ -489,14 +485,13 @@ a subtype of \C.
  new A().n( new A.m(new C()) // Cast
 \end{lstlisting}
 
-\noindent
-The first call to \code m is allowed because the argument of \code m is
-treated as type \any, a warning is emitted. The second call is ruled
-incorrect as a concrete type is expected for \code n. The third call is
-allowed as a \code C is a subtype of \code{?C}. The last call result in a
-cast being inserted as \code{?C} cannot be guaranteed to hold an instance of
-\code{C} or a subtype.  The translation of Thorn to \kafka, turns optional
-types to \any and inserts structural casts to \code{C} when \any or
+\noindent The first call to \code m is allowed because the argument of \code m
+is treated as type \any, and a warning is emitted. The second call is ruled
+incorrect as a concrete type is expected for \code n. The third call is allowed
+as a \code C is a subtype of \code{?C}. The last call results in a cast being
+inserted as \code{?C} cannot be guaranteed to hold an instance of \code{C} or a
+subtype.  The translation of Thorn to \kafka turns optional types to \any and
+inserts structural casts to \code{C} when an expression of type \any, or of type
 \code{?C} is assigned to a \code{C}. So class \code A would translate to:
 
 \begin{lstlisting}
@@ -508,9 +503,10 @@ types to \any and inserts structural casts to \code{C} when \any or
 \subsection{Transient Python}
 
 The Transient variant of Reticulated Python~\cite{siek14} aims for soundness
-with a predictable cost model. The declared types of arguments is
-defensively checked in every method, consider method \m, it expects an
-instance of class \C, but it can be called with a value of type \any.
+with a predictable cost model. The declared types of arguments are defensively
+checked in every method, such as in method \m. Method \m expects an instance of
+class \C, but it can be called with a value of type \any at any point, forcing
+\m to check its arguments at every invocation.
 
 \begin{lstlisting}
  class A {
@@ -521,11 +517,10 @@ instance of class \C, but it can be called with a value of type \any.
  new A().m( new A().n( new D() ) ) // Runtime ERR
 \end{lstlisting}
 
-\noindent
-Transient Python deems both expressions well-typed. Yet, the second is going
-to end up with a type error as a \code D is passed to a method expecting a
-\code C.  When translating to \kafka, all types are erased and casts are
-inserted on method entry and prior to returning. 
+\noindent Transient Python deems both expressions well-typed. However, the
+second is going to end up with a type error as a \code D is passed to a method
+expecting a \code C.  When translating to \kafka, all types are erased and casts
+are inserted on method entry and prior to returning.
 
 \begin{lstlisting}
  class A {
@@ -536,20 +531,20 @@ inserted on method entry and prior to returning.
 \noindent The translated class \code A has a check to validate that the
 argument to \code m has all the methods defined by \code C. For this we use
 \kafka's \emph{shallow structural cast}, written {\ShaStart \tt C \ShaEnd
-  x}, this cast only checks for the presence of method names not for the
-conformance of types.
+  x}, which only checks for the presence of method names, not for the
+conformance of type signatures.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typed Racket}
 
 Typed Racket has an expressive object system with first-class
-classes~\cite{Takikawa:2012}, we restrict ourselves to the core of the
-system which is a class-based object system with structural subtyping.
-Classes are either typed, in which case all variables have types different
-from \any, or untyped, and then all types are \any.  In the following
-example, \code A is untyped, it constructs an instance of the typed class
-\code{B} and invokes method \code{n} with \code x, a variable of type \any.
+classes~\cite{Takikawa:2012}, which we restrict to the core of the system. is a
+class-based object system with structural subtyping. Classes are either typed,
+in which case all variables have types different from \any, or untyped, where
+all types are \any.  In the following example, \code A is untyped, it constructs
+an instance of the typed class \code{B} and invokes method \code{n} with \code
+x, a variable of type \any.
 
 \begin{lstlisting}
  class A {
