@@ -1041,26 +1041,58 @@ In each case, the semantics of the source langauge are defined by
 translation to \kafka programs. Source and target share most of their
 syntax, when we need to distinguish them we will use underline to denote
 source terms.  Casts are not used in the source languages, but are inserted
-by the translations.
+by the translations.  The general approach in each translation is the
+following, starting with a program \src{\K\,\e}, we define a translation to
+a \kafka configuration \K\,\e.
+
+{\begin{center}\large
+\begin{tabular}{|ccrcr|}\hline
+\src{\K\,\e}
+&
+\EM{\progtrans{}{}}
+&
+\K\,\e
+&
+\EM{\longrightarrow}
+&
+\Kp\,\ep\,\s
+\\
+&
+&
+\WFp\K\e
+&
+&
+\EnvType\cdot\s\Kp\ep\t\\
+&&
+\EnvType\cdot\cdot\K\e\t
+&&\\\hline
+\end{tabular}
+\end{center}}
+
+\noindent
+Each translation guarantees a few key properties. A translated program is
+well-formed, a well-formed program will reduce or get stuck at a cast or a
+dynammically resolved call.
+
+
 
 \subsection{TypeScript}
 
-TypeScript is an example of a \emph{optional} type system, where the types have
-no static guarantee whatsoever, and, as a result, the type system has no effect
-on the semantics of the language. As a result, TypeScript types are all, in
-effect \any, no matter the declared type.
-
-To model TypeScript on top of \kafka, we will use a very simple translation 
-mechanism, where every type becomes \any and every call becomes a dynamic call.
-We only have to ensure that the output program is type correct with respect to
-\kafka.
-
-We proceed through translation top-down, starting with the whole program 
-translation depicted in figure~\ref{redu} (\RuleRef{PT}), then proceeding 
-through the included expression and recursing into the classes, where we 
-translate the included methods (\RuleRef{CR2} and \RuleRef{MT}).
+To model TypeScript, we use a very simple translation mechanism, where every
+type becomes \any and every call becomes a dynamic call.  We proceed through
+translation top-down, translating classes and the main expression.  Beyond
+the top level translation, we have two judgments that perform cast insertion
+on expressions, following Pierce and Turner~\cite{pierce:1998:local}, the
+synthetic cast insertion judgment $\GenCast\K\Env\e\ep\t$, which states that
+against context \Env and class table \K, source expression \e translates to
+\kafka expression \ep producing source type \t, and the analytic judgment
+$\AnaCast\K\Env\e\ep\t$, which ensures that the translated \kafka expression
+$\ep$ will model source type \t, coming from source expression \e.  Inside
+of this bidirectional framework, we then have a fairly typical set of
+translation judgments.
 
 \begin{figure}[!h]
+\small
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
@@ -1087,17 +1119,6 @@ translate the included methods (\RuleRef{CR2} and \RuleRef{MT}).
 \label{fig:tstrans_cla}
 \end{figure}
 
-Beyond the top level translation, we have two judgments that perform cast 
-insertion on expressions, following Pierce and Turner~\cite{pierce:1998:local},
-the synthetic cast insertion judgment $\GenCast\K\Env\e\ep\t$, which states that
-against context \Env and class table \K, source expression \e translates to
-\kafka expression \ep producing source type \t, and the analytic judgment
-$\AnaCast\K\Env\e\ep\t$, which ensures that the translated \kafka expression 
-$\ep$ will model source type \t, coming from source expression \e.
-
-Inside of this bidirectional framework, we then have a fairly typical set of
-translation judgments for translating optionally typed TypeScript programs into
-\kafka.
 
 \begin{figure}[!h]
 \begin{mathpar}
@@ -1165,23 +1186,7 @@ but \RuleRef{TSAASC2} and \RuleRef{TSAASC3} allow untyped values to be passed
 into typed references without any extra checks, and are what causes TypeScript
 to be unsound.
 
-\begin{figure}[!h]
-\Large
-\begin{tabular}{rcccl}
-$\src{\K~\e}$ & $\progtrans{}{}$ & $\Kp~\ep$ $\Kp~\ep~\cdot$ & $\longrightarrow^*$ & $\Kpp~\a~\s$ \\
-&& $\WFp\Kp\ep$ & & 
-$\EnvType {\cdot}{\s}\Kpp\a\t$ \\
-& & $\EnvType {\cdot}{\cdot}\Kp\e\t$ && \\ 
-\end{tabular}
-\caption{\kafka Translation and execution.}\label{redu}
-\end{figure}
-
-Figure~\ref{redu} depicts the source language terms $\K$ and $\e$ (marked
-with an underline) being translated into a \kafka program which is then
-executed.  The translation guarantees a few key properties. A translated
-program should be well-formed in \kafka. Well formed \kafka programs should
-execute the \kafka semantics correctly (not get stuck, except at casts and
-dynamic calls).  The TypeScript translation produces terms that type check
+ The TypeScript translation produces terms that type check
 in \kafka, as it erases all types in the source during translation, allowing
 the \kafka type system to conclude that any program that passes the
 translation will not get stuck except at dynamic call sites.  The
@@ -1342,21 +1347,21 @@ causes  all calls on optional types by \kafka to be dynamic.
 % \label{fig:thorntrans_exp2}
 % \end{figure}
 
-\section{Translation: Reticulated Python - Transient Semantics}
+\subsection{Transient Python}
 
-Reticulated Python implements several different semantics, through not
-simultaneously in the same language. The transient semantics is illustrated 
-by the structural name cast, $\ShaCast\t\e$, and 
-it asserts that $\e$ has the same names as $\t$. The transient
-semantics guarantee the methods of a class type will be callable with
-some argument, and some return value. It is up to  the callee to check the
-arguments are correct and the caller to ensure the return value is correct.
+The transient semantics is illustrated by the structural name cast,
+$\ShaCast\t\e$, and it asserts that $\e$ has the same names as $\t$. The
+transient semantics guarantee the methods of a class type will be callable
+with some argument, and some return value. It is up to the callee to check
+the arguments are correct and the caller to ensure the return value is
+correct.
 
-The translation of the transient semantics require several additional rules in
-order to be well formed in \kafka.  Notably the rule \RuleRef{MTT} in figure~\ref{fig:tratrans_cla}, 
-forces every type from the arguments to the function to be erased,  
-as typed arguments may not be respected in the dynamics semantics. Type invariants are enforced
-with a tuple class checking the type of the argument, and returns the value of the body. 
+The translation of the transient semantics require several additional rules
+in order to be well formed in \kafka.  Notably the rule \RuleRef{MTT} in
+figure~\ref{fig:tratrans_cla}, forces every type from the arguments to the
+function to be erased, as typed arguments may not be respected in the
+dynamics semantics. Type invariants are enforced with a tuple class checking
+the type of the argument, and returns the value of the body.
 
 \begin{figure}
 \begin{mathpar}
@@ -1442,15 +1447,21 @@ translation will wrap field accessors in method calls.
 \label{fig:tratrans_exp2}
 \end{figure}
 
-The last notable rule in the transient translation is \RuleRef{GRAASC2}. In gradual type systems with consistency, 
-consistency is used to conclude an analytic judgment, as consistency allows the system to break type guarantees, adding and removing types from sub-parts of a program.
-Consistency within \kafka is defined in a later section, detailing the monotonic cast semantic and the translation for the monotonic system.   
-However, in the transient semantics, the rest of the program makes no type assumptions that may be violated by consistency. Even when the 
-translation takes a particularly weak perspective on the interpretation of a transient type into \kafka. Even a type system that
-fully represents a transient type (one that only tracks  method names) will accept structurally consistent values under the 
-same type. As a result, consistent values are allowed to be used with no additional casts.
+The last notable rule in the transient translation is \RuleRef{GRAASC2}. In
+gradual type systems with consistency, consistency is used to conclude an
+analytic judgment, as consistency allows the system to break type
+guarantees, adding and removing types from sub-parts of a program.
+Consistency within \kafka is defined in a later section, detailing the
+monotonic cast semantic and the translation for the monotonic system.
+However, in the transient semantics, the rest of the program makes no type
+assumptions that may be violated by consistency. Even when the translation
+takes a particularly weak perspective on the interpretation of a transient
+type into \kafka. Even a type system that fully represents a transient type
+(one that only tracks method names) will accept structurally consistent
+values under the same type. As a result, consistent values are allowed to be
+used with no additional casts.
 
-\section{Translation: Typed Racket}
+\subsection{Typed Racket}
 
 Typed Racket is not a typical gradually typed language, as it has no untyped
 code. The gradual nature of Typed Racket, instead, comes from the interactions
@@ -1888,11 +1899,11 @@ then removed.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\section{Translation: Reticulated Python - Monotonic Semantics}
+\subsection{Monotonic Python}
 
-On the surface, the monotonic and transient 
-semantics are very similar, both semantics requires consistency, 
-but consistency is substantially more important within the monotonic semantics. 
+On the surface, the monotonic and transient semantics are very similar, both
+semantics requires consistency, but consistency is substantially more
+important within the monotonic semantics.
 
 \begin{mathpar}
 \IRule{C1}{\tmeet\t\tp\cdot\K = \tpp\,\Kp}{\consistent\K{\t}{\tp}} 
