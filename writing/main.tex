@@ -2590,8 +2590,8 @@ general.
 \subsection{Subtyping}
 
 The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
-is a subtype of \tp in the environment composed of a set of subtyping \M and
-a class table \K.   The set of subtypings can be omitted if empty.
+is a subtype of \tp in the environment \M composing a set of subtype relations and
+a class table \K.   The set of subtype relations can be omitted if its empty.
 
 ~\\
 
@@ -2639,9 +2639,7 @@ a class table \K.   The set of subtypings can be omitted if empty.
 
 \subsection{Well-formedness}
 
-The overloading function is meant to check that every typed method is
-defined once. Every untyped method is defined once. A class has either a
-field \f or a pair of getter and setters. \\
+The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
 
 \opdef{~\WFp\e\K}{Well-formed program}
 
@@ -2725,12 +2723,15 @@ field or method names within the given field and method definitions. \\
 
 \subsection{Expression typing}
 
-Field accessor rules W3 and W4 require a typed receiver, since \any does not
+The expression typing judgments for \kafka includes in ascending order as listed in the formalism:
+variable, untyped address, subsumption, field set, field get, static method invocation, dynamic method invocation, object creation,
+subtype cast, shallow cast, typed address, \xt{that} field get, and \xt{that} field set.
+
+Field access rules W3 and W4 require a typed receiver, since \any does not
 have any methods a receiver typed at \any will never typecheck.
 
-Shallow casts, W9, do not change the type of the expression. We are casting
-to the name of \t not to \t.  In practice that means that all expression
-types in Transient will drift towards \any.
+Shallow casts, W9, do not change the type of the expression, as we are casting
+to the name of \t not to \t.  
 
 ~\\
 
@@ -2803,14 +2804,8 @@ types in Transient will drift towards \any.
 \IRule{W10}{
   \EnvType \Env\s\K\e\tp
 }{
-  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
+  \EnvType \Env\s\K{\ShaCast\t\e}\any  
 }
-
-% \IRule{W11}{
-%   \EnvType \Env\s\K\e\tp
-% }{
-%   \EnvType \Env\s\K{\MonCast\t\e}\t
-% }
 
 \IRule{W11}{
   \s(\a) = \obj\C{\b\ap}
@@ -2837,7 +2832,7 @@ types in Transient will drift towards \any.
 
 \subsection{Field read}
 
-We write \readf\s\a\f\K to denote a read of field \f from the object
+The function \readf\s\a\f\K denotes reading the fields \f of the object
 stored at \a in \s.
 
 \begin{equation*}
@@ -2849,7 +2844,7 @@ stored at \a in \s.
 
 \subsection{Write field}
 
-We write \setf\s\a\f\ap\K to denote the write of value \ap into field \f of
+The function \setf\s\a\f\ap\K denotes writing of value \ap to the field \f of
 the object stored at \a in \s.
 
 \begin{equation*}
@@ -2865,6 +2860,10 @@ the object stored at \a in \s.
 \section{Complete translation for TypeScript}
 
 \subsection{TypeScript translation for program, class, and method}
+
+\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{TypeScript translation for programs}
+\opdef{$\classtrans {\K} {\Class \C{...}{...}} {\Class \C{...}{...}}$}{TypeScript translation for classes} 
+\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{TypeScript translation for methods} 
 
 \begin{mathpar}
 \IRule{PT}{
@@ -2890,6 +2889,8 @@ the object stored at \a in \s.
 \end{mathpar}
 
 \subsection{TypeScript translation for expressions}
+
+\opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{TypeScript translation for expressions}
 
 \begin{mathpar}
 \IRule{TSA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
@@ -2919,6 +2920,8 @@ the object stored at \a in \s.
 \end{mathpar}
 
 \subsection{TypeScript translation for bidirectional expressions}
+
+\opdef{$\AnaCast\K\Env\e\ep\t$}{TypeScript translation for bidirectional expressions}
 
 \begin{mathpar}
 \IRule{TSAASC1}{
