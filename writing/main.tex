@@ -3943,82 +3943,82 @@ for them according to the new wrapper \C.
 }
 \end{mathpar}
 
-\section{Monotonic examples in Reticulated Python}
-
-\begin{lstlisting}[language=python]
-class C:
-	def m1(self,v:Int,g:Dyn)->Dyn:
-		return 2
-
-class D:
-	def m1(self,v:Dyn,g:Int)->Dyn:
-		return 2
-
-class E:
-	def m1(self,v:Int,g:Int)->Dyn:
-		return 2
-
-def castC(e:C) -> C:
-	return e
-
-e = E()
-c = castC(e)
-c.m1(2,2)
-\end{lstlisting}
-
-
-\begin{lstlisting}[language=python]
-class C:
-	def m1(self,x:C,v:Int,g:Dyn)->Dyn:
-		return 2
-
-class D:
-	def m1(self,x:D,v:Dyn,g:Int)->Dyn:
-		return 2
-
-class E:
-	def m1(self,x:E,v:Int,g:Int)->Dyn:
-		return 2
-
-def castD(e:D) -> D:
-	return e
-
-c = C()
-d = castD(c)
-c.m1(c,2,2)
-\end{lstlisting}
-
-
-\begin{lstlisting}[language=python]
-class C:
-	def m1(self,x:C)->Dyn:
-		return 2
-
-class E:
-	def m1(self,x:E)->Int:
-		return 2
-
-c = C()
-c.m1(c)
-\end{lstlisting}
-
-
-\begin{lstlisting}[language=python]
-class C:
-	def m1(self,x:C)->Dyn:
-		return 2
-
-class E:
-	def m1(self,x:E)->Int:
-		return 2
-
-def castE(e:E) -> E:
-	return e
-
-c = C()
-e = castE(c)
-c.m1(C())
-\end{lstlisting}
+% \section{Monotonic examples in Reticulated Python}
+% 
+% \begin{lstlisting}[language=python]
+% class C:
+% 	def m1(self,v:Int,g:Dyn)->Dyn:
+% 		return 2
+% 
+% class D:
+% 	def m1(self,v:Dyn,g:Int)->Dyn:
+% 		return 2
+% 
+% class E:
+% 	def m1(self,v:Int,g:Int)->Dyn:
+% 		return 2
+% 
+% def castC(e:C) -> C:
+% 	return e
+% 
+% e = E()
+% c = castC(e)
+% c.m1(2,2)
+% \end{lstlisting}
+% 
+% 
+% \begin{lstlisting}[language=python]
+% class C:
+% 	def m1(self,x:C,v:Int,g:Dyn)->Dyn:
+% 		return 2
+% 
+% class D:
+% 	def m1(self,x:D,v:Dyn,g:Int)->Dyn:
+% 		return 2
+% 
+% class E:
+% 	def m1(self,x:E,v:Int,g:Int)->Dyn:
+% 		return 2
+% 
+% def castD(e:D) -> D:
+% 	return e
+% 
+% c = C()
+% d = castD(c)
+% c.m1(c,2,2)
+% \end{lstlisting}
+% 
+% 
+% \begin{lstlisting}[language=python]
+% class C:
+% 	def m1(self,x:C)->Dyn:
+% 		return 2
+% 
+% class E:
+% 	def m1(self,x:E)->Int:
+% 		return 2
+% 
+% c = C()
+% c.m1(c)
+% \end{lstlisting}
+% 
+% 
+% \begin{lstlisting}[language=python]
+% class C:
+% 	def m1(self,x:C)->Dyn:
+% 		return 2
+% 
+% class E:
+% 	def m1(self,x:E)->Int:
+% 		return 2
+% 
+% def castE(e:E) -> E:
+% 	return e
+% 
+% c = C()
+% e = castE(c)
+% c.m1(C())
+% \end{lstlisting}
 
 
 %% Example -- please check
