@@ -210,10 +210,10 @@
    (tr-anacast K Γ e_2 t_1 e_4) ...
    -----"TRA2"
    (tr-syncast K Γ (call e_1 n e_2 ..._1) (call e_1 n e_4 ...) t_2)]
-  [(tr-syncast K Γ e_1 e_3 anyt)
+  [(tr-anacast K Γ e_1 anyt e_3)
    (tr-anacast K Γ e_2 anyt e_4)
    ------"TRA3"
-   (tr-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+   (tr-syncast K Γ (dcall e_1 m e_2) (dcall e_3 m e_4) anyt)]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (tr-anacast K Γ e_1 t e_2) ...
    ------"TRA4"
@@ -499,10 +499,10 @@
    -----"THA4"
    (thorn-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) t_2)]
   
-  [(thorn-syncast K Γ e_1 e_3 anyt)
+  [(thorn-anacast K Γ e_1 anyt e_3)
    (thorn-anacast K Γ e_2 anyt e_4)
    ------"THA5"
-   (thorn-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+   (thorn-syncast K Γ (dcall e_1 m e_2) (dcall e_3 m e_4) anyt)]
   
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (thorn-anacast K Γ e_1 t e_2) ...
@@ -650,14 +650,13 @@
    (trans-syncast K Γ x (namcast t x) t)]
   [(trans-syncast K Γ e_1 e_3 C)
    (where (mt_1 ... (m t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
-   (side-condition ,(not (redex-match KafKa this (term e_1))))
    (trans-anacast K Γ e_2 t_1 e_4) ...
    -----"GRA2"
    (trans-syncast K Γ (call e_1 m e_2 ..._1) (namcast t_2 (dcall (subcast anyt e_1) m (subcast anyt e_4) ...)) t_2)]
-  [(trans-syncast K Γ e_1 e_3 anyt)
+  [(trans-anacast K Γ e_1 anyt e_3)
    (trans-anacast K Γ e_2 anyt e_4)
    ------"GRA3"
-   (trans-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt)]
+   (trans-syncast K Γ (dcall e_1 m e_2) (dcall e_3 m e_4) anyt)]
   [(where C (lookup-env Γ this))
    (where (mt_1 ... (f t_1 ..._1 t_2) mt_2 ...) (mtypes C K))
    (trans-anacast K Γ e t_1 e_1) ...
@@ -738,10 +737,10 @@
    (mono-anacast K Γ e_2 t_2 e_4 (k_2 ...))
    ------"MOA3"
    (mono-syncast K Γ (call e_1 m e_2) (dcall ((subcast anyt e_3) m (subcast anyt e_4)) anyt) t_2 (k_1 ... k_2 ...))]
-  [(mono-syncast K Γ e_1 e_3 anyt (k_1 ...))
+  [(mono-anacast K Γ e_1 anyt e_3 (k_1 ...))
    (mono-anacast K Γ e_2 anyt e_4 (k_2 ...))
    ------"MOA4"
-   (mono-syncast K Γ (call e_1 m e_2) (dcall e_3 m e_4) anyt (k_1 ... k_2 ...))]
+   (mono-syncast K Γ (dcall e_1 m e_2) (dcall e_3 m e_4) anyt (k_1 ... k_2 ...))]
   [(where (k_1 ... (class C (f t) ..._1 md ...) k_2 ...) K)
    (mono-anacast K Γ e_1 t e_2 (k_3 ...)) ...
    (where D (fresh-class K))
@@ -895,14 +894,15 @@
 
 (define nlitmusK2 (term ((class A (mm (x A) A this))
                         (class I (mm (x C) I this))
-                        (class T (mt (x I) T this)))))
+                        (class T (ms (x I) T this)
+                          (mt (x anyt) anyt (call this ms x))))))
 (define nlitmusK2f (term (compose-K ,nlitmusAux ,nlitmusK2)))
 
 (define nlitmusK3 (term ((class A (mm (x anyt) anyt this))
-                        (class I (mm (x C) C this))
-                        (class I2 (mm (x D) D this))
+                        (class I (mm (x C) C x))
+                        (class I2 (mm (x D) D x))
                         (class E (ff I) (fg I2))
-                        (class T (mt (x A) E (new E x x))))))
+                        (class T (mt (x anyt) anyt (new E x x))))))
 
 (define nlitmusK3f (term (compose-K ,nlitmusAux ,nlitmusK3)))
 
@@ -914,14 +914,15 @@
                           (ff D)
                           (mm (x I) I this))
                         (class T
-                          (mt (x I) I (call x mm x))))))
+                          (ms (x I) I (call x mm x))
+                          (mt (x anyt) anyt (call this ms x))))))
 (define nlitmusK4f (term (compose-K ,nlitmusAux ,nlitmusK4)))
 
 (define nlitmus1 (term (,nlitmusProg ,nlitmusK1f)))
 (define nlitmus2 (term (,nlitmusProg ,nlitmusK2f)))
 (define nlitmus3 (term (,nlitmusProg ,nlitmusK3f)))
 
-(define nlitmusProg4 (term (call (new T) mt (new A (new D)))))
+(define nlitmusProg4 (term (dcall (new T) mt (new A (new D)))))
 (define nlitmus4 (term (,nlitmusProg4 ,nlitmusK4f)))
 
 ;other examples from the paper
