@@ -789,50 +789,33 @@ as follows:
 
 \section{Kafka: A Core Calculus}
 
-The basis of our formal approach is the \kafka calculus. At its heart, \kafka
-is a class-based, object-oriented, structurally typed, language with dynamic
-dispatch, modeled off of common intermediate languages like the JVM's Java
-Bytecode or the .NET CLR's Common Intermediate Language, and taking inspiration
-from C\#'s approach to gradual typing~\cite{Bierman10}.
+The basis of our formal approach is the \kafka calculus. At its heart,
+\kafka is a class-based, object-oriented, structurally typed, language with
+dynamic dispatch, modeled off of common intermediate languages such as the
+JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
+taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
 
-\kafka has two types: the $\any$ type and the class type \C (also \D and \E). 
-In \kafka, the types \C refer to the class of the same name,
-which can contain fields (\HT\f\t) and methods. \kafka have three kinds of methods,
-normal methods (\Mdef\m\x\t\t\e), getter methods (\Mdefz\f\t\e), and setter methods 
-(\Mdef\f\x\t\t\e).
+The syntax of \kafka is given in \figref{syn}. Meta-variables \C, \D and \E
+range over class names, \x ranges over variable names, \m and \f range over
+methods and fields respectively. Finally, \this is a distinguished identifer
+representing a method receiver, while \that is a distinguished field name
+used in wrapper classes.  Expressions include object creation, \New\C{\b\e},
+field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
+invocation, \Call\e\m\e, dynamically resolved method invocation,
+\DynCall\e\m\e, subtype casts, \SubCast\t\e, and shallow casts,
+\ShaCast\t\e.  Types consist of class names and the dynamic type, writte
+\any.
 
-The expressions in \kafka is largely typical, offering variables 
-(bound through method arguments), object creation expressions of the form \New\C{\b\e},
-and two kinds of method calls, the statically-resolved call \Call\e\m\e and
-the dynamic call \DynCall\e\m\e, alongside with field dereference \Get\e\f and field
-assignment \Set\e\f\e. Additionally, we reserve the \this and \that keywords,
-the former as a self-reference, and the latter as part of our support for
-wrappers.
 
-%We present \kafka, a gradually typed object-oriented languages.
-%\kafka is a statically typed class-based calculus with dynamic dispatch, 
-%following the design of C\#. The dynamic type of \kafka is denoted by \any.
-%\kafka is structurally typed, it does not have null values, or supports
-%inheritance between classes. Fields are accessed by getter and setter methods, 
-%their presence in class types is observed by the presence of the respective 
-%getters and setters.%
 
-%Statically dispatched method calls (i.e. calls where the type of the
-%receiver is not \any) are denoted by \Call\x\m\e. Methods are limited to a
-%single argument for simplicity. Dynamically dispatched method calls 
-%(i.e. calls where the type of the receiver is \any) are denoted by \DynCall\x\m\e.
-%Object creation is denoted by denoted \New\C{\b\e}, a class name (\C) and 
-%a sequence of arguments (\b\e) in the order of definition of fields.%
+\kafka has two types: the $\any$ type and the class type \C (also \D and
+\E).  In \kafka, the types \C refer to the class of the same name, which can
+contain fields (\HT\f\t) and methods. \kafka have three kinds of methods,
+normal methods (\Mdef\m\x\t\t\e), getter methods (\Mdefz\f\t\e), and setter
+methods (\Mdef\f\x\t\t\e).
 
-%The meta-variables \x ranges over argument names, \a over memory locations, \f
-%over field names (as well as getter and setter method names), \m over method
-%names, \C, \D, and \E over class names.  We use \this to denote a distinguished 
-%variable name for the current object, and \that to denote a distinguished field 
-%name for the target of the wrapper class. \D is a meta-variable used to range over dynamically 
-%generated class names. \a is ranges over heap addresses. \k ranges over 
-%class definitions consisting of a class name, followed by a, possibly empty, 
-%sequence of field definitions, \fd, and a, possibly empty, sequence of 
-%method definitions, \md.
+
+
 
 \begin{figure}[!h]
 \hrulefill
@@ -849,8 +832,9 @@ wrappers.
 \end{tabular}
 \begin{tabular}{l@{~}l@{}l@{}l}
 \md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\
-~ \t&::= ~ \any  \B   \C  & \fd~ ::= ~ \Fdef\f\t \\ 
+%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
+~ \t&::= ~ \any  \B   \C  \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
 \end{tabular}\end{minipage}
 
 \hrulefill
@@ -876,23 +860,24 @@ making any guarantee about the type of the arguments.
 
 \subsection{Semantics}
 
-\kafka has typical small step operational semantics with several key features
-that allow it to act as a common core for gradual typing translation, including special
-support for wrappers and limiting function overriding.
+\kafka has typical small step operational semantics with several key
+features that allow it to act as a common core for gradual typing
+translation, including special support for wrappers and limiting function
+overriding.
 
 Evaluation in \kafka is based around \emph{configurations}, which combine a
 class table $\K$, an introductory expression $\e$, and a heap \s. The
 evaluation rule for \kafka's single introduction form, \xt{new}, is typical,
-allocating and instantiating a new object of the specified type with the given
-values.
+allocating and instantiating a new object of the specified type with the
+given values.
 
-\kafka's design as a translation target for gradually typed programming languages
-is accentuated in its call semantics, which supports both
-field access and method invocation. In \kafka, direct field accesses and assignments
-are indistinguishable from getter and setter invocations, similar to properties 
-in C\#. However, this design also means that all field operations must
-be correctly typed. Otherwise, the type invariants of an underlying field 
-would be violated.
+\kafka's design as a translation target for gradually typed programming
+languages is accentuated in its call semantics, which supports both field
+access and method invocation. In \kafka, direct field accesses and
+assignments are indistinguishable from getter and setter invocations,
+similar to properties in C\#. However, this design also means that all field
+operations must be correctly typed. Otherwise, the type invariants of an
+underlying field would be violated.
 
 %\kafka classes contain methods and fields, the latter can be declared  either
 %via an explicit field declaration in the class (e.g. \HT\f\t) or by a pair of a
@@ -1028,33 +1013,13 @@ would be violated.
 \label{fig:semantics}
 \end{figure}
 
-The other features presented in \kafka relates to the two calling
-forms, \Call\e\m\e and \DynCall\e\m\e. In \kafka, methods can be either typed (argument
-and return type that are not \any), or untyped (argument and return
-type are \any). Typed methods can be invoked with \Call\e\m\e, while untyped methods are invoked
-\DynCall\e\m\e. The ability to define two methods of the same name provided one is typed and the other untyped.
+The other features presented in \kafka relates to the two calling forms,
+\Call\e\m\e and \DynCall\e\m\e. In \kafka, methods can be either typed
+(argument and return type that are not \any), or untyped (argument and
+return type are \any). Typed methods can be invoked with \Call\e\m\e, while
+untyped methods are invoked \DynCall\e\m\e. The ability to define two
+methods of the same name provided one is typed and the other untyped.
 
-\subsection{Translations}
-
-\kafka provides the basis to describe the operations of a typical object-
-oriented languages.  \kafka is a fully statically typed language, which requires
-programmers to write casts wherever a type boundary is encountered,  which is
-not representative of how actual gradually typed programming languages behave.
-Most gradual type languages abstract away from inserting casts, instead they
-would be automatically inserted and used at runtime, remaining invisibly to
-programmers unless errors are produced.
-
-We introduce a \emph{translation} mechanism that works similarly to the cast insertion described 
-by Siek and Taha~\cite{SiekTaha06} described cast insertion, however, our mechanism differs in
-that it cannot be bottom-up. Instead, our translation is \emph{bidirectional}, as described by 
-Pierce and Turner~\cite{lti-pierce}. Bidirectional typechecking is a local type 
-inference mechanism, that allows identifying cast insertion locations in a modular way.
-
-Casts are the key to the different interpretations of gradual typing, as they
-are one of the two places that, in \kafka, a program can get stuck at. The
-approaches that we will be comparing have different definitions of casting, and
-their varying approach to runtime type assertions forms an important part of how
-they deal with typed values interacting with untyped  code and vice versa.
 
 \subsection{Structural Casts}
 
@@ -1070,10 +1035,11 @@ and does not require any additional runtime  components beyond the cast.
 Moreover, this kind of cast establishes value identity exactly, allowing us to
 type it with the cast type.
 
-This is not true, however, of the name cast, which only checks for the presence
-of methods with the given name. While simple, the name cast is
+This is not true, however, of the name cast, which only checks for the
+presence of methods with the given name. While simple, the name cast is
 extremely weak and cannot ensure type identity is preserved as required to
-produce a strong \kafka type. As a result, any use of this cast is typed to \any.
+produce a strong \kafka type. As a result, any use of this cast is typed to
+\any.
 
 We will begin our discussion of applying gradual typing to objects by examining
 the optionally-typed TypeScript, which will provide an overview of our static 
