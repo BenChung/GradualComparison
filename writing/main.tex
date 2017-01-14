@@ -1217,16 +1217,15 @@ matches the Thorn type. Rules \RuleRef{THA1}, \RuleRef{THA2},
 \RuleRef{THA5}, and \RuleRef{THA6} are all effectively direct translations
 of the traditional typing rules for variables, calls, dynamic invocation,
 and new, respectively.  However, two rules, \RuleRef{THA3} and
-\RuleRef{THA4}, break this pattern. These two rules are applied when the
-receiver type is a weak type, an unsound type, and case analyze is performed
-on the declared return type. In \RuleRef{THA3}, the return type is a
-concrete type, or a sound type, from an unsound type, and therefore requires
-an insertion of a runtime cast, and the alternative case is shown in
-\RuleRef{THA4}. It is important to note that both \RuleRef{THA3} and
-\RuleRef{THA4} produce dynamic calls on the receiver, despite the receiver
-having a source language type. This is because Thorn's weak types are
-translated to \kafka's \any, which causes all calls on optional types by
-\kafka to be dynamic.
+\RuleRef{THA4}, break this pattern. These rules are applied when the
+receiver type is an unsound type and case analyze is performed on the
+declared return type. In \RuleRef{THA3}, the return type is a concrete type,
+or a sound type, from an unsound type, and therefore requires an insertion
+of a runtime cast, and the alternative case is shown in \RuleRef{THA4}. It
+is important to note that both \RuleRef{THA3} and \RuleRef{THA4} produce
+dynamic calls on the receiver, despite the receiver having a source language
+type. This is because Thorn's unsound types are translated to \any, which
+causes all calls to be dynamic.
 
 
 \begin{figure}[h!]
@@ -1313,7 +1312,7 @@ translated to \kafka's \any, which causes all calls on optional types by
   \GenCast\K\Env{\New\C{\b\e}}{\New\C{\b\ep}}\C
 }
 \end{mathpar}
-\caption{Thorn translation for expressions}
+\caption{Thorn translation.}
 \label{fig:thorntrans_exp}
 \end{figure}
 
