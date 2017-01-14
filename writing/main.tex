@@ -1084,45 +1084,50 @@ translation top-down, translating classes and the main expression.  Beyond
 the top level translation, we have two judgments that perform cast insertion
 on expressions, following Pierce and Turner~\cite{pierce:1998:local}, the
 synthetic cast insertion judgment $\GenCast\K\Env\e\ep\t$, which states that
-against context \Env and class table \K, source expression \e translates to
-\kafka expression \ep producing source type \t, and the analytic judgment
-$\AnaCast\K\Env\e\ep\t$, which ensures that the translated \kafka expression
-$\ep$ will model source type \t, coming from source expression \e.  Inside
+against context \Env and class table \src\K, expression \src\e translates to
+\ep producing source type \src\t, and the analytic judgment
+$\AnaCast\K\Env\e\ep\t$, which ensures that the translated expression $\ep$
+will model source type \src\t, coming from source expression \src\e.  Inside
 of this bidirectional framework, we then have a fairly typical set of
 translation judgments.
 
 \begin{figure}[!h]
 \small
 \begin{mathpar}
-\IRule{PT}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule{CR1}{ 
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \classtrans {\K}{\Kp}\Kpp
+\IRule{TSP}{
+  \classtrans\K\K\Kp \\ 
+  \GenCast\K\cdot\e\ep\t
 }{
-   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+  \progtrans{\e\,\K}{\ep\,\Kp}
+}
 
-\IRule{CR2}{ 
+\IRule{TSC1}{ 
+  \src\md\in\b{\src\md} \implies 
+      \methtrans\K\C\md{\md'}{}\wedge\md'\in\b{\md'} \\\\
+  \src{\Fdef\f\t}\in\b{\src\fd} \implies \Fdef\f\any\in\b{\md'}  \\\\
+  \classtrans \K\Kp\Kpp
+}{
+   \classtrans\K{{\Class\C{\b{\fd}}{\b\md}~\Kp}}{\Class\C{\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+\IRule{TSC2}{ 
 }{
   \classtrans {\K}\cdot\cdot
 }
 
-\IRule{MT}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
+\IRule{TSM}{
+  \AnaCast \K{\HT\this{\C}~\HT\x\t}\e\ep\tp
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any\ep}{}
+  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any\ep}{}
 }
 \end{mathpar}
-\caption{TypeScript translation for program, class, and method}
-\label{fig:tstrans_cla}
-\end{figure}
 
-
-\begin{figure}[!h]
 \begin{mathpar}
-\IRule{TSA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+\IRule{TSA1}{
+  \HasType{\src\Env}{\src\x}{\src\t}
+}{
+  \GenCast\K\Env\x\x\t
+}
+
 
 \IRule[width=30em]{TSA2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
@@ -1145,40 +1150,40 @@ translation judgments.
 \IRule{TSA5}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
+}{
+   \GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}
+}
 \end{mathpar}
-\caption{TypeScript translation for expressions}
-\label{fig:tstrans_exp}
-\end{figure}
 
-For TypeScript the synthetic case of translation is uninteresting, with the 
-exception of \RuleRef{TSA4}, which allows TypeScript programs to access fields
-via the self-reference, whose type is always absolutely known.
-
-\begin{figure}[!h]
 \begin{mathpar}
-\IRule{TSAASC1}{
+\IRule{TSC1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSAASC2}{
+\IRule{TSC2}{
   \GenCast\K\Env\e\ep\any
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSAASC3}{
+\IRule{TSC3}{
   \GenCast\K\Env\e\ep\C
 }{
   \AnaCast\K\Env\e\ep\any
 }
 \end{mathpar}
-\caption{TypeScript translation for bidirectional expressions}
+\caption{TypeScript translation.}
 \label{fig:tstrans_exp2}
 \end{figure}
+
+For TypeScript the synthetic case of translation is uninteresting, with the 
+exception of \RuleRef{TSA4}, which allows TypeScript programs to access fields
+via the self-reference, whose type is always absolutely known.
+
+
 
 Of more interest are TypeScript's analytic rules. Here, \RuleRef{TSAASC1}
 requires the interaction between typed parts of the program to be well-typed,
