@@ -461,10 +461,11 @@ definition and the last expression as follows:
 Dynamically resolved calls (written \code @) are calls that may fail because
 the receiver need not have the requested method. Method signatures see their
 types set to \any.  The designers of TypeScript saw unsoundness as a way to
-ensure (a) types do not get in the way of running correct programs,
+ensure ({\em a}) types do not get in the way of running correct programs,
 e.g. when importing a new library with type annotations inconsistent with
-client code; and (b) an insurance for backwards compatibility, ignoring
-types means all browsers can run TypeScript code -- with no overheads.
+client code; and ({\em b}) an insurance for backwards compatibility,
+ignoring types means all browsers can run TypeScript code -- with no
+overheads.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Thorn}
@@ -480,14 +481,14 @@ typed method \code n and optionally typed \code m, and assume \code D is not
 a subtype of \C.
 
 \begin{lstlisting}
-class A {
-  m(x: ?C): ?C { x }
-  n(x:  C):  C { x } }
+ class A {
+    m(x: ?C): ?C { x }
+    n(x:  C):  C { x } }
 
-new A().m( new D() ) // OK -- warning
-new A().n( new D() ) // ERR -- D !<: C
-new A().m( new A.n(new C()) // OK
-new A().n( new A.m(new C()) // Cast
+ new A().m( new D() ) // OK -- warning
+ new A().n( new D() ) // ERR -- D !<: C
+ new A().m( new A.n(new C()) // OK
+ new A().n( new A.m(new C()) // Cast
 \end{lstlisting}
 
 \noindent
@@ -498,81 +499,83 @@ allowed as a \code C is a subtype of \code{?C}. The last call result in a
 cast being inserted as \code{?C} cannot be guaranteed to hold an instance of
 \code{C} or a subtype.  The translation of Thorn to \kafka, turns optional
 types to \any and inserts structural casts to \code{C} when \any or
-\code{?C} is assigned to a \code{C}.
+\code{?C} is assigned to a \code{C}. So class \code A would translate to:
 
+\begin{lstlisting}
+ class A {
+    m(x:  *):  * { x }
+    n(x:  C):  C { x } }
+\end{lstlisting}
 
 \subsection{Transient Python}
 
-The Transiennt variant of Reticulated Python~\cite{siek14} aims for
-soundness with a predictable cost model. The declared types of arguments is
-defensively checked in every method. Consider method \m, it expects an
+The Transient variant of Reticulated Python~\cite{siek14} aims for soundness
+with a predictable cost model. The declared types of arguments is
+defensively checked in every method, consider method \m, it expects an
 instance of class \C, but it can be called with a value having type \any.
+Consider the following example:
 
 \begin{lstlisting}
-class A {
-  m(x: C): D { x.n(new C()) }
-  n(x: *): * { x } }
+ class A {
+    m(x: C): D { x.n(new C()) }
+    n(x: *): * { x } }
 
-new A().m( new A().n( new C() ) ) // OK
-new A().m( new A().n( new D() ) ) // Runtime ERR
+ new A().m( new A().n( new C() ) ) // OK
+ new A().m( new A().n( new D() ) ) // Runtime ERR
 \end{lstlisting}
 
 \noindent
-Transient Python will deem both call to \code m well-typed. Yet, the second
-is going to end up with a type error as a \code D is passed to method
-expecting a \code C.  When traslating to \kafka, all types are erased
-and casts are inserted.
+Transient Python deems both expressions well-typed. Yet, the second is going
+to end up with a type error as a \code D is passed to method expecting a
+\code C.  When translating to \kafka, all types are erased and casts are
+inserted on method entry and before return. Thus we get the following:
 
 \begin{lstlisting}
-class A {
-  m(x: *): * { (*@\ShaStart \tt D \ShaEnd@*)((*@\ShaStart \tt C \ShaEnd @*)x)@n(new C()) }
-  n(x: *): * { x } }
+ class A {
+   m(x: *): * { (*@\ShaStart \tt D \ShaEnd@*)((*@\ShaStart \tt C \ShaEnd @*)x)@n(new C()) }
+   n(x: *): * { x } }
 \end{lstlisting}
 
-\noindent The translated class \code A has check that the argument to \code
-m has all the methods defined by \code C. For this we rely on \kafka's
-\emph{shallow structural cast}, written {\ShaStart \tt C \ShaEnd x}, these
-cast only check for the presence of method names not for the conformance of
-types.
+\noindent The translated class \code A has a check to validate that the
+argument to \code m has all the methods defined by \code C. For this we use
+\kafka's \emph{shallow structural cast}, written {\ShaStart \tt C \ShaEnd
+  x}, this cast only checks for the presence of method names not for the
+conformance of types. The return type is similarly checked.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Typed Racket}
 
-Typed Racket has an expressive object system which allows to type first
-class classes~\cite{Takikawa:2012}, we restrict our presentation to the core
-of the system. Typed Racket has a class-based object system with structural
-subtyping.  Classes are either typed, in which case all variables have types
-different from \any, or untyped, and then all types are \any.  In this
+Typed Racket has an expressive object system with first-class
+classes~\cite{Takikawa:2012}, we restrict ourselves to the core of the
+system which is a class-based object system with structural subtyping.
+Classes are either typed, in which case all variables have types different
+from \any, or untyped, and then all types are \any.  In the following
 example, \code A is untyped, it constructs an instance of the typed class
-\code{B} and invokes method \code{n} with dynamically typed argument
-\code{x}.
+\code{B} and invokes method \code{n} with \code x, a variable of type \any.
 
 \begin{lstlisting}
  class A {
    m(x: *): * { new B().n(x) } }
-
  class B {
    n(x: B): C { x.n(x) } }
 
-new A().m( new A())
+ new A().m( new A())
 \end{lstlisting}
 
-\noindent Class \code B expects that the argument to method \code n is of
-type \code B, yet in this program it will be passed an instance of \code A.
-The approach taken by Typed Racket is to mediate at boundaries between typed
-and untyped code by inserting wrappers around the values being
-exchanged. These wrappers ensure that values exchanged behave according to
-their \emph{promised} types. The translation to \kafka is seemingly simple.
-Typed code remains untouched, while untyped code is extended with
-\emph{behavioral generative casts} at creation of typed classes. Thus the
-body of \code m would become
-{\tt ({\BehStart \any \BehEnd}new B())@n(x)}.  The
+\noindent Class \code B expects the argument to method \code n to be of type
+\code B, yet it will be given an \code A.  Typed Racket mediates at
+boundaries between typed and untyped code by inserting wrappers around the
+values being exchanged. These wrappers ensure that values behave according
+to their \emph{promised} types. The translation to \kafka is such that typed
+code remains untouched, while untyped code is extended with \emph{behavioral
+  generative casts} at creation of instances of typed classes. Thus the body
+of \code m becomes {\tt ({\BehStart \any \BehEnd}new B())@n(x)}.  The
 instance of class \code B is cast to type \any, and the call becomes a
-dynamically resolved call as \any may not have method \code m. The
-behavioral cast has the effect of creating a new wrapper class that has all
-of the methods of \code B which accept untyped arguments as well as typed
-arguments. The wrapper generated by the cast is (roughly) as follows:
+dynamically resolved call. The behavioral cast creates a new wrapper class
+that has all of the methods of \code B accepting untyped arguments as well
+as typed arguments. The wrapper generated by the cast is (roughly) as
+follows:
 
 \begin{lstlisting}
   class BW {
@@ -582,22 +585,23 @@ arguments. The wrapper generated by the cast is (roughly) as follows:
    n(x: B): C { that.n(x) } }
 \end{lstlisting}
 
-\noindent It is a class that \code{BW}, the name is a fresh name, that has
-all the typed methods of class \code B as well as untyped variants. The
-wrapper has a field \that which refers to an instance of \code B. When the
-wrapper is called from a typed context, all it does is forward calls to the
+\noindent Class \code{BW}, the name is a fresh name, that is a subtype of
+\code B (in \kafka subtyping is defined only over typed methods).  The
+wrapper has a field \that which refers to the instance of \code B. When it
+is called from a typed context, all it does is forward calls to the
 target. In an untyped context, the wrapper will cast the argument to the
-promised type of arguments and cast results back to \any. Each of these
-casts introduces new wrappers. A shallow structural cast is also used to
-catch obvious mismatches early.  The key properties of this translation are
-that typed code can rely on the presence of methods of the right type (thus
-use static method resolution) but any call can fail within a wrapper.
+promised type and cast results back to \any. Each of these casts introduces
+new wrappers. A shallow structural cast is used to catch obvious mismatches
+early.  The key properties of this translation are that typed code can rely
+on the presence of methods of the right type (thus use static method
+resolution) but calls can still fail at casts within the wrapper.
 
 \subsection{Monotonic Python}
 
-A drawback of the Typed Racket approach is the impact of performance on fully-typed 
-code, especially at heap access sites. The monotonic semantics for Reticulated Python 
-aims to prevent this cost in exchange for a new dynamically-enforced guarantee.
+A drawback of the Typed Racket approach is the impact of performance on
+fully-typed code, especially at heap access sites. The monotonic semantics
+for Reticulated Python aims to prevent this cost in exchange for a new
+dynamically-enforced guarantee.
 
 To see why there is an impact, consider figure~\ref{fig:mutup_b}. We present two
 incompatible types \xt{A} and \xt{B}, alongside a typed and an untyped
@@ -858,40 +862,6 @@ TypeScript           & \V & \V & \V & \V \\\hline
 
 
 
-[Say: OOP with structural subtyping makes it easier to make contract errors.]
-
-
-\subsection{Soundness}
-
-[Say: All dynamic OO language have a dynamic type system that catches type errors.  
-So the difference between Sound and unsound is (a) the place where the error is caught, 
-(b) cases when the gradual type system departs from the underlying type system.]  
-
-\subsection{Performance}
-
-The only exhaustive study of performance of gradual typing~\cite{popl16} was
-provocatively titled ``Is sound gradual typing dead?''.  Takikawa~\emph{et
-  al.}  reported that 14 out of 16 small real-world programs had performance
-cliffs past which partially typed code would run between 2x and 121x slower
-than untyped code. Few if any commercial system could justify that increased
-assurance is worth is worth a performance regression of this
-scale.\footnote{Otherwise one would accept some of the research prototypes
-  adding memory safety to C would have become mainstream.} While there is
-ongoing research towards reducing the overheads of
-contracts~\cite{pycket15}, preliminary results suggest that the ...
-
-
-[Say: primitive and immutable value checks are cheap]
-
-[Say: first order functions w/o recursion are cheap ]
-
-[Say: higher order/recursive functions are expensive]
-
-[Say: TR works well as long as you don't exchange large mutable values or hof]
-
-[Say: OOP is all about large graphs and hof ==> ouch ]
-
-[Say: consistency makes it impossible to unbox.]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
