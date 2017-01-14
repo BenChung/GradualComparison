@@ -687,13 +687,13 @@ class T {
 class A {
  f:*
  m(x:A):A {
-  this.f(
-   new A(new C())}}
+  this.f(new C()}}
 
 
 class I {
  f:D
  m(x:I):I {this}}
+
 
 class T {
  s(x:I):I {x.m(x)}
@@ -773,10 +773,15 @@ as follows:
 \item {\bf L1:} Fails because \code A is not a subtype of \code I, the
   failure is at a shallow cast because \code A does not have all methods of
   \code I.
-\item{\bf L2:} Succeeds because shallow casts of \code A to \code I go through.
+\item{\bf L2:} Succeeds in Monotonic/Transient/Racket because shallow casts
+  of \code A to \code I go through.
 \item{\bf L3:} Fails in Monotonic because the same object is being cast to
   two different types, \code I and \code J.
-\item{\bf L4:} Fails in Transient
+\item{\bf L4:} Fails in Monotonic because the object refered to by \code x
+  in method \s is cast to \code I. This updates the effective type of field
+  \code f to \code D. But the assignment in method \code m tries to give it
+  an \code A. Fails in Racket because the \this field is wrapped with an
+  \code I type, and the assignment to \code f does not respect that type.
 \end{itemize}
 
 
