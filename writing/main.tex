@@ -159,15 +159,15 @@ of gradually typed languages into a common target language. Targeting the same
 language lets us reason about the type systems in the same framework and allows
 for comparison. But which language should we target? The language should avoid
 linguistic clutter while expressing key object-oriented features directly rather
-than by encoding. We propose to target a typed object- oriented language
+than by encoding. We propose to target a typed object-oriented language
 inspired by modern language runtime such as the Java Virtual Machine and the
 CLR in .Net. They have a static type system with classes and subtyping but they
 also allow for dynamic resolution of method dispatch.\footnote{Both runtime
 support reflective invocation based on method names. Dynamic resolution was
 added to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
 custom method dispatch.} As well as reasonably efficient implementations, and in
-both environments, primitive types can be unboxed as the static typing an
-accurately final types.
+both environments, primitive types can be unboxed \textcolor{red}{as the static typing an
+accurately final types}.
 
 A contribution of this work is the design of \kafka, a statically typed object
 calculus.  \kafka is class based (with an explicit class table \K), with mutable
@@ -176,9 +176,9 @@ pair of getter and setter methods), and allows the dynamic generation of wrapper
 classes (by update of the class table \K and allocation of new objects \a).
 Methods can be statically resolved, denoted by a simple call \Call\a\m\x, or can
 be dynamically resolved, denoted by a dynamic call \DynCall\a\m\x. The \kafka
-type system has two types, \C, which represents a structural type (named \C, to
-allow for recursive typing, and stored in a class table \K), and the dynamic
-type \any, which we refer to as \t.
+type system has two types, a structural type \C, allow for recursive typing 
+and stored in a class table \K, and the dynamic
+type \any. Types in general are referred to as \t.
 
 The heart of any gradual type system implementation is the explicit casts
 that are inserted at type boundaries.  Two different \emph{structural} casts
@@ -229,7 +229,7 @@ semantic properties.
 attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
 side is the Strongtalk optional type system~\cite{Bracha93} which led to
 Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types are
-solely to catch errors at checking time, they should never affect the
+solely to catch errors at \textcolor{red}{checking time}, they should never affect the
 runtime behavior of programs. The rationale for this is that types are
 viewed as an add-on that can be turned off without affecting semantics.  In
 the words of Richards~\emph{et al.}~\cite{ecoop15}, an optional type system
@@ -246,7 +246,7 @@ became Typed Racket is strongly influenced by earlier work on higher-order
 contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a vehicle for
 teaching programming, thus being able to explain the source of errors was an
 important design constraint, another constraint was to prevent surprises --
-a variable annotated as a \C should behave as a \C. If not that fact must be
+a variable annotated as a \C should behave as a \C. Any change in behavior must be
 reported at the first discrepancy. The Typed Racket approach to gradual
 typing is thus quite different from optional types. Whenever a value crosses
 a boundary between typed and untyped code, it is wrapped in a contract that
@@ -283,7 +283,7 @@ Felleisen-style contracts and mostly nominal type equivalence (structural
 equivalence can be specified on demand, but it is, in practice, rarely
 used). C\# 4.0 adds the type {\sf dynamic} (i.e.~\any) to the C\# language
 and adds dynamically resolved method invocation when the receiver of method
-call is of type \any.  This means C\# has a dynamic sublanguage that allows
+call is with type \any.  This means C\# has a dynamic sublanguage that allows
 developer to write unchecked code, but it also has a strongly type
 sublanguage in which values are guaranteed to be of their declared type.
 The implementation of C\# in the~.Net framework replaces \any by the type
@@ -351,7 +351,7 @@ Reticulated Python    \\
 \end{figure}
 
 \noindent
-\figref{over} reviews type systems with publicly available
+\figref{over} reviews gradual type systems with publicly available
 implementations. All languages here are class-based, except TypeScript which
 has both classes and plain JavaScript objects. Most languages base subtyping
 on explicit name-based subtype declarations, rather than on structural
@@ -366,7 +366,7 @@ classes being manipulated have no names.  Optional types are the default
 execution mode for Dart, Hack and TypeScript.  Transient Python is, in some
 senses, optionally typed as any value can flow into a variable regardless of
 its type annotation, this leads to an ``open world'' soundness
-guarantee~\cite{siek14}.  In Thorn and C\#, when primitives are concretely
+guarantee~\cite{siek14}.  In Thorn and C\#, primitives are concretely
 typed they can be unboxed without tagging.  The choice of casts follows from
 other design decisions. Languages with concrete types naturally tend to use
 subtype casts to establish the type of values. For nominal systems there are
@@ -395,7 +395,7 @@ optional types no overhead is expected as the type annotations are erased
 during compilation. Concrete types insert efficient casts, and lead to code
 that is can be optimized.  The Transient Python performance can be viewed as
 a worst case scenario for concrete types -- i.e. there is a shallow cast at
-almost every call. Finally languages with generative casts tend to suffer
+almost every call. Finally, languages with generative casts tend to suffer
 prohibitive slow downs in pathological cases.
 
 \section{Gradual Typing in Practice}
@@ -429,8 +429,8 @@ subtyping of recursive types is supported (types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
 to catch simple errors, such as misspelt method names and assisting IDEs.  A
 typical example is shown here. The first expression is ill-typed becasue
-method \code o does not exist, the second is erroneous as well as it
-provides an instance of \code A where a \code C is expected. The third
+method \code o does not exist, the second is erroneous as it
+provides an instance of \code A where \code C is expected. The third
 expression is statically correct as the instance of \code A is cast to a
 \code C by the \code{n} method.
 
@@ -460,7 +460,7 @@ definition and the last expression:
 Dynamically resolved calls (written \code @) are calls that may fail because
 the receiver need not have the requested method. Method signatures see their
 types set to \any.  The designers of TypeScript saw unsoundness as a way to
-ensure ({\em a}) types do not get in the way of running correct programs,
+ensure, ({\em a}) types do not get in the way of running correct programs,
 e.g. when importing a new library with type annotations inconsistent with
 client code; and ({\em b}) an insurance for backwards compatibility,
 ignoring types means all browsers can run TypeScript code -- with no
@@ -474,7 +474,7 @@ inheritance, nominal type equivalence, and a combination of optional and
 concrete types. Optional types (written \code{?T}), as in TypeScript, are
 translated to dynamic types with dynamically resolved method
 invocation. Concrete types (written \code{T}) behave as one would expect: a
-variable \code{x:~C} is guaranteed to refer to an instance of \code C or a
+variable \code{x:C} is guaranteed to refer to an instance of \code C or a
 subtype thereof. Consider the following program with calls to concretely
 typed method \code n and optionally typed \code m, and assume \code D is not
 a subtype of \C.
@@ -524,9 +524,9 @@ instance of class \C, but it can be called with a value of type \any.
 
 \noindent
 Transient Python deems both expressions well-typed. Yet, the second is going
-to end up with a type error as a \code D is passed to method expecting a
+to end up with a type error as a \code D is passed to a method expecting a
 \code C.  When translating to \kafka, all types are erased and casts are
-inserted on method entry and before return. Thus we get:
+inserted on method entry and prior to returning. Thus we get:
 
 \begin{lstlisting}
  class A {
@@ -562,7 +562,7 @@ example, \code A is untyped, it constructs an instance of the typed class
 \end{lstlisting}
 
 \noindent Class \code B expects \code x to be of type \code B, yet it will
-be given an \code A.  Racket mediates at boundaries between typed and
+be given an \code A. Type Racket mediates at boundaries between typed and
 untyped code by inserting wrappers around exchanged values. These wrappers
 ensure that the values behave according to their \emph{promised} types. The
 translation to \kafka is such that typed code remains untouched, untyped
@@ -592,7 +592,7 @@ new wrappers. A shallow structural cast is used to catch obvious mismatches
 early.  The key properties of this translation are that typed code can rely
 on the presence of methods of the right type (thus use static method
 resolution) but calls can still fail at casts within the wrapper. An easily 
-overlooked, but significant, feature of Racket is that the \this variable
+overlooked, but significant, feature of Type Racket is that the \this variable
 is wrapped by any wrapper(s) applied at the call site.
 
 \subsection{Monotonic Python}
@@ -759,8 +759,8 @@ TypeScript           & \V & \V & \V & \V \\\hline
 
 \subsection{Trace preservation}
 
-One outcome of our work is that we show that \emph{all} of our type systems
-are observationally distinct.  \figref{litmus} gives four litmus tests that
+One outcome of our work is showing how \emph{all} of the gradual type systems
+are observationally distinct.  \figref{litmus} presents four litmus tests that
 are sufficient to distinguish the five type systems being studied in this
 paper.  Each litmus test is a program composed of a class table and a main
 expression. The programs are written in \kafka syntax but equivalent
@@ -771,14 +771,14 @@ completion without getting stuck. With Thorn, all litmus programs fail at a stru
 as follows:
 \begin{itemize}
 \item {\bf L1:} Fails because \code A is not a subtype of \code I, the
-  failure is at a shallow cast because \code A does not have all methods of
+  failure is at a shallow cast because \code A does not have all the methods of
   \code I.
 \item{\bf L2:} Succeeds in Monotonic/Transient/Racket because shallow casts
   of \code A to \code I go through.
 \item{\bf L3:} Fails in Monotonic because the same object is being cast to
   two different types, \code I and \code J.
 \item{\bf L4:} Fails in Monotonic because the object refered to by \code x
-  in method \s is cast to \code I. This updates the effective type of field
+  in method \ss is cast to \code I. This updates the effective type of field
   \code f to \code D. But the assignment in method \code m tries to give it
   an \code A. Fails in Racket because the \this field is wrapped with an
   \code I type, and the assignment to \code f does not respect that type.
