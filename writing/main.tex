@@ -1268,7 +1268,7 @@ causes all calls to be dynamic.
 
 \IRule[width=30em]{THS2'}{
     \GenCast\K\Env{\e_1}{\e_2}\C \\ 
-    \Mtype{\src\f}{\src\t}{src\t} \in \classoff{\src\C}{\src\K} \\ 
+    \Mtype{\src\f}{\src\t}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
     \AnaCast\K\Env{\ep_1}{\ep_2}{\src\t}
 }{
     \GenCast\K\Env{\Call{\e_1}\f{\ep_1}}{\Call{\e_2}\f{\ep_2}}\t
@@ -1411,26 +1411,23 @@ accesses to fields would have to go through user-defined field accessor methods.
   \GenCast\K\E\e\ep\tp \\
   \consistent\K\tp\t
 }{
-  \AnaCast\K\E\e\ep\t
+  \AnaCast\K\E\e{\ShaCast\t\ep}\t
 }
 \end{mathpar}
 \caption{Transient translation for bidirectional expressions}
 \label{fig:tratrans_exp2}
 \end{figure}
 
-The last notable rule in the transient translation is \RuleRef{GRA2}. In
-gradual type systems with consistency, consistency is used to conclude an
-analytic judgment, as consistency allows the system to break type
-guarantees, adding and removing types from sub-parts of a program.
-Consistency within \kafka is defined in a later section, detailing the
-monotonic cast semantic and the translation for the monotonic system.
-However, in the transient semantics, the rest of the program makes no type
-assumptions that may be violated by consistency. Even when the translation
-takes a particularly weak perspective on the interpretation of a transient
-type into \kafka. Even a type system that fully represents a transient type
-(one that only tracks method names) will accept structurally consistent
-values under the same type. As a result, consistent values are allowed to be
-used with no additional casts.
+The last notable rule in the transient translation is \RuleRef{GRA2}. In gradual
+type systems with consistency, consistency is used to conclude an analytic
+judgment, as consistency allows the system to break type guarantees, adding and
+removing types from sub-parts of a program. Consistency within \kafka is defined
+in a later section, detailing the monotonic cast semantic and the translation
+for the monotonic system, but is used in the transient system to allow typed
+and untyped code to interact. When consistency is used, a check is inserted to
+ensure that all the methods that are required are declared on the provided type,
+but the types of the methods are ignored, as they are the responsibility of the
+callee to check.
 
 \subsection{Typed Racket}
 
@@ -2093,7 +2090,7 @@ handling of calls to methods need to appropriately casted if the typing nature i
 \end{figure}
 
 Monotonic has identical analytical cast insertion to the transient system,
-combining subtyping with consistency, seein in figure \ref{fig:mono-trans3},
+combining subtyping with consistency, seen in in figure \ref{fig:mono-trans3},
 which allow use the of either subtyping or consistency in type coercions
 
 \subsection{Monotonic Casts}
@@ -3125,7 +3122,7 @@ the object stored at \a in \s.
   \GenCast\K\E\e\ep\tp \\
   \consistent\K\tp\t
 }{
-  \AnaCast\K\E\e\ep\t
+  \AnaCast\K\E\e{\ShaCast\t\ep}\t
 }
 \end{mathpar}
 
@@ -4542,7 +4539,7 @@ during the class translation phase.
 \caption{Synthetic cast insertion}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRSNSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
 %\input{figures/anacast}
 \caption{Analytic Cast Insertion}
