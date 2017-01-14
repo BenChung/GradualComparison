@@ -895,63 +895,16 @@ requirements on the receiver or argument, and returns type \any. The subtype
 cast rule \RuleRef{W9} states that result is of the cast type, but it does
 not preclude silly casts.  Rule \RuleRef{W10} describes the semantics of the
 shallow casts, which merely asserts the presence of method names without
-making any statements about the type of the object being cast. 
-The complete set of rules appear in appendix.
-
-
-\subsection{Dynamic Semantics}
-
-\kafka has typical small step operational semantics with several key
-features that allow it to act as a common core for gradual typing
-translation, including special support for wrappers and limiting function
-overriding.
-
-Evaluation in \kafka is based around \emph{configurations}, which combine a
-class table $\K$, an introductory expression $\e$, and a heap \s. The
-evaluation rule for \kafka's single introduction form, \xt{new}, is typical,
-allocating and instantiating a new object of the specified type with the
-given values.
-
-\kafka's design as a translation target for gradually typed programming
-languages is accentuated in its call semantics, which supports both field
-access and method invocation. In \kafka, direct field accesses and
-assignments are indistinguishable from getter and setter invocations,
-similar to properties in C\#. However, this design also means that all field
-operations must be correctly typed. Otherwise, the type invariants of an
-underlying field would be violated.
+making any statements about the type of the object being cast.  The
+subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
+subtyping. The distinctive feature of the subtype relation is that fields
+appears in the type signature as getter/setter pairs with the exception of
+the \that field that is hidden from the class type signature.  The complete
+set of rules appear in appendix.
 
 
 
-
-%untyped field access is forbidden,  as explicit field semantics would become
-%dependent on the approach to typing.  Methods in \kafka are segregated into
-%typed (methods whose argument and return type is not \any) and untyped methods,
-%the former of which can be  called with the statically resolved \Call\e\m\e
-%form, and the latter of which can only be called with the dynamically checked
-%\DynCall\e\m\e  expression. Executions halt when it gets stuck, encounters an
-%expression that is  not a value and cannot apply any more evaluation rules, or
-%the expression is a value.
-%
-%A heap (\s) in \kafka is a set of mappings from memory locations to objects,
-%denoted by \Map\s{\Bind\a{\obj\C{\b\a}}}. Objects in the heap are the
-%combination of a list of field values \a and the class name \C. A configuration
-%is the combination of a program \K\e and a heap \s,  and reducing one
-%configuration \K\e\s to another configuration \Kp\ep\sp  is denoted
-%\Reduce\K\e\s\Kp\ep\sp. The reduction rules for \kafka are presented  in figure
-%\ref{fig:semantics}, with the evaluation contexts, denoted by \EE, presented  at
-%the bottom.
-%
-%The auxiliary function \xt{names} returns the names of methods, and the
-%auxiliary function \untyped{} returns the methods whose types are \any. The
-%auxiliary function \xt{read} return the location \ap pointing to the field \f of
-%the object at location \a. The auxiliary function \xt{write} return the heap \sp
-%with the field \f of the object at location \a updated to the location \ap.
-%\App\K\C denotes the lookup of class \C in class table \K. \Mdef\m\x\t\tp\e \In
-%\k denotes that method \m occurs in class \k. All auxiliary  functions are
-%defined in the appendix. Note that the ordering within lists of  fields and
-%methods definition is not relevant (i.e. we can reorder when convenient).
-
-\begin{figure}[!h]
+\begin{figure}[!b]
 \hrulefill
 
 \begin{minipage}{8cm}
@@ -1052,6 +1005,19 @@ underlying field would be violated.
 \caption{\kafka Semantics.}
 \label{fig:semantics}
 \end{figure}
+
+
+
+\subsection{Dynamic Semantics}
+
+The small operational step operational semantics appears in
+\figref{fig:semantics}. A configuration is a triple \K\e\s, where \K is a
+class table, \e is an expression and \s is a heap mapping addresses ranged
+over by \a to objects denoted \obj\C{\b\a}.  A configuration evaluates in
+one step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new
+configuration may include a new class table built by extending the previous
+table with new classes.
+
 
 
 
