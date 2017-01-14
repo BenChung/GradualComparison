@@ -255,7 +255,7 @@ declared interface. When a value misbehaves, blame can be assigned to the
 boundary the value crossed. The granularity of typing is the module, thus a
 module is either entirely typed or entirely untyped. This means that a
 compilation unit only deals with uniform code (typed or untyped) and that
-closely coupled functions that co-located in a module will not incur
+closely coupled functions co-located in a module will not incur
 boundary crossing costs.
 
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
@@ -525,7 +525,7 @@ instance of class \C, but it can be called with a value of type \any.
 Transient Python deems both expressions well-typed. Yet, the second is going
 to end up with a type error as a \code D is passed to a method expecting a
 \code C.  When translating to \kafka, all types are erased and casts are
-inserted on method entry and prior to returning. Thus we get:
+inserted on method entry and prior to returning. 
 
 \begin{lstlisting}
  class A {
@@ -590,9 +590,9 @@ promised type and cast results back to \any. Each of these casts introduces
 new wrappers. A shallow structural cast is used to catch obvious mismatches
 early.  The key properties of this translation are that typed code can rely
 on the presence of methods of the right type (thus use static method
-resolution) but calls can still fail at casts within the wrapper. An easily 
-overlooked, but significant, feature of Type Racket is that the \this variable
-is wrapped by any wrapper(s) applied at the call site.
+resolution) but calls can still fail at casts within the wrapper. An easily
+overlooked, but significant, feature of Racket is that the \this variable is
+wrapped by any wrapper(s) applied at the call site.
 
 \subsection{Monotonic Python}
 
