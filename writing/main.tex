@@ -2861,8 +2861,8 @@ the object stored at \a in \s.
 \subsection{TypeScript translation for program, class, and method}
 
 \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{TypeScript translation for programs}
-\opdef{$\classtrans {\K} {\Class \C{...}{...}} {\Class \C{...}{...}}$}{TypeScript translation for classes} 
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{TypeScript translation for methods} 
+\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{TypeScript translation for classes} 
+\opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{TypeScript translation for methods} 
 
 \begin{mathpar}
 \IRule{PT}{
@@ -3063,7 +3063,7 @@ the object stored at \a in \s.
 
 \subsection{Transient translation for methods}
 
-\opdef{$\methtrans\K\C{\md}{\md}{}$}{Transient translation for methods}
+\opdef{$\methtrans\K\C{\md}{\md}{\K}$}{Transient translation for methods}
 
 
 \begin{mathpar}
@@ -3155,6 +3155,10 @@ the object stored at \a in \s.
 
 \subsection{Type Racket translation for program, class, and method}
 
+\opdef{$\progtrans{\e~\K}{\e'~{\K'}}$}{Type Racket translation for programs}
+\opdef{$\classtrans {\K}{\Class \C{...}{...}~\K}{\Class \C{...}{...}~\K}$}{Type Racket  translation for classes}
+\opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{Type Racket  translation for methods}
+
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
@@ -3180,6 +3184,8 @@ the object stored at \a in \s.
 
 \subsection{Type Racket translation for expressions}
 
+\opdef{$\GenCast{\K}\Env\e\ep\t$}{Type Racket translation for expressions}
+
 \begin{mathpar}
 \IRule{TRS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
@@ -3202,6 +3208,8 @@ the object stored at \a in \s.
 \end{mathpar}
 
 \subsection{Type Racket translation for bidirectional expressions}
+
+\opdef{$\AnaCast\K\Env\e\ep\t$}{Type Racket translation for bidirectional expressions}
 
 \begin{mathpar}
 \IRule{TRA1}{
@@ -3246,6 +3254,10 @@ the object stored at \a in \s.
 
 \subsection{Monotonic translation for program, class, and method}
 
+\opdef{$\progtrans{\e~\K}{\e'~{\K'}}$}{Monotonic translation for programs}
+\opdef{$\classtrans {\K}{\Class \C{...}{...}~\K}{\Class \C{...}{...}~\K}$}{Monotonic translation for classes}
+\opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{Monotonic translation for methods}
+
 \begin{mathpar}
 \IRule{PT}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
@@ -3286,6 +3298,9 @@ the object stored at \a in \s.
 
 \subsection{Monotonic translation for expressions}
 
+\opdef{$\GenCastMono{\K}\E\e\ep\t{\K}$}{Monotonic translation for expressions}
+
+
 \begin{mathpar}
 \IRule{MOS1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
 
@@ -3317,6 +3332,9 @@ the object stored at \a in \s.
 
 \subsection{Monotonic translation for bidirectional expressions}
 
+\opdef{$\AnaCastMono\K\Env\e\ep\t\K$}{Monotonic translation for bidirectional expressions}
+
+
 \begin{mathpar}
 \IRule{MOA1}{
   \GenCastMono\K\Env\e\ep\tp\K \\
@@ -3337,8 +3355,8 @@ the object stored at \a in \s.
 
 \subsection{Expression translation for Behavioural semantics}\label{behtrans}
 
-% \begin{figure}[!ht]
-% \hrulefill
+\opdef{$\rtranst{\b{\mt}}{\b{\mtp}}\e\x\e\ep $}{Behavioral dynamic expression translation}
+
 \begin{mathpar}
 \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
 
@@ -3363,14 +3381,15 @@ the object stored at \a in \s.
 % \vspace{-2mm}
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \hrulefill
-% \caption{Behavioral dynamic expression translation.}\label{behtrans}
+% \caption{.}\label{behtrans}
 % \end{figure}
 
 % \clearpage
 
 \subsection{Class wrapper for Behavioural semantics}\label{wrap}
 
-% TODO: FIX the formatting.
+The \xt{wrap} function is used by the Type Racket language to generate the wrapper classes
+when encountering typed code.
 
 % \begin{figure}[!ht]
 % \hrulefill 
@@ -3450,6 +3469,9 @@ Formally, the \xt{retype} function takes a list of object
 addresses \b\a and a list of types to ascribe to them \b\t, and updates the
 heap \s and class table \K. 
 
+\begin{align*}
+\S &::= \cdot \B \Map\S{\Bind\a\C}
+\end{align*}
 \begin{mathpar}
 \IRule{CRM1}{
   \htype \a\S\s\K = \C~\Kp\\
@@ -3575,6 +3597,7 @@ types $\b\mtpp$ and a class table $\Kp$. \\
 
 \subsection{Monotonic dynamic expression translation}\label{montrans}
 
+\opdef{$\rtranstz{\b{\mt}}{\b{\mtp}}\e\ep$}{Monotonic dynamic expression translation}
 
 \begin{mathpar}
 \IRule{MREW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\x\x }
@@ -3621,6 +3644,9 @@ types $\b\mtpp$ and a class table $\Kp$. \\
 
 \subsection{Monotonic class generation}\label{classgen}
 
+The \xt{monWrap} function generates the wrapper for the monotonic translations,
+when a monotonic cast is required.
+
 \footnotesize
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
@@ -3656,6 +3682,9 @@ types $\b\mtpp$ and a class table $\Kp$. \\
 
 
 \subsection{Monotonic equivalent type generation}\label{typegen}
+
+The \xt{typegen} function is used by the \xt{tmeet} function to generate the new classes
+of the type produced by the meet operation.
 
 \footnotesize
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
@@ -3784,6 +3813,9 @@ returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
 
 \subsection{Static function}
 
+The \xt{static} function returns true if the class \D does not (transitively) contain any $\star$ type
+in any of its fields or methods.
+
 \opdef{
   $\statictype\D\K{\b\C} = \texttt{Bool}$
 }{
@@ -3819,7 +3851,7 @@ returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
 
 \subsection{Wftype function}
 
-\wftype{\b\f}\C\K denotes the function that looks up the type of a particular set of fields in \C.
+The function \wftype{\b\f}\C\K denotes the function that looks up the type of a particular set of fields in \C.
 
 \begin{equation*}
 \wftype{\b\f}\C\K = \b\t ~~\mathit{if}~~ \begin{cases}
@@ -3852,7 +3884,7 @@ getter or setter method for that field. This is enforced by the
 
 \subsection{getmds function}
 
-$\getmds\C\K$ denotes the function that returns the method definitions inside the class \C.
+The function $\getmds\C\K$ denotes the function that returns the method definitions inside the class \C.
 
 \begin{equation*}
 \getmds\C\K = \b\md ~~\mathit{if}~~ \Class\C{\b{\fd}}{\b\md} \in \K
@@ -3876,6 +3908,9 @@ for them according to the new wrapper \C.
 
 
 \subsection{Dynamic function}
+
+The \xt{dyn} function returns all the methods with $\star$ type for a particular set of 
+signatures of method typing.
 
 \begin{mathpar}
 \IRule{DYN1}{
@@ -3903,6 +3938,8 @@ for them according to the new wrapper \C.
 \end{mathpar}
 
 \subsection{Signature function}
+
+The \xt{signature} function returns method typing signatures ($\mt$) of method definitions ($\md$).
 
 \begin{mathpar}
 \IRule{SGE}{
@@ -3933,6 +3970,8 @@ for them according to the new wrapper \C.
 \end{mathpar}
 
 \subsection{Typing function}
+
+The \xt{typing} function takes field definitions and returns the method typing signature of that field's getter and setter methods. 
 
 \begin{mathpar}
 \IRule{TY1}{
