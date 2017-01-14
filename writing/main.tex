@@ -1320,21 +1320,40 @@ causes all calls to be dynamic.
 
 \subsection{Transient Python}
 
-The transient semantics is illustrated by the structural name cast,
-$\ShaCast\t\e$, and it asserts that $\e$ has the same names as $\t$. The
-transient semantics guarantee the methods of a class type will be callable
-with some argument, and some return value. It is up to the callee to check
-the arguments are correct and the caller to ensure the return value is
-correct.
+\newcommand{\A}{\EMxt A}
 
-The translation of the transient semantics require several additional rules
-in order to be well formed in \kafka.  Notably, the rule \RuleRef{MTT} in
-figure~\ref{fig:tratrans_cla} forces every type from the arguments to the
-function to be erased, as typed arguments may not be respected in the
-dynamics semantics. Type invariants are enforced with a tuple class checking
-the type of the argument, and returns the value of the body.
+The Transient semantics of \figref{trans} illustrates the use of the
+structural shallow cast, $\ShaCast\t\e$. The Transient semantics makes
+guarantee about what methods are avaible in the argument and return value of
+each typed method.  The translation require several additional rules in
+order to generate well-typed terms. Rule \RuleRef{MTT} uses an auxiliary
+class \A which is a tuple for sequencing. It first performans a shallow cast
+of the argument \x to \C and then evaluates the body of the method. (The
+call to \f return the body's value).  All type annotations are erased
+and replaced by \any.
 
-\begin{figure}
+
+The translation also requires substantial support from with \kafka to
+support the transient semantics. The translation is not obligated by
+transient to check method argument types before entry, and as a result,
+every call, typed or untyped, in transient is an untyped call.  Likewise,
+every typed method call must be guarded with a cast to ensure that the
+return type of the method is correct, as shown in \RuleRef{GRS2} of
+figure~\ref{fig:tratrans_exp}.
+
+The lack of statically typable calls in the transient semantics means that a
+pure implementation of transient in  \kafka would entail no fields ever being
+accessed using the setter or getter methods, as \kafka forbids accessing fields
+through dynamic call sites. To overcome this issue rule \RuleRef{GRS4} is added,
+which allows the definition of self-referential field access. In a transient
+system, the only type that is absolutely known at any time is the self-
+reference, which is use to access fields on the  self object. As a result, all
+accesses to fields would have to go through user-defined field accessor methods.
+
+
+\begin{figure}[!ht]
+\small
+  
 \begin{mathpar}
 \IRule{MTU}{
   \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
@@ -1343,23 +1362,15 @@ the type of the argument, and returns the value of the body.
 \IRule{MTT}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
+}{
+  \methtrans\K\C{\Mdef\m\x\C\Cp\e}
+      {\Mdef\m\x\any\any{\SubCast\any{\New \A{\ShaCast\C\x, \e}.\f()}}}{}
+}
 \end{mathpar}
-\caption{Transient translation for methods}
-\label{fig:tratrans_cla}
-\end{figure}
 
-The translation also requires substantial support from 
-with \kafka to support the transient semantics. The translation is not
-obligated by transient to check method argument types before entry, and as a
-result, every call,  typed or untyped, in transient is an untyped call.
-Likewise, every typed method call must be guarded with a cast to ensure that
-the return type of the method is correct, as shown in \RuleRef{GRS2} of figure~\ref{fig:tratrans_exp}.
- 
-\begin{figure}
+
 \begin{mathpar}
 \IRule{GRS1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
-
 
 \IRule[width=30em]{GRS2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
@@ -1384,21 +1395,7 @@ the return type of the method is correct, as shown in \RuleRef{GRS2} of figure~\
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
-\caption{Transient translation for expressions}
-\label{fig:tratrans_exp}
-\end{figure}
 
-
-The lack of statically typable calls in the transient semantics means that a
-pure implementation of transient in  \kafka would entail no fields ever being
-accessed using the setter or getter methods, as \kafka forbids accessing fields
-through dynamic call sites. To overcome this issue rule \RuleRef{GRS4} is added,
-which allows the definition of self-referential field access. In a transient
-system, the only type that is absolutely known at any time is the self-
-reference, which is use to access fields on the  self object. As a result, all
-accesses to fields would have to go through user-defined field accessor methods.
-
-\begin{figure}
 \begin{mathpar}
 \IRule{GRA1}{
   \GenCast\K\E\e\ep\tp \\
@@ -1414,8 +1411,7 @@ accesses to fields would have to go through user-defined field accessor methods.
   \AnaCast\K\E\e{\ShaCast\t\ep}\t
 }
 \end{mathpar}
-\caption{Transient translation for bidirectional expressions}
-\label{fig:tratrans_exp2}
+\caption{Transient translation.}\label{trans}
 \end{figure}
 
 The last notable rule in the transient translation is \RuleRef{GRA2}. In gradual
