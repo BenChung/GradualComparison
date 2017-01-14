@@ -1391,12 +1391,12 @@ the return type of the method is correct, as shown in \RuleRef{GRA2} of figure~\
 
 The lack of statically typable calls in the transient semantics means that a
 pure implementation of transient in  \kafka would entail no fields ever being
-accessed using the setter or getter methods, as \kafka forbids accessing fields through
-dynamic call sites. To overcome this issue rule \RuleRef{GRA4} is added, which
-allows the definition of self-referential field access. In a transient  system,
-the only type that is absolutely known at any time is the self-reference, which
-is use to access fields on the  self object. As a result, in \kafka the
-translation will wrap field accessors in method calls.
+accessed using the setter or getter methods, as \kafka forbids accessing fields
+through dynamic call sites. To overcome this issue rule \RuleRef{GRA4} is added,
+which allows the definition of self-referential field access. In a transient
+system, the only type that is absolutely known at any time is the self-
+reference, which is use to access fields on the  self object. As a result, all
+accesses to fields would have to go through user-defined field accessor methods.
 
 \begin{figure}
 \begin{mathpar}
