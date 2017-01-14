@@ -286,15 +286,15 @@
                 (mt_1 ... (f t t) mt_2 ...)
                 (mt_3 ... (f t_1 t_1) mt_4 ...)
                 (f (y t_1) t_1 (behnamcast t_1 (call (call this that) f (behcast t y)))))]
-  [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behcast C_1 x) x e e_1)
+  [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behnamcast C_1 x) x e e_1)
    ----- "R3"
    (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
                 (m (x t) t_1 (behnamcast t_1 e_1)))]
-  [(side-condition ,(not (redex-match KafKa (m (md_3 ... (m (x anyt) anyt) md_4 ...)) (term (m (md_1 ... md_2 ...))))))
+  [(side-condition ,(not (redex-match KafKa (m (md_3 ... (m (x anyt) anyt e) md_4 ...)) (term (m (md_1 ... md_2 ...))))))
    ---- "R4"
-   (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
-                (m (x anyt) anyt (subcast anyt (call this m (behnamcast t x)))))]
-  [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behcast anyt x) x e e_1)
+   (wrap-t-mths (md_1 ... (m (x C_1) C_2 e) md_2 ...) (mt ...) (mt_1 ... (m C_3 C_4) mt_2 ...)
+                (m (x anyt) anyt (behcast anyt (call this m (behnamcast C_3 x)))))]
+  [(beh-lift (mt ...) (mt_1 ... (m t t_1) mt_2 ...) (behnamcast anyt x) x e e_1)
    ---- "R5"
    (wrap-t-mths (md_1 ... (m (x anyt) anyt e) md_2 ...) (mt ...) (mt_1 ... (m t t_1) mt_2 ...)
                 (m (x t) t_1 (behnamcast t_1 e_1)))]
@@ -885,6 +885,9 @@
 
 (define meetex1 (term ((class A (mm (x anyt) A this)) (class B (mm (x B) anyt this)))))
 (define meetex2 (term ((class A (mm (x A) anyt this)) (class B (mm (x B) anyt this)))))
+(define figCDC (term ((class C (m (x E) E x) (mp (x E) E x)) (class D (m (x anyt) anyt x)) (class E (mu (x anyt) anyt x)))))
+(define figCDC2 (term ((class C (m (x E) E x) (mp (x E) E x)) (class D (m (x anyt) anyt x)) (class E (mu (x anyt) anyt x))
+                 (class CtoD (that C) (m (x anyt) anyt (behcast anyt (namcast anyt (behcast E (namcast E x))))) (mp (x E) E x)))))
 
 ;tests for redex
 
