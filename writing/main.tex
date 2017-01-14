@@ -191,7 +191,7 @@ classes.  The behavioral cast \BehCast\t\a generates a wrapper object that
 monitors that methods invoked on \a abide by the interface of type \t. The
 monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to
 the object referenced by \a, furthermore this wrapper can only be refined by
-removing occurences of \any in its type.
+removing occurrences of \any in its type.
 
 Another contribution is the translation of five type systems representative
 of the main strains of gradual typing for objects. Each gradually typed
@@ -411,7 +411,7 @@ different constraints and complexity, as well as their own strength and
 weakness. This section gives a brief introduction to the five representative
 systems that we are studying in this paper. We conclude with a discussion of
 the trace preservation property and how they differ in terms of catching
-errors. Rather than speaking directly to the source systems, we persent
+errors. Rather than speaking directly to the source systems, we present
 their \kafka modelization. The details of this modelization are the topic of
 the rest of the paper, so this section can be read as a preview. We leave
 blame for future work, and discuss semantics in terms of their translation
@@ -427,7 +427,7 @@ with classes and type annotations. Type equivalence is structural and
 subtyping of recursive types is supported (types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
 to catch simple errors, such as misspelt method names and assisting IDEs.  A
-typical example is shown here. The first expression is ill-typed becasue
+typical example is shown here. The first expression is ill-typed because
 method \code o does not exist, the second is erroneous as it
 provides an instance of \code A where \code C is expected. The third
 expression is statically correct as the instance of \code A is cast to a
@@ -616,7 +616,7 @@ update its effective type to match \code B, \emph{and will recursively
   follow field \code f and update all of the objects that are reachable
   through it}. The name of the language comes from the fact that only a
 finite number of casts can change the effective type of an object. Monotonic
-only allows to cast to types that have fewer occurences of \any.  Subtyping
+only allows to cast to types that have fewer occurrences of \any.  Subtyping
 is defined using a combination of structural equivalence and consistency.
 This ensures that in case of aliasing, references that are of type \code A
 can safely point to the updated type \code B.  The main design issue is that
@@ -776,7 +776,7 @@ as follows:
   of \code A to \code I go through.
 \item{\bf L3:} Fails in Monotonic because the same object is being cast to
   two different types, \code I and \code J.
-\item{\bf L4:} Fails in Monotonic because the object refered to by \code x
+\item{\bf L4:} Fails in Monotonic because the object refereed to by \code x
   in method \code s is cast to \code I. This updates the effective type of field
   \code f to \code D. But the assignment in method \code m tries to give it
   an \code A. Fails in Racket because the \this field is wrapped with an
@@ -803,7 +803,7 @@ JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
 The syntax of \kafka is given in \figref{syn}. Meta-variables \C, \D and \E
 range over class names, \x ranges over variable names, \m and \f range over
-methods and fields respectively. Finally, \this is a distinguished identifer
+methods and fields respectively. Finally, \this is a distinguished identifier
 representing a method receiver, while \that is a distinguished field name
 used in wrapper classes.  Expressions include object creation, \New\C{\b\e},
 field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
@@ -1036,7 +1036,7 @@ evaluation order.
 
 \noindent
 This section gives semantics to the five gradual type systems of interest.
-In each case, the semantics of the source langauge are defined by
+In each case, the semantics of the source language are defined by
 translation to \kafka programs. Source and target share most of their
 syntax, when we need to distinguish them we will use underline to denote
 source terms.  Casts are not used in the source languages, but are inserted
@@ -1071,7 +1071,7 @@ a \kafka configuration \K\,\e.
 \noindent
 Each translation guarantees a few key properties. A translated program is
 well-formed, a well-formed program will reduce or get stuck at a cast or a
-dynammically resolved call.
+dynamically resolved call.
 
 
 
@@ -1748,7 +1748,7 @@ class D {
 \end{figure}
 
 This behaviour, copying the behaviour of the wrapped object, is unusual, and is
-how we maintain one of the unusual semantic behaviours of Typed Racket. If we 
+how we maintain one of the unusual semantic behaviors of Typed Racket. If we 
 were to implement the wrappers directly, as seen in figure~\ref{fig:rktex2}, 
 we will diverge from the actual behaviour of Typed Racket, despite it remaining
 typesafe.
@@ -1894,7 +1894,7 @@ wrapper.
 \end{figure}
 
 Our approach avoids this by inserting ``passthrough'' methods that retain their
-original types and behaviours into the output wrappers, as illustrated in
+original types and behaviors into the output wrappers, as illustrated in
 figure~\ref{ctod}, where we make a \C into a \D and then back again. When we
 reduce the set of required methods by casting a \C to a \D, we retain the method
 \mp by adding it to the output class. Notably, this operation preserves existing
@@ -1903,9 +1903,9 @@ the operation only adds additional methods.
 
 The Typed Racket translation demonstrates some of the key issues inherent in a
 wrapper-based system, where wrapper-inserting casts build up very quickly
-internally, leading to the potential for a wrapper explosion, as prevously noted
+internally, leading to the potential for a wrapper explosion, as previously noted
 by Takikawa et al~\cite{practical-gt}, a point that is further highlighted by
-the number of casts inserted into the wrappers, even if unnessecary casts are
+the number of casts inserted into the wrappers, even if unnecessary casts are
 then removed.
 
 
