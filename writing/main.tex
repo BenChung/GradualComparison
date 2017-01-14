@@ -787,14 +787,21 @@ as follows:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Kafka: A Core Calculus}
+\section{KafKa: A Core Calculus}
 
+
+\vspace{-2mm}
+
+\epigraph{\small ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
+
+\vspace{-5mm}
+
+\noindent
 The basis of our formal approach is the \kafka calculus. At its heart,
 \kafka is a class-based, object-oriented, structurally typed, language with
 dynamic dispatch, modeled off of common intermediate languages such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
-
 The syntax of \kafka is given in \figref{syn}. Meta-variables \C, \D and \E
 range over class names, \x ranges over variable names, \m and \f range over
 methods and fields respectively. Finally, \this is a distinguished identifer
@@ -803,22 +810,17 @@ used in wrapper classes.  Expressions include object creation, \New\C{\b\e},
 field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
 invocation, \Call\e\m\e, dynamically resolved method invocation,
 \DynCall\e\m\e, subtype casts, \SubCast\t\e, and shallow casts,
-\ShaCast\t\e.  Types consist of class names and the dynamic type, writte
-\any.
+\ShaCast\t\e.  Types consist of class names and the dynamic type, written
+\any. Class definitions have a class name and (possibly empty) sequences of
+field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
+definitions consist of a field and its type, \Fdef\f\t. Method definitions
+have (for simplicity) a single argument and an expression \Mdef\f\x\t\t\e.
+Fields are read by calling getter methods and updated by setter methods,
+these can also be defined as, respectively \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
 
 
 
-\kafka has two types: the $\any$ type and the class type \C (also \D and
-\E).  In \kafka, the types \C refer to the class of the same name, which can
-contain fields (\HT\f\t) and methods. \kafka have three kinds of methods,
-normal methods (\Mdef\m\x\t\t\e), getter methods (\Mdefz\f\t\e), and setter
-methods (\Mdef\f\x\t\t\e).
-
-
-
-
-\begin{figure}[!h]
-\hrulefill
+\begin{figure}[!h]\hrulefill
 
 \hspace{0.1cm}
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
@@ -838,7 +840,6 @@ methods (\Mdef\f\x\t\t\e).
 \end{tabular}\end{minipage}
 
 \hrulefill
-
 \caption{\kafka Syntax.}\label{syn}
 \end{figure}
 
@@ -847,18 +848,58 @@ methods (\Mdef\f\x\t\t\e).
 % \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
 
 
-\kafka has two structural cast expressions. The structural subtype cast,
-denoted by \SubCast\t\a, asserts that the object at location \a is of type \t.
-The structural shallow cast,  denoted by \ShaCast\t\a, asserts the object at
-location \a has methods with names matching to those of type \t, while not
-making any guarantee about the type of the arguments.
+\subsection{Static Semantics}
 
-% The generative behavioral cast, denoted \BehCast\t\a, will ensure that 
-% either \a behaves as a \t or that it get stuck. The generative monotonic 
-% cast, denoted \MonCast\t\a, is a behavioral cast that, in addition, imposes 
-% constraints on fields.
+A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
+class table \K where each class \k in \K is well-formed and \e is well-typed
+with respect to \K.  A class is well-formed if all its fields and methods
+are well-typed. A class that defines a field \f is not allowed to have
+getter or setter methods of that name.  A class can have at most two
+definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
+\Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
+unsurprising, the following shows rules for method calls and casts.
 
-\subsection{Semantics}
+{\small
+\begin{mathpar}
+\IRule{W6}{
+  \EnvType \Env\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
+  \EnvType \Env\s\K\ep\tp
+}{
+  \EnvType \Env\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{W7}{
+  \EnvType \Env\s\K\e\any \\
+  \EnvType \Env\s\K\ep\any
+}{
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
+}    
+
+\IRule{W9}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\SubCast\t\e}\t
+}
+
+\IRule{W10}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
+}
+\end{mathpar}}
+
+\noindent Method calls use \emph{syntactic} disambiguation to select between
+typed and untyped methods. The dynamically resolved call places no
+requirements on the receiver or argument, and returns type \any. The subtype
+cast rule \RuleRef{W9} states that result is of the cast type, but it does
+not preclude silly casts.  Rule \RuleRef{W10} describes the semantics of the
+shallow casts, which merely asserts the presence of method names without
+making any statements about the type of the object being cast. 
+The complete set of rules appear in appendix.
+
+
+\subsection{Dynamic Semantics}
 
 \kafka has typical small step operational semantics with several key
 features that allow it to act as a common core for gradual typing
@@ -879,10 +920,9 @@ similar to properties in C\#. However, this design also means that all field
 operations must be correctly typed. Otherwise, the type invariants of an
 underlying field would be violated.
 
-%\kafka classes contain methods and fields, the latter can be declared  either
-%via an explicit field declaration in the class (e.g. \HT\f\t) or by a pair of a
-%getter (\Get\this\f) and setter  (\Set\this\f\x) methods. Semantically, both
-%explicit and implicit fields behave  identically, which has the consequence that
+
+
+
 %untyped field access is forbidden,  as explicit field semantics would become
 %dependent on the approach to typing.  Methods in \kafka are segregated into
 %typed (methods whose argument and return type is not \any) and untyped methods,
@@ -1013,37 +1053,7 @@ underlying field would be violated.
 \label{fig:semantics}
 \end{figure}
 
-The other features presented in \kafka relates to the two calling forms,
-\Call\e\m\e and \DynCall\e\m\e. In \kafka, methods can be either typed
-(argument and return type that are not \any), or untyped (argument and
-return type are \any). Typed methods can be invoked with \Call\e\m\e, while
-untyped methods are invoked \DynCall\e\m\e. The ability to define two
-methods of the same name provided one is typed and the other untyped.
 
-
-\subsection{Structural Casts}
-
-\kafka offers two kinds of structural casts. One which performs a structural
-subtype check and one that only check for the presence of methods with given
-names. 
-
-The first type of cast is the simplest, as it only checks that the runtime type
-tag (\C) is a subtype of the required type (\D), and is notated \SubCast\D\e.
-Here, the runtime check consists only of ensuring that the subtyping judgment
-holds between the desired and dynamically known type, which can be done easily
-and does not require any additional runtime  components beyond the cast.
-Moreover, this kind of cast establishes value identity exactly, allowing us to
-type it with the cast type.
-
-This is not true, however, of the name cast, which only checks for the
-presence of methods with the given name. While simple, the name cast is
-extremely weak and cannot ensure type identity is preserved as required to
-produce a strong \kafka type. As a result, any use of this cast is typed to
-\any.
-
-We will begin our discussion of applying gradual typing to objects by examining
-the optionally-typed TypeScript, which will provide an overview of our static 
-translation system from a source language to \kafka.
 
 \section{Translation: TypeScript}
 
@@ -2539,7 +2549,7 @@ class E {
 \label{fig:tmeet_rec_ex}
 \end{figure}
 
-The meta-variable \P becomes crucial when considering the example
+vThe meta-variable \P becomes crucial when considering the example
 in figure~\ref{fig:tmeet_rec_ex}, where the meet  of \xt{A} and \xt{B}
 recursively depends on the meet of \xt{A} and \xt{B}. If we proceeded naively,
 without \P, \RuleRef{TM4} would invoke \RuleRef{TM4} again to compute the meet
@@ -2553,30 +2563,25 @@ be used by \RuleRef{TM5} to terminate the recursion.
 \section{Conclusion}
 
 Gradual typing is no longer simply a popular research topic in academia.
-Real world applications are being written with gradual typing like languages.
-Types are progressively being introduced into existing untyped applications.
-It's the responsibility of language researchers to present a clear understanding 
-of each viable gradual typing idiom available.
+Real world applications are being written with gradual typing like
+languages.  Types are progressively being introduced into existing untyped
+applications.  It's the responsibility of language researchers to present a
+clear understanding of each viable gradual typing idiom available.
 
-We have presented \kafka, a formal language that serves as the foundation for 
-constructing five existing gradual typing systems: Typescript, Thorn, Transient, 
-Type Racket, and Monotonic. \kafka offers the opportunity for comparing and 
-contrasting these gradual typing systems within an unified framework. The translations
-to \kafka for each gradual typing system highlights the essences which makes each system unique.
+We have presented \kafka, a formal language that serves as the foundation
+for constructing five existing gradual typing systems: Typescript, Thorn,
+Transient, Type Racket, and Monotonic. \kafka offers the opportunity for
+comparing and contrasting these gradual typing systems within an unified
+framework. The translations to \kafka for each gradual typing system
+highlights the essences which makes each system unique.
 
-From \kafka, we have developed a better understanding for the lightweight nature of TypeScript,
-the restrictiveness of Thorn, the excessiveness of the wrappers generated by Type Racket,
-the safety guarantees of Transient, and the complexity and dynamic nature of Monotonic.
-However, the aim of this paper is not only to provide a deeper understanding for each
-individual gradual typing system, but a road map for the direction of gradual typing in general.
-
-In the future, we intend on exploring the possibility of mixing and matching the varies 
-cast semantics within \kafka. In particular, the interaction between the behavioural cast semantics 
-and the Monotonic cast semantics should be considered worth exploring.
-The decision to describe the Monotonic cast semantics via wrapper generation was influenced
-by the existence of the getter and setter methods necessary for the behavioural cast semantic.
-It would be worthwhile to consider designing a system similar to \kafka using the in place 
-replacement technique. 
+From \kafka, we have developed a better understanding for the lightweight
+nature of TypeScript, the restrictiveness of Thorn, the excessiveness of the
+wrappers generated by Type Racket, the safety guarantees of Transient, and
+the complexity and dynamic nature of Monotonic.  However, the aim of this
+paper is not only to provide a deeper understanding for each individual
+gradual typing system, but a road map for the direction of gradual typing in
+general.
 
 
 \clearpage
