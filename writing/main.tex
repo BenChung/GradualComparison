@@ -100,7 +100,7 @@ designs.
 
 \vspace{-5mm}
 
-\epigraph{``Because half the problem is seeing the problem''}
+\epigraph{\small ``Because half the problem is seeing the problem''}
 
 \vspace{-5mm}
 
@@ -128,22 +128,22 @@ Typed Racket~\cite{Takikawa:2012},
 TypeScript~\cite{BAT14}.}
 %%
 
-Despite its age and popularity, faithful realizations of Seik and Taha's elegant
-idea have proved to be surprisingly elusive, one possible reason being that the
-original paper did not consider state. The combination of mutable state,
-aliasing and subtyping complicates enforcement strategies as one must consider
-situations where an object is being accessed at different types. While several
-solutions have been proposed to address this, the performance implications of
-the implementation strategies of these solutions seem daunting.\footnote{Most
-practical \emph{sound} type system reports order of magnitude pathologies,
-e.g.~5x slow downs for Gradualtalk~\cite{allende13}, 10x for Reticulated
-Python~\cite{siek14}, 22x for Safe Typescript~\cite{safe-typescript}, and 121x
-for Typed Racket~\cite{popl16}. These numbers merely indicate the existence of
-configurations that hurt performance.  They are neither comparable nor worst
-case indicators. Most systems lack rigorous evaluations. } Predictably,
-developers of industrial languages have chosen to compromise on soundness to
-avoid degrading performance.\footnote{Dart, Typescript and Hack use unchecked
-modes for production, all type errors will not be reported.}
+Despite its age and popularity, faithful realizations of Seik and Taha's
+elegant idea have proved to be surprisingly elusive, one possible reason
+being that the original paper did not consider state. The combination of
+mutable state, aliasing and subtyping complicates enforcement strategies as
+one must consider situations where an object is being accessed at different
+types. While several solutions have been proposed to address this, the
+performance implications of the implementation strategies of these solutions
+seem daunting.\footnote{\emph{Sound} type systems reports order of magnitude
+  pathologies, e.g.~5x for Gradualtalk~\cite{allende13}, 10x Reticulated
+  Python~\cite{siek14}, 22x Safe Typescript~\cite{safe-typescript}, and 121x
+  Typed Racket~\cite{popl16}. These numbers merely indicate the existence of
+  configurations that hurt performance.  Most systems lack rigorous
+  evaluations. } Predictably, developers of industrial languages have chosen
+to compromise on soundness to avoid degrading performance.\footnote{Dart,
+  Typescript and Hack use unchecked modes for production, all type errors
+  will not be reported.}
 
 This paper explores the design space of gradual type systems for object-oriented
 languages. We aim to expose some of the forces that have influenced existing
@@ -221,7 +221,7 @@ semantic properties.
 
 \vspace{-5mm}
 
-\epigraph{ ``If you know the enemy and know yourself...''}
+\epigraph{\small ``If you know the enemy and know yourself...''}
 
 \vspace{-5mm}
 
@@ -400,17 +400,23 @@ prohibitive slow downs in pathological cases.
 
 \section{Gradual Typing in Practice}
 
-Gradual types systems comes in many shapes and size, with different
-constraints and complexity, as well as their own strength and weakness. In
-this section, we present a brief introduction for five representative
-gradual types systems, focusing on their role within the gradual typing
-landscape. We aim to illustrate the niche of each system, and what make them
-unique.
+\vspace{-2mm}
 
-Examples are written in the \kafka syntax which is explained in detail in
-the next section. For our purposes it is a class-based calculus with
-structural subtyping. The dynamic type is denoted \any, and method calls
-that are dynamically resolved are written \DynCall\x\m\xp.
+\epigraph{\small ``Oh, let me see your beauty when the witnesses are gone''}
+
+\vspace{-5mm}
+
+\noindent
+While gradual type systems for objects come in many shapes and size, with
+different constraints and complexity, as well as their own strength and
+weakness. This section gives a brief introduction to the five representative
+systems that we are studying in this paper. We conclude with a discussion of
+the trace preservation property and how they differ in terms of catching
+errors. Rather than speaking directly to the source systems, we persent
+their \kafka modelization. The details of this modelization are the topic of
+the rest of the paper, so this section can be read as a preview. We leave
+blame for future work, and discuss semantics in terms of their translation
+to a typed class-based calculus with structural subtyping. 
 
 
 
@@ -421,11 +427,12 @@ Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
 subtyping of recursive types is supported (types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
-to catch simple errors, such as misspelt method names, and assisting IDEs. 
-A typical example is shown in the program below. The first call is
-type correct, the second is erroneous as it provides an instance of \code A
-where \code C is expected. The third call is statically correct as the
-instance of \code A is cast to a \code C by the \code{id} method.
+to catch simple errors, such as misspelt method names and assisting IDEs.  A
+typical example is shown here. The first expression is ill-typed becasue
+method \code o does not exist, the second is erroneous as well as it
+provides an instance of \code A where a \code C is expected. The third
+expression is statically correct as the instance of \code A is cast to a
+\code C by the \code{n} method.
 
 \begin{lstlisting}
  class A { 
@@ -437,11 +444,10 @@ instance of \code A is cast to a \code C by the \code{id} method.
  new A().m(new A().n(new A())) // OK 
 \end{lstlisting}
 
-
 \noindent
 Well-typed code is translated to plain JavaScript with all types erased and
-methods resolved dynamically.  The last call would translate to the
-following \kafka program.
+methods resolved dynamically. In \kafka, one would translate the class
+definition and the last expression as follows:
 
 \begin{lstlisting}
  class A { }
@@ -452,13 +458,13 @@ following \kafka program.
 \end{lstlisting}
 
 \noindent
-The translated code uses the dynamically resolved calls (written \code @)
-with method signatures set to \any.  The designers of TypeScript saw
-unsoundness as a way to ensure (a) types do not get in the way of running
-correct programs, e.g. when importing a new library with type annotations
-inconsistent with client code; and (b) an insurance for backwards
-compatibility, ignoring types means all browsers can run TypeScript code --
-with no overheads.
+Dynamically resolved calls (written \code @) are calls that may fail because
+the receiver need not have the requested method. Method signatures see their
+types set to \any.  The designers of TypeScript saw unsoundness as a way to
+ensure (a) types do not get in the way of running correct programs,
+e.g. when importing a new library with type annotations inconsistent with
+client code; and (b) an insurance for backwards compatibility, ignoring
+types means all browsers can run TypeScript code -- with no overheads.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Thorn}
