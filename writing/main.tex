@@ -791,7 +791,7 @@ as follows:
 
 \vspace{-2mm}
 
-\epigraph{\small ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
+\epigraph{\hspace{-1cm}\small ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}
 
 \vspace{-5mm}
 
@@ -1015,12 +1015,35 @@ class table, \e is an expression and \s is a heap mapping addresses ranged
 over by \a to objects denoted \obj\C{\b\a}.  A configuration evaluates in
 one step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new
 configuration may include a new class table built by extending the previous
-table with new classes.
+table with new classes. Field access either reads a field from the object
+(if the class has a field definition) or invokes a getter function (if the
+class has a getter method of the field name). Setters are treated similarly.
+Method calls must respect the typing, typed methods are invoked with static
+calls and untyped methods are invoked with dynamically resolved calls.
+Casts to \any are trivally satisfied while subtype casts to \C check that
+object is an instance of a subtype and shallow casts check inclusion of
+method names. Evaluations contexts are deterministic and enforce a strict
+evaluation order.
 
 
 
+\section{Translating Gradual Types}
 
-\section{Translation: TypeScript}
+\vspace{-2mm}
+
+\epigraph{\small ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
+
+\vspace{-5mm}
+
+\noindent
+This section gives semantics to the five gradual type systems of interest.
+In each case, the semantics of the source langauge are defined by
+translation to \kafka programs. Source and target share most of their
+syntax, when we need to distinguish them we will use underline to denote
+source terms.  Casts are not used in the source languages, but are inserted
+by the translations.
+
+\subsection{TypeScript}
 
 TypeScript is an example of a \emph{optional} type system, where the types have
 no static guarantee whatsoever, and, as a result, the type system has no effect
@@ -1153,28 +1176,30 @@ $\EnvType {\cdot}{\s}\Kpp\a\t$ \\
 \caption{\kafka Translation and execution.}\label{redu}
 \end{figure}
 
-Figure~\ref{redu} depicts the source language terms $\K$ and $\e$ 
-(marked with an underline) being translated into a \kafka program which is then executed.
-The translation guarantees a few key properties. A translated program 
-should be well-formed in \kafka. Well formed \kafka programs  
-should execute the \kafka semantics correctly (not get stuck, except at casts and dynamic calls). 
-The TypeScript translation produces terms that type check in \kafka, as it erases
-all types in the source during translation, allowing the \kafka type system to
-conclude that any program that passes the translation will not get stuck except
-at dynamic call sites.
-The translation from TypeScript to \kafka is considered weak due to the type erasure, 
-as it befits TypeScript's optional and unsound nature. Next we will examine languages
-with stronger guarantees by translating the language Thorn, a gradual type system with
-many features of TypeScript combined with the additional ability to write sound,
-dynamically checked types.
+Figure~\ref{redu} depicts the source language terms $\K$ and $\e$ (marked
+with an underline) being translated into a \kafka program which is then
+executed.  The translation guarantees a few key properties. A translated
+program should be well-formed in \kafka. Well formed \kafka programs should
+execute the \kafka semantics correctly (not get stuck, except at casts and
+dynamic calls).  The TypeScript translation produces terms that type check
+in \kafka, as it erases all types in the source during translation, allowing
+the \kafka type system to conclude that any program that passes the
+translation will not get stuck except at dynamic call sites.  The
+translation from TypeScript to \kafka is considered weak due to the type
+erasure, as it befits TypeScript's optional and unsound nature. Next we will
+examine languages with stronger guarantees by translating the language
+Thorn, a gradual type system with many features of TypeScript combined with
+the additional ability to write sound, dynamically checked types.
 
-\section{Translation: Thorn}
+\subsection{Thorn}
 \newcommand{\bC}{\xt{!C}}
 
-The translation for Thorn contains an ``unsound'' type $\dt\C$, which has its own subtyping relation, and compiles 
-down to \any in \kafka. This unsound type still enforces the same static requirements as its sound counterpart, but 
-generates no runtime casts and therefore has lower overhead. Over this new type, we define a subtyping relation, 
-$\t \Sub_t \t$.
+The translation for Thorn contains an ``unsound'' type $\dt\C$, which has
+its own subtyping relation, and compiles down to \any in \kafka. This
+unsound type still enforces the same static requirements as its sound
+counterpart, but generates no runtime casts and therefore has lower
+overhead. Over this new type, we define a subtyping relation, $\t \Sub_t
+\t$.
 
 \begin{figure}[h!]
 \begin{tabular}{l@{~~}l@{}l@{}l}
@@ -2607,10 +2632,6 @@ a class table \K.   The set of subtypings can be omitted if empty.
 }{
  \StrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
 }
-% \IRule{SThat}{
-% }{
-%   \StrSub\M\K{\Mtype\that{\b{\t[1]}}{\t[1]}}{\mt}
-% }
 \end{mathpar}
 
 \subsection{Well-formedness}
@@ -2701,8 +2722,8 @@ field or method names within the given field and method definitions. \\
 
 \subsection{Expression typing}
 
-Field accessor rules W3 and W4 require a typed receiver, since \any does
-not have any methods a receiver typed at \any will never typecheck.
+Field accessor rules W3 and W4 require a typed receiver, since \any does not
+have any methods a receiver typed at \any will never typecheck.
 
 Shallow casts, W9, do not change the type of the expression. We are casting
 to the name of \t not to \t.  In practice that means that all expression
@@ -2795,18 +2816,18 @@ types in Transient will drift towards \any.
 }
 
 \IRule{W12}{
-  \Env(\text{this}) = \D \\
-  \Class \D {\text{that}:\C}{...} \in\,\K \\
+  \App\Env\this = \D \\
+   \Fdef\that\C\in\App\K\D\\
 }{
-  \EnvType \Env\s\K{\Get{\text{this}}{\text{that}}}\C
+  \EnvType \Env\s\K{\Get\this\that}\C
 }
 
 \IRule{W13}{
-  \Env(\text{this}) = \D \\
-  \Class \D {\text{that}:\C}{...} \in\,\K\\
+  \App\Env\this = \D \\
+   \Fdef\that\C\in\App\K\D\\
   \EnvType \Env\s\K\e\C \\
 }{
-  \EnvType \Env\s\K{\Set{\text{this}}{\text{that}}\e}\C
+  \EnvType \Env\s\K{\Set\this\that\e}\C
 }
 \end{mathpar}
 
