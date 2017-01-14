@@ -1083,8 +1083,8 @@ translation top-down, translating classes and the main expression.  Beyond
 the top level translation, we have two judgments that perform cast insertion
 on expressions, following Pierce and Turner~\cite{pierce:1998:local}, the
 synthetic cast insertion judgment $\GenCast\K\Env\e\ep\t$, which states that
-against context \Env and class table \src\K, expression \src\e translates to
-\ep producing source type \src\t, and the analytic judgment
+against context \Env and class table \src\K, expression \src\e\,translates to
+\ep\, producing source type \src\t, and the analytic judgment
 $\AnaCast\K\Env\e\ep\t$, which ensures that the translated expression $\ep$
 will model source type \src\t, coming from source expression \src\e.  Inside
 of this bidirectional framework, we then have a fairly typical set of
@@ -1121,13 +1121,13 @@ translation judgments.
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{TSA1}{
+\IRule{TSS1}{
   \HasType{\src\Env}{\src\x}{\src\t}
 }{
   \GenCast\K\Env\x\x\t
 }
 
-\IRule[width=30em]{TSA2}{
+\IRule[width=30em]{TSS2}{
     \GenCast\K\Env{\e_1}{\e_2}\C \\ 
     \Mtype{\src\m}{\src\t}{\src\tp}\in \classoff{\src\C}{\src\K} \\ 
     \AnaCast\K\Env{\ep_1}{\ep_2}\t
@@ -1135,14 +1135,14 @@ translation judgments.
     \GenCast\K\Env{\Call{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}\tp
 }
 
-\IRule{TSA3}{
+\IRule{TSS3}{
     \AnaCast\K\Env{\e_1}{\e_2}\any \\
     \AnaCast\K\Env{\ep_1}{\ep_2}\any
 }{
     \GenCast\K\Env{\DynCall{\e_1}\m{{\ep_1}}}{\DynCall{\e_2}\m{{\ep_2}}}\any
 }
 
-\IRule[width=20em]{TSA4}{
+\IRule[width=20em]{TSS4}{
     \HasType{\src\Env}{\src\this}{\src\C} \\ 
     \Mtype{\src\f}{\src\t}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
     \AnaCast\K\Env\e\ep\t
@@ -1150,14 +1150,14 @@ translation judgments.
     \GenCast\K\Env{\Call\this\f\e}{\Call\this\f\ep}\any
 }
 
-\IRule[width=20em]{TSA5}{
+\IRule[width=20em]{TSS5}{
     \HasType{\src\Env}{\src\this}{\src\C} \\ 
     \Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K} 
 }{
     \GenCast\K\Env{\Call\this\f{}}{\Call\this\f{}}\any
 }
 
-\IRule{TSA6}{
+\IRule{TSS6}{
   \b{\AnaCast{\K}\Env{\e}{\ep}\t} 
 }{
    \GenCast\K\Env{\New\C{\b\e}}{\SubCast\any{\New\C{\b\ep}}}{\C}
@@ -1165,20 +1165,20 @@ translation judgments.
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{TSC1}{
+\IRule{TSA1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSC2}{
+\IRule{TSA2}{
   \GenCast\K\Env\e\ep\any
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSC3}{
+\IRule{TSA3}{
   \GenCast\K\Env\e\ep\C
 }{
   \AnaCast\K\Env\e\ep\any
@@ -1189,10 +1189,10 @@ translation judgments.
 \end{figure}
 
 The synthetic case of translation is uninteresting, with the exception of
-\RuleRef{TSA4}, which allows access to fields via the self-reference, whose
+\RuleRef{TSS4}, which allows access to fields via the self-reference, whose
 type is always known.  Of more interest are the analytic rules:
-\RuleRef{TSC1} requires the interaction between typed parts of the program
-to be well-typed, but \RuleRef{TSC2} and \RuleRef{TSC3} allow untyped values
+\RuleRef{TSA1} requires the interaction between typed parts of the program
+to be well-typed, but \RuleRef{TSA2} and \RuleRef{TSA3} allow untyped values
 to be passed into typed references without any extra checks, and are what
 causes TypeScript to be unsound.  The translation produces well-typed terms
 as it erases all types in the source during translation. The translation is
@@ -1213,16 +1213,16 @@ define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
 both hold if \C~\src\Sub~\D.  The synthetic cases describe the traditional
 ``bottom-up'' style of typing judgment. Each case produce an equivalent
 \kafka term for the given Thorn expression under the \kafka type that
-matches the Thorn type. Rules \RuleRef{THA1}, \RuleRef{THA2},
-\RuleRef{THA5}, and \RuleRef{THA6} are all effectively direct translations
+matches the Thorn type. Rules \RuleRef{THS1}, \RuleRef{THS2},
+\RuleRef{THS5}, and \RuleRef{THS6} are all effectively direct translations
 of the traditional typing rules for variables, calls, dynamic invocation,
-and new, respectively.  However, two rules, \RuleRef{THA3} and
-\RuleRef{THA4}, break this pattern. These rules are applied when the
+and new, respectively.  However, two rules, \RuleRef{THS3} and
+\RuleRef{THS4}, break this pattern. These rules are applied when the
 receiver type is an unsound type and case analyze is performed on the
-declared return type. In \RuleRef{THA3}, the return type is a concrete type,
+declared return type. In \RuleRef{THS3}, the return type is a concrete type,
 or a sound type, from an unsound type, and therefore requires an insertion
-of a runtime cast, and the alternative case is shown in \RuleRef{THA4}. It
-is important to note that both \RuleRef{THA3} and \RuleRef{THA4} produce
+of a runtime cast, and the alternative case is shown in \RuleRef{THS4}. It
+is important to note that both \RuleRef{THS3} and \RuleRef{THS4} produce
 dynamic calls on the receiver, despite the receiver having a source language
 type. This is because Thorn's unsound types are translated to \any, which
 causes all calls to be dynamic.
@@ -1253,20 +1253,20 @@ causes all calls to be dynamic.
 
 \small
 \begin{mathpar}
-\IRule{THA1}{
+\IRule{THS1}{
   \HasType{\src\Env}{\src\x}{\src\t}
 }{
   \GenCast\K\Env\x\x\t
 }
 
-\IRule[width=30em]{THA2}{
+\IRule[width=30em]{THS2}{
     \GenCast\K\Env\e\ep\C \\ 
     \Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
 }{
     \GenCast\K\Env{\Call\e\f{}}{\Call{\ep}\f{}}\t
 }
 
-\IRule[width=30em]{THA2'}{
+\IRule[width=30em]{THS2'}{
     \GenCast\K\Env{\e_1}{\e_2}\C \\ 
     \Mtype{\src\f}{\src\t}{src\t} \in \classoff{\src\C}{\src\K} \\ 
     \AnaCast\K\Env{\ep_1}{\ep_2}{\src\t}
@@ -1274,7 +1274,7 @@ causes all calls to be dynamic.
     \GenCast\K\Env{\Call{\e_1}\f{\ep_1}}{\Call{\e_2}\f{\ep_2}}\t
 }
 
-\IRule[width=30em]{THA2''}{
+\IRule[width=30em]{THS2''}{
     \GenCast\K\Env{\e_1}{\e_2}\C \\ 
     \Mtype{\src\m}{\src\t}{\src\tp} \in \classoff{\src\C}{\src\K} \\ 
     \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
@@ -1282,7 +1282,7 @@ causes all calls to be dynamic.
     \GenCast\K\Env{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}\tp
 }
 
-\IRule{THA3}{
+\IRule{THS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
     \src{\m({\t_1}):\D \in \classoff\C\K} \\ 
     \AnaCast\K\Env{\e_2}{\e_4}{\t_1}
@@ -1290,7 +1290,7 @@ causes all calls to be dynamic.
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast\D{\DynCall{\e_3}\m{{\e_4}}}}{\D} %Q: do I need to cast the return value of non-bang
 }
 
-\IRule{THA4}{
+\IRule{THS4}{
     \GenCast\K\Env{\e_1}{\e_2}{\dt\C} \\ 
     \Mtype{\src\m}{\src\t}{\src{\dt\D}} \in \classoff{\src\C}{\src\K} \\ 
     \AnaCast\K\Env{\ep_1}{\ep_2}\t 
@@ -1299,14 +1299,14 @@ causes all calls to be dynamic.
     %Q: do I need to cast the return value of non-bang
 }
 
-\IRule{THA5}{
+\IRule{THS5}{
     \AnaCast\K\Env{\e_1}{\e_3}\any \\ 
     \AnaCast\K\Env{\e_2}{\e_4}\any
 }{
     \GenCast\K\Env{\DynCall{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
 }
 
-\IRule{THA6}{
+\IRule{THS6}{
   \b{\AnaCast\K\Env{\e}{\ep}\t} 
   }{
   \GenCast\K\Env{\New\C{\b\e}}{\New\C{\b\ep}}\C
@@ -1328,8 +1328,8 @@ the arguments are correct and the caller to ensure the return value is
 correct.
 
 The translation of the transient semantics require several additional rules
-in order to be well formed in \kafka.  Notably the rule \RuleRef{MTT} in
-figure~\ref{fig:tratrans_cla}, forces every type from the arguments to the
+in order to be well formed in \kafka.  Notably, the rule \RuleRef{MTT} in
+figure~\ref{fig:tratrans_cla} forces every type from the arguments to the
 function to be erased, as typed arguments may not be respected in the
 dynamics semantics. Type invariants are enforced with a tuple class checking
 the type of the argument, and returns the value of the body.
@@ -1354,32 +1354,32 @@ with \kafka to support the transient semantics. The translation is not
 obligated by transient to check method argument types before entry, and as a
 result, every call,  typed or untyped, in transient is an untyped call.
 Likewise, every typed method call must be guarded with a cast to ensure that
-the return type of the method is correct, as shown in \RuleRef{GRA2} of figure~\ref{fig:tratrans_exp}.
+the return type of the method is correct, as shown in \RuleRef{GRS2} of figure~\ref{fig:tratrans_exp}.
  
 \begin{figure}
 \begin{mathpar}
-\IRule{GRA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
+\IRule{GRS1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
 
-\IRule[width=30em]{GRA2}{
+\IRule[width=30em]{GRS2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{(\DynCall{\SubCast{\any}{\e_3})}\m{\SubCast{\any}{\e_4}}}}{\t_2}
 }
 
-\IRule{GRA3}{
+\IRule{GRS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule[width=20em]{GRA4}{
+\IRule[width=20em]{GRS4}{
     \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
 }
 
-\IRule{GRA5}{
+\IRule{GRS5}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
@@ -1392,7 +1392,7 @@ the return type of the method is correct, as shown in \RuleRef{GRA2} of figure~\
 The lack of statically typable calls in the transient semantics means that a
 pure implementation of transient in  \kafka would entail no fields ever being
 accessed using the setter or getter methods, as \kafka forbids accessing fields
-through dynamic call sites. To overcome this issue rule \RuleRef{GRA4} is added,
+through dynamic call sites. To overcome this issue rule \RuleRef{GRS4} is added,
 which allows the definition of self-referential field access. In a transient
 system, the only type that is absolutely known at any time is the self-
 reference, which is use to access fields on the  self object. As a result, all
@@ -1400,14 +1400,14 @@ accesses to fields would have to go through user-defined field accessor methods.
 
 \begin{figure}
 \begin{mathpar}
-\IRule{GRAASC1}{
+\IRule{GRA1}{
   \GenCast\K\E\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\E\e\ep\t
 }
 
-\IRule{GRAASC2}{
+\IRule{GRA2}{
   \GenCast\K\E\e\ep\tp \\
   \consistent\K\tp\t
 }{
@@ -1418,7 +1418,7 @@ accesses to fields would have to go through user-defined field accessor methods.
 \label{fig:tratrans_exp2}
 \end{figure}
 
-The last notable rule in the transient translation is \RuleRef{GRAASC2}. In
+The last notable rule in the transient translation is \RuleRef{GRA2}. In
 gradual type systems with consistency, consistency is used to conclude an
 analytic judgment, as consistency allows the system to break type
 guarantees, adding and removing types from sub-parts of a program.
@@ -1503,7 +1503,7 @@ the typed and untyped code getting caught before the bad value reaches typed
 code. The translation from our version of Typed Racket to \kafka is 
 fairly simple as a result of the strong type invariants that are exposed 
 to the static code. The Type Racket translation only differs substantially from the 
-optionally-typed system in two key analytic cases, \RuleRef{TRAASC2} and \RuleRef{TRAASC3}.
+optionally-typed system in two key analytic cases, \RuleRef{TRA2} and \RuleRef{TRA3}.
 
 % \begin{figure}[h!]
 % \begin{mathpar}
@@ -1535,21 +1535,21 @@ optionally-typed system in two key analytic cases, \RuleRef{TRAASC2} and \RuleRe
 % 
 % \begin{figure}[h!]
 % \begin{mathpar}
-% \IRule{TRA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+% \IRule{TRS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 % 
-% \IRule[width=30em]{TRA2}{
+% \IRule[width=30em]{TRS2}{
 %     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 % }{
 %     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 % }
 % 
-% \IRule{TRA3}{
+% \IRule{TRS3}{
 %     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 % }{
 %     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 % }
 % 
-% \IRule{TRA4}{
+% \IRule{TRS4}{
 %   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
 %   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
 %   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
@@ -1558,24 +1558,24 @@ optionally-typed system in two key analytic cases, \RuleRef{TRAASC2} and \RuleRe
 % \label{fig:behtrans_exp}
 % \end{figure}
 
-\RuleRef{TRAASC2} and \RuleRef{TRAASC3} are the most important cases of cast 
+\RuleRef{TRA2} and \RuleRef{TRA3} are the most important cases of cast 
 insertion for our Typed Racket translation, and represent Racket objects 
 crossing into Typed Racket and vice versa, respectively. In the case where we 
-have an untyped object gaining a type assertion (\RuleRef{TRAASC2}), we use the
+have an untyped object gaining a type assertion (\RuleRef{TRA2}), we use the
 name cast to ensure that the value has all of the required method names 
 (modeling Typed Racket's dynamics), and then use the behavioural cast operator.
 
 
 \begin{figure}[h!]
 \begin{mathpar}
-\IRule{TRAASC1}{
+\IRule{TRA1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \src\tp \Sub \src\t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TRAASC2}{
+\IRule{TRA2}{
   \GenCast\K\Env\e\ep\tp \\
   \src\t \neq \src\tp
 }{
@@ -2033,27 +2033,27 @@ there are no \any types transitively contained within the function's argument.
 
 \begin{figure}[!ht]
 \begin{mathpar}
-\IRule{MOA1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
+\IRule{MOS1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
 
-\IRule[width=30em]{MOA2}{
+\IRule[width=30em]{MOS2}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \statictype{\src{\t_1}}{\src\K}{\cdot} \vee \n=\f \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
 }{
     \GenCastMono\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
 }
 
-\IRule[width=30em]{MOA3}{
+\IRule[width=30em]{MOS3}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\statictype{\t_1}{\K}{\cdot} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
 }{
     \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{\MonCast\any{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
 }
 
-\IRule{MOA4}{
+\IRule{MOS4}{
     \AnaCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
 }{
     \GenCastMono\K\Env{\DynCall{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
 }
 
-\IRule{MOA5}{
+\IRule{MOS5}{
   \b{\AnaCastMono{\K}\E{\e_1}{\e_2}\t{\K}} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \D~\text{fresh} \\
@@ -2066,21 +2066,21 @@ there are no \any types transitively contained within the function's argument.
 
 The expression translations are presented in figure \ref{fig:mono-trans2}. 
 The \texttt{static} function states whether a type contains only typed methods.
-The rule \RuleRef{MOA2} translates typed methods, \RuleRef{MOA2} translate methods that are not purely typed.
-\RuleRef{MOA4} translate untyped methods, \RuleRef{MOA2} translate object creation.
+The rule \RuleRef{MOS2} translates typed methods, \RuleRef{MOS2} translate methods that are not purely typed.
+\RuleRef{MOS4} translate untyped methods, \RuleRef{MOS2} translate object creation.
 The purpose of the \xt{monWrap} function is further evidenced as the 
 handling of calls to methods need to appropriately casted if the typing nature is unclear.
 
 \begin{figure}[!ht]
 \begin{mathpar}
-\IRule{MOAASC1}{
+\IRule{MOA1}{
   \GenCastMono\K\Env\e\ep\tp\K \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCastMono\K\Env\e\ep\t\K
 }
 
-\IRule{MOAASC2}{
+\IRule{MOA2}{
   \GenCastMono\K\Env\e\ep\tp\K \\
   \consistent\K\t\tp
 }{
@@ -2092,9 +2092,9 @@ handling of calls to methods need to appropriately casted if the typing nature i
 \label{fig:mono-trans3}
 \end{figure}
 
-The bidirectional nature of the monotonic translation require the two 
-expression translation rules, \RuleRef{MOAASC1} and \RuleRef{MOAASC2}, 
-in figure \ref{fig:mono-trans3}.
+Monotonic has identical analytical cast insertion to the transient system,
+combining subtyping with consistency, seein in figure \ref{fig:mono-trans3},
+which allow use the of either subtyping or consistency in type coercions
 
 \subsection{Monotonic Casts}
 
@@ -2892,27 +2892,27 @@ the object stored at \a in \s.
 \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{TypeScript translation for expressions}
 
 \begin{mathpar}
-\IRule{TSA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+\IRule{TSS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
-\IRule[width=30em]{TSA2}{
+\IRule[width=30em]{TSS2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\m{\b{\e_4}}}{\t_2}
 }
 
-\IRule{TSA3}{
+\IRule{TSS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule[width=20em]{TSA4}{
+\IRule[width=20em]{TSS4}{
     \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
 }
 
-\IRule{TSA5}{
+\IRule{TSS5}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
@@ -2923,20 +2923,20 @@ the object stored at \a in \s.
 \opdef{$\AnaCast\K\Env\e\ep\t$}{TypeScript translation for bidirectional expressions}
 
 \begin{mathpar}
-\IRule{TSAASC1}{
+\IRule{TSA1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSAASC2}{
+\IRule{TSA2}{
   \GenCast\K\Env\e\ep\any
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSAASC3}{
+\IRule{TSA3}{
   \GenCast\K\Env\e\ep\C
 }{
   \AnaCast\K\Env\e\ep\any
@@ -2974,13 +2974,13 @@ the object stored at \a in \s.
 \opdef{$\GenCast\K\Env\e\ep\t$}{Thorn translation for expressions}
 
 \begin{mathpar}
-\IRule{THA1}{
+\IRule{THS1}{
   \HasType\Env\x\t
 }{
   \GenCast\K\Env\x\x\t
 }
 
-\IRule[width=30em]{THA2}{
+\IRule[width=30em]{THS2}{
     \GenCast\K\Env{\e_1}{\e_3}\C \\ 
     \src{\n(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
     \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
@@ -2988,7 +2988,7 @@ the object stored at \a in \s.
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
-\IRule{THA3}{
+\IRule{THS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
     \src{\m({\t_1}):\D \in \classoff\C\K} \\ 
     \AnaCast\K\Env{\e_2}{\e_4}{\t_1}
@@ -2996,7 +2996,7 @@ the object stored at \a in \s.
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast\D{\DynCall{\e_3}\m{{\e_4}}}}{\D} %Q: do I need to cast the return value of non-bang
 }
 
-\IRule{THA4}{
+\IRule{THS4}{
     \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
     \m({\t_1}):\t \in \classoff\C\K \\ 
     \t \neq \D \\
@@ -3006,14 +3006,14 @@ the object stored at \a in \s.
     %Q: do I need to cast the return value of non-bang
 }
 
-\IRule{THA5}{
+\IRule{THS5}{
     \GenCast\K\Env{\e_1}{\e_3}\any \\ 
     \AnaCast\K\Env{\e_2}{\e_4}\any
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
 }
 
-\IRule{THA6}{
+\IRule{THS6}{
   \b{\AnaCast\K\Env{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b\md}
   }{
@@ -3026,33 +3026,33 @@ the object stored at \a in \s.
 \opdef{$\AnaCast\K\Env{\e}{\ep}{\t}$}{Thorn translation for bidirectional expressions}
 
 \begin{mathpar}
-\IRule{THAASC1}{
+\IRule{THA1}{
   \GenCast\K\Env{\e_1}{\e_2}{\C_2} \\
   \src{\ThorSub\K\cdot{\C_2}{\C_1}}\\
 }{
   \AnaCast\K\Env{\e_1}{\e_2}{\C_1}
 }
 
-\IRule{THAASC2}{
+\IRule{THA2}{
   \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
   \src{\ThorSub\K\cdot\D\C}
 }{
   \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
 }
 
-\IRule{THAASC3}{
+\IRule{THA3}{
   \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
   \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
 }
 
-\IRule{THAASC4}{
+\IRule{THA4}{
   \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
   \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
 }
 
-\IRule{THAASC5}{
+\IRule{THA5}{
   \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
 }{
   \AnaCast\K\Env{\e_1}{\e_2}{\any}
@@ -3082,28 +3082,28 @@ the object stored at \a in \s.
 \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{Transient translation for expressions}
 
 \begin{mathpar}
-\IRule{GRA1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
+\IRule{GRS1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
 
-\IRule[width=30em]{GRA2}{
+\IRule[width=30em]{GRS2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{(\DynCall{\SubCast{\any}{\e_3})}\m{\SubCast{\any}{\e_4}}}}{\t_2}
 }
 
-\IRule{GRA3}{
+\IRule{GRS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule[width=20em]{GRA4}{
+\IRule[width=20em]{GRS4}{
     \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
 }
 
-\IRule{GRA5}{
+\IRule{GRS5}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
@@ -3114,14 +3114,14 @@ the object stored at \a in \s.
 \opdef{$\AnaCast\K\E\e\ep\t$}{Transient translation for bidirectional expressions}
 
 \begin{mathpar}
-\IRule{GRAASC1}{
+\IRule{GRA1}{
   \GenCast\K\E\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\E\e\ep\t
 }
 
-\IRule{GRAASC2}{
+\IRule{GRA2}{
   \GenCast\K\E\e\ep\tp \\
   \consistent\K\tp\t
 }{
@@ -3181,21 +3181,21 @@ the object stored at \a in \s.
 \subsection{Type Racket translation for expressions}
 
 \begin{mathpar}
-\IRule{TRA1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+\IRule{TRS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
-\IRule[width=30em]{TRA2}{
+\IRule[width=30em]{TRS2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}
 }
 
-\IRule{TRA3}{
+\IRule{TRS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule{TRA4}{
+\IRule{TRS4}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
@@ -3204,14 +3204,14 @@ the object stored at \a in \s.
 \subsection{Type Racket translation for bidirectional expressions}
 
 \begin{mathpar}
-\IRule{TRAASC1}{
+\IRule{TRA1}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TRAASC2}{
+\IRule{TRA2}{
   \GenCast\K\Env\e\ep\tp \\
   \t \neq \tp
 }{
@@ -3287,27 +3287,27 @@ the object stored at \a in \s.
 \subsection{Monotonic translation for expressions}
 
 \begin{mathpar}
-\IRule{MOA1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
+\IRule{MOS1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
 
-\IRule[width=30em]{MOA2}{
+\IRule[width=30em]{MOS2}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \statictype{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
 }{
     \GenCastMono\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
 }
 
-\IRule[width=30em]{MOA3}{
+\IRule[width=30em]{MOS3}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\statictype{\t_1}{\K}{\cdot} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
 }{
     \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\m{\MonCast\any{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
 }
 
-\IRule{MOA4}{
+\IRule{MOS4}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
 }{
     \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
 }
 
-\IRule{MOA5}{
+\IRule{MOS5}{
   \b{\AnaCastMono{\K}\E{\e_1}{\e_2}\t{\K}} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
   \D~\text{fresh} \\
@@ -3318,14 +3318,14 @@ the object stored at \a in \s.
 \subsection{Monotonic translation for bidirectional expressions}
 
 \begin{mathpar}
-\IRule{MOAASC1}{
+\IRule{MOA1}{
   \GenCastMono\K\Env\e\ep\tp\K \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCastMono\K\Env\e\ep\t\K
 }
 
-\IRule{MOAASC2}{
+\IRule{MOA2}{
   \GenCastMono\K\Env\e\ep\tp\K \\
   \consistent\K\t\tp
 }{
@@ -4503,7 +4503,7 @@ during the class translation phase.
 \caption{Synthetic cast insertion}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRANSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%% CLASS TRSNSLATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}
 %\input{figures/anacast}
 \caption{Analytic Cast Insertion}
