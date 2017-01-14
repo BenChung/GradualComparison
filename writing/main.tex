@@ -166,8 +166,7 @@ also allow for dynamic resolution of method dispatch.\footnote{Both runtime
 support reflective invocation based on method names. Dynamic resolution was
 added to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
 custom method dispatch.} As well as reasonably efficient implementations, and in
-both environments, primitive types can be unboxed \textcolor{red}{as the static typing an
-accurately final types}.
+both environments, primitive types can be unboxed.
 
 A contribution of this work is the design of \kafka, a statically typed object
 calculus.  \kafka is class based (with an explicit class table \K), with mutable
@@ -229,7 +228,7 @@ semantic properties.
 attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
 side is the Strongtalk optional type system~\cite{Bracha93} which led to
 Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types are
-solely to catch errors at \textcolor{red}{checking time}, they should never affect the
+solely to catch errors at compile-time, they should never affect the
 runtime behavior of programs. The rationale for this is that types are
 viewed as an add-on that can be turned off without affecting semantics.  In
 the words of Richards~\emph{et al.}~\cite{ecoop15}, an optional type system
@@ -778,7 +777,7 @@ as follows:
 \item{\bf L3:} Fails in Monotonic because the same object is being cast to
   two different types, \code I and \code J.
 \item{\bf L4:} Fails in Monotonic because the object refered to by \code x
-  in method \ss is cast to \code I. This updates the effective type of field
+  in method \code s is cast to \code I. This updates the effective type of field
   \code f to \code D. But the assignment in method \code m tries to give it
   an \code A. Fails in Racket because the \this field is wrapped with an
   \code I type, and the assignment to \code f does not respect that type.
