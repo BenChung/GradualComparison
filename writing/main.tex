@@ -584,7 +584,7 @@ target. In an untyped context, the wrapper will cast the argument to the
 promised type and cast results back to \any. Each of these casts introduces
 new wrappers. A shallow structural cast is used to catch obvious mismatches
 early.  The key properties of this translation are that typed code can rely
-on the presence of methods of the right type (thus use static method
+on the presence of methods of the right type (and thus use static method
 resolution) but calls can still fail at casts within the wrapper. An easily
 overlooked, but significant, feature of Racket is that the \this variable is
 wrapped by any wrapper(s) applied at the call site.
@@ -609,19 +609,19 @@ Thus, an instance of class \code A can be cast to \code B in Monotonic.
 to \code B will update its effective type to match \code B, \emph{and will
 recursively follow field \code f and update all of the objects that are
 reachable through it}. The name of the semantics comes from the fact that only a
-finite number of casts can change the effective type of an object, since
-Monotonic only allows casting to types that have fewer occurrences of \any.
-Subtyping is defined using a combination of structural equivalence and
-consistency. This ensures that in case of aliasing, references that are of type
-\code A can safely point to the updated type \code B.  The main design issue is
-that this causes untyped code to be ``brittle,'' since any cast that changes the
-effective type of an object will forever brand the object with that type. As a
-result, new, distant types, or slightly changed library code, can cause
-substantial knock-on effects under the monotonic semantics, breaking previously
-working untyped code.  The translation to \kafka involves creating a single
-wrapper that encodes the effective type of the object. Monotonic generative
-casts are inserted where appropriate to create wrapper classes that enforce the
-effective type invariants.
+finite number of casts can change the effective type of an object, as Monotonic
+only allows casting to types that have fewer occurrences of \any. Subtyping is
+defined using a combination of structural equivalence and consistency. This
+ensures that in case of aliasing, references that are of type \code A can safely
+point to the updated type \code B.  The main design issue is that this causes
+untyped code to be ``brittle,'' since any cast that changes the effective type
+of an object will forever brand the object with that type. As a result, newly
+added yet distant types, or slightly changed library code, can cause substantial
+knock-on effects under the monotonic semantics, breaking previously working
+untyped code.  The translation to \kafka involves creating a single wrapper that
+encodes the effective type of the object. Monotonic generative casts are
+inserted, where appropriate, to create wrapper classes that further specialize
+and enforce the effective type, replacing the original, more dynamic, wrapper.
 
 \begin{figure}[!b]
 \small
@@ -772,8 +772,8 @@ as follows:
   two different types, \code I and \code J.
 \item{\bf L4:} Fails in Monotonic because the object refereed to by \code x
   in method \code s is cast to \code I. This updates the effective type of field
-  \code f to \code D. But the assignment in method \code m tries to give it
-  an \code A. Fails in Racket because the \this field is wrapped with an
+  \code f to \code D. However, the assignment in method \code m tries to give it
+  an \code A. This fails in Racket because the \this field is wrapped with an
   \code I type, and the assignment to \code f does not respect that type.
 \end{itemize}
 
@@ -791,8 +791,8 @@ as follows:
 
 \noindent
 The basis of our formal approach is the \kafka calculus. At its heart,
-\kafka is a class-based, object-oriented, structurally typed, language with
-dynamic dispatch, modeled off of common intermediate languages such as the
+\kafka is a class-based, object-oriented, structurally typed language with
+dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
 The syntax of \kafka is given in \figref{syn}. Meta-variables \C, \D and \E
@@ -807,9 +807,9 @@ invocation, \Call\e\m\e, dynamically resolved method invocation,
 \any. Class definitions have a class name and (possibly empty) sequences of
 field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 definitions consist of a field and its type, \Fdef\f\t. Method definitions
-have (for simplicity) a single argument and an expression \Mdef\f\x\t\t\e.
+have (for simplicity) a single argument and an expression \Mdef\m\x\t\t\e.
 Fields are read by calling getter methods and updated by setter methods,
-these can also be defined as, respectively \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
+these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
 
 
 
@@ -850,7 +850,7 @@ are well-typed. A class that defines a field \f is not allowed to have
 getter or setter methods of that name.  A class can have at most two
 definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
 \Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
-unsurprising, the following shows rules for method calls and casts.
+unsurprising, with the following rules for method calls and casts.
 
 {\small
 \begin{mathpar}
@@ -887,13 +887,13 @@ typed and untyped methods. The dynamically resolved call places no
 requirements on the receiver or argument, and returns type \any. The subtype
 cast rule \RuleRef{W9} states that result is of the cast type, but it does
 not preclude silly casts.  Rule \RuleRef{W10} describes the semantics of the
-shallow casts, which merely asserts the presence of method names without
+shallow casts, which merely asserts the presence of method names, without
 making any statements about the type of the object being cast.  The
 subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
 subtyping. The distinctive feature of the subtype relation is that fields
 appears in the type signature as getter/setter pairs with the exception of
 the \that field that is hidden from the class type signature.  The complete
-set of rules appear in appendix.
+set of rules appear in Appendix section~\ref{appendix:kafka}.
 
 
 
@@ -1003,21 +1003,20 @@ set of rules appear in appendix.
 
 \subsection{Dynamic Semantics}
 
-The small operational step operational semantics appears in
-\figref{fig:semantics}. A configuration is a triple \K\e\s, where \K is a
-class table, \e is an expression and \s is a heap mapping addresses ranged
-over by \a to objects denoted \obj\C{\b\a}.  A configuration evaluates in
-one step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new
-configuration may include a new class table built by extending the previous
-table with new classes. Field access either reads a field from the object
-(if the class has a field definition) or invokes a getter function (if the
-class has a getter method of the field name). Setters are treated similarly.
-Method calls must respect the typing, typed methods are invoked with static
-calls and untyped methods are invoked with dynamically resolved calls.
-Casts to \any are trivially satisfied while subtype casts to \C check that
-object is an instance of a subtype and shallow casts check inclusion of
-method names. Evaluations contexts are deterministic and enforce a strict
-evaluation order.
+The small operational step operational semantics for \kafka appears in
+\figref{fig:semantics}. A configuration is a triple \K\e\s, where \K is a class
+table, \e is an expression and \s is a heap mapping addresses ranged over by \a
+to objects denoted \hspace{-1mm}\obj\C{\b\a}.  A configuration evaluates in one
+step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new configuration may
+include a new class table built by extending the previous table with new
+classes. Field access either reads a field from the object (if the class has a
+field definition) or invokes a getter function (if the class has a getter method
+of the field name), and setters are treated similarly. Calling forms specify the
+typing, typed methods are invoked with static calls and untyped methods are
+invoked with dynamically resolved calls. Casts to \any are trivially satisfied
+while subtype casts to \C check that the runtime object is an instance of a
+subtype of \C, while shallow casts check inclusion of method names. Evaluation
+contexts are deterministic and enforce a strict evaluation order.
 
 
 \section{Translating Gradual Types}
@@ -1030,9 +1029,9 @@ evaluation order.
 
 \noindent
 This section gives semantics to the five gradual type systems of interest.
-In each case, the semantics of the source language are defined by
+In each case, the semantics of the source languages are defined by
 translation to \kafka programs. Source and target share most of their
-syntax, when we need to distinguish them we will use underline to denote
+syntax, and when we need to distinguish them, we will use underline to denote
 source terms.  Casts are not used in the source languages, but are inserted
 by the translations.  The general approach in each translation is the
 following, starting with a program \src{\K\,\e}, we define a translation to
@@ -2563,7 +2562,7 @@ general.
 \section{Auxiliary Definitions for \kafka}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+\label{appendix:kafka}
 \subsection{Subtyping}
 
 The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
