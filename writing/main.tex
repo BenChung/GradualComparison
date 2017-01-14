@@ -2261,8 +2261,8 @@ in figure \ref{fig:mono-trans3}.
 
 The monotonic cast \MonCast\C\a imposes the type \C onto the object
 at \a and every object transitively reachable from \a. The motivation 
-for this cast comes from~\cite{Siek2015}, where it is used to maintain the
-type correctness of every reference in the program.
+for this cast comes from maintaining the
+type correctness of every reference in the program~\cite{Siek2015}.
 
 \begin{figure}[h!]
 \begin{tabular}{ll}
@@ -2338,73 +2338,73 @@ rectangle split, rectangle split parts=#1, draw, anchor=text east}]
 \label{fig:mono_ex1}
 \end{figure}
 
-Figure~\ref{fig:mono_ex1} illustrates the semantics of the monotonic cast. 
-A new instance of class \D is created and then an instance of class \C 
-is created pointing to it. At this point, as shown by heap snapshot 1, 
-the field \f on \C has type \any, and the method \m on \D has fully dynamic 
-argument and return type. Next we introduce classes \E and \xt{F}, which are structurally 
-identical to \C and \D, but have specific types for their fields and methods. 
-If the instance of class \C in the program, referenced by \a, is casted to \E, 
+Figure~\ref{fig:mono_ex1} presents an example of the monotonic cast. 
+A new instance of class \D is created, then an instance of class \C 
+is created pointing to it. As shown by heap snapshot 1, 
+the field \f in \C has type \any, and the method \m in \D has dynamic 
+argument and return type. Classes \E and \xt{F} are introduced and they are structurally 
+identical to \C and \D, but with specific types for their fields and methods. 
+When the instance of class \C referenced by \a is casted to \E, 
 the monotonic semantics will ensure any access to field \f or method \m from 
 anywhere in the program will follow the type invariants asserted by class \E.
 
-However, as shown in heap snapshot 2, the variable \xt{d} still refers to 
-the instance of \D, from earlier in the program, and \xt{d}
-does not know the existence of the new invariants applied to class \D. Despite being
+However, as shown in heap snapshot 2, the reference \xt{d} still refer to 
+the instance of \D, from earlier, and \xt{d}
+does not know the existence of the new invariant applied to class \D. Despite being
 typed \any, when \xt{d} try to invoke method \m on the apparently dynamic 
 object, a cast failure will occur. The monotonic semantics ensures that the
-provided argument is of type \E. 
+provided argument must be of type \E. 
 
 This example highlights the need for the monotonic cast semantics to be generative.
 In order to guarantee the type correctness of all references, monotonic has to generate guards
 that check the argument and return type of every method, and the
 type of any field set, ensuring that they maintain consistency with the 
-maximally static type. Additionally, since monotonic has to ensure that 
-prior references respect future type invariants, it has to do in-place updates
-of any object whose type is altered by a cast update.
+maximally static type. Additionally, monotonic ensures that 
+prior references respect future type invariants by performing an in-place update
+of any object whose type is altered by the cast.
 
-In the extreme case, a single cast could cause every object in the heap to be
-retyped. To prevent pathological cases, the monotonic casts only modify the heap
+In the extreme case, a single cast would retype every object in the heap. 
+In order to prevent the pathological case, the monotonic casts only modify the heap
 if the target \C has fewer occurrences of \any than the original type of the
 object at \a (and transitively so for types appearing in \t and reachable
 from \a).  When a type \C does not have any occurrence of the dynamic type,
 denoted by \statictype\C\K\V, the monotonic casts will leave the object and the
 heap unchanged.
 
-A key challenge is for every reference in the heap \s to still be valid after a monotonic
-cast. If a reference has a type other than \any, then the cast will preserve correctness of that
-reference. To accomplish this, the cast ensure two properties hold:
-\begin{itemize}
-\item The values that currently exist cannot violate any of the types
-  that point to them. Casting needs to recursively ensure that all values
-  referred to by the current object are of the claimed type.
-\item Functions can not be called with or return values that violate any of
-  the types that they are referred to. The behaviour of the class needs
-  to check that its types are not violated by lesser-typed call sites.
-\end{itemize}
-The second property is strongly reminiscent of the behavioural semantics,
-though with the interesting caveat that all method invocations 
-must follow the typed calling conventions, rather
-than just the ones that inherit this particular type assertion.
+%TODO Do we need this text describing monotonic correctness property
+% The key challenge of monotonic is for every class typed reference to 
+% preserve correctness after the monotonic cast. 
+% To accomplish this property, the monotonic cast ensure two properties:
+% \begin{itemize}
+% \item The values that currently exist cannot violate any of the types
+%   that point to them. Casting needs to recursively ensure that all values
+%   referred to by the current object are of the claimed type.
+% \item Functions can not be called with or return values that violate any of
+%   the types that they are referred to. The behaviour of the class needs
+%   to check that its types are not violated by lesser-typed call sites.
+% \end{itemize}
+% The second property is strongly reminiscent of the behavioural semantics,
+% though with the interesting caveat that all method invocations 
+% must follow the typed calling conventions, rather
+% than just the ones that inherit this particular type assertion.
 
-The monotonic cast semantics in \kafka cannot be implemented using the simple 
+The monotonic cast semantics in \kafka cannot be implemented using the  
 in-place replacement technique\cite{Siek2015}. In order to ensure the
-type of a field is respected, the monotonic cast will have to insert a setter method
-that checks the value it is given against the type of the field, when
+type of a field is respected, the monotonic cast will insert a setter method
+checking the value given to it against the type of the field, when
 a lesser-typed call site is used to set the field. However, \kafka prohibits
-the explicit existence of a field and its getter and setter methods, 
-as a consequence of having uniform treatment for fields and their getter and setter methods. 
-
-This treatment of fields means the monotonic cast semantics is implemented by adding a 
+the explicit existence of a field and its getter and setter methods.
+As a field and its getter and setter method must be in-sync at all times.
+This means the monotonic cast semantics is implemented in \kafka by adding a 
 single wrapper over each object, similar to the ``identity preserving membrane''
 described in \cite{keil_et_al:DARTS:2015:5511}. The wrappers will preserve the
 externally-facing interface (up to a point) and the relations between classes,
 while ensuring all properties in the monotonic system are guaranteed.
 
 As a result of generating the wrappers (and the static translation), the simple example 
-shown in figure~\ref{fig:mono_ex1} does not correctly exhibit the behavior of the 
-monotonic cast semantics in \kafka. The monotonic cast semantics of \kafka are
-depicted by the example presented in figure~\ref{fig:mono_ex2}.
+shown in figure~\ref{fig:mono_ex1} does not correctly exhibit the correct behavior of the 
+monotonic semantics in \kafka, instead the example presented in figure~\ref{fig:mono_ex2}
+depicts the correct semantics for \kafka's monotonic cast.
 For compactness, the class definitions in figure~\ref{fig:mono_ex1}, and the class definitions that will be generated but
 not appear in the dynamic execution have been elide.
 
@@ -2520,10 +2520,10 @@ Figure~\ref{fig:mono_ex2} aims to illustrate the nature of the monotonic wrapper
 In this example, the state of the heap is highlighted
 at two discrete times, before and after the cast of the reference \a to
 the type \xt{E}. The wrapper \xt{CW} and \xt{DW} is associated with enforcing 
-the class \C and \D, respectively, and wrap over an underlying object of 
+the class \C and \D, respectively, and wraps over an underlying object of 
 known type, enforcing its type guarantees.
 
-The monotonic semantics will lift method bodies into wrapper classes, as seen in
+The monotonic semantics will lift the method bodies into wrapper classes, as seen in
 the Typed Racket semantics but for different reasons. While Typed Racket
 needs to enforce the observed type on an underlying untyped object. The
 monotonic semantics need the combination of the wrapper and underlying object 
@@ -2532,7 +2532,7 @@ The result of this can be seen in the translation above for \m.
 
 A notable behavior of the monotonic semantics illustrated in figure~\ref{fig:mono_ex2}
 is the erasure on every call site for \m, with the exception of the final definition in \xt{FDW}. 
-Under the monotonic semantics, every call site with some untyped component somewhere
+Under the monotonic semantics, every call site with some untyped component
 will be adjusted further, ensuring any partially typed call may be invalidated in the future. 
 As a consequence, every call, even to a superficially typed call site (one with an argument
 type that may contain a \any deeply embedded in the type), must be treated as an untyped call site.
@@ -2555,9 +2555,9 @@ to the required type before returning is ignoring the heap consistency invariant
 that monotonic provides, allowing for casts on retrieval to be ignored. However,
 the \kafka type system does not allow us to make either of these shortcuts while
 still retaining semantic correctness, and as a result, we are forced to double 
-up casts on the getter and setter methods, as seen in \xt{ECW}.
+up on the casts over the getter and setter methods, as seen in \xt{ECW}.
 Another point of interest is the alteration happening in \xt{FDW}. When the class \xt{D}
-is specialized to \xt{F}, a lot of additional (and, in this case, not necessary) casts
+is specialized to \xt{F}, several additional casts
 are inserted, as well as a wholly new call site for \m. This new
 call site is fully typed, despite previously stating that we could not add any 
 typed call sites as they might be changed in the future.
