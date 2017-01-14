@@ -881,6 +881,49 @@
 (define litmusProg4 (term (call (new T) mt (new A (new D)))))
 (define litmus4 (term (,litmusProg4 ,litmusK4f)))
 
+
+;new litmus
+
+
+(define nlitmusAux (term ((class C (mn (x C) C this)) (class D (mo (x D) D this)))))
+(define nlitmusProg (term (dcall (new T) mt (new A))))
+
+(define nlitmusK1 (term ((class A (mm (x A) A this))
+                        (class I (mn (x I) I this))
+                        (class T (ms (x I) T this) (mt (x anyt) anyt (call this ms x))))))
+(define nlitmusK1f (term (compose-K ,nlitmusAux ,nlitmusK1)))
+
+(define nlitmusK2 (term ((class A (mm (x A) A this))
+                        (class I (mm (x C) I this))
+                        (class T (mt (x I) T this)))))
+(define nlitmusK2f (term (compose-K ,nlitmusAux ,nlitmusK2)))
+
+(define nlitmusK3 (term ((class A (mm (x anyt) anyt this))
+                        (class I (mm (x C) C this))
+                        (class I2 (mm (x D) D this))
+                        (class E (ff I) (fg I2))
+                        (class T (mt (x A) E (new E x x))))))
+
+(define nlitmusK3f (term (compose-K ,nlitmusAux ,nlitmusK3)))
+
+(define nlitmusK4 (term ((class A
+                          (ff anyt)
+                          (mm (x A) A
+                             (call this ff (new A (new C)))))
+                        (class I
+                          (ff D)
+                          (mm (x I) I this))
+                        (class T
+                          (mt (x I) I (call x mm x))))))
+(define nlitmusK4f (term (compose-K ,nlitmusAux ,nlitmusK4)))
+
+(define nlitmus1 (term (,nlitmusProg ,nlitmusK1f)))
+(define nlitmus2 (term (,nlitmusProg ,nlitmusK2f)))
+(define nlitmus3 (term (,nlitmusProg ,nlitmusK3f)))
+
+(define nlitmusProg4 (term (call (new T) mt (new A (new D)))))
+(define nlitmus4 (term (,nlitmusProg4 ,nlitmusK4f)))
+
 ;other examples from the paper
 
 (define meetex1 (term ((class A (mm (x anyt) A this)) (class B (mm (x B) anyt this)))))
