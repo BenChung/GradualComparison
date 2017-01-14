@@ -1127,10 +1127,9 @@ translation judgments.
   \GenCast\K\Env\x\x\t
 }
 
-
 \IRule[width=30em]{TSA2}{
     \GenCast\K\Env{\e_1}{\e_2}\C \\ 
-    \Mtype\m\t\tp\in \classoff\C\K \\ 
+    \Mtype{\src\m}{\src\t}{\src\tp}\in \classoff{\src\C}{\src\K} \\ 
     \AnaCast\K\Env{\ep_1}{\ep_2}\t
 }{
     \GenCast\K\Env{\Call{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}\tp
@@ -1158,11 +1157,10 @@ translation judgments.
     \GenCast\K\Env{\Call\this\f{}}{\Call\this\f{}}\any
 }
 
-\IRule{TSA5}{
-  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+\IRule{TSA6}{
+  \b{\AnaCast{\K}\Env{\e}{\ep}\t} 
 }{
-   \GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}
+   \GenCast\K\Env{\New\C{\b\e}}{\SubCast\any{\New\C{\b\ep}}}{\C}
 }
 \end{mathpar}
 
@@ -1190,27 +1188,17 @@ translation judgments.
 \label{fig:tstrans_exp2}
 \end{figure}
 
-For TypeScript the synthetic case of translation is uninteresting, with the 
-exception of \RuleRef{TSA4}, which allows TypeScript programs to access fields
-via the self-reference, whose type is always absolutely known.
+The synthetic case of translation is uninteresting, with the exception of
+\RuleRef{TSA4}, which allows access to fields via the self-reference, whose
+type is always known.  Of more interest are the analytic rules:
+\RuleRef{TSC1} requires the interaction between typed parts of the program
+to be well-typed, but \RuleRef{TSC2} and \RuleRef{TSC3} allow untyped values
+to be passed into typed references without any extra checks, and are what
+causes TypeScript to be unsound.  The translation produces well-typed terms
+as it erases all types in the source during translation. The translation is
+weak due to the type erasure, as it befits TypeScript's optional and unsound
+nature. 
 
-
-
-Of more interest are TypeScript's analytic rules. Here, \RuleRef{TSAASC1}
-requires the interaction between typed parts of the program to be well-typed,
-but \RuleRef{TSAASC2} and \RuleRef{TSAASC3} allow untyped values to be passed
-into typed references without any extra checks, and are what causes TypeScript
-to be unsound.
-
- The TypeScript translation produces terms that type check
-in \kafka, as it erases all types in the source during translation, allowing
-the \kafka type system to conclude that any program that passes the
-translation will not get stuck except at dynamic call sites.  The
-translation from TypeScript to \kafka is considered weak due to the type
-erasure, as it befits TypeScript's optional and unsound nature. Next we will
-examine languages with stronger guarantees by translating the language
-Thorn, a gradual type system with many features of TypeScript combined with
-the additional ability to write sound, dynamically checked types.
 
 \subsection{Thorn}
 \newcommand{\bC}{\xt{!C}}
