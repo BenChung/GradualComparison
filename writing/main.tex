@@ -1326,40 +1326,41 @@ The Transient semantics of \figref{trans} illustrates the use of the
 structural shallow cast, $\ShaCast\t\e$. The Transient semantics makes
 guarantee about what methods are avaible in the argument and return value of
 each typed method.  The translation require several additional rules in
-order to generate well-typed terms. Rule \RuleRef{MTT} uses an auxiliary
+order to generate well-typed terms. Rule \RuleRef{TPM1} uses an auxiliary
 class \A which is a tuple for sequencing. It first performans a shallow cast
 of the argument \x to \C and then evaluates the body of the method. (The
-call to \f return the body's value).  All type annotations are erased
-and replaced by \any.
-
-
-The translation also requires substantial support from with \kafka to
-support the transient semantics. The translation is not obligated by
-transient to check method argument types before entry, and as a result,
-every call, typed or untyped, in transient is an untyped call.  Likewise,
-every typed method call must be guarded with a cast to ensure that the
-return type of the method is correct, as shown in \RuleRef{GRS2} of
-figure~\ref{fig:tratrans_exp}.
-
-The lack of statically typable calls in the transient semantics means that a
-pure implementation of transient in  \kafka would entail no fields ever being
-accessed using the setter or getter methods, as \kafka forbids accessing fields
-through dynamic call sites. To overcome this issue rule \RuleRef{GRS4} is added,
-which allows the definition of self-referential field access. In a transient
-system, the only type that is absolutely known at any time is the self-
-reference, which is use to access fields on the  self object. As a result, all
-accesses to fields would have to go through user-defined field accessor methods.
-
+call to \f return the second field in \A, i.e., body's value).  All type
+annotations are erased and replaced by \any.  Every call, typed or untyped,
+in Transient becomes untyped.  Every typed method call must be guarded with
+a cast to ensure that the return type of the method is correct, as shown in
+\RuleRef{TPG2}.  The lack of statically typable calls in the Transient
+semantics means that a pure implementation of transient would entail no
+fields ever being accessed using the setter or getter methods, as \kafka
+forbids accessing fields through dynamic call sites. To overcome this, rule
+\RuleRef{TPG4} is added, which allows the definition of self-referential
+field access. In a transient system, the only type that is known is the type
+of \this.  As a result, accesses to fields have to go through user-defined
+field accessor methods.  Rule \RuleRef{TPR2} provides consistency for
+Transient. In gradual type systems with consistency, consistency is used to
+conclude an analytic judgment, as consistency allows the system to break
+type guarantees, adding and removing types from sub-parts of a
+program. Consistency within \kafka is defined in a later section, detailing
+the monotonic cast semantic and the translation for the monotonic system,
+but is used in the transient system to allow typed and untyped code to
+interact. When consistency is used, a check is inserted to ensure that all
+the methods that are required are declared on the provided type, but the
+types of the methods are ignored, as they are the responsibility of the
+callee to check.
 
 \begin{figure}[!ht]
 \small
   
 \begin{mathpar}
-\IRule{MTU}{
+\IRule{TPM1}{
   \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
 }{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
 
-\IRule{MTT}{
+\IRule{TPM2}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
 }{
@@ -1370,41 +1371,41 @@ accesses to fields would have to go through user-defined field accessor methods.
 
 
 \begin{mathpar}
-\IRule{GRS1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
+\IRule{TPG1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
 
-\IRule[width=30em]{GRS2}{
+\IRule[width=30em]{TPG2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{(\DynCall{\SubCast{\any}{\e_3})}\m{\SubCast{\any}{\e_4}}}}{\t_2}
 }
 
-\IRule{GRS3}{
+\IRule{TPG3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule[width=20em]{GRS4}{
+\IRule[width=20em]{TPG4}{
     \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
 }
 
-\IRule{GRS5}{
+\IRule{TPG5}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{GRA1}{
+\IRule{TPR1}{
   \GenCast\K\E\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\E\e\ep\t
 }
 
-\IRule{GRA2}{
+\IRule{TPR2}{
   \GenCast\K\E\e\ep\tp \\
   \consistent\K\tp\t
 }{
@@ -1414,16 +1415,6 @@ accesses to fields would have to go through user-defined field accessor methods.
 \caption{Transient translation.}\label{trans}
 \end{figure}
 
-The last notable rule in the transient translation is \RuleRef{GRA2}. In gradual
-type systems with consistency, consistency is used to conclude an analytic
-judgment, as consistency allows the system to break type guarantees, adding and
-removing types from sub-parts of a program. Consistency within \kafka is defined
-in a later section, detailing the monotonic cast semantic and the translation
-for the monotonic system, but is used in the transient system to allow typed
-and untyped code to interact. When consistency is used, a check is inserted to
-ensure that all the methods that are required are declared on the provided type,
-but the types of the methods are ignored, as they are the responsibility of the
-callee to check.
 
 \subsection{Typed Racket}
 
