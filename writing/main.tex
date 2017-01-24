@@ -778,6 +778,8 @@ as follows:
 \end{itemize}
 
 
+\clearpage
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{KafKa: A Core Calculus}
@@ -2769,29 +2771,29 @@ the object stored at \a in \s.
 
 \section{Complete translation for Thorn}
 
-\subsection{Thorn subtyping rules}
-
-\begin{tabular}{l@{~~}l@{}l@{}l}
-\\
-\t  &::= ~ \any \B \C \B \dt\C \\
-\\
-\end{tabular}
-
-\opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
-
-\begin{mathpar}
-\IRule{THSWeak}{
-  \ThorSub \M\K\C\D
-}{
-  \ThorSub\M\K{\dt\C}{\dt\D}
-}
-
-\IRule{THSLower}{
-  \ThorSub \M\K\C\D
-}{
-  \ThorSub\M\K{\C}{\dt\D}
-}
-\end{mathpar}
+% \subsection{Thorn subtyping rules}
+% 
+% \begin{tabular}{l@{~~}l@{}l@{}l}
+% \\
+% \t  &::= ~ \any \B \C \B \dt\C \\
+% \\
+% \end{tabular}
+% 
+% \opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
+% 
+% \begin{mathpar}
+% \IRule{THSWeak}{
+%   \ThorSub \M\K\C\D
+% }{
+%   \ThorSub\M\K{\dt\C}{\dt\D}
+% }
+% 
+% \IRule{THSLower}{
+%   \ThorSub \M\K\C\D
+% }{
+%   \ThorSub\M\K{\C}{\dt\D}
+% }
+% \end{mathpar}
 
 \subsection{Thorn translation for expressions}
 
@@ -3803,6 +3805,249 @@ The \xt{typing} function takes field definitions and returns the method typing s
   \typez{\Ftype\f\t} = \Mtype\f\t\t~~\Mtype\f{}\t
 }
 \end{mathpar}
+
+\clearpage
+
+\section{Source language syntax and semantics}
+
+\subsection{Syntax}
+
+\begin{figure}[!h]\hrulefill
+
+\hspace{0.1cm}
+\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+\e &::=  \x          &\B \this          \\
+   &\B \New\C{\b\e}  &\B \Get\e\f       &\B \Set\e\f\e   \\
+   &\B \Call\e\m\e   &\B \a \\ 
+\end{tabular}\end{minipage}
+\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}
+\end{tabular}
+\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
+~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}
+
+\hrulefill
+\caption{Source language syntax.}\label{sou-syn}
+\end{figure}
+
+\subsection{Thorn subtyping}
+
+% \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D both hold if \C~\src\Sub~\D
+
+\begin{mathpar}
+\IRule{SWeak}{
+  \ThrSub \M\K\C\D
+}{
+  \ThrSub \M\K{\dt\C}{\dt\D}
+}
+
+\IRule{SLow}{
+  \ThrSub \M\K\C\D
+}{
+  \ThrSub \M\K{\C}{\dt\D}
+}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule{SRef}{
+}{
+ \ThrSub\M\K \t \t
+}
+
+\IRule{SAss}{
+\C \src\Sub \D \in \M
+}{
+ \ThrSub\M\K \C \D
+}
+
+\IRule{SRec}{
+ \M' = \M~\C\src\Sub\D\\
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ThrSub{\M'}\K\mt{\mtp}
+}{
+ \ThrSub\M\K \C \D 
+}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule{SMet}{
+  \ThrSub \M\K {\t[1]} {\t[2]} \\
+  \ThrSub \M\K {\tp[2]} {\tp[1]}
+}{
+ \ThrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+}
+
+\IRule{SGet}{
+  \ThrSub \M\K {\t[1]} {\t[2]}
+}{
+ \ThrSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
+}
+
+\IRule{SSet}{
+  \ThrSub \M\K {\t[1]} {\t[2]}
+}{
+ \ThrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
+}
+\end{mathpar}
+
+\subsection{Thorn well-formedness}
+
+\opdef{~\WFpW{\e}{\K}}{Well-formed program}
+
+\begin{mathpar}
+\IRule{WP}{
+  \k \in \K \implies \WFW{}\cdot\K\k \\
+  \EnvTypeW\Env\cdot\K\e\t
+}{
+  \WFpW\e\K
+}
+\end{mathpar}
+
+\opdef{\WFW{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
+
+\begin{mathpar}
+\IRule{WC}{
+ \xt{overloading}(\b\fd,\b\md)\OKW \\
+ \fd\in\b\fd\implies \WFW {}{}\K \fd \\
+ \md\in\b\md\implies \WFW {\text{this}:\C~}\s\K \md 
+}{
+ \WFW {}\s\K {\Class \C {\b\fd}{\b\md}}
+}
+\end{mathpar}
+
+\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
+\begin{mathpar}
+\IRule[width=18em]{WT}{
+ \EnvTypeW {\Env{~\Ftype\x\C}~}\s\K\e\D\\
+ \WFtypeW\K\C \\
+ \WFtypeW\K\D \\
+}{
+ \WFW \Env\s\K {\Mdef\m\x\C\D\e}
+}
+
+\IRule[width=18em]{WWT}{
+ \EnvTypeW {\Env{~\Ftype\x\CW}~}\s\K\e\DW\\
+ \WFtypeW\K\CW \\
+ \WFtypeW\K\DW \\
+}{
+ \WFW \Env\s\K {\Mdef\m\x\CW\DW\e}
+}
+
+\IRule[width=18em]{WU}{
+ \EnvTypeW {\Env~\Ftype\x\any~}\s\K \e\any\\
+}{
+ \WFW \Env\s\K{\Mdef\m\x\any\any\e}
+}
+
+\IRule{WS}{
+ \EnvTypeW {\Env{~\Ftype\x\tp}~}\s\K \e\t \\
+ \WFtypeW \K\t 
+}{
+ \WFW  \Env\s\K {\Mdef\f\x\t\t\e}
+}
+
+\IRule{WG}{
+ \EnvTypeW \Env\s\K\e\t \\
+ \WFtypeW \K\t
+}{
+ \WFW \Env\s\K {\Mdefz\f\t\e}
+}
+\end{mathpar}
+
+\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
+\begin{mathpar}
+\IRule{WF}{
+ \WFtypeW\K\t 
+}{
+ \WFtypeW\K{\Fdef\f\t}
+}
+\end{mathpar}
+
+\opdef{~\WFtypeW\K\t}{Well-formed types}
+\begin{mathpar}
+\IRule{WA}{
+}{
+ \WFtypeW\K\any
+}
+
+\IRule{WC}{
+ \C \in \K
+}{
+ \WFtypeW\K\C
+}
+
+\IRule{WW}{
+ \C \in \K
+}{
+ \WFtypeW\K{\CW}
+}
+\end{mathpar}
+
+\subsection{Thorn expression typing}
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\begin{mathpar}
+
+\IRule{TW1}{
+   \HasType \Env\x\t
+ }{
+   \EnvTypeW \Env\s\K\x\t
+}
+
+\IRule{TW2}{
+ }{
+   \EnvTypeW \Env\s\K\a\any
+}
+
+\IRule{TW3}{
+  \EnvTypeW \Env\s\K\e\tp \\
+ \ThrSub \M\K \tp \t
+ }{
+  \EnvTypeW \Env\s\K\e\t 
+}   
+
+\IRule{TW4}{
+  \EnvTypeW \Env\s\K\e\C \\
+  \Mtype \f{}\tp \in \classoff\C\K
+}{
+  \EnvTypeW \Env\s\K{\Get\e\f}\tp
+}    
+
+\IRule{TW5}{
+  \EnvTypeW \Env\s\K\e\C \\
+  \Mtype \f\tp\tp \in \classoff\C\K  \\
+  \EnvTypeW \Env\s\K\ep\tp
+}{
+  \EnvTypeW \Env\s\K{\Set\e\f\ep}\tp
+}    
+
+\IRule{TW6}{
+  \EnvTypeW \Env\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
+  \EnvTypeW \Env\s\K\ep\tp
+}{
+  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{TW7}{
+ \EnvTypeW \Env\s\K{\e_1}{\t_1}~~\dots~~ 
+ \EnvTypeW \Env\s\K{\e_n}{\t_n}\ \\ 
+ \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
+  \Class \C {\b\fd}{\b\md} \in \K
+}{
+  \EnvTypeW \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+}
+
+\IRule{TW8}{
+  \s(\a) = \obj\C{\b\ap}
+}{
+  \EnvTypeW \Env\s\K\a\C
+}
+\end{mathpar}
+
 
 % \section{Monotonic examples in Reticulated Python}
 % 
