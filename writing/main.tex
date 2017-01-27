@@ -2404,6 +2404,7 @@ typing system highlights the essences which makes each system unique.
 \bibliographystyle{unsrturl}
 \bibliography{../bib/jv,../bib/all}
 
+\clearpage
 
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2412,6 +2413,38 @@ typing system highlights the essences which makes each system unique.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{appendix:kafka}
+
+
+\subsection{Syntax}
+
+\begin{figure}[!h]\hrulefill
+\hspace{0.1cm}
+\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+\e &::=  \x         &\B \this         &\B \that      \\
+   &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
+   &\B \Call\e\m\e &\B \DynCall\e\m\e &\B \SubCast\t\e \\
+   &\B \ShaCast\t\e  &\B \a \\ 
+\end{tabular}\end{minipage}
+\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}
+\end{tabular}
+\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
+~ \t&::= ~ \any  \B   \C  \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}
+
+\hrulefill
+\caption{\kafka Syntax.}
+\end{figure}
+
+
+\subsection{Semantics}
+
+
+
+
 \subsection{Subtyping}
 
 The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
@@ -2499,13 +2532,13 @@ field or method names within the given field and method definitions. \\
  \WFtype\K\C \\
  \WFtype\K\D \\
 }{
- \WF \Env\s\K {\Mdef\m\x\C\D\e}
+ \WF \Env\s\K {\Mdef\mdt\x\C\D\e}
 }
 
 \IRule[width=18em]{WU}{
  \EnvType {\Env~\Ftype\x\any~}\s\K \e\any\\
 }{
- \WF \Env\s\K{\Mdef\m\x\any\any\e}
+ \WF \Env\s\K{\Mdef\mdu\x\any\any\e}
 }
 
 \IRule{WS}{
@@ -2635,9 +2668,10 @@ to the name of \t not to \t.
 }
 
 \IRule{W11}{
+  \neg\xt{dynamic}(\t,\,\K) \\
   \EnvType \Env\s\K\e\tp
 }{
-  \EnvType \Env\s\K{\ShaCast\t\e}\any  
+  \EnvType \Env\s\K{\ShaCast\t\e}\t  
 }
 
 \IRule{W12}{
