@@ -821,7 +821,7 @@ these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x         &\B \this         &\B \that      \\
    &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
-   &\B \Call\e\m\e &\B \DynCall\e\m\e &\B \SubCast\t\e \\
+   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \SubCast\t\e \\
    &\B \ShaCast\t\e  &\B \a \\ 
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
@@ -2528,17 +2528,11 @@ field or method names within the given field and method definitions. \\
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
 \begin{mathpar}
 \IRule[width=18em]{WT}{
- \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\D\\
- \WFtype\K\C \\
- \WFtype\K\D \\
+ \EnvType {\Env{~\Ftype\x\t}~}\s\K\e\tp\\
+ \WFtype\K\t \\
+ \WFtype\K\tp \\
 }{
- \WF \Env\s\K {\Mdef\mdt\x\C\D\e}
-}
-
-\IRule[width=18em]{WU}{
- \EnvType {\Env~\Ftype\x\any~}\s\K \e\any\\
-}{
- \WF \Env\s\K{\Mdef\mdu\x\any\any\e}
+ \WF \Env\s\K {\Mdef\md\x\t\tp\e}
 }
 
 \IRule{WS}{
@@ -2631,25 +2625,17 @@ to the name of \t not to \t.
 
 \IRule[width=20em]{W6}{
   \EnvType \Env\s\K\e\C \\
-  \Mtype \mdt\Cp\Cpp\in \classoff\C\K  \\
-  \EnvType \Env\s\K\ep\C
+  \Mtype \m\t\tp\in \classoff\C\K  \\
+  \EnvType \Env\s\K\ep\t
 }{
-  \EnvType \Env\s\K{\Call\e\mdt\ep}\Cpp
-}    
-
-\IRule[width=20em]{W7}{
-  \EnvType \Env\s\K\e\C \\
-  \Mtype \mdu\any\any\in \classoff\C\K  \\
-  \EnvType \Env\s\K\ep\any
-}{
-  \EnvType \Env\s\K{\Call\e\mdu\ep}\any
+  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
 }    
 
 \IRule{W8}{
   \EnvType \Env\s\K\e\any \\
   \EnvType \Env\s\K\ep\any
 }{
-  \EnvType \Env\s\K{\DynCall\e\mdu\ep}\any
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
 
 \IRule{W9}{
@@ -2751,7 +2737,7 @@ the object stored at \a in \s.
 \IRule{MT}{
   \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\mdu\x\any\any\ep}{}
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any\ep}{}
 }
 \end{mathpar}
 
@@ -2763,7 +2749,7 @@ the object stored at \a in \s.
 \IRule{TSS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
 \IRule[width=30em]{TSS2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\mdu{\b{\e_4}}}{\t_2}
 }
@@ -2771,7 +2757,7 @@ the object stored at \a in \s.
 \IRule{TSS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\mdu{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
 \IRule[width=20em]{TSS4}{
@@ -2861,7 +2847,7 @@ the object stored at \a in \s.
     \src{\m({\D_1}):\D_2 \in \classoff\C\K} \\ 
     \AnaCast\K\Env{\e_2}{\e_4}{\D_1}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast\D{\DynCall{\e_3}\mdu{\SubCast\any{\e_4}}}}{\D_2} %Q: do I need to cast the return value of non-bang
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast\D{\DynCall{\e_3}\m{\SubCast\any{\e_4}}}}{\D_2} %Q: do I need to cast the return value of non-bang
 }
 
 \IRule{THS4}{
@@ -2870,7 +2856,7 @@ the object stored at \a in \s.
     \t \neq \D \\
     \AnaCast\K\Env{\e_2}{\e_4}{\t_1} 
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\mdu{{\e_4}}}{\t}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\t}
     %Q: do I need to cast the return value of non-bang
 }
 
@@ -2879,14 +2865,14 @@ the object stored at \a in \s.
   \src{\Mtype\m\t\tp \in \classoff\D\K} \\
   \AnaCast\K\Env{\e_2}{\e_3}{\t}
 }{
-  \GenCast\K\Env{\Call{\e_1}\m{\e_2}}{\Call{\e_3}\mdt{\e_4}}{\tp}
+  \GenCast\K\Env{\Call{\e_1}\m{\e_2}}{\KCall{\e_3}\m{\e_4}\t\tp}{\tp}
 }
 
 \IRule{THS6}{
     \GenCast\K\Env{\e_1}{\e_3}\any \\ 
     \AnaCast\K\Env{\e_2}{\e_4}\any
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\mdu{{\e_4}}}\any
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
 }
 
 \IRule{THS7}{
@@ -2945,12 +2931,12 @@ the object stored at \a in \s.
 \begin{mathpar}
 \IRule{MTU}{
   \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
-}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\mdu\x\any\any\ep}{}}
+}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
 
 \IRule{MTT}{
   \t \neq \any \\
   \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
-}{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\mdu\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
+}{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\ShaCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
 \subsection{Transient synthetic translation for expressions}
@@ -2964,7 +2950,7 @@ the object stored at \a in \s.
 \IRule[width=30em]{GRS2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{\Call{{\e_3}}\mdu{\SubCast{\any}{\e_4}}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
 }
 
 \IRule{GRS3}{
@@ -3052,15 +3038,9 @@ the object stored at \a in \s.
 }
 
 \IRule{MTT}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\C}}{\e}\ep{\Cp}
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\C}{\Cp}{\e}}{\Mdef\mdt\x\C\Cp\ep}{}
-}
-
-\IRule{MTU}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\any}}{\e}\ep{\any}
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{\Mdef\mdu\x\any\any\ep}{}
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\t\tp\ep}{}
 }
 \end{mathpar}
 
@@ -3078,15 +3058,9 @@ the object stored at \a in \s.
 }
 
 \IRule[width=30em]{TRS3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\Cp}):\Cpp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\Cp}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\t):\tp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\Call{\e_3}\mdt{{\e_4}}}{\Cpp}
-}
-
-\IRule[width=20em]{TRS4}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\any}):\any \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\Call{\e_3}\mdu{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}\t\tp}{\Cpp}
 }
 
 \IRule{TRS5}{
@@ -3183,16 +3157,10 @@ the object stored at \a in \s.
 
 \IRule{MTT}{
   \AnaCastMono \K{\HT\this\C~\HT\x\t}\e\ep\tp{\K_1} \\
-  \monowrap{\C_1}\K = \t_2~\K_2 \\
-  \monowrap{\Cp_1}\K = \tp_2~\K_3
+  \monowrap{\t}\K = \t[2]~\K_2 \\
+  \monowrap{\tp}\K = \tp[2]~\K_3
 }{
-  \methtrans \K\C{\Mdef\m\x{\C_1}{\Cp_1}\e}{\Mdef\mdt\x{\t_2}{\tp[2]}\ep}{\K_1~\K_2~\K_3}
-}
-
-\IRule{MTU}{
-  \AnaCastMono \K{\HT\this\C~\HT\x\any}\e\ep\any{\K_1} \\
-}{
-  \methtrans \K\C{\Mdef\m\x{\any}{\any}\e}{\Mdef\mdu\x{\any}{\any}\ep}{\K_1~\K_2~\K_3}
+  \methtrans \K\C{\Mdef\m\x{\t}{\tp}\e}{\Mdef\m\x{\t_2}{\tp[2]}\ep}{\K_1~\K_2~\K_3}
 }
 \end{mathpar}
 
@@ -3203,12 +3171,6 @@ the object stored at \a in \s.
 
 \begin{mathpar}
 \IRule{MOS1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
-
-\IRule[width=30em]{MOS2}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \n(\b{\t_1}):\t_2 \in \classoff\C\K \\ \statictype{\t_1}{\K}{\cdot} \vee \n=\f \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\n{\b{\e_2}}}{\Call{\e_3}\n{\b{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
-}
 
 \IRule[width=30em]{MOS2}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \src{\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
@@ -3222,19 +3184,19 @@ the object stored at \a in \s.
     \statictype{\t_1}{\K}{\cdot} \\ 
     {\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
 }{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\Call{\e_3}\mdt{{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
+    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}{\t_1}{\t_2}}{\t_2}{\K_1~\b{\K_2}}
 }
 
 \IRule[width=30em]{MOS3}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\statictype{\t_1}{\K}{\cdot} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
 }{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{(\MonCast\any\e_3)}\mdu{\MonCast\any{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
+    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{(\MonCast\any\e_3)}\m{\MonCast\any{\e_4}}\any\any}{\t_2}{\K_1~\b{\K_2}}
 }
 
 \IRule{MOS4}{
     \GenCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
 }{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\mdu{{\e_4}}}{\any}{\K_1~\K_2}
+    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
 }
 
 \IRule{MOS5}{
