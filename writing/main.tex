@@ -2417,12 +2417,14 @@ typing system highlights the essences which makes each system unique.
 
 \subsection{Syntax}
 
-\begin{figure}[!h]\hrulefill
+\begin{figure}[!h]
+% \hrulefill
+
 \hspace{0.1cm}
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x         &\B \this         &\B \that      \\
    &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
-   &\B \Call\e\m\e &\B \DynCall\e\m\e &\B \SubCast\t\e \\
+   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \SubCast\t\e \\
    &\B \ShaCast\t\e  &\B \a \\ 
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
@@ -2435,15 +2437,105 @@ typing system highlights the essences which makes each system unique.
 ~\fd&::= ~ \Fdef\f\t \\ 
 \end{tabular}\end{minipage}
 
-\hrulefill
+% \hrulefill
 \caption{\kafka Syntax.}
 \end{figure}
 
 
+
 \subsection{Semantics}
 
+\begin{figure}[!b]
+% \hrulefill
 
+\begin{minipage}{8cm}
+  \opdef{\Reduce \K\e\s \Kp\ep\sp}
+        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
+\begin{tabular}{l@{}l@{~}l@{~}l}
+\CondRule{E1}{  %% new C -> a
+   \fresh\ap 
+}{ 
+  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
+}
+\CondRule{E2}{  %% a.f() -> e
+    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
+}{
+   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
+}
+\CondRule{E3}{  %% a.f(a) -> e
+    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
+}{
+   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E4}{  %% a.f() -> e
+ \readf \s\a\f\K =  \ap 
+}{
+  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
+}
+\CondRule{E5}{  %% a.f(e) -> e
+ \setf \s\a\f\ap\K =  \sp
+}{
+  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
+}
+\CondRule{E6a}{  %% a.m(a) -> e
+  \Mdef\m\x\tp\t\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
+}{
+ \ReduceA \K{\KCall\a\m\ap\tp\t}\s \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E7}{  %% a@m(a) -> e
+    \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
+}{
+  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E8}{  %% Subtypecast
+}{ 
+  \ReduceA \K{\SubCast \any\a}\s \K\a\s
+}
+\CondRule{E9}{  %% Subtypecast
+  \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
+}{ 
+  \ReduceA \K{\SubCast \D\a}\s \K\a\s
+}
+\CondRule{E10}{  %% Shallow Structural
+}{ 
+  \ReduceA \K{\ShaCast \any\a}\s \K\a\s
+}
+\CondRule{E10b}{  %% Shallow Structural
+ \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
+}{ 
+  \ReduceA \K{\ShaCast \D\a}\s \K\a\s
+}
+\CondRule{E11}{  %% E[e] -> E[e']
+  \Reduce \K\e\s \Kp\ep\sp
+}{
+ \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
+}
+\end{tabular}\end{minipage}
 
+%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+~\\[2mm]
+
+\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+\EE &::= \Get\EE\f     &\B
+        \Set\EE\f\e   &\B
+        \Set\a\f\EE   &\B  
+        \Call\EE\m\e  &\B
+        \Call\a\m{\EE} &\B
+        \DynCall\EE\m\e   &\B
+        \DynCall\a\m\EE   \\
+   &\B~
+       \SubCast\t\EE  &\B
+       \ShaCast\t\EE  &\B
+       \New\C{\b \a\,\EE\,\b\e}
+  &\B \EM{\square}
+\end{tabular}
+\end{minipage}
+
+% \hrulefill
+\caption{\kafka Semantics.}
+\end{figure}
+
+\clearpage
 
 \subsection{Subtyping}
 
@@ -2498,6 +2590,8 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
 \subsection{Well-formedness}
 
 The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
+
+~\\
 
 \opdef{~\WFp\e\K}{Well-formed program}
 
