@@ -2555,7 +2555,7 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
 \IRule{SAss}{
 \C \Sub \D \in \M
 }{
- \StrSub \M\K \C \D
+ \StrSub \M\K \C\D
 }
 
 \IRule{SRec}{
@@ -2626,7 +2626,7 @@ field or method names within the given field and method definitions. \\
  \WFtype\K\t \\
  \WFtype\K\tp \\
 }{
- \WF \Env\s\K {\Mdef\md\x\t\tp\e}
+ \WF \Env\s\K {\Mdef\m\x\t\tp\e}
 }
 
 \IRule{WS}{
@@ -4412,52 +4412,74 @@ The \xt{typing} function takes field definitions and returns the method typing s
 %%   that : A
 %%   ...
 
+\section{Proofs of Related Theorems}
 
-% \section{Proofs of Related Theorems}
-% \subsection{Accessory Lemmas}
-% 
-% \paragraph{Evaluation Extends Class Tables}
-% 
-% If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
-% 
-% \paragraph{Weakening of Subtyping}
-% 
-% If $\StrSub\cdot\K\t\tp$ then $\StrSub\cdot{\K~\Kp}\t\tp$.
-% 
-% \paragraph{Correctness of \classoff{\C}{\K}}
-% 
-% If $\Mtype\n{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable) $\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\n{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$
-% 
-% \subsection{Soundness of \kafka Typing}
-% 
-% Given that $\WFp\K\e\s$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is of one of the following forms:
-% \begin{itemize} 
-% \item $\a$
-% \item $\DynCall\ep\m{\epp}$
-% \item $\SubCast\tp\ep$
-% \item $\ShaCast\tp\ep$
+\subsection{Accessory Lemmas}
+
+\paragraph{Evaluation Extends Class Tables}
+
+If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
+
+\paragraph{Weakening of Expression Typing}
+
+If $\EnvType\Env\s\K\e\t$ then $\EnvType{\Env~\Envp}\s\K\e\t$. \\ 
+If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env{\s~\s'}\K\e\t$. \\ 
+If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env\s{\K~\Kp}\e\t$. \\ 
+
+\paragraph{Weakening of Well-formedness}
+
+If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$. \\
+If $\WF\Env\s\K\md$ then $\WF{\Env~\Envp}\s\K\md$.\\
+If $\WF\Env\s\K\md$ then $\WF\Env{\s~\s'}\K\md$.\\
+If $\WF\Env\s\K\md$ then $\WF\Env\s{\K~\Kp}\md$.\\
+If $\WFtype\K{\Fdef\f\t}$ then $\WFtype{\K~\Kp}{\Fdef\f\t}$.\\
+If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$.\\
+
+\paragraph{Weakening of Subtyping}
+
+If $\StrSub\M{\K}\t\tp$ then $\StrSub\M{\K~\Kp}\t\tp$. \\
+If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
+
+\paragraph{Correctness of \classoff{\C}{\K}}
+
+If $\Mtype\m{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable) 
+$\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\n{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$
+
+\subsection{Type Soundness of Core \kafka Typing}
+
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+or $\e$ is of one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\DynCall\ep\m{\epp}$
+\item $\SubCast\tp\ep$
+\item $\ShaCast\tp\ep$
 % \item $\BehCast\tp\ep$
-% \item $\MonCast\tp\ep $
-% \end{itemize}
-% We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. Note that we refer to rule preconditions from left to right.
-% \begin{itemize}
-%   \item W1
-% 
-%         Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
-%   \item W2
-% 
-%         We apply the IH to the first precondition. If we get stuck in the IH, then the entire expression gets stuck or terminates, trivially. Therefore, the interesting case is when $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp\ep\sp$ and $\EnvType\cdot\sp\Kp\ep\tp$. By 
-%   \item W3, W4, W5
-%   \item W6
-%   \item W7
-%   \item W8
-%   \item W9
-%   \item W10
-%   \item W11
-%   \item W12
-% \end{itemize}
-% 
-% \subsection{Type Correctness of Translation}
+% \item $\MonCast\tp\ep$
+\end{itemize}
+
+We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
+Note that we refer to rule preconditions from left to right.
+
+\begin{itemize}
+  \item W1
+        Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
+  \item W2
+        We apply the IH to the first precondition. If we get stuck in the IH, then the entire
+        expression gets stuck or terminates, trivially. Therefore, the interesting case is when
+        $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. 
+  \item W3, W4, W5
+  \item W6
+  \item W7
+  \item W8
+  \item W9
+  \item W10
+  \item W11
+  \item W12
+\end{itemize}
+
+\subsection{Type Soundness of Transient Translation}
 
 
 \end{document}
