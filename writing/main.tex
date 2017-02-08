@@ -2691,25 +2691,20 @@ to the name of \t not to \t.
 }
 
 \IRule{W2}{
- }{
-   \EnvType \Env\s\K\a\any
-}
-
-\IRule{W3}{
   \EnvType \Env\s\K\e\tp \\
  \StrSub \M\K \tp \t
  }{
   \EnvType \Env\s\K\e\t 
 }   
 
-\IRule{W4}{
+\IRule{W3}{
   \EnvType \Env\s\K\e\C \\
   \Mtype \f{}\tp \in \classoff\C\K
 }{
   \EnvType \Env\s\K{\Get\e\f}\tp
 }    
 
-\IRule[width=20em]{W5}{
+\IRule[width=20em]{W4}{
   \EnvType \Env\s\K\e\C \\
   \Mtype \f\tp\tp \in \classoff\C\K  \\
   \EnvType \Env\s\K\ep\tp
@@ -2717,7 +2712,7 @@ to the name of \t not to \t.
   \EnvType \Env\s\K{\Set\e\f\ep}\tp
 }    
 
-\IRule[width=20em]{W6}{
+\IRule[width=20em]{W5}{
   \EnvType \Env\s\K\e\C \\
   \Mtype \m\t\tp\in \classoff\C\K  \\
   \EnvType \Env\s\K\ep\t
@@ -2725,14 +2720,14 @@ to the name of \t not to \t.
   \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
 }    
 
-\IRule{W8}{
+\IRule{W6}{
   \EnvType \Env\s\K\e\any \\
   \EnvType \Env\s\K\ep\any
 }{
   \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
 
-\IRule{W9}{
+\IRule{W7}{
  \EnvType \Env\s\K{\e_1}{\t_1}\dots 
  \EnvType \Env\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
@@ -2741,33 +2736,38 @@ to the name of \t not to \t.
   \EnvType \Env\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 
-\IRule{W10}{
+\IRule{W8}{
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\SubCast\t\e}\t
 }
 
-\IRule{W11}{
+\IRule{W9}{
   \neg\xt{dynamic}(\t,\,\K) \\
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\ShaCast\t\e}\t  
 }
 
-\IRule{W12}{
+\IRule{W10}{
   \s(\a) = \obj\C{\b\ap}
 }{
   \EnvType \Env\s\K\a\C
 }
 
-\IRule{W13}{
+\IRule{W11}{
+ }{
+   \EnvType \Env\s\K\a\any
+}
+
+\IRule{W12}{
   \App\Env\this = \D \\
    \Fdef\that\C\in\App\K\D\\
 }{
   \EnvType \Env\s\K{\Get\this\that}\C
 }
 
-\IRule{W14}{
+\IRule{W13}{
   \App\Env\this = \D \\
    \Fdef\that\C\in\App\K\D\\
   \EnvType \Env\s\K\e\C \\
