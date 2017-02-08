@@ -4475,8 +4475,15 @@ If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
 
 \paragraph{Correctness of \classoff{\C}{\K}}
 
-If $\Mtype\m{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable) 
-$\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\n{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$
+If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and 
+$\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\KCall\e\m{\ep}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+
+Alternately, if $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\e\C$ and (if applicable)
+$\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\e\f{\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+
+\paragraph{Canonical forms}
+
+If $\WFp\K{\e~\s}$ $\EnvType\cdot\s\K\a\C$, then $\s[\a \mapsto \{\ap \B \C\}]$.
 
 \subsection{Type Soundness of Core \kafka Typing}
 
@@ -4499,10 +4506,18 @@ Note that we refer to rule preconditions from left to right.
   \item \RuleRef{W1}
         Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
   \item \RuleRef{W2}
+
         We apply the IH to the first precondition. If we get stuck in the IH, then the entire
         expression gets stuck or terminates, trivially. Therefore, the interesting case is when
-        $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. 
+        $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. Since, by the
+        second precondition, we know that $\StrSub \M\K \tp \t$, it follows by weakening of subtyping $\StrSub\M\Kp\tp\t$.
+        We can then apply \RuleRef{W2} to find that $\EnvType\cdot\sp\Kp\ep\t$, and therefore $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\t$, and the theorem holds.
   \item \RuleRef{W3}
+
+        We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
+
+        If $\e$ is a value $\a$, then we apply canonical forms to 
+
   \item \RuleRef{W4}
   \item \RuleRef{W5}
   \item \RuleRef{W6}
