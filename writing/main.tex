@@ -4473,10 +4473,15 @@ If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$.\\
 If $\StrSub\M{\K}\t\tp$ then $\StrSub\M{\K~\Kp}\t\tp$. \\
 If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
 
+\paragraph{Weakening of $\xt{mtypes}$}
+
+If $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.\\
+If $\Mtype\f{}\t \in \classoff\C\K$, then $\Mtype\f{}\t \in \classoff\C{\K~\Kp}$, for some $\Kp$.
+
 \paragraph{Correctness of \classoff{\C}{\K}}
 
 If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\KCall\a\m{\ep}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
 
 Alternately, if $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and (if applicable)
 $\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\a\f{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
@@ -4491,12 +4496,12 @@ If $\WFp\K{\e~\s}$ $\EnvType\cdot\s\K\a\C$, then $\s[\a \mapsto \{\ap \B \C\}]$.
 
 Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
 such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
-or $\e$ is of one of the following forms:
+or $\e$ is stuck in one of the following forms:
 \begin{itemize} 
 \item $\a$
 \item $\EE[\DynCall\ep\m{\epp}]$
 \item $\EE[\SubCast\tp\ep]$
-\item $\EE[\ShaCast\tp\ep[$
+\item $\EE[\ShaCast\tp\ep]$
 \end{itemize}
 
 We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
@@ -4516,9 +4521,17 @@ Note that we refer to rule preconditions from left to right.
 
         We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
 
+        If $\e$ steps to some $\ep$, and since we know that $\Mtype\f{}\tp \in \classoff{\C}{\K}$, we can then apply \RuleRef{W3} via weakening of $\xt{mtypes}$.
+
         If $\e$ is a value $\a$, then we apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f{}}\s\K\ep\s$ for some $\ep$, and that $\EnvType\cdot\s\K\ep\t$. Therefore, the theorem holds.
 
+        If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
   \item \RuleRef{W4}
+
+      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
+      \begin{itemize}
+        \item $\e$ is $\a$: 
+      \end{itemize}
   \item \RuleRef{W5}
   \item \RuleRef{W6}
   
