@@ -2652,7 +2652,7 @@ field or method names within the given field and method definitions. \\
  \WFtype\K{\Fdef\f\t}
 }
 \end{mathpar}
-
+ 
 \opdef{~\WFtype\K\t}{Well-formed types}
 \begin{mathpar}
 \IRule{WA}{
@@ -2664,6 +2664,14 @@ field or method names within the given field and method definitions. \\
  \C \in \K
 }{
  \WFtype\K\C
+}
+\end{mathpar}
+
+\opdef{~\WFtype\K\s}{Well-formed heaps}
+\begin{mathpar}
+\IRule{WH}{
+}{
+ \WFtype\K\s
 }
 \end{mathpar}
 
@@ -2743,7 +2751,7 @@ to the name of \t not to \t.
 }
 
 \IRule{W9}{
-  \neg\xt{dynamic}(\t,\,\K) \\
+  \xt{dynamic}(\t,\,\K) \\
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\ShaCast\t\e}\t  
@@ -2779,7 +2787,7 @@ to the name of \t not to \t.
 
 \subsection{Field read}
 
-The function \readf\s\a\f\K denotes reading the fields \f of the object
+The function \\xt{dynamic}\s\a\f\K denotes reading the fields \f of the object
 stored at \a in \s.
 
 \begin{equation*}
@@ -2802,7 +2810,17 @@ the object stored at \a in \s.
 \end{cases}
 \end{equation*}
 
-% \clearpage
+\subsection{Dynamic function}
+
+The function \xt{dynamic}(\t,\,\K) denotes every method in type \t contains only \any. 
+
+\begin{equation*}
+\xt{dynamic}(\t,\,\K) = \ap 
+  ~~\mathit{if}~~ \begin{cases}
+  \Class\C {\b\fd}{\Mdef{\m_{1}}\x{\t_{1}}{\tp_{1}}{\dots} \dots ~\Mdef{\m_{n}}\x{\t_{n}}{\tp_{n}}{\dots}}\in\K
+ \end{cases}
+\end{equation*}
+
 
 \section{Complete translation for TypeScript}
 
@@ -4483,9 +4501,16 @@ $\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\a\f{\ep}}\s \K\epp\s$ where $\E
 
 \paragraph{Canonical forms}
 
+
 If $\WFp\K{\e~\s}$ $\EnvType\cdot\s\K\a\C$, then $\s[\a \mapsto \{\ap \B \C\}]$.
 
 \subsection{Heap Well-formedness}
+
+If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\K{\e~\s}$. 
+
+\subsection{Consistent Class Table}
+
+If $\WFp\K{\e~\s}$
 
 \subsection{Type Soundness of Core \kafka Typing}
 
