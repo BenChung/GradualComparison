@@ -2598,9 +2598,9 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 \begin{mathpar}
 \IRule{WP}{
   \k \in \K \implies \WF{}\cdot\K\k \\
-  \EnvType\Env\cdot\K\e\t
+  \EnvType\Env\s\K\e\t
 }{
-  \WFp\e\K
+  \WFq{\K\e\s}
 }
 \end{mathpar}
 
@@ -2670,6 +2670,7 @@ field or method names within the given field and method definitions. \\
 \opdef{~\WFtype\K\s}{Well-formed heaps}
 \begin{mathpar}
 \IRule{WH}{
+\forall~\Bind\ap{\obj\C{\b\a}}~\in~\s~.~\Class\C{\b\fd}{\b\md}\in\K~\wedge~|\b\fd|=|\b\a|
 }{
  \WFtype\K\s
 }
@@ -4501,25 +4502,27 @@ If $\Mtype\f{}\t \in \classoff\C\K$, then $\Mtype\f{}\t \in \classoff\C{\K~\Kp}$
 If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
 $\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
 
-Alternately, if $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and (if applicable)
+If $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+
+If $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
 $\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
 
 \paragraph{Canonical forms}
 
-
-If $\WFp\K{\e~\s}$ $\EnvType\cdot\s\K\a\C$, then $\s[\a\mapsto{\obj\C{\b\a}}]$.
+If $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\a\C$, then $\s[\a\mapsto{\obj\C{\b\a}}]$.
 
 \paragraph{Evaluation retains typing} \label{lem:ert}
 
 If $\EnvType\cdot\s\K\e\t$, $\EnvType\cdot\s\K\ep\tp$, and $\WFp\K{\ep~\s}$, then if $\Reduce\K\ep\s\Kp\epp\sp$, it follows that $\EnvType\cdot\sp\Kp\e\t$ and $\Kp = \K~\Kpp$.
 
-\subsection{Heap Well-formedness}
+\subsection{Reduction preserves Well-formedness}
 
 If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$. 
 
 \subsection{Consistent Class Table}
 
-If $\WFp\K{\e~\s}$
+If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\Fdef\f\t}}{\b\md}~.~\WFtype\K{\Fdef\f\t}~\wedge~\WF\cdot\s\K\md$
 
 \subsection{Type Soundness of Core \kafka Typing}
 
@@ -4569,6 +4572,7 @@ Note that we refer to rule preconditions from left to right.
         \item If $\e$ is stuck at one of the three stuck states, then we can bubble the stuck state up by definition of $\EE$, and the theorem holds.
       \end{itemize}
   \item \RuleRef{W5}
+  
   \item \RuleRef{W6}
   
   \item \RuleRef{W7}
