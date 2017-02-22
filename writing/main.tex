@@ -4497,6 +4497,10 @@ If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
 If $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.\\
 If $\Mtype\f{}\t \in \classoff\C\K$, then $\Mtype\f{}\t \in \classoff\C{\K~\Kp}$, for some $\Kp$.
 
+\paragraph{Substitution}
+
+If $\EnvType{\b{\HT\x\tp}}\s\K\e\t$ and $\b{\EnvType\cdot\s\K\a\tp}$, then $\EnvType\cdot\s\K{[\a/\x]\e}\t$
+
 \paragraph{Correctness of \classoff{\C}{\K}}
 
 If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
@@ -4593,7 +4597,10 @@ Note that we refer to rule preconditions from left to right.
         \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. 
         \begin{itemize}
           \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\any$, then use \RuleRef{W6} to conclude that $\EnvType\cdot\sp\Kp{\DynCall\a\m\epp}\any$.
-          \item $\e' = \ap$. Since the expression is of the form $\DynCall\a\m\ap$, we can get stuck, and the theorem holds.
+          \item $\e' = \ap$. If $\sigma(a) = \C\{\b{\app}\}$, and if $\Mdef\m\x\any\any\e \in \K(\C)$, then $\Reduce\K{\DynCall\a\m\ap}\s\K{[\a/\this ~ \ap/\x]\e}\any$, by the definition of evaluation. Then, since $\WFp\K{\e~\s}$, it follows that $\WFq\C$, and then that $\EnvType{\HT{\this}{\C}~\HT{\x}{\any}}\s\K\e\any$. Then, since we have that $\EnvType\cdot\s\K\a\C$ (by application of \RuleRef{W10}), and that $\EnvType\cdot\s\K\ep\any$, we can use the substitution lemma to find that $\EnvType\cdot\s\K{[\a/\this ~ \ap/\x]\e}\any$, and the theorem holds.
+
+
+          If the precondition does not apply, and $\C$ does not contain $\m$ under type $\any$, then the expression gets stuck, and the theorem holds.
           \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall\a\m{\EE[\epp]}$, which is stuck.
         \end{itemize}
         \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall{\EE[\epp]}\m{\ep}$, which is stuck.
