@@ -4484,11 +4484,15 @@ If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and
 $\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
 
 Alternately, if $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and (if applicable)
-$\EnvType\cdot\s\K\ep\t$, then $\Reduce \K{\Call\a\f{\b\ep}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
 
 \paragraph{Canonical forms}
 
 If $\WFp\K{\e~\s}$ $\EnvType\cdot\s\K\a\C$, then $\s[\a \mapsto \{\ap \B \C\}]$.
+
+\paragraph{Evaluation retains typing} \label{lem:ert}
+
+If $\EnvType\cdot\s\K\e\t$, $\EnvType\cdot\s\K\ep\tp$, and $\WFp\K{\ep~\s}$, then if $\Reduce\K\ep\s\Kp\epp\sp$, it follows that $\EnvType\cdot\sp\Kp\e\t$ and $\Kp = \K~\Kpp$.
 
 \subsection{Heap Well-formedness}
 
@@ -4528,9 +4532,16 @@ Note that we refer to rule preconditions from left to right.
         If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
   \item \RuleRef{W4}
 
-      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
+      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
       \begin{itemize}
-        \item $\e$ is $\a$: 
+        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{W4} to find that $\EnvType\cdot\sp\Kp{\Call\epp\f\ep}\tp$.
+        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. 
+        \begin{itemize}
+          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Then, $\Reduce\K{\Call\a\f\ep}\s\Kp{\Call\a\f\epp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{W4} to conclude that $\EnvType\cdot\sp\Kp{\Call\a\f\epp}\tp$.
+          \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f\ap}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
+          \item $\e'$ is stuck at $\EE[\DynCall\ep\m{\epp}]$, $\EE[\SubCast\tp\ep]$, or $\EE[\ShaCast\tp\ep]$. Apply the definition of $\EE$ to find that the term as a whole is stuck.
+        \end{itemize}
+        \item If $\e$ is stuck at one of the three stuck states, then we can bubble the stuck state up by definition of $\EE$, and the theorem holds.
       \end{itemize}
   \item \RuleRef{W5}
   \item \RuleRef{W6}
