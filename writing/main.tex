@@ -2768,21 +2768,21 @@ to the name of \t not to \t.
  }{
    \EnvType \Env\s\K\a\any
 }
-
-\IRule{W12}{
-  \App\Env\this = \D \\
-   \Fdef\that\C\in\App\K\D\\
-}{
-  \EnvType \Env\s\K{\Get\this\that}\C
-}
-
-\IRule{W13}{
-  \App\Env\this = \D \\
-   \Fdef\that\C\in\App\K\D\\
-  \EnvType \Env\s\K\e\C \\
-}{
-  \EnvType \Env\s\K{\Set\this\that\e}\C
-}
+% 
+% \IRule{W12}{
+%   \App\Env\this = \D \\
+%    \Fdef\that\C\in\App\K\D\\
+% }{
+%   \EnvType \Env\s\K{\Get\this\that}\C
+% }
+% 
+% \IRule{W13}{
+%   \App\Env\this = \D \\
+%    \Fdef\that\C\in\App\K\D\\
+%   \EnvType \Env\s\K\e\C \\
+% }{
+%   \EnvType \Env\s\K{\Set\this\that\e}\C
+% }
 \end{mathpar}
 
 
@@ -4500,13 +4500,11 @@ If $\Mtype\f{}\t \in \classoff\C\K$, then $\Mtype\f{}\t \in \classoff\C{\K~\Kp}$
 \paragraph{Correctness of \classoff{\C}{\K}}
 
 If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
-
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
 If $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
-
-If $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
+If $\Mtype\f{}\tp \in \classoff{\C}{\K}$ and $\EnvType\cdot\s\K\a\C$, 
+then $\Reduce \K{\Call\a\f{}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
 
 \paragraph{Canonical forms}
 
@@ -4576,6 +4574,8 @@ Note that we refer to rule preconditions from left to right.
   \item \RuleRef{W6}
   
   \item \RuleRef{W7}
+  
+  
   
   \item \RuleRef{W8}
   
