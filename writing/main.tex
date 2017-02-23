@@ -2566,6 +2566,7 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
 }
 \end{mathpar}
 
+\opdef{\StrSub\M\K\mt\mtp}{\mt is a subtype of \mtp}
 \begin{mathpar}
 \IRule{SMet}{
   \StrSub \M\K {\t[1]} {\t[2]} \\
@@ -2598,9 +2599,10 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 \begin{mathpar}
 \IRule{WP}{
   \k \in \K \implies \WF{}\cdot\K\k \\
-  \EnvType\Env\s\K\e\t
+  \EnvType\Env\s\K\e\t \\
+  \WFtype\K\s
 }{
-  \WFq{\K\e\s}
+  \WFq{\K~\e~\s}
 }
 \end{mathpar}
 
@@ -2621,30 +2623,54 @@ field or method names within the given field and method definitions. \\
 
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
 \begin{mathpar}
-\IRule[width=18em]{WT}{
- \EnvType {\Env{~\Ftype\x\t}~}\s\K\e\tp\\
- \WFtype\K\t \\
- \WFtype\K\tp \\
+\IRule[width=18em]{WT1}{
+ \EnvType {\Env{~\Ftype\x\any}~}\s\K\e\any\\
+ \WFtype\K\any \\
+ \WFtype\K\any \\
 }{
- \WF \Env\s\K {\Mdef\m\x\t\tp\e}
+ \WF \Env\s\K {\Mdef\m\x\any\any\e}
 }
 
-\IRule{WS}{
- \EnvType {\Env{~\Ftype\x\tp}~}\s\K \e\t \\
- \WFtype \K\t 
+\IRule{WS1}{
+ \EnvType {\Env{~\Ftype\x\any}~}\s\K \e\any \\
+ \WFtype \K\any 
 }{
- \WF  \Env\s\K {\Mdef\f\x\t\t\e}
+ \WF  \Env\s\K {\Mdef\f\x\any\any\e}
 }
 
-\IRule{WG}{
- \EnvType \Env\s\K\e\t \\
- \WFtype \K\t
+\IRule{WG1}{
+ \EnvType \Env\s\K\e\any \\
+ \WFtype \K\any
 }{
- \WF \Env\s\K {\Mdefz\f\t\e}
+ \WF \Env\s\K {\Mdefz\f\any\e}
 }
 \end{mathpar}
 
-\opdef{~\WFtype \K {\Fdef\f\t}}{Well-formed fields}
+\begin{mathpar}
+\IRule[width=18em]{WT2}{
+ \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\Cp\\
+ \WFtype\K\C \\
+ \WFtype\K\Cp \\
+}{
+ \WF \Env\s\K {\Mdef\m\x\C\Cp\e}
+}
+
+\IRule{WS2}{
+ \EnvType {\Env{~\Ftype\x\Cp}~}\s\K \e\C \\
+ \WFtype \K\C 
+}{
+ \WF  \Env\s\K {\Mdef\f\x\C\C\e}
+}
+
+\IRule{WG2}{
+ \EnvType \Env\s\K\e\C \\
+ \WFtype \K\C
+}{
+ \WF \Env\s\K {\Mdefz\f\C\e}
+}
+\end{mathpar}
+
+\opdef{~\WFtype \K {\fd}}{Well-formed fields}
 \begin{mathpar}
 \IRule{WF}{
  \WFtype\K\t 
@@ -2670,11 +2696,21 @@ field or method names within the given field and method definitions. \\
 \opdef{~\WFtype\K\s}{Well-formed heaps}
 \begin{mathpar}
 \IRule{WH}{
-\forall~\Bind\ap{\obj\C{\b\a}}~\in~\s~.~\Class\C{\b\fd}{\b\md}\in\K~\wedge~|\b\fd|=|\b\a|
+\Bind\ap{\obj\C{\b\a}}~\in~\s \implies \Class\C{\b\fd}{\b\md}\in\K~\wedge~|\b\a|=|\b\fd|
 }{
  \WFtype\K\s
 }
 \end{mathpar}
+
+% \opdef{~\WF{}\cdot\K\k}{Well-formed class table}
+% \begin{mathpar}
+% \IRule{WH}{
+%  \WFtype\K{\b{\fd}}\\
+%  \WF\cdot\s\K{\b\md}
+% }{
+%  \WF{}\cdot\K{\Class\C{\b{\fd}}{\b\md}}
+% }
+% \end{mathpar}
 
 \subsection{Expression typing}
 
@@ -2751,20 +2787,20 @@ to the name of \t not to \t.
   \EnvType \Env\s\K{\SubCast\t\e}\t
 }
 
-\IRule{W9}{
-  \xt{dynamic}(\t,\,\K) \\
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\ShaCast\t\e}\t  
-}
+% \IRule{W9}{
+%   \xt{dynamic}(\t,\,\K) \\
+%   \EnvType \Env\s\K\e\tp
+% }{
+%   \EnvType \Env\s\K{\ShaCast\t\e}\t  
+% }
 
-\IRule{W10}{
+\IRule{W9}{
   \s(\a) = \obj\C{\b\ap}
 }{
   \EnvType \Env\s\K\a\C
 }
 
-\IRule{W11}{
+\IRule{W10}{
  }{
    \EnvType \Env\s\K\a\any
 }
@@ -2811,16 +2847,22 @@ the object stored at \a in \s.
 \end{cases}
 \end{equation*}
 
-\subsection{Dynamic function}
-
-The function \xt{dynamic}(\t,\,\K) denotes every method in type \t contains only \any. 
-
-\begin{equation*}
-\xt{dynamic}(\t,\,\K) = \ap 
-  ~~\mathit{if}~~ \begin{cases}
-  \Class\C {\b\fd}{\Mdef{\m_{1}}\x{\t_{1}}{\tp_{1}}{\dots} \dots ~\Mdef{\m_{n}}\x{\t_{n}}{\tp_{n}}{\dots}}\in\K
- \end{cases}
-\end{equation*}
+% \subsection{Dynamic function}
+% 
+% The judgement \xt{dynamic}(\t,\,\K) denotes every method in type \t contains only \any. 
+% 
+% \begin{mathpar}
+% \IRule{DF1}{
+%  }{
+%  \xt{dynamic}(\any,\,\K)
+% }
+% 
+% \IRule{DF1}{
+%  \Class\C {\b\fd}{\Mdef{\m_{1}}{\x_{1}}{\any}{\any}{\dots} \dots ~\Mdef{\m_{n}}{\x_{n}}{\any}{\any}{\dots}}\in\K
+%  }{
+%  \xt{dynamic}(\C,\,\K) 
+% }
+% \end{mathpar}
 
 
 \section{Complete translation for TypeScript}
@@ -4524,7 +4566,7 @@ If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$.
 
 \subsection{Consistent Class Table}
 
-If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\Fdef\f\t}}{\b\md}~.~\WFtype\K{\Fdef\f\t}~\wedge~\WF\cdot\s\K\md$
+If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\wedge~\WF\cdot\s\K{\b\md}$
 
 \subsection{Type Soundness of Core \kafka Typing}
 
@@ -4605,6 +4647,7 @@ Note that we refer to rule preconditions from left to right.
       \end{itemize}
   \item \RuleRef{W7}
   
+     We apply the IH to the preconditions $\e_{1} \cdots \e_{n}$, finding that either $\e_{i}$ is a value $\a$, $\e_{i}$ is a stuck state, or $\Reduce\K{\e_i}\s\Kp{\ep_i}\sp$, $\WFp\Kp{\ep_i~\sp}$, and $\EnvType\cdot\sp\Kp{\ep_i}\C_i$, then case analyze.
   
   
   \item \RuleRef{W8}
@@ -4615,7 +4658,6 @@ Note that we refer to rule preconditions from left to right.
   
   \item \RuleRef{W11}
   
-  \item \RuleRef{W12}
 \end{itemize}
 
 \subsection{Type Soundness of Transient Translation}
