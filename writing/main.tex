@@ -4651,7 +4651,17 @@ Note that we refer to rule preconditions from left to right.
   
   
   \item \RuleRef{W8}
-  
+      Apply the IH to the precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$. If it gets stuck at one of the three stuck states, or steps to a new expression, then the case is trivial.
+
+      Consider the $\a$ case. Case analyze on $\t$:
+      \begin{itemize}
+        \item $\t = \any$. Trivially, $\Reduce\K{\SubCast\t\a}\s \K\a\s$.
+        \item $\t = \C$. Define $\D$ such that $\sigma(\a) = \D\{\b{\ap}\}$. Case analyze on if $\StrSub \M\K \D \C$.
+        \begin{itemize}
+          \item If $\StrSub \M\K \D \C$, then $\Reduce\K{\SubCast\t\a}\s \K\a\s$. Moreover, $\HasType\cdot\K\s\a\t$, via \RuleRef{W2} and \RuleRef{W10}.
+          \item Otherwise, $\SubCast\t\a$ is stuck, and the theorem holds.
+        \end{itemize}
+      \end{itemize}
   \item \RuleRef{W9}
   
   \item \RuleRef{W10}
