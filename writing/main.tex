@@ -2778,7 +2778,7 @@ to the name of \t not to \t.
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
-  \EnvType \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+  \EnvType\Env\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 
 \IRule{W8}{
@@ -4647,7 +4647,30 @@ Note that we refer to rule preconditions from left to right.
       \end{itemize}
   \item \RuleRef{W7}
   
-     We apply the IH to the preconditions $\e_{1} \cdots \e_{n}$, finding that either $\e_{i}$ is a value $\a$, $\e_{i}$ is a stuck state, or $\Reduce\K{\e_i}\s\Kp{\ep_i}\sp$, $\WFp\Kp{\ep_i~\sp}$, and $\EnvType\cdot\sp\Kp{\ep_i}\C_i$, then case analyze.
+  We apply the IH to the preconditions $\e_{1} \cdots \e_{n}$, finding that either $\e_{i}$ is a value $\a$, $\e_{i}$ is a stuck state, 
+  or $\Reduce\K{\e_i}\s\Kp{\ep_i}\sp$, $\WFp\Kp{\ep_i~\sp}$, and $\EnvType\cdot\sp\Kp{\ep_i}\C_i$, then case analyze.
+  
+  \begin{enumerate}
+   \item $\EnvType\cdot\s\K{\New\C{\e_1\dots\e_n}}\C$ 
+   \item $\WFp\K{\e~\s}$  by case  
+   \item $\Class \C {\b\fd}{\b\md} \in \K$  
+   \item $\EnvType \cdot\s\K{\e_1}{\t_1}\dots \EnvType \cdot\s\K{\e_n}{\t_n}$
+   \item $\b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}$ by inversion lemma on (1)
+   \item $\EnvType \cdot\s\K{\a_1}{\t_1}\dots \EnvType \dot\s\K{\a_n}{\t_n}$ by Inductive hypo on (2)
+   \item $\Kp~{\New\C{\b\a}~\s}$ by Inductive hypo and (6)
+   \item $\Kp=\K$
+   \item $\sp=\Map\s{\Bind\ap{\obj\C{\b\a}}}$
+   \item $\ap$ fresh
+   \item $\ep=\ap$ by semantics on (7)
+   \item $\EnvType \cdot\sp\Kp{\ap}{\C}$ by W10 on (8) and (9)
+   \item $\k \in \K \implies \WF{}\cdot\K\k$ by (2)
+   \item $\WFtype{\K}\s$ by premise of WF (2)
+   \item $\WFtype{\K}\sp$ by (14), (2), (4)
+   \item $\WFtype{\Kp}\sp$ by (15), (8)
+   \item $\WFp\Kp{\ap~\sp}$ by (13), (8), (16), (12)
+   \item done by (17) and (12)
+  \end{enumerate}
+
   
   
   \item \RuleRef{W8}
@@ -4662,7 +4685,6 @@ Note that we refer to rule preconditions from left to right.
           \item Otherwise, $\SubCast\t\a$ is stuck, and the theorem holds.
         \end{itemize}
       \end{itemize}
-  \item \RuleRef{W9}
   
   \item \RuleRef{W10}
   
