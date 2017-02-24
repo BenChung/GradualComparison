@@ -2425,7 +2425,8 @@ typing system highlights the essences which makes each system unique.
 \e &::=  \x         &\B \this         &\B \that      \\
    &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \SubCast\t\e \\
-   &\B \ShaCast\t\e  &\B \a \\ 
+%    &\B \ShaCast\t\e  
+   &\B \a \\
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\b\fd}{\b\md}
@@ -2435,6 +2436,7 @@ typing system highlights the essences which makes each system unique.
 %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
 ~ \t&::= ~ \any  \B   \C  \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
+~\s&::= \{\b{\Bind\a{\obj\C{\b\a}}}\} \\
 \end{tabular}\end{minipage}
 
 % \hrulefill
@@ -2496,16 +2498,16 @@ typing system highlights the essences which makes each system unique.
 }{ 
   \ReduceA \K{\SubCast \D\a}\s \K\a\s
 }
-\CondRule{E10}{  %% Shallow Structural
-}{ 
-  \ReduceA \K{\ShaCast \any\a}\s \K\a\s
-}
-\CondRule{E10b}{  %% Shallow Structural
- \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
-}{ 
-  \ReduceA \K{\ShaCast \D\a}\s \K\a\s
-}
-\CondRule{E11}{  %% E[e] -> E[e']
+% \CondRule{E10}{  %% Shallow Structural
+% }{ 
+%   \ReduceA \K{\ShaCast \any\a}\s \K\a\s
+% }
+% \CondRule{E10b}{  %% Shallow Structural
+%  \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
+% }{ 
+%   \ReduceA \K{\ShaCast \D\a}\s \K\a\s
+% }
+\CondRule{E10}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
 }{
  \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
@@ -4671,8 +4673,6 @@ Note that we refer to rule preconditions from left to right.
    \item done by (17) and (12)
   \end{enumerate}
 
-  
-  
   \item \RuleRef{W8}
       Apply the IH to the precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$. If it gets stuck at one of the three stuck states, or steps to a new expression, then the case is trivial.
 
