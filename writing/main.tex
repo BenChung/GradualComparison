@@ -9,6 +9,7 @@
 \usetikzlibrary{positioning}
 \usetikzlibrary{calc}
 \usetikzlibrary{backgrounds}
+\usepackage[inline]{enumitem}
 \input{macros}
 
 \definecolor{Gray}{gray}{0.9}
@@ -1427,7 +1428,7 @@ the behavioural cast, and the typing and semantic rules are next.
 \large \textbf{Static Typing}
 \vspace{-2.5mm}
 \begin{mathpar}
-\IRule{W10}{
+\IRule{WB1}{
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\BehCast\t\e}\t
@@ -2825,8 +2826,7 @@ to the name of \t not to \t.
 
 \subsection{Field read}
 
-The function \\xt{dynamic}\s\a\f\K denotes reading the fields \f of the object
-stored at \a in \s.
+The function $\readf\s\a\f\K$ reads the value in the field \f in the object \a.
 
 \begin{equation*}
 \readf \s\a\f\K = \ap 
@@ -4688,17 +4688,49 @@ Note that we refer to rule preconditions from left to right.
   
   \item \RuleRef{W9}
   
-      Trival, as $\e=\a$.
+      Trivial, as $\e=\a$.
   
   \item \RuleRef{W10}
   
-      Trival, as $\e=\a$.
+      Trivial, as $\e=\a$.
 
   
 \end{itemize}
 
-\subsection{Type Soundness of Transient Translation}
 
+\subsection{Type Soundness of \kafka Behavioral Cast}
+
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+or $\e$ is stuck in one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\EE[\DynCall\a\m{\ap}]$
+\item $\EE[\SubCast\tp\a]$
+\item $\EE[\ShaCast\tp\a]$
+\end{itemize}
+
+Note that the majority of the proof is identical to that seen in the above proof
+for soundness of the \kafka core, and is therefore elided. We will only cover
+the case for the \kafka behavioural cast, \RuleRef{WB1}.
+
+\begin{proofy}
+\step[base] $\EnvType\cdot\s\K\e\tp$ \basis By assumption.
+\step Apply IH to \refby{base} and case analyze.
+\begin{casel}
+  \caseof{ \begin{iknown}
+    \step[kred] $\Reduce\K\e\s\Kp\ep\sp$
+    \step $\WFp\Kp{\ep~\sp}$ 
+    \step $\EnvType\cdot\sp\Kp\ep\t$
+    \end{iknown}}
+  \begin{proofy}
+  \step $\Reduce\K{\BehCast{\t}{\e}}\s\Kp{\BehCast{\t}{\ep}}\sp$ \basis By defn. of evaluation environments on \refby{kred}
+  \end{proofy}
+\end{casel}
+\end{proofy}
+
+
+\subsection{Type Soundness of Transient Translation}
 
 \end{document}
 
@@ -4710,7 +4742,21 @@ Note that we refer to rule preconditions from left to right.
 %##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
 %######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
 
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
 
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
 
 
 \subsection{others}

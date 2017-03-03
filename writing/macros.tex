@@ -253,3 +253,27 @@
 \newcolumntype{E}{>{\ttfamily}l<{}@{}}
 \newcolumntype{V}{>{\hspace{1mm}\begin{minipage}{4.3cm}}l<{\end{minipage}\hspace{1mm}}@{}}
 \newcolumntype{R}[1]{>{\hspace{1mm}\begin{minipage}{#1}}l<{\end{minipage}\hspace{1mm}}@{}}
+
+\newenvironment{proofy}{
+	\begin{enumerate}[resume=proofsteps,label={\textbf{\arabic*}. },ref=\arabic*]
+}{
+	\end{enumerate}
+}
+\DeclareDocumentCommand\step{o}{\IfNoValueTF{#1}{\item}{\item\hypertarget{proofstep:#1}{}\label{proofstep:#1}}}
+
+\newcommand{\basis}{\hfill}
+\newcommand{\caseof}[1]{\item\text{Case: } #1}
+\newcommand{\rcaseof}[1]{\item\text{Case: } \RuleRef{#1}}
+
+\newcommand{\refby}[1]{%
+  \def\nextitem{\def\nextitem{,}}% Separator
+  \renewcommand*{\do}[1]{\nextitem\hyperlink{proofstep:##1}{\ref{proofstep:##1}}}% How to process each item
+  (\docsvlist{#1})% Process list
+}
+
+\newenvironment{casel}{
+	\begin{enumerate}
+}{
+	\end{enumerate}
+}
+\newenvironment{iknown}{\begin{enumerate*}[series=proofsteps,label={\textbf{\arabic*}. },ref=\arabic*]}{\end{enumerate*}}
