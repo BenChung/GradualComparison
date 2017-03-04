@@ -1,7 +1,7 @@
 \documentclass[a4paper,USenglish]{tex/lipics-v2016}
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
             amsmath,tex/mathpartir,hyperref,doi,
-            stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox} % double brackets llbracket
+            stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox, pgffor} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \usetikzlibrary{arrows}
 \usetikzlibrary{shapes.geometric}
@@ -4720,12 +4720,20 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \begin{casel}
   \caseof{ \begin{iknown}
     \step[kred] $\Reduce\K\e\s\Kp\ep\sp$
-    \step $\WFp\Kp{\ep~\sp}$ 
-    \step $\EnvType\cdot\sp\Kp\ep\t$
-    \end{iknown}}
+    \step[kbase] $\WFp\Kp{\ep~\sp}$ 
+    \step $\EnvType\cdot\sp\Kp\ep\tp$
+    \end{iknown}} 
   \begin{proofy}
   \step $\Reduce\K{\BehCast{\t}{\e}}\s\Kp{\BehCast{\t}{\ep}}\sp$ \basis By defn. of evaluation environments on \refby{kred}
+  \step[ktype] $\EnvType\cdot\sp\Kp{\BehCast\t\ep}\t$ \basis By \RuleRef{WB1}
+  \step $\WFp\Kp{\ep~\sp}$ \basis By \refby{kbase, ktype}
   \end{proofy}
+  \caseof{$\e$ is stuck in one of the allowed stuck states $\EE[\ep]$}
+  \begin{proofy}
+    \step $\BehCast\t\e = \EE'[\ep]$ \basis By case analysis and defn. of $\EE$.
+    \step $\EE'[\ep]$ stuck \basis As $\ep$ stuck.
+  \end{proofy}
+  \caseof{$\e = \a$}
 \end{casel}
 \end{proofy}
 
