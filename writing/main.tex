@@ -2698,7 +2698,8 @@ field or method names within the given field and method definitions. \\
 \opdef{~\WFtype\K\s}{Well-formed heaps}
 \begin{mathpar}
 \IRule{WH}{
-\Bind\ap{\obj\C{\b\a}}~\in~\s \implies \Class\C{\b\fd}{\b\md}\in\K~\wedge~|\b\a|=|\b\fd|
+\Bind\ap{\obj\C{\a_1 \ldots \a_n}}~\in~\s \implies \Class\C{\HT{\f_1}{\t_1} \ldots \HT{\f_n}{\t_n}}{\b\md}\in\K~\wedge \\ 
+\EnvType\cdot\s\K{\a_1}{\t_1} ~\ldots~ \EnvType\cdot\s\K{\a_n}{\t_n}
 }{
  \WFtype\K\s
 }
@@ -4571,7 +4572,7 @@ If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\w
 
 \subsection{Correctness of $\xt{wrap}$}
 
-If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$.
+If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
 
 \subsection{Type Soundness of Core \kafka Typing}
 
@@ -4720,6 +4721,8 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
 \begin{proofy}
 \step[base] $\EnvType\cdot\s\K\e\tp$ \basis By assumption.
+\step[progform] $\WFp \K{\e~\s}$ \basis By assumption
+\step[inpswf] $\WFq \s$ \basis By inversion of \refby{progform}
 \step Apply IH to \refby{base} and case analyze.
 \begin{casel}
   \caseof{ \begin{iknown}
@@ -4746,11 +4749,12 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \begin{proofy}
         \step Let $\D$ be fresh.
         \step Let $\ap$ be fresh.
-        \step Let $\k$ be $\k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D$.
+        \step[wcorr] Let $\k$ be $\k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D$.
         \step Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
-        \step By \RuleRef{W9}, $\EnvType\cdot{\K\k}\sp\ap\D$.
-        \step By correctness of $\xt{wrap}$, $\StrSub\cdot{\K\k}\D\Cp$.
-        \step By \RuleRef{W2}, $\EnvType\cdot{\K\k}\sp\ap\Cp$.
+        \step[b2] $\EnvType\cdot{\K\k}\sp\ap\D$ \basis \RuleRef{W9}
+        \step[b1] $\StrSub\cdot{\K\k}\D\Cp$ \basis correctness of $\xt{wrap}$ on \refby{wcorr}
+        \step[wth] $\EnvType\cdot{\K\k}\sp\ap\Cp$ \basis \RuleRef{W2} on \refby{b1,b2}
+        \step $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{wth, inpswf}
       \end{proofy}
       \caseof{$\t = \any$}
     \end{casel}
