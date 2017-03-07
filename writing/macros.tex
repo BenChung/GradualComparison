@@ -260,11 +260,12 @@
 \foreach\n in {1,...,\@listdepth}{foo}
 }
 \makeatother
+\newlist{myEnumerate}{enumerate}{10}
 
 \newenvironment{proofy}{
-	\begin{enumerate}[resume=proofsteps,label={\textbf{\arabic*}. },ref=\arabic*]
+	\begin{myEnumerate}[resume=proofsteps,label={\textbf{\arabic*}. },ref=\arabic*]
 }{
-	\end{enumerate}
+	\end{myEnumerate}
 }
 \DeclareDocumentCommand\step{o}{\IfNoValueTF{#1}{\item}{\item\hypertarget{proofstep:#1}{}\label{proofstep:#1}}}
 
@@ -279,8 +280,8 @@
 }
 
 \newenvironment{casel}{
-	\begin{enumerate}
+	\begin{myEnumerate}[label={\Alph*. }]
 }{
-	\end{enumerate}
+	\end{myEnumerate}
 }
 \newenvironment{iknown}{\begin{enumerate*}[series=proofsteps,label={\textbf{\arabic*}. },ref=\arabic*]}{\end{enumerate*}}

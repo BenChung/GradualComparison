@@ -3149,11 +3149,11 @@ the object stored at \a in \s.
 
 \section{Complete translation for Typed Racket}
 
-\subsection{Type Racket cast static and dynamic rules}
+\subsection{Typed Racket cast static and dynamic rules}
 
 \begin{minipage}{0.35\textwidth}
 \begin{mathpar}
-\IRule{W10}{
+\IRule{WB}{
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\BehCast\t\e}\t
@@ -4569,6 +4569,10 @@ If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$.
 
 If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\wedge~\WF\cdot\s\K{\b\md}$
 
+\subsection{Correctness of $\xt{wrap}$}
+
+If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$.
+
 \subsection{Type Soundness of Core \kafka Typing}
 
 Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
@@ -4734,6 +4738,23 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
     \step $\EE'[\ep]$ stuck \basis As $\ep$ stuck.
   \end{proofy}
   \caseof{$\e = \a$}
+  \begin{proofy}
+    \step Let $\C$ and $\b{\ap}$ be such that $\s(\a) = \C\{\b\ap\}$
+    \step Case analyze on $\t$.
+    \begin{casel}
+      \caseof{$\t = \Cp$}
+      \begin{proofy}
+        \step Let $\D$ be fresh.
+        \step Let $\ap$ be fresh.
+        \step Let $\k$ be $\k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D$.
+        \step Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
+        \step By \RuleRef{W9}, $\EnvType\cdot{\K\k}\sp\ap\D$.
+        \step By correctness of $\xt{wrap}$, $\StrSub\cdot{\K\k}\D\Cp$.
+        \step By \RuleRef{W2}, $\EnvType\cdot{\K\k}\sp\ap\Cp$.
+      \end{proofy}
+      \caseof{$\t = \any$}
+    \end{casel}
+  \end{proofy}
 \end{casel}
 \end{proofy}
 
