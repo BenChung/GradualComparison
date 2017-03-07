@@ -2596,7 +2596,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 
 ~\\
 
-\opdef{~\WFp\e\K}{Well-formed program}
+\opdef{~\WFq{\K~\e~\s}}{Well-formed program}
 
 \begin{mathpar}
 \IRule{WP}{
@@ -3170,6 +3170,37 @@ the object stored at \a in \s.
 \multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
 \end{tabular}
 \end{minipage}
+
+\begin{figure}[!ht]
+\vspace{-2mm}
+
+{  \small
+  \begin{mathpar}
+\IRule{BC1}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \fresh\D \\
+  \fresh\ap \\
+  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+}{
+  \behcast\a\Cp\s\K {\K\,\k}\ap\sp
+}
+
+\IRule{BC2}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \fresh\D \\
+  \fresh\ap \\
+  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+}{
+  \behcast\a\any\s\K {\K\,\k}\ap\sp
+}
+\end{mathpar}}  
+
+\vspace{-2mm}
+\caption{Behavioural casts.}\label{behaves}
+\end{figure}
+
 
 \subsection{Type Racket translation for program, class, and method}
 
