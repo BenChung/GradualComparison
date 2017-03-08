@@ -3439,7 +3439,7 @@ when encountering typed code.
 % \begin{figure}[!ht]
 % \hrulefill 
 \scriptsize
-\newcommand{\bscast}[2]{\EM{\BehCast{#1}{\ShaCast{#1}{#2}}}}
+\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\IGNOREUNLESSNEEDED{
@@ -4757,6 +4757,14 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
         \step $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{wth, inpswf}
       \end{proofy}
       \caseof{$\t = \any$}
+      \begin{proofy}
+        \step Let $\D$ be fresh.
+        \step Let $\ap$ be fresh.
+        \step[wcorr2] Let $\k$ be $\k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D$.
+        \step Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
+        \step[b21] $\EnvType\cdot{\K\k}\sp\ap\any$ \basis \RuleRef{W10}
+        \step $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{b21,wcorr2}
+      \end{proofy}
     \end{casel}
   \end{proofy}
 \end{casel}
