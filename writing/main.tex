@@ -2625,50 +2625,26 @@ field or method names within the given field and method definitions. \\
 
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
 \begin{mathpar}
-\IRule[width=18em]{WT1}{
- \EnvType {\Env{~\Ftype\x\any}~}\s\K\e\any\\
- \WFtype\K\any \\
- \WFtype\K\any \\
+\IRule[width=18em]{WFM}{
+ \EnvType {\Env{~\Ftype\x\t'}~}\s\K\e\t\\
+ \WFtype\K\t \\
+ \WFtype\K\t' \\
 }{
- \WF \Env\s\K {\Mdef\m\x\any\any\e}
+ \WF \Env\s\K {\Mdef\m\x\tp\t\e}
 }
 
-\IRule{WS1}{
- \EnvType {\Env{~\Ftype\x\any}~}\s\K \e\any \\
- \WFtype \K\any 
+\IRule{WFS}{
+ \EnvType {\Env{~\Ftype\x\t}~}\s\K \e\t \\
+ \WFtype \K\t 
 }{
- \WF  \Env\s\K {\Mdef\f\x\any\any\e}
+ \WF  \Env\s\K {\Mdef\f\x\t\t\e}
 }
 
-\IRule{WG1}{
- \EnvType \Env\s\K\e\any \\
- \WFtype \K\any
+\IRule{WFG}{
+ \EnvType \Env\s\K\e\t \\
+ \WFtype \K\t
 }{
- \WF \Env\s\K {\Mdefz\f\any\e}
-}
-\end{mathpar}
-
-\begin{mathpar}
-\IRule[width=18em]{WT2}{
- \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\Cp\\
- \WFtype\K\C \\
- \WFtype\K\Cp \\
-}{
- \WF \Env\s\K {\Mdef\m\x\C\Cp\e}
-}
-
-\IRule{WS2}{
- \EnvType {\Env{~\Ftype\x\Cp}~}\s\K \e\C \\
- \WFtype \K\C 
-}{
- \WF  \Env\s\K {\Mdef\f\x\C\C\e}
-}
-
-\IRule{WG2}{
- \EnvType \Env\s\K\e\C \\
- \WFtype \K\C
-}{
- \WF \Env\s\K {\Mdefz\f\C\e}
+ \WF \Env\s\K {\Mdefz\f\t\e}
 }
 \end{mathpar}
 
@@ -2738,26 +2714,26 @@ to the name of \t not to \t.
    \EnvType \Env\s\K\x\t
 }
 
-\IRule{W2}{
+\IRule{W2}{ 
   \EnvType \Env\s\K\e\tp \\
- \StrSub \M\K \tp \t
+ \StrSub \cdot\K \tp \t
  }{
   \EnvType \Env\s\K\e\t 
 }   
 
 \IRule{W3}{
   \EnvType \Env\s\K\e\C \\
-  \Mtype \f{}\tp \in \classoff\C\K
+  \Mtype \f{}\t \in \classoff\C\K
 }{
-  \EnvType \Env\s\K{\Get\e\f}\tp
+  \EnvType \Env\s\K{\Get\e\f}\t
 }    
 
 \IRule[width=20em]{W4}{
   \EnvType \Env\s\K\e\C \\
-  \Mtype \f\tp\tp \in \classoff\C\K  \\
-  \EnvType \Env\s\K\ep\tp
+  \Mtype \f\t\t \in \classoff\C\K  \\
+  \EnvType \Env\s\K\ep\t
 }{
-  \EnvType \Env\s\K{\Set\e\f\ep}\tp
+  \EnvType \Env\s\K{\Set\e\f\ep}\t
 }    
 
 \IRule[width=20em]{W5}{
@@ -2789,7 +2765,6 @@ to the name of \t not to \t.
 }{
   \EnvType \Env\s\K{\SubCast\t\e}\t
 }
-
 % \IRule{W9}{
 %   \xt{dynamic}(\t,\,\K) \\
 %   \EnvType \Env\s\K\e\tp
@@ -4573,6 +4548,8 @@ If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\w
 \subsection{Correctness of $\xt{wrap}$}
 
 If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
+
+If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrapAny\C{\b\md}\bmt\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
 
 \subsection{Type Soundness of Core \kafka Typing}
 
