@@ -2834,13 +2834,26 @@ The function $\readf\s\a\f\K$ reads the value in the field \f in the object \a.
  \end{cases}
 \end{equation*}
 
-\subsection{Write field}
+\subsection{Field write}
 
 The function \setf\s\a\f\ap\K denotes writing of value \ap to the field \f of
 the object stored at \a in \s.
 
 \begin{equation*}
 \setf \s\a\f\ap\K= \Map\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
+  ~~\mathit{if}~~ \begin{cases}
+   \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots}\\
+   \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
+\end{cases}
+\end{equation*}
+
+\subsection{Method overloading}
+
+The function $\xt{overloading}(\b\md)$ there are no overloaded method names in the
+given method defintions.
+
+\begin{equation*}
+\xt{overloading}(\b\md) = \xt{true}
   ~~\mathit{if}~~ \begin{cases}
    \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots}\\
    \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
