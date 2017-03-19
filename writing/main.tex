@@ -2625,26 +2625,50 @@ field or method names within the given field and method definitions. \\
 
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
 \begin{mathpar}
-\IRule[width=18em]{WFM}{
- \EnvType {\Env{~\Ftype\x\t'}~}\s\K\e\t\\
- \WFtype\K\t \\
- \WFtype\K\t' \\
+\IRule[width=18em]{WT1}{
+ \EnvType {\Env{~\Ftype\x\any}~}\s\K\e\any\\
+ \WFtype\K\any \\
+ \WFtype\K\any \\
 }{
- \WF \Env\s\K {\Mdef\m\x\tp\t\e}
+ \WF \Env\s\K {\Mdef\m\x\any\any\e}
 }
 
-\IRule{WFS}{
- \EnvType {\Env{~\Ftype\x\t}~}\s\K \e\t \\
- \WFtype \K\t 
+\IRule{WS1}{
+ \EnvType {\Env{~\Ftype\x\any}~}\s\K \e\any \\
+ \WFtype \K\any 
 }{
- \WF  \Env\s\K {\Mdef\f\x\t\t\e}
+ \WF  \Env\s\K {\Mdef\f\x\any\any\e}
 }
 
-\IRule{WFG}{
- \EnvType \Env\s\K\e\t \\
- \WFtype \K\t
+\IRule{WG1}{
+ \EnvType \Env\s\K\e\any \\
+ \WFtype \K\any
 }{
- \WF \Env\s\K {\Mdefz\f\t\e}
+ \WF \Env\s\K {\Mdefz\f\any\e}
+}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule[width=18em]{WT2}{
+ \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\Cp\\
+ \WFtype\K\C \\
+ \WFtype\K\Cp \\
+}{
+ \WF \Env\s\K {\Mdef\m\x\C\Cp\e}
+}
+
+\IRule{WS2}{
+ \EnvType {\Env{~\Ftype\x\Cp}~}\s\K \e\C \\
+ \WFtype \K\C 
+}{
+ \WF  \Env\s\K {\Mdef\f\x\C\C\e}
+}
+
+\IRule{WG2}{
+ \EnvType \Env\s\K\e\C \\
+ \WFtype \K\C
+}{
+ \WF \Env\s\K {\Mdefz\f\C\e}
 }
 \end{mathpar}
 
@@ -4548,8 +4572,6 @@ If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\w
 \subsection{Correctness of $\xt{wrap}$}
 
 If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
-
-If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrapAny\C{\b\md}\bmt\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
 
 \subsection{Type Soundness of Core \kafka Typing}
 
