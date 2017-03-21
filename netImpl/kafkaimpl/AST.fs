@@ -26,3 +26,6 @@ type fd =
 
 type k =
 | ClassDef of string * md list * fd list
+
+type prog =
+| Program of k list * Expr
