@@ -33,17 +33,17 @@ I'm guessing MOS1 should produce a class table as well, and in the other cases t
 P&B: The MOSx rules are consistent, producing a list of classes that will be added to the global class table. For MOS1, the list of classes is omitted as MOS1 produces an empty list of classes. This should have be clarified by adding explanatory text for MOS1.
 
 
-The motivation for modeling monotonic casts by wrapping rather than in-place update was not explained.  On page 20, the paper claims "The monotonic cast semantics in KafKa cannot be implemented using the in-place replacement technique [21]."  Why not?  
+The motivation for modeling monotonic casts by wrapping rather than in-place update was not explained.  On page 20, the paper claims "The monotonic cast semantics in KafKa cannot be implemented using the in-place replacement technique [21]."  Why not? The paper is not absolutely clear on it, but that paragraph seems to suggest this is because KafKa doesn't permit a field and getter/setter methods of the same name, as method invocation and field access are overloads of the same syntactic construct.  This would be a concern because the casts on field sets are implemented via setter-method wrappers.
 
-P&B: 
-
-
-The paper is not absolutely clear on it, but that paragraph seems to suggest this is because KafKa doesn't permit a field and getter/setter methods of the same name, as method invocation and field access are overloads of the same syntactic construct.  This would be a concern because the casts on field sets are implemented via setter-method wrappers.
-
-P&B: On page 21 to 22, 
+P&B: This concern is exactly the reason why in-place replacement is not viable in Kafka. In order to guard field assignment under in-place replacement, a setter method is required to enforce the monotonic invariant. However, in Kafka a semantic ambiguity would occur when both a field declaration and a getter-setter combination exist for the same field in the same class.
 
 
-This seems like an artificial problem.  On one hand, wouldn't this be better solved by changing KafKa to use more explicitly use something akin to C#'s default implementations of properties (https://msdn.microsoft.com/en-us/library/bb384054.aspx) so the getters/setters can be overridden when an object's class is changed, without changing the rest of the object representation?  This seems like a much simpler than the added complexity of inserting the extra wrappers (which has the extra cost of breaking reference identity when it's not necessary).  On the other hand, why would it be an issue to update the object to replace a physical field with setters/getters?  Field reads and getter invocation are syntactically identical, so it seems like switching the object representation wouldn't cause problems. Or why not extend the dynamic semantics to check for a required cast to perform?  You could surely arrange things such that the check never did anything for objects that had not been monotonically cast.
+This seems like an artificial problem. On one hand, wouldn't this be better solved by changing KafKa to use more explicitly use something akin to C#'s default implementations of properties (https://msdn.microsoft.com/en-us/library/bb384054.aspx) so the getters/setters can be overridden when an object's class is changed, without changing the rest of the object representation?  This seems like a much simpler than the added complexity of inserting the extra wrappers (which has the extra cost of breaking reference identity when it's not necessary).  
+
+P: This would introduce additional overhead for the other gradual typing systems, which does not require this behaviour.
+
+
+On the other hand, why would it be an issue to update the object to replace a physical field with setters/getters?  Field reads and getter invocation are syntactically identical, so it seems like switching the object representation wouldn't cause problems. Or why not extend the dynamic semantics to check for a required cast to perform?  You could surely arrange things such that the check never did anything for objects that had not been monotonically cast.
 
 P&B: 
 
