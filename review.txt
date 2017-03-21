@@ -22,7 +22,7 @@ P&B: Blame tracking is outside the scope of this paper. The introduction of sect
 P&B: A validation of the formalisms is necessary, however, implementing the Kafka language is unrealistic, as not every gradual typing systems presented in Kafka are themselves implemented.
 
 
-Figure 14 shows several different arities for the synthetic cast insertion judgment.  Looking at what appears to the right of the $\Uparrow$, which for lack of a better term I'll refer to as something the judgment "produces":
+- Figure 14 shows several different arities for the synthetic cast insertion judgment.  Looking at what appears to the right of the $\Uparrow$, which for lack of a better term I'll refer to as something the judgment "produces":
 - MOS1 "produces" a type
 - MOS2 "produces" a type and two class tables
 - MOS5 "produces" a type, a class table, and a class definition
@@ -30,25 +30,17 @@ Figure 14 shows several different arities for the synthetic cast insertion judgm
 
 I'm guessing MOS1 should produce a class table as well, and in the other cases the judgment should be read as producing a type and single class table (with some rules concatenating tables in the conclusion, without indicating so explicitly).  Please tell me if I'm mistaken.  This is a switch in judgment form from the other translations, and was not introduced or explained (note that the translation rules for Typed Racket didn't actually appear in the main paper).
 
-B: The MOSx rules are consistent, producing a list of classes that need to be added. In order,
-- MOS1 "produces" an empty list of classes.
-- MOS2 "produces" the concatenation of two other lists of classes
-- MOS5 "produces" the result of appending a new class definition onto the old list of classes
-- MOS2 and MOS3 use the two lists of classes produced by the recursive application of MOS and concatenate them.
-We agree that this could be clarified, by adding explanatory text for MOS, using a different notation than the overloaded K, and explicitly calling out the operation we are performing.
+P&B: The MOSx rules are consistent, producing a list of classes that will be added to the global class table. For MOS1, the list of classes is omitted as MOS1 produces an empty list of classes. This should have be clarified by adding explanatory text for MOS1.
 
 
-
-The paper contains other passages that seem intended to provide intuition, but actually say things that appear subtly incorrect.  For example, on page 20, the paper remarks that "the monotonic casts only modify the heap if the target C has fewer occurrences of $\star$ than the original type of the object at a," but this suggests that casting an object of type (modulo class names, etc.) $(A,\star)$ to $(\star,A)$ will do nothing instead of refining the type to $(A,A)$.  Siek et al. [21] use a notion of precision to guide refinement, which is concerned with producing more precise types.  I suspect you mean to suggest that the casts will only narrow dynamic types to concrete types, regardless of quantity.
+The motivation for modeling monotonic casts by wrapping rather than in-place update was not explained.  On page 20, the paper claims "The monotonic cast semantics in KafKa cannot be implemented using the in-place replacement technique [21]."  Why not?  
 
 P&B: 
 
 
+The paper is not absolutely clear on it, but that paragraph seems to suggest this is because KafKa doesn't permit a field and getter/setter methods of the same name, as method invocation and field access are overloads of the same syntactic construct.  This would be a concern because the casts on field sets are implemented via setter-method wrappers.
 
-
-The motivation for modeling monotonic casts by wrapping rather than in-place update was not explained.  On page 20, the paper claims "The monotonic cast semantics in KafKa cannot be implemented using the in-place replacement technique [21]."  Why not?  The paper is not absolutely clear on it, but that paragraph seems to suggest this is because KafKa doesn't permit a field and getter/setter methods of the same name, as method invocation and field access are overloads of the same syntactic construct.  This would be a concern because the casts on field sets are implemented via setter-method wrappers.
-
-P&B: 
+P&B: On page 21 to 22, 
 
 
 This seems like an artificial problem.  On one hand, wouldn't this be better solved by changing KafKa to use more explicitly use something akin to C#'s default implementations of properties (https://msdn.microsoft.com/en-us/library/bb384054.aspx) so the getters/setters can be overridden when an object's class is changed, without changing the rest of the object representation?  This seems like a much simpler than the added complexity of inserting the extra wrappers (which has the extra cost of breaking reference identity when it's not necessary).  On the other hand, why would it be an issue to update the object to replace a physical field with setters/getters?  Field reads and getter invocation are syntactically identical, so it seems like switching the object representation wouldn't cause problems. Or why not extend the dynamic semantics to check for a required cast to perform?  You could surely arrange things such that the check never did anything for objects that had not been monotonically cast.
