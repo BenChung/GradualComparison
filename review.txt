@@ -40,16 +40,31 @@ P&B: This concern is exactly the reason why in-place replacement is not viable i
 
 This seems like an artificial problem. On one hand, wouldn't this be better solved by changing KafKa to use more explicitly use something akin to C#'s default implementations of properties (https://msdn.microsoft.com/en-us/library/bb384054.aspx) so the getters/setters can be overridden when an object's class is changed, without changing the rest of the object representation?  This seems like a much simpler than the added complexity of inserting the extra wrappers (which has the extra cost of breaking reference identity when it's not necessary).  
 
-P: This would introduce additional overhead for the other gradual typing systems, which does not require this behaviour.
+P: This would introduce additional overhead for the other gradual typing systems, which does not require this behavior.
 
 
 On the other hand, why would it be an issue to update the object to replace a physical field with setters/getters?  Field reads and getter invocation are syntactically identical, so it seems like switching the object representation wouldn't cause problems. Or why not extend the dynamic semantics to check for a required cast to perform?  You could surely arrange things such that the check never did anything for objects that had not been monotonically cast.
 
-P&B: 
+B: We considered this approach, but it would break KafKa's notion of subtyping, which does not allow for consistency. For example, consider the following, where t =/= t' and where t meet t' =/= t and t':
 
+class C:
+  f:t
+class D:
+  f:t'
 
+c = new C(...)
+d = <D>c
 
+Here, if t'' = t meet t', we would generate a class of the form
 
+class CtoD:
+  f':t
+  f(x:t''):t''
+    this.f' = <t>x
+  f():t''
+    <t''>this.f'
+
+However, note that C has type {f(t):t,f():t}, whereas CtoD has type {f(t''):t'',f():t''}. Since t'' is not a subtype of t, it follows that CtoD is not a subtype of C, and therefore we cannot substitute a class of CtoD for C while keeping the heap well-typed with respect to the KafKa typing relation.
 
 On its own this choice is not that important, but the paper's goals are to clearly explain the semantics of *existing* approaches.  While this wrapper-based coercion may correctly model the semantics of monotonic casts, having the semantics be destructive as in other work [9,21] would seem to better meet the paper's top-level objectives.  Moreover, monotonic casts preserve object identity in prior work, while here the object identity changes.  This isn't observable in the core language here, but if future work needed that preserved, it couldn't build (directly) on this formalization.
 
