@@ -8,9 +8,15 @@ let main argv =
     let res = Parser.parse @"
 class B {
     f:D
-    m(x:any):any { new B(x, y, z) }
+    fd:Z
+    fsa:D
+    m(x:any):any { <D>new B(x, y, z) }
+    m(x:any):any { (<D>new B(x, y, z)).bee(baz) }
     m(x:any):any { too.bar() }
     m(x:any):any { too.bar(baz) }
+    m(x:any):any { too.bar: C -> D (baz) }
+    m(x:any):any { too@bar(baz) }
+    m(x:any):any { too@bar(baz).bar(baz).bar : C -> D(bee).bar() }
 }
 class D {}
 hello"
