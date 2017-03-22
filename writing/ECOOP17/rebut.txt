@@ -123,21 +123,22 @@ P&B: This failure is caught in the rule CMS1 in section H.2 of the appendix at p
 expression being casted on.
 
 
-
 - page 10: In the type rule for statically dispatched method calls, wouldn't we prefer to bias the method lookup towards typed method signatures?  Section 4.2 says "typed methods are
 invoked with static calls and untyped methods are invoked with dynamically resolved calls."  The current type rule would seem to permit static calls to match the type signature of the 
 untyped method as well as the typed method, but it sounds like the dynamic semantics are actually stricter.  If the dynamic semantics don't let static calls dispatch to untyped methods
 when both are present, then the static dispatch type rule is unsound.
 
-P&B: 
-
+P&B: Static method calls are matched with their type signature to the respective typed or untyped methods. There is inconsistency between the static method typing rules shown in page 10, 
+and the dynamic semantics shown at the bottom of page 11. The subscript of t -> t' in m is used to match the method call to the respective typed method, when t and t' are C, or untyped method, 
+when t and t' are star.
 
 
 - Figure 5 (and others): I'm not sure what the translation of dot to dot is for in TSC2 (other translations have similar rules).  Is this supposed to be translating the hole for
 an evaluation context?  If so, why is that there, I thought the translations worked on complete programs?
 
+P&B: This is a mistake, translation does work on complete programs. TSC2 is the translation for classes when the class table is empty, the class definition in front of the class table
+is omitted by mistake.
 
-B: 
 
 - Figure 9: wrap is invoked with two different arities here: 5 arguments in BC1, 4 arguments in BC2.  Is there a missing argument in BC2?
 
@@ -152,19 +153,25 @@ P: You are not wrong, the body of the lifted methods require additional casts as
 
 - page 22: The first two sentences on this page (one of which continues from the previous page) seem to contradict each other.
 
+P&B: Wrappers are overly conservative as they treat all non-star fields as star fields, the reason for the two cast inside the method body of the wrappers.
+If the type of the fields becomes specialized, subtyping would no longer hold.
+
 
 #58C
-
-My main concern with the paper as-is is that it does not provide a result on which the community could gain confidence in these definitions. 
-There are many possible ways to do this, but the paper needs to provide something along these lines before I could advocate for it.
 
 One baseline validation would be an implementation of KafKa and compilers for the source languages into KafKa. This could be as minimal as a simple 
 interprefer for KafKa--it need not be performant, along with compilers for reasonable subsets of the source language. This would enable at least 
 conformance testing the translations by comparing executions of programs compiled to KafKa with those with their native execution environments.
 
+P: 
+
 Such an implementation could also enable providing a reference execution environment for comparing the performance of difference decision choices
 in gradually-typed language design. This could be an interesting way to isolate the performance impact of the language design from the differences 
 in engineering present between the different execution environments.
+
+P: Comparison between performance would ever 
+
+
 
 #58D
 
