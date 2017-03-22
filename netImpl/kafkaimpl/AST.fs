@@ -25,7 +25,7 @@ type fd =
 | FDef of string * Type
 
 type k =
-| ClassDef of string * md list * fd list
+| ClassDef of string * fd list * md list
 
 type prog =
 | Program of k list * Expr

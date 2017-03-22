@@ -12,7 +12,9 @@ class B {
     fsa:D
     m(x:any):any { <D>new B(x, y, z) }
     m(x:any):any { (<D>new B(x, y, z)).bee(baz) }
-    m(x:any):any { too.bar() }
+    m(x:any):any { too.bar(); 
+                   too.bee(); 
+                   too.bam() }
     m(x:any):any { too.bar(baz) }
     m(x:any):any { too.bar: C -> D (baz) }
     m(x:any):any { too@bar(baz) }

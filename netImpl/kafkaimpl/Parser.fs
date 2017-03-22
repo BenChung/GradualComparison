@@ -20,9 +20,10 @@ let parse (prog:string) =
                                              attempt (pipe2 (id .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name arg -> fun exp -> SetF(exp, name, arg))) <|>
                                              attempt (pipe4 (id .>> ws .>> pstring ":" .>> ws) (tpe .>> ws .>> pstring "->" .>> ws) (tpe .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name t1 t2 arg -> fun exp -> Call(exp,t1,t2,name,arg)))))) <|>
                    (attempt (pipe2 (pstring "@" >>. id .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name arg -> fun exp -> DynCall(exp, name, arg)))) 
-    do termImpl := (attempt (pipe2 expr (many callExpr) (fun e l -> List.fold (fun acc f -> f acc) e l))) <|> expr
+    let call = (attempt (pipe2 expr (many callExpr) (fun e l -> List.fold (fun acc f -> f acc) e l))) <|> expr
+    do termImpl := (sepBy call (attempt (ws >>. pstring ";" >>. ws))) |>> (fun l -> Seq(l))
     let term = termImpl.Value
-    let fd = id .>> pstring ":" .>>. tpe
+    let fd = pipe2 (id .>> pstring ":") tpe (fun name tpe -> FDef(name, tpe))
     let md = pipe5 (id .>> pstring "(") 
                    (ws >>. id) 
                    (ws .>> pstring ":" >>. ws >>. tpe .>> pstring ")" .>> ws .>> pstring ":" .>> ws) 
@@ -33,6 +34,6 @@ let parse (prog:string) =
         .>> ws .>> pstring ":" .>> ws .>>. tpe .>> ws
         .>> pstring "{" .>> ws .>>. term .>> ws .>> pstring "}")
     
-    let clazz = ws >>. str_ws "class" >>. ws >>. id .>> ws .>> pstring "{" .>>. (sepEndBy (attempt (ws >>. fd)) skipNewline) .>>. (sepEndBy (ws >>. md) skipNewline) .>> pstring "}"
-    let program = (sepEndBy clazz skipNewline) .>> ws .>>. term .>> ws
+    let clazz = pipe3 (ws >>. str_ws "class" >>. ws >>. id .>> ws .>> pstring "{") (sepEndBy (attempt (ws >>. fd)) skipNewline) ((sepEndBy (ws >>. md) skipNewline) .>> pstring "}") (fun name fds mds -> ClassDef(name, fds, mds))
+    let program = pipe2 ((sepEndBy clazz skipNewline) .>> ws) (term .>> ws) (fun c t -> Program(c,t))
     run program prog
