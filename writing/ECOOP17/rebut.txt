@@ -12,7 +12,7 @@ There is no formal need to read our responses, but we would love to hear your th
 
 *"One outcome of our work is showing how all of the gradual type systems are observationally distinct". That is hardly surprising to anyone.*
 
-Paint us as naive. We were surprised that we could find litmus tests that would so clearly differentiate the systems.
+Paint us as naive. We were surprised that we could find litmus tests that would be so simple and clearly differentiate the systems.
 
 
 
@@ -71,7 +71,9 @@ implementations of properties (https://msdn.microsoft.com/en-us/library/bb384054
 without changing the rest of the object representation?  This seems like a much simpler than the added complexity of inserting the extra wrappers (which has the 
 extra cost of breaking reference identity when it's not necessary).  
 
-P: This would introduce additional overhead for the other gradual typing systems, which does not require this behavior.
+P: This would introduce additional overhead to every the other gradual typing systems, even when they do not require this behavior. One of the design decision for Kafka is 
+to maximum the ability to compare the systems against each other, while minimizing the amount of unnecessary features that are not part of the essential aspect of their respective
+original system.
 
 
 - On the other hand, why would it be an issue to update the object to replace a physical field with setters/getters?  Field reads and getter invocation are syntactically 
@@ -117,7 +119,8 @@ are being joined have incomparable method name sets (i.e., each has a method the
 meets between recursive types, but is not explained in the paper.  However, in the case that the meet exists but the object being coerced lacks a method present in one 
 of the types (but contains all methods of the other), I have a hard time seeing where that will fail.
 
-P&B: 
+P&B: This failure is caught in the rule CMS1 in section H.2 of the appendix at page 35. CMS1 ensures the methods in the casting type is a subset of the methods in the type of the 
+expression being casted on.
 
 
 
@@ -145,7 +148,7 @@ P: No, BC1 is the wrapper function for non-star type , while BC2 is the wrapper 
 just the entry and exit of each method.  But that change isn't spelled out.  And if I'm wrong about the type of change required, then it really needs to be spelled out.  As written,
 that paragraph simply doesn't explain the details of inserting casts inside the method bodies.
 
-P: You are not wrong, the body of the lifted methods requires additional casts as well as having the variable "this" rebinded with the correct type.
+P: You are not wrong, the body of the lifted methods require additional casts as well as have the variable "this" rebinded with the correct type.
 
 - page 22: The first two sentences on this page (one of which continues from the previous page) seem to contradict each other.
 
@@ -224,3 +227,20 @@ P:
   systems, but many of the languages do not use bidirectional typing.
   Also, an important feature of Typed Racket and Python are
   their first-class classes, but that feature is not modeled here.
+  
+P&B: The use of bidirectional typing is forced by the combination of an explicit cast operator alongside subsumption. If the two typing rules:
+
+Gamma |- e : t'
+----------------
+Gamma |- <t> e : t
+
+
+Gamma |- e : t'   t' <: t
+-------------------------
+Gamma |- e : t
+
+are combined, then the instantiation for t' becomes non-deterministic and a very large number of valid typing judgments can therefore be derived. 
+We use bidirectional typing to avoid this problem, presenting a fully algorithmic type system. We recognize that first-class classes are an 
+important feature in several of the languages that we are typing, which includes JavaScript with respect to ECMAScript 6. However, they are not
+considered for this paper as they are not supported in several of the systems in question (most notably the systems put forward by Siek et al, 
+and the Thorn system). Adding first-class classes would require a completely different and novel semantics.
