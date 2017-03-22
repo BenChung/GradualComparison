@@ -1,4 +1,5 @@
-We thanks the reviewers for their efforts. While this is not the outcome we hoped for, we  understand the rationale for your reviews and appreciate the constructive criticism.
+We thanks the reviewers for their efforts and appreciative their reviews of our paper. While this is not the outcome we hoped for, 
+we understand the rationale for your reviews and appreciate the constructive criticism.
 
 There is no formal need to read our responses, but we would love to hear your thoughts on some points that are not fully clear.
 
@@ -20,7 +21,8 @@ Paint us as naive. We were surprised that we could find litmus tests that would 
 
 Our source comes from talking to Type Racket users in the office next door.
 
-Looking for some written evidence leads to perhaps the following: https://scholarship.rice.edu/handle/1911/18078, where in figure 2.3 of Section 2.3 an example is presented where blame tracking is able to identify which party is at fault for a violation. Further evidences are also presented in [20].
+Looking for some written evidence leads to perhaps the following: https://scholarship.rice.edu/handle/1911/18078, where in figure 2.3 of Section 2.3 an example is presented where blame tracking is 
+able to identify which party is at fault for a violation. Further evidences are also presented in [20].
 
 
 
@@ -31,39 +33,52 @@ Perhaps there is a difference in terminology here. Blame tracking is implemented
 
 
 
-
-
 #58B
 
-- The lack of validation against implementations or other formalizations is also problematic.  This is important in general, but especially when monotonic casts are implemented so differently here from other work.
+- The lack of validation against implementations or other formalizations is also problematic.  This is important in general, but especially when monotonic casts are 
+implemented so differently here from other work.
 
-P&B: A validation of the formalisms is necessary, however, implementing the Kafka language is unrealistic, as not every gradual typing systems presented in Kafka are themselves implemented.
+P&B: A validation of the formalisms is necessary, however, implementing the Kafka language is unrealistic, as not every gradual typing systems presented in Kafka are
+themselves implemented.
 
 
-- Figure 14 shows several different arities for the synthetic cast insertion judgment.  Looking at what appears to the right of the $\Uparrow$, which for lack of a better term I'll refer to as something the judgment "produces":
+- Figure 14 shows several different arities for the synthetic cast insertion judgment.  Looking at what appears to the right of the $\Uparrow$, which for lack of a 
+better term I'll refer to as something the judgment "produces":
 - MOS1 "produces" a type
 - MOS2 "produces" a type and two class tables
 - MOS5 "produces" a type, a class table, and a class definition
 - MOS2 and MOS3, in the hypotheses that recursively refer to the synthetic judgment, assume it produces a type and one class table
+I'm guessing MOS1 should produce a class table as well, and in the other cases the judgment should be read as producing a type and single class table (with some rules
+concatenating tables in the conclusion, without indicating so explicitly).  Please tell me if I'm mistaken.  This is a switch in judgment form from the other translations,
+and was not introduced or explained (note that the translation rules for Typed Racket didn't actually appear in the main paper).
 
-I'm guessing MOS1 should produce a class table as well, and in the other cases the judgment should be read as producing a type and single class table (with some rules concatenating tables in the conclusion, without indicating so explicitly).  Please tell me if I'm mistaken.  This is a switch in judgment form from the other translations, and was not introduced or explained (note that the translation rules for Typed Racket didn't actually appear in the main paper).
-
-P&B: The MOSx rules are consistent, producing a list of classes that will be added to the global class table. For MOS1, the list of classes is omitted as MOS1 produces an empty list of classes. This should have be clarified by adding explanatory text for MOS1.
-
-
-The motivation for modeling monotonic casts by wrapping rather than in-place update was not explained.  On page 20, the paper claims "The monotonic cast semantics in KafKa cannot be implemented using the in-place replacement technique [21]."  Why not? The paper is not absolutely clear on it, but that paragraph seems to suggest this is because KafKa doesn't permit a field and getter/setter methods of the same name, as method invocation and field access are overloads of the same syntactic construct.  This would be a concern because the casts on field sets are implemented via setter-method wrappers.
-
-P&B: This concern is exactly the reason why in-place replacement is not viable in Kafka. In order to guard field assignment under in-place replacement, a setter method is required to enforce the monotonic invariant. However, in Kafka a semantic ambiguity would occur when both a field declaration and a getter-setter combination exist for the same field in the same class.
+P&B: The MOSx rules are consistent, producing a list of classes that will be added to the global class table. For MOS1, the list of classes is omitted as MOS1 produces
+an empty list of classes. This should have be clarified by adding explanatory text for MOS1.
 
 
-This seems like an artificial problem. On one hand, wouldn't this be better solved by changing KafKa to use more explicitly use something akin to C#'s default implementations of properties (https://msdn.microsoft.com/en-us/library/bb384054.aspx) so the getters/setters can be overridden when an object's class is changed, without changing the rest of the object representation?  This seems like a much simpler than the added complexity of inserting the extra wrappers (which has the extra cost of breaking reference identity when it's not necessary).  
+- The motivation for modeling monotonic casts by wrapping rather than in-place update was not explained.  On page 20, the paper claims "The monotonic cast semantics 
+in KafKa cannot be implemented using the in-place replacement technique [21]."  Why not? The paper is not absolutely clear on it, but that paragraph seems to suggest 
+this is because KafKa doesn't permit a field and getter/setter methods of the same name, as method invocation and field access are overloads of the same syntactic construct.
+This would be a concern because the casts on field sets are implemented via setter-method wrappers.
+
+P&B: This concern is exactly the reason why in-place replacement is not viable in Kafka. In order to guard field assignment under in-place replacement, a setter
+method is required to enforce the monotonic invariant. However, in Kafka a semantic ambiguity would occur when both a field declaration and a getter-setter combination
+exist for the same field in the same class.
+
+
+- This seems like an artificial problem. On one hand, wouldn't this be better solved by changing KafKa to use more explicitly use something akin to C#'s default
+implementations of properties (https://msdn.microsoft.com/en-us/library/bb384054.aspx) so the getters/setters can be overridden when an object's class is changed, 
+without changing the rest of the object representation?  This seems like a much simpler than the added complexity of inserting the extra wrappers (which has the 
+extra cost of breaking reference identity when it's not necessary).  
 
 P: This would introduce additional overhead for the other gradual typing systems, which does not require this behavior.
 
 
-On the other hand, why would it be an issue to update the object to replace a physical field with setters/getters?  Field reads and getter invocation are syntactically identical, so it seems like switching the object representation wouldn't cause problems. Or why not extend the dynamic semantics to check for a required cast to perform?  You could surely arrange things such that the check never did anything for objects that had not been monotonically cast.
+- On the other hand, why would it be an issue to update the object to replace a physical field with setters/getters?  Field reads and getter invocation are syntactically 
+identical, so it seems like switching the object representation wouldn't cause problems. Or why not extend the dynamic semantics to check for a required cast to perform? 
+You could surely arrange things such that the check never did anything for objects that had not been monotonically cast.
 
-B: We considered this approach, but it would break KafKa's notion of subtyping, which does not allow for consistency. For example, consider the following, where t =/= t' and where t meet t' =/= t and t':
+B: We've considered this approach, but it would break KafKa's notion of subtyping, which does not allow for consistency. For example, consider the following, where t =/= t' and where t meet t' =/= t and t':
 
 class C:
   f:t
@@ -82,105 +97,99 @@ class CtoD:
   f():t''
     <t''>this.f'
 
-However, note that C has type {f(t):t,f():t}, whereas CtoD has type {f(t''):t'',f():t''}. Since t'' is not a subtype of t, it follows that CtoD is not a subtype of C, and therefore we cannot substitute a class of CtoD for C while keeping the heap well-typed with respect to the KafKa typing relation.
+However, note that C has type {f(t):t,f():t}, whereas CtoD has type {f(t''):t'',f():t''}. Since t'' is not a subtype of t, it follows that CtoD is not a subtype of C, and 
+therefore we cannot substitute a class of CtoD for C while keeping the heap well-typed with respect to the KafKa typing relation.
 
-On its own this choice is not that important, but the paper's goals are to clearly explain the semantics of *existing* approaches.  While this wrapper-based coercion may correctly model the semantics of monotonic casts, having the semantics be destructive as in other work [9,21] would seem to better meet the paper's top-level objectives.  Moreover, monotonic casts preserve object identity in prior work, while here the object identity changes.  This isn't observable in the core language here, but if future work needed that preserved, it couldn't build (directly) on this formalization.
+- On its own this choice is not that important, but the paper's goals are to clearly explain the semantics of *existing* approaches.  While this wrapper-based coercion may correctly 
+model the semantics of monotonic casts, having the semantics be destructive as in other work [9,21] would seem to better meet the paper's top-level objectives.  Moreover, monotonic 
+casts preserve object identity in prior work, while here the object identity changes.  This isn't observable in the core language here, but if future work needed that preserved, it 
+couldn't build (directly) on this formalization.
+
+P: It is true that explaining the semantics of existing approaches for gradual typing as one of the goals of the paper. We also believe an even more critical goal of the paper is to
+compare these existing approaches, and it has been difficult comparing approaches when their underlying semantics is so different. The initial motivation for 
+defining monotonic with the wrapper-based approach is to expose it's semantics against another the semantics of another wrapper-based approach.
+The resulting wrapper-based semantics for monotonic is unsightliness, and a mark of a good formalism is it's elegance and cosmetic appeals.
+However, there is some discussion to be made whether these ugliness is inherently to monotonic.
+
+
+- The paper never actually explains the cases where monotonic casts should fail.  Looking at Appendix H, the only case I see the cast getting stuck is if two types that
+are being joined have incomparable method name sets (i.e., each has a method the other lacks), in which case tmeet will be undefined.  This makes sense for structural 
+meets between recursive types, but is not explained in the paper.  However, in the case that the meet exists but the object being coerced lacks a method present in one 
+of the types (but contains all methods of the other), I have a hard time seeing where that will fail.
 
 P&B: 
 
 
 
-The paper never actually explains the cases where monotonic casts should fail.  Looking at Appendix H, the only case I see the cast getting stuck is if two types that are being joined have incomparable method name sets (i.e., each has a method the other lacks), in which case tmeet will be undefined.  This makes sense for structural meets between recursive types, but is not explained in the paper.  However, in the case that the meet exists but the object being coerced lacks a method present in one of the types (but contains all methods of the other), I have a hard time seeing where that will fail.
+- page 10: In the type rule for statically dispatched method calls, wouldn't we prefer to bias the method lookup towards typed method signatures?  Section 4.2 says "typed methods are
+invoked with static calls and untyped methods are invoked with dynamically resolved calls."  The current type rule would seem to permit static calls to match the type signature of the 
+untyped method as well as the typed method, but it sounds like the dynamic semantics are actually stricter.  If the dynamic semantics don't let static calls dispatch to untyped methods
+when both are present, then the static dispatch type rule is unsound.
 
 P&B: 
 
 
 
-
-- page 10: In the type rule for statically dispatched method calls, wouldn't we prefer to bias the method lookup towards typed method signatures?  Section 4.2 says "typed methods are invoked with static calls and untyped methods are invoked with dynamically resolved calls."  The current type rule would seem to permit static calls to match the type signature of the untyped method as well as the typed method, but it sounds like the dynamic semantics are actually stricter.  If the dynamic semantics don't let static calls dispatch to untyped methods when both are present, then the static dispatch type rule is unsound.
-
-P&B: 
+- Figure 5 (and others): I'm not sure what the translation of dot to dot is for in TSC2 (other translations have similar rules).  Is this supposed to be translating the hole for
+an evaluation context?  If so, why is that there, I thought the translations worked on complete programs?
 
 
-
-- page 11: I have no idea how to parse this box near the top of the page.  It seems like it's supposed to be a graphically-suggestive presentation of some conditions on the translation, but I don't get it.
-
-
-
-
-- Figure 5 (and others): I'm not sure what the translation of dot to dot is for in TSC2 (other translations have similar rules).  Is this supposed to be translating the hole for an evaluation context?  If so, why is that there, I thought the translations worked on complete programs?
-
-
-
+B: 
 
 - Figure 9: wrap is invoked with two different arities here: 5 arguments in BC1, 4 arguments in BC2.  Is there a missing argument in BC2?
 
+P: No, BC1 is the wrapper function for non-star type , while BC2 is the wrapper function for the star type.
 
 
-- The explanation of Figure 12 on page 16 is unclear.  Scrutinizing the figure, it seems like the key change is that *calls* to lifted methods also acquire some casts, rather than just the entry and exit of each method.  But that change isn't spelled out.  And if I'm wrong about the type of change required, then it really needs to be spelled out.  As written, that paragraph simply doesn't explain the details of inserting casts inside the method bodies.
+- The explanation of Figure 12 on page 16 is unclear.  Scrutinizing the figure, it seems like the key change is that *calls* to lifted methods also acquire some casts, rather than
+just the entry and exit of each method.  But that change isn't spelled out.  And if I'm wrong about the type of change required, then it really needs to be spelled out.  As written,
+that paragraph simply doesn't explain the details of inserting casts inside the method bodies.
 
-
+P: You are not wrong, the body of the lifted methods requires additional casts as well as having the variable "this" rebinded with the correct type.
 
 - page 22: The first two sentences on this page (one of which continues from the previous page) seem to contradict each other.
 
 
+#58C
 
+My main concern with the paper as-is is that it does not provide a result on which the community could gain confidence in these definitions. 
+There are many possible ways to do this, but the paper needs to provide something along these lines before I could advocate for it.
 
+One baseline validation would be an implementation of KafKa and compilers for the source languages into KafKa. This could be as minimal as a simple 
+interprefer for KafKa--it need not be performant, along with compilers for reasonable subsets of the source language. This would enable at least 
+conformance testing the translations by comparing executions of programs compiled to KafKa with those with their native execution environments.
 
+Such an implementation could also enable providing a reference execution environment for comparing the performance of difference decision choices
+in gradually-typed language design. This could be an interesting way to isolate the performance impact of the language design from the differences 
+in engineering present between the different execution environments.
 
+#58D
 
 - What is the paper's **key contribution**? The paper did not seem to
   present any new information or particular insights about existing
   systems, only perhaps to express the differences between systems in
   a particularly precise way.
 
+P: 
+  
 - What set of programs are statically rejected?
   Are there interesting differences to highlight here as well?
-
+ 
+  
 - The "Litmus Tests" that distinguish between the various systems felt
   artificial; I would have hoped for tests that would give a good
   feeling for the pros and cons of each approach.
 
-One question for clarification. Kafka offers only structural casts,
-but the JVM offers only nominal casts -- and I believe that some
-languages, such as Thorn, are also built on nominal casts. Naturally
-one can "model" nominal type systems from a structural one (e.g., by
-inserting a unique member), but I was surprised not to find any direct
-coverage of this in the section on Thorn.
+- However, I also had the feeling that the Kafka formalization itself 
+seemed to add relatively little atop a more general comparison. 
+Moreover, perhaps because the systems vary from one another, I had the
+impression that the features used by the various systems did not overlap 
+so much with one another.
 
-I found the distinction between "gradual Kafka" and "core Kafka" to be
-less clear than it could have been; I think partly this is because
-there is not one "gradual Kafka" but rather a family of them, as each
-"front end" introduces its own concepts (e.g., Thorn has "question"
-types like `?C`, and so forth). I would have appreciated a firmer
-separation between the two concepts. For example, on page 2, the paper
-states:
+P: 
+  
 
-> Two different structural casts are built-in to Kafka...
-
-then in the same paragraph it says:
-
-> To support some of the more complex type systems, KafKa is extended
-> by generative casts which create new wrapper classes.
-
-I think what is happening here is that the "core Kafka" supports two
-forms of structural cast, but the "gradual Kafka" supports a richer
-set of casts (which are only used in Typed Racket).
-
-Similarly, in the formal sections, I found the underlining sometimes
-confusing. For example, On page 13, rule THS3 includes a clause where
-the whole thing is underlined:
-
-    __m(t1) : D \in mtypes(C, K)__
-    
-Rule THS4 includes a very similar clause, but only some parts are underlined:    
-
-    __m__(__t1__) : __?D__ \in mtypes(__C__, __K__)
-    
-I couldn't tell if this was meant to be conveying some sort of subtle
-distinction, or just a stylistic choice. (I sort of suspect that the
-formatting in THS3 is just a mistake, since other rules seem to prefer
-the THS4-style underlyining.)
+#58E
 
 * The paper does not give any meta theory for KafKa.
   Is KafKa type safe? Given the novel combination of casts,
