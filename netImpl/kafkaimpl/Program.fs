@@ -21,6 +21,7 @@ new T()@t(new A())
 *)
 [<EntryPoint>]
 let main argv = 
+    
     let res = Parser.parse @"
 class A {
     m(x:A) : A { this } }
