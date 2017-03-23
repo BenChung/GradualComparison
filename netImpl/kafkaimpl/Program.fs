@@ -6,9 +6,8 @@ open AST
 open CGAST
 open CodeGen
 
-[<EntryPoint>]
-let main argv = 
-    let res = Parser.parse @"
+(**
+@"
 class A {
     m(x:any):any { this } }
 class I {
@@ -19,8 +18,23 @@ class T {
 }
 new T()@t(new A())
 "
+*)
+[<EntryPoint>]
+let main argv = 
+    let res = Parser.parse @"
+class A {
+    m(x:A) : A { this } }
+class I {
+    m(x:C) : I { this } }
+class T {
+    s(x : I) : T { this } 
+    t(x : any) : any { this.s : I -> T ( <I> x) } }
+class C {
+    n(x:C):C { this } }
+new T()@t(new A())
+"
     let trans = CGAST.transp(res.Value)
-    let outp = CodeGen.genProg(trans)
+    let outp = CodeGen.genProg(trans, true)
     let evaluated = Executor.execute(outp)
     
     printfn "%A" argv

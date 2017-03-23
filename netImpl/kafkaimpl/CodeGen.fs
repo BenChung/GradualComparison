@@ -55,10 +55,13 @@ let genClass(k:cgk) : string =
     match k with
     | CClassDef(name, fds, mds) -> "class " + name + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map genFd fds) (List.map genDef mds)))) + "\n}"
 
-let genProg(p:Cprog) : string =
+let genProg(p:Cprog, pretty:bool) : string =
     match p with
     | CProgram(ks, expr) -> 
-        let generated = "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n public static void Main(string[] args) { \n" + genExpr(expr) + ";\n}\n}\n}"
-        let ws = AdhocWorkspace()
-        let ast = CSharpSyntaxTree.ParseText(generated)
-        Formatter.Format(ast.GetRoot(), ws).ToFullString()
+        let generated = "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n public static void Main(string[] args) { \n " + genExpr(expr) + ";\n}\n}\n}"
+        if pretty then
+            let ws = AdhocWorkspace()
+            let ast = CSharpSyntaxTree.ParseText(generated)
+            Formatter.Format(ast.GetRoot(), ws).ToFullString()
+        else
+            generated
