@@ -37,9 +37,8 @@ Yes.
 > Can you provide a source to the "anecdotal evidence" mentioned on pages 4-5
 > that blame tracking is helpful to programmers?
 
-We call it anecdotal evidence because our evidence for that statement is anecdotal. In
-talking to the Typed Racket developers, they have told us that they think it
-is useful.
+By anecdotal we really mean that: talking to Typed Racket users in the
+office next door.
 
 There is also https://scholarship.rice.edu/handle/1911/18078, where in
 figure 2.3 of Section 2.3 an example is presented where blame tracking is
@@ -56,8 +55,7 @@ No user study has been done on blame.
 > has not gone beyond academic research, even though that observation may not
 > fit well with the paper's strong focus on techniques for blame tracking.
 
-A terminology issue may exist in the paper here. For the purposes of
-our examination of gradual typing, we explicitly set aside blame tracking, 
+A terminology issue may exist here. We explicitly ignore blame tracking, 
 as we think that the detail of error messages is orthogonal to what causes
 the errors in the first place.
 
@@ -76,22 +74,16 @@ the errors in the first place.
 > way from prior work (wrapping instead of updating), which seems to
 > complicate the model but isn't well-motivated
 
-Monotonic causes a wide range of interesting and unusual problems when
-it is implemented into a system which has not had its dynamic semantics
-designed specifically for the monotonic semantics. While we made several
-design choices in Kafka towards this end, we were eventually unable to 
-simplify it without making the other systems much more opaque.
+Sadly monotonic has had us twisting into pretzels to try to accommodate its
+baroque semantics.  
 
-The basis for not using the same in-place-replacement strategy as Siek et al
-do is discussed in the paper, and we appreciate that our treatment of it there
-could be clarified. We adopt the one-level wrapper scheme with in-place
-wrapper replacement as it provides the same fixed cost access property,
-while remaining within the semantics of Kafka (up to the addition of the
-monotonic cast operator).
+We adopt the one-level wrapper scheme with in-place wrapper replacement as it 
+provides the same fixed cost access property, while remaining within the 
+semantics of Kafka (up to the addition of the monotonic cast operator).
 
 However, due to the current state of the monotonic implementation in 
-Reticulated Python (which stopped working recently), we are considering that
-that the monotonic semantics are more trouble than they are worth.
+Reticulated Python (which stopped working recently), we are considering 
+dropping it from our study.
 
 Thoughts?
 
@@ -162,8 +154,6 @@ out the imprecision.
 
 > Why not in-place updates for monotonic casts?
 
-We were unable to do in-place updates for the fields themselves as a result
-of being unable to maintain soundness with respect to Kafka's subtyping relation.
 Monotonic casts are only sound with in-place replacement if the language's type
 system allows consistency, and Kafka's (along with most other intermediate
 languages, like Java bytecode and CIL) doesn't. As a result, we have to use
