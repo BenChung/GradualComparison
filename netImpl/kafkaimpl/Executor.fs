@@ -12,7 +12,9 @@ let execute(s:string) =
     let an = Path.GetRandomFileName()
     let refs : MetadataReference list = [
         MetadataReference.CreateFromFile(typeof<obj>.Assembly.Location) ;
-        MetadataReference.CreateFromFile(typeof<IEnumerable<int>>.Assembly.Location) ]
+        MetadataReference.CreateFromFile(typeof<IEnumerable<int>>.Assembly.Location) ;
+        MetadataReference.CreateFromFile(typeof<System.Runtime.CompilerServices.DynamicAttribute>.Assembly.Location) ;
+        MetadataReference.CreateFromFile(typeof<Microsoft.CSharp.RuntimeBinder.Binder>.Assembly.Location) ]
     let compilation = CSharpCompilation.Create(
         an,
         [ CSharpSyntaxTree.ParseText(s) ],
@@ -25,4 +27,4 @@ let execute(s:string) =
     | true -> do ms.Seek(int64(0), SeekOrigin.Begin)
               let assembly = Assembly.Load(ms.ToArray())
               let mainClass = assembly.GetType("Kafka.Program")
-              mainClass.GetMethod("Main").Invoke(null, Array.empty<obj>)
+              mainClass.GetMethod("Main").Invoke(null, Seq.toArray [ Array.empty<string> ])

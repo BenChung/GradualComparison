@@ -1,6 +1,9 @@
 ﻿module CodeGen
 open AST
 open CGAST
+open Microsoft.CodeAnalysis
+open Microsoft.CodeAnalysis.CSharp
+open Microsoft.CodeAnalysis.Formatting
 
 let toCsType(t:Type) : string = 
     match t with
@@ -54,4 +57,8 @@ let genClass(k:cgk) : string =
 
 let genProg(p:Cprog) : string =
     match p with
-    | CProgram(ks, expr) -> "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n static void Main(string[] args) { \n" + genExpr(expr) + ";\n}\n}\n}"
+    | CProgram(ks, expr) -> 
+        let generated = "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n public static void Main(string[] args) { \n" + genExpr(expr) + ";\n}\n}\n}"
+        let ws = AdhocWorkspace()
+        let ast = CSharpSyntaxTree.ParseText(generated)
+        Formatter.Format(ast.GetRoot(), ws).ToFullString()

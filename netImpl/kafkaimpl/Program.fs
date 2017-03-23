@@ -21,6 +21,7 @@ new T()@t(new A())
 "
     let trans = CGAST.transp(res.Value)
     let outp = CodeGen.genProg(trans)
+    let evaluated = Executor.execute(outp)
     
     printfn "%A" argv
     0 // return an integer exit code
