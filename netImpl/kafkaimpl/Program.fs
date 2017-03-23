@@ -15,11 +15,12 @@ class I {
     n(x:any):any { this } }
 class T {
     s(x:any):any { this }
-    t(x:any):any { this.s : any -> any (x) }
+    t(x:any):any { this@s(x) }
 }
 new T()@t(new A())
 "
     let trans = CGAST.transp(res.Value)
     let outp = CodeGen.genProg(trans)
+    
     printfn "%A" argv
     0 // return an integer exit code
