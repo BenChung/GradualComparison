@@ -19,7 +19,7 @@ let rec genExpr(ex:Expr) : string =
     | DynCall(rece, m, arg) -> (genExpr rece) + "," + m + "(" + (genExpr arg) + ")"
     | Cast(t, expr) -> "(" + (toCsType t) + ")" + (genExpr expr)
     
-let genBody(ex:Expr list) : string = Seq.fold (fun acc x -> acc + x + ";\n") "" (List.map genExpr ex)
+let genBody(ex:Expr list) : string = Seq.fold (fun acc x -> acc + x + ";\n") "" (List.mapi (fun i expr -> if i = (List.length ex) - 1 then "return " + expr else expr) (List.map genExpr ex))
 
 let genDef(md:cgmd) : string =
     match md with
@@ -41,10 +41,17 @@ let genFd(fd:cgfd) : string =
     | CFDef(name, tpe) -> "public " + toCsType(tpe) + " " + name + ";"
     | CPDef(name, tpe, get, set) -> "public " + toCsType(tpe) + " " + name + "{\n" + genGet(get) + genSet(set) + "}"
 
+let genConstructor(name:string, fds: cgfd list) : string =
+    let cfds = (Seq.choose(fun (fd : cgfd) -> match fd with
+                                              | CFDef(name,tpe) -> Some(name,tpe)
+                                              | _ -> None) fds)
+    "public " + name + "(" + (String.concat(", ")(Seq.map (fun (name, tpe) -> toCsType(tpe) + " " + name) cfds)) + ") { \n" +
+                             (String.concat "\n" (Seq.map (fun (name, tpe) -> "this." + name + " = " + name + ";") cfds)) + "\n}"
+
 let genClass(k:cgk) : string =
     match k with
-    | CClassDef(name, fds, mds) -> "class " + name + " {\n" + (String.concat "\n" (List.map genFd fds)) + "\n" + (String.concat "\n" (List.map genDef mds)) + "\n}"
+    | CClassDef(name, fds, mds) -> "class " + name + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map genFd fds) (List.map genDef mds)))) + "\n}"
 
 let genProg(p:Cprog) : string =
     match p with
-    | CProgram(ks, expr) -> (String.concat "\n" (List.map genClass ks)) + "\n" + "class Main { \n static void Main(string[] args) { \n" + genExpr(expr) + ";\n}\n}"
+    | CProgram(ks, expr) -> (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n static void Main(string[] args) { \n" + genExpr(expr) + ";\n}\n}"

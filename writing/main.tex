@@ -3102,8 +3102,7 @@ given method defintions.
 }{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
 
 \IRule{MTT}{
-  \t \neq \any \\
-  \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
+  \AnaCast{\K}{\HT\this\C~\HT\x\C}{\e}{\ep}{\Cp}
 }{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\SubCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
 \end{mathpar}
 
@@ -3243,9 +3242,9 @@ given method defintions.
 }
 \end{mathpar}
 
-\subsection{Typed Racket translation for expressions}
+\subsection{Typed Racket synthetic translation}
 
-\opdef{$\GenCast{\K}\Env\e\ep\t$}{Typed Racket translation for expressions}
+\opdef{$\GenCast{\K}\Env\e\ep\t$}{Typed Racket synthetic translation}
 
 \begin{mathpar}
 \IRule{TRS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
@@ -3274,9 +3273,9 @@ given method defintions.
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
-\subsection{Type Racket translation for bidirectional expressions}
+\subsection{Typed Racket analytic translation}
 
-\opdef{$\AnaCast\K\Env\e\ep\t$}{Type Racket translation for bidirectional expressions}
+\opdef{$\AnaCast\K\Env\e\ep\t$}{Typed Racket analytic translation}
 
 \begin{mathpar}
 \IRule{TRA1}{
@@ -3290,7 +3289,7 @@ given method defintions.
   \GenCast\K\Env\e\ep\tp \\
   \t \neq \tp
 }{
-  \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
+  \AnaCast\K\Env\e{\BehCast\t{\ep}}\t
 }
 \end{mathpar}
 
