@@ -35,11 +35,11 @@ Perhaps there is a difference in terminology here. Blame tracking is implemented
 
 #58B
 
-- The lack of validation against implementations or other formalizations is also problematic.  This is important in general, but especially when monotonic casts are 
-implemented so differently here from other work.
+*The lack of validation against implementations or other formalizations is also problematic.  This is important in general, but especially when monotonic casts are 
+implemented so differently here from other work.*
 
-P&B: A validation of the formalisms is necessary, however, implementing the Kafka language is unrealistic, as not every gradual typing systems presented in Kafka are
-themselves implemented.
+P&B: A validation of the formalisms is necessary. At the moment, we are working towards a compiler 
+for Kafka to C# source. Which we hope would offer more confidences for Kafka.
 
 
 - Figure 14 shows several different arities for the synthetic cast insertion judgment.  Looking at what appears to the right of the $\Uparrow$, which for lack of a 
@@ -52,8 +52,8 @@ I'm guessing MOS1 should produce a class table as well, and in the other cases t
 concatenating tables in the conclusion, without indicating so explicitly).  Please tell me if I'm mistaken.  This is a switch in judgment form from the other translations,
 and was not introduced or explained (note that the translation rules for Typed Racket didn't actually appear in the main paper).
 
-P&B: The MOSx rules are consistent, producing a list of classes that will be added to the global class table. For MOS1, the list of classes is omitted as MOS1 produces
-an empty list of classes. This should have be clarified by adding explanatory text for MOS1.
+P&B: The MOSx rules should be consistent in producing a list of classes that will be added to the global class table. For MOS1, the list of classes is omitted as MOS1 produces
+an empty list of classes. There should have been clarifying text explaining this.
 
 
 - The motivation for modeling monotonic casts by wrapping rather than in-place update was not explained.  On page 20, the paper claims "The monotonic cast semantics 
@@ -149,7 +149,7 @@ P: No, BC1 is the wrapper function for non-star type , while BC2 is the wrapper 
 just the entry and exit of each method.  But that change isn't spelled out.  And if I'm wrong about the type of change required, then it really needs to be spelled out.  As written,
 that paragraph simply doesn't explain the details of inserting casts inside the method bodies.
 
-P: You are not wrong, the body of the lifted methods require additional casts as well as have the variable "this" rebinded with the correct type.
+P: You are not wrong, the body of the lifted methods require additional casts as well as have the variable "this" re-binded with the correct type.
 
 - page 22: The first two sentences on this page (one of which continues from the previous page) seem to contradict each other.
 
@@ -171,7 +171,7 @@ Such an implementation could also enable providing a reference execution environ
 in gradually-typed language design. This could be an interesting way to isolate the performance impact of the language design from the differences 
 in engineering present between the different execution environments.
 
-P: Comparing the performance of different gradual typing systems is hard.
+P: Comparing the performance of different gradual typing systems is hard. TODO.
 
 
 
@@ -183,7 +183,7 @@ P: Comparing the performance of different gradual typing systems is hard.
   a particularly precise way.
 
 P: Our primary contribution is the unified formalism of the different gradual systems.
-There is a lack of explaination regarding the complexity and oddity between the formalism
+There is a lack of explanation regarding the complexity and oddity between the formalism
 of each system in their explanation. It is our wish to bring forth interesting aspects of each gradual
 systems that are hidden in their original formalism.
 
@@ -215,7 +215,7 @@ systems without over-complicating any particular system for the sake of comparis
 is the introduction of wrappers for the monotonic semantics. The wrapper bought forth several complication
 to the monotonic semantics such as the lifting operation for the method body of the wrapper classes.
 However, by defining the monotonic semantics with wrapper we hoped to gain a greater insight to it's
-complexity when compared against the behaviorial semantics, which also requires wrappers.
+complexity when compared against the behavioral semantics, which also requires wrappers.
   
 
 #58E
@@ -225,6 +225,8 @@ complexity when compared against the behaviorial semantics, which also requires 
   class-based method dispatching, and structural subtyping,
   there is a significant risk that it is not.
 
+  
+  
 * The calculi for the five languages being modeled do not
   seem to capture the important features of those five languages.
 
