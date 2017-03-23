@@ -6,8 +6,7 @@ There is no formal need to read our response, but we would love
 to hear your thoughts as we intend to fix and resubmit.
 
 In particular we will add soundness results for KafKa, we 
-will implement KafKa on .Net and drop monotonic.
-
+will implement KafKa on .Net and remove the monotonic semantics.
 
 
                                 THANKS!
@@ -38,14 +37,15 @@ Yes.
 > Can you provide a source to the "anecdotal evidence" mentioned on pages 4-5
 > that blame tracking is helpful to programmers?
 
-By anecdotal we really means that -- talking to Typed Racket users in the
-office next door.
+We call it anecdotal evidence because our evidence for that statement is anecdotal. In
+talking to the Typed Racket developers, they have told us that they think it
+is useful.
 
 There is also https://scholarship.rice.edu/handle/1911/18078, where in
 figure 2.3 of Section 2.3 an example is presented where blame tracking is
 able to identify which party is at fault for a violation. See as well [20].
 
-But there is no real user study.
+No user study has been done on blame.
 
 
 > "Gradual typing is no longer simply a popular research topic in academia"
@@ -56,15 +56,17 @@ But there is no real user study.
 > has not gone beyond academic research, even though that observation may not
 > fit well with the paper's strong focus on techniques for blame tracking.
 
-Ok, there may be a terminology issue here. We explicitly ignore Blame Tracking
-in this paper.  Mostly because it feels orthogonal to the type system.
+A terminology issue may exist in the paper here. For the purposes of
+our examination of gradual typing, we explicitly set aside blame tracking, 
+as we think that the detail of error messages is orthogonal to what causes
+the errors in the first place.
 
 [Blame tracking refers to the ability to pinpoint which boundary crossing
  cause an error. It is used in Typed Racket and has a small number of
  commercial users.]
  
 
-> # 58B
+# 58B
 
 > The presentation of monotonic casts was not very clear Much of the technical
 > machinery is treated inconsistently, adding confusion The generative casts
@@ -74,19 +76,22 @@ in this paper.  Mostly because it feels orthogonal to the type system.
 > way from prior work (wrapping instead of updating), which seems to
 > complicate the model but isn't well-motivated
 
-Sadly monotonic has had us twisting into pretzels to try to accommodate its
-baroque semantics.  A number of design choices in the language were made
-just for that, and, in the end, we agree that monotonic is still a horror
-(or an error?).
+Monotonic causes a wide range of interesting and unusual problems when
+it is implemented into a system which has not had its dynamic semantics
+designed specifically for the monotonic semantics. While we made several
+design choices in Kafka towards this end, we were eventually unable to 
+simplify it without making the other systems much more opaque.
 
-The key about monotonic is that it provides fixed costs for access. We model
-this with a constant one-level wrapper because anything else would require
-more language support (e.g. updating the class of objects, or interposing
-on field read/writes).
+The basis for not using the same in-place-replacement strategy as Siek et al
+do is discussed in the paper, and we appreciate that our treatment of it there
+could be clarified. We adopt the one-level wrapper scheme with in-place
+wrapper replacement as it provides the same fixed cost access property,
+while remaining within the semantics of Kafka (up to the addition of the
+monotonic cast operator).
 
-In the end, it seems that the authors of monotonic are abandoning it. The
-latest version of Ret Py broke the monotonic implementation. We feel like
-dropping it from the study.
+However, due to the current state of the monotonic implementation in 
+Reticulated Python (which stopped working recently), we are considering that
+that the monotonic semantics are more trouble than they are worth.
 
 Thoughts?
 
@@ -151,15 +156,19 @@ adding explanatory text for MOS1.
 > suggest that the casts will only narrow dynamic types to concrete types,
 > regardless of quantity.
 
-(*, *, *) can go to (A, *, *) and then to (A,A,*)...
+You are correct, and our formalism captures the same narrowing property
+that the original monotonic formalization did. Thank you for pointing 
+out the imprecision.
 
 > Why not in-place updates for monotonic casts?
 
-That would require changing the class of objects, we were hoping to limit
-our implementation to features that are available in stock VMs like Java
-or .Net.
-
-
+We were unable to do in-place updates for the fields themselves as a result
+of being unable to maintain soundness with respect to Kafka's subtyping relation.
+Monotonic casts are only sound with in-place replacement if the language's type
+system allows consistency, and Kafka's (along with most other intermediate
+languages, like Java bytecode and CIL) doesn't. As a result, we have to use
+untyped getter and setters instead, which lead into more issues, as discussed
+next.
 
 > The motivation for modeling monotonic casts by wrapping rather than in-place
 > update was not explained. On page 20, the paper claims "The monotonic cast
@@ -172,12 +181,13 @@ or .Net.
 > wrappers.
 
 
-We wanted to have direct fields access (without forcing everything to go
+We wanted to have direct field access (without forcing everything to go
 through method calls).  In order to guard field assignment under in-place
 replacement, a setter method is required to enforce the monotonic
 invariant. However, in Kafka a semantic ambiguity would occur when both a
 field declaration and a getter-setter combination exist for the same field
-in the same class.
+in the same class. To avoid this, we lift the getter-setter out of the object
+and into a wrapper, which is then updated by the monotonic cast.s
 
 
 > This seems like an artificial problem. On one hand, wouldn't this be better
@@ -244,8 +254,10 @@ relation.
 > changes. This isn't observable in the core language here, but if future work
 > needed that preserved, it couldn't build (directly) on this formalization.
 
-Identity should be added to KafKa this is actually a feature that is tricky
-to provide in, e.g., JavaScript.
+Thanks to a technical detail, Kafka's monotonic semantics
+does retain object identity, as each object is forever associated with exactly
+one wrapper, whose identity is equivalent to the original object's (and which
+is updated by the monotonic cast). However, this is virtually by accident.
 
 A mark of a good formalism is it's elegance. There is some discussion to be
 made whether the ugliness of monotonic is inherent.
@@ -294,13 +306,11 @@ Sorry we will clear up.
 
 OK.
 
-
 > Figure 4 / Section 4: The behavioral and monotone casts are omitted from the
 > initial formal presentation, and added later. You should mention this
 > explicitly in Section 4.
 
 Yes.
-
 
 > Figure 5 (and others): I'm not sure what the translation of dot to dot is
 > for in TSC2 (other translations have similar rules). Is this supposed to be
@@ -310,7 +320,6 @@ Yes.
 This is a mistake, translation does work on complete programs. TSC2 is the
 translation for classes when the class table is empty, the class definition
 in front of the class table is omitted by mistake.
-
 
 
 > Section 5.4: This first sentence about the "macro model" makes no sense to
@@ -323,7 +332,6 @@ Ok.
 
 No, BC1 is the wrapper function for non-star type , while BC2 is the wrapper
 function for the star type.
-
 
 > Figure 10: I think Figure 10 is typeset immediately below an in-line example
 > of wrap. But visually it looks like both wrap examples are part of the
@@ -342,10 +350,8 @@ OK.
 > simply doesn't explain the details of inserting casts inside the method
 > bodies.
 
-
 You are not wrong, the body of the lifted methods require additional casts
 as well as have the variable "this" re-binded with the correct type.
-
 
 > page 22: The first two sentences on this page (one of which continues from
 > the previous page) seem to contradict each other.
@@ -355,8 +361,7 @@ fields, the reason for the two cast inside the method body of the wrappers.
 If the type of the fields becomes specialized, subtyping would no longer
 hold.
 
-
-> # 58C
+# 58C
 
 > My main concern with the paper as-is is that it does not provide a result on
 > which the community could gain confidence in these definitions. There are
@@ -368,8 +373,8 @@ of the calculi and the implementations are very different.
 
 - Thorn's semantics is by translation.
 
-- Typed Racket is layered on Racket and on contracts, classes are macros, it
-difficult to untangle all of this.
+- Typed Racket is layered on Racket and on contracts, classes are macros and objects,
+and unentangling them is nontrivial.
 
 - Reticulated Python has no semantics, there is a semantics for a non-object
 functional version.
@@ -412,7 +417,7 @@ to match the features provided by a VM like the JVM or .Net. So, these calculi
 should be mapped easily on to those system.
 
 Sadly Monotonic breaks that goal -- as the monotonic cast is not easily implemented
-without VM support.
+without extensive VM support.
 
 
 > The calculus helped to clarify the dynamic semantics of the various gradual
@@ -424,8 +429,13 @@ Understood.
 > In other words, what set of programs are statically rejected? Are there
 > interesting differences to highlight here as well?
 
-The static semantics feel less surprising to us.   
+The static semantics feel less surprising to us, and we wanted to highlight
+the dynamic differences between the systems. As a result, we tried to normalize
+the statics to the greatest extent possible, though the following systems 
+vary:
 
+- Transient & Monotonic semantics have consistency
+- Thorn has weak/optional types
 
 > The "Litmus Tests" that distinguish between the various systems felt
 > artificial; I would have hoped for tests that would give a good feeling for
@@ -566,24 +576,16 @@ an explicit cast operator alongside subsumption. If the two typing rules:
 
 
 Gamma |- e : t'
-----------------
+---------------- (Cast)
 Gamma |- <t> e : t
 
 
 Gamma |- e : t'   t' <: t
--------------------------
+------------------------- (Sub)
 Gamma |- e : t
 
-are combined, then the instantiation for t' becomes non-deterministic 
-and a very large number of valid typing judgments can therefore be derived. 
-We use bidirectional typing to avoid this problem, presenting a fully 
-algorithmic type system. We recognize that first-class classes are an 
-important feature in several of the languages that we are typing, which 
-includes JavaScript with respect to ECMAScript 6. However, they are not
-considered for this paper as they are not supported in several of the 
-systems in question (most notably the systems put forward by Siek et al, 
-and the Thorn system). Adding first-class classes would require a 
-completely different and novel semantics.
+are combined, then the instantiation for t' becomes non-deterministic, and 
+the results of type-driven translation become very odd indeed.
 
 > "As a result of generating the wrappers (and the static translation), the
 > simple example shown in figure 15 does not correctly exhibit the correct
@@ -591,5 +593,6 @@ completely different and novel semantics.
 
 > That's bad!
 
-Monotonic! 
-
+Monotonic! We present the fix for this later, but it drives much of the 
+massive complexity of the monotonic system. While we can clarify this,
+we will likely not consider monotonic for future versions of this paper.
