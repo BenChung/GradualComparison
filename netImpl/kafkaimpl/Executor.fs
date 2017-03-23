@@ -10,6 +10,7 @@ exception CSharpCompilerError of string
 
 let execute(s:string) =
     let an = Path.GetRandomFileName()
+    let refs : MetadataReference list = [
         MetadataReference.CreateFromFile(typeof<obj>.Assembly.Location) ;
         MetadataReference.CreateFromFile(typeof<IEnumerable<int>>.Assembly.Location) ]
     let compilation = CSharpCompilation.Create(
