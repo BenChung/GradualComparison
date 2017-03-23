@@ -55,12 +55,6 @@ type ParserTest1() =
     member x.TestParen() =
         (Parser.parse @"<t2>(<t1>x)") |> should equal (Some(Program([], Cast(Class "t2", Cast(Class "t1", Var "x")))))
     [<Test>]
-    member x.TestSeq1() =
-        (Parser.parse @"a.b();b.c()") |> should equal (Some(Program([], Seq[ GetF(Var "a", "b") ; GetF(Var "b", "c")])))
-    [<Test>]
-    member x.TestSeq2() =
-        (Parser.parse @"(a.b();b).c()") |> should equal (Some(Program([], GetF(Seq[ GetF(Var "a", "b") ; Var "b"], "c"))))
-    [<Test>]
     member x.TestClass() =
         (Parser.parse @"class B {}
         hello") |> should equal (Some(Program([ClassDef("B",[],[])], Var("hello"))))
@@ -77,16 +71,20 @@ type ParserTest1() =
     [<Test>]
     member x.TestGetter() =
         (Parser.parse @"class B { f():t { baz } }
-        hello") |> should equal (Some(Program([ClassDef("B",[],[GDef("f", Class "t", Var("baz"))])], Var("hello"))))
+        hello") |> should equal (Some(Program([ClassDef("B",[],[GDef("f", Class "t", [Var("baz")])])], Var("hello"))))
     [<Test>]
     member x.TestSetter() =
         (Parser.parse @"class B { f(x):t { baz } }
-        hello") |> should equal (Some(Program([ClassDef("B",[],[SDef("f", "x", Class "t", Var("baz"))])], Var("hello"))))
+        hello") |> should equal (Some(Program([ClassDef("B",[],[SDef("f", "x", Class "t", [Var("baz")])])], Var("hello"))))
     [<Test>]
     member x.TestUTMethod() =
         (Parser.parse @"class B { m(x:any):any { baz } }
-        hello") |> should equal (Some(Program([ClassDef("B",[],[MDef("m", "x", Any, Any, Var("baz"))])], Var("hello"))))
+        hello") |> should equal (Some(Program([ClassDef("B",[],[MDef("m", "x", Any, Any, [Var("baz")])])], Var("hello"))))
     [<Test>]
     member x.TestTMethod() =
         (Parser.parse @"class B { m(x:B):B { baz } }
-        hello") |> should equal (Some(Program([ClassDef("B",[],[MDef("m", "x", Class "B", Class "B", Var("baz"))])], Var("hello"))))
+        hello") |> should equal (Some(Program([ClassDef("B",[],[MDef("m", "x", Class "B", Class "B", [Var("baz")])])], Var("hello"))))
+    [<Test>]
+    member x.TestTMethod2() =
+        (Parser.parse @"class B { m(x:B):B { baz ; x} }
+        hello") |> should equal (Some(Program([ClassDef("B",[],[MDef("m", "x", Class "B", Class "B", [Var("baz") ; Var("x")])])], Var("hello"))))

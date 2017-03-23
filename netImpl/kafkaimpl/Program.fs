@@ -2,25 +2,19 @@
 // See the 'F# Tutorial' project for more help.
 open System
 open Parser
+open AST
+open CGAST
+open CodeGen
 
 [<EntryPoint>]
 let main argv = 
     let res = Parser.parse @"
-class B {
+class D {
     f:D
-    fd:Z
-    fsa:D
-    m(x:any):any { <D>new B(x, y, z) }
-    m(x:any):any { (<D>new B(x, y, z)).bee(baz) }
-    m(x:any):any { too.bar(); 
-                   too.bee(); 
-                   too.bam() }
-    m(x:any):any { too.bar(baz) }
-    m(x:any):any { too.bar: C -> D (baz) }
-    m(x:any):any { too@bar(baz) }
-    m(x:any):any { too@bar(baz).bar(baz).bar : C -> D(bee).bar() }
+    m(x:any):any { this }
 }
-class D {}
-hello"
+new D()"
+    let trans = CGAST.transp(res.Value)
+    let outp = CodeGen.genProg(trans)
     printfn "%A" argv
     0 // return an integer exit code

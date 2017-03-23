@@ -15,13 +15,24 @@ type Expr =
 | Call of Expr * Type * Type * string * Expr
 | DynCall of Expr * string * Expr
 | Cast of Type * Expr
-| Seq of Expr list
  override x.ToString() = sprintf "%A" x
 
+let rec subst(n:string, wth : Expr)(ine:Expr) = 
+    match ine with
+    | Var np -> if np = n then wth else Var np
+    | This -> This
+    | That -> That
+    | NewExn(name, exprs) -> NewExn(name, List.map (subst(n, wth)) exprs)
+    | GetF(recr, f) -> GetF(subst(n, wth)(recr), f)
+    | SetF(recr, f, v) -> SetF(subst(n,wth)(recr), f, subst(n,wth)(v))
+    | Call(recr, t1, t2, m, arg) -> Call(subst(n,wth) recr, t1, t2, m, subst(n,wth) arg)
+    | DynCall(recr, m, arg) -> DynCall(subst(n,wth) recr, m, subst(n,wth) arg)
+    | Cast(t, e) -> Cast(t, subst(n,wth) e)
+
 type md = 
-| MDef of string * string * Type * Type * Expr
-| SDef of string * string * Type * Expr
-| GDef of string * Type * Expr
+| MDef of string * string * Type * Type * Expr list
+| SDef of string * string * Type * Expr list
+| GDef of string * Type * Expr list
  override x.ToString() = sprintf "%A" x
 
 type fd =
