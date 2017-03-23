@@ -2852,13 +2852,36 @@ the object stored at \a in \s.
 The function $\xt{overloading}(\b\md)$ there are no overloaded method names in the
 given method defintions.
 
-\begin{equation*}
-\xt{overloading}(\b\md) = \xt{true}
-  ~~\mathit{if}~~ \begin{cases}
-   \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots}\\
-   \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
-\end{cases}
-\end{equation*}
+
+\opdef{~\xt{overloading}(\b\md)}{Method overloading}
+\begin{mathpar}
+\IRule{MO1}{
+}{
+\xt{overloading}(\emptyset)
+}
+
+\IRule{MO2}{
+ \m \notin \xt{names}(\b\md) \\
+ \xt{overloading}(\b\md)
+}{
+\xt{overloading}(\Mdef\m\x\t\t\e, \b\md)
+}
+
+\IRule{MO3}{
+ \f \notin \xt{names}(\b\md) \\
+ \xt{overloading}(\b\md)
+}{
+\xt{overloading}(\Mdef\f\x\t\t\e, \b\md)
+}
+
+\IRule{MO4}{
+ \f \notin \xt{names}(\b\md) \\
+ \xt{overloading}(\b\md)
+}{
+\xt{overloading}(\Mdefz\f\t\e, \b\md)
+}
+\end{mathpar}
+
 
 % \subsection{Dynamic function}
 % 
