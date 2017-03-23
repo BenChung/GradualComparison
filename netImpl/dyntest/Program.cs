@@ -6,36 +6,55 @@ using System.Threading.Tasks;
 
 namespace dyntest
 {
-    class D
+    namespace Kafka
     {
-        public D(E f)
+        class A
         {
-            this.f = f;
-        }
-        public E f;
-        public dynamic m(dynamic x)
-        {
-            return this.f.m(this.f);
-        }
+            public A()
+            {
 
-    }
-    class E
-    {
-        public E()
-        {
+            }
+            public dynamic m(dynamic x)
+            {
+                return this;
+            }
 
         }
-        public E m(E x)
+        class I
         {
-            return x;
-        }
+            public I()
+            {
 
-    }
-    class Program
-    {
-        static void Main(string[] args)
+            }
+            public dynamic n(dynamic x)
+            {
+                return this;
+            }
+
+        }
+        class T
         {
-            new D(new E()).m(new E());
+            public T()
+            {
+
+            }
+            public dynamic s(dynamic x)
+            {
+                return this;
+            }
+
+            public dynamic t(dynamic x)
+            {
+                return this.s(x);
+            }
+
+        }
+        class Program
+        {
+            static void Main(string[] args)
+            {
+                new T().t(new A());
+            }
         }
     }
 }

@@ -16,7 +16,7 @@ let rec genExpr(ex:Expr) : string =
     | GetF(rece, f) -> (genExpr rece) + "." + f
     | SetF(rece, f, v) -> (genExpr rece) + "." + f + " = " + (genExpr v)
     | Call(rece, tp, t, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
-    | DynCall(rece, m, arg) -> (genExpr rece) + "," + m + "(" + (genExpr arg) + ")"
+    | DynCall(rece, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
     | Cast(t, expr) -> "(" + (toCsType t) + ")" + (genExpr expr)
     
 let genBody(ex:Expr list) : string = Seq.fold (fun acc x -> acc + x + ";\n") "" (List.mapi (fun i expr -> if i = (List.length ex) - 1 then "return " + expr else expr) (List.map genExpr ex))
@@ -54,4 +54,4 @@ let genClass(k:cgk) : string =
 
 let genProg(p:Cprog) : string =
     match p with
-    | CProgram(ks, expr) -> (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n static void Main(string[] args) { \n" + genExpr(expr) + ";\n}\n}"
+    | CProgram(ks, expr) -> "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n static void Main(string[] args) { \n" + genExpr(expr) + ";\n}\n}\n}"
