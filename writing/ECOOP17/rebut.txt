@@ -163,13 +163,15 @@ One baseline validation would be an implementation of KafKa and compilers for th
 interprefer for KafKa--it need not be performant, along with compilers for reasonable subsets of the source language. This would enable at least 
 conformance testing the translations by comparing executions of programs compiled to KafKa with those with their native execution environments.
 
-P: 
+P: An implementation would indeed strength the validation of Kafka. We have not yet considered an implementation of a compiler for the source 
+language to Kafka, thou it is definitely something to take into consideration in the future. At the moment, we are working towards a compiler 
+for Kafka to C# source. Which we hope would offer more confidences for Kafka.
 
 Such an implementation could also enable providing a reference execution environment for comparing the performance of difference decision choices
 in gradually-typed language design. This could be an interesting way to isolate the performance impact of the language design from the differences 
 in engineering present between the different execution environments.
 
-P: Comparison between performance would ever 
+P: Comparing the performance of different gradual typing systems is hard.
 
 
 
@@ -180,23 +182,40 @@ P: Comparison between performance would ever
   systems, only perhaps to express the differences between systems in
   a particularly precise way.
 
-P: 
+P: Our primary contribution is the unified formalism of the different gradual systems.
+There is a lack of explaination regarding the complexity and oddity between the formalism
+of each system in their explanation. It is our wish to bring forth interesting aspects of each gradual
+systems that are hidden in their original formalism.
+
   
 - What set of programs are statically rejected?
   Are there interesting differences to highlight here as well?
  
+P&B: We tried to normalize the static semantics to the greatest degree possible, to allow for an easier 
+understanding of the dynamic semantics.  However, some aspects of the static semantics are fundamental 
+to several of the systems, notably the transient and monotonic approaches, which require the use of
+consistency subtyping.
   
 - The "Litmus Tests" that distinguish between the various systems felt
   artificial; I would have hoped for tests that would give a good
   feeling for the pros and cons of each approach.
 
+P: We had hoped for the litmus tests to be simply enough that infinitively you would not suspect any 
+of them to go wrong. An alternative might be that we can illustrate this concept with other commonly used 
+programming patterns instead.
+  
 - However, I also had the feeling that the Kafka formalization itself 
 seemed to add relatively little atop a more general comparison. 
 Moreover, perhaps because the systems vary from one another, I had the
 impression that the features used by the various systems did not overlap 
 so much with one another.
 
-P: 
+P: It has been a challenge to have overlapping features between the formalism of various gradual typing 
+systems without over-complicating any particular system for the sake of comparison. One such challenge
+is the introduction of wrappers for the monotonic semantics. The wrapper bought forth several complication
+to the monotonic semantics such as the lifting operation for the method body of the wrapper classes.
+However, by defining the monotonic semantics with wrapper we hoped to gain a greater insight to it's
+complexity when compared against the behaviorial semantics, which also requires wrappers.
   
 
 #58E
