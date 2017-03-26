@@ -2430,9 +2430,10 @@ typing system highlights the essences which makes each system unique.
    &\B \a \\
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
+   ~ \k &::= \Class {\C \Exten \Cp} {\b\fd}{\b\md}
 \end{tabular}
 \begin{tabular}{l@{~}l@{}l@{}l}
+% \md &::= \NMdef\m\this\t\x\t\t\e   &\B  \NMdef\f\this\t\x\t\t\e &\B \\ &\qquad \NMdefz\f\this\t\t\e \\
 \md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
 %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
 ~ \t&::= ~ \any  \B   \C  \\ 
@@ -2857,31 +2858,44 @@ given method defintions.
 \begin{mathpar}
 \IRule{MO1}{
 }{
-\xt{overloading}(\emptyset)
+\xt{overloading}_{\cmd}(\emptyset)
 }
 
 \IRule{MO2}{
- \m \notin \xt{names}(\b\md) \\
- \xt{overloading}(\b\md)
+ \Mtype\m\t\t \notin \cmd \\
+ \cmdp = \cmd, \Mtype\m\t\t \\
+ \xt{overloading}_{\cmdp}(\b\md)
 }{
-\xt{overloading}(\Mdef\m\x\t\t\e, \b\md)
+\xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e, \b\md)
 }
 
 \IRule{MO3}{
- \f \notin \xt{names}(\b\md) \\
- \xt{overloading}(\b\md)
+ \Mtype\f\t\t \notin \cmd \\
+ \cmdp = \cmd, \Mtype\f\t\t  \\
+ \xt{overloading}_{\cmdp}(\b\md)
 }{
 \xt{overloading}(\Mdef\f\x\t\t\e, \b\md)
 }
 
 \IRule{MO4}{
- \f \notin \xt{names}(\b\md) \\
- \xt{overloading}(\b\md)
+ \Mtype\f{}\t \notin \cmd \\
+ \cmdp = \cmd, \Mtype\f{}\t \\
+ \xt{overloading}_{\cmdp}(\b\md)
 }{
 \xt{overloading}(\Mdefz\f\t\e, \b\md)
 }
 \end{mathpar}
 
+\opdef{~\xt{overloading}(\b\fd)}{field overloading}
+\begin{mathpar}
+\IRule{FO1}{
+ \f \notin \xt{names}(\cmd) \\
+ \cmdp = \cmd, \Fdef\f\t \\
+ \xt{overloading}_{\cmdp}(\b\fd)
+}{
+\xt{overloading}_{\cmd}(\Fdef\f\t, \b\fd)
+}
+\end{mathpar}
 
 % \subsection{Dynamic function}
 % 
@@ -3317,176 +3331,176 @@ given method defintions.
 }
 \end{mathpar}
 
-
-\section{Complete translation for Monotonic}
-
-\subsection{Monotonic cast static and dynamic rules}
-
-\begin{minipage}{0.35\textwidth}
-\begin{mathpar}
-\IRule{W10}{
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\MonCast\t\e}\t
-}
-\end{mathpar}
-\end{minipage}
-\begin{minipage}{0.5\textwidth}
-\begin{tabular}{l@{}l@{~}l@{~}l}
-\CondRule{E11}{  %% Monotonic cast  
-  \moncast \a\t\s\K  \Kp\ap\sp    
-}{    
-  \ReduceA  \K{\MonCast \t\a}\s \Kp\ap\sp   
-} \\
-\multicolumn{4}{l}{\EE ::= \ldots \B \MonCast\t\EE }
-\end{tabular}
-\end{minipage}
-
-\subsection{Monotonic translation for program, class, and method}
-
-\opdef{$\progtrans{\e~\K}{\e'~{\K'}}$}{Monotonic translation for programs}
-\opdef{$\classtrans {\K}{\Class \C{...}{...}~\K}{\Class \C{...}{...}~\K}$}{Monotonic translation for classes}
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{Monotonic translation for methods}
-
-\begin{mathpar}
-\IRule{PT}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule{MCT1}{
-  \D \text{ fresh}\\
-  \k = \classgen{\C,\getmds\C\K,{\classoff\C\K},{\classoff\C\K},\D,\K}
-}{
-  \monowrap{\C}{\K} = \D~\k
-}
-
-\IRule{MCT2}{
-}{
-  \monowrap{\any}{\K} = \any
-}
-
-\IRule{CR1}{ 
-  \b{\methtrans \K\C\md{\md'}{\K_m}} \\
-  \classtrans \K\Kp\Kpp \\
-  \b{\monowrap\t\Kpp = \tp~\Kppp}
-}{
-   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\tp}}{\b{\md'}}~\Kpp~\K_m~\b{\Kppp}}}
-
-\IRule{CR2}{ 
-}{
-  \classtrans \K\cdot\cdot
-}
-
-\IRule{MTT}{
-  \AnaCastMono \K{\HT\this\C~\HT\x\t}\e\ep\tp{\K_1} \\
-  \monowrap{\t}\K = \t[2]~\K_2 \\
-  \monowrap{\tp}\K = \tp[2]~\K_3
-}{
-  \methtrans \K\C{\Mdef\m\x{\t}{\tp}\e}{\Mdef\m\x{\t_2}{\tp[2]}\ep}{\K_1~\K_2~\K_3}
-}
-\end{mathpar}
-
-\subsection{Monotonic translation for expressions}
-
-\opdef{$\GenCastMono{\K}\E\e\ep\t{\K}$}{Monotonic translation for expressions}
-
-
-\begin{mathpar}
-\IRule{MOS1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
-
-\IRule[width=30em]{MOS2}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \src{\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
-}
-
-\IRule[width=30em]{MOS3}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ 
-    \m({\t_1}):\t_2 \in \classoff\C\K \\ 
-    \statictype{\t_1}{\K}{\cdot} \\ 
-    {\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}{\t_1}{\t_2}}{\t_2}{\K_1~\b{\K_2}}
-}
-
-\IRule[width=30em]{MOS3}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\statictype{\t_1}{\K}{\cdot} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{(\MonCast\any\e_3)}\m{\MonCast\any{\e_4}}\any\any}{\t_2}{\K_1~\b{\K_2}}
-}
-
-\IRule{MOS4}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
-}
-
-\IRule{MOS5}{
-  \b{\AnaCastMono{\K}\E{\e_1}{\e_2}\t{\K}} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
-  \D~\text{fresh} \\
-  \k = \classgen{\C,\getmds\C\K,\classoff\C\K,\classoff\C\K,\D,\K} \\
-  }{\GenCastMono\K\Env{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}{\K~\k}}
-\end{mathpar}
-
-\subsection{Monotonic translation for bidirectional expressions}
-
-\opdef{$\AnaCastMono\K\Env\e\ep\t\K$}{Monotonic translation for bidirectional expressions}
-
-
-\begin{mathpar}
-\IRule{MOA1}{
-  \GenCastMono\K\Env\e\ep\tp\K \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCastMono\K\Env\e\ep\t\K
-}
-
-\IRule{MOA2}{
-  \GenCastMono\K\Env\e\ep\tp\K \\
-  \consistent\K\t\tp
-}{
-  \AnaCastMono\K\Env\e{\MonCast\t\ep}\t\K
-}
-\end{mathpar}
+% 
+% \section{Complete translation for Monotonic}
+% 
+% \subsection{Monotonic cast static and dynamic rules}
+% 
+% \begin{minipage}{0.35\textwidth}
+% \begin{mathpar}
+% \IRule{W10}{
+%   \EnvType \Env\s\K\e\tp
+% }{
+%   \EnvType \Env\s\K{\MonCast\t\e}\t
+% }
+% \end{mathpar}
+% \end{minipage}
+% \begin{minipage}{0.5\textwidth}
+% \begin{tabular}{l@{}l@{~}l@{~}l}
+% \CondRule{E11}{  %% Monotonic cast  
+%   \moncast \a\t\s\K  \Kp\ap\sp    
+% }{    
+%   \ReduceA  \K{\MonCast \t\a}\s \Kp\ap\sp   
+% } \\
+% \multicolumn{4}{l}{\EE ::= \ldots \B \MonCast\t\EE }
+% \end{tabular}
+% \end{minipage}
+% 
+% \subsection{Monotonic translation for program, class, and method}
+% 
+% \opdef{$\progtrans{\e~\K}{\e'~{\K'}}$}{Monotonic translation for programs}
+% \opdef{$\classtrans {\K}{\Class \C{...}{...}~\K}{\Class \C{...}{...}~\K}$}{Monotonic translation for classes}
+% \opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{Monotonic translation for methods}
+% 
+% \begin{mathpar}
+% \IRule{PT}{
+%   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+% }{\progtrans{\e~\K}{\e'~{\K'}}}
+% 
+% \IRule{MCT1}{
+%   \D \text{ fresh}\\
+%   \k = \classgen{\C,\getmds\C\K,{\classoff\C\K},{\classoff\C\K},\D,\K}
+% }{
+%   \monowrap{\C}{\K} = \D~\k
+% }
+% 
+% \IRule{MCT2}{
+% }{
+%   \monowrap{\any}{\K} = \any
+% }
+% 
+% \IRule{CR1}{ 
+%   \b{\methtrans \K\C\md{\md'}{\K_m}} \\
+%   \classtrans \K\Kp\Kpp \\
+%   \b{\monowrap\t\Kpp = \tp~\Kppp}
+% }{
+%    \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\tp}}{\b{\md'}}~\Kpp~\K_m~\b{\Kppp}}}
+% 
+% \IRule{CR2}{ 
+% }{
+%   \classtrans \K\cdot\cdot
+% }
+% 
+% \IRule{MTT}{
+%   \AnaCastMono \K{\HT\this\C~\HT\x\t}\e\ep\tp{\K_1} \\
+%   \monowrap{\t}\K = \t[2]~\K_2 \\
+%   \monowrap{\tp}\K = \tp[2]~\K_3
+% }{
+%   \methtrans \K\C{\Mdef\m\x{\t}{\tp}\e}{\Mdef\m\x{\t_2}{\tp[2]}\ep}{\K_1~\K_2~\K_3}
+% }
+% \end{mathpar}
+% 
+% \subsection{Monotonic translation for expressions}
+% 
+% \opdef{$\GenCastMono{\K}\E\e\ep\t{\K}$}{Monotonic translation for expressions}
+% 
+% 
+% \begin{mathpar}
+% \IRule{MOS1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
+% 
+% \IRule[width=30em]{MOS2}{
+%     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \src{\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
+% }{
+%     \GenCastMono\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
+% }
+% 
+% \IRule[width=30em]{MOS3}{
+%     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ 
+%     \m({\t_1}):\t_2 \in \classoff\C\K \\ 
+%     \statictype{\t_1}{\K}{\cdot} \\ 
+%     {\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
+% }{
+%     \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}{\t_1}{\t_2}}{\t_2}{\K_1~\b{\K_2}}
+% }
+% 
+% \IRule[width=30em]{MOS3}{
+%     \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\statictype{\t_1}{\K}{\cdot} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
+% }{
+%     \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{(\MonCast\any\e_3)}\m{\MonCast\any{\e_4}}\any\any}{\t_2}{\K_1~\b{\K_2}}
+% }
+% 
+% \IRule{MOS4}{
+%     \GenCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
+% }{
+%     \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
+% }
+% 
+% \IRule{MOS5}{
+%   \b{\AnaCastMono{\K}\E{\e_1}{\e_2}\t{\K}} \\ 
+%   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
+%   \D~\text{fresh} \\
+%   \k = \classgen{\C,\getmds\C\K,\classoff\C\K,\classoff\C\K,\D,\K} \\
+%   }{\GenCastMono\K\Env{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}{\K~\k}}
+% \end{mathpar}
+% 
+% \subsection{Monotonic translation for bidirectional expressions}
+% 
+% \opdef{$\AnaCastMono\K\Env\e\ep\t\K$}{Monotonic translation for bidirectional expressions}
+% 
+% 
+% \begin{mathpar}
+% \IRule{MOA1}{
+%   \GenCastMono\K\Env\e\ep\tp\K \\
+%   \K \vdash \tp \Sub \t
+% }{
+%   \AnaCastMono\K\Env\e\ep\t\K
+% }
+% 
+% \IRule{MOA2}{
+%   \GenCastMono\K\Env\e\ep\tp\K \\
+%   \consistent\K\t\tp
+% }{
+%   \AnaCastMono\K\Env\e{\MonCast\t\ep}\t\K
+% }
+% \end{mathpar}
 
 \section{Generative Behavioural Casts}
 
-\subsection{Expression translation for Behavioural semantics}\label{behtrans}
-
-\opdef{$\rtranst{\b{\mt}}{\b{\mtp}}\e\x\e\ep $}{Behavioral dynamic expression translation}
-
-\begin{mathpar}
-\IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
-
-\IRule{REW2}{ \x \neq \x' }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\x'}{\x'} }
-\\
-\IRule[width=25em]{REW4}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\C_2}}{\Cp_2} \in \b{\mtp} \\
-\b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\ep}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\KCall{\this}\m{{\BehCast{\C_2}{\epp}}}{\C_2}{\Cp_2}}}}
-\\
-\IRule[width=25em]{REW5}{ \Mtype\f{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{{\t_2}}{\tp_2} \in \b{\mtp} \\ 
-{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\ep}}{\BehCast{\tp_1}{\Call{\this}\f{{\BehCast{\t_2}{\epp}}}}}}
-\\
-\IRule[width=25em]{REW6}{ \Mtype\f{}{\tp_1} \in \b{\mt} \\ \Mtype\f{}{\tp_2} \in \b{\mtp}}
-{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{}}{\BehCast{\tp_1}{\Call{\this}\f{}}}}
-\\
-\IRule[width=18em]{REW7}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
-\b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\DynCall{\this}\m{{\BehCast{\any}{\ep}}}}}}
-
-\IRule[width=25em]{REW8}{ \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
-\b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\b\e}}{{\Call{\this}\f{\b{{\ep}}}}}}
-
-\IRule[width=25em]{REW9}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
-{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t_1}{\tp[1]}}{{\KCall{\this}\m{{{\ep}}}{\t_1}{\tp[1]}}}}
-
-\IRule[width=20em]{REW10}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\f{\b{\ep_1}}}{\Call{\e_2}\f{\b{\ep_2}}}}
-
-\IRule[width=20em]{REW11}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\e_1}\m{\b{\ep_1}}{\t}{\tp}}{\KCall{\e_2}\m{\b{\ep_2}}{\t}{\tp}}}
-
-\IRule{REW12}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
-
-\IRule{REW12}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
-\end{mathpar}
+% \subsection{Expression translation for Behavioural semantics}\label{behtrans}
+% 
+% \opdef{$\rtranst{\b{\mt}}{\b{\mtp}}\e\x\e\ep $}{Behavioral dynamic expression translation}
+% 
+% \begin{mathpar}
+% \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
+% 
+% \IRule{REW2}{ \x \neq \x' }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\x'}{\x'} }
+% \\
+% \IRule[width=25em]{REW4}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\C_2}}{\Cp_2} \in \b{\mtp} \\
+% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\ep}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\KCall{\this}\m{{\BehCast{\C_2}{\epp}}}{\C_2}{\Cp_2}}}}
+% \\
+% \IRule[width=25em]{REW5}{ \Mtype\f{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{{\t_2}}{\tp_2} \in \b{\mtp} \\ 
+% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\ep}}{\BehCast{\tp_1}{\Call{\this}\f{{\BehCast{\t_2}{\epp}}}}}}
+% \\
+% \IRule[width=25em]{REW6}{ \Mtype\f{}{\tp_1} \in \b{\mt} \\ \Mtype\f{}{\tp_2} \in \b{\mtp}}
+% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{}}{\BehCast{\tp_1}{\Call{\this}\f{}}}}
+% \\
+% \IRule[width=18em]{REW7}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
+% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\DynCall{\this}\m{{\BehCast{\any}{\ep}}}}}}
+% 
+% \IRule[width=25em]{REW8}{ \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
+% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\b\e}}{{\Call{\this}\f{\b{{\ep}}}}}}
+% 
+% \IRule[width=25em]{REW9}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
+% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t_1}{\tp[1]}}{{\KCall{\this}\m{{{\ep}}}{\t_1}{\tp[1]}}}}
+% 
+% \IRule[width=20em]{REW10}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\f{\b{\ep_1}}}{\Call{\e_2}\f{\b{\ep_2}}}}
+% 
+% \IRule[width=20em]{REW11}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\e_1}\m{\b{\ep_1}}{\t}{\tp}}{\KCall{\e_2}\m{\b{\ep_2}}{\t}{\tp}}}
+% 
+% \IRule{REW12}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+% 
+% \IRule{REW12}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
+% \end{mathpar}
 
 % \vspace{-2mm}
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3568,381 +3582,381 @@ when encountering typed code.
 % \end{figure}
 
 % \clearpage
-
-\normalsize
-
-\section{Generative Monotone Casts}
-
-\subsection{Retype function}\label{retype}
-
-Formally, the \xt{retype} function takes a list of object
-addresses \b\a and a list of types to ascribe to them \b\t, and updates the
-heap \s and class table \K. 
-
-\begin{align*}
-\S &::= \cdot \B \Map\S{\Bind\a\C}
-\end{align*}
-\begin{mathpar}
-\IRule{CRM1}{
-  \htype \a\S\s\K = \C~\Kp\\
-  \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
-  \C\not\EQ\D  \\
-  \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
-  \Sp = \Map\S{\Bind\a\D } \\
-  \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\K'''
-}{
-  \retype \a\t\S\s\K = \Spp\,\K'''
-}
-
-\IRule{CRM2}{
-  \htype \a\S\s\K = \tp\,\Kp\\
-  \tmeet\tp\t\cdot\Kp = \tpp\,\Kp \\
-  \tp\EQ\tpp \\
-}{
-  \retype \a\t\S\s\K = \S~\Kpp
-}
-
-\IRule{CRM3}{
-  \retype\a\t\S\s\K = \Sp\,\Kp\\
-  \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
-}{
-  \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
-}
-\end{mathpar}
-
-\subsection{Spec function}\label{mono:spec}
-
-Formally, the \xt{spec} (heap specialization) function takes a
-sequence of object addresses \b\a, a heap typing \S, a heap \s
-and a class table \K and returns a new heap where the objects
-have been retyped. \Dom\S retrieves the list of addresses 
-that have to be retyped.
-
-\begin{mathpar}
-\IRule{CMS1}{
-  \E \text{ fresh}\\
-  \D = \App\S\a \\
-  \obj\C{\ap} = \App\s\a \\
-  \obj\Cp{\b\app} = \App\s\ap \\
-  \classoff\Cp\K = \b\mt \\
-  \classoff\D\K = \b\mtp \\  
-  \names{\b\mtp} \subseteq \names{\b\mt}\\
-  \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
-  \sp = \Map\s{\Bind\a{\E\{\ap\}}}
-}{
-  \spec \a\S\s\K = \sp~\Kp
-}
-
-\IRule{CMS2}{
-  \spec \a\S\s\K = \sp\\
-  \spec {\b\a}\S\sp\K =\spp
-}{
-   \spec {\a\,\b\a}\S\s\K = \spp
-}
-\end{mathpar}
-
-\subsection{Meet function}\label{monmeet}
-
-The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
-perform the meet over the typing of each method within a class definition.
-The \texttt{mmeet} function also takes four arguments, the method
-signatures of the original class $\b\mt$, the method signatures of the cast
-class $\b\mtp$, the environment $\P$, a class table $\K$, and outputs method
-types $\b\mtpp$ and a class table $\Kp$. \\
-
-% \hrulefill
-
-\opdef{
-  $\mmeet{\b\mt}{\b\mtp}\P\K = \b\mtpp\,\Kp$
-}{
-}
-\begin{mathpar}
-\IRule{MM1}{
-}{
-  \mmeet{\b\mt}{\cdot}\P\K =\b{\mt} ~\K
-}
-
-\IRule{MM2}{
-}{
-  \mmeet{\cdot}{\b\mt}\P\K =\b{\mt} ~\K
-}
-
-\IRule{MM3}{ 
-  \Mtype\f{}{\t} = \mt \\
-  \Mtype\f{}{\tp} \in \b{\mtp} \\
-  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
-  \Mtype\f{}{\tpp} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
-}
-
-\IRule{MM4}{ 
-  \Mtype\f{\t}{\t} = \mt \\
-  \Mtype\f{\tp}{\tp} \in \b{\mtp} \\
-  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
-  \Mtype\f{\tpp}{\tpp} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
-}
-
-
-\IRule{MM5}{ 
-  \Mtype\m{\t_1}{\t_2} = \mt \\
-  \Mtype\m{\t_3}{\t_4} \in \b{\mtp} \\
-  \tmeet{\t_3}{\t_1}\P\K = \t_5~\Kp \\
-  \tmeet{\t_2}{\t_4}\P\Kp = {\t_6}~{\Kpp} \\
-  \Mtype\n{\t_5}{\t_6} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kpp 
-}
-
-\IRule{MM6}{
-  \mmeet{\mt}{\b{\mt_2}}\P\K = \mt_3~\Kp\\
-  \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kp = \b{\mt_4}~\Kpp
-}{
-  \mmeet{\mt~\b{\mt_1}}{\b{\mt_2}}\P\K =\mt_3\b{\mt_4} ~\Kpp
-}
-\end{mathpar}
-\\
-
-\subsection{Monotonic dynamic expression translation}\label{montrans}
-
-\opdef{$\rtranstz{\b{\mt}}{\b{\mtp}}\e\ep$}{Monotonic dynamic expression translation}
-
-\begin{mathpar}
-\IRule{MREW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\x\x }
-\\
-\IRule[width=25em]{MREW2}{ 
-  \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\m{{\C_2}}{\Cp_2} \in \b{\mtp} \\ 
-  {\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\this}\m{\e}{\t[1]}{\tp[1]}}{\MonCast{\tp_1}{\KCall{\this}\m{{\MonCast{\C_2}{\ep}}}{\C_2}{\Cp_2}}}
-}
-\\
-\IRule[width=25em]{MREW3}{ 
-  \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\f{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\f{\b\e}}{\MonCast{\tp_1}{\Call{\this}\f{\b{\MonCast{\t_2}{\ep}}}}}
-}
-\\
-
-\IRule[width=20em]{MREW4}{ 
-  \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\this}\m{\e}{{\t_1}}{\tp_1}}{{\KCall{\this}\m{{{\ep}}}{{\t_1}}{\tp_1}}}
-}
-
-\IRule[width=20em]{MREW5}{ 
-  \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\f{\b{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\f{\b\e}}{{\Call{\this}\f{\b{{\ep}}}}}
-}
-
-\IRule[width=20em]{MREW6}{ 
-  \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\f{\b{\ep_1}}}{\Call{\e_2}\f{\b{\ep_2}}}
-}
-
-\IRule[width=20em]{MREW7}{ 
-  \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\e_1}\m{{\ep_1}}{\t_1}{\tp[1]}}{\KCall{\e_2}\m{{\ep_2}}{\t_1}{\tp[1]}}
-}
-
-\IRule{MREW8}{ 
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 	
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}
-}
-
-\IRule{MREW9}{
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}} 
-}{
-  \rtranstz{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}
-}
-\end{mathpar}
-
-
-\subsection{Monotonic class generation}\label{classgen}
-
-The \xt{monWrap} function generates the wrapper for the monotonic translations,
-when a monotonic cast is required.
-
-\footnotesize
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
-\arrayrulecolor{white}
-\classgen{\C, \b\md, \bmt, \bmtp, \D, \K}= \\
-\SP \class~\D~\{ \\
-\SPP \Fdef\that\C
-\\[1mm]
-\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
-      \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
-&
-\All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
-\\[1mm]\hline
-\SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
-&
- \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\[1mm]\hline
-\SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast{\tp[2]}{{[{(\MonCast{\t[1]}\x)}/\x]\ep}}}~}
-&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}}
-\\[1mm]\hline
-\SPP \Mdef\m\x{\t[2]}{\tp[2]} {\MonCast{\tp[2]}{[{(\MonCast{\t[1]}\x)}/\x]\ep}~}
-&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{\e}{\ep}} \\
-&&\wedge&\multicolumn{3}{l}{\statictype{\t[2]}{\K}{\cdot}}
-\\[1mm]\hline
-\SP\}
-\end{array}
-\]
-\normalsize
-
-
-
-
-
-\subsection{Monotonic equivalent type generation}\label{typegen}
-
-The \xt{typegen} function is used by the \xt{tmeet} function to generate the new classes
-of the type produced by the meet operation.
-
-\footnotesize
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
-\arrayrulecolor{white}
-\typegen{\bmt}{\D} = \\
-\SP \class~\D~\{
-\\[1mm]
-\SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
-&
-\All m \Mtype\m\t\tp\in\bmt
-\\[1mm]\hline
-\SPP \Mdef\f\x\t\t {\x}
-&
-\All f \Mtype\f\t\t\in\bmt
-\\[1mm]\hline
-\SPP \Mdefz\f\t{{\MonCast\t{\New\D{}}}}
-&
- \All f \Mtype\f{}\t \in \bmt
-\\[1mm]
-\SP\}
-\end{array}
-\]
-\normalsize
-
-
-
-
-\subsection{Htype function}
-
-The function \htype\a\S\s\K
-returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
-\App\S\a or if $\a\not\in\S$ and \obj\C{\b\a}=\App\s\a.
-
-\begin{mathpar}
-\IRule{HT1}{
-  \a \not\in \text{addr}(\S) \\
-  \enfortype\C\cdot\K = \D\,\W\,\Kp
-}{
-  \htype\a\S{\sigma[\a \mapsto \C\{\ap\}]}\K = \D~\Kp
-}
-
-\IRule{HT2}{
-  \S(\a) = \t
-}{
-  \htype{\a}{\S}{\sigma}\K = \t~\K
-}
-\end{mathpar}
-
-\subsection{Lifting function}
-
-% \hrulefill
-\begin{align*}
-\W &::= \cdot \B \Map\W{\Bind\C\D}
-\end{align*}
-\begin{mathpar}
-\IRule{ENT1}{ 
-  \Class\C{\hspace{-0.3em}}{\Fdef\that\Cp ~ \b\md} \in \K \\ 
-  \C \notin \text{dom}(\W) \\
-  \D\text{ fresh} \\
-  \Wp = \W\,\Bind\C\D \\
-  \Kp = \K\,\Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}{\Wp}{\K}} \\ 
-}{
-  \enfortype{\C}{\W}{\K} = \D\,\Wp\,\Kp
-}
-
-\IRule{ENT2}{ 
-  \W(\C) = \D \\
-}{
-  \enfortype{\C}{\W}{\K} = \D\,\W\,\K
-}
-
-\IRule{ENT3}{ 
-}{
-  \enfortype{\any}{\W}{\K} = \any\,\W\,\K
-}
-\end{mathpar}
-\\
-
-% \hrulefill
-
-\begin{mathpar}
-\IRule{ENMT1}{
-  \md =  \Mdef\m\x\any\any {~\SubCast\any{\MonCast\tp{{[{(\MonCast\t\x)}/\x]\ep}}}~} \\
-  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
-  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\
-  \mdpp = \Mdef\m\x\tpp\tppp {\MonCast\tppp\x} \\
-  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENMT2}{
-  \md = \Mdef\m\x\t\tp {\ep~}\\ 
-  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
-  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\  
-  \mdpp =\Mdef\m\x\tpp\tppp {\MonCast\tppp\x}\\
-  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENFS}{
-  \md = \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}} \\ 
-  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
-  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\   
-  \mdpp = \Mdef\f\x\tpp\tppp {\MonCast\tppp\x} \\
-  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENFG}{
-  \md =  \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}} \\ 
-  \enfortype\t\W\K = \tp\,\Wp\,\Kp \\
-  \mdpp = \Mdefz\f\tp {\MonCast\tp{\Get{\Get\this\that}\f}} \\
-  \enformt{\b\md}{\Wp}{\Kp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENE}{
-}{
-  \enformt{\cdot}{\W}{\K} = \cdot
-}
-\end{mathpar}
-
+% 
+% \normalsize
+% 
+% \section{Generative Monotone Casts}
+% 
+% \subsection{Retype function}\label{retype}
+% 
+% Formally, the \xt{retype} function takes a list of object
+% addresses \b\a and a list of types to ascribe to them \b\t, and updates the
+% heap \s and class table \K. 
+% 
+% \begin{align*}
+% \S &::= \cdot \B \Map\S{\Bind\a\C}
+% \end{align*}
+% \begin{mathpar}
+% \IRule{CRM1}{
+%   \htype \a\S\s\K = \C~\Kp\\
+%   \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
+%   \C\not\EQ\D  \\
+%   \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
+%   \Sp = \Map\S{\Bind\a\D } \\
+%   \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\K'''
+% }{
+%   \retype \a\t\S\s\K = \Spp\,\K'''
+% }
+% 
+% \IRule{CRM2}{
+%   \htype \a\S\s\K = \tp\,\Kp\\
+%   \tmeet\tp\t\cdot\Kp = \tpp\,\Kp \\
+%   \tp\EQ\tpp \\
+% }{
+%   \retype \a\t\S\s\K = \S~\Kpp
+% }
+% 
+% \IRule{CRM3}{
+%   \retype\a\t\S\s\K = \Sp\,\Kp\\
+%   \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
+% }{
+%   \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
+% }
+% \end{mathpar}
+% 
+% \subsection{Spec function}\label{mono:spec}
+% 
+% Formally, the \xt{spec} (heap specialization) function takes a
+% sequence of object addresses \b\a, a heap typing \S, a heap \s
+% and a class table \K and returns a new heap where the objects
+% have been retyped. \Dom\S retrieves the list of addresses 
+% that have to be retyped.
+% 
+% \begin{mathpar}
+% \IRule{CMS1}{
+%   \E \text{ fresh}\\
+%   \D = \App\S\a \\
+%   \obj\C{\ap} = \App\s\a \\
+%   \obj\Cp{\b\app} = \App\s\ap \\
+%   \classoff\Cp\K = \b\mt \\
+%   \classoff\D\K = \b\mtp \\  
+%   \names{\b\mtp} \subseteq \names{\b\mt}\\
+%   \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
+%   \sp = \Map\s{\Bind\a{\E\{\ap\}}}
+% }{
+%   \spec \a\S\s\K = \sp~\Kp
+% }
+% 
+% \IRule{CMS2}{
+%   \spec \a\S\s\K = \sp\\
+%   \spec {\b\a}\S\sp\K =\spp
+% }{
+%    \spec {\a\,\b\a}\S\s\K = \spp
+% }
+% \end{mathpar}
+% 
+% \subsection{Meet function}\label{monmeet}
+% 
+% The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
+% perform the meet over the typing of each method within a class definition.
+% The \texttt{mmeet} function also takes four arguments, the method
+% signatures of the original class $\b\mt$, the method signatures of the cast
+% class $\b\mtp$, the environment $\P$, a class table $\K$, and outputs method
+% types $\b\mtpp$ and a class table $\Kp$. \\
+% 
+% % \hrulefill
+% 
+% \opdef{
+%   $\mmeet{\b\mt}{\b\mtp}\P\K = \b\mtpp\,\Kp$
+% }{
+% }
+% \begin{mathpar}
+% \IRule{MM1}{
+% }{
+%   \mmeet{\b\mt}{\cdot}\P\K =\b{\mt} ~\K
+% }
+% 
+% \IRule{MM2}{
+% }{
+%   \mmeet{\cdot}{\b\mt}\P\K =\b{\mt} ~\K
+% }
+% 
+% \IRule{MM3}{ 
+%   \Mtype\f{}{\t} = \mt \\
+%   \Mtype\f{}{\tp} \in \b{\mtp} \\
+%   \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
+%   \Mtype\f{}{\tpp} = \mtpp
+% }{ 
+%    \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
+% }
+% 
+% \IRule{MM4}{ 
+%   \Mtype\f{\t}{\t} = \mt \\
+%   \Mtype\f{\tp}{\tp} \in \b{\mtp} \\
+%   \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
+%   \Mtype\f{\tpp}{\tpp} = \mtpp
+% }{ 
+%    \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
+% }
+% 
+% 
+% \IRule{MM5}{ 
+%   \Mtype\m{\t_1}{\t_2} = \mt \\
+%   \Mtype\m{\t_3}{\t_4} \in \b{\mtp} \\
+%   \tmeet{\t_3}{\t_1}\P\K = \t_5~\Kp \\
+%   \tmeet{\t_2}{\t_4}\P\Kp = {\t_6}~{\Kpp} \\
+%   \Mtype\n{\t_5}{\t_6} = \mtpp
+% }{ 
+%    \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kpp 
+% }
+% 
+% \IRule{MM6}{
+%   \mmeet{\mt}{\b{\mt_2}}\P\K = \mt_3~\Kp\\
+%   \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kp = \b{\mt_4}~\Kpp
+% }{
+%   \mmeet{\mt~\b{\mt_1}}{\b{\mt_2}}\P\K =\mt_3\b{\mt_4} ~\Kpp
+% }
+% \end{mathpar}
+% \\
+% 
+% \subsection{Monotonic dynamic expression translation}\label{montrans}
+% 
+% \opdef{$\rtranstz{\b{\mt}}{\b{\mtp}}\e\ep$}{Monotonic dynamic expression translation}
+% 
+% \begin{mathpar}
+% \IRule{MREW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\x\x }
+% \\
+% \IRule[width=25em]{MREW2}{ 
+%   \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ 
+%   \Mtype\m{{\C_2}}{\Cp_2} \in \b{\mtp} \\ 
+%   {\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
+% }{
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\this}\m{\e}{\t[1]}{\tp[1]}}{\MonCast{\tp_1}{\KCall{\this}\m{{\MonCast{\C_2}{\ep}}}{\C_2}{\Cp_2}}}
+% }
+% \\
+% \IRule[width=25em]{MREW3}{ 
+%   \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
+%   \Mtype\f{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ 
+%   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
+% }{
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\f{\b\e}}{\MonCast{\tp_1}{\Call{\this}\f{\b{\MonCast{\t_2}{\ep}}}}}
+% }
+% \\
+% 
+% \IRule[width=20em]{MREW4}{ 
+%   \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ 
+%   \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
+%   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
+% }{
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\this}\m{\e}{{\t_1}}{\tp_1}}{{\KCall{\this}\m{{{\ep}}}{{\t_1}}{\tp_1}}}
+% }
+% 
+% \IRule[width=20em]{MREW5}{ 
+%   \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
+%   \Mtype\f{\b{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
+%   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
+% }{
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\f{\b\e}}{{\Call{\this}\f{\b{{\ep}}}}}
+% }
+% 
+% \IRule[width=20em]{MREW6}{ 
+%   \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
+%   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
+% }{
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\f{\b{\ep_1}}}{\Call{\e_2}\f{\b{\ep_2}}}
+% }
+% 
+% \IRule[width=20em]{MREW7}{ 
+%   \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
+%   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
+% }{
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\e_1}\m{{\ep_1}}{\t_1}{\tp[1]}}{\KCall{\e_2}\m{{\ep_2}}{\t_1}{\tp[1]}}
+% }
+% 
+% \IRule{MREW8}{ 
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 	
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}
+% }{
+%   \rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}
+% }
+% 
+% \IRule{MREW9}{
+%   \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}} 
+% }{
+%   \rtranstz{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}
+% }
+% \end{mathpar}
+% 
+% 
+% \subsection{Monotonic class generation}\label{classgen}
+% 
+% The \xt{monWrap} function generates the wrapper for the monotonic translations,
+% when a monotonic cast is required.
+% 
+% \footnotesize
+% \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+% \arrayrulecolor{white}
+% \classgen{\C, \b\md, \bmt, \bmtp, \D, \K}= \\
+% \SP \class~\D~\{ \\
+% \SPP \Fdef\that\C
+% \\[1mm]
+% \SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
+%       \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
+% &
+% \All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
+% \\[1mm]\hline
+% \SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
+% &
+%  \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+% \\[1mm]\hline
+% \SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast{\tp[2]}{{[{(\MonCast{\t[1]}\x)}/\x]\ep}}}~}
+% &     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
+% &&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}}
+% \\[1mm]\hline
+% \SPP \Mdef\m\x{\t[2]}{\tp[2]} {\MonCast{\tp[2]}{[{(\MonCast{\t[1]}\x)}/\x]\ep}~}
+% &     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
+% &&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{\e}{\ep}} \\
+% &&\wedge&\multicolumn{3}{l}{\statictype{\t[2]}{\K}{\cdot}}
+% \\[1mm]\hline
+% \SP\}
+% \end{array}
+% \]
+% \normalsize
+% 
+% 
+% 
+% 
+% 
+% \subsection{Monotonic equivalent type generation}\label{typegen}
+% 
+% The \xt{typegen} function is used by the \xt{tmeet} function to generate the new classes
+% of the type produced by the meet operation.
+% 
+% \footnotesize
+% \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+% \arrayrulecolor{white}
+% \typegen{\bmt}{\D} = \\
+% \SP \class~\D~\{
+% \\[1mm]
+% \SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
+% &
+% \All m \Mtype\m\t\tp\in\bmt
+% \\[1mm]\hline
+% \SPP \Mdef\f\x\t\t {\x}
+% &
+% \All f \Mtype\f\t\t\in\bmt
+% \\[1mm]\hline
+% \SPP \Mdefz\f\t{{\MonCast\t{\New\D{}}}}
+% &
+%  \All f \Mtype\f{}\t \in \bmt
+% \\[1mm]
+% \SP\}
+% \end{array}
+% \]
+% \normalsize
+% 
+% 
+% 
+% 
+% \subsection{Htype function}
+% 
+% The function \htype\a\S\s\K
+% returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
+% \App\S\a or if $\a\not\in\S$ and \obj\C{\b\a}=\App\s\a.
+% 
+% \begin{mathpar}
+% \IRule{HT1}{
+%   \a \not\in \text{addr}(\S) \\
+%   \enfortype\C\cdot\K = \D\,\W\,\Kp
+% }{
+%   \htype\a\S{\sigma[\a \mapsto \C\{\ap\}]}\K = \D~\Kp
+% }
+% 
+% \IRule{HT2}{
+%   \S(\a) = \t
+% }{
+%   \htype{\a}{\S}{\sigma}\K = \t~\K
+% }
+% \end{mathpar}
+% 
+% \subsection{Lifting function}
+% 
+% % \hrulefill
+% \begin{align*}
+% \W &::= \cdot \B \Map\W{\Bind\C\D}
+% \end{align*}
+% \begin{mathpar}
+% \IRule{ENT1}{ 
+%   \Class\C{\hspace{-0.3em}}{\Fdef\that\Cp ~ \b\md} \in \K \\ 
+%   \C \notin \text{dom}(\W) \\
+%   \D\text{ fresh} \\
+%   \Wp = \W\,\Bind\C\D \\
+%   \Kp = \K\,\Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}{\Wp}{\K}} \\ 
+% }{
+%   \enfortype{\C}{\W}{\K} = \D\,\Wp\,\Kp
+% }
+% 
+% \IRule{ENT2}{ 
+%   \W(\C) = \D \\
+% }{
+%   \enfortype{\C}{\W}{\K} = \D\,\W\,\K
+% }
+% 
+% \IRule{ENT3}{ 
+% }{
+%   \enfortype{\any}{\W}{\K} = \any\,\W\,\K
+% }
+% \end{mathpar}
+% \\
+% 
+% % \hrulefill
+% 
+% \begin{mathpar}
+% \IRule{ENMT1}{
+%   \md =  \Mdef\m\x\any\any {~\SubCast\any{\MonCast\tp{{[{(\MonCast\t\x)}/\x]\ep}}}~} \\
+%   \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
+%   \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\
+%   \mdpp = \Mdef\m\x\tpp\tppp {\MonCast\tppp\x} \\
+%   \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
+% }{
+%   \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
+% }
+% 
+% \IRule{ENMT2}{
+%   \md = \Mdef\m\x\t\tp {\ep~}\\ 
+%   \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
+%   \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\  
+%   \mdpp =\Mdef\m\x\tpp\tppp {\MonCast\tppp\x}\\
+%   \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
+% }{
+%   \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
+% }
+% 
+% \IRule{ENFS}{
+%   \md = \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}} \\ 
+%   \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
+%   \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\   
+%   \mdpp = \Mdef\f\x\tpp\tppp {\MonCast\tppp\x} \\
+%   \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
+% }{
+%   \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
+% }
+% 
+% \IRule{ENFG}{
+%   \md =  \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}} \\ 
+%   \enfortype\t\W\K = \tp\,\Wp\,\Kp \\
+%   \mdpp = \Mdefz\f\tp {\MonCast\tp{\Get{\Get\this\that}\f}} \\
+%   \enformt{\b\md}{\Wp}{\Kp} = \b\mddp \\
+% }{
+%   \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
+% }
+% 
+% \IRule{ENE}{
+% }{
+%   \enformt{\cdot}{\W}{\K} = \cdot
+% }
+% \end{mathpar}
+% 
 \subsection{Static function}
 
 The \xt{static} function returns true if the class \D does not (transitively) contain any $\star$ type
