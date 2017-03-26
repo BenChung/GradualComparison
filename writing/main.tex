@@ -2613,7 +2613,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 
 \begin{mathpar}
 \IRule{WC}{
- \xt{overloading}(\b\fd,\b\md)\OK \\
+ \xt{overloading}_{\emptyset}(\b\fd,\b\md)\OK \\
  \fd\in\b\fd\implies \WF {}{}\K \fd \\
  \md\in\b\md\implies \WF {\text{this}:\C~}\s\K \md 
 }{
@@ -2874,7 +2874,7 @@ given method defintions.
  \cmdp = \cmd, \Mtype\f\t\t  \\
  \xt{overloading}_{\cmdp}(\b\md)
 }{
-\xt{overloading}(\Mdef\f\x\t\t\e, \b\md)
+\xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e, \b\md)
 }
 
 \IRule{MO4}{
@@ -2882,7 +2882,7 @@ given method defintions.
  \cmdp = \cmd, \Mtype\f{}\t \\
  \xt{overloading}_{\cmdp}(\b\md)
 }{
-\xt{overloading}(\Mdefz\f\t\e, \b\md)
+\xt{overloading}_{\cmd}(\Mdefz\f\t\e, \b\md)
 }
 \end{mathpar}
 
@@ -4230,7 +4230,7 @@ The \xt{typing} function takes field definitions and returns the method typing s
 
 \begin{mathpar}
 \IRule{WC}{
- \xt{overloading}(\b\fd,\b\md) \\
+ \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
  \fd\in\b\fd\implies \WFW {}{}\K \fd \\
  \md\in\b\md\implies \WFW {\text{this}:\C~}\s\K \md 
 }{
