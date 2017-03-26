@@ -14,7 +14,7 @@ namespace dyntest
             {
 
             }
-            public dynamic m(dynamic x)
+            public A m(A x)
             {
                 return this;
             }
@@ -26,7 +26,7 @@ namespace dyntest
             {
 
             }
-            public dynamic n(dynamic x)
+            public I m(C x)
             {
                 return this;
             }
@@ -38,22 +38,34 @@ namespace dyntest
             {
 
             }
-            public dynamic s(dynamic x)
+            public T s(I x)
             {
                 return this;
             }
 
             public dynamic t(dynamic x)
             {
-                return this.s(x);
+                return (dynamic)this.s((I)x);
+            }
+
+        }
+        class C
+        {
+            public C()
+            {
+
+            }
+            public C n(C x)
+            {
+                return this;
             }
 
         }
         class Program
         {
-            static void Main(string[] args)
+            public static void Main(string[] args)
             {
-                new T().t(new A());
+                (dynamic)new T().t((dynamic)new A());
             }
         }
     }

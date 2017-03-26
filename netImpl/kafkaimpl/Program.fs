@@ -29,11 +29,12 @@ class I {
     m(x:C) : I { this } }
 class T {
     s(x : I) : T { this } 
-    t(x : any) : any { this.s : I -> T ( <I> x) } }
+    t(x : any) : any { <any>(this.s : I -> T ( <I> x)) } }
 class C {
     n(x:C):C { this } }
-new T()@t(new A())
+(<any>new T())@t(<any>new A())
 "
+    let _ = Typechecker.wfprog res.Value
     let trans = CGAST.transp(res.Value)
     let outp = CodeGen.genProg(trans, true)
     let evaluated = Executor.execute(outp)

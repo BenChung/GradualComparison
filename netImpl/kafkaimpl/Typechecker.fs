@@ -22,6 +22,7 @@ exception FieldOrMethodNotFound of string*Expr*string
 exception IncompatibleReturnValue of Type*Expr
 exception EmptyMethodBody of string
 exception MalformedMethod of md
+exception MethodExistsException of string
 
 let orElse<'a>(a: 'a option) (b: 'a option) : 'a option = 
     match a with
@@ -142,4 +143,53 @@ let wfmeth (env:Map<string, Type>) (K:Map<string, k>) (def : md) : bool =
    | None -> raise (EmptyMethodBody(name))
  | _  -> raise (MalformedMethod(def))
 
+let rec private names : md list -> string list = function 
+|               ((MDef(name, _, _, _, _)) :: mds : md list) -> name :: (names mds)
+|               ((GDef(name, _, _)) :: mds : md list) -> name :: (names mds)
+|               ((SDef(name, _, _, _)) :: mds : md list) -> name :: (names mds)
+|               ([]) -> []
+
+type private Seen =
+| Property of bool * bool
+| Method 
+
+let private Nand a b = 
+    match a, b with
+    | true, true -> false
+    | _, _ -> true
+
+let private mexists(map:Map<string,Seen>) (name:string) : Seen -> Map<string,Seen> = function
+|   Property(b1,b2) -> 
+    match map.TryFind name with
+    |   Some(Property(b1p, b2p)) -> 
+        if (Nand b1 b1p) && (Nand b2 b2p) then 
+            Map.add(name)(Property(b1 || b1p, b2 || b2p)) map
+        else
+            raise (MethodExistsException(name))
+    |   Some(Method) -> raise (MethodExistsException(name))
+    |   None -> Map.add(name)(Property(b1, b2)) map
+|   Method -> 
+    match map.TryFind name with
+    |   Some(_) -> raise (MethodExistsException(name))
+    |   None -> Map.add(name)(Method) map
+
+let rec private overloading : Map<string,Seen> -> fd list -> md list -> unit = fun seen -> function
+|   (FDef(name, t)) :: fds -> fun mds -> overloading (mexists seen name (Property(true, true))) fds mds
+|   [] -> function
+    |   (MDef(name, x, t1, t2, body)) :: rest -> overloading (mexists seen name (Method)) [] rest
+    |   (GDef(name, t, body)) :: rest -> overloading (mexists seen name (Property(true, false))) [] rest
+    |   (SDef(name, x, t, body)) :: rest -> overloading (mexists seen name (Property(false, true))) [] rest
+    |   [] -> ()
+
+let wfclass (K: Map<string,k>) (ClassDef(name, fds, mds)) : unit =
+    let _ = overloading (Map.empty) fds mds
+    let _ = List.map (wffield K) fds
+    let _ = List.map (wfmeth (Map[("this", Class(name))]) K) mds
+    ()
+
+let wfprog (Program(ks, expr)) : unit = 
+    let K = Map.ofList (List.map (fun k -> match k with (ClassDef(name, fds, mds)) -> (name,k)) ks)
+    let _ = List.map (wfclass K) ks
+    let _ = syntype (Map.empty) K expr
+    ()
 // let wfclass\]

@@ -58,7 +58,7 @@ let genClass(k:cgk) : string =
 let genProg(p:Cprog, pretty:bool) : string =
     match p with
     | CProgram(ks, expr) -> 
-        let generated = "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n public static void Main(string[] args) { \n " + genExpr(expr) + ";\n}\n}\n}"
+        let generated = "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
         if pretty then
             let ws = AdhocWorkspace()
             let ast = CSharpSyntaxTree.ParseText(generated)
