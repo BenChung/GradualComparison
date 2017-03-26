@@ -2613,7 +2613,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 
 \begin{mathpar}
 \IRule{WC}{
- \xt{overloading}_{\emptyset}(\b\fd,\b\md)\OK \\
+ \xt{overloading}_{\emptyset}(\b\md~\b\fd)\OK \\
  \fd\in\b\fd\implies \WF {}{}\K \fd \\
  \md\in\b\md\implies \WF {\text{this}:\C~}\s\K \md 
 }{
@@ -2850,11 +2850,11 @@ the object stored at \a in \s.
 
 \subsection{Method overloading}
 
-The function $\xt{overloading}(\b\md)$ there are no overloaded method names in the
-given method defintions.
+The function $\xt{overloading}(\b\md ~ \b\fd)$ there are no overloaded method names in the
+given method definitions.
 
 
-\opdef{~\xt{overloading}(\b\md)}{Method overloading}
+\opdef{~\xt{overloading}(\b\md ~\b\fd)}{Method overloading}
 \begin{mathpar}
 \IRule{MO1}{
 }{
@@ -2864,9 +2864,9 @@ given method defintions.
 \IRule{MO2}{
  \Mtype\m\t\t \notin \cmd \\
  \cmdp = \cmd, \Mtype\m\t\t \\
- \xt{overloading}_{\cmdp}(\b\md, \b\fd)
+ \xt{overloading}_{\cmdp}(\b\md)
 }{
-\xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e, \b\md, \b\fd)
+\xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)
 }
 
 \IRule{MO3}{
@@ -2874,7 +2874,7 @@ given method defintions.
  \cmdp = \cmd, \Mtype\f\t\t  \\
  \xt{overloading}_{\cmdp}(\b\md, \b\fd)
 }{
-\xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e, \b\md, \b\fd)
+\xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e ~ \b\md ~\b\fd)
 }
 
 \IRule{MO4}{
@@ -2882,7 +2882,7 @@ given method defintions.
  \cmdp = \cmd, \Mtype\f{}\t \\
  \xt{overloading}_{\cmdp}(\b\md, \b\fd)
 }{
-\xt{overloading}_{\cmd}(\Mdefz\f\t\e, \b\md, \b\fd)
+\xt{overloading}_{\cmd}(\Mdefz\f\t\e ~ \b\md ~ \b\fd)
 }
 \end{mathpar}
 
@@ -2893,7 +2893,7 @@ given method defintions.
  \cmdp = \cmd, \Fdef\f\t \\
  \xt{overloading}_{\cmdp}(\b\fd)
 }{
-\xt{overloading}_{\cmd}(\Fdef\f\t, \b\fd)
+\xt{overloading}_{\cmd}(\Fdef\f\t ~ \b\fd)
 }
 \end{mathpar}
 
