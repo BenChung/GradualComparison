@@ -8,54 +8,71 @@ namespace dyntest
 {
     namespace Kafka
     {
-        class A
+        interface IA
+        {
+            IA m(IA x);
+        }
+        interface II
+        {
+            II m(IC x);
+        }
+        interface IT
+        {
+            IT s(II x);
+            dynamic t(dynamic x);
+        }
+        interface IC
+        {
+            IC n(IC x);
+        }
+        class A : IA
         {
             public A()
             {
 
             }
-            public A m(A x)
+            public IA m(IA x)
             {
                 return this;
             }
 
         }
-        class I
+        class I : II
         {
             public I()
             {
 
             }
-            public I m(C x)
+            public II m(IC x)
             {
                 return this;
             }
 
         }
-        class T
+        class T : IT
         {
             public T()
             {
 
             }
-            public T s(I x)
+            public IT s(II x)
             {
                 return this;
             }
 
             public dynamic t(dynamic x)
             {
-                return (dynamic)this.s((I)x);
+                return (dynamic)this.s((II)x);
             }
 
         }
-        class C
+        class C : IC
         {
             public C()
             {
 
             }
-            public C n(C x)
+            public IC n(IC x)
             {
                 return this;
             }
@@ -63,9 +80,9 @@ namespace dyntest
         }
         class Program
         {
-            public static void Main(string[] args)
+            public static dynamic Main(string[] args)
             {
-                new T().t((dynamic)new A());
+                return (dynamic)new T().t((dynamic)new A());
             }
         }
     }

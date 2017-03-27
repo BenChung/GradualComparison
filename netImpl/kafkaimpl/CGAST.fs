@@ -23,8 +23,8 @@ type cgk =
  override x.ToString() = sprintf "%A" x
 
 type Cprog =
-| CProgram of cgk list * Expr
- override x.ToString() = sprintf "%A" x
+| CProgram of cgk list * Map<string, string list> * Expr
+ override x.ToString() = sprintf "%A" x 
 
 let mapUpdate<'k, 'v when 'k : comparison>(m : Map<'k,'v>)(k:'k)(v:'v)(res : 'v -> 'v) : Map<'k,'v> =
     if Map.containsKey k m then Map.add k (res (Map.find k m)) m else Map.add k v m
@@ -56,6 +56,10 @@ let transk(c:k):cgk =
         let newfds, newmds = findps(fds)(mds)
         CClassDef(name,newfds, newmds)
 
+let findSubtypes(lk : k list) =
+    let K = Map.ofList (List.map (fun k -> match k with (ClassDef(name, fds, mds)) -> (name,k)) lk)
+    Map.ofList (List.map (fun (ClassDef(c1, _, _)) -> (c1, (List.collect (fun (ClassDef(c2, _, _)) -> if Typechecker.subtype K (Set.empty) (Class c1) (Class c2) then [c2] else []) lk))) lk)
+
 let transp(p:prog) : Cprog =
     match p with
-    | Program(ks, se) -> CProgram(List.map transk ks, se)
+    | Program(ks, se) -> CProgram(List.map transk ks, findSubtypes(ks), se)

@@ -8,7 +8,7 @@ open Microsoft.CodeAnalysis.Formatting
 let toCsType(t:Type) : string = 
     match t with
     | Any -> "dynamic"
-    | Class c -> c
+    | Class c -> "I" + c
 
 let rec genExpr(ex:Expr) : string =
     match ex with
@@ -41,7 +41,7 @@ let genSet(setter: cgsd option) : string =
 
 let genFd(fd:cgfd) : string =
     match fd with
-    | CFDef(name, tpe) -> "public " + toCsType(tpe) + " " + name + ";"
+    | CFDef(name, tpe) -> "public " + toCsType(tpe) + " " + name + " {get; set;}"
     | CPDef(name, tpe, get, set) -> "public " + toCsType(tpe) + " " + name + "{\n" + genGet(get) + genSet(set) + "}"
 
 let genConstructor(name:string, fds: cgfd list) : string =
@@ -50,17 +50,36 @@ let genConstructor(name:string, fds: cgfd list) : string =
                                               | _ -> None) fds)
     "public " + name + "(" + (String.concat(", ")(Seq.map (fun (name, tpe) -> toCsType(tpe) + " " + name) cfds)) + ") { \n" +
                              (String.concat "\n" (Seq.map (fun (name, tpe) -> "this." + name + " = " + name + ";") cfds)) + "\n}"
+                             
+let genIfd: cgfd -> string = function
+|   CFDef(name, tpe) -> toCsType(tpe) + " " + name + " {get; set;}"
+|   CPDef(name, tpe, get, set) -> toCsType(tpe) + " " + name + "{\n" + match get with Some(_) -> "get;" | None -> "" + match set with Some(_) -> "set;" | None -> "" + "}"
 
-let genClass(k:cgk) : string =
+let genImd : cgmd -> string = function
+|   CMDef(name, x, t1, t2, body) -> toCsType(t2) + " " + name + "(" + toCsType(t1) + " " + x + ");"
+
+let genInterface(k:cgk) : string =
     match k with
-    | CClassDef(name, fds, mds) -> "class " + name + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map genFd fds) (List.map genDef mds)))) + "\n}"
+    | CClassDef(name, fds, mds) -> "interface I" + name + "{\n"+ (String.concat "\n" (List.append (List.map genIfd fds) (List.map genImd mds))) + "\n}"  
+    
+exception ThisShouldntHappenException of string
+let genClass(env:Map<string, string list>)(k:cgk) : string =
+    match k with
+    | CClassDef(name, fds, mds) -> 
+        let interfaces = match env.TryFind name with
+                         |  Some(n) -> n
+                         |  None -> raise (ThisShouldntHappenException "wtf")
+        let ifacestring = String.concat ", " (List.map (fun tpe -> toCsType(Class tpe)) interfaces)
+        "class " + name + " : " + ifacestring + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map genFd fds) (List.map genDef mds)))) + "\n}"
 
 let genProg(p:Cprog, pretty:bool) : string =
     match p with
-    | CProgram(ks, expr) -> 
-        let generated = "namespace Kafka {\n" + (String.concat "\n" (List.map genClass ks)) + "\n" + "class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
+    | CProgram(ks, env, expr) -> 
+        let generated = "namespace Kafka {\n" + (String.concat "\n" 
+           (List.append (List.map (genInterface) ks) 
+                        (List.map (genClass env) ks))) + "\n" + "class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
         if pretty then
-            let ws = AdhocWorkspace()
+            use ws = new AdhocWorkspace()
             let ast = CSharpSyntaxTree.ParseText(generated)
             Formatter.Format(ast.GetRoot(), ws).ToFullString()
         else
