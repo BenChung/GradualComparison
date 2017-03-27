@@ -20,14 +20,14 @@ let execute(s:string) =
         [ CSharpSyntaxTree.ParseText(s) ],
         refs,
         CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-    use ms = MemoryStream()
+    use ms = new MemoryStream()
     let result = compilation.Emit(ms)
     match result.Success with
     | false -> result.Diagnostics 
             |> Seq.filter (fun res -> res.IsWarningAsError || res.Severity = DiagnosticSeverity.Error) 
             |> Seq.map Console.Error.WriteLine 
             |> (fun x -> raise (CSharpCompilerError "Exception:"))
-    | true -> do ms.Seek(int64(0), SeekOrigin.Begin)
+    | true -> do ms.Seek(int64(0), SeekOrigin.Begin) |> ignore
               let assembly = Assembly.Load(ms.ToArray())
               let mainClass = assembly.GetType("Kafka.Program")
               mainClass.GetMethod("Main").Invoke(null, Seq.toArray [ Array.empty<string> ])

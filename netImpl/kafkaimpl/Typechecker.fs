@@ -28,6 +28,7 @@ let orElse<'a>(a: 'a option) (b: 'a option) : 'a option =
     match a with
     | Some a' -> Some a'
     | None -> b
+                                   
 
 let inmtypes (m:mtd) (c:string) (K: Map<string, k>) : mt option =
     match K.TryFind c with
@@ -48,7 +49,33 @@ let inmtypes (m:mtd) (c:string) (K: Map<string, k>) : mt option =
                                                         | (SDef(mp, xp, t1p, expr)) -> if mp = name then Some(ST(name, t1p)) else None
                                                         | _ -> None) mds)
                                    (List.tryPick (fun (FDef(f,tp)) -> if f = name then Some(ST(f, tp)) else None) fds)
+        
+let mtypes (ClassDef(name, fds, mds)) : mt list =
+    List.append (List.collect (fun (FDef(name, tpe)) -> [GT(name, tpe) ; ST(name,tpe)]) fds)
+                (List.map (function
+                                | (MDef(name, _, t1, t2, _)) -> MDT(name, t1, t2)
+                                | (GDef(name, t1, _)) -> GT(name, t1)
+                                | (SDef(name, _, t1, _)) -> ST(name, t1)) mds)
                                    
+let rec subtype(K:Map<string,k>)(mu:Set<string * string>) : Type -> Type -> bool = fun x -> fun y -> match (x,y) with
+|   (Class a, Class b) -> match Set.contains (a,b) mu with
+    |   true -> true
+    |   false -> 
+        match (K.TryFind a, K.TryFind b) with
+        |   (Some (ClassDef(n1,fds1,mds1) as k1) , Some (ClassDef(n2, fds2, mds2) as k2)) -> 
+            let mt1, mt2 = mtypes(k1), mtypes(k2)
+            let nameof = (function MDT(n,_,_) -> n | GT(n,t) -> n | ST(n,t) -> n)
+            let other = Map.ofList (List.groupBy nameof mt1)
+            let collapse = function Some(l) -> l | None -> []
+            let mup = Set.add (n1, n2) mu
+            List.forall (fun mt2 -> List.exists (fun mt1 -> mtsub K mup mt1 mt2) (collapse (Map.tryFind (nameof mt2) other))) mt2
+        |   _ -> false
+|   (t1, t2) -> t1 = t2
+and mtsub(K:Map<string,k>)(mu:Set<string*string>) (a:mt) (b:mt): bool = match (a,b) with
+|   (MDT(n1, t11, t12), MDT(n2, t21, t22)) -> n1 = n2 && (subtype K mu t11 t21) && (subtype K mu t22 t12)
+|   (GT(n1, t1), GT(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
+|   (ST(n1, t1), ST(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
+|   _ -> false
 
 let rec syntype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) : Type =
     match expr with
@@ -97,7 +124,7 @@ let rec syntype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) : Type
                        
 and anatype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) (against: Type) : bool = 
     let it = syntype env K expr
-    it = against
+    (subtype K (Set.empty) it against)
 
 let wftype (K:Map<string, k>) (t : Type) = match t with
 | Any -> true

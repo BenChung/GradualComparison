@@ -65,7 +65,7 @@ namespace dyntest
         {
             public static void Main(string[] args)
             {
-                (dynamic)new T().t((dynamic)new A());
+                new T().t((dynamic)new A());
             }
         }
     }
