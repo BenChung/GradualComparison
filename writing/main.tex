@@ -2932,7 +2932,7 @@ given method definitions.
   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
   \classtrans {\K}{\Kp}\Kpp
 }{
-   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\any}}{\b{\md'}}~\Kpp}}
 
 \IRule{CR2}{ 
 }{
@@ -2956,7 +2956,7 @@ given method definitions.
 \IRule[width=30em]{TSS2}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\mdu{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\m{\b{\e_4}}}{\t_2}
 }
 
 \IRule{TSS3}{
@@ -2968,10 +2968,16 @@ given method definitions.
 \IRule[width=20em]{TSS4}{
     \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
+    \GenCast\K\Env{\Call{\this}\f{\e}}{\Call{\this}\f{\ep}}{\any}
 }
 
-\IRule{TSS5}{
+\IRule[width=20em]{TSS5}{
+    \HasType{\E}\this\C \\ \f():\t_2 \in \classoff\C\K 
+}{
+    \GenCast\K\Env{\Call{\this}\f{}}{\Call{\this}\f{}}{\any}
+}
+
+\IRule{TSS6}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
