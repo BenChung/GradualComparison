@@ -33,13 +33,16 @@ exception FieldExistsError of string
 
 let findps(fds: fd list) (mds:md list) : (cgfd list) * (cgmd list) =
     let fdsInter = Map.ofList(List.map (fun fd -> match fd with (FDef(name, tpe)) -> name, CFDef(name, tpe)) fds : (string * cgfd) list)
-    let updateGet = fun (nt : Type) (getter : cggd) -> fun existing -> match existing with
+    let updateGet = fun (nt : Type) (getter : cggd) -> fun existing -> 
+        match existing with
         | (CPDef(name,tpe,None,oset)) -> if nt = tpe then (CPDef(name,tpe,Some getter,oset)) else raise (FieldExistsError "Inconsistent field typing")
         | _ -> raise (FieldExistsError "A getter is duplicated... somewhere in your program") 
-    let updateSet = fun (nt : Type) (setter : cgsd) -> fun existing -> match existing with
+    let updateSet = fun (nt : Type) (setter : cgsd) -> fun existing -> 
+        match existing with
         | (CPDef(name,tpe,oget,None)) -> if nt = tpe then (CPDef(name,tpe,oget,Some setter)) else raise (FieldExistsError "Inconsistent field typing")
         | _ -> raise (FieldExistsError "A setter is duplicated... somewhere in your program") 
-    let fdsUp : Map<string, cgfd> = List.fold (fun map el -> match el with
+    let fdsUp : Map<string, cgfd> = List.fold (fun map el -> 
+                                 match el with
                                  | (MDef(_, _, _, _, _)) -> map 
                                  | GDef(name,tpe,expr) -> 
                                     let getter = CGDef(expr)

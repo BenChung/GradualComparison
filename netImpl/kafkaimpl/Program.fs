@@ -16,8 +16,7 @@ class T {
     s(x:any):any { this }
     t(x:any):any { this@s(x) }
 }
-new T()@t(new A())
-"
+new T()@t(new A())"
 *)
 [<EntryPoint>]
 let main argv = 
@@ -34,10 +33,11 @@ class C {
     n(x:C):C { this } }
 (<any>new T())@t(<any>new A())
 "
-    let _ = Typechecker.wfprog res.Value
-    let trans = CGAST.transp(res.Value)
+    let tsv = Translations.ts_progtrans res.Value
+    let _ = Typechecker.wfprog tsv
+    let trans = CGAST.transp(tsv)
     let outp = CodeGen.genProg(trans, true)
     let evaluated = Executor.execute(outp)
     
-    printfn "%A" argv
+    printfn "%A" evaluated
     0 // return an integer exit code

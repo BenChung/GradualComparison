@@ -16,10 +16,10 @@ let execute(s:string) =
         MetadataReference.CreateFromFile(typeof<System.Runtime.CompilerServices.DynamicAttribute>.Assembly.Location) ;
         MetadataReference.CreateFromFile(typeof<Microsoft.CSharp.RuntimeBinder.Binder>.Assembly.Location) ]
     let compilation = CSharpCompilation.Create(
-        an,
-        [ CSharpSyntaxTree.ParseText(s) ],
-        refs,
-        CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                        an,
+                        [ CSharpSyntaxTree.ParseText(s) ],
+                        refs,
+                        CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
     use ms = new MemoryStream()
     let result = compilation.Emit(ms)
     match result.Success with

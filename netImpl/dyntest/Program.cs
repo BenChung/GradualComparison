@@ -80,9 +80,9 @@ namespace dyntest
         }
         class Program
         {
-            public static dynamic Main(string[] args)
+            public static void Main(string[] args)
             {
-                return (dynamic)new T().t((dynamic)new A());
+                new T().t((dynamic)new A());
             }
         }
     }

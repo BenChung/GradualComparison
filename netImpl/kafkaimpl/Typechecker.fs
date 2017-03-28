@@ -15,6 +15,7 @@ exception ClassNotFound of string*Map<string, k>
 exception TypeNotFound of Type*Map<string, k>
 exception VariableNotFound of string*Map<string,Type>
 exception IncompatibleType of Type*Expr*Expr
+exception NotSubtype of Type*Type
 exception FieldAccessOnAny of Expr
 exception MethodCallOnAny of Expr
 exception IncompatibleMethodFound of mtd*Expr*string
@@ -33,19 +34,22 @@ let orElse<'a>(a: 'a option) (b: 'a option) : 'a option =
 let inmtypes (m:mtd) (c:string) (K: Map<string, k>) : mt option =
     match K.TryFind c with
     | None -> raise (ClassNotFound(c, K))
-    | Some (ClassDef(name, fds, mds)) -> match m with
+    | Some (ClassDef(name, fds, mds)) -> 
+                match m with
                 | MD(name, t1, t2) -> List.tryPick (fun md -> match md with 
-                                                      | (MDef(mp, x, t1p, t2p, expr)) -> 
-                                                        if mp = name && t1 = t1p && t2 = t2p then
-                                                           Some(MDT(name, t1p, t2p))
-                                                        else
-                                                           None
-                                                      | _ -> None) mds  
-                | G(name) -> orElse(List.tryPick (fun md -> match md with
+                                                              | (MDef(mp, x, t1p, t2p, expr)) -> 
+                                                                if mp = name && t1 = t1p && t2 = t2p then
+                                                                   Some(MDT(name, t1p, t2p))
+                                                                else
+                                                                   None
+                                                              | _ -> None) mds  
+                | G(name) -> orElse(List.tryPick (fun md -> 
+                                                        match md with
                                                         | (GDef(mp, t1p, expr)) -> if mp = name then Some(GT(name, t1p)) else None
                                                         | _ -> None) mds)
                                    (List.tryPick (fun (FDef(f,tp)) -> if f = name then Some(GT(f, tp)) else None ) fds)
-                | S(name) -> orElse(List.tryPick (fun md -> match md with
+                | S(name) -> orElse(List.tryPick (fun md -> 
+                                                        match md with
                                                         | (SDef(mp, xp, t1p, expr)) -> if mp = name then Some(ST(name, t1p)) else None
                                                         | _ -> None) mds)
                                    (List.tryPick (fun (FDef(f,tp)) -> if f = name then Some(ST(f, tp)) else None) fds)
@@ -57,25 +61,28 @@ let mtypes (ClassDef(name, fds, mds)) : mt list =
                                 | (GDef(name, t1, _)) -> GT(name, t1)
                                 | (SDef(name, _, t1, _)) -> ST(name, t1)) mds)
                                    
-let rec subtype(K:Map<string,k>)(mu:Set<string * string>) : Type -> Type -> bool = fun x -> fun y -> match (x,y) with
-|   (Class a, Class b) -> match Set.contains (a,b) mu with
-    |   true -> true
-    |   false -> 
-        match (K.TryFind a, K.TryFind b) with
-        |   (Some (ClassDef(n1,fds1,mds1) as k1) , Some (ClassDef(n2, fds2, mds2) as k2)) -> 
-            let mt1, mt2 = mtypes(k1), mtypes(k2)
-            let nameof = (function MDT(n,_,_) -> n | GT(n,t) -> n | ST(n,t) -> n)
-            let other = Map.ofList (List.groupBy nameof mt1)
-            let collapse = function Some(l) -> l | None -> []
-            let mup = Set.add (n1, n2) mu
-            List.forall (fun mt2 -> List.exists (fun mt1 -> mtsub K mup mt1 mt2) (collapse (Map.tryFind (nameof mt2) other))) mt2
-        |   _ -> false
-|   (t1, t2) -> t1 = t2
-and mtsub(K:Map<string,k>)(mu:Set<string*string>) (a:mt) (b:mt): bool = match (a,b) with
-|   (MDT(n1, t11, t12), MDT(n2, t21, t22)) -> n1 = n2 && (subtype K mu t11 t21) && (subtype K mu t22 t12)
-|   (GT(n1, t1), GT(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
-|   (ST(n1, t1), ST(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
-|   _ -> false
+let rec subtype(K:Map<string,k>)(mu:Set<string * string>) : Type -> Type -> bool = fun x -> fun y -> 
+    match (x,y) with
+    |   (Class a, Class b) -> 
+        match Set.contains (a,b) mu with
+        |   true -> true
+        |   false -> 
+            match (K.TryFind a, K.TryFind b) with
+            |   (Some (ClassDef(n1,fds1,mds1) as k1) , Some (ClassDef(n2, fds2, mds2) as k2)) -> 
+                let mt1, mt2 = mtypes(k1), mtypes(k2)
+                let nameof = (function MDT(n,_,_) -> n | GT(n,t) -> n | ST(n,t) -> n)
+                let other = Map.ofList (List.groupBy nameof mt1)
+                let collapse = function Some(l) -> l | None -> []
+                let mup = Set.add (n1, n2) mu
+                List.forall (fun mt2 -> List.exists (fun mt1 -> mtsub K mup mt1 mt2) (collapse (Map.tryFind (nameof mt2) other))) mt2
+            |   _ -> false
+    |   (t1, t2) -> t1 = t2
+and mtsub(K:Map<string,k>)(mu:Set<string*string>) (a:mt) (b:mt): bool = 
+    match (a,b) with
+    |   (MDT(n1, t11, t12), MDT(n2, t21, t22)) -> n1 = n2 && (subtype K mu t11 t21) && (subtype K mu t22 t12)
+    |   (GT(n1, t1), GT(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
+    |   (ST(n1, t1), ST(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
+    |   _ -> false
 
 let rec syntype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) : Type =
     match expr with
@@ -102,14 +109,16 @@ let rec syntype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) : Type
                         | Some(GT(n,t)) -> t
                         | Some(_) -> raise (IncompatibleMethodFound(G(f), rece, C))
                         | None -> raise (FieldOrMethodNotFound(f, rece, C))
-    | SetF(rece, f, valu) -> match syntype env K rece with
+    | SetF(rece, f, valu) -> 
+                       match syntype env K rece with
                        | Any -> raise (FieldAccessOnAny(rece))
                        | Class C -> 
                         match inmtypes(S(f))(C)(K) with
                         | Some(ST(n,t)) -> if anatype env K valu t then t else raise (IncompatibleType(t,valu,rece))
                         | Some(_) -> raise (IncompatibleMethodFound(S(f), rece, C))
                         | None -> raise (FieldOrMethodNotFound(f, rece, C))
-    | Call(rece, t1, t2, m, arg) -> match syntype env K rece with
+    | Call(rece, t1, t2, m, arg) -> 
+                       match syntype env K rece with
                        | Any -> raise (MethodCallOnAny(rece))
                        | Class C -> 
                         match inmtypes(MD(m, t1, t2)) C K with
@@ -126,18 +135,21 @@ and anatype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) (against: 
     let it = syntype env K expr
     (subtype K (Set.empty) it against)
 
-let wftype (K:Map<string, k>) (t : Type) = match t with
-| Any -> true
-| Class C -> K.ContainsKey C
+let wftype (K:Map<string, k>) (t : Type) = 
+    match t with
+    | Any -> true
+    | Class C -> K.ContainsKey C
 
-let wffield (K:Map<string, k>) (f: fd) = match f with
-| FDef(name, tpe) -> wftype K tpe
+let wffield (K:Map<string, k>) (f: fd) = 
+    match f with
+    | FDef(name, tpe) -> wftype K tpe
 
-let rec private butlast<'a,'b,'c>(f1 : 'a -> 'b)(f2 : 'a -> 'c)(l:'a list) : 'c option = match l with
-| e1 :: e2 :: r -> let _ = f1(e1)
-                   butlast(f1)(f2)r
-| e2 :: nil -> Some(f2(e2))
-| nil -> None
+let rec private butlast<'a,'b,'c>(f1 : 'a -> 'b)(f2 : 'a -> 'c)(l:'a list) : 'c option = 
+    match l with
+    | e1 :: e2 :: r -> let _ = f1(e1)
+                       butlast(f1)(f2)r
+    | e2 :: nil -> Some(f2(e2))
+    | nil -> None
 
 let wfmeth (env:Map<string, Type>) (K:Map<string, k>) (def : md) : bool = 
  match def with
@@ -200,13 +212,14 @@ let private mexists(map:Map<string,Seen>) (name:string) : Seen -> Map<string,See
     |   Some(_) -> raise (MethodExistsException(name))
     |   None -> Map.add(name)(Method) map
 
-let rec private overloading : Map<string,Seen> -> fd list -> md list -> unit = fun seen -> function
-|   (FDef(name, t)) :: fds -> fun mds -> overloading (mexists seen name (Property(true, true))) fds mds
-|   [] -> function
-    |   (MDef(name, x, t1, t2, body)) :: rest -> overloading (mexists seen name (Method)) [] rest
-    |   (GDef(name, t, body)) :: rest -> overloading (mexists seen name (Property(true, false))) [] rest
-    |   (SDef(name, x, t, body)) :: rest -> overloading (mexists seen name (Property(false, true))) [] rest
-    |   [] -> ()
+let rec private overloading : Map<string,Seen> -> fd list -> md list -> unit = fun seen -> 
+    function
+    |   (FDef(name, t)) :: fds -> fun mds -> overloading (mexists seen name (Property(true, true))) fds mds
+    |   [] -> function
+        |   (MDef(name, x, t1, t2, body)) :: rest -> overloading (mexists seen name (Method)) [] rest
+        |   (GDef(name, t, body)) :: rest -> overloading (mexists seen name (Property(true, false))) [] rest
+        |   (SDef(name, x, t, body)) :: rest -> overloading (mexists seen name (Property(false, true))) [] rest
+        |   [] -> ()
 
 let wfclass (K: Map<string,k>) (ClassDef(name, fds, mds)) : unit =
     let _ = overloading (Map.empty) fds mds
@@ -214,8 +227,10 @@ let wfclass (K: Map<string,k>) (ClassDef(name, fds, mds)) : unit =
     let _ = List.map (wfmeth (Map[("this", Class(name))]) K) mds
     ()
 
+let makek(ks:k list) : Map<string, k> = Map.ofList (List.map (fun k -> match k with (ClassDef(name, fds, mds)) -> (name,k)) ks)
+
 let wfprog (Program(ks, expr)) : unit = 
-    let K = Map.ofList (List.map (fun k -> match k with (ClassDef(name, fds, mds)) -> (name,k)) ks)
+    let K = makek(ks)
     let _ = List.map (wfclass K) ks
     let _ = syntype (Map.empty) K expr
     ()

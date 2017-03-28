@@ -2885,7 +2885,7 @@ given method definitions.
 \IRule{MT}{
   \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any\ep}{}
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any{\SubCast\any\ep}}{}
 }
 \end{mathpar}
 
@@ -2897,9 +2897,9 @@ given method definitions.
 \IRule{TSS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
 \IRule[width=30em]{TSS2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\m{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
 }
 
 \IRule{TSS3}{

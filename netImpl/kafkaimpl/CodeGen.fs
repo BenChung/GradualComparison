@@ -76,8 +76,9 @@ let genProg(p:Cprog, pretty:bool) : string =
     match p with
     | CProgram(ks, env, expr) -> 
         let generated = "namespace Kafka {\n" + (String.concat "\n" 
-           (List.append (List.map (genInterface) ks) 
-                        (List.map (genClass env) ks))) + "\n" + "class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
+                                                        (List.append (List.map (genInterface) ks) 
+                                                                     (List.map (genClass env) ks))) + "\n" + 
+                                                                        "class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
         if pretty then
             use ws = new AdhocWorkspace()
             let ast = CSharpSyntaxTree.ParseText(generated)
