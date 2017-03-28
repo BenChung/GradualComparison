@@ -1,4 +1,4 @@
-all: figures
+all: 
 	pdflatex gradualcomp
 	bibtex gradualcomp
 	pdflatex gradualcomp
