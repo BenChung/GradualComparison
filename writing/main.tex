@@ -4132,7 +4132,74 @@ The \xt{typing} function takes field definitions and returns the method typing s
 }
 \end{mathpar}
 
+\subsection{Names function}
+
+The \xt{Names} function takes either a field definition, method definition, or method typing, and returns the name of the respective
+field/method.
+
+\begin{mathpar}
+\IRule{NE}{
+}{
+\names{\emptyset} = \emptyset
+}
+\end{mathpar}
+
+\opdef{~\names{\b\fd}}{field naming}
+\begin{mathpar}
+\IRule{NF}{
+ \b\x = \f, \names{\b\fd}
+}{
+\names{\Fdef\f\t, \b\fd} = \b\x
+}
+\end{mathpar}
+
+\opdef{~\names{\b\md}}{method naming}
+\begin{mathpar}
+\IRule{NM1}{
+ \b\x = \m, \names{\b\md}
+}{
+\names{\Mdef\m\x\t\t\e, \b\md} = \b\x
+}
+
+\IRule{NM2}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mdef\f\x\t\t\e, \b\md} = \b\x
+}
+
+\IRule{NM3}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mdefz\f\t\e, \b\md} = \b\x
+}
+\end{mathpar}
+
+\opdef{~\names{\b\mt}}{type naming}
+\begin{mathpar}
+\IRule{NMT1}{
+ \b\x = \m, \names{\b\md}
+}{
+\names{\Mtype\m\t\t, \b\mt} = \b\x
+}
+
+\IRule{NMT2}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mtype\f\t\t, \b\mt} = \b\x
+}
+
+\IRule{NMT3}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mtype\f{}\t, \b\mt} = \b\x
+}
+\end{mathpar}
+
+
+
 \clearpage
+
+
 
 \section{Source language syntax and semantics}
 
