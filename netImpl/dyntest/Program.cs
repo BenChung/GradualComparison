@@ -7,9 +7,9 @@ using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dyntest
+namespace Kafka
 {
-    class CastException : Exception { }
+    public class CastException : Exception { }
     public class Runtime
     {
         private static AssemblyName classGenName;
@@ -228,89 +228,6 @@ namespace dyntest
             } else
             {
                 throw new CastException();
-            }
-        }
-    }
-    namespace Kafka
-    {
-        public interface IA
-        {
-            dynamic m(dynamic x);
-        }
-        public interface II
-        {
-            II m(II x);
-        }
-        public interface IT
-        {
-            IT s(II x);
-            dynamic t(dynamic x);
-        }
-        public interface IC
-        {
-            IC n(IC x);
-        }
-        public class A : IA
-        {
-            public A()
-            {
-
-            }
-
-            public dynamic m(dynamic x)
-            {
-                return x;
-            }
-        }
-        public class I : II
-        {
-            public I()
-            {
-
-            }
-
-            public II m(II x)
-            {
-                return x;
-            }
-        }
-        public class T : IT
-        {
-            public T()
-            {
-
-            }
-            public IT s(II x)
-            {
-                return this;
-            }
-
-            public dynamic t(dynamic x)
-            {
-                return (dynamic)this.s((II)x);
-            }
-
-        }
-        public class C : IC
-        {
-            public C()
-            {
-
-            }
-            public IC n(IC x)
-            {
-                return this;
-            }
-
-        }
-        class Program
-        {
-            public static void Main(string[] args)
-            {
-                II rv = Runtime.tyWrapper<II>(new A());
-                II rv2 = rv.m(new I());
-                
-                new T().t((dynamic)new A());
             }
         }
     }
