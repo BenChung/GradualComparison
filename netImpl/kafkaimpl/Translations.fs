@@ -25,7 +25,7 @@ let rec private ts_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> Exp
         DynCall(SubCast(Any, epr), method, SubCast(Any, ep)), Any
 |   DynCall(receiver, method, argument) -> 
         let epr = ts_anatrans K env receiver Any
-        let epa = ts_anatrans K env receiver Any
+        let epa = ts_anatrans K env argument Any
         DynCall(epr, method, epa), Any
 |   GetF(receiver, field) -> 
     let epr,tr = ts_syntrans K env receiver
@@ -47,6 +47,9 @@ let rec private ts_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> Exp
 |   SubCast(target, expr) ->
     let epr, tr = ts_syntrans K env expr
     epr, target
+|   BehCast(target, expr) ->
+    let epr, tr = ts_syntrans K env expr
+    BehCast(target, epr), target
 |   NewExn(C, exprs) ->
     let fdts = match K.TryFind C with
                |   None -> raise (ClassNotFound(C, K))

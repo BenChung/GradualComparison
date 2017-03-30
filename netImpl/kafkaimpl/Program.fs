@@ -31,7 +31,7 @@ class T {
     t(x : any) : any { <any>(this.s : I -> T ( <I> x)) } }
 class C {
     n(x:C):C { this } }
-(<any>new T())@t(<any>new A())
+(<any>new T())@t(<|any|>new A())
 "
     let tsv = Translations.ts_progtrans res.Value
     let _ = Typechecker.wfprog tsv

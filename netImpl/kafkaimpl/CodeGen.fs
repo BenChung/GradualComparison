@@ -22,8 +22,8 @@ let rec genExpr(ex:Expr) : string =
     | DynCall(rece, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
     | SubCast(t, expr) -> "(" + (toCsType t) + ")" + (genExpr expr)
     | BehCast(t, expr) -> match t with
-                          | Class C -> "Runtime.dyWrapper<" + toCsType(t) + ">(" + genExpr(expr) + ")"
-                          | Any -> "Runtime.tpWrapper(" + genExpr(expr) + ")"
+                          | Class C -> "Runtime.tyWrapper<" + toCsType(t) + ">(" + genExpr(expr) + ")"
+                          | Any -> "Runtime.dyWrapper(" + genExpr(expr) + ")"
     
 let genBody(ex:Expr list) : string = Seq.fold (fun acc x -> acc + x + ";\n") "" (List.mapi (fun i expr -> if i = (List.length ex) - 1 then "return " + expr else expr) (List.map genExpr ex))
 
@@ -78,7 +78,7 @@ let genClass(env:Map<string, string list>)(k:cgk) : string =
 let genProg(p:Cprog, pretty:bool) : string =
     match p with
     | CProgram(ks, env, expr) -> 
-        let generated = "namespace Kafka {\n" + (String.concat "\n" 
+        let generated = "using Kafka;\nnamespace Kafka {\n" + (String.concat "\n" 
                                                         (List.append (List.map (genInterface) ks) 
                                                                      (List.map (genClass env) ks))) + "\n" + 
                                                                         "public class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"

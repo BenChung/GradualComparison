@@ -225,7 +225,9 @@ namespace Kafka
             else if (srcType.IsInterface && tgtType.IsEquivalentTo(typeof(object))) // C -> *
             {
                 ilgen.Emit(OpCodes.Call, dyWrapperf.MakeGenericMethod(srcType));
-            } else
+            }
+            else if (srcType.IsEquivalentTo(tgtType)) { /* do zip */ }
+            else
             {
                 throw new CastException();
             }

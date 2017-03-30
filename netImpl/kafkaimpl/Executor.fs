@@ -14,7 +14,8 @@ let execute(s:string) =
         MetadataReference.CreateFromFile(typeof<obj>.Assembly.Location) ;
         MetadataReference.CreateFromFile(typeof<IEnumerable<int>>.Assembly.Location) ;
         MetadataReference.CreateFromFile(typeof<System.Runtime.CompilerServices.DynamicAttribute>.Assembly.Location) ;
-        MetadataReference.CreateFromFile(typeof<Microsoft.CSharp.RuntimeBinder.Binder>.Assembly.Location) ]
+        MetadataReference.CreateFromFile(typeof<Microsoft.CSharp.RuntimeBinder.Binder>.Assembly.Location) ;
+        MetadataReference.CreateFromFile(typeof<Kafka.Runtime>.Assembly.Location) ]
     let compilation = CSharpCompilation.Create(
                         an,
                         [ CSharpSyntaxTree.ParseText(s) ],
