@@ -50,10 +50,13 @@ type ParserTest1() =
         (Parser.parse @"x@m(y)") |> should equal (Some(Program([], DynCall(Var "x", "m", Var "y"))))
     [<Test>]
     member x.TestCast() =
-        (Parser.parse @"<t2>x") |> should equal (Some(Program([], Cast(Class "t2", Var "x"))))
+        (Parser.parse @"<t2>x") |> should equal (Some(Program([], SubCast(Class "t2", Var "x"))))
+    [<Test>]
+    member x.TestCast2() =
+        (Parser.parse @"<|t2|>x") |> should equal (Some(Program([], BehCast(Class "t2", Var "x"))))
     [<Test>]
     member x.TestParen() =
-        (Parser.parse @"<t2>(<t1>x)") |> should equal (Some(Program([], Cast(Class "t2", Cast(Class "t1", Var "x")))))
+        (Parser.parse @"<t2>(<t1>x)") |> should equal (Some(Program([], SubCast(Class "t2", SubCast(Class "t1", Var "x")))))
     [<Test>]
     member x.TestClass() =
         (Parser.parse @"class B {}

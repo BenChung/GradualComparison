@@ -56,7 +56,7 @@ namespace Kafka
                 MethodInfo srcInfo = srcMethMap[k];
                 MakeMethodWrapper(tb, thatf, k, srcInfo, new Type[] { typeof(object) }, typeof(object), null);
             }
-            
+
             Type wrapper = tb.CreateType();
             //ab.Save("KafkaWrapper.dll");
             return (dynamic)wrapper.GetConstructor(new Type[] { source }).Invoke(new object[] { src });

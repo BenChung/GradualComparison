@@ -18,11 +18,11 @@ let rec private ts_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> Exp
     |   Class(C) -> match inmtypes (MD(method, t1, t2)) C K with
                     |   Some(MDT(_,_,_)) ->
                         let ep = ts_anatrans K env argument t1
-                        DynCall(Cast(Any,epr), method, Cast(Any, ep)), t2
+                        DynCall(SubCast(Any,epr), method, SubCast(Any, ep)), t2
                     |   _ -> raise (FieldOrMethodNotFound(method, receiver, ""))
     |   Any -> 
         let ep = ts_anatrans K env argument Any
-        DynCall(Cast(Any, epr), method, Cast(Any, ep)), Any
+        DynCall(SubCast(Any, epr), method, SubCast(Any, ep)), Any
 |   DynCall(receiver, method, argument) -> 
         let epr = ts_anatrans K env receiver Any
         let epa = ts_anatrans K env receiver Any
@@ -44,7 +44,7 @@ let rec private ts_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> Exp
                         SetF(epr, field, ep), t
                     |   _ -> raise (FieldOrMethodNotFound(field, epr, ""))
     |   Any -> (raise (FieldAccessOnAny(receiver)))
-|   Cast(target, expr) ->
+|   SubCast(target, expr) ->
     let epr, tr = ts_syntrans K env expr
     epr, target
 |   NewExn(C, exprs) ->
@@ -52,7 +52,7 @@ let rec private ts_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> Exp
                |   None -> raise (ClassNotFound(C, K))
                |   Some(ClassDef(_,fds,_)) -> List.map (function (FDef(name, tpe)) -> tpe) fds
     let tns = List.map2 (ts_anatrans K env) exprs fdts
-    Cast(Any, NewExn(C, tns)), Class(C)
+    SubCast(Any, NewExn(C, tns)), Class(C)
 and private ts_anatrans(K:Map<string,k>)(env:Map<string,Type>)(expr:Expr) : Type -> Expr = function
 |   Class(C) -> 
     let epr, tr = ts_syntrans K env expr
@@ -70,7 +70,7 @@ let private ts_methtrans(K:Map<string,k>)(C:string) : md -> md = function
 |   MDef(name, var, t1, t2, body) ->
     let env = (Map[ ("this", Class C) ; ("x", t1) ])
     match butlast (fun exp -> match ts_syntrans K env exp with (epr,tr) -> epr) 
-                  (fun exp -> Cast(Any, ts_anatrans K env exp t2)) body with
+                  (fun exp -> SubCast(Any, ts_anatrans K env exp t2)) body with
     |   [] -> raise (EmptyMethodBody(name))
     |   body -> MDef(name, var, Any, Any, body)
 |   GDef(name, t, body) -> 

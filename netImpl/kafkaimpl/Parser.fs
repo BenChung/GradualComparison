@@ -19,7 +19,8 @@ let parse (prog:string) =
                (pipe2 (pstring "new" >>. ws >>. id .>> ws .>> pstring "(")
                      ((sepBy (ws >>. term) (ws >>. pstring ",")) .>> pstring ")")
                      (fun className args -> NewExn(className, args))) <|>
-               (pipe2 (pstring "<" >>. ws >>. tpe .>> ws .>> pstring ">") (ws >>. term) (fun t e -> Cast(t,e))) <|> 
+               (attempt (pipe2 (pstring "<|" >>. ws >>. tpe .>> ws .>> pstring "|>") (ws >>. term) (fun t e -> BehCast(t,e)))) <|> 
+               (pipe2 (pstring "<" >>. ws >>. tpe .>> ws .>> pstring ">") (ws >>. term) (fun t e -> SubCast(t,e))) <|> 
                ((pstring "(" >>. ws >>. term .>> ws .>> pstring ")") |>> (fun e -> e)) <|> 
                (id |>> fun x -> Var x)
     let callExpr = (attempt (pstring "." >>. (attempt ((id .>> ws .>> pstring "(" .>> ws .>> pstring ")") |>> (fun name -> fun exp -> GetF(exp,name))) <|>

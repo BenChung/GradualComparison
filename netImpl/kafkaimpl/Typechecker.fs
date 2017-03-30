@@ -16,6 +16,7 @@ exception TypeNotFound of Type*Map<string, k>
 exception VariableNotFound of string*Map<string,Type>
 exception IncompatibleType of Type*Expr*Expr
 exception NotSubtype of Type*Type
+exception FullyTypedBehaviouralCast of Type
 exception FieldAccessOnAny of Expr
 exception MethodCallOnAny of Expr
 exception IncompatibleMethodFound of mtd*Expr*string
@@ -128,8 +129,14 @@ let rec syntype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) : Type
     | DynCall(rece, m, arg) -> match anatype env K rece Any, anatype env K arg Any with
                                | true, true -> Any
                                | _, _ -> raise (IncompatibleType(Any,rece,arg))
-    | Cast(t, e) -> match syntype env K e with
-                    | tp -> t 
+    | SubCast(t, e) -> match syntype env K e with
+                       | tp -> t 
+    | BehCast(t, e) -> match syntype env K e with
+                       | (Class C) as tp -> 
+                            match t with 
+                            |   Class D -> raise (FullyTypedBehaviouralCast(t))
+                            |   Any -> t
+                       | Any -> t 
                        
 and anatype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) (against: Type) : bool = 
     let it = syntype env K expr

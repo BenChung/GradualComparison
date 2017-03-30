@@ -20,7 +20,10 @@ let rec genExpr(ex:Expr) : string =
     | SetF(rece, f, v) -> (genExpr rece) + "." + f + " = " + (genExpr v)
     | Call(rece, tp, t, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
     | DynCall(rece, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
-    | Cast(t, expr) -> "(" + (toCsType t) + ")" + (genExpr expr)
+    | SubCast(t, expr) -> "(" + (toCsType t) + ")" + (genExpr expr)
+    | BehCast(t, expr) -> match t with
+                          | Class C -> "Runtime.dyWrapper<" + toCsType(t) + ">(" + genExpr(expr) + ")"
+                          | Any -> "Runtime.tpWrapper(" + genExpr(expr) + ")"
     
 let genBody(ex:Expr list) : string = Seq.fold (fun acc x -> acc + x + ";\n") "" (List.mapi (fun i expr -> if i = (List.length ex) - 1 then "return " + expr else expr) (List.map genExpr ex))
 

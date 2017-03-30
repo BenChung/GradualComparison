@@ -14,7 +14,8 @@ type Expr =
 | SetF of Expr * string * Expr
 | Call of Expr * Type * Type * string * Expr
 | DynCall of Expr * string * Expr
-| Cast of Type * Expr
+| SubCast of Type * Expr
+| BehCast of Type * Expr
  override x.ToString() = sprintf "%A" x
 
 let rec subst(n:string, wth : Expr)(ine:Expr) = 
@@ -27,7 +28,8 @@ let rec subst(n:string, wth : Expr)(ine:Expr) =
     | SetF(recr, f, v) -> SetF(subst(n,wth)(recr), f, subst(n,wth)(v))
     | Call(recr, t1, t2, m, arg) -> Call(subst(n,wth) recr, t1, t2, m, subst(n,wth) arg)
     | DynCall(recr, m, arg) -> DynCall(subst(n,wth) recr, m, subst(n,wth) arg)
-    | Cast(t, e) -> Cast(t, subst(n,wth) e)
+    | SubCast(t, e) -> SubCast(t, subst(n,wth) e)
+    | BehCast(t, e) -> BehCast(t, subst(n,wth) e)
 
 type md = 
 | MDef of string * string * Type * Type * Expr list
