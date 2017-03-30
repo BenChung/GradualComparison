@@ -60,7 +60,7 @@ let genImd : cgmd -> string = function
 
 let genInterface(k:cgk) : string =
     match k with
-    | CClassDef(name, fds, mds) -> "interface I" + name + "{\n"+ (String.concat "\n" (List.append (List.map genIfd fds) (List.map genImd mds))) + "\n}"  
+    | CClassDef(name, fds, mds) -> "public interface I" + name + "{\n"+ (String.concat "\n" (List.append (List.map genIfd fds) (List.map genImd mds))) + "\n}"  
     
 exception ThisShouldntHappenException of string
 let genClass(env:Map<string, string list>)(k:cgk) : string =
@@ -70,7 +70,7 @@ let genClass(env:Map<string, string list>)(k:cgk) : string =
                          |  Some(n) -> n
                          |  None -> raise (ThisShouldntHappenException "wtf")
         let ifacestring = String.concat ", " (List.map (fun tpe -> toCsType(Class tpe)) interfaces)
-        "class " + name + " : " + ifacestring + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map genFd fds) (List.map genDef mds)))) + "\n}"
+        "public class " + name + " : " + ifacestring + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map genFd fds) (List.map genDef mds)))) + "\n}"
 
 let genProg(p:Cprog, pretty:bool) : string =
     match p with
@@ -78,7 +78,7 @@ let genProg(p:Cprog, pretty:bool) : string =
         let generated = "namespace Kafka {\n" + (String.concat "\n" 
                                                         (List.append (List.map (genInterface) ks) 
                                                                      (List.map (genClass env) ks))) + "\n" + 
-                                                                        "class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
+                                                                        "public class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
         if pretty then
             use ws = new AdhocWorkspace()
             let ast = CSharpSyntaxTree.ParseText(generated)
