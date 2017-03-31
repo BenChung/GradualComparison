@@ -80,7 +80,7 @@ let rec subtype(K:Map<string,k>)(mu:Set<string * string>) : Type -> Type -> bool
     |   (t1, t2) -> t1 = t2
 and mtsub(K:Map<string,k>)(mu:Set<string*string>) (a:mt) (b:mt): bool = 
     match (a,b) with
-    |   (MDT(n1, t11, t12), MDT(n2, t21, t22)) -> n1 = n2 && (subtype K mu t11 t21) && (subtype K mu t22 t12)
+    |   (MDT(n1, t11, t12), MDT(n2, t21, t22)) -> n1 = n2 && (subtype K mu t21 t11) && (subtype K mu t12 t22)
     |   (GT(n1, t1), GT(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
     |   (ST(n1, t1), ST(n2, t2)) -> n1 = n2 && (subtype K mu t1 t2)
     |   _ -> false

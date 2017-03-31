@@ -233,4 +233,19 @@ namespace Kafka
             }
         }
     }
+    [System.AttributeUsage(AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
+    sealed class SubtypeOf : Attribute
+    {
+        readonly Type[] of;
+        
+        public SubtypeOf(params Type[] of)
+        {
+            this.of = of;
+        }
+
+        public Type[] Subtypes
+        {
+            get { return of; }
+        }
+    }
 }

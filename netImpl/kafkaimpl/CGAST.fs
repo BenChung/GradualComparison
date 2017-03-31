@@ -62,6 +62,8 @@ let transk(c:k):cgk =
 let findSubtypes(lk : k list) =
     let K = Map.ofList (List.map (fun k -> match k with (ClassDef(name, fds, mds)) -> (name,k)) lk)
     Map.ofList (List.map (fun (ClassDef(c1, _, _)) -> (c1, (List.collect (fun (ClassDef(c2, _, _)) -> if Typechecker.subtype K (Set.empty) (Class c1) (Class c2) then [c2] else []) lk))) lk)
+    
+
 
 let transp(p:prog) : Cprog =
     match p with
