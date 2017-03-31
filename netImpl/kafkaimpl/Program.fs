@@ -25,7 +25,7 @@ let main argv =
 class A {
     m(x:A) : A { this } }
 class I {
-    m(x:C) : I { this } }
+    m(x:A) : A { this } }
 class T {
     s(x : I) : T { this } 
     t(x : any) : any { <any>(this.s : I -> T ( <I> x)) } }
@@ -36,7 +36,8 @@ class C {
     let tsv = Translations.ts_progtrans res.Value
     let _ = Typechecker.wfprog tsv
     let trans = CGAST.transp(tsv)
-    let outp = CodeGen.genProg(trans, true)
+    let subtypeRels = SubIL.addSubtypeImpls(tsv)(trans)
+    let outp = CodeGen.genProg(subtypeRels, true)
     let evaluated = Executor.execute(outp)
     
     printfn "%A" evaluated

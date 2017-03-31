@@ -1,6 +1,7 @@
 ﻿module CodeGen
 open AST
 open CGAST
+open SubIL
 open Microsoft.CodeAnalysis
 open Microsoft.CodeAnalysis.CSharp
 open Microsoft.CodeAnalysis.Formatting
@@ -61,25 +62,36 @@ let genIfd: cgfd -> string = function
 let genImd : cgmd -> string = function
 |   CMDef(name, x, t1, t2, body) -> toCsType(t2) + " " + name + "(" + toCsType(t1) + " " + x + ");"
 
-let genInterface(k:cgk) : string =
+let genInterface(k:subk, stOf : string list) : string =
     match k with
-    | CClassDef(name, fds, mds) -> "public interface I" + name + "{\n"+ (String.concat "\n" (List.append (List.map genIfd fds) (List.map genImd mds))) + "\n}"  
+    | SubClassDef(name, fds, mds, _) -> 
+        let prefix = if stOf.Length > 1 then // self reference
+                        sprintf "[SubtypeOf(%s)]\n" (String.concat (",") (List.map (sprintf "typeof(I%s)") (List.filter (fun s -> not (s = name)) stOf)))
+                     else
+                        ""
+        prefix + "public interface I" + name + "{\n"+ (String.concat "\n" (List.append (List.map genIfd fds) (List.map genImd mds))) + "\n}"  
     
+let explicitImpls : subim -> string = function
+|   CIPDef(from, name, tpe, get, set) -> sprintf "%s %s.%s { %s %s }" (toCsType(tpe)) (toCsType(Class from)) name 
+                                                 (if get then sprintf "get => this.%s;" name else "") 
+                                                 (if set then sprintf "set => this.%s = value;" name else "")
+|   CIMDef(from, name, t1, t2) -> sprintf "%s %s.%s(%s x) => this.%s(x);" (toCsType(t2)) (toCsType(Class from)) name (toCsType(t1)) name
+
 exception ThisShouldntHappenException of string
-let genClass(env:Map<string, string list>)(k:cgk) : string =
+let genClass(env:Map<string, string list>)(k:subk) : string =
     match k with
-    | CClassDef(name, fds, mds) -> 
+    | SubClassDef(name, fds, mds, impls) -> 
         let interfaces = match env.TryFind name with
                          |  Some(n) -> n
                          |  None -> raise (ThisShouldntHappenException "wtf")
         let ifacestring = String.concat ", " (List.map (fun tpe -> toCsType(Class tpe)) interfaces)
-        "public class " + name + " : " + ifacestring + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map genFd fds) (List.map genDef mds)))) + "\n}"
+        "public class " + name + " : " + ifacestring + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map explicitImpls impls) (List.append (List.map genFd fds) (List.map genDef mds))))) + "\n}"
 
-let genProg(p:Cprog, pretty:bool) : string =
+let genProg(p:subp, pretty:bool) : string =
     match p with
-    | CProgram(ks, env, expr) -> 
+    | SubProgram(ks, env, expr) -> 
         let generated = "using Kafka;\nnamespace Kafka {\n" + (String.concat "\n" 
-                                                        (List.append (List.map (genInterface) ks) 
+                                                        (List.append (List.map (fun (SubClassDef(name, _, _, _) as k) -> (k, env.Item name)) ks |> List.map genInterface) 
                                                                      (List.map (genClass env) ks))) + "\n" + 
                                                                         "public class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
         if pretty then
