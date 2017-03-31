@@ -1,4 +1,9 @@
-\documentclass[acmlarge]{acmart}
+\documentclass[acmlarge, anonymous, review, authordraft]{acmart}
+
+% get rid of acm noise
+\settopmatter{printacmref=false}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+%\pagestyle{plain}
 
 %\usepackage{booktabs} % For formal tables
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
@@ -15,9 +20,10 @@
 
 \usepackage{epigraph}
 %\setlength{\epigraphwidth}{0.75\linewidth}
-%\setlength{\epigraphrule}{0pt}
-%\renewcommand*{\textflush}{flushright}
+\setlength{\epigraphrule}{0pt}
+\renewcommand*{\textflush}{flushright}
 %\renewcommand*{\epigraphsize}{\normalsize\itshape}
+\setlength{\epigraphwidth}{4in}
 
 \newcommand{\code}[1]{{\tt #1}\xspace}
 
@@ -37,13 +43,13 @@
   sensitive=false,  comment=[l]{//},  morecomment=[s]{/*}{*/},
   commentstyle=\color{gray}\ttfamily,  stringstyle=\color{gray}\ttfamily,
   morestring=[b]',  morestring=[b]",
-  backgroundcolor=\color{vlightgray},
+  %backgroundcolor=\color{vlightgray},
   aboveskip=\medskipamount, %0em,
-  belowskip=\smallskipamount, %0em
+  belowskip=\medskipamount, %0em
   escapeinside={(*@}{@*)}
 }
 \lstset{
-  language=JavaScript,  extendedchars=true,  basicstyle=\footnotesize\ttfamily,
+  language=JavaScript,  extendedchars=true,  basicstyle=\small\ttfamily,
   showstringspaces=false,   showspaces=false,  numberstyle=\small,
   numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
 }
@@ -75,24 +81,27 @@
 %\acmBadgeR[http://ctuning.org/ae/ppopp2016.html]{ae-logo}
 %\acmBadgeL[http://ctuning.org/ae/ppopp2016.html]{ae-logo}
 
-
 % Copyright
 %\setcopyright{acmcopyright}
 %\setcopyright{acmlicensed}
 %\setcopyright{rightsretained}
 %\setcopyright{usgov}
-\setcopyright{usgovmixed}
+%\setcopyright{usgovmixed}
 %\setcopyright{cagov}
 %\setcopyright{cagovmixed}
 
+\setcopyright{none}
+
 % DOI
-\acmDOI{0000001.0000001}
+%\acmDOI{0000001.0000001}
 
 % Paper history
 %\received{February 2007}
 %\received{March 2009}
 %\received[accepted]{June 2009}
 %
+
+
 
 % Document starts
 \begin{document}
@@ -406,7 +415,8 @@ occur within concretely typed code.
 %\subsection{Surveying the design space}
 
 %\newcommand{\rot}[1]{\begin{rotate}{80} #1 \end{rotate}}
-\newcommand{\rot}[1]{ #1 }
+\newcommand{\rot}[1]{\rotatebox{80}{#1}}
+%\newcommand{\rot}[1]{ #1 }
 \newcommand{\X}{\EM{\bullet}}
 \newcommand{\XX}{\EM{\bullet^{(2)}}}
 \newcommand{\XY}{\EM{\bullet^{(1)}}}
@@ -416,7 +426,7 @@ occur within concretely typed code.
 ~ \\[2cm]
   {\small
 \begin{tabular}{r|lllllllllllllr}
-& & \rot{Nominal}
+ & & \rot{Nominal}
   & \rot{Optional types}
   & \rot{Concrete types}
   & \rot{Promised types}
@@ -885,7 +895,7 @@ as follows:
 \end{itemize}
 
 
-\clearpage
+%\clearpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1008,8 +1018,9 @@ set of rules appear in Appendix section~\ref{appendix:kafka}.
 
 \begin{figure}[!b]
 \hrulefill
+\smallskip
 
-\begin{minipage}{8cm}
+\begin{minipage}{14cm}
   \opdef{\Reduce \K\e\s \Kp\ep\sp}
         {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
 \begin{tabular}{l@{}l@{~}l@{~}l}
@@ -1086,7 +1097,7 @@ set of rules appear in Appendix section~\ref{appendix:kafka}.
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ~\\[2mm]
 
-\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+\begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
 \EE &::= \Get\EE\f     &\B
         \Set\EE\f\e   &\B
         \Set\a\f\EE   &\B  
