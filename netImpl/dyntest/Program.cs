@@ -68,6 +68,16 @@ namespace Kafka
             Type target = typeof(T);
             BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
 
+            SubtypeOf sts = (SubtypeOf)Attribute.GetCustomAttribute(target, typeof(SubtypeOf));
+            Type[] explicitSts = null;
+            if (sts == null)
+            {
+                explicitSts = sts.Subtypes;
+            } else
+            {
+                explicitSts = Type.EmptyTypes;
+            }
+
             Dictionary<string, PropertyInfo> srcPropMap, tgtPropMap;
             Dictionary<string, MethodInfo> srcMethMap, tgtMethMap;
             MakeMemberMaps(source, flags, out srcPropMap, out srcMethMap);
@@ -102,7 +112,7 @@ namespace Kafka
                 PropertyInfo srcProp = srcPropMap[k];
                 MakePropertyWrapper(tb, thatf, k, tgtProp.PropertyType, srcProp);
             }
-
+            
             foreach (string k in srcMethMap.Keys)
             {
                 MethodInfo srcInfo = srcMethMap[k];
@@ -121,9 +131,37 @@ namespace Kafka
                 }
             }
 
+            foreach (Type mbSt in explicitSts)
+            {
+                MakeExplicitImplementation(tb, mbSt, flags);
+            }
+
             Type wrapper = tb.CreateType();
             //ab.Save("KafkaWrapper.dll");
             return (T)wrapper.GetConstructor(new Type[] { source }).Invoke(new object[] { src });
+        }
+
+        private static void MakeExplicitImplementation(TypeBuilder tb, Type mbSt, BindingFlags bf)
+        {
+            //We can assume: 
+            // * The arguments are actually always going to be subtypes
+            // * The return type is going to be statically known to be a subtype
+            // * The real function is also on the same class, of the same name
+            // If any of these were violated, the original structural rule wouldn't have worked.
+            foreach (PropertyInfo pi in mbSt.GetProperties())
+            {
+
+            }
+            foreach (MethodInfo mi in mbSt.GetMethods(bf))
+            {
+                var mb = tb.DefineMethod(mi.Name, MethodAttributes.Private | MethodAttributes.HideBySig 
+                                                | MethodAttributes.Virtual | MethodAttributes.Final);
+                var ilg = mb.GetILGenerator();
+                ilg.Emit(OpCodes.Ldarg_0);
+                ilg.Emit(OpCodes.Ldarg_1); // always 1 argument.
+                //ilg.Emit(OpCodes.Call, )
+            }
+            throw new NotImplementedException();
         }
 
         private static void MakeMemberMaps(Type source, BindingFlags flags, out Dictionary<string, PropertyInfo> srcPropMap, out Dictionary<string, MethodInfo> srcMethMap)
@@ -144,7 +182,7 @@ namespace Kafka
             cbIlGen.Emit(OpCodes.Ret);
         }
 
-        private static void MakeMethodWrapper(TypeBuilder tb, FieldBuilder thatf, string k, MethodInfo srcInfo, Type[] argTypes, Type retType, MethodInfo tgtInfo)
+        private static MethodBuilder MakeMethodWrapper(TypeBuilder tb, FieldBuilder thatf, string k, MethodInfo srcInfo, Type[] argTypes, Type retType, MethodInfo tgtInfo)
         {
             var methodType = argTypes[0];
             var mb = tb.DefineMethod(k, MethodAttributes.Public | MethodAttributes.Virtual, retType, argTypes);
@@ -161,6 +199,7 @@ namespace Kafka
             {
                 tb.DefineMethodOverride(mb, tgtInfo);
             }
+            return mb;
         }
 
         private static void MakePropertyWrapper(TypeBuilder tb, FieldBuilder thatf, string k, Type tgtType, PropertyInfo srcProp)
