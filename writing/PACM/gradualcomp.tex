@@ -8,7 +8,7 @@
 
 %\usepackage{booktabs} % For formal tables
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
-            amsmath,mathpartir,hyperref,doi,
+            mathpartir,hyperref,doi, mathtools,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox, pgffor} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \usetikzlibrary{arrows}
@@ -19,6 +19,7 @@
 \usetikzlibrary{backgrounds}
 \usepackage[inline]{enumitem}
 
+% \usepackage{prelude}
 \usepackage{epigraph}
 %\setlength{\epigraphwidth}{0.75\linewidth}
 \setlength{\epigraphrule}{0pt}
@@ -1266,7 +1267,7 @@ translation judgments.
 
 \IRule[width=20em]{TSS5}{
     \HasType{\src\Env}{\src\this}{\src\C} \\ 
-    \Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K} 
+    \src{\Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K}} 
 }{
     \GenCast\K\Env{\Call\this\f{}}{\Call\this\f{}}\any
 }
@@ -1714,14 +1715,14 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \begin{mathpar}
 \IRule{TRA1}{
   \GenCast\K\Env\e\ep\tp \\
-  \K \vdash \src\tp \Sub \src\t
+  \src{\K \vdash \tp \Sub \t}
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
 \IRule{TRA2}{
   \GenCast\K\Env\e\ep\tp \\
-  \src\t \neq \src\tp
+  \src{\t \neq \tp}
 }{
   \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
 }
@@ -2203,12 +2204,12 @@ typing system highlights the essences which makes each system unique.
    &\B \a \\
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class {\C \Exten \Cp} {\b\fd}{\b\md}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}
+%    ~ \k &::= \Class {\C \Exten \Cp} {\b\fd}{\b\md}
 \end{tabular}
 \begin{tabular}{l@{~}l@{}l@{}l}
 % \md &::= \NMdef\m\this\t\x\t\t\e   &\B  \NMdef\f\this\t\x\t\t\e &\B \\ &\qquad \NMdefz\f\this\t\t\e \\
 \md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
 ~ \t&::= ~ \any  \B   \C  \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
 ~\s&::= \{\b{\Bind\a{\obj\C{\b\a}}}\} \\
@@ -2273,15 +2274,6 @@ typing system highlights the essences which makes each system unique.
 }{ 
   \ReduceA \K{\SubCast \D\a}\s \K\a\s
 }
-% \CondRule{E10}{  %% Shallow Structural
-% }{ 
-%   \ReduceA \K{\ShaCast \any\a}\s \K\a\s
-% }
-% \CondRule{E10b}{  %% Shallow Structural
-%  \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
-% }{ 
-%   \ReduceA \K{\ShaCast \D\a}\s \K\a\s
-% }
 \CondRule{E10}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
 }{
@@ -2478,16 +2470,6 @@ field or method names within the given field and method definitions. \\
 }
 \end{mathpar}
 
-% \opdef{~\WF{}\cdot\K\k}{Well-formed class table}
-% \begin{mathpar}
-% \IRule{WH}{
-%  \WFtype\K{\b{\fd}}\\
-%  \WF\cdot\s\K{\b\md}
-% }{
-%  \WF{}\cdot\K{\Class\C{\b{\fd}}{\b\md}}
-% }
-% \end{mathpar}
-
 \subsection{Expression typing}
 
 The expression typing judgments for \kafka includes in ascending order as listed in the formalism:
@@ -2564,12 +2546,6 @@ to the name of \t not to \t.
 }{
   \EnvType \Env\s\K{\SubCast\t\e}\t
 }
-% \IRule{W9}{
-%   \xt{dynamic}(\t,\,\K) \\
-%   \EnvType \Env\s\K\e\tp
-% }{
-%   \EnvType \Env\s\K{\ShaCast\t\e}\t  
-% }
 
 \IRule{W9}{
   \s(\a) = \obj\C{\b\ap}
@@ -2581,21 +2557,6 @@ to the name of \t not to \t.
  }{
    \EnvType \Env\s\K\a\any
 }
-% 
-% \IRule{W12}{
-%   \App\Env\this = \D \\
-%    \Fdef\that\C\in\App\K\D\\
-% }{
-%   \EnvType \Env\s\K{\Get\this\that}\C
-% }
-% 
-% \IRule{W13}{
-%   \App\Env\this = \D \\
-%    \Fdef\that\C\in\App\K\D\\
-%   \EnvType \Env\s\K\e\C \\
-% }{
-%   \EnvType \Env\s\K{\Set\this\that\e}\C
-% }
 \end{mathpar}
 
 
@@ -2644,7 +2605,15 @@ given method definitions.
 \xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)
 }
 
-\IRule{MO3}{
+\IRule{MO2}{
+ \Mtype\m\t\t \notin \cmd \\
+ \cmdp = \cmd, \Mtype\m\t\t \\
+ \xt{overloading}_{\cmdp}(\b\md)
+}{
+\xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)
+}
+
+\IRule{MO4}{
  \Mtype\f\t\t \notin \cmd \\
  \cmdp = \cmd, \Mtype\f\t\t  \\
  \xt{overloading}_{\cmdp}(\b\md, \b\fd)
@@ -2652,7 +2621,7 @@ given method definitions.
 \xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e ~ \b\md ~\b\fd)
 }
 
-\IRule{MO4}{
+\IRule{MO5}{
  \Mtype\f{}\t \notin \cmd \\
  \cmdp = \cmd, \Mtype\f{}\t \\
  \xt{overloading}_{\cmdp}(\b\md, \b\fd)
@@ -2672,24 +2641,6 @@ given method definitions.
 }
 \end{mathpar}
 
-% \subsection{Dynamic function}
-% 
-% The judgement \xt{dynamic}(\t,\,\K) denotes every method in type \t contains only \any. 
-% 
-% \begin{mathpar}
-% \IRule{DF1}{
-%  }{
-%  \xt{dynamic}(\any,\,\K)
-% }
-% 
-% \IRule{DF1}{
-%  \Class\C {\b\fd}{\Mdef{\m_{1}}{\x_{1}}{\any}{\any}{\dots} \dots ~\Mdef{\m_{n}}{\x_{n}}{\any}{\any}{\dots}}\in\K
-%  }{
-%  \xt{dynamic}(\C,\,\K) 
-% }
-% \end{mathpar}
-
-
 \section{Complete translation for TypeScript}
 
 \subsection{TypeScript translation for program, class, and method}
@@ -2707,7 +2658,7 @@ given method definitions.
   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
   \classtrans {\K}{\Kp}\Kpp
 }{
-   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\any}}{\b{\md'}}~\Kpp}}
 
 \IRule{CR2}{ 
 }{
@@ -2717,23 +2668,25 @@ given method definitions.
 \IRule{MT}{
   \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any\ep}{}
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any{\SubCast\any\ep}}{}
 }
 \end{mathpar}
-
 \subsection{TypeScript synthetic translation for expressions}
 
 \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
 
+% \begin{mathpar}
+
+\colorbox[gray]{1}{
+\begin{minipage}{\textwidth}
 \begin{mathpar}
 \IRule{TSS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
 \IRule[width=30em]{TSS2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{\b{\e_2}}}{\DynCall{\e_3}\mdu{\b{\e_4}}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
 }
-
 \IRule{TSS3}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
@@ -2741,25 +2694,37 @@ given method definitions.
 }
 
 \IRule[width=20em]{TSS4}{
-    \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
+    {\HasType{\Env}\this\C} \\ {\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
+    \GenCast\K\Env{\Call{\this}\f{\e}}{\Call{\this}\f{\ep}}{\any}
 }
 
-\IRule{TSS5}{
+\IRule[width=20em]{TSS5}{
+    {\HasType{\Env}{\this}{\C}} \\ 
+    {f():\t \in \classoff\C\K} 
+}{
+    \GenCast\K\Env{\Call{\this}\f{}}{\Call{\this}\f{}}{\any}
+}
+
+\IRule{TSS6}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  {\Class \C {\b\fd} {\b{\md}}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
 \end{mathpar}
+\end{minipage}
+}
+
 
 \subsection{TypeScript analytic translation for expressions}
 
 \opdef{$\AnaCast\K\Env\e\ep\t$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
 
+\colorbox[gray]{1}{
+\begin{minipage}{\textwidth}
 \begin{mathpar}
 \IRule{TSA1}{
   \GenCast\K\Env\e\ep\tp \\
-  \K \vdash \tp \Sub \t
+  {\K \vdash \tp \Sub \t}
 }{
   \AnaCast\K\Env\e\ep\t
 }
@@ -2776,32 +2741,74 @@ given method definitions.
   \AnaCast\K\Env\e\ep\any
 }
 \end{mathpar}
+\end{minipage}
+}
 
-\section{Complete translation for Thorn}
 
-% \subsection{Thorn subtyping rules}
+% \subsection{TypeScript synthetic translation for expressions}
 % 
-% \begin{tabular}{l@{~~}l@{}l@{}l}
-% \\
-% \t  &::= ~ \any \B \C \B \dt\C \\
-% \\
-% \end{tabular}
-% 
-% \opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
+% \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
 % 
 % \begin{mathpar}
-% \IRule{THSWeak}{
-%   \ThorSub \M\K\C\D
+% \IRule{TSS1}{\src{\HasType{\Env}\x\t}}{\GenCast{\K}\Env\x\x\t}
+% 
+% \IRule[width=30em]{TSS2}{
+%     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \src{\m(\b{\t_1}):\t_2 \in \classoff\C\K} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 % }{
-%   \ThorSub\M\K{\dt\C}{\dt\D}
+%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
 % }
 % 
-% \IRule{THSLower}{
-%   \ThorSub \M\K\C\D
+% \IRule{TSS3}{
+%     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 % }{
-%   \ThorSub\M\K{\C}{\dt\D}
+%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+% }
+% 
+% \IRule[width=20em]{TSS4}{
+%     \src{\HasType{\Env}\this\C} \\ \src{\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
+% }{
+%     \GenCast\K\Env{\Call{\this}\f{\e}}{\Call{\this}\f{\ep}}{\any}
+% }
+% 
+% \IRule[width=20em]{TSS5}{
+%     \src{\HasType{\Env}{\this}{\C}} \\ 
+%     \src{f():\t \in \classoff\C\K} 
+% }{
+%     \GenCast\K\Env{\Call{\this}\f{}}{\Call{\this}\f{}}{\any}
+% }
+% 
+% \IRule{TSS6}{
+%   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
+%   \src{\Class \C {\b\fd} {\b{\md}}}
+%   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
+% \end{mathpar}
+% 
+% \subsection{TypeScript analytic translation for expressions}
+% 
+% \opdef{$\AnaCast\K\Env\e\ep\t$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
+% 
+% \begin{mathpar}
+% \IRule{TSA1}{
+%   \GenCast\K\Env\e\ep\tp \\
+%   \src{\K \vdash \tp \Sub \t}
+% }{
+%   \AnaCast\K\Env\e\ep\t
+% }
+% 
+% \IRule{TSA2}{
+%   \GenCast\K\Env\e\ep\any
+% }{
+%   \AnaCast\K\Env\e\ep\t
+% }
+% 
+% \IRule{TSA3}{
+%   \GenCast\K\Env\e\ep\C
+% }{
+%   \AnaCast\K\Env\e\ep\any
 % }
 % \end{mathpar}
+
+\section{Complete translation for Thorn}
 
 \subsection{Thorn synthetic translation for expressions}
 
@@ -2972,60 +2979,6 @@ given method definitions.
 
 \section{Complete translation for Typed Racket}
 
-\subsection{Typed Racket cast static and dynamic rules}
-
-\begin{minipage}{0.35\textwidth}
-\begin{mathpar}
-\IRule{WB}{
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\BehCast\t\e}\t
-}
-\end{mathpar}
-\end{minipage}
-\begin{minipage}{0.5\textwidth}
-\begin{tabular}{l@{}l@{~}l@{~}l}
-\CondRule{E11}{  %% Behavioral cast  
-  \behcast \a\t\s\K  \Kp\ap\sp    
-}{    
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
-} \\
-\multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
-\end{tabular}
-\end{minipage}
-
-\begin{figure}[!ht]
-\vspace{-2mm}
-
-{  \small
-  \begin{mathpar}
-\IRule{BC1}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \fresh\ap \\
-  \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
-  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D \\
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-}{
-  \behcast\a\Cp\s\K {\K\,\k}\ap\sp
-}
-
-\IRule{BC2}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \fresh\ap \\
-  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-}{
-  \behcast\a\any\s\K {\K\,\k}\ap\sp
-}
-\end{mathpar}}  
-
-\vspace{-2mm}
-\caption{Behavioural casts.}\label{behaves}
-\end{figure}
-
-
 \subsection{Type Racket translation for program, class, and method}
 
 \opdef{$\progtrans{\e~\K}{\e'~{\K'}}$}{Type Racket translation for programs}
@@ -3105,6 +3058,973 @@ given method definitions.
   \AnaCast\K\Env\e{\BehCast\t{\ep}}\t
 }
 \end{mathpar}
+
+\section{Generative Behavioural Casts}
+
+\subsection{Behavioural cast static and dynamic rules}
+
+\begin{minipage}{0.35\textwidth}
+\begin{mathpar}
+\IRule{WB}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\BehCast\t\e}\t
+}
+\end{mathpar}
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+\begin{tabular}{l@{}l@{~}l@{~}l}
+\CondRule{E11}{  %% Behavioral cast  
+  \behcast \a\t\s\K  \Kp\ap\sp    
+}{    
+  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
+} \\
+\multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
+\end{tabular}
+\end{minipage}
+
+\begin{figure}[!ht]
+\vspace{-2mm}
+
+{  \small
+  \begin{mathpar}
+\IRule{BC1}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \fresh\D \\
+  \fresh\ap \\
+  \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
+  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D \\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+}{
+  \behcast\a\Cp\s\K {\K\,\k}\ap\sp
+}
+
+\IRule{BC2}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \fresh\D \\
+  \fresh\ap \\
+  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+}{
+  \behcast\a\any\s\K {\K\,\k}\ap\sp
+}
+\end{mathpar}}  
+
+\vspace{-2mm}
+\caption{Behavioural casts.}\label{behaves}
+\end{figure}
+
+
+\subsection{Class wrapper for Behavioural semantics}\label{wrap}
+
+The \xt{wrap} function is used by the Type Racket language to generate the wrapper classes
+when encountering typed code.
+
+\opdef{\mt ~~::= \Mtype\m\t\t \B  \Mtype\f\t\t  \B \Mtype\f{}\t 
+}{ method typing
+}
+
+\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
+\vspace{4mm}
+%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\IGNOREUNLESSNEEDED{
+\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+    \wrap\C{\b\md}\bmt\bmtp\D = \\
+\SP \class ~\D ~ \{\\
+\SPP \Fdef\that\C \\
+\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
+&    \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp
+\\
+\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+&    \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp
+\\
+\SPP \Mdef\m\x\t\tp {~\bscast\tp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md ~\wedge~ \Mtype\m\t\tp\in\bmtp \\
+% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp{(\bscast\Cp\x)}\x{\e}{\ep}}
+\\
+\SPP \Mdef\m\x\any\any {~\BehCast\any{\Call\this\m{\bscast{\t}\x}}~}
+&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md ~\wedge~ \Mtype\m\t\tp\in\bmtp\\
+&\multicolumn{5}{l}{~\wedge~\Mdef\m\x\any\any{\e'}\not\in\b\md~\wedge~\t\neq\any}
+\\
+\SPP \Mdef\m\x\t\tp{~\bscast\tp{\Call{\Get\this\that} \m {\x} }~}
+&    \All \m \Mdef\m\x\any\any\e\in\b\md ~\wedge~ \Mtype\m\t\tp\in\bmtp \\
+% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp{(\bscast\any\x)}\x\e{\ep}}
+\\
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
+&    \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp
+\\
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
+&    \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp
+\\
+\SPP \Mdef\m\x{\Cp}{\Cpp} {~\e~}
+&    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md ~\wedge~ \Mtype\m\t\tp\not\in \bmtp \\
+% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
+\\
+\SPP \Mdef\m\x\any\any {~\e~}
+&    \All \m  \Mdef\m\x\any\any\e\in\b\md  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
+% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
+\\
+\SP \}
+\\
+\wrapAny\C\bmd\bmt\D = \\
+\SP \class~\D~\{\\
+\SPP \Fdef \that \C\\ 
+\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
+&  \Mtype\f{}\t \in \bmt\\
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+&  \Mtype\f\t\t \in \bmt\\
+\SPP   \Mdef\m\x\any\any {~\BehCast\any{{\e}}~}
+&  \All \m \Mdef\m\x\t\t\e\in\b\md \\
+% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}{\dyn{\bmt}}{(\BehCast\t\x)}\x{\e}{\ep}}
+\\
+\SP \}\\
+\end{array}\]
+
+
+\subsection{Static function}
+
+The \xt{static} function returns true if the class \D does not (transitively) contain any $\star$ type
+in any of its fields or methods.
+
+\opdef{
+  $\statictype\D\K{\b\C} = \texttt{Bool}$
+}{ static function
+}
+
+\begin{mathpar}
+\IRule{ST1}{ 
+}{ 
+  \statictype\any\K{\b\C} = \texttt{False} 
+}
+
+\IRule{ST2}{ 
+ \D \in {\b\C}
+}{ 
+  \statictype\D\K{\b\C} = \texttt{True} 
+}
+
+\IRule{ST3}{
+  \D ~\text{empty}
+}{ 
+  \statictype\D\K{\b\C} = \texttt{True} 
+}
+
+\IRule{ST4}{
+ \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K \\
+ \sign{\b\md} = \b{\Mtype\m\tp\tpp} \\ 
+ \b\Cp = \b\C, \D
+}{ 
+  \statictype\D\K{\b\C} = \statictype{\b\t}\K{\b\Cp} \cap \statictype{\b\tp}\K{\b\Cp} \cap \statictype{\b\tpp}\K{\b\Cp}
+}
+\end{mathpar}
+\\
+
+\subsection{Wftype function}
+
+The function \wftype{\b\f}\C\K denotes the function that looks up the type of a particular set of fields in \C.
+
+\begin{equation*}
+\wftype{\b\f}\C\K = \b\t ~~\mathit{if}~~ \begin{cases}
+
+ \Class \C {\b{\Ftype\fp\tp}}{\b\md} \in \K\\
+ \b\t = \{ \b\t \subseteq \b\tp ~|~ \forall~ \f \in \b\f ~.~ \f \in \names{\b{\Ftype\fp\tp}} \} \\
+ 
+\end{cases}
+\end{equation*}
+
+\subsection{Mtype function}
+
+The \texttt{mtypes} function takes a class name $\C$ and the class table
+$\K$, and outputs a list of typing signatures $\b\mt$ for every method in
+class $\C$, which includes the implicit getter and setter methods for every
+field in the definition of class $\C$.  (\textbf{Note}: An user cannot
+define a getter or setter method for any field that already exists in the
+class. Similarly, a field cannot be declared in a class that already has a
+getter or setter method for that field. This is enforced by the
+\texttt{overloading} function in class well-formedness.) \\
+
+\begin{equation*}
+\classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
+
+ \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K\\
+ \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\f\t \in \b{\Ftype\f\t} ~|~ \f \notin \names{\b\md} ~\wedge~ \f\neq\that ~.~ \typez{\Ftype\f\t}
+
+\end{cases}
+\end{equation*}
+
+\subsection{getmds function}
+
+The function $\getmds\C\K$ denotes the function that returns the method definitions inside the class \C.
+
+\begin{equation*}
+\getmds\C\K = \b\md ~~\mathit{if}~~ \Class\C{\b{\fd}}{\b\md} \in \K
+\end{equation*}
+
+\subsection{Ftype function}
+
+The function \ftypes\a\C\s\K returns the old references and the new types
+for them according to the new wrapper \C.
+
+\begin{mathpar}
+\IRule{FT1}{
+ \App\s\a=\obj\D{\ap} \\ % we know that a refers to a wrapper with a that field of the wrapped object
+  \App\s\ap =\obj\E{\b\app}  \\ % getting the fields out of ap
+ \Class \E {\b{\Fdef\f\t}}{\b\md} \in\K \\
+ \wftype{\b\f}\C\K =\b\tp
+}{
+  \ftypes \a\C\s\K = \b\app~\b\tp
+}
+\end{mathpar}
+
+
+\subsection{Dynamic function}
+
+The \xt{dyn} function returns all the methods with $\star$ type for a particular set of 
+signatures of method typing.
+
+\begin{mathpar}
+\IRule{DYN1}{
+ \dyn{\b\mt} = \b{\mtp} \\
+}{
+  \dyn{\Mtype{\m}{\t}{\t} ~\,\b\mt} = \Mtype{\m}{\any}{\any}~\,\b\mtp
+}
+
+\IRule{DYN2}{
+ \dyn{\b\mt} = \b{\mtp} \\
+}{
+  \dyn{\Mtype{\f}{\t}{\t} ~\,\b\mt} = \Mtype{\f}{\any}{\any}~\,\b\mtp
+}
+
+\IRule{DYN3}{
+ \dyn{\b\mt} = \b{\mtp} \\
+}{
+  \dyn{\Mtype{\f}{}{\t} ~\,\b\mt} = \Mtype{\f}{}{\any}~\,\b\mtp
+}
+
+\IRule{DYNE}{
+}{
+  \dyn{\cdot} = \cdot
+}
+\end{mathpar}
+
+\subsection{Signature function}
+
+The \xt{signature} function returns method typing signatures ($\mt$) of method definitions ($\md$).
+
+\begin{mathpar}
+\IRule{SGE}{
+}{
+  \sign{\cdot} = \cdot
+}
+
+\IRule{SG1}{
+  \md = \Mdef\m\x\t\t\e \\
+  \sign{\b\md} = \b\mt \\
+}{
+  \sign{\md\,\b\md} = \Mtype\m\t\t~~\b\mt
+}
+
+\IRule{SG2}{
+  \md = \Mdef\f\x\t\t\e \\
+  \sign{\b\md} = \b\mt \\
+}{
+  \sign{\md\,\b\md} = \Mtype\f\t\t~~\b\mt
+}
+
+\IRule{SG3}{
+  \md = \Mdefz\f\t\e \\ 
+  \sign{\b\md} = \b\mt \\
+}{
+  \sign{\md\,\b\md} = \Mtype\f{}\t~~\b\mt
+}
+\end{mathpar}
+
+\subsection{Typing function}
+
+The \xt{typing} function takes field definitions and returns the method typing signature of that field's getter and setter methods. 
+
+\begin{mathpar}
+\IRule{TY1}{
+}{
+  \typez{\Ftype\f\t} = \Mtype\f\t\t~~\Mtype\f{}\t
+}
+\end{mathpar}
+
+\subsection{Names function}
+
+The \xt{Names} function takes either a field definition, method definition, or method typing, and returns the name of the respective
+field/method.
+
+\begin{mathpar}
+\IRule{NE}{
+}{
+\names{\emptyset} = \emptyset
+}
+\end{mathpar}
+
+\opdef{~\names{\b\fd}}{field naming}
+\begin{mathpar}
+\IRule{NF}{
+ \b\x = \f, \names{\b\fd}
+}{
+\names{\Fdef\f\t, \b\fd} = \b\x
+}
+\end{mathpar}
+
+\opdef{~\names{\b\md}}{method naming}
+\begin{mathpar}
+\IRule{NM1}{
+ \b\x = \m, \names{\b\md}
+}{
+\names{\Mdef\m\x\t\t\e, \b\md} = \b\x
+}
+
+\IRule{NM2}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mdef\f\x\t\t\e, \b\md} = \b\x
+}
+
+\IRule{NM3}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mdefz\f\t\e, \b\md} = \b\x
+}
+\end{mathpar}
+
+\opdef{~\names{\b\mt}}{type naming}
+\begin{mathpar}
+\IRule{NMT1}{
+ \b\x = \m, \names{\b\md}
+}{
+\names{\Mtype\m\t\t, \b\mt} = \b\x
+}
+
+\IRule{NMT2}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mtype\f\t\t, \b\mt} = \b\x
+}
+
+\IRule{NMT3}{
+ \b\x = \f, \names{\b\md}
+}{
+\names{\Mtype\f{}\t, \b\mt} = \b\x
+}
+\end{mathpar}
+
+
+
+\clearpage
+
+
+
+\section{Source language syntax and semantics}
+
+\subsection{Syntax}
+
+\begin{figure}[!h]\hrulefill
+
+\hspace{0.1cm}
+\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+\e &::=  \x          &\B \this          \\
+   &\B \New\C{\b\e}  &\B \Get\e\f       &\B \Set\e\f\e   \\
+   &\B \Call\e\m\e   &\B \a \\ 
+\end{tabular}\end{minipage}
+\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}
+\end{tabular}
+\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
+~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}
+
+\hrulefill
+\caption{Source language syntax.}\label{sou-syn}
+\end{figure}
+
+\subsection{Thorn subtyping}
+
+% \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D both hold if \C~\src\Sub~\D
+
+\begin{mathpar}
+\IRule{SWeak}{
+  \ThrSub \M\K\C\D
+}{
+  \ThrSub \M\K{\dt\C}{\dt\D}
+}
+
+\IRule{SLow}{
+  \ThrSub \M\K\C\D
+}{
+  \ThrSub \M\K{\C}{\dt\D}
+}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule{SRef}{
+}{
+ \ThrSub\M\K \t \t
+}
+
+\IRule{SAss}{
+\C \src\Sub \D \in \M
+}{
+ \ThrSub\M\K \C \D
+}
+
+\IRule{SRec}{
+ \M' = \M~\C\src\Sub\D\\
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ThrSub{\M'}\K\mt{\mtp}
+}{
+ \ThrSub\M\K \C \D 
+}
+\end{mathpar}
+
+\begin{mathpar}
+\IRule{SMet}{
+  \ThrSub \M\K {\t[1]} {\t[2]} \\
+  \ThrSub \M\K {\tp[2]} {\tp[1]}
+}{
+ \ThrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+}
+
+\IRule{SGet}{
+  \ThrSub \M\K {\t[1]} {\t[2]}
+}{
+ \ThrSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
+}
+
+\IRule{SSet}{
+  \ThrSub \M\K {\t[1]} {\t[2]}
+}{
+ \ThrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
+}
+\end{mathpar}
+
+\subsection{Thorn well-formedness}
+
+\opdef{~\WFpW{\e}{\K}}{Well-formed program}
+
+\begin{mathpar}
+\IRule{WP}{
+  \k \in \K \implies \WFW{}\cdot\K\k \\
+  \EnvTypeW\Env\cdot\K\e\t
+}{
+  \WFpW\e\K
+}
+\end{mathpar}
+
+\opdef{\WFW{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
+
+\begin{mathpar}
+\IRule{WC}{
+ \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
+ \fd\in\b\fd\implies \WFW {}{}\K \fd \\
+ \md\in\b\md\implies \WFW {\text{this}:\C~}\s\K \md 
+}{
+ \WFW {}\s\K {\Class \C {\b\fd}{\b\md}}
+}
+\end{mathpar}
+
+\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
+\begin{mathpar}
+\IRule[width=18em]{WT}{
+ \EnvTypeW {\Env{~\Ftype\x\C}~}\s\K\e\D\\
+ \WFtypeW\K\C \\
+ \WFtypeW\K\D \\
+}{
+ \WFW \Env\s\K {\Mdef\m\x\C\D\e}
+}
+
+\IRule[width=18em]{WWT}{
+ \EnvTypeW {\Env{~\Ftype\x\CW}~}\s\K\e\DW\\
+ \WFtypeW\K\CW \\
+ \WFtypeW\K\DW \\
+}{
+ \WFW \Env\s\K {\Mdef\m\x\CW\DW\e}
+}
+
+\IRule[width=18em]{WU}{
+ \EnvTypeW {\Env~\Ftype\x\any~}\s\K \e\any\\
+}{
+ \WFW \Env\s\K{\Mdef\m\x\any\any\e}
+}
+
+\IRule{WS}{
+ \EnvTypeW {\Env{~\Ftype\x\tp}~}\s\K \e\t \\
+ \WFtypeW \K\t 
+}{
+ \WFW  \Env\s\K {\Mdef\f\x\t\t\e}
+}
+
+\IRule{WG}{
+ \EnvTypeW \Env\s\K\e\t \\
+ \WFtypeW \K\t
+}{
+ \WFW \Env\s\K {\Mdefz\f\t\e}
+}
+\end{mathpar}
+
+\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
+\begin{mathpar}
+\IRule{WF}{
+ \WFtypeW\K\t 
+}{
+ \WFtypeW\K{\Fdef\f\t}
+}
+\end{mathpar}
+
+\opdef{~\WFtypeW\K\t}{Well-formed types}
+\begin{mathpar}
+\IRule{WA}{
+}{
+ \WFtypeW\K\any
+}
+
+\IRule{WC}{
+ \C \in \K
+}{
+ \WFtypeW\K\C
+}
+
+\IRule{WW}{
+ \C \in \K
+}{
+ \WFtypeW\K{\CW}
+}
+\end{mathpar}
+
+\subsection{Thorn expression typing}
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\begin{mathpar}
+
+\IRule{TW1}{
+   \HasType \Env\x\t
+ }{
+   \EnvTypeW \Env\s\K\x\t
+}
+
+\IRule{TW2}{
+ }{
+   \EnvTypeW \Env\s\K\a\any
+}
+
+\IRule{TW3}{
+  \EnvTypeW \Env\s\K\e\tp \\
+ \ThrSub \M\K \tp \t
+ }{
+  \EnvTypeW \Env\s\K\e\t 
+}   
+
+\IRule{TW4}{
+  \EnvTypeW \Env\s\K\e\C \\
+  \Mtype \f{}\tp \in \classoff\C\K
+}{
+  \EnvTypeW \Env\s\K{\Get\e\f}\tp
+}    
+
+\IRule{TW5}{
+  \EnvTypeW \Env\s\K\e\C \\
+  \Mtype \f\tp\tp \in \classoff\C\K  \\
+  \EnvTypeW \Env\s\K\ep\tp
+}{
+  \EnvTypeW \Env\s\K{\Set\e\f\ep}\tp
+}    
+
+\IRule{TW6}{
+  \EnvTypeW \Env\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
+  \EnvTypeW \Env\s\K\ep\tp
+}{
+  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{TW7}{
+ \EnvTypeW \Env\s\K{\e_1}{\t_1}~~\dots~~ 
+ \EnvTypeW \Env\s\K{\e_n}{\t_n}\ \\ 
+ \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
+  \Class \C {\b\fd}{\b\md} \in \K
+}{
+  \EnvTypeW \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+}
+
+\IRule{TW8}{
+  \s(\a) = \obj\C{\b\ap}
+}{
+  \EnvTypeW \Env\s\K\a\C
+}
+\end{mathpar}
+
+
+\section{Proofs of Related Theorems}
+
+\subsection{Accessory Lemmas}
+
+\paragraph{Evaluation Extends Class Tables}
+
+If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
+
+\paragraph{Weakening of Expression Typing}
+
+If $\EnvType\Env\s\K\e\t$ then $\EnvType{\Env~\Envp}\s\K\e\t$. \\ 
+If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env{\s~\s'}\K\e\t$. \\ 
+If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env\s{\K~\Kp}\e\t$. \\ 
+
+\paragraph{Weakening of Well-formedness}
+
+If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$. \\
+If $\WF\Env\s\K\md$ then $\WF{\Env~\Envp}\s\K\md$.\\
+If $\WF\Env\s\K\md$ then $\WF\Env{\s~\s'}\K\md$.\\
+If $\WF\Env\s\K\md$ then $\WF\Env\s{\K~\Kp}\md$.\\
+If $\WFtype\K{\Fdef\f\t}$ then $\WFtype{\K~\Kp}{\Fdef\f\t}$.\\
+If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$.\\
+
+\paragraph{Weakening of Subtyping}
+
+If $\StrSub\M{\K}\t\tp$ then $\StrSub\M{\K~\Kp}\t\tp$. \\
+If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
+
+\paragraph{Weakening of $\xt{mtypes}$}
+
+If $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.\\
+If $\Mtype\f{}\t \in \classoff\C\K$, then $\Mtype\f{}\t \in \classoff\C{\K~\Kp}$, for some $\Kp$.
+
+\paragraph{Substitution}
+
+If $\EnvType{\b{\HT\x\tp}}\s\K\e\t$ and $\b{\EnvType\cdot\s\K\a\tp}$, then $\EnvType\cdot\s\K{[\a/\x]\e}\t$
+
+\paragraph{Correctness of \classoff{\C}{\K}}
+
+If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
+If $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
+If $\Mtype\f{}\tp \in \classoff{\C}{\K}$ and $\EnvType\cdot\s\K\a\C$, 
+then $\Reduce \K{\Call\a\f{}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+
+\paragraph{Canonical forms}
+
+If $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\a\C$, then $\s[\a\mapsto{\obj\C{\b\a}}]$.
+
+\paragraph{Evaluation retains typing} \label{lem:ert}
+
+If $\EnvType\cdot\s\K\e\t$, $\EnvType\cdot\s\K\ep\tp$, and $\WFp\K{\ep~\s}$, then if $\Reduce\K\ep\s\Kp\epp\sp$, it follows that $\EnvType\cdot\sp\Kp\e\t$ and $\Kp = \K~\Kpp$.
+
+\subsection{Reduction preserves Well-formedness}
+
+If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$. 
+
+\subsection{Consistent Class Table}
+
+If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\wedge~\WF\cdot\s\K{\b\md}$
+
+\subsection{Correctness of $\xt{wrap}$}
+
+If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
+
+\subsection{Type Soundness of Core \kafka Typing}
+
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+or $\e$ is stuck in one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\EE[\DynCall\a\m{\ap}]$
+\item $\EE[\SubCast\tp\a]$
+\item $\EE[\ShaCast\tp\a]$
+\end{itemize}
+
+We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
+Note that we refer to rule preconditions from left to right.
+
+\begin{itemize}
+  \item \RuleRef{W1}
+        Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
+  \item \RuleRef{W2}
+
+        We apply the IH to the first precondition. If we get stuck in the IH, then the entire
+        expression gets stuck or terminates, trivially. Therefore, the interesting case is when
+        $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. Since, by the
+        second precondition, we know that $\StrSub \M\K \tp \t$, it follows by weakening of subtyping $\StrSub\M\Kp\tp\t$.
+        We can then apply \RuleRef{W2} to find that $\EnvType\cdot\sp\Kp\ep\t$, and therefore $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\t$, and the theorem holds.
+  \item \RuleRef{W3}
+
+        We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
+
+        If $\e$ steps to some $\ep$, and since we know that $\Mtype\f{}\tp \in \classoff{\C}{\K}$, we can then apply \RuleRef{W3} via weakening of $\xt{mtypes}$.
+
+        If $\e$ is a value $\a$, then we apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f{}}\s\K\ep\s$ for some $\ep$, and that $\EnvType\cdot\s\K\ep\t$. Therefore, the theorem holds.
+
+        If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
+  \item \RuleRef{W4}
+
+      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
+      \begin{itemize}
+        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{W4} to find that $\EnvType\cdot\sp\Kp{\Call\epp\f\ep}\tp$.
+        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
+        \begin{itemize}
+          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. Then, $\Reduce\K{\Call\a\f\ep}\s\Kp{\Call\a\f\epp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{W4} to conclude that $\EnvType\cdot\sp\Kp{\Call\a\f\epp}\tp$.
+          \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f\ap}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
+          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \Call\a\f{\EE[\epp]}$, which is stuck.
+        \end{itemize}
+        \item If $\e$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \Call{\EE[\epp]}\f\ep$, which is stuck.
+      \end{itemize}
+  \item \RuleRef{W5}
+
+      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
+      \begin{itemize}
+        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{W5} to find that $\EnvType\cdot\sp\Kp{\KCall\epp\m\ep\t\tp}\tp$.
+        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
+        \begin{itemize}
+          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{W5} to conclude that $\EnvType\cdot\sp\Kp{\KCall\a\m\epp\t\tp}\tp$.
+          \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\KCall\a\m\ap\t\tp}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
+          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall\a\m{\EE[\epp]}\t\tp$, which is stuck.
+        \end{itemize}
+        \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall{\EE[\epp]}\m{\ep}\t\tp$, which is stuck.
+      \end{itemize}
+  
+  \item \RuleRef{W6}
+  
+      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$, then case analyze.
+      \begin{itemize}
+        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\any$, and apply \RuleRef{W6} to find that $\EnvType\cdot\sp\Kp{\DynCall\epp\m\ep}\any$.
+        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. 
+        \begin{itemize}
+          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\any$, then use \RuleRef{W6} to conclude that $\EnvType\cdot\sp\Kp{\DynCall\a\m\epp}\any$.
+          \item $\e' = \ap$. If $\sigma(a) = \C\{\b{\app}\}$, and if $\Mdef\m\x\any\any\e \in \K(\C)$, then $\Reduce\K{\DynCall\a\m\ap}\s\K{[\a/\this ~ \ap/\x]\e}\any$, by the definition of evaluation. Then, since $\WFp\K{\e~\s}$, it follows that $\WFq\C$, and then that $\EnvType{\HT{\this}{\C}~\HT{\x}{\any}}\s\K\e\any$. Then, since we have that $\EnvType\cdot\s\K\a\C$ (by application of \RuleRef{W10}), and that $\EnvType\cdot\s\K\ep\any$, we can use the substitution lemma to find that $\EnvType\cdot\s\K{[\a/\this ~ \ap/\x]\e}\any$, and the theorem holds.
+
+
+          If the precondition does not apply, and $\C$ does not contain $\m$ under type $\any$, then the expression gets stuck, and the theorem holds.
+          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall\a\m{\EE[\epp]}$, which is stuck.
+        \end{itemize}
+        \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall{\EE[\epp]}\m{\ep}$, which is stuck.
+      \end{itemize}
+      
+  \item \RuleRef{W7}
+  
+  We apply the IH to the preconditions $\e_{1} \cdots \e_{n}$, finding that either $\e_{i}$ is a value $\a$, $\e_{i}$ is a stuck state, 
+  or $\Reduce\K{\e_i}\s\Kp{\ep_i}\sp$, $\WFp\Kp{\ep_i~\sp}$, and $\EnvType\cdot\sp\Kp{\ep_i}\C_i$, then case analyze.
+    
+  \begin{enumerate}
+   \item $\EnvType\cdot\s\K{\New\C{\e_1\dots\e_n}}\C$ 
+   \item $\WFp\K{\e~\s}$  by case  
+   \item $\Class \C {\b\fd}{\b\md} \in \K$  
+   \item $\EnvType \cdot\s\K{\e_1}{\t_1}\dots \EnvType \cdot\s\K{\e_n}{\t_n}$
+   \item $\b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}$ by inversion lemma on (1)
+   \item $\EnvType \cdot\s\K{\a_1}{\t_1}\dots \EnvType \dot\s\K{\a_n}{\t_n}$ by Inductive hypo on (2)
+   \item $\Kp~{\New\C{\b\a}~\s}$ by Inductive hypo and (6)
+   \item $\Kp=\K$
+   \item $\sp=\Map\s{\Bind\ap{\obj\C{\b\a}}}$
+   \item $\ap$ fresh
+   \item $\ep=\ap$ by semantics on (7)
+   \item $\EnvType \cdot\sp\Kp{\ap}{\C}$ by W10 on (8) and (9)
+   \item $\k \in \K \implies \WF{}\cdot\K\k$ by (2)
+   \item $\WFtype{\K}\s$ by premise of WF (2)
+   \item $\WFtype{\K}\sp$ by (14), (2), (4)
+   \item $\WFtype{\Kp}\sp$ by (15), (8)
+   \item $\WFp\Kp{\ap~\sp}$ by (13), (8), (16), (12)
+   \item done by (17) and (12)
+  \end{enumerate}
+
+  \item \RuleRef{W8}
+  
+      Apply the IH to the precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$. If it gets stuck at one of the three stuck states, or steps to a new expression, then the case is trivial.
+
+      Consider the $\a$ case. Case analyze on $\t$:
+      \begin{itemize}
+        \item $\t = \any$. Trivially, $\Reduce\K{\SubCast\t\a}\s \K\a\s$.
+        \item $\t = \C$. Define $\D$ such that $\sigma(\a) = \D\{\b{\ap}\}$. Case analyze on if $\StrSub \M\K \D \C$.
+        \begin{itemize}
+          \item If $\StrSub \M\K \D \C$, then $\Reduce\K{\SubCast\t\a}\s \K\a\s$. Moreover, $\HasType\cdot\K\s\a\t$, via \RuleRef{W2} and \RuleRef{W10}.
+          \item Otherwise, $\SubCast\t\a$ is stuck, and the theorem holds.
+        \end{itemize}
+      \end{itemize}
+  
+  \item \RuleRef{W9}
+  
+      Trivial, as $\e=\a$.
+  
+  \item \RuleRef{W10}
+  
+      Trivial, as $\e=\a$.
+
+  
+\end{itemize}
+
+
+\subsection{Type Soundness of \kafka Behavioral Cast}
+
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+or $\e$ is stuck in one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\EE[\DynCall\a\m{\ap}]$
+\item $\EE[\SubCast\tp\a]$
+\item $\EE[\ShaCast\tp\a]$
+\end{itemize}
+
+Note that the majority of the proof is identical to that seen in the above proof
+for soundness of the \kafka core, and is therefore elided. We will only cover
+the case for the \kafka behavioural cast, \RuleRef{WB1}.
+
+\begin{proofy}
+\stepp[base] $\EnvType\cdot\s\K\e\tp$ \basis By assumption.
+\stepp[progform] $\WFp \K{\e~\s}$ \basis By assumption
+\stepp[inpswf] $\WFq \s$ \basis By inversion of \refby{progform}
+\stepp Apply IH to \refby{base} and case analyze.
+\begin{casel}
+  \caseof{ \begin{iknown}
+    \stepp[kred] $\Reduce\K\e\s\Kp\ep\sp$
+    \stepp[kbase] $\WFp\Kp{\ep~\sp}$
+    \stepp $\EnvType\cdot\sp\Kp\ep\tp$
+    \end{iknown}} 
+  \begin{proofy}
+  \stepp $\Reduce\K{\BehCast{\t}{\e}}\s\Kp{\BehCast{\t}{\ep}}\sp$ \basis By defn. of evaluation environments on \refby{kred}
+  \stepp[ktype] $\EnvType\cdot\sp\Kp{\BehCast\t\ep}\t$ \basis By \RuleRef{WB1}
+  \stepp $\WFp\Kp{\ep~\sp}$ \basis By \refby{kbase, ktype}
+  \end{proofy}
+  \caseof{$\e$ is stuck in one of the allowed stuck states $\EE[\ep]$}
+  \begin{proofy}
+    \stepp $\BehCast\t\e = \EE'[\ep]$ \basis By case analysis and defn. of $\EE$.
+    \stepp $\EE'[\ep]$ stuck \basis As $\ep$ stuck.
+  \end{proofy}
+  \caseof{$\e = \a$}
+  \begin{proofy}
+    \stepp Let $\C$ and $\b{\ap}$ be such that $\s(\a) = \C\{\b\ap\}$
+    \stepp Case analyze on $\t$.
+    \begin{casel}
+      \caseof{$\t = \Cp$}
+      \begin{proofy}
+        \stepp Let $\D$ be fresh.
+        \stepp Let $\ap$ be fresh.
+        \stepp[wcorr] Let $\k$ be $\k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D$.
+        \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
+        \stepp[b2] $\EnvType\cdot{\K\k}\sp\ap\D$ \basis \RuleRef{W9}
+        \stepp[b1] $\StrSub\cdot{\K\k}\D\Cp$ \basis correctness of $\xt{wrap}$ on \refby{wcorr}
+        \stepp[wth] $\EnvType\cdot{\K\k}\sp\ap\Cp$ \basis \RuleRef{W2} on \refby{b1,b2}
+        \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{wth, inpswf}
+      \end{proofy}
+      \caseof{$\t = \any$}
+      \begin{proofy}
+        \stepp Let $\D$ be fresh.
+        \stepp Let $\ap$ be fresh.
+        \stepp[wcorr2] Let $\k$ be $\k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D$.
+        \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
+        \stepp[b21] $\EnvType\cdot{\K\k}\sp\ap\any$ \basis \RuleRef{W10}
+        \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{b21,wcorr2}
+      \end{proofy}
+    \end{casel}
+  \end{proofy}
+\end{casel}
+\end{proofy}
+
+\subsection{Wrap function creates well-formed classes}
+
+  \begin{theorem}{Wrap function creates well-formed classes}{WFun-WFC}
+  
+  \begin{conds}
+   \cond{\WFq{\K~\e~\s}}\lbl{cond1}
+   \cond{\names{\classoff\Cp\K} $\subseteq$ \names{\classoff\C\K}}\lbl{cond2}
+   \cond{\fresh\D}\lbl{cond3}
+   \cond{k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond4}
+  \end{conds}
+  
+  \then\axiom{\WF{}\s\K{\k}}
+  
+    \begin{proof} \innat
+    
+%       \begin{case}{R-Field}
+% 	\begin{steps}{\bydef{R-Field}{\trf{cond3}}}
+	  \step{asdf}\lbl{A1}
+	  \step{asdf}\lbl{A2}
+	  \step{\C$'$ = \C}\lbl{A3}
+% 	\end{steps}
+%       \end{case}
+    \end{proof}
+   \end{theorem}
+
+
+\subsection{Type Soundness of Transient Translation}
+
+\end{document}
+
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
+
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
+
+%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
+%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
+%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
+%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
+%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
+%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
+%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
+
+
+\subsection{behavioral}
+
+% \subsection{Expression translation for Behavioural semantics}\label{behtrans}
+% 
+% \opdef{$\rtranst{\b{\mt}}{\b{\mtp}}\e\x\e\ep $}{Behavioral dynamic expression translation}
+% 
+% \begin{mathpar}
+% \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
+% 
+% \IRule{REW2}{ \x \neq \x' }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\x'}{\x'} }
+% \\
+% \IRule[width=25em]{REW4}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\C_2}}{\Cp_2} \in \b{\mtp} \\
+% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\ep}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\KCall{\this}\m{{\BehCast{\C_2}{\epp}}}{\C_2}{\Cp_2}}}}
+% \\
+% \IRule[width=25em]{REW5}{ \Mtype\f{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{{\t_2}}{\tp_2} \in \b{\mtp} \\ 
+% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\ep}}{\BehCast{\tp_1}{\Call{\this}\f{{\BehCast{\t_2}{\epp}}}}}}
+% \\
+% \IRule[width=25em]{REW6}{ \Mtype\f{}{\tp_1} \in \b{\mt} \\ \Mtype\f{}{\tp_2} \in \b{\mtp}}
+% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{}}{\BehCast{\tp_1}{\Call{\this}\f{}}}}
+% \\
+% \IRule[width=18em]{REW7}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
+% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\DynCall{\this}\m{{\BehCast{\any}{\ep}}}}}}
+% 
+% \IRule[width=25em]{REW8}{ \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
+% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\b\e}}{{\Call{\this}\f{\b{{\ep}}}}}}
+% 
+% \IRule[width=25em]{REW9}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
+% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t_1}{\tp[1]}}{{\KCall{\this}\m{{{\ep}}}{\t_1}{\tp[1]}}}}
+% 
+% \IRule[width=20em]{REW10}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\f{\b{\ep_1}}}{\Call{\e_2}\f{\b{\ep_2}}}}
+% 
+% \IRule[width=20em]{REW11}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\e_1}\m{\b{\ep_1}}{\t}{\tp}}{\KCall{\e_2}\m{\b{\ep_2}}{\t}{\tp}}}
+% 
+% \IRule{REW12}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
+% 
+% \IRule{REW12}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
+% \end{mathpar}
+
+% \vspace{-2mm}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \hrulefill
+% \caption{.}\label{behtrans}
+% \end{figure}
+
+% \clearpage
+
+\subsection{monotonic}
 
 % 
 % \section{Complete translation for Monotonic}
@@ -3239,127 +4159,6 @@ given method definitions.
 % }
 % \end{mathpar}
 
-\section{Generative Behavioural Casts}
-
-% \subsection{Expression translation for Behavioural semantics}\label{behtrans}
-% 
-% \opdef{$\rtranst{\b{\mt}}{\b{\mtp}}\e\x\e\ep $}{Behavioral dynamic expression translation}
-% 
-% \begin{mathpar}
-% \IRule{REW1}{ }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x\x{[\e/\x]\x} }
-% 
-% \IRule{REW2}{ \x \neq \x' }{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\x'}{\x'} }
-% \\
-% \IRule[width=25em]{REW4}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\C_2}}{\Cp_2} \in \b{\mtp} \\
-% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\ep}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\KCall{\this}\m{{\BehCast{\C_2}{\epp}}}{\C_2}{\Cp_2}}}}
-% \\
-% \IRule[width=25em]{REW5}{ \Mtype\f{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{{\t_2}}{\tp_2} \in \b{\mtp} \\ 
-% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep}{\epp}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\ep}}{\BehCast{\tp_1}{\Call{\this}\f{{\BehCast{\t_2}{\epp}}}}}}
-% \\
-% \IRule[width=25em]{REW6}{ \Mtype\f{}{\tp_1} \in \b{\mt} \\ \Mtype\f{}{\tp_2} \in \b{\mtp}}
-% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{}}{\BehCast{\tp_1}{\Call{\this}\f{}}}}
-% \\
-% \IRule[width=18em]{REW7}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\any}}{\any} \in \b{\mtp} \\ 
-% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t[1]}{\tp[1]}}{\BehCast{\tp_1}{\DynCall{\this}\m{{\BehCast{\any}{\ep}}}}}}
-% 
-% \IRule[width=25em]{REW8}{ \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\f{\b{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
-% \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\this}\f{\b\e}}{{\Call{\this}\f{\b{{\ep}}}}}}
-% 
-% \IRule[width=25em]{REW9}{ \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mtp}  \\ 
-% {\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\this}\m{\e}{\t_1}{\tp[1]}}{{\KCall{\this}\m{{{\ep}}}{\t_1}{\tp[1]}}}}
-% 
-% \IRule[width=20em]{REW10}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\Call{\e_1}\f{\b{\ep_1}}}{\Call{\e_2}\f{\b{\ep_2}}}}
-% 
-% \IRule[width=20em]{REW11}{ \e_1 \neq \this \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\KCall{\e_1}\m{\b{\ep_1}}{\t}{\tp}}{\KCall{\e_2}\m{\b{\ep_2}}{\t}{\tp}}}
-% 
-% \IRule{REW12}{ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e_1}{\e_2} \\ \rtranst{\b{\mt}}{\b{\mtp}}\e\x{\ep_1}{\ep_2}}{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}}
-% 
-% \IRule{REW12}{ \b{\rtranst{\b{\mt}}{\b{\mtp}}\e\x{\e}{\ep}} }{\rtranst{\b\mt}{\b\mtp}\e\x{\New\C{\b\e}}{\New\C{\b\ep}}}
-% \end{mathpar}
-
-% \vspace{-2mm}
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \hrulefill
-% \caption{.}\label{behtrans}
-% \end{figure}
-
-% \clearpage
-
-\subsection{Class wrapper for Behavioural semantics}\label{wrap}
-
-The \xt{wrap} function is used by the Type Racket language to generate the wrapper classes
-when encountering typed code.
-
-% \begin{figure}[!ht]
-% \hrulefill 
-\scriptsize
-\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
-\vspace{4mm}
-%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\IGNOREUNLESSNEEDED{
-\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C{\b\md}\bmt\bmtp\D = \\
-\SP \class ~\D ~ \{\\
-\SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
-&    \Mtype\f{}\t\in\bmt &\wedge& \Mtype\f{}\tp \in \bmtp
-\\
-\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that}\f{\bscast\t\x}}~}
-&    \Mtype\f\t\t \in \bmt &\wedge& \Mtype\f\tp\tp \in \bmtp
-\\
-\SPP \Mdef\m\x\t\tp {~\bscast\tp{{\ep}}~}
-&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp{(\bscast\Cp\x)}\x{\e}{\ep}}
-\\
-\SPP \Mdef\m\x\any\any {~\BehCast\any{\Call\this\m{\bscast{\t}\x}}~}
-&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp\\
-&\multicolumn{5}{l}{~\wedge~\Mdef\m\x\any\any{\e'}\not\in\b\md~\wedge~\t\neq\any}
-\\
-\SPP \Mdef\m\x\t\tp{~\bscast\tp{\ep}~}
-&    \All \m \Mdef\m\x\any\any\e\in\b\md &\wedge& \Mtype\m\t\tp\in\bmtp \\
-&\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp{(\bscast\any\x)}\x\e{\ep}}
-\\
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
-&    \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \not\in \bmtp
-\\
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
-&    \Mtype\f\t\t \in \bmt&\wedge& \Mtype\f\tp\tp \not\in \bmtp
-\\
-\SPP \Mdef\m\x{\Cp}{\Cpp} {~\ep~}
-&    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md &\wedge& \Mtype\m\t\tp\not\in \bmtp \\
-&\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
-\\
-\SPP \Mdef\m\x\any\any {~\ep~}
-&    \All \m  \Mdef\m\x\any\any\e\in\b\md  &\wedge& \Mtype\m\t\tp\not\in\bmtp \\
-&\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
-\\
-\SP \}
-\\
-\wrapAny\C\bmd\bmt\D = \\
-\SP \class~\D~\{\\
-\SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
-&  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
-&  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\BehCast\any{{\ep}}~}
-&  \All \m \Mdef\m\x\t\t\e\in\b\md \\
-&\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}{\dyn{\bmt}}{(\BehCast\t\x)}\x{\e}{\ep}}
-\\
-\SP \}\\
-\end{array}\]
-%}%%END IGNORE
-%   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
-% TODO: untyped(mt)
-% \hrulefill
-% %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   \caption{Wrapper class generation.}\label{wrap}
-% \end{figure}
-
-% \clearpage
-% 
-% \normalsize
-% 
 % \section{Generative Monotone Casts}
 % 
 % \subsection{Retype function}\label{retype}
@@ -3732,420 +4531,9 @@ when encountering typed code.
 % }
 % \end{mathpar}
 % 
-\subsection{Static function}
 
-The \xt{static} function returns true if the class \D does not (transitively) contain any $\star$ type
-in any of its fields or methods.
+\subsection{monotonic examples in RP}
 
-\opdef{
-  $\statictype\D\K{\b\C} = \texttt{Bool}$
-}{
-}
-
-\begin{mathpar}
-\IRule{ST1}{ 
-}{ 
-  \statictype\any\K{\b\C} = \texttt{False} 
-}
-
-\IRule{ST2}{ 
- \D \in {\b\C}
-}{ 
-  \statictype\D\K{\b\C} = \texttt{True} 
-}
-
-\IRule{ST3}{
-  \D ~\text{empty}
-}{ 
-  \statictype\D\K{\b\C} = \texttt{True} 
-}
-
-\IRule{ST4}{
- \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K \\
- \sign{\b\md} = \b{\Mtype\m\tp\tpp} \\ 
- \b\Cp = \b\C, \D
-}{ 
-  \statictype\D\K{\b\C} = \statictype{\b\t}\K{\b\Cp} \cap \statictype{\b\tp}\K{\b\Cp} \cap \statictype{\b\tpp}\K{\b\Cp}
-}
-\end{mathpar}
-\\
-
-\subsection{Wftype function}
-
-The function \wftype{\b\f}\C\K denotes the function that looks up the type of a particular set of fields in \C.
-
-\begin{equation*}
-\wftype{\b\f}\C\K = \b\t ~~\mathit{if}~~ \begin{cases}
-
- \Class \C {\b{\Ftype\fp\tp}}{\b\md} \in \K\\
- \b\t = \{ \b\t \subseteq \b\tp ~|~ \forall~ \f \in \b\f ~.~ \f \in \names{\b{\Ftype\fp\tp}} \} \\
- 
-\end{cases}
-\end{equation*}
-
-\subsection{Mtype function}
-
-The \texttt{mtypes} function takes a class name $\C$ and the class table
-$\K$, and outputs a list of typing signatures $\b\mt$ for every method in
-class $\C$, which includes the implicit getter and setter methods for every
-field in the definition of class $\C$.  (\textbf{Note}: An user cannot
-define a getter or setter method for any field that already exists in the
-class. Similarly, a field cannot be declared in a class that already has a
-getter or setter method for that field. This is enforced by the
-\texttt{overloading} function in class well-formedness.)
-
-\begin{equation*}
-\classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
-
- \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K\\
- \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\f\t \in \b{\Ftype\f\t} ~|~ \f \notin \names{\b\md} ~\wedge~ \f\neq\that ~.~ \typez{\Ftype\f\t}
-
-\end{cases}
-\end{equation*}
-
-\subsection{getmds function}
-
-The function $\getmds\C\K$ denotes the function that returns the method definitions inside the class \C.
-
-\begin{equation*}
-\getmds\C\K = \b\md ~~\mathit{if}~~ \Class\C{\b{\fd}}{\b\md} \in \K
-\end{equation*}
-
-\subsection{Ftype function}
-
-The function \ftypes\a\C\s\K returns the old references and the new types
-for them according to the new wrapper \C.
-
-\begin{mathpar}
-\IRule{FT1}{
- \App\s\a=\obj\D{\ap} \\ % we know that a refers to a wrapper with a that field of the wrapped object
-  \App\s\ap =\obj\E{\b\app}  \\ % getting the fields out of ap
- \Class \E {\b{\Fdef\f\t}}{\b\md} \in\K \\
- \wftype{\b\f}\C\K =\b\tp
-}{
-  \ftypes \a\C\s\K = \b\app~\b\tp
-}
-\end{mathpar}
-
-
-\subsection{Dynamic function}
-
-The \xt{dyn} function returns all the methods with $\star$ type for a particular set of 
-signatures of method typing.
-
-\begin{mathpar}
-\IRule{DYN1}{
- \dyn{\b\mt} = \b{\mtp} \\
-}{
-  \dyn{\Mtype{\m}{\t}{\t} ~\,\b\mt} = \Mtype{\m}{\any}{\any}~\,\b\mtp
-}
-
-\IRule{DYN2}{
- \dyn{\b\mt} = \b{\mtp} \\
-}{
-  \dyn{\Mtype{\f}{\t}{\t} ~\,\b\mt} = \Mtype{\f}{\any}{\any}~\,\b\mtp
-}
-
-\IRule{DYN3}{
- \dyn{\b\mt} = \b{\mtp} \\
-}{
-  \dyn{\Mtype{\f}{}{\t} ~\,\b\mt} = \Mtype{\f}{}{\any}~\,\b\mtp
-}
-
-\IRule{DYNE}{
-}{
-  \dyn{\cdot} = \cdot
-}
-\end{mathpar}
-
-\subsection{Signature function}
-
-The \xt{signature} function returns method typing signatures ($\mt$) of method definitions ($\md$).
-
-\begin{mathpar}
-\IRule{SGE}{
-}{
-  \sign{\cdot} = \cdot
-}
-
-\IRule{SG1}{
-  \md = \Mdef\m\x\t\t\e \\
-  \sign{\b\md} = \b\mt \\
-}{
-  \sign{\md\,\b\md} = \Mtype\m\t\t~~\b\mt
-}
-
-\IRule{SG2}{
-  \md = \Mdef\f\x\t\t\e \\
-  \sign{\b\md} = \b\mt \\
-}{
-  \sign{\md\,\b\md} = \Mtype\f\t\t~~\b\mt
-}
-
-\IRule{SG3}{
-  \md = \Mdefz\f\t\e \\ 
-  \sign{\b\md} = \b\mt \\
-}{
-  \sign{\md\,\b\md} = \Mtype\f{}\t~~\b\mt
-}
-\end{mathpar}
-
-\subsection{Typing function}
-
-The \xt{typing} function takes field definitions and returns the method typing signature of that field's getter and setter methods. 
-
-\begin{mathpar}
-\IRule{TY1}{
-}{
-  \typez{\Ftype\f\t} = \Mtype\f\t\t~~\Mtype\f{}\t
-}
-\end{mathpar}
-
-%\clearpage
-
-\section{Source language syntax and semantics}
-
-\subsection{Syntax}
-
-\begin{figure}[!h]\hrulefill
-
-\hspace{0.1cm}
-\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
-\e &::=  \x          &\B \this          \\
-   &\B \New\C{\b\e}  &\B \Get\e\f       &\B \Set\e\f\e   \\
-   &\B \Call\e\m\e   &\B \a \\ 
-\end{tabular}\end{minipage}
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
-~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage}
-
-\hrulefill
-\caption{Source language syntax.}\label{sou-syn}
-\end{figure}
-
-\subsection{Thorn subtyping}
-
-% \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D both hold if \C~\src\Sub~\D
-
-\begin{mathpar}
-\IRule{SWeak}{
-  \ThrSub \M\K\C\D
-}{
-  \ThrSub \M\K{\dt\C}{\dt\D}
-}
-
-\IRule{SLow}{
-  \ThrSub \M\K\C\D
-}{
-  \ThrSub \M\K{\C}{\dt\D}
-}
-\end{mathpar}
-
-\begin{mathpar}
-\IRule{SRef}{
-}{
- \ThrSub\M\K \t \t
-}
-
-\IRule{SAss}{
-\C \src\Sub \D \in \M
-}{
- \ThrSub\M\K \C \D
-}
-
-\IRule{SRec}{
- \M' = \M~\C\src\Sub\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ThrSub{\M'}\K\mt{\mtp}
-}{
- \ThrSub\M\K \C \D 
-}
-\end{mathpar}
-
-\begin{mathpar}
-\IRule{SMet}{
-  \ThrSub \M\K {\t[1]} {\t[2]} \\
-  \ThrSub \M\K {\tp[2]} {\tp[1]}
-}{
- \ThrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-
-\IRule{SGet}{
-  \ThrSub \M\K {\t[1]} {\t[2]}
-}{
- \ThrSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
-}
-
-\IRule{SSet}{
-  \ThrSub \M\K {\t[1]} {\t[2]}
-}{
- \ThrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
-}
-\end{mathpar}
-
-\subsection{Thorn well-formedness}
-
-\opdef{~\WFpW{\e}{\K}}{Well-formed program}
-
-\begin{mathpar}
-\IRule{WP}{
-  \k \in \K \implies \WFW{}\cdot\K\k \\
-  \EnvTypeW\Env\cdot\K\e\t
-}{
-  \WFpW\e\K
-}
-\end{mathpar}
-
-\opdef{\WFW{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
-
-\begin{mathpar}
-\IRule{WC}{
- \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
- \fd\in\b\fd\implies \WFW {}{}\K \fd \\
- \md\in\b\md\implies \WFW {\text{this}:\C~}\s\K \md 
-}{
- \WFW {}\s\K {\Class \C {\b\fd}{\b\md}}
-}
-\end{mathpar}
-
-\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
-\begin{mathpar}
-\IRule[width=18em]{WT}{
- \EnvTypeW {\Env{~\Ftype\x\C}~}\s\K\e\D\\
- \WFtypeW\K\C \\
- \WFtypeW\K\D \\
-}{
- \WFW \Env\s\K {\Mdef\m\x\C\D\e}
-}
-
-\IRule[width=18em]{WWT}{
- \EnvTypeW {\Env{~\Ftype\x\CW}~}\s\K\e\DW\\
- \WFtypeW\K\CW \\
- \WFtypeW\K\DW \\
-}{
- \WFW \Env\s\K {\Mdef\m\x\CW\DW\e}
-}
-
-\IRule[width=18em]{WU}{
- \EnvTypeW {\Env~\Ftype\x\any~}\s\K \e\any\\
-}{
- \WFW \Env\s\K{\Mdef\m\x\any\any\e}
-}
-
-\IRule{WS}{
- \EnvTypeW {\Env{~\Ftype\x\tp}~}\s\K \e\t \\
- \WFtypeW \K\t 
-}{
- \WFW  \Env\s\K {\Mdef\f\x\t\t\e}
-}
-
-\IRule{WG}{
- \EnvTypeW \Env\s\K\e\t \\
- \WFtypeW \K\t
-}{
- \WFW \Env\s\K {\Mdefz\f\t\e}
-}
-\end{mathpar}
-
-\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
-\begin{mathpar}
-\IRule{WF}{
- \WFtypeW\K\t 
-}{
- \WFtypeW\K{\Fdef\f\t}
-}
-\end{mathpar}
-
-\opdef{~\WFtypeW\K\t}{Well-formed types}
-\begin{mathpar}
-\IRule{WA}{
-}{
- \WFtypeW\K\any
-}
-
-\IRule{WC}{
- \C \in \K
-}{
- \WFtypeW\K\C
-}
-
-\IRule{WW}{
- \C \in \K
-}{
- \WFtypeW\K{\CW}
-}
-\end{mathpar}
-
-\subsection{Thorn expression typing}
-
-\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
-\begin{mathpar}
-
-\IRule{TW1}{
-   \HasType \Env\x\t
- }{
-   \EnvTypeW \Env\s\K\x\t
-}
-
-\IRule{TW2}{
- }{
-   \EnvTypeW \Env\s\K\a\any
-}
-
-\IRule{TW3}{
-  \EnvTypeW \Env\s\K\e\tp \\
- \ThrSub \M\K \tp \t
- }{
-  \EnvTypeW \Env\s\K\e\t 
-}   
-
-\IRule{TW4}{
-  \EnvTypeW \Env\s\K\e\C \\
-  \Mtype \f{}\tp \in \classoff\C\K
-}{
-  \EnvTypeW \Env\s\K{\Get\e\f}\tp
-}    
-
-\IRule{TW5}{
-  \EnvTypeW \Env\s\K\e\C \\
-  \Mtype \f\tp\tp \in \classoff\C\K  \\
-  \EnvTypeW \Env\s\K\ep\tp
-}{
-  \EnvTypeW \Env\s\K{\Set\e\f\ep}\tp
-}    
-
-\IRule{TW6}{
-  \EnvTypeW \Env\s\K\e\C \\
-  \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvTypeW \Env\s\K\ep\tp
-}{
-  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tpp
-}    
-
-\IRule{TW7}{
- \EnvTypeW \Env\s\K{\e_1}{\t_1}~~\dots~~ 
- \EnvTypeW \Env\s\K{\e_n}{\t_n}\ \\ 
- \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
-  \Class \C {\b\fd}{\b\md} \in \K
-}{
-  \EnvTypeW \Env\s\K{\New\C{\e_1\dots\e_n}}\C
-}
-
-\IRule{TW8}{
-  \s(\a) = \obj\C{\b\ap}
-}{
-  \EnvTypeW \Env\s\K\a\C
-}
-\end{mathpar}
-
-
-% \section{Monotonic examples in Reticulated Python}
-% 
 % \begin{lstlisting}[language=python]
 % class C:
 % 	def m1(self,v:Int,g:Dyn)->Dyn:
@@ -4361,298 +4749,6 @@ The \xt{typing} function takes field definitions and returns the method typing s
 %% class WBp {
 %%   that : A
 %%   ...
-
-\section{Proofs of Related Theorems}
-
-\subsection{Accessory Lemmas}
-
-\paragraph{Evaluation Extends Class Tables}
-
-If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
-
-\paragraph{Weakening of Expression Typing}
-
-If $\EnvType\Env\s\K\e\t$ then $\EnvType{\Env~\Envp}\s\K\e\t$. \\ 
-If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env{\s~\s'}\K\e\t$. \\ 
-If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env\s{\K~\Kp}\e\t$. \\ 
-
-\paragraph{Weakening of Well-formedness}
-
-If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$. \\
-If $\WF\Env\s\K\md$ then $\WF{\Env~\Envp}\s\K\md$.\\
-If $\WF\Env\s\K\md$ then $\WF\Env{\s~\s'}\K\md$.\\
-If $\WF\Env\s\K\md$ then $\WF\Env\s{\K~\Kp}\md$.\\
-If $\WFtype\K{\Fdef\f\t}$ then $\WFtype{\K~\Kp}{\Fdef\f\t}$.\\
-If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$.\\
-
-\paragraph{Weakening of Subtyping}
-
-If $\StrSub\M{\K}\t\tp$ then $\StrSub\M{\K~\Kp}\t\tp$. \\
-If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
-
-\paragraph{Weakening of $\xt{mtypes}$}
-
-If $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.\\
-If $\Mtype\f{}\t \in \classoff\C\K$, then $\Mtype\f{}\t \in \classoff\C{\K~\Kp}$, for some $\Kp$.
-
-\paragraph{Substitution}
-
-If $\EnvType{\b{\HT\x\tp}}\s\K\e\t$ and $\b{\EnvType\cdot\s\K\a\tp}$, then $\EnvType\cdot\s\K{[\a/\x]\e}\t$
-
-\paragraph{Correctness of \classoff{\C}{\K}}
-
-If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
-If $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
-If $\Mtype\f{}\tp \in \classoff{\C}{\K}$ and $\EnvType\cdot\s\K\a\C$, 
-then $\Reduce \K{\Call\a\f{}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
-
-\paragraph{Canonical forms}
-
-If $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\a\C$, then $\s[\a\mapsto{\obj\C{\b\a}}]$.
-
-\paragraph{Evaluation retains typing} \label{lem:ert}
-
-If $\EnvType\cdot\s\K\e\t$, $\EnvType\cdot\s\K\ep\tp$, and $\WFp\K{\ep~\s}$, then if $\Reduce\K\ep\s\Kp\epp\sp$, it follows that $\EnvType\cdot\sp\Kp\e\t$ and $\Kp = \K~\Kpp$.
-
-\subsection{Reduction preserves Well-formedness}
-
-If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$. 
-
-\subsection{Consistent Class Table}
-
-If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\wedge~\WF\cdot\s\K{\b\md}$
-
-\subsection{Correctness of $\xt{wrap}$}
-
-If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
-
-\subsection{Type Soundness of Core \kafka Typing}
-
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
-such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
-or $\e$ is stuck in one of the following forms:
-\begin{itemize} 
-\item $\a$
-\item $\EE[\DynCall\a\m{\ap}]$
-\item $\EE[\SubCast\tp\a]$
-\item $\EE[\ShaCast\tp\a]$
-\end{itemize}
-
-We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
-Note that we refer to rule preconditions from left to right.
-
-\begin{itemize}
-  \item \RuleRef{W1}
-        Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
-  \item \RuleRef{W2}
-
-        We apply the IH to the first precondition. If we get stuck in the IH, then the entire
-        expression gets stuck or terminates, trivially. Therefore, the interesting case is when
-        $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. Since, by the
-        second precondition, we know that $\StrSub \M\K \tp \t$, it follows by weakening of subtyping $\StrSub\M\Kp\tp\t$.
-        We can then apply \RuleRef{W2} to find that $\EnvType\cdot\sp\Kp\ep\t$, and therefore $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\t$, and the theorem holds.
-  \item \RuleRef{W3}
-
-        We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
-
-        If $\e$ steps to some $\ep$, and since we know that $\Mtype\f{}\tp \in \classoff{\C}{\K}$, we can then apply \RuleRef{W3} via weakening of $\xt{mtypes}$.
-
-        If $\e$ is a value $\a$, then we apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f{}}\s\K\ep\s$ for some $\ep$, and that $\EnvType\cdot\s\K\ep\t$. Therefore, the theorem holds.
-
-        If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
-  \item \RuleRef{W4}
-
-      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
-      \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{W4} to find that $\EnvType\cdot\sp\Kp{\Call\epp\f\ep}\tp$.
-        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
-        \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. Then, $\Reduce\K{\Call\a\f\ep}\s\Kp{\Call\a\f\epp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{W4} to conclude that $\EnvType\cdot\sp\Kp{\Call\a\f\epp}\tp$.
-          \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f\ap}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
-          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \Call\a\f{\EE[\epp]}$, which is stuck.
-        \end{itemize}
-        \item If $\e$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \Call{\EE[\epp]}\f\ep$, which is stuck.
-      \end{itemize}
-  \item \RuleRef{W5}
-
-      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
-      \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{W5} to find that $\EnvType\cdot\sp\Kp{\KCall\epp\m\ep\t\tp}\tp$.
-        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
-        \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{W5} to conclude that $\EnvType\cdot\sp\Kp{\KCall\a\m\epp\t\tp}\tp$.
-          \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\KCall\a\m\ap\t\tp}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
-          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall\a\m{\EE[\epp]}\t\tp$, which is stuck.
-        \end{itemize}
-        \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall{\EE[\epp]}\m{\ep}\t\tp$, which is stuck.
-      \end{itemize}
-  
-  \item \RuleRef{W6}
-  
-      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$, then case analyze.
-      \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\any$, and apply \RuleRef{W6} to find that $\EnvType\cdot\sp\Kp{\DynCall\epp\m\ep}\any$.
-        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. 
-        \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\any$, then use \RuleRef{W6} to conclude that $\EnvType\cdot\sp\Kp{\DynCall\a\m\epp}\any$.
-          \item $\e' = \ap$. If $\sigma(a) = \C\{\b{\app}\}$, and if $\Mdef\m\x\any\any\e \in \K(\C)$, then $\Reduce\K{\DynCall\a\m\ap}\s\K{[\a/\this ~ \ap/\x]\e}\any$, by the definition of evaluation. Then, since $\WFp\K{\e~\s}$, it follows that $\WFq\C$, and then that $\EnvType{\HT{\this}{\C}~\HT{\x}{\any}}\s\K\e\any$. Then, since we have that $\EnvType\cdot\s\K\a\C$ (by application of \RuleRef{W10}), and that $\EnvType\cdot\s\K\ep\any$, we can use the substitution lemma to find that $\EnvType\cdot\s\K{[\a/\this ~ \ap/\x]\e}\any$, and the theorem holds.
-
-
-          If the precondition does not apply, and $\C$ does not contain $\m$ under type $\any$, then the expression gets stuck, and the theorem holds.
-          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall\a\m{\EE[\epp]}$, which is stuck.
-        \end{itemize}
-        \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall{\EE[\epp]}\m{\ep}$, which is stuck.
-      \end{itemize}
-  \item \RuleRef{W7}
-  
-  We apply the IH to the preconditions $\e_{1} \cdots \e_{n}$, finding that either $\e_{i}$ is a value $\a$, $\e_{i}$ is a stuck state, 
-  or $\Reduce\K{\e_i}\s\Kp{\ep_i}\sp$, $\WFp\Kp{\ep_i~\sp}$, and $\EnvType\cdot\sp\Kp{\ep_i}\C_i$, then case analyze.
-  
-  \begin{enumerate}
-   \item $\EnvType\cdot\s\K{\New\C{\e_1\dots\e_n}}\C$ 
-   \item $\WFp\K{\e~\s}$  by case  
-   \item $\Class \C {\b\fd}{\b\md} \in \K$  
-   \item $\EnvType \cdot\s\K{\e_1}{\t_1}\dots \EnvType \cdot\s\K{\e_n}{\t_n}$
-   \item $\b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}$ by inversion lemma on (1)
-   \item $\EnvType \cdot\s\K{\a_1}{\t_1}\dots \EnvType \dot\s\K{\a_n}{\t_n}$ by Inductive hypo on (2)
-   \item $\Kp~{\New\C{\b\a}~\s}$ by Inductive hypo and (6)
-   \item $\Kp=\K$
-   \item $\sp=\Map\s{\Bind\ap{\obj\C{\b\a}}}$
-   \item $\ap$ fresh
-   \item $\ep=\ap$ by semantics on (7)
-   \item $\EnvType \cdot\sp\Kp{\ap}{\C}$ by W10 on (8) and (9)
-   \item $\k \in \K \implies \WF{}\cdot\K\k$ by (2)
-   \item $\WFtype{\K}\s$ by premise of WF (2)
-   \item $\WFtype{\K}\sp$ by (14), (2), (4)
-   \item $\WFtype{\Kp}\sp$ by (15), (8)
-   \item $\WFp\Kp{\ap~\sp}$ by (13), (8), (16), (12)
-   \item done by (17) and (12)
-  \end{enumerate}
-
-  \item \RuleRef{W8}
-  
-      Apply the IH to the precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$. If it gets stuck at one of the three stuck states, or steps to a new expression, then the case is trivial.
-
-      Consider the $\a$ case. Case analyze on $\t$:
-      \begin{itemize}
-        \item $\t = \any$. Trivially, $\Reduce\K{\SubCast\t\a}\s \K\a\s$.
-        \item $\t = \C$. Define $\D$ such that $\sigma(\a) = \D\{\b{\ap}\}$. Case analyze on if $\StrSub \M\K \D \C$.
-        \begin{itemize}
-          \item If $\StrSub \M\K \D \C$, then $\Reduce\K{\SubCast\t\a}\s \K\a\s$. Moreover, $\HasType\cdot\K\s\a\t$, via \RuleRef{W2} and \RuleRef{W10}.
-          \item Otherwise, $\SubCast\t\a$ is stuck, and the theorem holds.
-        \end{itemize}
-      \end{itemize}
-  
-  \item \RuleRef{W9}
-  
-      Trivial, as $\e=\a$.
-  
-  \item \RuleRef{W10}
-  
-      Trivial, as $\e=\a$.
-
-  
-\end{itemize}
-
-
-\subsection{Type Soundness of \kafka Behavioral Cast}
-
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
-such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
-or $\e$ is stuck in one of the following forms:
-\begin{itemize} 
-\item $\a$
-\item $\EE[\DynCall\a\m{\ap}]$
-\item $\EE[\SubCast\tp\a]$
-\item $\EE[\ShaCast\tp\a]$
-\end{itemize}
-
-Note that the majority of the proof is identical to that seen in the above proof
-for soundness of the \kafka core, and is therefore elided. We will only cover
-the case for the \kafka behavioural cast, \RuleRef{WB1}.
-
-\begin{proofy}
-\step[base] $\EnvType\cdot\s\K\e\tp$ \basis By assumption.
-\step[progform] $\WFp \K{\e~\s}$ \basis By assumption
-\step[inpswf] $\WFq \s$ \basis By inversion of \refby{progform}
-\step Apply IH to \refby{base} and case analyze.
-\begin{casel}
-  \caseof{ \begin{iknown}
-    \step[kred] $\Reduce\K\e\s\Kp\ep\sp$
-    \step[kbase] $\WFp\Kp{\ep~\sp}$ 
-    \step $\EnvType\cdot\sp\Kp\ep\tp$
-    \end{iknown}} 
-  \begin{proofy}
-  \step $\Reduce\K{\BehCast{\t}{\e}}\s\Kp{\BehCast{\t}{\ep}}\sp$ \basis By defn. of evaluation environments on \refby{kred}
-  \step[ktype] $\EnvType\cdot\sp\Kp{\BehCast\t\ep}\t$ \basis By \RuleRef{WB1}
-  \step $\WFp\Kp{\ep~\sp}$ \basis By \refby{kbase, ktype}
-  \end{proofy}
-  \caseof{$\e$ is stuck in one of the allowed stuck states $\EE[\ep]$}
-  \begin{proofy}
-    \step $\BehCast\t\e = \EE'[\ep]$ \basis By case analysis and defn. of $\EE$.
-    \step $\EE'[\ep]$ stuck \basis As $\ep$ stuck.
-  \end{proofy}
-  \caseof{$\e = \a$}
-  \begin{proofy}
-    \step Let $\C$ and $\b{\ap}$ be such that $\s(\a) = \C\{\b\ap\}$
-    \step Case analyze on $\t$.
-    \begin{casel}
-      \caseof{$\t = \Cp$}
-      \begin{proofy}
-        \step Let $\D$ be fresh.
-        \step Let $\ap$ be fresh.
-        \step[wcorr] Let $\k$ be $\k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D$.
-        \step Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
-        \step[b2] $\EnvType\cdot{\K\k}\sp\ap\D$ \basis \RuleRef{W9}
-        \step[b1] $\StrSub\cdot{\K\k}\D\Cp$ \basis correctness of $\xt{wrap}$ on \refby{wcorr}
-        \step[wth] $\EnvType\cdot{\K\k}\sp\ap\Cp$ \basis \RuleRef{W2} on \refby{b1,b2}
-        \step $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{wth, inpswf}
-      \end{proofy}
-      \caseof{$\t = \any$}
-      \begin{proofy}
-        \step Let $\D$ be fresh.
-        \step Let $\ap$ be fresh.
-        \step[wcorr2] Let $\k$ be $\k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D$.
-        \step Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
-        \step[b21] $\EnvType\cdot{\K\k}\sp\ap\any$ \basis \RuleRef{W10}
-        \step $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{b21,wcorr2}
-      \end{proofy}
-    \end{casel}
-  \end{proofy}
-\end{casel}
-\end{proofy}
-
-
-\subsection{Type Soundness of Transient Translation}
-
-\end{document}
-
-%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
-%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
-%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
-%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
-%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
-%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
-%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
-
-%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
-%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
-%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
-%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
-%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
-%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
-%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
-
-%######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
-%##       ###   ## ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ###   ### ##       ###   ##    ##    
-%##       ####  ## ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## #### #### ##       ####  ##    ##    
-%######   ## ## ## ##     ##    ##     ## ######      ##     ## ##     ## ##       ##     ## ## ### ## ######   ## ## ##    ##    
-%##       ##  #### ##     ##    ##     ## ##          ##     ## ##     ## ##       ##     ## ##     ## ##       ##  ####    ##    
-%##       ##   ### ##     ##    ##     ## ##          ##     ## ##     ## ##    ## ##     ## ##     ## ##       ##   ###    ##    
-%######## ##    ## ########      #######  ##          ########   #######   ######   #######  ##     ## ######## ##    ##    ##    
-
 
 \subsection{others}
 
@@ -5094,7 +5190,3 @@ For every class $\C$ and every $\t$ where $\stcons\C\t$, we can generate a most 
 \begin{figure}
 %\input{figures/castins}
 \end{figure}
-
-
-
-\end{document}

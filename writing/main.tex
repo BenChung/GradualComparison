@@ -2436,7 +2436,6 @@ typing system highlights the essences which makes each system unique.
 \begin{tabular}{l@{~}l@{}l@{}l}
 % \md &::= \NMdef\m\this\t\x\t\t\e   &\B  \NMdef\f\this\t\x\t\t\e &\B \\ &\qquad \NMdefz\f\this\t\t\e \\
 \md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
 ~ \t&::= ~ \any  \B   \C  \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
 ~\s&::= \{\b{\Bind\a{\obj\C{\b\a}}}\} \\
@@ -3263,9 +3262,10 @@ given method definitions.
 The \xt{wrap} function is used by the Type Racket language to generate the wrapper classes
 when encountering typed code.
 
-% \begin{figure}[!ht]
-% \hrulefill 
-\scriptsize
+\opdef{\mt ~~::= \Mtype\m\t\t \B  \Mtype\f\t\t  \B \Mtype\f{}\t 
+}{ method typing
+}
+
 \newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3321,18 +3321,7 @@ when encountering typed code.
 \\
 \SP \}\\
 \end{array}\]
-%}%%END IGNORE
-%   \includegraphics[width=.9\textwidth]{figures/wrapDefinition}
-% TODO: untyped(mt)
-% \hrulefill
-% %%%%%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%   \caption{Wrapper class generation.}\label{wrap}
-% \end{figure}
 
-% \clearpage
-% 
-\normalsize
-% 
 
 \subsection{Static function}
 
@@ -3341,7 +3330,7 @@ in any of its fields or methods.
 
 \opdef{
   $\statictype\D\K{\b\C} = \texttt{Bool}$
-}{
+}{ static function
 }
 
 \begin{mathpar}
@@ -3394,7 +3383,7 @@ field in the definition of class $\C$.  (\textbf{Note}: An user cannot
 define a getter or setter method for any field that already exists in the
 class. Similarly, a field cannot be declared in a class that already has a
 getter or setter method for that field. This is enforced by the
-\texttt{overloading} function in class well-formedness.)
+\texttt{overloading} function in class well-formedness.) \\
 
 \begin{equation*}
 \classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
