@@ -519,6 +519,364 @@ worst case scenario for concrete types -- i.e. there is a shallow cast at almost
 every call. Finally, languages with generative casts tend to suffer prohibitive
 slow downs in pathological cases.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{KafKa: A Core Calculus}
+
+
+\vspace{-2mm}
+
+\epigraph{\hspace{-1cm}\small ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}
+
+\vspace{-5mm}
+
+\noindent
+The basis of our formal approach is the \kafka calculus. At its heart,
+\kafka is a class-based, object-oriented, structurally typed language with
+dynamic dispatch, modeled off of common compilation targets such as the
+JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
+taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
+The syntax of \kafka is given in \figref{syn}. Meta-variables \C, \D and \E
+range over class names, \x ranges over variable names, \m and \f range over
+methods and fields respectively. Finally, \this is a distinguished identifier
+representing a method receiver, while \that is a distinguished field name
+used in wrapper classes.  Expressions include object creation, \New\C{\b\e},
+field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
+invocation, \Call\e\m\e, dynamically resolved method invocation,
+\DynCall\e\m\e, and subtype casts, \SubCast\t\e.
+%, and shallow casts, \ShaCast\t\e.
+Types consist of class names and the dynamic type, written
+\any. Class definitions have a class name and (possibly empty) sequences of
+field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
+definitions consist of a field and its type, \Fdef\f\t. Method definitions
+have (for simplicity) a single argument and an expression \Mdef\m\x\t\t\e.
+Fields are read by calling getter methods and updated by setter methods,
+these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
+
+
+
+\begin{figure}[!h]\hrulefill
+
+\hspace{0.1cm}
+\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+\e &::=  \x         &\B \this         &\B \that      \\
+   &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
+   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \SubCast\t\e \\
+   &\B \ShaCast\t\e  &\B \a \\ 
+\end{tabular}\end{minipage}
+\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}
+\end{tabular}
+\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
+~ \t&::= ~ \any  \B   \C  \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}
+
+\hrulefill
+\caption{\kafka Syntax.}\label{syn}
+\end{figure}
+
+%% TODO Put somewhere????
+%\E  &::= \Ftype\x\t  \B \none\\
+% \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
+
+
+\subsection{Static Semantics}
+
+A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
+class table \K where each class \k in \K is well-formed and \e is well-typed
+with respect to \K.  A class is well-formed if all its fields and methods
+are well-typed. A class that defines a field \f is not allowed to have
+getter or setter methods of that name.  A class can have at most two
+definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
+\Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
+unsurprising, with the following rules for method calls and casts.
+
+{\small
+\begin{mathpar}
+\IRule{W6}{
+  \EnvType \Env\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
+  \EnvType \Env\s\K\ep\tp
+}{
+  \EnvType \Env\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{W7}{
+  \EnvType \Env\s\K\e\any \\
+  \EnvType \Env\s\K\ep\any
+}{
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
+}    
+
+\IRule{W9}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\SubCast\t\e}\t
+}
+
+%\IRule{W10}{
+%  \EnvType \Env\s\K\e\tp
+%}{
+%  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
+%}
+\end{mathpar}}
+
+\noindent Method calls use \emph{syntactic} disambiguation to select between
+typed and untyped methods. The dynamically resolved call places no
+requirements on the receiver or argument, and returns type \any. The subtype
+cast rule \RuleRef{W9} states that result is of the cast type, but it does
+not preclude silly casts.  
+%Rule \RuleRef{W10} describes the semantics of the
+%shallow casts, which merely asserts the presence of method names, without
+%making any statements about the type of the object being cast.  
+The
+subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
+subtyping. The distinctive feature of the subtype relation is that fields
+appears in the type signature as getter/setter pairs with the exception of
+the \that field that is hidden from the class type signature.  The complete
+set of rules appear in Appendix section~\ref{appendix:kafka}.
+
+
+%%
+%%\begin{figure}[!b]
+%%\hrulefill
+%%\smallskip
+%
+%\begin{minipage}{14cm}
+%  \opdef{\Reduce \K\e\s \Kp\ep\sp}
+%        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
+%\begin{tabular}{l@{}l@{~}l@{~}l}
+%\CondRule{E1}{  %% new C -> a
+%   \fresh\ap 
+%}{ 
+%  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
+%}
+%\CondRule{E2}{  %% a.f() -> e
+%    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
+%}{
+%   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
+%}
+%\CondRule{E3}{  %% a.f(a) -> e
+%    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
+%}{
+%   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+%}
+%\CondRule{E4}{  %% a.f() -> e
+% \readf \s\a\f\K =  \ap 
+%}{
+%  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
+%}
+%\CondRule{E5}{  %% a.f(e) -> e
+% \setf \s\a\f\ap\K =  \sp
+%}{
+%  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
+%}
+%\CondRule{E6}{  %% a.m(a) -> e
+%  \Mdef\m\x\t\tp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
+%}{
+% \ReduceA \K{\KCall\a\m\ap\t\tp}\s \K{[\a/\this~{\ap/\x}]\e}\s
+%}
+%\CondRule{E7}{  %% a@m(a) -> e
+%    \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
+%}{
+%  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+%}
+%\CondRule{E8}{  %% Subtypecast
+%}{ 
+%  \ReduceA \K{\SubCast \any\a}\s \K\a\s
+%}
+%\CondRule{E9}{  %% Subtypecast
+%  \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
+%}{ 
+%  \ReduceA \K{\SubCast \D\a}\s \K\a\s
+%}
+%%\CondRule{E10}{  %% Shallow Structural
+%%}{ 
+%%  \ReduceA \K{\ShaCast \any\a}\s \K\a\s
+%%}
+%%\CondRule{E10b}{  %% Shallow Structural
+%% \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
+%%}{ 
+%%  \ReduceA \K{\ShaCast \D\a}\s \K\a\s
+%%}
+%% \CondRule{E11}{  %% Behavioral cast
+%%   \behcast \a\t\s\K  \Kp\ap\sp
+%% }{ 
+%%   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
+%% }
+%% \CondRule{E12}{  %% Monotonic cast
+%%   \moncast \a\t\s\K  \Kp\sp
+%% }{ 
+%%   \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
+%% }
+%\CondRule{E11 \FZ{FIX numbering}}{  %% E[e] -> E[e']
+%  \Reduce \K\e\s \Kp\ep\sp
+%}{
+% \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
+%}
+%\end{tabular}\end{minipage}
+%
+%%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%~\\[2mm]
+%
+%\begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+%\EE &::= \Get\EE\f     &\B
+%        \Set\EE\f\e   &\B
+%        \Set\a\f\EE   &\B  
+%        \Call\EE\m\e  &\B
+%        \Call\a\m{\EE} &\B
+%        \DynCall\EE\m\e   &\B
+%        \DynCall\a\m\EE   \\
+%   &\B~
+%       \SubCast\t\EE  &\B
+%       \ShaCast\t\EE  &\B
+%% MOVEME       \MonCast\t\EE  &\B
+%       \New\C{\b \a\,\EE\,\b\e}
+%  &\B \EM{\square}
+%\end{tabular}
+%\end{minipage}
+
+%\hrulefill
+%\caption{\kafka Semantics.}
+%\label{fig:semantics}
+%\end{figure}
+
+
+
+\subsection{Dynamic Semantics}
+
+The small operational step operational semantics for \kafka appears below.
+%in \figref{fig:semantics}.
+
+
+
+%
+%\begin{figure}[!b]
+\noindent\hrulefill
+%\smallskip
+
+\begin{minipage}{14cm}
+  \opdef{\Reduce \K\e\s \Kp\ep\sp}
+        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
+\begin{tabular}{l@{}l@{~}l@{~}l}
+\CondRule{E1}{  %% new C -> a
+   \fresh\ap 
+}{ 
+  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
+}
+\CondRule{E2}{  %% a.f() -> e
+    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
+}{
+   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
+}
+\CondRule{E3}{  %% a.f(a) -> e
+    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
+}{
+   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E4}{  %% a.f() -> e
+ \readf \s\a\f\K =  \ap 
+}{
+  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
+}
+\CondRule{E5}{  %% a.f(e) -> e
+ \setf \s\a\f\ap\K =  \sp
+}{
+  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
+}
+\CondRule{E6}{  %% a.m(a) -> e
+  \Mdef\m\x\t\tp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
+}{
+ \ReduceA \K{\KCall\a\m\ap\t\tp}\s \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E7}{  %% a@m(a) -> e
+    \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
+}{
+  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+}
+\CondRule{E8}{  %% Subtypecast
+}{ 
+  \ReduceA \K{\SubCast \any\a}\s \K\a\s
+}
+\CondRule{E9}{  %% Subtypecast
+  \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
+}{ 
+  \ReduceA \K{\SubCast \D\a}\s \K\a\s
+}
+%\CondRule{E10}{  %% Shallow Structural
+%}{ 
+%  \ReduceA \K{\ShaCast \any\a}\s \K\a\s
+%}
+%\CondRule{E10b}{  %% Shallow Structural
+% \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
+%}{ 
+%  \ReduceA \K{\ShaCast \D\a}\s \K\a\s
+%}
+% \CondRule{E11}{  %% Behavioral cast
+%   \behcast \a\t\s\K  \Kp\ap\sp
+% }{ 
+%   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
+% }
+% \CondRule{E12}{  %% Monotonic cast
+%   \moncast \a\t\s\K  \Kp\sp
+% }{ 
+%   \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
+% }
+\CondRule{E11 \FZ{FIX numbering}}{  %% E[e] -> E[e']
+  \Reduce \K\e\s \Kp\ep\sp
+}{
+ \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
+}
+\end{tabular}\end{minipage}
+
+%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+~\\[2mm]
+
+\begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+\EE &::= \Get\EE\f     &\B
+        \Set\EE\f\e   &\B
+        \Set\a\f\EE   &\B  
+        \Call\EE\m\e  &\B
+        \Call\a\m{\EE} &\B
+        \DynCall\EE\m\e   &\B
+        \DynCall\a\m\EE   \\
+   &\B~
+       \SubCast\t\EE  &\B
+       \ShaCast\t\EE  &\B
+% MOVEME       \MonCast\t\EE  &\B
+       \New\C{\b \a\,\EE\,\b\e}
+  &\B \EM{\square}
+\end{tabular}
+\end{minipage}
+
+\noindent\hrulefill
+
+ A configuration is a triple \K\e\s, where \K is a class
+table, \e is an expression and \s is a heap mapping addresses ranged over by \a
+to objects denoted \hspace{-1mm}\obj\C{\b\a}.  A configuration evaluates in one
+step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new configuration may
+include a new class table built by extending the previous table with new
+classes. Field access either reads a field from the object (if the class has a
+field definition) or invokes a getter function (if the class has a getter method
+of the field name), and setters are treated similarly. Calling forms specify the
+typing, typed methods are invoked with static calls and untyped methods are
+invoked with dynamically resolved calls. Casts to \any are trivially satisfied
+while subtype casts to \C check that the runtime object is an instance of a
+subtype of \C.
+%, while shallow casts check inclusion of method names. 
+Evaluation contexts are deterministic and enforce a strict evaluation order.
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Gradual Typing in Practice}
 
 \vspace{-2mm}
@@ -906,250 +1264,6 @@ as follows:
 
 %\clearpage
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{KafKa: A Core Calculus}
-
-
-\vspace{-2mm}
-
-\epigraph{\hspace{-1cm}\small ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}
-
-\vspace{-5mm}
-
-\noindent
-The basis of our formal approach is the \kafka calculus. At its heart,
-\kafka is a class-based, object-oriented, structurally typed language with
-dynamic dispatch, modeled off of common compilation targets such as the
-JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
-taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
-The syntax of \kafka is given in \figref{syn}. Meta-variables \C, \D and \E
-range over class names, \x ranges over variable names, \m and \f range over
-methods and fields respectively. Finally, \this is a distinguished identifier
-representing a method receiver, while \that is a distinguished field name
-used in wrapper classes.  Expressions include object creation, \New\C{\b\e},
-field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
-invocation, \Call\e\m\e, dynamically resolved method invocation,
-\DynCall\e\m\e, and subtype casts, \SubCast\t\e.
-%, and shallow casts, \ShaCast\t\e.
-Types consist of class names and the dynamic type, written
-\any. Class definitions have a class name and (possibly empty) sequences of
-field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
-definitions consist of a field and its type, \Fdef\f\t. Method definitions
-have (for simplicity) a single argument and an expression \Mdef\m\x\t\t\e.
-Fields are read by calling getter methods and updated by setter methods,
-these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
-
-
-
-\begin{figure}[!h]\hrulefill
-
-\hspace{0.1cm}
-\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
-\e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
-   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \SubCast\t\e \\
-   &\B \ShaCast\t\e  &\B \a \\ 
-\end{tabular}\end{minipage}
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
-~ \t&::= ~ \any  \B   \C  \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage}
-
-\hrulefill
-\caption{\kafka Syntax.}\label{syn}
-\end{figure}
-
-%% TODO Put somewhere????
-%\E  &::= \Ftype\x\t  \B \none\\
-% \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
-
-
-\subsection{Static Semantics}
-
-A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
-class table \K where each class \k in \K is well-formed and \e is well-typed
-with respect to \K.  A class is well-formed if all its fields and methods
-are well-typed. A class that defines a field \f is not allowed to have
-getter or setter methods of that name.  A class can have at most two
-definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
-\Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
-unsurprising, with the following rules for method calls and casts.
-
-{\small
-\begin{mathpar}
-\IRule{W6}{
-  \EnvType \Env\s\K\e\C \\
-  \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvType \Env\s\K\ep\tp
-}{
-  \EnvType \Env\s\K{\Call\e\m\ep}\tpp
-}    
-
-\IRule{W7}{
-  \EnvType \Env\s\K\e\any \\
-  \EnvType \Env\s\K\ep\any
-}{
-  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
-}    
-
-\IRule{W9}{
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\SubCast\t\e}\t
-}
-
-%\IRule{W10}{
-%  \EnvType \Env\s\K\e\tp
-%}{
-%  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
-%}
-\end{mathpar}}
-
-\noindent Method calls use \emph{syntactic} disambiguation to select between
-typed and untyped methods. The dynamically resolved call places no
-requirements on the receiver or argument, and returns type \any. The subtype
-cast rule \RuleRef{W9} states that result is of the cast type, but it does
-not preclude silly casts.  
-%Rule \RuleRef{W10} describes the semantics of the
-%shallow casts, which merely asserts the presence of method names, without
-%making any statements about the type of the object being cast.  
-The
-subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
-subtyping. The distinctive feature of the subtype relation is that fields
-appears in the type signature as getter/setter pairs with the exception of
-the \that field that is hidden from the class type signature.  The complete
-set of rules appear in Appendix section~\ref{appendix:kafka}.
-
-
-
-\begin{figure}[!b]
-\hrulefill
-\smallskip
-
-\begin{minipage}{14cm}
-  \opdef{\Reduce \K\e\s \Kp\ep\sp}
-        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
-\begin{tabular}{l@{}l@{~}l@{~}l}
-\CondRule{E1}{  %% new C -> a
-   \fresh\ap 
-}{ 
-  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
-}
-\CondRule{E2}{  %% a.f() -> e
-    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
-}{
-   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
-}
-\CondRule{E3}{  %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
-}{
-   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E4}{  %% a.f() -> e
- \readf \s\a\f\K =  \ap 
-}{
-  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
-}
-\CondRule{E5}{  %% a.f(e) -> e
- \setf \s\a\f\ap\K =  \sp
-}{
-  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
-}
-\CondRule{E6}{  %% a.m(a) -> e
-  \Mdef\m\x\t\tp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
-}{
- \ReduceA \K{\KCall\a\m\ap\t\tp}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E7}{  %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
-}{
-  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E8}{  %% Subtypecast
-}{ 
-  \ReduceA \K{\SubCast \any\a}\s \K\a\s
-}
-\CondRule{E9}{  %% Subtypecast
-  \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
-}{ 
-  \ReduceA \K{\SubCast \D\a}\s \K\a\s
-}
-%\CondRule{E10}{  %% Shallow Structural
-%}{ 
-%  \ReduceA \K{\ShaCast \any\a}\s \K\a\s
-%}
-%\CondRule{E10b}{  %% Shallow Structural
-% \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
-%}{ 
-%  \ReduceA \K{\ShaCast \D\a}\s \K\a\s
-%}
-% \CondRule{E11}{  %% Behavioral cast
-%   \behcast \a\t\s\K  \Kp\ap\sp
-% }{ 
-%   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
-% }
-% \CondRule{E12}{  %% Monotonic cast
-%   \moncast \a\t\s\K  \Kp\sp
-% }{ 
-%   \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
-% }
-\CondRule{E11 \FZ{FIX numbering}}{  %% E[e] -> E[e']
-  \Reduce \K\e\s \Kp\ep\sp
-}{
- \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
-}
-\end{tabular}\end{minipage}
-
-%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-~\\[2mm]
-
-\begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
-\EE &::= \Get\EE\f     &\B
-        \Set\EE\f\e   &\B
-        \Set\a\f\EE   &\B  
-        \Call\EE\m\e  &\B
-        \Call\a\m{\EE} &\B
-        \DynCall\EE\m\e   &\B
-        \DynCall\a\m\EE   \\
-   &\B~
-       \SubCast\t\EE  &\B
-       \ShaCast\t\EE  &\B
-% MOVEME       \MonCast\t\EE  &\B
-       \New\C{\b \a\,\EE\,\b\e}
-  &\B \EM{\square}
-\end{tabular}
-\end{minipage}
-
-\hrulefill
-\caption{\kafka Semantics.}
-\label{fig:semantics}
-\end{figure}
-
-
-
-\subsection{Dynamic Semantics}
-
-The small operational step operational semantics for \kafka appears in
-\figref{fig:semantics}. A configuration is a triple \K\e\s, where \K is a class
-table, \e is an expression and \s is a heap mapping addresses ranged over by \a
-to objects denoted \hspace{-1mm}\obj\C{\b\a}.  A configuration evaluates in one
-step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new configuration may
-include a new class table built by extending the previous table with new
-classes. Field access either reads a field from the object (if the class has a
-field definition) or invokes a getter function (if the class has a getter method
-of the field name), and setters are treated similarly. Calling forms specify the
-typing, typed methods are invoked with static calls and untyped methods are
-invoked with dynamically resolved calls. Casts to \any are trivially satisfied
-while subtype casts to \C check that the runtime object is an instance of a
-subtype of \C.
-%, while shallow casts check inclusion of method names. 
-Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 
 \section{Translating Gradual Types}
