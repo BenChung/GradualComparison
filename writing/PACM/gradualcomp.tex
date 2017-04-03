@@ -562,6 +562,13 @@ unsurprising, with the following rules for method calls and casts.
   \EnvType \Env\s\K{\SubCast\t\e}\t
 }
 
+\IRule{WB}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\BehCast\t\e}\t
+}
+
+
 %\IRule{W10}{
 %  \EnvType \Env\s\K\e\tp
 %}{
@@ -696,11 +703,11 @@ set of rules appear in Appendix section~\ref{appendix:kafka}.
 The small operational step operational semantics for \kafka appears below.
 %in \figref{fig:semantics}.
 
-
+\medskip
 
 %
 %\begin{figure}[!b]
-\noindent\hrulefill
+%\noindent\hrulefill
 %\smallskip
 
 \begin{minipage}{14cm}
@@ -770,11 +777,18 @@ The small operational step operational semantics for \kafka appears below.
 % }{ 
 %   \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
 % }
+\CondRule{E11}{  %% Behavioral cast  
+  \behcast \a\t\s\K  \Kp\ap\sp    
+}{    
+  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
+} 
 \CondRule{E11 \FZ{FIX numbering}}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
 }{
  \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
 }
+
+
 \end{tabular}\end{minipage}
 
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -790,15 +804,16 @@ The small operational step operational semantics for \kafka appears below.
         \DynCall\a\m\EE   \\
    &\B~
        \SubCast\t\EE  &\B
-       \ShaCast\t\EE  &\B
+       %\ShaCast\t\EE  &\B
+      \BehCast\t\EE  &\B
 % MOVEME       \MonCast\t\EE  &\B
        \New\C{\b \a\,\EE\,\b\e}
   &\B \EM{\square}
 \end{tabular}
 \end{minipage}
 
-\noindent\hrulefill
-
+%\noindent\hrulefill
+\medskip
  A configuration is a triple \K\e\s, where \K is a class
 table, \e is an expression and \s is a heap mapping addresses ranged over by \a
 to objects denoted \hspace{-1mm}\obj\C{\b\a}.  A configuration evaluates in one
@@ -893,7 +908,7 @@ class D {
 \end{tabular}
 \begin{tabular}{@{}l@{}r@{}}
 &
-\begin{minipage}{6cm}
+\begin{minipage}{7cm}
 \begin{lstlisting}
 class D {
  that:C
@@ -919,7 +934,7 @@ class D {
 \end{tabular}
 \begin{tabular}{@{}l@{}r@{}}
 \hspace{4cm} \,&
-\begin{minipage}{\textwidth-4cm}
+\begin{minipage}{\textwidth-2cm}
 \begin{lstlisting}
 class D {
   m(x : A) : B { 
@@ -932,162 +947,149 @@ class D {
 \label{fig:rktex2}
 \end{figure}
 
-Copying the behaviour of the wrapped object is unusual, and is how we
-maintain one of the semantic Typed Racket. If we were to implement the
-wrappers directly, as seen in figure~\ref{fig:rktex2}, we will diverge from
-Typed Racket despite remaining typesafe. The issue is that Typed Racket
-requires that self-references respect the external type
-invariants~\cite{Takikawa:2012}, despite it not being strictly required for
-soundness, as seen in figure~\ref{fig:arktex3}. We use the lifting
+\FZ{Add semantics of wrap.}
+
+Copying the behaviour of the wrapped object is unusual, but this is how we
+maintain one of the semantic Typed Racket, we will describe this in detail in \FZ{Forward pointer to description of Racket}.
+We use the lifting
 mechanism, copying wrapped class functionality, to ensure that
 self-references refer to the wrapper, rather than to the wrapped object,
-thereby enforcing the dynamic type guarantees.
+thereby enforcing the dynamic type guarantees. \FZ{Check this text.}  \FZ{REWRITE, and decide how much of the explanation of this we postpone to the typed racket section later.}
+%
+%
+%This issue is illustrated in figure~\ref{fig:intbeh2}, where the source program
+%initially requires \n to take \xt{A} and return \xt{A}, then requires it to take
+%and return \xt{B}. If we lift the methods up verbatim (adding only the trivial
+%casts), then we end up with a type-incorrect wrapper. As a result, we have to
+%dynamically insert casts inside of the lifted method bodies, ensuring that they
+%remain type correct in the wrapper class. This operation is depicted in detail
+%in the appendix.
+%
+%
+%\begin{figure}[!ht]
+%\begin{tabular}{l@{\hspace{0.05\textwidth}}l@{\hspace{0.05\textwidth}}l}
+%\begin{minipage}{0.3\textwidth}
+%\begin{lstlisting}
+%class A {n(x:*):*{x}}
+%class B {m(x:*):*{x}}
+%class C { 
+%  m(x:A):A { 
+%    this.n(x) }
+%  n(x:A):A { x }}
+%class D { 
+%  m(x:A):A { x }
+%  n(x:B):B { x }}
+%(<D>new C()).m(
+%  new C())
+%\end{lstlisting}
+%\end{minipage}
+%&
+%\begin{minipage}{0.25\textwidth}
+%\begin{lstlisting}
+%class DW {
+%  that : C
+%  
+%
+%  m(x:A):A { 
+%    this.n(x) }
+%
+%  n(x:B):B { 
+%    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)
+%    (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)x }
+%}
+%\end{lstlisting}
+%\end{minipage} &
+%\begin{minipage}{0.3\textwidth}
+%\begin{lstlisting}
+%class DW {
+%  that : C
+%
+%  m(x:A):A { 
+%    (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)this.n(
+%      (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x) }
+%
+%  n(x:B):B { 
+%    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)
+%      (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)x }
+%}
+%\end{lstlisting}
+%\end{minipage} \\
+%Source & Type-incorrect & Type-corrected
+%\end{tabular}
+%\caption{Wrapper generation}
+%\label{fig:intbeh2}
+%\end{figure}
+%
+%The other major concern when designing a wrapper-based protection system for
+%objects is that losing methods is a real possibility. If a wrapper zealously
+%enforces its type, then it will not wrap methods that do not appear on its
+%type, which can then be lost to later untyped or more-typed code that is
+%given that wrapper.
+%Our approach avoids this by inserting ``passthrough'' methods that retain their
+%original types and behaviors into the output wrappers, as illustrated in
+%figure~\ref{ctod}, where we make a \C into a \D and then back again. When we
+%reduce the set of required methods by casting a \C to a \D, we retain the method
+%\mp by adding it to the output class. Notably, this operation preserves existing
+%subtyping relationships, as the generated wrappers only appear as values, and
+%the operation only adds additional methods.
+%
+%%%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{figure}[h!]
+%\footnotesize
+%\begin{tabular}{ll}\begin{minipage}{6cm}
+%\[\begin{array}{l}
+%\class ~\C~ \{\\
+%\SP  \Mdef\m\x\E\E\x\\
+%\SP  \Mdef\mp\x\E\E\x\\
+%\}\\[2mm]
+%\class ~\EMxt{CtoD}~ \{\\
+%\SP  \Fdef\that\C\\
+%\SP  \Mdef \m\x\any\any{\BehCast\any{\ShaCast\any{\BehCast\E{\ShaCast\E\x}}}}\\
+%\SP  \Mdef \mp\x\E\E{\x}\\
+%\}\\
+%\end{array}\]
+%\end{minipage}
+%&
+%\begin{minipage}{5cm}
+%\[\begin{array}{l}
+%\class ~\D~ \{\\
+%\SP  \Mdef\m\x\any\any\x\\
+%\}
+%\\
+%\\[2mm]
+%\class ~\EMxt{CtoDtoC}~ \{\\
+%\SP  \Fdef\that{\EMxt{CtoD}}\\
+%\SP  \HT{\m(\HT\x\E)}{\E}\;\{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any{}}}} \\
+%\SP ~~~~{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any\x}}}}\}\\
+%\SP  \Mdef\mp\x\E\E{ \BehCast\E{\ShaCast\E{\BehCast\E{\ShaCast\E\x}}}}\\
+%\SP  \Mdef\mp\x\any\any{ \BehCast\any{\Call\this\mp{\BehCast\E{\ShaCast\E{\x}}}}}\\
+%\}\\
+%\end{array}\]
+%\end{minipage}
+%\end{tabular}
+%\caption{Wrapper classes generated by \BehCast\C{(\BehCast\D{\New\C{}})}}
+%\label{ctod}
+%\end{figure}
+%
+%The Typed Racket translation demonstrates some of the key issues inherent in
+%a wrapper-based system, where wrapper-inserting casts build up very quickly
+%internally, leading to the potential for a wrapper explosion, as previously
+%noted by Takikawa et al~\cite{practical-gt}, a point that is further
+%highlighted by the number of casts inserted into the wrappers.
 
-\begin{figure}
-\begin{tabular}{cc}
-\includegraphics[scale=.7]{../figures/internal.pdf}&\hspace{-2cm}
-\begin{minipage}{.5\textwidth}
-\vspace{-4.3cm}
-\tiny
-\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
-foo: broke its own contract
-  promised: Integer
-  produced: "hello"
-  in: the foo method in
-      the range of
-      (->
-       (object/c
-        (bar (-> any/c Integer))
-        (foo (-> any/c Integer))))
-  contract from: (interface for gen)
-  contract on: gen
-  blaming: (interface for gen)
-\end{lstlisting}
-\end{minipage}
-\end{tabular}
-\caption{Typed Racket ensures that internal untyped calls respect external types}
-\label{fig:arktex3}
-\end{figure}
 
-This issue is illustrated in figure~\ref{fig:intbeh2}, where the source program
-initially requires \n to take \xt{A} and return \xt{A}, then requires it to take
-and return \xt{B}. If we lift the methods up verbatim (adding only the trivial
-casts), then we end up with a type-incorrect wrapper. As a result, we have to
-dynamically insert casts inside of the lifted method bodies, ensuring that they
-remain type correct in the wrapper class. This operation is depicted in detail
-in the appendix.
+\subsection{Type soundness}
 
 
-\begin{figure}[!ht]
-\begin{tabular}{l@{\hspace{0.05\textwidth}}l@{\hspace{0.05\textwidth}}l}
-\begin{minipage}{0.3\textwidth}
-\begin{lstlisting}
-class A {n(x:*):*{x}}
-class B {m(x:*):*{x}}
-class C { 
-  m(x:A):A { 
-    this.n(x) }
-  n(x:A):A { x }}
-class D { 
-  m(x:A):A { x }
-  n(x:B):B { x }}
-(<D>new C()).m(
-  new C())
-\end{lstlisting}
-\end{minipage}
-&
-\begin{minipage}{0.25\textwidth}
-\begin{lstlisting}
-class DW {
-  that : C
-  
-
-  m(x:A):A { 
-    this.n(x) }
-
-  n(x:B):B { 
-    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)
-    (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)x }
-}
-\end{lstlisting}
-\end{minipage} &
-\begin{minipage}{0.3\textwidth}
-\begin{lstlisting}
-class DW {
-  that : C
-
-  m(x:A):A { 
-    (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)this.n(
-      (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x) }
-
-  n(x:B):B { 
-    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)
-      (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)x }
-}
-\end{lstlisting}
-\end{minipage} \\
-Source & Type-incorrect & Type-corrected
-\end{tabular}
-\caption{Wrapper generation}
-\label{fig:intbeh2}
-\end{figure}
-
-The other major concern when designing a wrapper-based protection system for
-objects is that losing methods is a real possibility. If a wrapper zealously
-enforces its type, then it will not wrap methods that do not appear on its
-type, which can then be lost to later untyped or more-typed code that is
-given that wrapper.
-Our approach avoids this by inserting ``passthrough'' methods that retain their
-original types and behaviors into the output wrappers, as illustrated in
-figure~\ref{ctod}, where we make a \C into a \D and then back again. When we
-reduce the set of required methods by casting a \C to a \D, we retain the method
-\mp by adding it to the output class. Notably, this operation preserves existing
-subtyping relationships, as the generated wrappers only appear as values, and
-the operation only adds additional methods.
-
-%%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure}[h!]
-\footnotesize
-\begin{tabular}{ll}\begin{minipage}{6cm}
-\[\begin{array}{l}
-\class ~\C~ \{\\
-\SP  \Mdef\m\x\E\E\x\\
-\SP  \Mdef\mp\x\E\E\x\\
-\}\\[2mm]
-\class ~\EMxt{CtoD}~ \{\\
-\SP  \Fdef\that\C\\
-\SP  \Mdef \m\x\any\any{\BehCast\any{\ShaCast\any{\BehCast\E{\ShaCast\E\x}}}}\\
-\SP  \Mdef \mp\x\E\E{\x}\\
-\}\\
-\end{array}\]
-\end{minipage}
-&
-\begin{minipage}{5cm}
-\[\begin{array}{l}
-\class ~\D~ \{\\
-\SP  \Mdef\m\x\any\any\x\\
-\}
-\\
-\\[2mm]
-\class ~\EMxt{CtoDtoC}~ \{\\
-\SP  \Fdef\that{\EMxt{CtoD}}\\
-\SP  \HT{\m(\HT\x\E)}{\E}\;\{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any{}}}} \\
-\SP ~~~~{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any\x}}}}\}\\
-\SP  \Mdef\mp\x\E\E{ \BehCast\E{\ShaCast\E{\BehCast\E{\ShaCast\E\x}}}}\\
-\SP  \Mdef\mp\x\any\any{ \BehCast\any{\Call\this\mp{\BehCast\E{\ShaCast\E{\x}}}}}\\
-\}\\
-\end{array}\]
-\end{minipage}
-\end{tabular}
-\caption{Wrapper classes generated by \BehCast\C{(\BehCast\D{\New\C{}})}}
-\label{ctod}
-\end{figure}
-
-The Typed Racket translation demonstrates some of the key issues inherent in
-a wrapper-based system, where wrapper-inserting casts build up very quickly
-internally, leading to the potential for a wrapper explosion, as previously
-noted by Takikawa et al~\cite{practical-gt}, a point that is further
-highlighted by the number of casts inserted into the wrappers.
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+or $\e$ is stuck in one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\EE[\DynCall\a\m{\ap}]$
+\item $\EE[\SubCast\tp\a]$
+\item $\EE[\ShaCast\tp\a]$
+\end{itemize}
 
 
 
