@@ -1752,7 +1752,7 @@ to the top level dynamics. \RuleRef{BC2} does the same, except that it wraps
 \IRule{BC1}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\\
   \fresh\app \\
   \sp = \Map \s{\Bind\app{\obj\D{\a}}} \\  
 }{
@@ -1762,7 +1762,7 @@ to the top level dynamics. \RuleRef{BC2} does the same, except that it wraps
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\
+  \k = \wrapAny\C{\classoff\C\K}\D\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -2590,7 +2590,7 @@ The function $\xt{overloading}(\b\md ~ \b\fd)$ there are no overloaded method na
 given method definitions.
 
 
-\opdef{~\xt{overloading}(\b\md ~\b\fd)}{Method overloading}
+\opdef{~\xt{overloading}$_{\cmdp}$(\b\md ~\b\fd)}{Method overloading}
 \begin{mathpar}
 \IRule{MO1}{
 }{
@@ -2605,15 +2605,7 @@ given method definitions.
 \xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)
 }
 
-\IRule{MO2}{
- \Mtype\m\t\t \notin \cmd \\
- \cmdp = \cmd, \Mtype\m\t\t \\
- \xt{overloading}_{\cmdp}(\b\md)
-}{
-\xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)
-}
-
-\IRule{MO4}{
+\IRule{MO3}{
  \Mtype\f\t\t \notin \cmd \\
  \cmdp = \cmd, \Mtype\f\t\t  \\
  \xt{overloading}_{\cmdp}(\b\md, \b\fd)
@@ -2621,7 +2613,7 @@ given method definitions.
 \xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e ~ \b\md ~\b\fd)
 }
 
-\IRule{MO5}{
+\IRule{MO4}{
  \Mtype\f{}\t \notin \cmd \\
  \cmdp = \cmd, \Mtype\f{}\t \\
  \xt{overloading}_{\cmdp}(\b\md, \b\fd)
@@ -3093,7 +3085,7 @@ given method definitions.
   \fresh\D \\
   \fresh\ap \\
   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
-  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D \\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\Cp\s\K {\K\,\k}\ap\sp
@@ -3103,7 +3095,7 @@ given method definitions.
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
   \fresh\ap \\
-  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\
+  \k = \wrapAny\C{\classoff\C\K}\D\\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\any\s\K {\K\,\k}\ap\sp
@@ -3129,53 +3121,48 @@ when encountering typed code.
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\IGNOREUNLESSNEEDED{
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C{\b\md}\bmt\bmtp\D = \\
+    \wrap\C\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
-&    \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp
+&    \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\
 \SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that}\f{\bscast\t\x}}~}
-&    \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp
+&    \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\
 \SPP \Mdef\m\x\t\tp {~\bscast\tp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
-&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md ~\wedge~ \Mtype\m\t\tp\in\bmtp \\
-% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp{(\bscast\Cp\x)}\x{\e}{\ep}}
-\\
-\SPP \Mdef\m\x\any\any {~\BehCast\any{\Call\this\m{\bscast{\t}\x}}~}
-&     \All \m \Mdef\m\x\Cp\Cpp\e\in\b\md ~\wedge~ \Mtype\m\t\tp\in\bmtp\\
-&\multicolumn{5}{l}{~\wedge~\Mdef\m\x\any\any{\e'}\not\in\b\md~\wedge~\t\neq\any}
+&     \Mtype\m\Cp\Cpp\in\bmtp ~\wedge~ \Mtype\m\t\tp\in\bmt \\
 \\
 \SPP \Mdef\m\x\t\tp{~\bscast\tp{\Call{\Get\this\that} \m {\x} }~}
-&    \All \m \Mdef\m\x\any\any\e\in\b\md ~\wedge~ \Mtype\m\t\tp\in\bmtp \\
-% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp{(\bscast\any\x)}\x\e{\ep}}
+&    \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\t\tp\in\bmt \\
+% \\
+% \SPP \Mdef\m\x\any\any {~\BehCast\any{\Call\this\m{\bscast{\t}\x}}~}
+% &     \Mtype\m\Cp\Cpp\in\bmt  ~\wedge~ \Mtype\m\t\tp\in\bmtp \\
+% &\multicolumn{5}{l}{~\wedge~\Mtype\m\any\any\not\in\bmt ~\wedge~\t\neq\any} \\
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
-&    \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp
+&    \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
-&    \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp
+&    \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\
-\SPP \Mdef\m\x{\Cp}{\Cpp} {~\e~}
-&    \All \m  \Mdef\m\x\Cp\Cpp\e\in\b\md ~\wedge~ \Mtype\m\t\tp\not\in \bmtp \\
-% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
+\SPP \Mdef\m\x{\Cp}{\Cpp}{~\Set{\Get\this\that}\m{\x}~}
+&    \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\t\tp\not\in \bmtp \\
 \\
-\SPP \Mdef\m\x\any\any {~\e~}
-&    \All \m  \Mdef\m\x\any\any\e\in\b\md  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
-% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}\bmtp\x\x{\e}{\ep}}
+\SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
+&    \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
 \\
 \SP \}
 \\
-\wrapAny\C\bmd\bmt\D = \\
+\wrapAny\C\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
 &  \Mtype\f{}\t \in \bmt\\
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
 &  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\BehCast\any{{\e}}~}
-&  \All \m \Mdef\m\x\t\t\e\in\b\md \\
-% &\multicolumn{5}{l}{~\wedge~\rtranst{\bmt}{\dyn{\bmt}}{(\BehCast\t\x)}\x{\e}{\ep}}
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that}\m{\bscast{\t}\x} }~}
+&  \Mtype\m\t\t\in\b\mt \\
 \\
 \SP \}\\
 \end{array}\]
@@ -3724,7 +3711,7 @@ If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\w
 
 \subsection{Correctness of $\xt{wrap}$}
 
-If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C{\b\md}\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
+If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
 
 \subsection{Type Soundness of Core \kafka Typing}
 
@@ -3902,7 +3889,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \begin{proofy}
         \stepp Let $\D$ be fresh.
         \stepp Let $\ap$ be fresh.
-        \stepp[wcorr] Let $\k$ be $\k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D$.
+        \stepp[wcorr] Let $\k$ be $\k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D$.
         \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
         \stepp[b2] $\EnvType\cdot{\K\k}\sp\ap\D$ \basis \RuleRef{W9}
         \stepp[b1] $\StrSub\cdot{\K\k}\D\Cp$ \basis correctness of $\xt{wrap}$ on \refby{wcorr}
@@ -3913,7 +3900,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \begin{proofy}
         \stepp Let $\D$ be fresh.
         \stepp Let $\ap$ be fresh.
-        \stepp[wcorr2] Let $\k$ be $\k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D$.
+        \stepp[wcorr2] Let $\k$ be $\k = \wrapAny\C{\classoff\C\K}\D$.
         \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
         \stepp[b21] $\EnvType\cdot{\K\k}\sp\ap\any$ \basis \RuleRef{W10}
         \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{b21,wcorr2}
@@ -3931,7 +3918,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \cond{\WFq{\K~\e~\s}}\lbl{cond1}
    \cond{\names{\classoff\Cp\K} $\subseteq$ \names{\classoff\C\K}}\lbl{cond2}
    \cond{\fresh\D}\lbl{cond3}
-   \cond{k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond4}
+   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond4}
   \end{conds}
   
   \then\axiom{\WF{}\s\K{\k}}
