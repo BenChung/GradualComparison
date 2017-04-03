@@ -524,11 +524,11 @@ slow downs in pathological cases.
 \section{KafKa: A Core Calculus}
 
 
-\vspace{-2mm}
+%\vspace{-2mm}
 
 \epigraph{\hspace{-1cm}\small ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}
 
-\vspace{-5mm}
+\vspace{-3mm}
 
 \noindent
 The basis of our formal approach is the \kafka calculus. At its heart,
@@ -536,33 +536,22 @@ The basis of our formal approach is the \kafka calculus. At its heart,
 dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
-The syntax of \kafka is given in \figref{syn}. Meta-variables \C, \D and \E
-range over class names, \x ranges over variable names, \m and \f range over
-methods and fields respectively. Finally, \this is a distinguished identifier
-representing a method receiver, while \that is a distinguished field name
-used in wrapper classes.  Expressions include object creation, \New\C{\b\e},
-field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
-invocation, \Call\e\m\e, dynamically resolved method invocation,
-\DynCall\e\m\e, and subtype casts, \SubCast\t\e.
-%, and shallow casts, \ShaCast\t\e.
-Types consist of class names and the dynamic type, written
-\any. Class definitions have a class name and (possibly empty) sequences of
-field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
-definitions consist of a field and its type, \Fdef\f\t. Method definitions
-have (for simplicity) a single argument and an expression \Mdef\m\x\t\t\e.
-Fields are read by calling getter methods and updated by setter methods,
-these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
 
+More precisely, \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters, and with statically and dynamically checked method invocation.  \kafka supports two different cast mechanisms.  The former, the \emph{structural cast} is the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, instead of type-checking the argument builds a wrapper around it, and the wrapper will dynamically ensure that all the successive requests are understood. \FZ{rewrite.}
 
+The syntax of \kafka is given below:
+%in \figref{syn}.
 
-\begin{figure}[!h]\hrulefill
+%\begin{figure}[!h]\hrulefill
 
-\hspace{0.1cm}
-\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+%\noindent\hrulefill\mbox{}
+
+\smallskip
+\begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x         &\B \this         &\B \that      \\
    &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
-   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \SubCast\t\e \\
-   &\B \ShaCast\t\e  &\B \a \\ 
+   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
+   &\B \SubCast\t\e &\B \BehCast\t\e 
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\b\fd}{\b\md}
@@ -574,9 +563,29 @@ these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
 ~\fd&::= ~ \Fdef\f\t \\ 
 \end{tabular}\end{minipage}
 
-\hrulefill
-\caption{\kafka Syntax.}\label{syn}
-\end{figure}
+%\noindent\hrulefill
+%\caption{\kafka Syntax.}\label{syn}
+%\end{figure}
+
+\smallskip
+
+\noindent Meta-variables \C, \D and \E
+range over class names, \x ranges over variable names, \m and \f range over
+methods and fields respectively. Finally, \this is a distinguished identifier
+representing a method receiver, while \that is a distinguished field name that will be used
+in wrapper classes (explained below).  Expressions include object creation, \New\C{\b\e},
+field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
+invocation, \KCall\e\m\e\t\t, dynamically resolved method invocation,
+\DynCall\e\m\e, subtype casts, \SubCast\t\e, and behavioural casts, \BehCast\t\e.
+%, and shallow casts, \ShaCast\t\e.
+Types consist of class names and the dynamic type, written
+\any. Class definitions have a class name and (possibly empty) sequences of
+field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
+definitions consist of a field and its type, \Fdef\f\t. Method definitions
+have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
+Fields are read by calling getter methods and updated by setter methods,
+these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
+
 
 %% TODO Put somewhere????
 %\E  &::= \Ftype\x\t  \B \none\\
@@ -589,7 +598,7 @@ A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
 class table \K where each class \k in \K is well-formed and \e is well-typed
 with respect to \K.  A class is well-formed if all its fields and methods
 are well-typed. A class that defines a field \f is not allowed to have
-getter or setter methods of that name.  A class can have at most two
+getter or setter methods of that name.  \kafka supports a limited form of overloading: a class can have at most two
 definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
 \Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
 unsurprising, with the following rules for method calls and casts.
@@ -871,7 +880,278 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 
 
+%%% HERE
 
+
+
+
+\subsection{Behavioural Casts}
+
+A behavioural cast \BehCast\t\a ensures that the result, \ap, will follow
+all of the type guarantees in \t. The cast creates a wrapper which holds a
+reference to the original object \a and dynamically enforces the type
+guarantees. The behavioural cast is generative as it creates both a class
+and a new instance of that class. The cast's dynamic semantics appear in
+\figref{behave}. \RuleRef{BC1} wraps a reference \a with a freshly generated
+wrapper \k for some type \t, adds it into a new heap, and then hands it back
+to the top level dynamics. \RuleRef{BC2} does the same, except that it wraps
+\a with the guards to let \a act like an instance of \any.
+
+\begin{figure}[!ht]
+%%%%%%%%%%%%%%%%% BEHCAST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{-2mm}
+
+{  \small
+  \begin{mathpar}
+\IRule{BC1}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \fresh\D \\
+  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\\
+  \fresh\app \\
+  \sp = \Map \s{\Bind\app{\obj\D{\a}}} \\  
+}{
+  \behcast\a\Cp\s\K {\K\,\k}\app\sp
+}
+
+\IRule{BC2}{
+  \App\s\a = \obj\C{\b{\a_1}}  \\
+  \fresh\D \\
+  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\
+  \fresh\ap \\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+}{
+  \behcast\a\any\s\K {\K\,\k}\ap\sp
+}
+\end{mathpar}}  
+
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\caption{Behavioural casts.}\label{behave}
+\end{figure}
+
+A wrapper generated for a type \C is a subtype of \C allowing us to refer to
+object instances and wrappers under the original, source language,
+types. Internally, wrappers either forward values, as in the case of getters
+and setters, or mimic the behaviour of the underlying object, in the case of
+methods, ensuring that the type guarantees of both the externally visible
+type and the wrapped object are respected.
+Wapper generation is implemented by \xt{wrap}, a meta function of 5
+arguments derived from the class table and the names of the types in
+question.  An example is shown in next, where we wrap an
+instance of \C, which we want to make sure acts like a \D. \xt{wrap}
+generates a proxy method for \m, which acts like \C's implementation of \m,
+but has casts enforcing the type guarantees of \D.
+
+
+{  \small
+\hspace{-6mm}\begin{tabular}{ER{3.5cm}ER{3cm}l}
+wrap( & 
+\begin{lstlisting}
+class C {
+  m (x :*):* {x}}
+\end{lstlisting}& , &
+\begin{lstlisting}
+class D {
+  m (x  A):B}
+\end{lstlisting}&) =
+\end{tabular}
+\begin{tabular}{@{}l@{}r@{}}
+&
+\begin{minipage}{6cm}
+\begin{lstlisting}
+class D {
+ that:C
+ m(x:A):B { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-0mm}@*)x}
+}
+\end{lstlisting}
+\end{minipage}
+\end{tabular}
+}
+
+
+\begin{figure}[!ht]
+\begin{tabular}{ER{4.5cm}ER{3.5cm}E}
+wrap( & 
+\begin{lstlisting}
+class C { 
+  m (x : *) : * { x }}
+\end{lstlisting}& , &
+\begin{lstlisting}
+class D { 
+  m (x : A) : B}
+\end{lstlisting}&) =
+\end{tabular}
+\begin{tabular}{@{}l@{}r@{}}
+\hspace{4cm} \,&
+\begin{minipage}{\textwidth-4cm}
+\begin{lstlisting}
+class D {
+  m(x : A) : B { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(<*>this.that())@m((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-1mm}@*)x) }
+}
+\end{lstlisting}
+\end{minipage}
+\end{tabular}
+\caption{Naive wrapper generation}
+\label{fig:rktex2}
+\end{figure}
+
+Copying the behaviour of the wrapped object is unusual, and is how we
+maintain one of the semantic Typed Racket. If we were to implement the
+wrappers directly, as seen in figure~\ref{fig:rktex2}, we will diverge from
+Typed Racket despite remaining typesafe. The issue is that Typed Racket
+requires that self-references respect the external type
+invariants~\cite{Takikawa:2012}, despite it not being strictly required for
+soundness, as seen in figure~\ref{fig:arktex3}. We use the lifting
+mechanism, copying wrapped class functionality, to ensure that
+self-references refer to the wrapper, rather than to the wrapped object,
+thereby enforcing the dynamic type guarantees.
+
+\begin{figure}
+\begin{tabular}{cc}
+\includegraphics[scale=.7]{../figures/internal.pdf}&\hspace{-2cm}
+\begin{minipage}{.5\textwidth}
+\vspace{-4.3cm}
+\tiny
+\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+foo: broke its own contract
+  promised: Integer
+  produced: "hello"
+  in: the foo method in
+      the range of
+      (->
+       (object/c
+        (bar (-> any/c Integer))
+        (foo (-> any/c Integer))))
+  contract from: (interface for gen)
+  contract on: gen
+  blaming: (interface for gen)
+\end{lstlisting}
+\end{minipage}
+\end{tabular}
+\caption{Typed Racket ensures that internal untyped calls respect external types}
+\label{fig:arktex3}
+\end{figure}
+
+This issue is illustrated in figure~\ref{fig:intbeh2}, where the source program
+initially requires \n to take \xt{A} and return \xt{A}, then requires it to take
+and return \xt{B}. If we lift the methods up verbatim (adding only the trivial
+casts), then we end up with a type-incorrect wrapper. As a result, we have to
+dynamically insert casts inside of the lifted method bodies, ensuring that they
+remain type correct in the wrapper class. This operation is depicted in detail
+in the appendix.
+
+
+\begin{figure}[!ht]
+\begin{tabular}{l@{\hspace{0.05\textwidth}}l@{\hspace{0.05\textwidth}}l}
+\begin{minipage}{0.3\textwidth}
+\begin{lstlisting}
+class A {n(x:*):*{x}}
+class B {m(x:*):*{x}}
+class C { 
+  m(x:A):A { 
+    this.n(x) }
+  n(x:A):A { x }}
+class D { 
+  m(x:A):A { x }
+  n(x:B):B { x }}
+(<D>new C()).m(
+  new C())
+\end{lstlisting}
+\end{minipage}
+&
+\begin{minipage}{0.25\textwidth}
+\begin{lstlisting}
+class DW {
+  that : C
+  
+
+  m(x:A):A { 
+    this.n(x) }
+
+  n(x:B):B { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)
+    (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)x }
+}
+\end{lstlisting}
+\end{minipage} &
+\begin{minipage}{0.3\textwidth}
+\begin{lstlisting}
+class DW {
+  that : C
+
+  m(x:A):A { 
+    (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)this.n(
+      (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)x) }
+
+  n(x:B):B { 
+    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)
+      (*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)A(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)A(*@\ShaEnd\hspace{0mm}@*)x }
+}
+\end{lstlisting}
+\end{minipage} \\
+Source & Type-incorrect & Type-corrected
+\end{tabular}
+\caption{Wrapper generation}
+\label{fig:intbeh2}
+\end{figure}
+
+The other major concern when designing a wrapper-based protection system for
+objects is that losing methods is a real possibility. If a wrapper zealously
+enforces its type, then it will not wrap methods that do not appear on its
+type, which can then be lost to later untyped or more-typed code that is
+given that wrapper.
+Our approach avoids this by inserting ``passthrough'' methods that retain their
+original types and behaviors into the output wrappers, as illustrated in
+figure~\ref{ctod}, where we make a \C into a \D and then back again. When we
+reduce the set of required methods by casting a \C to a \D, we retain the method
+\mp by adding it to the output class. Notably, this operation preserves existing
+subtyping relationships, as the generated wrappers only appear as values, and
+the operation only adds additional methods.
+
+%%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[h!]
+\footnotesize
+\begin{tabular}{ll}\begin{minipage}{6cm}
+\[\begin{array}{l}
+\class ~\C~ \{\\
+\SP  \Mdef\m\x\E\E\x\\
+\SP  \Mdef\mp\x\E\E\x\\
+\}\\[2mm]
+\class ~\EMxt{CtoD}~ \{\\
+\SP  \Fdef\that\C\\
+\SP  \Mdef \m\x\any\any{\BehCast\any{\ShaCast\any{\BehCast\E{\ShaCast\E\x}}}}\\
+\SP  \Mdef \mp\x\E\E{\x}\\
+\}\\
+\end{array}\]
+\end{minipage}
+&
+\begin{minipage}{5cm}
+\[\begin{array}{l}
+\class ~\D~ \{\\
+\SP  \Mdef\m\x\any\any\x\\
+\}
+\\
+\\[2mm]
+\class ~\EMxt{CtoDtoC}~ \{\\
+\SP  \Fdef\that{\EMxt{CtoD}}\\
+\SP  \HT{\m(\HT\x\E)}{\E}\;\{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any{}}}} \\
+\SP ~~~~{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any\x}}}}\}\\
+\SP  \Mdef\mp\x\E\E{ \BehCast\E{\ShaCast\E{\BehCast\E{\ShaCast\E\x}}}}\\
+\SP  \Mdef\mp\x\any\any{ \BehCast\any{\Call\this\mp{\BehCast\E{\ShaCast\E{\x}}}}}\\
+\}\\
+\end{array}\]
+\end{minipage}
+\end{tabular}
+\caption{Wrapper classes generated by \BehCast\C{(\BehCast\D{\New\C{}})}}
+\label{ctod}
+\end{figure}
+
+The Typed Racket translation demonstrates some of the key issues inherent in
+a wrapper-based system, where wrapper-inserting casts build up very quickly
+internally, leading to the potential for a wrapper explosion, as previously
+noted by Takikawa et al~\cite{practical-gt}, a point that is further
+highlighted by the number of casts inserted into the wrappers.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
