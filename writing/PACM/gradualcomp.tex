@@ -2668,7 +2668,8 @@ given method definitions.
 
 \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{TypeScript translation for programs}
 \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{TypeScript translation for classes} 
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{TypeScript translation for methods} 
+\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{TypeScript translation for methods} 
+\opdef{$\fieldtrans {\fd}{\fd'}{\K}$}{TypeScript translation for fields} 
 
 \begin{mathpar}
 \IRule[width=20em]{TS-PROGRAM}{
@@ -2709,21 +2710,21 @@ given method definitions.
 \colorbox[gray]{1}{
 \begin{minipage}{\textwidth}
 \begin{mathpar}
-\IRule{TS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+\IRule{TSS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
-\IRule[width=30em]{TS-TYCALL}{
+\IRule[width=30em]{TSS-TYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
 }
 
-\IRule[width=10em]{TS-DYCALL}{
+\IRule[width=10em]{TSS-DYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule[width=20em]{TS-SET}{
+\IRule[width=20em]{TSS-SET}{
     {\HasType{\Env}\this\C} \\ 
     {\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
     {\AnaCast\K\Env{\e}{\ep}{\t_1}}
@@ -2731,14 +2732,14 @@ given method definitions.
     \GenCast\K\Env{\Call{\this}\f{\e}}{\Call{\this}\f{\ep}}{\any}
 }
 
-\IRule[width=20em]{TS-GET}{
+\IRule[width=20em]{TSS-GET}{
     {\HasType{\Env}{\this}{\C}} \\ 
     {f():\t \in \classoff\C\K} 
 }{
     \GenCast\K\Env{\Call{\this}\f{}}{\Call{\this}\f{}}{\any}
 }
 
-\IRule{TS-NEW}{
+\IRule{TSS-NEW}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   {\Class \C {\b{\Fdef\f\t}} {\b{\md}} \in \K}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
@@ -2754,20 +2755,20 @@ given method definitions.
 \colorbox[gray]{1}{
 \begin{minipage}{\textwidth}
 \begin{mathpar}
-\IRule{TS-ASUB}{
+\IRule{TSA-SUB}{
   \GenCast\K\Env\e\ep\tp \\
   {\K \vdash \tp \Sub \t}
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TS-ATRANS1}{
+\IRule{TSA-TRANS1}{
   \GenCast\K\Env\e\ep\any
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TS-ATRANS2}{
+\IRule{TSA-TRANS2}{
   \GenCast\K\Env\e\ep\C
 }{
   \AnaCast\K\Env\e\ep\any
@@ -2842,61 +2843,124 @@ given method definitions.
 
 \section{Complete translation for Thorn}
 
+\subsection{Thorn Type Translation}
+\opdef{$\Kt{\t} = \src{\tp}$}{The \kafka equivalent of $\t$ is $\tp$}
+
+\begin{mathpar}
+\IRule{THT-ANY}{
+}{
+  \src\any = \Kt{\any}
+}
+
+\IRule{THT-CONC}{
+}{
+  \src\C = \Kt{\C}
+}
+
+\IRule{THT-WEAK}{
+}{
+  \src\any = \Kt{\dt\C}
+}
+\end{mathpar}
+\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Thorn translation for programs}
+\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Thorn translation for classes} 
+\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Thorn translation for methods} 
+\opdef{$\fieldtrans {\fd}{\fd'}{\K}$}{Thorn translation for fields} 
+\begin{mathpar}
+\IRule[width=20em]{TH-PROGRAM}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule[width=30em]{TH-CLASS1}{ 
+  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtrans {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+\IRule{TH-CLASS2}{ 
+}{
+  \classtrans {\K}\cdot\cdot
+}
+
+\IRule{TH-FIELD}{
+  \src\tp = \Kt\t
+}{
+  \fieldtrans{\Fdef\f\t}{\Fdef\f\tp}{}
+}
+
+\IRule[width=25em]{TH-METHODANY}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t[1]}}{\e}\ep{\t[2]} \\
+  \src{\t[3]} = \Kt{\t[1]} \\ \src{\t[4]} = \Kt{\t[2]} \\ 
+  \src{\t[3] = \t[4] = \any}
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\t[1]}{\t[2]}{\e}}{\Mdef\m\x{\t[3]}{\t[4]}{\ep}}{}
+}
+
+\IRule[width=25em]{TH-METHOD}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\C}}{\e}\ep{\Cp} \\
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{\Mdef\m\x{\Cp}{\Cpp}{\ep}}{}
+}
+\end{mathpar}
+
 \subsection{Thorn synthetic translation for expressions}
 
 \opdef{$\GenCast\K\Env\e\ep\t$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
 
 \begin{mathpar}
-\IRule{THS1}{
+\IRule{THS-VAR}{
   \HasType\Env\x\t
 }{
   \GenCast\K\Env\x\x\t
 }
 
-\IRule[width=30em]{THS2}{
+\IRule[width=30em]{THS-FIELD}{
     \GenCast\K\Env{\e_1}{\e_3}\C \\ 
-    \src{\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
+    {\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
     \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
 }
 
-\IRule{THS3}{
+\IRule[width=30em]{THS-OPTTCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
-    \src{\m({\D_1}):\D_2 \in \classoff\C\K} \\ 
+    {\m({\D_1}):\D_2 \in \classoff\C\K} \\ 
     \AnaCast\K\Env{\e_2}{\e_4}{\D_1}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast\D{\DynCall{\e_3}\m{\SubCast\any{\e_4}}}}{\D_2} %Q: do I need to cast the return value of non-bang
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\D_2}{\DynCall{\e_3}\m{\SubCast\any{\e_4}}}}{\D_2} %Q: do I need to cast the return value of non-bang
 }
 
-\IRule{THS4}{
+\IRule[width=20em]{THS-OPTUCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
-    \src{\m({\t_1}):\t \in \classoff\C\K} \\ 
-    \t \neq \D \\
+    {\m({\t_1}):\t \in \classoff\C\K} \\ 
+    \src{\any} = \Kt{\t[1]}\\
     \AnaCast\K\Env{\e_2}{\e_4}{\t_1} 
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\t}
     %Q: do I need to cast the return value of non-bang
 }
 
-\IRule{THS5}{
+\IRule[width=30em]{THS-TYCALL}{
   \GenCast\K\Env{\e_1}{\e_3}{\D} \\
-  \src{\Mtype\m\t\tp \in \classoff\D\K} \\
-  \AnaCast\K\Env{\e_2}{\e_3}{\t}
+  {\Mtype\m\t\tp \in \classoff\D\K} \\
+  \AnaCast\K\Env{\e_2}{\e_4}{\t}
 }{
   \GenCast\K\Env{\Call{\e_1}\m{\e_2}}{\KCall{\e_3}\m{\e_4}\t\tp}{\tp}
 }
 
-\IRule{THS6}{
+\IRule{THS-DYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}\any \\ 
     \AnaCast\K\Env{\e_2}{\e_4}\any
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
 }
 
-\IRule{THS7}{
+\IRule{THS-NEW}{
   \b{\AnaCast\K\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b\md}
+  \Class \C {\b{\Ftype\f\t}} {\b\md} \in \K
   }{
   \GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}\C
 }
@@ -2907,33 +2971,33 @@ given method definitions.
 \opdef{$\AnaCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
 
 \begin{mathpar}
-\IRule{THA1}{
+\IRule{THA-CSUB}{
   \GenCast\K\Env{\e_1}{\e_2}{\C_2} \\
   \src{\ThorSub\K\cdot{\C_2}{\C_1}}\\
 }{
   \AnaCast\K\Env{\e_1}{\e_2}{\C_1}
 }
 
-\IRule{THA2}{
+\IRule{THA-OPTCONC}{
   \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
   \src{\ThorSub\K\cdot\D\C}
 }{
   \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
 }
 
-\IRule{THA3}{
+\IRule{THA-ANYCONC}{
   \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
   \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
 }
 
-\IRule{THA4}{
+\IRule{THA-ANYOPT}{
   \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
   \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
 }
 
-\IRule{THA5}{
+\IRule{THA-TOANY}{
   \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
 }{
   \AnaCast\K\Env{\e_1}{\e_2}{\any}
