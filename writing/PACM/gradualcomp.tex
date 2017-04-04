@@ -473,15 +473,10 @@ The basis of our formal approach is the \kafka calculus. At its heart,
 dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
+%
+Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters, and with statically and dynamically checked method invocation.  \kafka supports two different cast mechanisms.  The former, the \emph{structural cast} is the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, instead of type-checking the argument, it builds a wrapper around it; the wrapper dynamically ensures that all the successive requests to the object are understood. \FZ{rewrite.}
 
-More precisely, \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters, and with statically and dynamically checked method invocation.  \kafka supports two different cast mechanisms.  The former, the \emph{structural cast} is the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, instead of type-checking the argument builds a wrapper around it, and the wrapper will dynamically ensure that all the successive requests are understood. \FZ{rewrite.}
-
-The syntax of \kafka is given below:
-%in \figref{syn}.
-
-%\begin{figure}[!h]\hrulefill
-
-%\noindent\hrulefill\mbox{}
+\begin{figure}[!t]\hrulefill
 
 \smallskip
 \begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
@@ -500,13 +495,13 @@ The syntax of \kafka is given below:
 ~\fd&::= ~ \Fdef\f\t \\ 
 \end{tabular}\end{minipage}
 
-%\noindent\hrulefill
-%\caption{\kafka Syntax.}\label{syn}
-%\end{figure}
+\noindent\hrulefill
+\caption{\kafka Syntax.}\label{syn}
+\end{figure}
 
-\smallskip
 
-\noindent Meta-variables \C, \D and \E
+ The syntax of \kafka is given in \figref{syn}.
+ Meta-variables \C, \D and \E
 range over class names, \x ranges over variable names, \m and \f range over
 methods and fields respectively. Finally, \this is a distinguished identifier
 representing a method receiver, while \that is a distinguished field name that will be used
@@ -701,15 +696,14 @@ set of rules appear in Appendix section~\ref{appendix:kafka}.
 
 \subsection{Dynamic Semantics}
 
-The small operational step operational semantics for \kafka appears below.
-%in \figref{fig:semantics}.
+The small operational step operational semantics for \kafka appears in \figref{fig:semantics}.
 
-\medskip
+
 
 %
-%\begin{figure}[!b]
-%\noindent\hrulefill
-%\smallskip
+\begin{figure}[!t]
+\noindent\hrulefill
+\smallskip
 
 \begin{minipage}{14cm}
   \opdef{\Reduce \K\e\s \Kp\ep\sp}
@@ -791,6 +785,10 @@ The small operational step operational semantics for \kafka appears below.
 
 
 \end{tabular}\end{minipage}
+
+\hrulefill
+\caption{\kafka dynamic semantics}\label{fig:semantics}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ~\\[2mm]
