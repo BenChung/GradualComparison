@@ -1206,20 +1206,15 @@ translation judgments.
 
 \newpage
 \begin{verbatim}
-tc( class C { fd1.. md1.. }  ) =  class C { fd1'.. md1'.. md1''.. md1'''.. } 
-      where fd1 = f:t,  fd1 = f:*, 
-                        md1''=  f():*{this.f} ,  
-                        md1'''=[f(x:*):*{this.f=x}
-                        .. 
+tc( class C { fd1.. md1.. }  ) =  class C { fd1'.. md1'.. } 
+      where fd1 = f:t,  fd1 = f:* .. 
              md1' = tm(  md1 ) ..
-
 tm( m (x:t):t' { e } ) =  m(x:*):*{ e' }
            where e' = te( e )
-
-te( this.f        =  this.f() 
-te( e.f )         =  e'@f()        where e'  = te( e )
-te( this.f = e )  =  this.f( e' )  where e'  = te( e )
-te( e1.f = e2 )   =  e1'@f(e2')    where e1' = te( e1 ), e2' = te( e2 )
+te( this.f() )    =  this.f() 
+te( e.f() )       =  e'@f()        where e'  = te( e )
+te( this.f(e) )   =  this.f( e' )  where e'  = te( e )
+te( e1.f(e2) )    =  e1'@f(e2')    where e1' = te( e1 ), e2' = te( e2 )
 te( e1.m(e2) )    =  e1'@m(e2')    where e1' = te( e1 ), e2' = te( e2 )
 te( new C(e1..) ) =  new C(e1..)   where e1' = te( e1 ).. 
 \end{verbatim}
@@ -1403,10 +1398,9 @@ causes all calls to be dynamic.
 \begin{verbatim}
 Assume: only one method m in source!
 
-tc(K, class C { fd1.. md1.. }) = class C { fd1.. md1'.. md1''.. md1'''.. md1''''}
-     where  fd1 = f:t, 
-          md1'' = f(}:t { this.x } 
-          md1'''=  f(x:t):t { this.f = x } ..
+tc(K, class C { fd1.. md1.. }) = class C { fd1'.. md1'.. md1''}
+     where  fd1 = f:t 
+           fd1' = f:ktype(t)
            md1  =  m(x:t1):t2 { e  } ,
            md1' =  m(x:t1'):t2' { e' }  
             t1' =  C  if t1 ==  C 
@@ -1414,7 +1408,7 @@ tc(K, class C { fd1.. md1.. }) = class C { fd1.. md1'.. md1''.. md1'''.. md1''''
             t2' =  C  if t2 ==  C 
                 =  *  otherwise
              e' = te(K, this:C x:t1, e )
-         md1''' =  m(x:*):* { <t2>this.m(<t1>x) }
+          md1'' =  m(x:*):* { <t2>this.m(<t1>x) }
 
 te(K, T, this.f    =  this.f() 
 te(K, T, e.f )     =  e'@f()   where e' = te(K, T,  e),  K,T |- e : * or ?C
