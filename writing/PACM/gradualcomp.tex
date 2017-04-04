@@ -1205,6 +1205,29 @@ will model source type \src\t, coming from source expression \src\e.  Inside
 of this bidirectional framework, we then have a fairly typical set of
 translation judgments.
 
+
+\newpage
+\begin{verbatim}
+tc( class C { fd1.. md1.. }  ) =  class C { fd1'.. md1'.. md1''.. md1'''.. } 
+      where fd1 = f:t,  fd1 = f:*, 
+                        md1''=  f():*{this.f} ,  
+                        md1'''=[f(x:*):*{this.f=x}
+                        .. 
+             md1' = tm(  md1 ) ..
+
+tm( m (x:t):t' { e } ) =  m(x:*):*{ e' }
+           where e' = te( e )
+
+te( this.f        =  this.f() 
+te( e.f )         =  e'@f()        where e'  = te( e )
+te( this.f = e )  =  this.f( e' )  where e'  = te( e )
+te( e1.f = e2 )   =  e1'@f(e2')    where e1' = te( e1 ), e2' = te( e2 )
+te( e1.m(e2) )    =  e1'@m(e2')    where e1' = te( e1 ), e2' = te( e2 )
+te( new C(e1..) ) =  new C(e1..)   where e1' = te( e1 ).. 
+\end{verbatim}
+
+
+
 \begin{figure}[!h]
 \small
 \begin{mathpar}
@@ -1379,6 +1402,58 @@ dynamic calls on the receiver, despite the receiver having a source language
 type. This is because Thorn's unsound types are translated to \any, which
 causes all calls to be dynamic.
 
+\begin{verbatim}
+Assume: only one method m in source!
+
+tc(K, class C { fd1.. md1.. }) = class C { fd1.. md1'.. md1''.. md1'''.. md1''''}
+     where  fd1 = f:t, 
+          md1'' = f(}:t { this.x } 
+          md1'''=  f(x:t):t { this.f = x } ..
+           md1  =  m(x:t1):t2 { e  } ,
+           md1' =  m(x:t1'):t2' { e' }  
+            t1' =  C  if t1 ==  C 
+                =  *  otherwise
+            t2' =  C  if t2 ==  C 
+                =  *  otherwise
+             e' = te(K, this:C x:t1, e )
+         md1''' =  m(x:*):* { <t2>this.m(<t1>x) }
+
+te(K, T, this.f    =  this.f() 
+te(K, T, e.f )     =  e'@f()   where e' = te(K, T,  e),  K,T |- e : * or ?C
+te(K, T, e.f )     =  e'.f()   where e' = te(K, T,  e),  K,T |- e : C
+te(K, T, this.f=e) =  this.f( e' )  
+         where e'' = te(K, T,  e )
+               T   = this:C ..
+               f:C' in C
+               e'  = e''     if K,T |- e : C'
+                   = <C'>e'' otherwise
+te(K, T, e1.f=e2)  =  e1'@f(e2')   
+         where K,T |- e1 : t,   t == * or ?C
+               e1' = te(K, T,  e1 ), 
+               e2' = te(K, T,  e2 )
+te(K, T,  e1.f = e2 )   =  e1'.f(e2')   
+         where K,T |- e1 : C
+               e1' = te(K, T,  e1 ), 
+               K,T |- e2: t'
+               f:t in C
+               e2'' = te(K, T,  e2 )
+               e2' =  e2''  t' <: t
+                   = <t>e2'' otherwise
+
+te(K, T,  e1.m(e2) )   =  e1'@m(e2')   
+         where K,T |- e1 : t,   t == * or ?C
+               e1' = te(K, T,  e1 ), 
+               e2' = te(K, T,  e2 )
+te(K, T,  e1.m(e2) )   =  e1'.m(e2')   
+         where K,T |- e1 : C
+               e1' = te(K, T,  e1 ), 
+               K,T |- e2: t'
+               m(x:t1):t2  in C
+               e2'' = te(K, T,  e2 )
+               e2' =  e2''  t' <: t
+                   = <t>e2'' otherwise
+te( new C(e1..) ) =  new C(e1'..)   where e1' = te(K,T,e1 )..
+\end{verbatim}
 
 \begin{figure}[h!]
 %% \begin{tabular}{l@{~~}l@{}l@{}l}
