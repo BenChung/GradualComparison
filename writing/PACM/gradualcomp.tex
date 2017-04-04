@@ -2768,6 +2768,7 @@ given method definitions.
   \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any{\SubCast\any\ep}}{}
 }
 \end{mathpar}
+
 \subsection{TypeScript synthetic translation for expressions}
 
 \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
@@ -2801,7 +2802,7 @@ given method definitions.
 
 \IRule[width=20em]{TSS-GET}{
     {\HasType{\Env}{\this}{\C}} \\ 
-    {\rf():\t \in \classoff\C\K} 
+    {\Mtype\f{}\t \in \classoff\C\K} 
 }{
     \GenCast\K\Env{\Call{\this}\f{}}{\Call{\this}\f{}}{\any}
 }
@@ -2809,7 +2810,9 @@ given method definitions.
 \IRule{TSS-NEW}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
   {\Class \C {\b{\Fdef\f\t}} {\b{\md}} \in \K}
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}}
+}{
+  \GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}
+}
 \end{mathpar}
 \end{minipage}
 }
