@@ -2959,14 +2959,13 @@ given method definitions.
 
 \IRule[width=25em]{TH-METHODANY}{
   \AnaCast {\K}{\HT\this{\C}~\HT\x{\t[1]}}{\e}\ep{\t[2]} \\
-  \src{\t[3]} = \Kt{\t[1]} \\ \src{\t[4]} = \Kt{\t[2]} \\ 
-  \src{\t[3] = \t[4] = \any}
+  \src{\Kt{\t[1]} = \Kt{\t[2]} = \any}
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t[1]}{\t[2]}{\e}}{\Mdef\m\x{\t[3]}{\t[4]}{\ep}}{}
+  \methtrans {\K}{\C}{\Mdef\m\x{\t[1]}{\t[2]}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
 }
 
 \IRule[width=25em]{TH-METHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\C}}{\e}\ep{\Cp} \\
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
 }{
   \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{\Mdef\m\x{\Cp}{\Cpp}{\ep}}{}
 }
@@ -3072,19 +3071,46 @@ given method definitions.
 
 \section{Complete translation for Transient}
 
-\subsection{Transient translation for methods}
-
-\opdef{$\methtrans\K\C{\md}{\md}{\K}$}{Transient translation for methods}
-
-
+\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Thorn translation for programs}
+\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Thorn translation for classes} 
+\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Thorn translation for methods} 
+\opdef{$\fieldtrans {\fd}{\fd'}{\K}$}{Thorn translation for fields} 
 \begin{mathpar}
-\IRule{MTU}{
-  \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
-}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
+\IRule[width=20em]{TA-PROGRAM}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
 
-\IRule{MTT}{
-  \AnaCast{\K}{\HT\this\C~\HT\x\C}{\e}{\ep}{\Cp}
-}{\methtrans\K\C{\Mdef\m\x\C\Cp\e}{\Mdef\m\x\any\any{\SubCast{\any}{\New{\EMxt{A2}}{\SubCast\C\x, \e}.{\EMxt{f2}}()}}}{}}
+\IRule[width=30em]{TA-CLASS1}{ 
+  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtrans {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+\IRule{TA-CLASS2}{ 
+}{
+  \classtrans {\K}\cdot\cdot
+}
+
+\IRule{TA-FIELD}{
+}{
+  \fieldtrans{\Fdef\f\t}{\Fdef\f\t}{}
+}
+
+\IRule[width=25em]{TA-METHODANY}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\any}}{\e}\ep{\any} \\
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
+}
+
+\IRule[width=25em]{TA-METHOD}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
+    \Mdef\m\x\any\any{{\New{\EMxt{A2}}{\SubCast\C\x, \SubCast{\any}\e}.{\EMxt{f2}}()}} }{}
+}
 \end{mathpar}
 
 \subsection{Transient synthetic translation for expressions}
@@ -3092,28 +3118,30 @@ given method definitions.
 \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{Transient translation for expressions}
 
 \begin{mathpar}
-\IRule{GRS1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\SubCast\t\x}\t}
+\IRule{TAS-VAR}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\SubCast\t\x}\t}
 
 
-\IRule[width=30em]{GRS2}{
+\IRule[width=30em]{TAS-TYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
 }
 
-\IRule{GRS3}{
+\IRule{TAS-DYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\mdu{{\e_4}}}{\any}
 }
 
-\IRule[width=20em]{GRS4}{
-    \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
+\IRule[width=20em]{TAS-FIELD}{
+    \HasType{\E}\this\C \\ 
+    \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ 
+    \b{\AnaCast\K\Env{\e_1}{\e_2}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
+    \GenCast\K\Env{\Call{\this}\f{\b{\e_1}}}{\Call{\this}\f{\b{\e_2}}}{\any}
 }
 
-\IRule{GRS5}{
+\IRule{TAS-NEW}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
   \Class \C {\b{\Ftype\f\t}} {\b{\md}}
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
@@ -3124,14 +3152,14 @@ given method definitions.
 \opdef{$\AnaCast\K\E\e\ep\t$}{Transient translation for bidirectional expressions}
 
 \begin{mathpar}
-\IRule{GRA1}{
+\IRule{TAA-SUB}{
   \GenCast\K\E\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\E\e\ep\t
 }
 
-\IRule{GRA2}{
+\IRule{TAA-CONS}{
   \GenCast\K\E\e\ep\tp \\
   \consistent\K\tp\t
 }{
