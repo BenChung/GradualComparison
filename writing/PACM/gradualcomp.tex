@@ -1402,20 +1402,16 @@ tc(K, class C { fd1.. md1.. }) = class C { fd1'.. md1'.. md1''}
      where  fd1 = f:t 
            fd1' = f:ktype(t)
            md1  =  m(x:t1):t2 { e  } ,
-           md1' =  m(x:t1'):t2' { e' }  
-            t1' =  C  if t1 ==  C 
-                =  *  otherwise
-            t2' =  C  if t2 ==  C 
-                =  *  otherwise
+           md1' =  m(x:ktype(t1)):ktype(t2) { e' }  
              e' = te(K, this:C x:t1, e )
           md1'' =  m(x:*):* { <t2>this.m(<t1>x) }
 
-te(K, T, this.f    =  this.f() 
-te(K, T, e.f )     =  e'@f()   where e' = te(K, T,  e),  K,T |- e : * or ?C
-te(K, T, e.f )     =  e'.f()   where e' = te(K, T,  e),  K,T |- e : C
-te(K, T, this.f=e) =  this.f( e' )  
-         where e'' = te(K, T,  e )
-               T   = this:C ..
+te(K, T, this.f())  =  this.f() 
+te(K, T, e.f())     =  e'@f()   where e' = te(K, T,  e),  K,T |- e : * or ?C
+te(K, T, e.f())     =  e'.f()   where e' = te(K, T,  e),  K,T |- e : C
+te(K, T, this.f(e)) =  this.f( e' )  
+         where e''  = te(K, T,  e )
+               T    = this:C ..
                f:C' in C
                e'  = e''     if K,T |- e : C'
                    = <C'>e'' otherwise
