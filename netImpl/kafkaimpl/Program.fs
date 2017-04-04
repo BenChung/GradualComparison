@@ -37,7 +37,7 @@ class C {
     let _ = Typechecker.wfprog tsv
     let trans = CGAST.transp(tsv)
     let subtypeRels = SubIL.addSubtypeImpls(tsv)(trans)
-    let outp = CodeGen.genProg(subtypeRels, true)
+    let outp = CodeGen.genProg(subtypeRels, true, true)
     let evaluated = Executor.execute(outp)
     
     printfn "%A" evaluated

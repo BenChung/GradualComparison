@@ -17,7 +17,7 @@ namespace Kafka
         private static ModuleBuilder mb;
         private static Type runtimeType;
         private static MethodInfo dyWrapperf, tyWrapperf;
-        
+
         static Runtime()
         {
             classGenName = new AssemblyName("CastAssembly");
@@ -42,7 +42,7 @@ namespace Kafka
 
             TypeBuilder tb = mb.DefineType(source.Name + "toDynwrapper", TypeAttributes.Public);
             // no interface implementations
-            
+
             var thatf = tb.DefineField("that", source, FieldAttributes.Private);
             MakeConstructor(source, tb, thatf);
 
@@ -70,7 +70,7 @@ namespace Kafka
 
             SubtypeOf sts = (SubtypeOf)Attribute.GetCustomAttribute(target, typeof(SubtypeOf));
             Type[] explicitSts = null;
-            if (sts == null)
+            if (sts != null)
             {
                 explicitSts = sts.Subtypes;
             } else
@@ -102,6 +102,9 @@ namespace Kafka
             var thatf = tb.DefineField("that", source, FieldAttributes.Private);
             MakeConstructor(source, tb, thatf);
 
+            Dictionary<string, PropertyBuilder> properties = new Dictionary<string, PropertyBuilder>();
+            Dictionary<string, MethodBuilder> methods = new Dictionary<string, MethodBuilder>();
+
             foreach (string k in srcPropMap.Keys)
             {
                 PropertyInfo tgtProp = null;
@@ -110,30 +113,33 @@ namespace Kafka
                     tgtProp = tgtPropMap[k];
                 }
                 PropertyInfo srcProp = srcPropMap[k];
-                MakePropertyWrapper(tb, thatf, k, tgtProp.PropertyType, srcProp);
+                properties.Add(k, MakePropertyWrapper(tb, thatf, k, tgtProp.PropertyType, srcProp));
             }
-            
+
             foreach (string k in srcMethMap.Keys)
             {
                 MethodInfo srcInfo = srcMethMap[k];
+                MethodBuilder generated;
                 if (tgtMethMap.ContainsKey(k))
                 {
                     MethodInfo tgtInfo = tgtMethMap[k];
-                    MakeMethodWrapper(tb, thatf, k, srcInfo,
+                    generated = MakeMethodWrapper(tb, thatf, k, srcInfo,
                                              tgtInfo.GetParameters().Select(param => param.ParameterType).ToArray(),
                                              tgtInfo.ReturnType, tgtInfo);
                 }
                 else
                 {
-                    MakeMethodWrapper(tb, thatf, k, srcInfo,
+                    generated = MakeMethodWrapper(tb, thatf, k, srcInfo,
                                              srcInfo.GetParameters().Select(param => param.ParameterType).ToArray(),
                                              srcInfo.ReturnType, null);
                 }
+                methods.Add(k, generated);
             }
 
             foreach (Type mbSt in explicitSts)
             {
-                MakeExplicitImplementation(tb, mbSt, flags);
+                MakeExplicitImplementation(tb, mbSt, flags, properties, methods);
+                tb.AddInterfaceImplementation(mbSt);
             }
 
             Type wrapper = tb.CreateType();
@@ -141,35 +147,41 @@ namespace Kafka
             return (T)wrapper.GetConstructor(new Type[] { source }).Invoke(new object[] { src });
         }
 
-        private static void MakeExplicitImplementation(TypeBuilder tb, Type mbSt, BindingFlags bf)
+        private static void MakeExplicitImplementation(TypeBuilder tb, Type mbSt, BindingFlags bf, Dictionary<string, PropertyBuilder> props, Dictionary<string, MethodBuilder> methods)
         {
             //We can assume: 
             // * The arguments are actually always going to be subtypes
             // * The return type is going to be statically known to be a subtype
             // * The real function is also on the same class, of the same name
             // If any of these were violated, the original structural rule wouldn't have worked.
-            foreach (PropertyInfo pi in mbSt.GetProperties())
-            {
-
-            }
+            // The properties we don't have to care about, their type is invariant.
             foreach (MethodInfo mi in mbSt.GetMethods(bf))
             {
-                var mb = tb.DefineMethod(mi.Name, MethodAttributes.Private | MethodAttributes.HideBySig 
-                                                | MethodAttributes.Virtual | MethodAttributes.Final);
+                var mb = tb.DefineMethod(mi.Name, MethodAttributes.Private | MethodAttributes.HideBySig
+                                                | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.NewSlot, 
+                                                mi.ReturnType, mi.GetParameters().Select(a => a.ParameterType).ToArray());
                 var ilg = mb.GetILGenerator();
                 ilg.Emit(OpCodes.Ldarg_0);
                 ilg.Emit(OpCodes.Ldarg_1); // always 1 argument.
-                //ilg.Emit(OpCodes.Call, )
+                var target = methods[mi.Name]; // must exist
+                ilg.Emit(OpCodes.Call, target); // this.m(a)
+                ilg.Emit(OpCodes.Ret);
+                tb.DefineMethodOverride(mb, mi);
             }
-            throw new NotImplementedException();
         }
 
         private static void MakeMemberMaps(Type source, BindingFlags flags, out Dictionary<string, PropertyInfo> srcPropMap, out Dictionary<string, MethodInfo> srcMethMap)
         {
             PropertyInfo[] srcProps = source.GetProperties();
             MethodInfo[] srcMeths = source.GetMethods(flags);
-            srcPropMap = srcProps.ToDictionary(val => val.Name, val => val);
-            srcMethMap = srcMeths.ToDictionary(val => val.Name, val => val);
+            try
+            {
+                srcPropMap = srcProps.ToDictionary(val => val.Name, val => val);
+                srcMethMap = srcMeths.ToDictionary(val => val.Name, val => val);
+            } catch (ArgumentException e)
+            {
+                throw new CastException();
+            }
         }
 
         private static void MakeConstructor(Type source, TypeBuilder tb, FieldBuilder thatf)
@@ -202,7 +214,7 @@ namespace Kafka
             return mb;
         }
 
-        private static void MakePropertyWrapper(TypeBuilder tb, FieldBuilder thatf, string k, Type tgtType, PropertyInfo srcProp)
+        private static PropertyBuilder MakePropertyWrapper(TypeBuilder tb, FieldBuilder thatf, string k, Type tgtType, PropertyInfo srcProp)
         {
             Type srcType = srcProp.PropertyType;
             PropertyBuilder pb = tb.DefineProperty(k, PropertyAttributes.None, tgtType, null);
@@ -253,6 +265,7 @@ namespace Kafka
                 ilgen.Emit(OpCodes.Ret);
                 pb.SetSetMethod(setPropMthdBuilder);
             }
+            return pb;
         }
 
         private static void WrapValue(Type srcType, Type tgtType, ILGenerator ilgen)
@@ -273,10 +286,10 @@ namespace Kafka
         }
     }
     [System.AttributeUsage(AttributeTargets.Interface, Inherited = false, AllowMultiple = false)]
-    sealed class SubtypeOf : Attribute
+    public sealed class SubtypeOf : Attribute
     {
         readonly Type[] of;
-        
+
         public SubtypeOf(params Type[] of)
         {
             this.of = of;
@@ -287,4 +300,37 @@ namespace Kafka
             get { return of; }
         }
     }
+    /*
+    public interface IC { }
+
+    public class D : IC { }
+
+    [SubtypeOf(typeof(IB))]
+    public interface IA
+    {
+        IC x(IC y);
+    }
+    [SubtypeOf(typeof(IA))]
+    public interface IB
+    {
+        IC x(IC y);
+    }
+    public class A : IC
+    {
+        public object x(object y)
+        {
+            return new A();
+        }
+    }
+    class Program
+    {
+        public static void Main(String[] args)
+        {
+            var ret = Runtime.tyWrapper<IA>(new A());
+            new A().x(new A());
+            var bed = (IB)ret;
+            bed.x(new A());
+        }
+    }
+    */
 }

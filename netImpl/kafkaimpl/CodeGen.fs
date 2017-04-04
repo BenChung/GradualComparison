@@ -87,13 +87,14 @@ let genClass(env:Map<string, string list>)(k:subk) : string =
         let ifacestring = String.concat ", " (List.map (fun tpe -> toCsType(Class tpe)) interfaces)
         "public class " + name + " : " + ifacestring + " {\n" + (String.concat "\n" (genConstructor(name, fds) :: (List.append (List.map explicitImpls impls) (List.append (List.map genFd fds) (List.map genDef mds))))) + "\n}"
 
-let genProg(p:subp, pretty:bool) : string =
+let genProg(p:subp, pretty:bool, standalone:bool) : string =
     match p with
     | SubProgram(ks, env, expr) -> 
-        let generated = "using Kafka;\nnamespace Kafka {\n" + (String.concat "\n" 
+        let preamble = if standalone then "using Kafka;\nnamespace Kafka {\n" else ""
+        let generated = preamble + (String.concat "\n" 
                                                         (List.append (List.map (fun (SubClassDef(name, _, _, _) as k) -> (k, env.Item name)) ks |> List.map genInterface) 
                                                                      (List.map (genClass env) ks))) + "\n" + 
-                                                                        "public class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}\n}"
+                                                                        "public class Program { \n public static dynamic Main(string[] args) { \n return " + genExpr(expr) + ";\n}\n}" + if standalone then "\n}" else ""
         if pretty then
             use ws = new AdhocWorkspace()
             let ast = CSharpSyntaxTree.ParseText(generated)
