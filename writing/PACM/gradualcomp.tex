@@ -3249,12 +3249,14 @@ given method definitions.
 \begin{figure}[!ht]
 \vspace{-2mm}
 
-{  \small
+{  
   \begin{mathpar}
+  
 \IRule{BC1}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
   \fresh\ap \\
+  \cload{\classoff\C\K} \\
   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
@@ -3288,6 +3290,7 @@ when encountering typed code.
 }
 
 \newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
+
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\IGNOREUNLESSNEEDED{
@@ -3298,18 +3301,24 @@ when encountering typed code.
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
 &    \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\
-\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that}\f{\bscast\t\x}}~}
 &    \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\
-\SPP \Mdef\m\x\t\tp {~\bscast\tp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
-&     \Mtype\m\Cp\Cpp\in\bmtp ~\wedge~ \Mtype\m\t\tp\in\bmt \\
+\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
+&     \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
 \\
-\SPP \Mdef\m\x\t\tp{~\bscast\tp{\Call{\Get\this\that} \m {\x} }~}
-&    \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\t\tp\in\bmt \\
-% \\
-% \SPP \Mdef\m\x\any\any {~\BehCast\any{\Call\this\m{\bscast{\t}\x}}~}
-% &     \Mtype\m\Cp\Cpp\in\bmt  ~\wedge~ \Mtype\m\t\tp\in\bmtp \\
-% &\multicolumn{5}{l}{~\wedge~\Mtype\m\any\any\not\in\bmt ~\wedge~\t\neq\any} \\
+\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that} \m {\x} }~}
+&    \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
+&     \multicolumn{5}{l}{\Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\\
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }~}
+&    \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\\
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\x} }~}
+&    \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
 &    \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
@@ -3571,7 +3580,36 @@ field/method.
 }
 \end{mathpar}
 
+\subsection{Duplicated method names}
 
+\opdef{\cload\mt}{Duplicated method name}
+\begin{mathpar}
+\IRule{CMTE}{
+}{
+\cload{\emptyset}
+}
+
+\IRule{CMT1}{
+ \f \not\in \names\bmt \\
+ \cload{\bmt}
+}{
+\cload{\Mtype\f\t\t \,\, \bmt}
+}
+
+\IRule{CMT2}{
+ \f \not\in \names\bmt \\
+ \cload\bmt
+}{
+\cload{\Mtype\f{}\t \,\, \b\mt}
+}
+
+\IRule{CMT3}{
+ \m \not\in \names\bmt \\
+ \cload\bmt
+}{
+\cload{\Mtype\m\t\t \,\, \b\mt}
+}
+\end{mathpar}
 
 \clearpage
 
