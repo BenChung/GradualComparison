@@ -2732,7 +2732,7 @@ given method definitions.
 \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{TypeScript translation for programs}
 \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{TypeScript translation for classes} 
 \opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{TypeScript translation for methods} 
-\opdef{$\fieldtrans {\fd}{\fd'}{\K}$}{TypeScript translation for fields} 
+\opdef{$\fieldtrans {\fd}{\fd'}{}$}{TypeScript translation for fields} 
 
 \begin{mathpar}
 \IRule[width=20em]{TS-PROGRAM}{
@@ -2931,7 +2931,7 @@ given method definitions.
 \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Thorn translation for programs}
 \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Thorn translation for classes} 
 \opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Thorn translation for methods} 
-\opdef{$\fieldtrans {\fd}{\fd'}{\K}$}{Thorn translation for fields} 
+\opdef{$\fieldtrans {\fd}{\fd'}{}$}{Thorn translation for fields} 
 \begin{mathpar}
 \IRule[width=20em]{TH-PROGRAM}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
@@ -3074,7 +3074,7 @@ given method definitions.
 \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Transient translation for programs}
 \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Transient translation for classes} 
 \opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Transient translation for methods} 
-\opdef{$\fieldtrans {\fd}{\fd'}{\K}$}{Transient translation for fields} 
+\opdef{$\fieldtrans {\fd}{\fd'}{}$}{Transient translation for fields} 
 \begin{mathpar}
 \IRule[width=20em]{TA-PROGRAM}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
@@ -3130,7 +3130,7 @@ given method definitions.
 \IRule{TAS-DYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\mdu{{\e_4}}}{\any}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
 \IRule[width=20em]{TAS-FIELD}{
@@ -3143,7 +3143,7 @@ given method definitions.
 
 \IRule{TAS-NEW}{
   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
@@ -3169,32 +3169,65 @@ given method definitions.
 
 \section{Complete translation for Typed Racket}
 
-\subsection{Type Racket translation for program, class, and method}
+\subsection{Typed Racket translation for program, class, and method}
 
-\opdef{$\progtrans{\e~\K}{\e'~{\K'}}$}{Type Racket translation for programs}
-\opdef{$\classtrans {\K}{\Class \C{...}{...}~\K}{\Class \C{...}{...}~\K}$}{Type Racket  translation for classes}
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{Type Racket  translation for methods}
 
+\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Typed Racket translation for programs}
+\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Typed Racket translation for classes} 
+\opdef{$\methtranst {\K}{\C}{\md}{\md'}{}$}{Typed Racket translation for typed methods} 
+\opdef{$\methtransu {\K}{\C}{\md}{\md'}{}$}{Typed Racket translation for untyped methods} 
+\opdef{$\fieldtranst {\fd}{\fd'}{}$}{Typed Racket translation for typed fields} 
+\opdef{$\fieldtransu {\fd}{\fd'}{}$}{Typed Racket translation for untyped fields} 
 \begin{mathpar}
-\IRule{PT}{
+\IRule[width=20em]{TR-PROGRAM}{
   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
-\IRule{CR1}{ 
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+\IRule[width=30em]{TR-TCLASS}{ 
+  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \b{\methtranst {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtranst {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
   \classtrans {\K}{\Kp}\Kpp
 }{
-   \classtrans {\K}{{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}}{\Class \C {\b{\Ftype\f\t}}{\b{\md'}}~\Kpp}}
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
 
-\IRule{CR2}{ 
+\IRule[width=25em]{TR-UCLASS}{ 
+  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \b{\methtransu {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtransu {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+\IRule{TR-CLASS2}{ 
 }{
   \classtrans {\K}\cdot\cdot
 }
 
-\IRule{MTT}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
+\IRule{TR-TFIELD}{
 }{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\t\tp\ep}{}
+  \fieldtranst{\Fdef\f\C}{\Fdef\f\C}{}
+}
+
+\IRule{TR-UFIELD}{
+}{
+  \fieldtransu{\Fdef\f\any}{\Fdef\f\any}{}
+}
+
+\IRule[width=25em]{TR-TMETHOD}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
+}{
+  \methtranst {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
+    \Mdef\m\x\Cp\Cpp{\e} }{}
+}
+
+\IRule[width=25em]{TR-UMETHOD}{
+  \AnaCast {\K}{\HT\this{\any}~\HT\x{\any}}{\e}\ep{\any} \\
+}{
+  \methtransu {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{
+    \Mdef\m\x\any\any{\e} }{}
 }
 \end{mathpar}
 
@@ -3203,29 +3236,29 @@ given method definitions.
 \opdef{$\GenCast{\K}\Env\e\ep\t$}{Typed Racket synthetic translation}
 
 \begin{mathpar}
-\IRule{TRS1}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+\IRule{TRS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
-\IRule[width=30em]{TRS2}{
+\IRule[width=30em]{TRS-FIELD}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
 }
 
-\IRule[width=30em]{TRS3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\t):\tp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t}}
+\IRule[width=30em]{TRS-TYCALL}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\Cp):\Cpp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\Cp}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}\t\tp}{\Cpp}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}\Cp\Cpp}{\Cpp}
 }
 
-\IRule{TRS5}{
+\IRule{TRS-DYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule{TRS6}{
+\IRule{TRS-NEW}{
   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
 \end{mathpar}
 
@@ -3234,14 +3267,14 @@ given method definitions.
 \opdef{$\AnaCast\K\Env\e\ep\t$}{Typed Racket analytic translation}
 
 \begin{mathpar}
-\IRule{TRA1}{
+\IRule{TRA-SUB}{
   \GenCast\K\Env\e\ep\tp \\
   \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TRA2}{
+\IRule{TRA-WRAP}{
   \GenCast\K\Env\e\ep\tp \\
   \t \neq \tp
 }{
