@@ -1207,19 +1207,16 @@ translation judgments.
 \newpage
 \begin{verbatim}
 tc( class C { fd1.. md1.. }  ) =  class C { fd1'.. md1'.. } 
-      where fd1 = f:t
-            fd1' = f:* 
-            .. 
-            md1' = tm(  md1 ) 
-            ..
+      where fd1 = f:t,  fd1 = f:* .. 
+             md1' = tm(  md1 ) ..
 tm( m (x:t):t' { e } ) =  m(x:*):*{ e' }
            where e' = te( e )
-te( this.f() )    =  this.f:*() 
-te( e.f() )       =  e'@f:*()       where e'  = te( e )
-te( this.f(e) )   =  this.f:*:*(e') where e'  = te( e )
-te( e1.f(e2) )    =  e1'@f:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
-te( e1.m(e2) )    =  e1'@m:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
-te( new C(e1..) ) =  new C(e1..)    where e1' = te( e1 ).. 
+te( this.f() )    =  this.f() 
+te( e.f() )       =  e'@f()        where e'  = te( e )
+te( this.f(e) )   =  this.f( e' )  where e'  = te( e )
+te( e1.f(e2) )    =  e1'@f(e2')    where e1' = te( e1 ), e2' = te( e2 )
+te( e1.m(e2) )    =  e1'@m(e2')    where e1' = te( e1 ), e2' = te( e2 )
+te( new C(e1..) ) =  new C(e1..)   where e1' = te( e1 ).. 
 \end{verbatim}
 
 
@@ -1495,6 +1492,7 @@ re(K, T, <C> e) = e     if K,T |- e:D  D <:
 re(K, T, <C> e) = <C>e  if K,T |- e:D  D <: 
 re(K, T, new C(e1..) = new C(e1'..)
     e1' = re(K, T, e1)
+
 \end{verbatim}
 
 \begin{figure}[h!]
@@ -3114,21 +3112,15 @@ given method definitions.
 
 \begin{mathpar}
 \IRule{THA-CSUB}{
-  \GenCast\K\Env{\e_1}{\e_2}{\C_2} \\
-  {\ThorSub\K\cdot{\C_2}{\C_1}}\\
+  \GenCast\K\Env{\e_1}{\e_2}{\t_2} \\
+  {\ThorSub\K\cdot{\t_2}{\t_1}}\\
 }{
-  \AnaCast\K\Env{\e_1}{\e_2}{\C_1}
+  \AnaCast\K\Env{\e_1}{\e_2}{\t_1}
 }
 
 \IRule{THA-OPTCONC}{
   \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
   {\ThorSub\K\cdot\D\C}
-}{
-  \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
-}
-
-\IRule{THA-ANYCONC}{
-  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
   \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
 }
@@ -3784,56 +3776,56 @@ field/method.
 
 \begin{mathpar}
 \IRule{SWeak}{
-  \ThrSub \M\K\C\D
+  \ThorSub \M\K\C\D
 }{
-  \ThrSub \M\K{\dt\C}{\dt\D}
+  \ThorSub \M\K{\dt\C}{\dt\D}
 }
 
 \IRule{SLow}{
-  \ThrSub \M\K\C\D
+  \ThorSub \M\K\C\D
 }{
-  \ThrSub \M\K{\C}{\dt\D}
+  \ThorSub \M\K{\C}{\dt\D}
 }
 \end{mathpar}
 
 \begin{mathpar}
 \IRule{SRef}{
 }{
- \ThrSub\M\K \t \t
+ \ThorSub\M\K \t \t
 }
 
 \IRule{SAss}{
 \C \src\Sub \D \in \M
 }{
- \ThrSub\M\K \C \D
+ \ThorSub\M\K \C \D
 }
 
 \IRule{SRec}{
  \M' = \M~\C\src\Sub\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ThrSub{\M'}\K\mt{\mtp}
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ThorSub{\M'}\K\mt{\mtp}
 }{
- \ThrSub\M\K \C \D 
+ \ThorSub\M\K \C \D 
 }
 \end{mathpar}
 
 \begin{mathpar}
 \IRule{SMet}{
-  \ThrSub \M\K {\t[1]} {\t[2]} \\
-  \ThrSub \M\K {\tp[2]} {\tp[1]}
+  \ThorSub \M\K {\t[1]} {\t[2]} \\
+  \ThorSub \M\K {\tp[2]} {\tp[1]}
 }{
- \ThrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+ \ThorSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
 }
 
 \IRule{SGet}{
-  \ThrSub \M\K {\t[1]} {\t[2]}
+  \ThorSub \M\K {\t[1]} {\t[2]}
 }{
- \ThrSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
+ \ThorSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
 }
 
 \IRule{SSet}{
-  \ThrSub \M\K {\t[1]} {\t[2]}
+  \ThorSub \M\K {\t[1]} {\t[2]}
 }{
- \ThrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
+ \ThorSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
 }
 \end{mathpar}
 
