@@ -1207,16 +1207,19 @@ translation judgments.
 \newpage
 \begin{verbatim}
 tc( class C { fd1.. md1.. }  ) =  class C { fd1'.. md1'.. } 
-      where fd1 = f:t,  fd1 = f:* .. 
-             md1' = tm(  md1 ) ..
+      where fd1 = f:t
+            fd1' = f:* 
+            .. 
+            md1' = tm(  md1 ) 
+            ..
 tm( m (x:t):t' { e } ) =  m(x:*):*{ e' }
            where e' = te( e )
-te( this.f() )    =  this.f() 
-te( e.f() )       =  e'@f()        where e'  = te( e )
-te( this.f(e) )   =  this.f( e' )  where e'  = te( e )
-te( e1.f(e2) )    =  e1'@f(e2')    where e1' = te( e1 ), e2' = te( e2 )
-te( e1.m(e2) )    =  e1'@m(e2')    where e1' = te( e1 ), e2' = te( e2 )
-te( new C(e1..) ) =  new C(e1..)   where e1' = te( e1 ).. 
+te( this.f() )    =  this.f:*() 
+te( e.f() )       =  e'@f:*()       where e'  = te( e )
+te( this.f(e) )   =  this.f:*:*(e') where e'  = te( e )
+te( e1.f(e2) )    =  e1'@f:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
+te( e1.m(e2) )    =  e1'@m:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
+te( new C(e1..) ) =  new C(e1..)    where e1' = te( e1 ).. 
 \end{verbatim}
 
 
@@ -1492,7 +1495,6 @@ re(K, T, <C> e) = e     if K,T |- e:D  D <:
 re(K, T, <C> e) = <C>e  if K,T |- e:D  D <: 
 re(K, T, new C(e1..) = new C(e1'..)
     e1' = re(K, T, e1)
-
 \end{verbatim}
 
 \begin{figure}[h!]
