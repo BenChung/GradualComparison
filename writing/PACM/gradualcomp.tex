@@ -1460,6 +1460,39 @@ te(K, T, new C(e1..) ) =  new C(<t1>e1'..)
           where 
                 f1:t1.. in C
                 e1' = te(K,T,e1 )..
+
+
+Second pass ... this could be applied to all translations
+
+rc(K, class C { fd1.. md1.. }) = class C{ fd1.. md1'.. }
+    md1' = rm(K, this:C, md1)
+
+rm(K, T, f():t { e }) = f():t { e' }
+    where e' = re(K, T, e)
+rm(K, T, f(x:t):t { e }) = f(x:t):t { e' }
+    where e' = re(K, T x:t, e)
+rm(K, T, m(x:t):t2 { e }) = m(x:t):t2 { e' }
+    where e' = re(K, T x:t, e)
+
+re(K, T, this) = this
+re(K, T, x) =  x
+re(K, T, e.f()) = e'.f()
+    e' =  re(K, T, e)
+re(K, T, e@f()) = e'@f()
+    e' =  re(K, T, e)    
+re(K, T, e1@f(e2)) = e1'@f(e2')
+    e1' =  re(K, T, e1)
+    e2' =  re(K, T, e2)
+re(K, T, e1.m(e2)) = e1'.m(e2')
+    e1' =  re(K, T, e1)
+    e2' =  re(K, T, e2)
+re(K, T, <*> e) = e     if K,T |- e:*
+re(K, T, <*> e) = <*>e  if K,T |- e:C
+re(K, T, <C> e) = e     if K,T |- e:D  D <: 
+re(K, T, <C> e) = <C>e  if K,T |- e:D  D <: 
+re(K, T, new C(e1..) = new C(e1'..)
+    e1' = re(K, T, e1)
+
 \end{verbatim}
 
 \begin{figure}[h!]
