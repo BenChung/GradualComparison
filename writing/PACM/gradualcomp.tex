@@ -2358,8 +2358,68 @@ as follows:
   \code I type, and the assignment to \code f does not respect that type.
 \end{itemize}
 
+\section{Implementation} We designed \kafka to have a close correspondence to
+the intermediate languages (ILs) used by common VMs, but by necessity the
+correspondence is not exact; real ILs are far too complex to be easily
+presented or formally reasoned about. To validate this aspect of \kafka's
+design, we implemented a compiler from \kafka to C\#, alongside a runtime that
+provides the key behavioral cast operation.
 
-%\clearpage
+The key challenge that we encountered in the development of this compiler
+relates to one of our earliest design choices: the use of a structural type
+system. As previously mentioned, structural typing is common in gradually
+typed languages, but is very uncommon in actual virtual machines, especially
+those that already have static typing like the CLR or the JVM. In order to
+implement \kafka by translation to C\#, we have to convert \kafka's structural
+types to C\# nominal types, maintaining semantic equivalence.
+
+\subsection{Structural to Nominal Translation} Our implementation of the
+conversion of \kafka to C\# types is based on a whole program type analysis.
+Consider a (structural) class table \K, and assume that $\StrSub{}\K\t\tp$ for
+some $\t$ and $\tp$. C\# already handles the case where $\t$ or $\tp$ is
+$\any$, via its \xt{dynamic} type, which has the same semantics, but if $\t$
+and $\tp$ are classes $\C$ and $\D$, then we have to be more careful.
+
+The approach works by introducing the interface \xt{ID}, which the translated
+version of $\C$ implements. \xt{ID} has all of the same methods as $\D$ did,
+allowing the same operations to be performed on its instances. We then refer
+to $\D$ by \xt{ID} in the generated C\# type signatures and casts, which then
+allows our translation of the class $\C$ to be used wherever a $\D$ is
+expected, satisfying subtyping. If we apply this to every pair of types $\C$
+and $\D$ where the subtyping relation holds, the C\# subtyping relation
+mirrors the \kafka one exactly.
+
+We chose C\# for this translation because it provides the natural
+correspondence between our $\any$ and its \xt{dynamic}. However, C\# also
+created a substantial problem for our implementation, for it does not allow
+for covariance or contravariance in interface implementation, whereas \kafka's
+subtyping mechanism does allow both. However, C\# does allow for
+\emph{explicit implementations}, which we use to implement covariant and
+contravariant interface implementation, by explicitly calling out the
+interface method to implement and forwarding to the actual implementation.
+
+\subsection{Validation of \kafka}
+
+The goal of our implementation was to validate the choice of features to
+include in \kafka by showing that they are similar to those provided in
+modern, high performance VMs, and for most of \kafka's functionality, the
+implementation was trivial. However, structural typing proved difficult, both
+because of fundamental differences forcing the generation of a very large and
+fixed inheritance hierarchy, and because of specific design choices made in
+C\#. Even when making a major assumption - the closed-world restriction - our
+implementation of structural typing on top of a nominal type system is
+relatively non-trivial. While some practical, sound, implementations of
+structurally typed languages exist (with Scala being the most notable),
+structural typing creates fundamental difficulties in using off-the-shelf VMs.
+
+What our implementation does not do is provide an accurate picture of the
+performance of the gradual typing systems in question, rather focusing on
+semantic differences. This limitation is due to a wide range of factors,
+including having none of the commonly-cited performance optimizations, such as
+threesomes~\cite{siek10}, combined with the severe inherent restrictions on
+what programs can be reasonably written in \kafka. As a result, any
+performance evaluation based on our \kafka implementation would not be
+representative of the performance of a real implementation. %\clearpage
 
 \section{Conclusion}
 
