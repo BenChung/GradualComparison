@@ -3743,14 +3743,14 @@ field/method.
 }
 
 \IRule{CMT1}{
- \f \not\in \names\bmt \\
+  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f{}\t)  \\
  \cload{\bmt}
 }{
 \cload{\Mtype\f\t\t \,\, \bmt}
 }
 
 \IRule{CMT2}{
- \f \not\in \names\bmt \\
+  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f\t\t)  \\
  \cload\bmt
 }{
 \cload{\Mtype\f{}\t \,\, \b\mt}
@@ -3766,30 +3766,26 @@ field/method.
 
 \opdef{\cload\md}{Duplicated method name over $\md$}
 \begin{mathpar}
-\IRule{CMTE}{
-}{
-\cload{\emptyset}
-}
 
 \IRule{CMT1}{
- \f \not\in \names\bmt \\
- \cload{\bmt}
+ \m \not\in \names\bmd \\
+ \cload{\bmd}
 }{
-\cload{\Mtype\f\t\t \,\, \bmt}
+\cload{\Mdef\m\x\t\t\e \,\, \bmd}
 }
 
 \IRule{CMT2}{
- \f \not\in \names\bmt \\
- \cload\bmt
+  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdef\f\x\t\t\e)  \\
+ \cload\bmd
 }{
-\cload{\Mtype\f{}\t \,\, \b\mt}
+\cload{\Mdefz\f\t\e \,\, \b\md}
 }
 
 \IRule{CMT3}{
- \m \not\in \names\bmt \\
- \cload\bmt
+  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdefz\f\t\e)  \\
+ \cload\bmd
 }{
-\cload{\Mtype\m\t\t \,\, \b\mt}
+\cload{\Mdef\f\x\t\t\e \,\, \b\md}
 }
 \end{mathpar}
 
