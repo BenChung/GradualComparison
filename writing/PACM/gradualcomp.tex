@@ -1656,6 +1656,26 @@ the methods that are required are declared on the provided type, but the
 types of the methods are ignored, as they are the responsibility of the
 callee to check.
 
+
+\newpage
+\begin{verbatim}
+tc( class C { fd1.. md1.. }  ) =  class C { fd1.. md1'.. } 
+      where md1' = tm(  md1 ) 
+            ..
+tm( m(x:*):*{e} ) =  m(x:*):*{ e' }
+           where e' = te( e )
+tm( m(x:t):t'{e} ) =  m(x:*):*{ <C>x ; e' }
+           where e' = te( e )
+te( this.f() )    =  this.f:*() 
+te( e.f() )       =  e'@f:*()       where e'  = te( e )
+te( this.f(e) )   =  this.f:*:*(e') where e'  = te( e )
+te( e1.f(e2) )    =  e1'@f:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
+te( e1.m(e2) )    =  e1'@m:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
+te( new C(e1..) ) =  new C(e1..)    where e1' = te( e1 ).. 
+\end{verbatim}
+
+
+
 \begin{figure}[!ht]
 \small
   
