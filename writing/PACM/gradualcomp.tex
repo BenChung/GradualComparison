@@ -2923,7 +2923,7 @@ given method definitions.
 \IRule{TSS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
 
 \IRule[width=30em]{TSS-TYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
 }
@@ -2934,19 +2934,12 @@ given method definitions.
     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule[width=20em]{TSS-SET}{
+\IRule[width=20em]{TSS-FIELD}{
     {\HasType{\Env}\this\C} \\ 
-    {\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
-    {\AnaCast\K\Env{\e}{\ep}{\t_1}}
+    {\f(\b{\t}):\t \in \classoff\C\K} \\ 
+    \b{\AnaCast\K\Env{\e}{\ep}{\t}}
 }{
-    \GenCast\K\Env{\Call{\this}\f{\e}}{\Call{\this}\f{\ep}}{\any}
-}
-
-\IRule[width=20em]{TSS-GET}{
-    {\HasType{\Env}{\this}{\C}} \\ 
-    {\Mtype\f{}\t \in \classoff\C\K} 
-}{
-    \GenCast\K\Env{\Call{\this}\f{}}{\Call{\this}\f{}}{\any}
+    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\b\ep}}{\t}
 }
 
 \IRule{TSS-NEW}{
