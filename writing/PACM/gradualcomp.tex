@@ -2733,25 +2733,32 @@ given method definitions.
 }
 
 \IRule{MO2}{
- \Mtype\m\t\t \notin \cmd \\
- \cmdp = \cmd, \Mtype\m\t\t \\
- \xt{overloading}_{\cmdp}(\b\md)
+ \Mtype\m\any\any \notin \cmd \\
+ \cmdp = \cmd, \Mtype\m\any\any \\
+ \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
-\xt{overloading}_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)
+\xt{overloading}_{\cmd}(\Mdef\m\x\any\any\e~\b\md~\b\fd)
 }
 
 \IRule{MO3}{
- \Mtype\f\t\t \notin \cmd \\
+ \Mtype\m\t\t \in \cmd \implies \t = \any \\
+ \cmdp = \cmd, \Mtype\m\t\t \\
+ \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
+}{
+\xt{overloading}_{\cmd}(\Mdef\m\x\C\C\e~\b\md~\b\fd)
+}
+
+\IRule{MO4}{
+ \f \in \xt{names}(\cmd) \implies \f \notin \xt{names}(\cmd \setminus \Mtype\f{}\t)  \\
  \cmdp = \cmd, \Mtype\f\t\t  \\
- \xt{overloading}_{\cmdp}(\b\md, \b\fd)
+ \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
 \xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e ~ \b\md ~\b\fd)
 }
 
-\IRule{MO4}{
- \Mtype\f{}\t \notin \cmd \\
- \cmdp = \cmd, \Mtype\f{}\t \\
- \xt{overloading}_{\cmdp}(\b\md, \b\fd)
+\IRule{MO5}{
+ \f \in \xt{names}(\cmd) \implies \f \notin \xt{names}(\cmd \setminus \Mtype\f\t\t)  \\ \cmdp = \cmd, \Mtype\f\t\t \\
+ \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
 \xt{overloading}_{\cmd}(\Mdefz\f\t\e ~ \b\md ~ \b\fd)
 }
@@ -2768,34 +2775,34 @@ given method definitions.
 }
 \end{mathpar}
 
-\subsection{Source Method Overloading}
-
-\opdef{~${\soverloading_{\cmdp}(\b\md ~\b\fd)}$}{Method overloading}
-\begin{mathpar}
-\IRule{MSO1}{
-}{
-{\soverloading_{\cmd}(\emptyset)}
-}
-
-\IRule{MSO2}{
- {\Mtype\m\t\t \notin \cmd} \\
- {\cmdp = \cmd, \Mtype\m\t\t} \\
- {\soverloading_{\cmdp}(\b\md)}
-}{
- {\soverloading_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)}
-}
-\end{mathpar}
-
-\opdef{~${\soverloading(\b\fd)}$}{field overloading}
-\begin{mathpar}
-\IRule{FSO1}{
- {\f \notin \xt{names}(\cmd)} \\
- {\cmdp = \cmd, \Fdef\f\t} \\
- {\soverloading_{\cmdp}(\b\fd)}
-}{
-{\soverloading_{\cmd}(\Fdef\f\t ~ \b\fd)}
-}
-\end{mathpar}
+% \subsection{Source Method Overloading}
+% 
+% \opdef{~${\soverloading_{\cmdp}(\b\md ~\b\fd)}$}{Method overloading}
+% \begin{mathpar}
+% \IRule{MSO1}{
+% }{
+% {\soverloading_{\cmd}(\emptyset)}
+% }
+% 
+% \IRule{MSO2}{
+%  {\Mtype\m\t\t \notin \cmd} \\
+%  {\cmdp = \cmd, \Mtype\m\t\t} \\
+%  {\soverloading_{\cmdp}(\b\md)}
+% }{
+%  {\soverloading_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)}
+% }
+% \end{mathpar}
+% 
+% \opdef{~${\soverloading(\b\fd)}$}{field overloading}
+% \begin{mathpar}
+% \IRule{FSO1}{
+%  {\f \notin \xt{names}(\cmd)} \\
+%  {\cmdp = \cmd, \Fdef\f\t} \\
+%  {\soverloading_{\cmdp}(\b\fd)}
+% }{
+% {\soverloading_{\cmd}(\Fdef\f\t ~ \b\fd)}
+% }
+% \end{mathpar}
 
 \section{Complete translation for TypeScript}
 
@@ -2812,7 +2819,7 @@ given method definitions.
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule[width=30em]{TS-CLASS1}{ 
-  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \cload{\b\md ~ \b\fd}\\
   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
   \b{\fieldtrans {\fd}{\fd'}{}} \\
   {\C \not\in \Kp} \\
@@ -3010,7 +3017,7 @@ given method definitions.
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule[width=30em]{TH-CLASS1}{ 
-  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \cload{\b\md ~ \b\fd}\\
   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
   \b{\fieldtrans {\fd}{\fd'}{}} \\
   {\C \not\in \Kp} \\
@@ -3150,7 +3157,7 @@ given method definitions.
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule[width=30em]{TA-CLASS1}{ 
-  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \cload{\b\md ~ \b\fd}\\
   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
   \b{\fieldtrans {\fd}{\fd'}{}} \\
   {\C \not\in \Kp} \\
@@ -3253,7 +3260,7 @@ given method definitions.
 }{\progtrans{\e~\K}{\e'~{\K'}}}
 
 \IRule[width=30em]{TR-TCLASS}{ 
-  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \cload{\b\md ~ \b\fd}\\
   \b{\methtranst {\K}{\C}{\md}{\md'}{}} \\
   \b{\fieldtranst {\fd}{\fd'}{}} \\
   {\C \not\in \Kp} \\
@@ -3262,7 +3269,7 @@ given method definitions.
    \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
 
 \IRule[width=25em]{TR-UCLASS}{ 
-  {\soverloading_{\emptyset}(\b\md ~ \b\fd)}\\
+  \cload{\b\md ~ \b\fd}\\
   \b{\methtransu {\K}{\C}{\md}{\md'}{}} \\
   \b{\fieldtransu {\fd}{\fd'}{}} \\
   {\C \not\in \Kp} \\
@@ -3728,7 +3735,36 @@ field/method.
 
 \subsection{Duplicated method names}
 
-\opdef{\cload\mt}{Duplicated method name}
+\opdef{\cload\mt}{Duplicated method name over $\mt$}
+\begin{mathpar}
+\IRule{CMTE}{
+}{
+\cload{\emptyset}
+}
+
+\IRule{CMT1}{
+ \f \not\in \names\bmt \\
+ \cload{\bmt}
+}{
+\cload{\Mtype\f\t\t \,\, \bmt}
+}
+
+\IRule{CMT2}{
+ \f \not\in \names\bmt \\
+ \cload\bmt
+}{
+\cload{\Mtype\f{}\t \,\, \b\mt}
+}
+
+\IRule{CMT3}{
+ \m \not\in \names\bmt \\
+ \cload\bmt
+}{
+\cload{\Mtype\m\t\t \,\, \b\mt}
+}
+\end{mathpar}
+
+\opdef{\cload\md}{Duplicated method name over $\md$}
 \begin{mathpar}
 \IRule{CMTE}{
 }{
