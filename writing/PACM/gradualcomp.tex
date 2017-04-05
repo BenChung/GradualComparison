@@ -3412,11 +3412,25 @@ given method definitions.
 \subsection{Class wrapper for Behavioural semantics}\label{wrap}
 
 The \xt{wrap} function is used by the Type Racket language to generate the wrapper classes
-when encountering typed code.
-
+for the behavioral cast semantics. The \xt{wrap} function takes two class types and the two
+sets of method typing. The class type $\C$ is the type of the expression being casted, also known 
+as the source type and represented by $\tp$ in the typing rule \xt{WB}.
+The class type $\D$ is a fresh type, and represents the type of the wrapper class.
+The method typing $\bmt$ corresponds to the typing definition of every method in $\C$.
+The method typing $\bmtp$ is the set of method typing for the casting type. The casting
+type is also known as the target type, shown by $\t$ in \xt{WB}. \\
+ 
 \opdef{\mt ~~::= \Mtype\m\t\t \B  \Mtype\f\t\t  \B \Mtype\f{}\t 
 }{ method typing
-}
+} \\
+
+Every wrapper class has a \xt{that} field pointing to the source type of the wrapper.
+
+
+The last three cases denote methods that are in the source type, but not the 
+target type. A simple wrapper function is created where the method call is redirected 
+to the corresponding method in the source type.
+
 
 \newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
 
@@ -3428,41 +3442,44 @@ when encountering typed code.
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
-&    \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
+&    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\
 \SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that}\f{\bscast\t\x}}~}
-&    \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
+&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\
 \SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
-&     \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+&     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
 \\
 \SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that} \m {\x} }~}
-&    \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
-&     \multicolumn{5}{l}{\Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+&    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
 \\
 \SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }~}
-&    \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
 \\
 \SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\x} }~}
-&    \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
 \\
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
-&    \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
+&    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
-&    \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
+&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\
-\SPP \Mdef\m\x{\Cp}{\Cpp}{~\Set{\Get\this\that}\m{\x}~}
-&    \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\t\tp\not\in \bmtp \\
+\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that}\m{\x}~}
+&    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 \\
-\SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
-&    \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
-\\
+% \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
+% &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
+% \\
 \SP \}
 \\
+\end{array}\]
+
+\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
 \wrapAny\C\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
