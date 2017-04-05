@@ -3186,7 +3186,7 @@ given method definitions.
   \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
 }{
   \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
-    \Mdef\m\x\any\any{{\New{\EMxt{A2}}{\SubCast\C\x, \SubCast{\any}\e}.{\EMxt{f2}}()}} }{}
+    \Mdef\m\x\any\any{\SubCast\Cp\x ; \ep}}{} % sequencing is sugar
 }
 \end{mathpar}
 
@@ -3201,7 +3201,7 @@ given method definitions.
 \IRule[width=30em]{TAS-TYCALL}{
     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
 }
 
 \IRule{TAS-DYCALL}{
