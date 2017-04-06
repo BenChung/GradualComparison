@@ -3170,6 +3170,34 @@ given method definitions.
 }
 \end{mathpar}
 
+Cast insertion in our system is illustrated by the following example:
+
+\begin{verbatim}
+class C {
+  f : C
+  m(x:*):* {
+    new C(x)
+  }
+}
+\end{verbatim}
+
+Here, in method \m, the only type that \x can possibly have is \any, in spite of the surrounding invocation requiring that it be an instance of a \C. Likewise, the only type that makes sense for \New\C\x is \C, despite the return type being declared as \any. We have to insert casts to make these two cases be well typed, giving us the following translated code:
+
+\begin{verbatim}
+class C {
+  f : C
+  m(x:*):* {
+    <*>new C(<C>x)
+  }
+}
+\end{verbatim}
+
+Our cast insertion system is based on this intuition, finding the places where an expression's type is absolute (like \x being of type \any), yet is surrounded by an expression that requires it to be something quite different (e.g. \New\C\x requires that \x must be a \C), drawing on a commonly used approach from type inference, bidirectional typing.
+
+In our approach, we compute ``real'' types using the so-called \emph{synthetic} case of typing, written $\GenCast\K\Env\e\ep\t$, meaning that $\e$ will always have type $\t$, while translating to $\ep$. Likewise, we enforce ``required'' types through the \emph{analytic} judgment, written $\AnaCast\K\Env\e\ep\t$, meaning that if $\e$ is required to be of type $\t$, then the translated $\ep$ will be of type $\t$.
+
+As a illustrative example, consider $\x$ in the above. We know that $\x$ will always have type $\any$ - expressed as $\GenCast\K\Env\x\x\any$ by rule \RuleRef{THS-VAR} - no matter what happens around it. However, we also know that $\New\C\x$ requires that $\x$ has type $\C$ - expressed as $\AnaCast\K\Env\x?\C$, using ? as a placeholder for the result of translation - and need to insert a cast so that the types make sense. We can then apply rule \RuleRef{THA-ANYCONC} to \x with \C to find out that we can make \x have type \C via casting, concluding that $\AnaCast\K\Env\x{\SubCast\C\x}\C$.
+
 \subsection{Thorn analytic translation for expressions}
 
 \opdef{$\AnaCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
@@ -3193,6 +3221,12 @@ given method definitions.
   \GenCast\K\Env{\e_1}{\e_2}{\any} \\
 }{
   \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
+}
+
+\IRule{THA-ANYCONC}{
+  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
+}{
+  \AnaCast\K\Env{\e_1}{\SubCast\C{\e_2}}{\C}
 }
 
 \IRule{THA-TOANY}{
