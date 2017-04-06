@@ -1514,15 +1514,18 @@ re(K, T, new C(e1..) = new C(e1'..)
 \newcommand{\namet}[2]{\EM{#1\!\!:\!#2}}
 \newcommand{\TypeCk}[3]{\EM{#1\vdash #2:#3}}
 \newcommand{\IN}{\EM{\in}}
+
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\hspace{-.5cm}\begin{minipage}{8cm}  
 \begin{tabbing}
 \tr c{\K, \Class \C{\fds 1..}{\mds 1 .. }} = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..~ \mdspp 1..} } \\
-\HS\HS \= \WHERE\HS\= \fds 1\HS\= = \Ftype\f\t  \HS  \fdsp 1   = \Ftype\f{\kty\t}  ..          \\
+\HS \= \WHERE\HS\= \fds 1\HS\= = \Ftype\f\t, \HS \HS  \fdsp 1   = \src{\Ftype\f{\kty\t}} ..          \\
        \>          \> \mds 1   \> = \Mdef\m\x{\t_1}{\t_2}\e                       \\
        \>          \> \mdsp 1  \> = \src{\Mdef\m\x{\kty{\t_1}}{\kty{\t_2}}{\ep}}  \\
        \>          \> \ep      \> = \tr{e}{\K, \Ftype\this\C\,\Ftype\x{\t_1}, \e} \\
        \>          \> \mdspp 1 \>=  \src{\Mdef\m\x\any\any{ \SubCast{\t_2}{ \Call\this{\name\m{\t_1}{\t_2}}{ \SubCast{\t_1}\x } } }}\\
-       \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \D, {\bf otherwise} empty\\
-       \>          \>  .. \>                                                   \\
+       \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \D\\
+       \>          \>          \> \HS~  empty {\bf otherwise} ..                   \\
 \\
 \tr e{\K, \Env, \Call\this\f{}}  = \src{\Call\this{\namet\f\t}{}} \\
        \> \WHERE   \> \Ftype\f\t \EM{\in} \C,   \HS \TypeCk{\K,\Env}{\this}\C    \\
@@ -1534,42 +1537,37 @@ re(K, T, new C(e1..) = new C(e1'..)
       \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \IN \C  \\
 \\
 \tr e{\K, \Env, \Call\this\f\e} = \src{\Call\this{\name\f\t\t}{\SubCast\t\ep}} \\
-\> \WHERE   \> \epp \> = \tr e{\K, \Env, \e} \\
-      \>          \>  \TypeCk{\K\Env}\this\C\\
-      \>          \>  \Ftype\f\tp\IN\C \\
-      \>          \>  \t = \kty\tp \\
-      \>          \>  \ep = \tr e{\K, \Env, \e}\\
-\\
-\tr e{\K, \Env, \Call{\e_1}\f{\e_2}} = \src{ \DynCall{\e_1}{\name\f\any\any}{\SubCast{\any}{\eps 2}}}  \\
-      \> \WHERE   \> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
-      \>          \>  \eps 1 = \tr e{\K, \Env, \e_1} \\
-      \>          \>  \eps 2 = \tr e{\K, \Env,  \e_2 }\\
+\> \WHERE   \> \epp  = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\tp\IN\C \\
+      \>          \>  \t = \kty\tp, \HS  \ep = \tr e{\K, \Env, \e}\\
+\end{tabbing}
+\end{minipage}
+&~~ \hspace{1cm} ~~~ &
+\begin{minipage}{5cm}
+  \begin{tabbing}
+    \tr e{\K, \Env, \Call{\e_1}\f{\e_2}} = \src{ \DynCall{\e_1}{\name\f\any\any}{\SubCast{\any}{\eps 2}}}  \\
+\HS\=\WHERE\HS\= \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
+      \>          \>  \eps 1 = \tr e{\K, \Env, \e_1}, \HS  \eps 2 = \tr e{\K, \Env,  \e_2 }\\
 \\
 \tr e{\K, \Env,  \Call{\e_1}\f{\e_2}} = \src{\Call{\eps 1}{\name\f\t\t}{\SubCast\t{\eps 2}}} \\
-      \> \WHERE   \> \TypeCk{\K, \Env}{\e_1}\C  \\
-      \>          \>  \Ftype\f{\t'}\IN\C  \\
-      \>          \>  \t = \kty{\tp} \\
-      \>          \>  \eps 1 = \tr e{\K, \Env,  \e_1}  \\
-      \>          \>  \TypeCk{\K,\Env}{\e_2}{\tpp}  \\
+      \> \WHERE   \> \TypeCk{\K, \Env}{\e_1}\C, \HS  \Ftype\f{\t'}\IN\C, \HS  \t = \kty{\tp} \\
+      \>          \>  \eps 1 = \tr e{\K, \Env,  \e_1}, \HS  \TypeCk{\K,\Env}{\e_2}{\tpp}  \\
       \>          \>  \eps 2 = \tr e{\K, \Env, \e_2} \\
 \\
 \tr e{\K, \Env, \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\SubCast\any{\eps 2}}} \\
-     \> \WHERE   \> \TypeCk{\K,\Env}{\e_1}\t \\
-     \>          \> \kty\t=\any\\
-     \>          \> \eps 1= \tr e{\K,\Env, \e_1} \\
-     \>          \> \eps 2=\tr e{\K,\Env,\e_2}\\
+     \> \WHERE   \> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
+     \>          \> \eps 1= \tr e{\K,\Env, \e_1}, \HS \eps 2=\tr e{\K,\Env,\e_2}\\
 \\
 \tr e{\K,\Env, \Call{\e_1}\m{\e_2}} = \src{\Call{\eps 1}{\name\m{\t_1}{\t_2}}{\SubCast{\t_1}{\eps 2}}} \\
-     \> \WHERE   \>  \TypeCk{\K,\Env}{\e_1}\C  \\
-     \>          \>   \eps 1 = \tr e{\K,\Env,\e_1} \\
-     \>          \>  \TypeCk{\K,\Env}{\e_2}\tp \\
-     \>          \>   \Mtype\m\x{\t_1}\IN \C \\
+     \> \WHERE   \>  \TypeCk{\K,\Env}{\e_1}\C, \HS  \eps 1 = \tr e{\K,\Env,\e_1} \\
+     \>          \>  \TypeCk{\K,\Env}{\e_2}\tp, \HS  \Mtype\m\x{\t_1}\IN \C \\
      \>          \>   \eps 2 = \tr e{\K, \Env, \e_2} \\
 \\
 \tr e{\K, \Env, \New\C{\e_1..}} = \src{\New\C{\SubCast{\t_1}{\eps 1}..}} \\
-     \> \WHERE   \>  \Ftype{\f_1}{\t_1}\IN\C \\
-     \>          \>   \eps 1= \tr e{\K,\Env,\e_1} ..
+     \> \WHERE   \>  \Ftype{\f_1}{\t_1}\IN\C, \HS  \eps 1= \tr e{\K,\Env,\e_1} ..
 \end{tabbing}
+\end{minipage}
+\end{tabular}
+
 \end{document}
 
 
