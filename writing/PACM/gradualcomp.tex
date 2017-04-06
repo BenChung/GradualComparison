@@ -1529,7 +1529,6 @@ re(K, T, new C(e1..) = new C(e1'..)
 \newcommand{\mds}[1]{\EM{\md_{#1}}}%
 \newcommand{\fdspp}[1]{\EM{\fd_{#1}''}}
 \newcommand{\mdspp}[1]{\EM{\md_{#1}''}}%
-\newcommand{\fdsp}[1]{\EM{\fd_{#1}'}}
 \newcommand{\mdsp}[1]{\EM{\md_{#1}'}}%
 \newcommand{\kty}[1]{\EM{\xt{kty}(#1)}}
 \newcommand{\tr}[2]{\EM{\xt{t #1}(#2)}}
@@ -1553,15 +1552,16 @@ re(K, T, new C(e1..) = new C(e1'..)
        \>          \> \ep      \> = \tr{e}{\K, \Ftype\this\C\,\Ftype\x{\t_1}, \e} \\
        \>          \> \mdspp 1 \>=  \src{\Mdef\m\x\any\any{ \SubCast{\t_2}{ \Call\this{\name\m{\t_1}{\t_2}}{ \SubCast{\t_1}\x } } }}\\
        \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \D\\
-       \>          \>          \> \HS~  empty {\bf otherwise} ..                   \\
+       \>          \>          \> \HS\HS  {\bf otherwise} empty ..                   \\      
+%        \>          \>          \> \HS~  empty {\bf otherwise} ..                   \\
 \\
-\tr e{\K, \Env, \Call\this\f{}}  = \src{\Call\this{\namet\f\t}{}} \\
+\tr e{\K, \Env, \Call\this\f{}}  = \src{\Callt\this\f{}\t} \\
        \> \WHERE   \> \Ftype\f\t \EM{\in} \C,   \HS \TypeCk{\K,\Env}{\this}\C    \\
 \\
-\tr e{\K, \Env, \Call\e\f{}} = \src{\DynCall{\ep}{\namet\f\any}{}}  \\
+\tr e{\K, \Env, \Call\e\f{}} = \src{\DynCallt\ep\f{}\any}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env,  \e}, \HS  \TypeCk{\K,\Env}\e\t, \HS  \kty\t=\any\\
 \\
-\tr e{\K, \Env, \Call\e\f{}} = \src{\Call\ep{\namet\f\t}{}}  \\
+\tr e{\K, \Env, \Call\e\f{}} = \src{\Callt\ep\f{}\t}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \IN \C  \\
 \\
 \tr e{\K, \Env, \Call\this\f\e} = \src{\Call\this{\name\f\t\t}{\SubCast\t\ep}} \\
@@ -1595,7 +1595,6 @@ re(K, T, new C(e1..) = new C(e1'..)
 \end{tabbing}
 \end{minipage}
 \end{tabular}
-
 
 \begin{figure}[h!]
 %% \begin{tabular}{l@{~~}l@{}l@{}l}
