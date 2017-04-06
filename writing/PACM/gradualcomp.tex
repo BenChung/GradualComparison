@@ -1594,13 +1594,13 @@ causes all calls to be dynamic.
        \>          \> \mdspp 1 \>=  \src{\Mdef\m\x\any\any{ \SubCast{\t_2}{ \Call\this{\name\m{\t_1}{\t_2}}{ \SubCast{\t_1}\x } } }}\\
        \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \Dp\\
        \>          \>          \> \HS\HS  {\bf otherwise} empty ..                   \\[1mm]
-\tr e{\K, \Env, \Call\this\f{}}  = \src{\Callt\this\f{}\t} \\
+\tr e{\K, \Env, \Call\this\f{}}  = \src{\Call\this{\namet\f\t}{}} \\
        \> \WHERE   \> \Ftype\f\t \EM{\in} \C,   \HS \TypeCk{\K,\Env}{\this}\C
 \\[1mm]
 \tr e{\K, \Env, \Call\e\f{}} = \src{\DynCallt\ep\f{}\any}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env,  \e}, \HS  \TypeCk{\K,\Env}\e\t, \HS  \kty\t=\any
 \\[1mm]
-\tr e{\K, \Env, \Call\e\f{}} = \src{\Callt\ep\f{}\t}  \\
+\tr e{\K, \Env, \Call\e\f{}} = \src{\Call\ep{\name\f\t}{}}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \IN \C  
 \\[1mm]
 \tr e{\K, \Env, \Call\this\f\e} = \src{\Call\this{\name\f\t\t}{\SubCast\t\ep}} \\
