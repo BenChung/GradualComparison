@@ -474,12 +474,18 @@ dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
 %
-Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters, and with statically and dynamically checked method invocation.  \kafka supports two different cast mechanisms.  The former, the \emph{structural cast} is the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, instead of type-checking the argument, it builds a wrapper around it; the wrapper dynamically ensures that all the successive requests to the object are understood. \FZ{rewrite.}
+ The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f and \Set\e\f\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  
+ % Types are either class names  \C, \D and \E, or the dynamic type, and 
+  \kafka   supports a limited form of overloading, allowing both a typed implementation and an untyped (dynamically checked) implementation for each method. The static dispatch resolves overloading via the type tag (either \(\C \to \D\) or \(\any \to \any\)) on method call. Providing two different cast mechanisms is the most original feature of the calculus.
+The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). 
 
-\begin{figure}[!t]\hrulefill
+The design of the semantics of the behavioural cast is intricate, and deserves its own section below.  
+
+\begin{figure}[!t]
+\hrulefill
 
 \smallskip
-\begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+\begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this         &\B \that      \\
    &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
@@ -535,6 +541,8 @@ definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
 \Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
 unsurprising, with the following rules for method calls and casts.
 
+\begin{figure}[!t]
+
 {\small
 \begin{mathpar}
 \IRule{W6}{
@@ -542,7 +550,7 @@ unsurprising, with the following rules for method calls and casts.
   \Mtype \m\tp\tpp\in \classoff\C\K  \\
   \EnvType \Env\s\K\ep\tp
 }{
-  \EnvType \Env\s\K{\Call\e\m\ep}\tpp
+  \EnvType \Env\s\K{\KCall\e\m\ep{\t'}{\t''}}\tpp
 }    
 
 \IRule{W7}{
@@ -571,6 +579,8 @@ unsurprising, with the following rules for method calls and casts.
 %  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
 %}
 \end{mathpar}}
+\caption{\kafka static semantics (excerpt)}
+\end{figure}
 
 \noindent Method calls use \emph{syntactic} disambiguation to select between
 typed and untyped methods. The dynamically resolved call places no
@@ -786,13 +796,7 @@ The small operational step operational semantics for \kafka appears in \figref{f
 
 \end{tabular}\end{minipage}
 
-\hrulefill
-\caption{\kafka dynamic semantics}\label{fig:semantics}
-\end{figure}
-
-%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-~\\[2mm]
-
+\medskip
 \begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
 \EE &::= \Get\EE\f     &\B
         \Set\EE\f\e   &\B
@@ -811,8 +815,15 @@ The small operational step operational semantics for \kafka appears in \figref{f
 \end{tabular}
 \end{minipage}
 
+\hrulefill
+\caption{\kafka dynamic semantics}\label{fig:semantics}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 %\noindent\hrulefill
-\medskip
+
  A configuration is a triple \K\e\s, where \K is a class
 table, \e is an expression and \s is a heap mapping addresses ranged over by \a
 to objects denoted \hspace{-1mm}\obj\C{\b\a}.  A configuration evaluates in one
