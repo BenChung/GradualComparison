@@ -8,7 +8,7 @@
 
 %\usepackage{booktabs} % For formal tables
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
-            mathpartir,hyperref,doi, mathtools,
+            mathpartir,hyperref,doi, mathtools,wrapfig,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox, pgffor} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \usetikzlibrary{arrows}
@@ -1466,24 +1466,6 @@ re(K, T, new C(e1..) = new C(e1'..)
 
 
 
-\newcommand{\fds}[1]{\EM{\fd_{#1}}}
-\newcommand{\fdsp}[1]{\EM{\fd'_{#1}}}
-\newcommand{\mds}[1]{\EM{\md_{#1}}}%
-\newcommand{\fdspp}[1]{\EM{\fd_{#1}''}}
-\newcommand{\mdspp}[1]{\EM{\md_{#1}''}}%
-\newcommand{\mdsp}[1]{\EM{\md_{#1}'}}%
-\newcommand{\kty}[1]{\EM{\xt{kty}(#1)}}
-\newcommand{\tr}[2]{\EM{\xt{t #1}(#2)}}
-\newcommand{\WHERE}{~\EM{\xt{\bf where}}~}
-\newcommand{\OR}{\EM{~\xt{\bf or}}~}
-\newcommand{\IF}{\EM{~\xt{\bf if}}~}
-\renewcommand{\neq}{\EM{\not=}}
-\newcommand{\HS}{\hspace{.2cm}}
-\newcommand{\name}[3]{\EM{#1\!\!:\!#2\!\!:\!#3}}
-\newcommand{\namet}[2]{\EM{#1\!\!:\!#2}}
-\newcommand{\TypeCk}[3]{\EM{#1\vdash #2:#3}}
-\newcommand{\IN}{\EM{\in}}
-
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
   \hspace{-.5cm}\begin{minipage}{8cm}  
@@ -1582,6 +1564,29 @@ argument to \code m has all the methods defined by \code C. For this we use
   x}, which only checks for the presence of method names, not for the
 conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore.}
 
+\begin{wrapfigure}{r}{.5\textwidth}
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\small
+\begin{minipage}{8cm}  
+\begin{tabbing}
+\tr c{\Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fds 1..}{\mdsp 1.. } }\\
+\HS\= \WHERE\HS\= \mdsp 1 = \tr m{\mds 1}..\\[1mm]
+\tr m{\Mdef\m\x\any\any\e} = \src{\Mdef\m\x\any\any\ep} \\
+\> \WHERE \> \ep = \tr e\e\\[1mm]
+\tr m{ \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\any\any{\SubCast\t\x ; ~\ep}}\\
+\> \WHERE \> \ep = \tr e\e\\[1mm]
+\tr e{\Call\this\f{}}  = \src{\Call\this{\namet\f\any}{}} \\[1mm]
+\tr e{\Call\e\f{}} =  \src{\DynCall\ep{\name\f\any}{}}  \HS \WHERE \ep = \tr e\e\\[1mm]
+\tr e{\Call\this\f\e} =  \src{\Call\this{\name\f\any\any}\ep} \HS \WHERE \ep = \tr e\e\\[1mm]
+\tr e{\Call{\e_1}\f{e_2}} = \src{\DynCall{\eps 1}{\name\f\any\any}{\eps 2}} \HS\WHERE \eps 1 = \tr e{\e_1}, \HS \eps 2 = \tr e{e_2}\\[1mm]
+\tr e{\Call{\e1_1}\m{e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}} \HS \WHERE  \eps 1 = \tr e{\e_1}, \HS \eps 2 = \tr e{e_2}\\[1mm]
+\tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\HS \WHERE \eps 1 = \tr e{\e_1}\\
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+\caption{Transient}
+\end{wrapfigure}
+
 
 \newcommand{\A}{\EMxt A}
 
@@ -1616,87 +1621,8 @@ types of the methods are ignored, as they are the responsibility of the
 callee to check.
 
 
-\newpage
-\begin{verbatim}
-tc( class C { fd1.. md1.. }  ) =  class C { fd1.. md1'.. } 
-      where md1' = tm(  md1 ) 
-            ..
-tm( m(x:*):*{e} ) =  m(x:*):*{ e' }
-           where e' = te( e )
-tm( m(x:t):t'{e} ) =  m(x:*):*{ <C>x ; e' }
-           where e' = te( e )
-te( this.f() )    =  this.f:*() 
-te( e.f() )       =  e'@f:*()       where e'  = te( e )
-te( this.f(e) )   =  this.f:*:*(e') where e'  = te( e )
-te( e1.f(e2) )    =  e1'@f:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
-te( e1.m(e2) )    =  e1'@m:*:*(e2') where e1' = te( e1 ), e2' = te( e2 )
-te( new C(e1..) ) =  new C(e1..)    where e1' = te( e1 ).. 
-\end{verbatim}
 
 
-
-\begin{figure}[!ht]
-\small
-  
-\begin{mathpar}
-\IRule{TPM1}{
-  \AnaCast{\K}{\HT\this\C~\HT\x\any}{\e}{\ep}{\any}
-}{\methtrans\K\C{\Mdef\m\x\any\any\e}{\Mdef\m\x\any\any\ep}{}}
-
-\IRule{TPM2}{
-  \t \neq \any \\
-  \AnaCast{\K}{\HT\this\C~\HT\x\t}{\e}{\ep}{\tp}
-}{
-  \methtrans\K\C{\Mdef\m\x\C\Cp\e}
-      {\Mdef\m\x\any\any{\SubCast\any{\New \A{\ShaCast\C\x, \e}.\f()}}}{}
-}
-\end{mathpar}
-
-
-\begin{mathpar}
-\IRule{TPG1}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\ShaCast\t\x}\t}
-
-\IRule[width=30em]{TPG2}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\ShaCast{\t_2}{(\DynCall{\SubCast{\any}{\e_3})}\m{\SubCast{\any}{\e_4}}}}{\t_2}
-}
-
-\IRule{TPG3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule[width=20em]{TPG4}{
-    \HasType{\E}\this\C \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e}{\ep}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\ep}}{\any}
-}
-
-\IRule{TPG5}{
-  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}}
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-\end{mathpar}
-
-\begin{mathpar}
-\IRule{TPR1}{
-  \GenCast\K\E\e\ep\tp \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCast\K\E\e\ep\t
-}
-
-\IRule{TPR2}{
-  \GenCast\K\E\e\ep\tp \\
-  \consistent\K\tp\t
-}{
-  \AnaCast\K\E\e{\ShaCast\t\ep}\t
-}
-\end{mathpar}
-\caption{Transient translation.}\label{trans}
-\end{figure}
 
 
 \subsection{Typed Racket}
