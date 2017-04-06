@@ -1750,6 +1750,91 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 \caption{Transient}
 \end{wrapfigure}
 
+\begin{figure}
+\begin{mathpar}
+\IRule[width=20em]{TA-PROGRAM}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule[width=30em]{TA-CLASS1}{ 
+  \cload{\b\md ~ \b\fd}\\
+  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtrans {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+\IRule{TA-CLASS2}{ 
+}{
+  \classtrans {\K}\cdot\cdot
+}
+
+\IRule{TA-FIELD}{
+}{
+  \fieldtrans{\Fdef\f\t}{\Fdef\f\t}{}
+}
+
+\IRule[width=25em]{TA-METHODANY}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\any}}{\e}\ep{\any} \\
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
+}
+
+\IRule[width=25em]{TA-METHOD}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
+    \Mdef\m\x\any\any{\SubCast\Cp\x ; \ep}}{} % sequencing is sugar
+}
+\end{mathpar}
+\begin{mathpar}
+\IRule{TAS-VAR}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\SubCast\t\x}\t}
+
+
+\IRule[width=30em]{TAS-TYCALL}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
+}
+
+\IRule{TAS-DYCALL}{
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule[width=20em]{TAS-FIELD}{
+    \HasType{\E}\this\C \\ 
+    \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ 
+    \b{\AnaCast\K\Env{\e_1}{\e_2}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\this}\f{\b{\e_1}}}{\Call{\this}\f{\b{\e_2}}}{\any}
+}
+
+\IRule{TAS-NEW}{
+  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+\end{mathpar}
+\begin{mathpar}
+\IRule{TAA-SUB}{
+  \GenCast\K\E\e\ep\tp \\
+  \K \vdash \tp \Sub \t
+}{
+  \AnaCast\K\E\e\ep\t
+}
+
+\IRule{TAA-CONS}{
+  \GenCast\K\E\e\ep\tp \\
+  \consistent\K\tp\t
+}{
+  \AnaCast\K\E\e{\SubCast\t\ep}\t
+}
+\end{mathpar}
+\caption{Bidirectional Transient}
+\end{figure}
+
 
 \newcommand{\A}{\EMxt A}
 
@@ -1898,21 +1983,97 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 
 \begin{figure}[h!]
 \begin{mathpar}
-\IRule{TRA1}{
+\IRule[width=20em]{TR-PROGRAM}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
+
+\IRule[width=30em]{TR-TCLASS}{ 
+  \cload{\b\md ~ \b\fd}\\
+  \b{\methtranst {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtranst {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+\IRule[width=25em]{TR-UCLASS}{ 
+  \cload{\b\md ~ \b\fd}\\
+  \b{\methtransu {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtransu {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
+  \classtrans {\K}{\Kp}\Kpp
+}{
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+\IRule{TR-CLASS2}{ 
+}{
+  \classtrans {\K}\cdot\cdot
+}
+
+\IRule{TR-TFIELD}{
+}{
+  \fieldtranst{\Fdef\f\C}{\Fdef\f\C}{}
+}
+
+\IRule{TR-UFIELD}{
+}{
+  \fieldtransu{\Fdef\f\any}{\Fdef\f\any}{}
+}
+
+\IRule[width=25em]{TR-TMETHOD}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
+}{
+  \methtranst {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
+    \Mdef\m\x\Cp\Cpp{\e} }{}
+}
+
+\IRule[width=25em]{TR-UMETHOD}{
+  \AnaCast {\K}{\HT\this{\any}~\HT\x{\any}}{\e}\ep{\any} \\
+}{
+  \methtransu {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{
+    \Mdef\m\x\any\any{\e} }{}
+}
+
+\IRule{TRS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+
+\IRule[width=30em]{TRS-FIELD}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
+}
+
+\IRule[width=30em]{TRS-TYCALL}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\Cp):\Cpp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\Cp}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}\Cp\Cpp}{\Cpp}
+}
+
+\IRule{TRS-DYCALL}{
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+}{
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+}
+
+\IRule{TRS-NEW}{
+  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
+  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
+  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+  
+\IRule{TRA-SUB}{
   \GenCast\K\Env\e\ep\tp \\
-  \src{\K \vdash \tp \Sub \t}
+  \K \vdash \tp \Sub \t
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TRA2}{
+\IRule{TRA-WRAP}{
   \GenCast\K\Env\e\ep\tp \\
-  \src{\t \neq \tp}
+  \t \neq \tp
 }{
-  \AnaCast\K\Env\e{\BehCast\t{\ShaCast\t\ep}}\t
+  \AnaCast\K\Env\e{\BehCast\t{\ep}}\t
 }
 \end{mathpar}
-\caption{Type Racket translation.}\label{fb}
+\caption{Typed Racket translation.}\label{fb}
 \end{figure}
 
 
