@@ -1474,6 +1474,8 @@ re(K, T, new C(e1..) = new C(e1'..)
 \newcommand{\mdsp}[1]{\EM{\md_{#1}'}}%
 \newcommand{\kty}[1]{\EM{\xt{kty}(#1)}}
 \newcommand{\tr}[2]{\EM{\xt{t #1}(#2)}}
+\newcommand{\rc}[2]{\EM{\xt{r #1}(#2)}}
+
 \newcommand{\WHERE}{~\EM{\xt{\bf where}}~}
 \newcommand{\OR}{\EM{~\xt{\bf or}}~}
 \newcommand{\IF}{\EM{~\xt{\bf if}}~}
@@ -1539,6 +1541,110 @@ re(K, T, new C(e1..) = new C(e1'..)
 \end{minipage}
 \end{tabular}
 
+Second pass ... this could be applied to all translations. 
+All of this should be grey boxed. \\
+
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\hspace{-.5cm}\begin{minipage}{8cm}  
+\begin{tabbing}
+\rc c{\K, ~\Class \C{\fds 1..}{\mds 1 .. }} = \Class \C{ \fds 1..}{\mdsp 1..} \\
+\HS \= \WHERE\HS\= \mdsp 1\HS\= =  \rc m{\K, ~\namet{\this}{\C}, ~\mds1} \\
+
+\\
+\rc m{\K, ~\Env, ~\Mdefz\f\t\e}  = \Mdefz\f\t\ep \\
+       \> \WHERE\HS\= \ep =  \rc e{\K, ~\Env, ~\e} \\
+\\
+\rc m{\K, ~\Env, ~\Mdef\f\x\t\t\e} = \Mdef\f\x\t\t\ep \\
+      \> \WHERE   \> \ep = \rc e{\K, ~\Env~\namet{\x}{\t},  ~\e}\\
+\\
+\rc m{\K, ~\Env, ~\Mdef\m\x\t\t\e} = \Mdef\m\x\t\t\ep  \\
+      \> \WHERE   \> \ep = \tr e{\K, ~\Env~\namet{\x}{\t}, ~\e}\\
+\\      
+\rc e{\K, ~\Env, ~\this} = \this \\
+\\
+\rc e{\K, ~\Env, ~\this} = \x \\
+\\        
+\rc e{\K, ~\Env, ~\SubCast{\C}{\e}} = \e \\
+     \> \IF   \>  \TypeCk{\K,\Env}{\e}\D, \HS \StrSub\emptyset\K\D\C \\
+\\
+\rc e{\K, ~\Env, ~\SubCast{\C}{\e}} = \SubCast{\any}{\e} \\
+     \> \IF   \>  \TypeCk{\K,\Env}{\e}\D, \HS \StrSub\emptyset\K\D\C \\
+\\
+\end{tabbing}
+\end{minipage}
+&~~ \hspace{1cm} ~~~ &
+\begin{minipage}{5cm}
+  \begin{tabbing}
+
+\rc e{\K, ~\Env, ~\Call{\e}\f{}} = \Call{\ep}\f{} \\
+\HS\=\WHERE\HS\= \ep = \rc e{\K, ~\Env, ~\e}\\
+\\
+\rc e{\K, ~\Env,  ~\DynCall{\e}\f{}} = \DynCall{\e}\f{} \\
+\HS\=\WHERE\HS\= \ep = \rc e{\K, ~\Env, ~\e}\\
+\\
+\rc e{\K, ~\Env, ~\DynCall{\e_1}\f{\e_2}} = \DynCall{\ep_1}\f{\ep_2} \\
+\HS\=\WHERE\HS\= \ep$_1$ = \rc e{\K, ~\Env, ~\e_1}, \HS \eps 2 = \rc e{\K,~\Env,~\e_2}\\ 
+\\
+\rc e{\K, ~\Env, ~\DynCall{\e_1}\m{\e_2}} = \DynCall{\ep_1}\m{\ep_2} \\
+\HS\=\WHERE\HS\= \ep$_1$ = \rc e{\K, ~\Env, ~\e_1}, \HS \eps 2 = \rc e{\K,~\Env,~\e_2}\\ 
+\\
+\rc e{\K, ~\Env, ~\New\C{\e_1..}} = \New\C{\eps{1}..} \\
+     \> \WHERE   \>  \eps 1= \rc e{\K,~\Env,~\e_1} \\
+\\     
+\rc e{\K, ~\Env, ~\SubCast{\any}{\e}} = \e \\
+     \> \IF   \>  \TypeCk{\K,\Env}{\e}\any \\
+\\
+\rc e{\K, ~\Env, ~\SubCast{\any}{\e}} = \SubCast{\any}{\e} \\
+     \> \IF   \>  \TypeCk{\K,\Env}{\e}\C ..
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+
+\begin{figure}[h!]
+%% \begin{tabular}{l@{~~}l@{}l@{}l}
+%% \\
+%% \t  &::= ~ \any \B \C \B \dt\C \\
+%% \\
+%% \end{tabular}
+
+%% \opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
+
+%% \begin{mathpar}
+%% \IRule{THSWeak}{
+%%   \ThorSub \M\K\C\D
+%% }{
+%%   \ThorSub\M\K{\dt\C}{\dt\D}
+%% }
+
+%% \IRule{THSLower}{
+%%   \ThorSub \M\K\C\D
+%% }{
+%%   \ThorSub\M\K{\C}{\dt\D}
+%% }
+%% \end{mathpar}
+
+\small
+\begin{mathpar}
+\IRule{THS1}{
+  \HasType{\src\Env}{\src\x}{\src\t}
+}{
+  \GenCast\K\Env\x\x\t
+}
+
+\IRule[width=30em]{THS2}{
+    \GenCast\K\Env\e\ep\C \\ 
+    \Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
+}{
+    \GenCast\K\Env{\Call\e\f{}}{\Call{\ep}\f{}}\t
+}
+
+\IRule[width=30em]{THS2'}{
+    \GenCast\K\Env{\e_1}{\e_2}\C \\ 
+    \Mtype{\src\f}{\src\t}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
+    \AnaCast\K\Env{\ep_1}{\ep_2}{\src\t}
+}{
+    \GenCast\K\Env{\Call{\e_1}\f{\ep_1}}{\Call{\e_2}\f{\ep_2}}\t
+}
 
 \begin{figure}
   \caption{thorn}\label{fig:thorntrans_exp}
