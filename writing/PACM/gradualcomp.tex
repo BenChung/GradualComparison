@@ -1431,64 +1431,6 @@ ktype * = *
       C = C
      ?C = *
 
-tc(K, class C { fd1.. md1.. }) = class C { fd1'.. md1'.. md1''}
-   where  fd1 = f:t 
-         fd1' = f:ktype(t)
-           ..
-         md1  =  m(x:t1):t2 { e  } ,
-         md1' =  m(x:ktype(t1)):ktype(t2) { e' }  
-           e' = te(K, this:C x:t1, e )
-        md1'' =  m(x:*):* { <t2>this.m(<t1>x) } if ktype(t1) != * | ktype(t2) != *
-           ..
-
-te(K, T, this.f())  =  this.f:t()  
-        where  f:t in C and  K,T |- this: C
-
-te(K, T, e.f())     =  e'@f:*()   
-         where e' = te(K, T,  e),  K,T |- e : * or ?C
-
-te(K, T, e.f())     =  e'.f:t()   
-         where e' = te(K, T,  e),  K,T |- e : C  f:t in C
-
-te(K, T, this.f(e)) =  this.f:t:t( <t> e' )  
-         where e''  = te(K, T,  e )
-               T    = this:C ..
-               f:t' in C
-               t    = ktype(t')
-               e'   = te(K, T, e)
-
-te(K, T, e1.f(e2))  =  e1'@f:*:*(<*> e2')   
-         where K,T |- e1 : t,   ktype(t) = *
-               e1' = te(K, T,  e1 )
-               e2' = te(K, T,  e2 )
-
-te(K, T,  e1.f(e2))   =  e1'.f:t:t(<t>e2')   
-         where K,T |- e1 : C
-               f:t'  in C
-                t = ktype(t')
-               e1' = te(K, T,  e1 ), 
-               K,T |- e2: t''
-               e2' = te(K, T,  e2 )
-
-te(K, T,  e1.m(e2) )   =  e1'@m:*:*(<*> e2')   
-         where K,T |- e1 : t,   
-               ktype(t) = *
-               e1' = te(K, T,  e1 )
-               e2' = te(K, T,  e2 )
-
-te(K, T,  e1.m(e2) )   =  e1'.m:t1:t2(<t1>e2')   
-         where K,T |- e1 : C
-               e1' = te(K, T,  e1 ), 
-               K,T |- e2: t'
-               m(x:t1):t2  in C
-               e2' = te(K, T,  e2 )
-
-te(K, T, new C(e1..) ) =  new C(<t1>e1'..)   
-          where 
-                f1:t1.. in C
-                e1' = te(K,T,e1 )..
-
-
 Second pass ... this could be applied to all translations
 
 rc(K, class C { fd1.. md1.. }) = class C{ fd1.. md1'.. }
@@ -1543,7 +1485,8 @@ re(K, T, new C(e1..) = new C(e1'..)
 \newcommand{\IN}{\EM{\in}}
 
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-\hspace{-.5cm}\begin{minipage}{8cm}  
+\small
+  \hspace{-.5cm}\begin{minipage}{8cm}  
 \begin{tabbing}
 \tr c{\K, \Class \C{\fds 1..}{\mds 1 .. }} = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..~ \mdspp 1..} } \\
 \HS \= \WHERE\HS\= \fds 1\HS\= = \Ftype\f\t, \HS \HS  \fdsp 1   = \src{\Ftype\f{\kty\t}} ..          \\
@@ -1596,92 +1539,9 @@ re(K, T, new C(e1..) = new C(e1'..)
 \end{minipage}
 \end{tabular}
 
-\begin{figure}[h!]
-%% \begin{tabular}{l@{~~}l@{}l@{}l}
-%% \\
-%% \t  &::= ~ \any \B \C \B \dt\C \\
-%% \\
-%% \end{tabular}
 
-%% \opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
-
-%% \begin{mathpar}
-%% \IRule{THSWeak}{
-%%   \ThorSub \M\K\C\D
-%% }{
-%%   \ThorSub\M\K{\dt\C}{\dt\D}
-%% }
-
-%% \IRule{THSLower}{
-%%   \ThorSub \M\K\C\D
-%% }{
-%%   \ThorSub\M\K{\C}{\dt\D}
-%% }
-%% \end{mathpar}
-
-\small
-\begin{mathpar}
-\IRule{THS1}{
-  \HasType{\src\Env}{\src\x}{\src\t}
-}{
-  \GenCast\K\Env\x\x\t
-}
-
-\IRule[width=30em]{THS2}{
-    \GenCast\K\Env\e\ep\C \\ 
-    \Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
-}{
-    \GenCast\K\Env{\Call\e\f{}}{\Call{\ep}\f{}}\t
-}
-
-\IRule[width=30em]{THS2'}{
-    \GenCast\K\Env{\e_1}{\e_2}\C \\ 
-    \Mtype{\src\f}{\src\t}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
-    \AnaCast\K\Env{\ep_1}{\ep_2}{\src\t}
-}{
-    \GenCast\K\Env{\Call{\e_1}\f{\ep_1}}{\Call{\e_2}\f{\ep_2}}\t
-}
-
-\IRule[width=30em]{THS2''}{
-    \GenCast\K\Env{\e_1}{\e_2}\C \\ 
-    \Mtype{\src\m}{\src\t}{\src\tp} \in \classoff{\src\C}{\src\K} \\ 
-    \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{\ep_1}}{\Call{\e_2}\m{\ep_2}}\tp
-}
-
-\IRule{THS3}{
-    \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
-    \src{\m({\t_1}):\D \in \classoff\C\K} \\ 
-    \AnaCast\K\Env{\e_2}{\e_4}{\t_1}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast\D{\DynCall{\e_3}\m{{\e_4}}}}{\D} %Q: do I need to cast the return value of non-bang
-}
-
-\IRule{THS4}{
-    \GenCast\K\Env{\e_1}{\e_2}{\dt\C} \\ 
-    \Mtype{\src\m}{\src\t}{\src{\dt\D}} \in \classoff{\src\C}{\src\K} \\ 
-    \AnaCast\K\Env{\ep_1}{\ep_2}\t 
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\ep_1}}}{\DynCall{\e_2}\m{{\ep_2}}}{\dt\D}
-    %Q: do I need to cast the return value of non-bang
-}
-
-\IRule{THS5}{
-    \AnaCast\K\Env{\e_1}{\e_3}\any \\ 
-    \AnaCast\K\Env{\e_2}{\e_4}\any
-}{
-    \GenCast\K\Env{\DynCall{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
-}
-
-\IRule{THS6}{
-  \b{\AnaCast\K\Env{\e}{\ep}\t} 
-  }{
-  \GenCast\K\Env{\New\C{\b\e}}{\New\C{\b\ep}}\C
-}
-\end{mathpar}
-\caption{Thorn translation.}
-\label{fig:thorntrans_exp}
+\begin{figure}
+  \caption{thorn}\label{fig:thorntrans_exp}
 \end{figure}
 
 \normalsize
