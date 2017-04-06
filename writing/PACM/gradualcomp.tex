@@ -473,13 +473,24 @@ The basis of our formal approach is the \kafka calculus. At its heart,
 dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
-%
- The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f and \Set\e\f\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  
- % Types are either class names  \C, \D and \E, or the dynamic type, and 
-  \kafka   supports a limited form of overloading, allowing both a typed implementation and an untyped (dynamically checked) implementation for each method. The static dispatch resolves overloading via the type tag (either \(\C \to \D\) or \(\any \to \any\)) on method call. Providing two different cast mechanisms is the most original feature of the calculus.
-The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). 
 
-The design of the semantics of the behavioural cast is intricate, and deserves its own section below.  
+\paragraph{Syntax} The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f and \Set\e\f\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  Class definitions have a class name and (possibly empty) sequences of
+field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
+definitions consist of a field and its type, \Fdef\f\t. Method definitions
+have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
+ % Types are either class names  \C, \D and \E, or the dynamic type, and 
+  \kafka   supports a limited form of overloading, allowing both a typed implementation and an untyped (dynamically checked) implementation for each method. The static dispatch resolves overloading via the type tag
+%   (either \(\C \to \D\) or \(\any \to \any\))
+on the method call.  We let meta-variables \C, \D and \E
+range over class names, the dynamic type is denoted \(\any\), \x ranges over variable names, \m and \f range over
+methods and fields respectively; \this is a distinguished identifier
+representing a method receiver, while \that is a distinguished field name that will be used
+in wrapper classes. 
+
+ Providing two different cast mechanisms is the most original feature of the calculus.
+The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). The design of the semantics of the behavioural cast is intricate, and deserves its own section.  
+
+
 
 \begin{figure}[!t]
 \hrulefill
@@ -505,24 +516,25 @@ The design of the semantics of the behavioural cast is intricate, and deserves i
 \caption{\kafka Syntax.}\label{syn}
 \end{figure}
 
-
- The syntax of \kafka is given in \figref{syn}.
- Meta-variables \C, \D and \E
-range over class names, \x ranges over variable names, \m and \f range over
-methods and fields respectively. Finally, \this is a distinguished identifier
-representing a method receiver, while \that is a distinguished field name that will be used
-in wrapper classes (explained below).  Expressions include object creation, \New\C{\b\e},
-field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
-invocation, \KCall\e\m\e\t\t, dynamically resolved method invocation,
-\DynCall\e\m\e, subtype casts, \SubCast\t\e, and behavioural casts, \BehCast\t\e.
+\paragraph{Static semantics}
+% Meta-variables \C, \D and \E
+%range over class names, \x ranges over variable names, \m and \f range over
+%methods and fields respectively. Finally, \this is a distinguished identifier
+%representing a method receiver, while \that is a distinguished field name that will be used
+%in wrapper classes. 
+% Expressions include object creation, \New\C{\b\e},
+%field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
+%invocation, \KCall\e\m\e\t\t, dynamically resolved method invocation,
+%\DynCall\e\m\e, subtype casts, \SubCast\t\e, and behavioural casts, \BehCast\t\e.
 %, and shallow casts, \ShaCast\t\e.
 Types consist of class names and the dynamic type, written
-\any. Class definitions have a class name and (possibly empty) sequences of
-field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
-definitions consist of a field and its type, \Fdef\f\t. Method definitions
-have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
-Fields are read by calling getter methods and updated by setter methods,
-these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
+\any. 
+%Class definitions have a class name and (possibly empty) sequences of
+f%ield definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
+%definitions consist of a field and its type, \Fdef\f\t. Method definitions
+%have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
+%Fields are read by calling getter methods and updated by setter methods,
+%these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
 
 
 %% TODO Put somewhere????
@@ -530,7 +542,7 @@ these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
 % \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
 
 
-\subsection{Static Semantics}
+%\subsection{Static Semantics}
 
 A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
 class table \K where each class \k in \K is well-formed and \e is well-typed
@@ -541,7 +553,10 @@ definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
 \Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
 unsurprising, with the following rules for method calls and casts.
 
+\FZ{EXPLAIN IN ONE PARAGRAPH HOW SUBTYPING WORKS}
+
 \begin{figure}[!t]
+\hrulefill
 
 {\small
 \begin{mathpar}
@@ -579,6 +594,7 @@ unsurprising, with the following rules for method calls and casts.
 %  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
 %}
 \end{mathpar}}
+\hrulefill
 \caption{\kafka static semantics (excerpt)}
 \end{figure}
 
@@ -704,7 +720,7 @@ set of rules appear in Appendix section~\ref{appendix:kafka}.
 
 
 
-\subsection{Dynamic Semantics}
+\paragraph{Dynamic Semantics}
 
 The small operational step operational semantics for \kafka appears in \figref{fig:semantics}.
 
