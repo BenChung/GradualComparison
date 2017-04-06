@@ -1251,97 +1251,91 @@ te( new C(e1..) ) =  new C(e1..)   where e1' = te( e1 )..
 \begin{figure}[!h]
 \small
 \begin{mathpar}
-\IRule{TSP}{
-  \classtrans\K\K\Kp \\ 
-  \GenCast\K\cdot\e\ep\t
-}{
-  \progtrans{\e\,\K}{\ep\,\Kp}
-}
+\IRule[width=20em]{TS-PROGRAM}{
+  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+}{\progtrans{\e~\K}{\e'~{\K'}}}
 
-\IRule{TSC1}{ 
-  \src\md\in\b{\src\md} \implies 
-      \methtrans\K\C\md{\md'}{}\wedge\md'\in\b{\md'} \\\\
-  \src{\Fdef\f\t}\in\b{\src\fd} \implies \Fdef\f\any\in\b{\md'}  \\\\
-  \classtrans \K\Kp\Kpp
+\IRule[width=30em]{TS-CLASS1}{ 
+  \cload{\b\md ~ \b\fd}\\
+  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+  \b{\fieldtrans {\fd}{\fd'}{}} \\
+  {\C \not\in \Kp} \\
+  \classtrans {\K}{\Kp}\Kpp
 }{
-   \classtrans\K{{\Class\C{\b{\fd}}{\b\md}~\Kp}}{\Class\C{\b{\fd'}}{\b{\md'}}~\Kpp}}
+   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
 
-\IRule{TSC2}{ 
+\IRule{TS-CLASS2}{ 
 }{
   \classtrans {\K}\cdot\cdot
 }
 
-\IRule{TSM}{
-  \AnaCast \K{\HT\this{\C}~\HT\x\t}\e\ep\tp
+\IRule{TS-FIELD}{
 }{
-  \methtrans \K\C{\Mdef\m\x\t\tp\e}{\Mdef\m\x\any\any\ep}{}
+  \fieldtrans{\Fdef\f\t}{\Fdef\f\any}{}
+}
+
+\IRule{TS-METHOD}{
+  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
+}{
+  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any{\SubCast\any\ep}}{}
 }
 \end{mathpar}
 
+\begin{minipage}{\textwidth}
 \begin{mathpar}
-\IRule{TSS1}{
-  \HasType{\src\Env}{\src\x}{\src\t}
+\IRule{TSS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+
+\IRule[width=30em]{TSS-TYCALL}{
+    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
 }{
-  \GenCast\K\Env\x\x\t
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
 }
 
-\IRule[width=30em]{TSS2}{
-    \GenCast\K\Env{\e_1}{\e_2}\C \\ 
-    \Mtype{\src\m}{\src\t}{\src\tp}\in \classoff{\src\C}{\src\K} \\ 
-    \AnaCast\K\Env{\ep_1}{\ep_2}\t
+\IRule[width=10em]{TSS-DYCALL}{
+    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
 }{
-    \GenCast\K\Env{\Call{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}\tp
+    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
 }
 
-\IRule{TSS3}{
-    \AnaCast\K\Env{\e_1}{\e_2}\any \\
-    \AnaCast\K\Env{\ep_1}{\ep_2}\any
+\IRule[width=20em]{TSS-FIELD}{
+    {\HasType{\Env}\this\C} \\ 
+    {\f(\b{\t}):\t \in \classoff\C\K} \\ 
+    \b{\AnaCast\K\Env{\e}{\ep}{\t}}
 }{
-    \GenCast\K\Env{\DynCall{\e_1}\m{{\ep_1}}}{\DynCall{\e_2}\m{{\ep_2}}}\any
+    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\b\ep}}{\t}
 }
 
-\IRule[width=20em]{TSS4}{
-    \HasType{\src\Env}{\src\this}{\src\C} \\ 
-    \Mtype{\src\f}{\src\t}{\src\t} \in \classoff{\src\C}{\src\K} \\ 
-    \AnaCast\K\Env\e\ep\t
+\IRule{TSS-NEW}{
+  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
+  {\Class \C {\b{\Fdef\f\t}} {\b{\md}} \in \K}
 }{
-    \GenCast\K\Env{\Call\this\f\e}{\Call\this\f\ep}\any
-}
-
-\IRule[width=20em]{TSS5}{
-    \HasType{\src\Env}{\src\this}{\src\C} \\ 
-    \src{\Mtype{\src\f}{}{\src\t} \in \classoff{\src\C}{\src\K}} 
-}{
-    \GenCast\K\Env{\Call\this\f{}}{\Call\this\f{}}\any
-}
-
-\IRule{TSS6}{
-  \b{\AnaCast{\K}\Env{\e}{\ep}\t} 
-}{
-   \GenCast\K\Env{\New\C{\b\e}}{\SubCast\any{\New\C{\b\ep}}}{\C}
+  \GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}
 }
 \end{mathpar}
+\end{minipage}
 
+\begin{minipage}{\textwidth}
 \begin{mathpar}
-\IRule{TSA1}{
+\IRule{TSA-SUB}{
   \GenCast\K\Env\e\ep\tp \\
-  \K \vdash \tp \Sub \t
+  {\K \vdash \tp \Sub \t}
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSA2}{
+\IRule{TSA-TRANS1}{
   \GenCast\K\Env\e\ep\any
 }{
   \AnaCast\K\Env\e\ep\t
 }
 
-\IRule{TSA3}{
+\IRule{TSA-TRANS2}{
   \GenCast\K\Env\e\ep\C
 }{
   \AnaCast\K\Env\e\ep\any
 }
 \end{mathpar}
+\end{minipage}
 \caption{TypeScript translation.}
 \label{fig:tstrans_exp2}
 \end{figure}
