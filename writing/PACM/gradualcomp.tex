@@ -1595,6 +1595,8 @@ causes all calls to be dynamic.
        \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \Dp\\
        \>          \>          \>\HS empty\\
        \>          \>          \> \HS\HS  {\bf otherwise}  ..                   \\[1mm]
+\tr e{\K, \Env, \x} = \src \x
+\\[1mm]       
 \tr e{\K, \Env, \Call\this\f{}}  = \src{\Call\this{\namet\f\t}{}} \\
        \> \WHERE   \> \Ftype\f\t \EM{\in} \C,   \HS \TypeCk{\K,\Env}{\this}\C
 \\[1mm]
@@ -1675,28 +1677,46 @@ argument to \code m has all the methods defined by \code C. For this we use
   x}, which only checks for the presence of method names, not for the
 conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore.}
 
-\begin{wrapfigure}{r}{.5\textwidth}
+%\begin{wrapfigure}{r}{.5\textwidth}
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr c{\Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fds 1..}{\mdsp 1.. } }\\
-\HS\= \WHERE\HS\= \mdsp 1 = \tr m{\mds 1}..\\[1mm]
-\tr m{\Mdef\m\x\any\any\e} = \src{\Mdef\m\x\any\any\ep} \\
-\> \WHERE \> \ep = \tr e\e\\[1mm]
-\tr m{ \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\any\any{\SubCast\t\x ; ~\ep}}\\
-\> \WHERE \> \ep = \tr e\e\\[1mm]
-\tr e{\Call\this\f{}}  = \src{\Call\this{\namet\f\any}{}} \\[1mm]
-\tr e{\Call\e\f{}} =  \src{\DynCall\ep{\name\f\any}{}}  \HS \WHERE \ep = \tr e\e\\[1mm]
-\tr e{\Call\this\f\e} =  \src{\Call\this{\name\f\any\any}\ep} \HS \WHERE \ep = \tr e\e\\[1mm]
-\tr e{\Call{\e_1}\f{e_2}} = \src{\DynCall{\eps 1}{\name\f\any\any}{\eps 2}} \HS\WHERE \eps 1 = \tr e{\e_1}, \HS \eps 2 = \tr e{e_2}\\[1mm]
+\tr c{\K, \Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fds 1..}{\mdsp 1.. } }\\
+\HS\= \WHERE\HS \= \mdsp 1 = \tr m{\K, \Ftype\this\C, \mds 1} ..\\[1mm]
+\tr m{\K,\Env, \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep}}\\
+   \> \WHERE    \> \ep = \tr a{\K,\Env\;\Ftype\x\t,\tp,\e}
+\\[1mm]
+\tr e{\K,\Env, \x} = \src{\SubCast\t\x}\\
+   \> \WHERE    \> \TypeCk{\K,\Env}\x\t
+\\[1mm]
+\tr e{\K,\Env,\Call\this\f{}}  = \src{\Call\this{\namet\f\any}{}}
+\\[1mm]
+\tr e{\K,\Env,\Call\e\f{}} =  \src{\DynCall\ep{\name\f\any}{}}  \HS \WHERE \ep = \tr e{\K,\Env,\e}, \TypeCk{\K,\Env}\e\any
+\\[1mm]
+\tr e{\K,\Env,\Call\e\f{}} =  \src{\Call\ep{\name\f\any}{}}  \HS \WHERE \ep = \tr e{\K,\Env,\e}, \TypeCk{\K,\Env}\e\C
+\\[1mm]
+\tr e{\Call\this\f\e} =  \src{\Call\this{\name\f\any\any}\ep} \HS \WHERE  \TypeCk\K\this\C, \HS
+\ep = \tr a{\K,\Env,\any,\e}
+\\[1mm]
+\tr e{\Call{\e_1}\f{e_2}} = \src{\DynCall{\eps 1}{\name\f\any\any}{\eps 2}}
+\HS \WHERE \ep = \tr e{\K,\Env,\e}, \TypeCk{\K,\Env}\e\any \HS 
+\HS\WHERE \eps 1 = \tr a{\K,\Env,\any,\e_1}, \HS
+\eps 2 = \tr a{\K,\Env,\any,\e_2}
+\\[1mm]
 \tr e{\Call{\e1_1}\m{e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}} \HS \WHERE  \eps 1 = \tr e{\e_1}, \HS \eps 2 = \tr e{e_2}\\[1mm]
-\tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\HS \WHERE \eps 1 = \tr e{\e_1}\\
+\tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\HS \WHERE \eps 1 = \tr e{\e_1}\\[1mm]
+\tr a{\K,\Env,\t,\e} = \e
+\\[1mm]
+\tr a{\K,\Env,\t,\e} = \SubCast\t\e
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t = \any \OR \tp = \any), \HS \ep =\tr e{\K,\Env,\e}
+\\[1mm]
+\tr a{\K,\Env,\t,\e} = \ep\\
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t \Sub \tp \OR \consistent\K\t\tp), \HS \ep =\tr e{\K,\Env,\e}
 \end{tabbing}
 \end{minipage}
 \end{tabular}
-\caption{Transient}
-\end{wrapfigure}
+%\caption{Transient}\end{wrapfigure}
 
 \begin{figure}
 \begin{mathpar}
