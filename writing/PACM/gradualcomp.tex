@@ -3313,6 +3313,48 @@ given method definitions.
   \GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}\C
 }
 \end{mathpar}
+\subsection{Thorn analytic translation for expressions}
+
+\opdef{$\AnaCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
+
+\begin{mathpar}
+\IRule{THA-CSUB}{
+  \GenCast\K\Env{\e_1}{\e_2}{\t_2} \\
+  {\ThorSub\K\cdot{\t_2}{\t_1}}\\
+}{
+  \AnaCast\K\Env{\e_1}{\e_2}{\t_1}
+}
+
+\IRule{THA-OPTCONC}{
+  \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
+  {\ThorSub\K\cdot\D\C}
+}{
+  \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
+}
+
+\IRule{THA-ANYOPT}{
+  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
+}{
+  \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
+}
+
+\IRule{THA-ANYCONC}{
+  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
+}{
+  \AnaCast\K\Env{\e_1}{\SubCast\C{\e_2}}{\C}
+}
+
+\IRule{THA-TOANY}{
+  \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
+}{
+  \AnaCast\K\Env{\e_1}{\e_2}{\any}
+}
+\end{mathpar}
+
+\subsection{Supporting Text for Thorn}
+
+\subsubsection{Attempted Explanation of Bidirectional}
+
 
 Cast insertion in our system is illustrated by the following example:
 
@@ -3353,43 +3395,13 @@ requires that $\x$ has type $\C$ - expressed as $\AnaCast\K\Env\x?\C$, using ? a
 - and need to insert a cast so that the types make sense. We can then apply rule \RuleRef{THA-ANYCONC} to \x with \C to find out
 that we can make \x have type \C via casting, concluding that $\AnaCast\K\Env\x{\SubCast\C\x}\C$.
 
-\subsection{Thorn analytic translation for expressions}
 
-\opdef{$\AnaCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
-
-\begin{mathpar}
-\IRule{THA-CSUB}{
-  \GenCast\K\Env{\e_1}{\e_2}{\t_2} \\
-  {\ThorSub\K\cdot{\t_2}{\t_1}}\\
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\t_1}
-}
-
-\IRule{THA-OPTCONC}{
-  \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
-  {\ThorSub\K\cdot\D\C}
-}{
-  \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
-}
-
-\IRule{THA-ANYOPT}{
-  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
-}
-
-\IRule{THA-ANYCONC}{
-  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
-}{
-  \AnaCast\K\Env{\e_1}{\SubCast\C{\e_2}}{\C}
-}
-
-\IRule{THA-TOANY}{
-  \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\any}
-}
-\end{mathpar}
+\subsubsection{Explanation of Synthetic Cases}
+\begin{itemize}
+  \item \RuleRef{THS-VAR} is used to determine the type of variables, reporting the variable's type in the context.
+  \item \RuleRef{THS-FIELD} determines the type of both field access and assignment, denoted by the field accessors having 0 or 1 arguments, respectively. A field reference will have type $\t$ if the field is of type $\t$, and for a field assignment, the new value must also be of type $\t$.
+  \item \RuleRef{THS-OPTTCALL} handles the case when we are making a call 
+\end{itemize}
 
 \section{Complete translation for Transient}
 
@@ -4355,7 +4367,6 @@ or $\e$ is stuck in one of the following forms:
 \item $\a$
 \item $\EE[\DynCall\a\m{\ap}]$
 \item $\EE[\SubCast\tp\a]$
-\item $\EE[\ShaCast\tp\a]$
 \end{itemize}
 
 We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
@@ -4485,7 +4496,7 @@ or $\e$ is stuck in one of the following forms:
 \item $\a$
 \item $\EE[\DynCall\a\m{\ap}]$
 \item $\EE[\SubCast\tp\a]$
-\item $\EE[\ShaCast\tp\a]$
+\item $\EE[\BehCast\tp\a]$
 \end{itemize}
 
 Note that the majority of the proof is identical to that seen in the above proof
