@@ -7,7 +7,7 @@
 %\pagestyle{plain}
 
 %\usepackage{booktabs} % For formal tables
-\usepackage{xspace,listings,url,framed,amssymb,colortbl,
+\usepackage{xspace,listings,url,framed,amssymb,
             mathpartir,hyperref,doi, mathtools,wrapfig,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox, pgffor, makecell} % double brackets llbracket
 \usepackage[customcolors,norndcorners]{hf-tikz}
@@ -1348,16 +1348,12 @@ translation judgments.
 \\[1mm]
 \tr e{\x} = \src \x
 \\[1mm]       
-\tr e{ \Call\e\f{}} = \src{\DynCall\ep{\namet\f\any}{}}  \HS \WHERE\HS \ep = \tr e{  \e}
-\\[1mm]
-\tr e{ \Call{\e_1}\f{\e_2}} = \src{\DynCall{\e_1}{\name\f\any\any}{\eps 2}}\\
-      \>\WHERE\HS \> \eps 1 = \tr e{ \e_1}, \HS  \eps 2 = \tr a{ \any, \e_2 }
 \end{tabbing}
 \end{minipage}
 &~~ \hspace{.51cm} ~~~ &
 \begin{minipage}{5cm}
   \begin{tabbing}
-\tr e{ \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}} \\
+\tr e{ \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}} \\
 \HS   \=\WHERE\HS\= \eps 1= \tr e{ \e_1}, \HS \eps 2=\tr a{ \any, \e_2}
 \\[1mm]
 \tr e{\New\C{\e_1..}} = \src{\New\C{\eps 1..}} \HS \WHERE \HS   \eps 1 = \tr a{\any,\e_1} ..
@@ -1466,15 +1462,8 @@ causes all calls to be dynamic.
        \>          \>          \> \HS\HS  {\bf otherwise}  ..                   \\[1mm]
 \tr e{\K, \Env, \x} = \src \x
 \\[1mm]       
-\tr e{\K, \Env, \Call\e\f{}} = \src{\DynCall\ep{\namet\f\any}{}}  \\
-      \> \WHERE   \> \ep = \tr e{\K, \Env,  \e}, \HS  \TypeCk{\K,\Env}\e\t, \HS  \kty\t=\any
-\\[1mm]
 \tr e{\K, \Env, \Call\e\f{}} = \src{\Call\ep{\namet\f\t}{}}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \In\App\K\C  
-\\[1mm]
-\tr e{\K, \Env, \Call{\e_1}\f{\e_2}} = \src{\DynCall{\e_1}{\name\f\any\any}{\eps 2}}\\
-      \>\WHERE\HS \> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
-      \>          \>  \eps 1 = \tr e{\K, \Env, \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \any, \e_2 }
 \end{tabbing}
 \end{minipage}
 &~~ \hspace{.51cm} ~~~ &
@@ -1484,7 +1473,7 @@ causes all calls to be dynamic.
 \HS   \=\WHERE\HS\= \TypeCk{\K, \Env}{\e_1}\C, \HS  \Mtype\f\t\t\In\App\K\C \\
       \>          \>  \eps 1 = \tr e{\K, \Env,  \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \kty\t, \e_2} 
 \\[1mm]
-\tr e{\K, \Env, \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}} \\
+\tr e{\K, \Env, \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}} \\
 \HS   \>\WHERE\HS\> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
      \>          \> \eps 1= \tr e{\K,\Env, \e_1}, \HS \eps 2=\tr a{\K,\Env, \any, \e_2}
 \\[1mm]
@@ -1566,7 +1555,7 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 & \hspace{.3cm} &
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}}\\
 \HS \=\WHERE \HS\= \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \\[1mm]
 \tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\tp{\Call{\eps 1}{\name\m\any\any}{\eps 2}}}\\
@@ -1753,7 +1742,7 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
    \>\WHERE \> \TypeCk\K{\e_1}\C, \HS \Ftype\f\t\In\App\K\C\\
    \>       \>  \eps 1 = \tr e{\K,\Env,\e_1},\HS  \eps 2 = \tr a{\K,\Env,\t,\e}
 \\[1mm]
-\tr e{\K,\Env, \Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
+\tr e{\K,\Env, \Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}}\\
    \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \end{tabbing}
 \end{minipage}
@@ -4178,14 +4167,39 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \section{New Source Language and Translations}
 
 \subsection{New source}
+\begin{tabular}{r@{}l}
+\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
+\e &::=  \x         &\B \this    &\B \Get\e\f      \\
+   &\B \Set\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
+   &\B \New\C{\b\e}  \\ 
+   
+\end{tabular}\end{minipage} &
+\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}
+\end{tabular}
+\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e   \\
+~ \t&::= ~ \any  \B   \C  \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage} \\
+\rowcolor{gray!10}
+\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
+\e &::=  \x         &\B \this         &\B \that      \\
+   &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
+   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
+   &\B \SubCast\t\e &\B \BehCast\t\e 
+\end{tabular}\end{minipage} &
+\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}
+\end{tabular}
+\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
+~ \t&::= ~ \any  \B   \C  \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}
+\end{tabular}
 
-\begin{verbatim}
-e ::= x | this | e.f() | e.f(e) | e.m(e) | new C(e ...) 
-k ::= class C { fd ... md ... }
-md ::= m(x:t):T { e }
-fd ::= f:t
-t ::= * | C
-\end{verbatim}
 \end{document}
 
 %######## ##    ## ########      #######  ########    ########   #######   ######  ##     ## ##     ## ######## ##    ## ######## 
