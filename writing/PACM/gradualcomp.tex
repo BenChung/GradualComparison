@@ -1511,171 +1511,6 @@ dynamic calls on the receiver, despite the receiver having a source language
 type. This is because Thorn's unsound types are translated to \any, which
 causes all calls to be dynamic.
 
-\begin{figure}
-\begin{flushleft}
-\end{flushleft}
-\begin{mathpar}
-\IRule{THT-ANY}{
-}{
-  \src\any = \Kt{\any}
-}
-
-\IRule{THT-CONC}{
-}{
-  \src\C = \Kt{\C}
-}
-
-\IRule{THT-WEAK}{
-}{
-  \src\any = \Kt{\dt\C}
-}
-\end{mathpar}
-
-%\begin{flushleft}
-%\begin{tabular}{|c|c|c|c|}
-%\hline
-%$\progtrans {\e~\K}{\e'~{\K'}}$ & $\classtrans {\K} {\Class \C{}{...}~\K} {\Class \C{}{...}~\K}$ & 
-%$\methtrans {\K}{\C}{\md}{\md'}{}$ & $\fieldtrans {\fd}{\fd'}{}$ \\
-%\makecell{Program} & Class & Method & \makecell{Field} \\
-%\hline
-%\end{tabular}
-%\end{flushleft}
-
-\begin{mathpar}
-\IRule[width=20em]{TH-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule[width=30em]{TH-CLASS1}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtrans {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TH-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TH-FIELD}{
-  \src\tp = \Kt\t
-}{
-  \fieldtrans{\Fdef\f\t}{\Fdef\f\tp}{}
-}
-
-\IRule[width=25em]{TH-METHODANY}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t[1]}}{\e}\ep{\t[2]} \\
-  \src{\Kt{\t[1]} = \Kt{\t[2]} = \any}
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t[1]}{\t[2]}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
-}
-
-\IRule[width=25em]{TH-METHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{\begin{array}{c}
-    \Mdef\m\x{\Cp}{\Cpp}{\ep} \\
-    \Mdef\m\x{\any}{\any}{\SubCast\any{\KCall\this\m{\SubCast\Cp\x}\Cp\Cpp}} \\
-  \end{array}}{}
-}
-\end{mathpar}
-\begin{flushleft}
-
-\end{flushleft}
-\begin{mathpar}
-\IRule{THS-VAR}{
-  \HasType\Env\x\t
-}{
-  \GenCast\K\Env\x\x\t
-}
-
-\IRule[width=20em]{THS-FIELD}{
-    \GenCast\K\Env{\e_1}{\e_3}\C \\ 
-    {\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
-    \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
-}
-
-\IRule[width=20em]{THS-OPTUCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
-    {\m({\t_1}):\t \in \classoff\C\K} \\ 
-    \src{\any} = \Kt{\t[1]}\\
-    \AnaCast\K\Env{\e_2}{\e_4}{\t_1} 
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\t}
-    %Q: do I need to cast the return value of non-bang
-}
-
-\IRule[width=30em]{THS-OPTTCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
-    {\m({\D_1}):\D_2 \in \classoff\C\K} \\ 
-    \AnaCast\K\Env{\e_2}{\e_4}{\D_1}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\D_2}{\DynCall{\e_3}\m{\SubCast\any{\e_4}}}}{\D_2} %Q: do I need to cast the return value of non-bang
-}
-
-\IRule[width=30em]{THS-TYCALL}{
-  \GenCast\K\Env{\e_1}{\e_3}{\D} \\
-  {\Mtype\m\t\tp \in \classoff\D\K} \\
-  \AnaCast\K\Env{\e_2}{\e_4}{\t}
-}{
-  \GenCast\K\Env{\Call{\e_1}\m{\e_2}}{\KCall{\e_3}\m{\e_4}\t\tp}{\tp}
-}
-
-\IRule{THS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}\any \\ 
-    \AnaCast\K\Env{\e_2}{\e_4}\any
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
-}
-
-\IRule{THS-NEW}{
-  \b{\AnaCast\K\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b\md} \in \K
-  }{
-  \GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}\C
-}
-\end{mathpar}
-
-\begin{mathpar}
-\IRule{THA-CSUB}{
-  \GenCast\K\Env{\e_1}{\e_2}{\t_2} \\
-  {\ThorSub\K\cdot{\t_2}{\t_1}}\\
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\t_1}
-}
-
-\IRule{THA-OPTCONC}{
-  \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
-  {\ThorSub\K\cdot\D\C}
-}{
-  \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
-}
-
-\IRule{THA-ANYOPT}{
-  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
-}
-
-\IRule{THA-ANYCONC}{
-  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
-}{
-  \AnaCast\K\Env{\e_1}{\SubCast\C{\e_2}}{\C}
-}
-
-\IRule{THA-TOANY}{
-  \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\any}
-}
-\end{mathpar}
-\end{figure}
-
 
 \begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
@@ -1696,19 +1531,19 @@ causes all calls to be dynamic.
 \tr e{\K, \Env, \Call\e\f{}} = \src{\DynCall\ep{\namet\f\any}{}}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env,  \e}, \HS  \TypeCk{\K,\Env}\e\t, \HS  \kty\t=\any
 \\[1mm]
-\tr e{\K, \Env, \Call\e\f{}} = \src{\Call\ep{\name\f\t}{}}  \\
-      \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \IN \C  
+\tr e{\K, \Env, \Call\e\f{}} = \src{\Call\ep{\namet\f\t}{}}  \\
+      \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \In\App\K\C  
 \\[1mm]
 \tr e{\K, \Env, \Call{\e_1}\f{\e_2}} = \src{\DynCall{\e_1}{\name\f\any\any}{\eps 2}}\\
       \>\WHERE\HS \> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
       \>          \>  \eps 1 = \tr e{\K, \Env, \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \any, \e_2 }
 \end{tabbing}
 \end{minipage}
-&~~ \hspace{1cm} ~~~ &
+&~~ \hspace{.51cm} ~~~ &
 \begin{minipage}{5cm}
   \begin{tabbing}
 \tr e{\K, \Env,  \Call{\e_1}\f{\e_2}} = \src{\Call{\eps 1}{\name\f\t\t}{\eps 2}} \\
-\HS   \=\WHERE\HS\= \TypeCk{\K, \Env}{\e_1}\C, \HS  \Mtype\f\t\t\IN\C \\
+\HS   \=\WHERE\HS\= \TypeCk{\K, \Env}{\e_1}\C, \HS  \Mtype\f\t\t\In\App\K\C \\
       \>          \>  \eps 1 = \tr e{\K, \Env,  \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \kty\t, \e_2} 
 \\[1mm]
 \tr e{\K, \Env, \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}} \\
@@ -1717,16 +1552,16 @@ causes all calls to be dynamic.
 \\[1mm]
 \tr e{\K,\Env, \Call{\e_1}\m{\e_2}} = \src{\Call{\eps 1}{\name\m{\t_1}{\t_2}}{\eps 2}} \\
      \> \WHERE   \>  \TypeCk{\K,\Env}{\e_1}\C, \HS  \eps 1 = \tr e{\K,\Env,\e_1} \\
-     \>          \>  \ \Mtype\m{\t_1}{\t_2}\IN \C, \HS  \eps 2 = \tr a{\K, \Env, \t_2, \e_2} 
+     \>          \>  \ \Mtype\m{\t_1}{\t_2}\In\App\K\C, \HS  \eps 2 = \tr a{\K, \Env, \t_2, \e_2} 
 \\[1mm]
 \tr e{\K, \Env, \New\C{\e_1..}} = \src{\New\C{\eps 1..}} \\
-     \> \WHERE   \>  \Ftype{\f_1}{\t_1}\IN\C, \HS  \eps 1 = \tr a{\K,\Env,\t_1,\e_1} ..
+     \> \WHERE   \>  \Ftype{\f_1}{\t_1}\In\C, \HS  \eps 1 = \tr a{\K,\Env,\t_1,\e_1} ..
 \\[1mm]
 \tr a{\K, \Env, \t, \e} = \src\ep\\
-\> \WHERE \> \kty\tp \Sub \kty\t, \TypeCk{\K,\E}\e\tp, \ep = \tr e{\K,\Env,\e}
+\> \WHERE \> \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \tr e{\K,\Env,\e}
 \\[1mm]
  \tr a{\K, \Env, \t, \e} = \src{\SubCast{\kty\t}\ep}\\
-\> \WHERE \> \kty\tp $\not\Sub$ \kty\t, \TypeCk{\K,\E}\e\tp, \ep = \tr e{\K,\Env,\e}
+\> \WHERE \> \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \tr e{\K,\Env,\e}
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -1768,7 +1603,7 @@ argument to \code m has all the methods defined by \code C. For this we use
 conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore.}
 
 \begin{figure}[!h]
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\begin{tabular}{@{}l@{~ ~ ~}ll}
  \small
 \begin{minipage}{8cm}  
 \begin{tabbing}
@@ -1780,133 +1615,39 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 \\[1mm]
 \tr e{\K,\Env, \this} = \src{\this}
 \\[1mm]
-\tr e{\K,\Env, \x} = \src{\SubCast\t\x}\\
-   \> \WHERE    \> \TypeCk{\K,\Env}\x\t
+\tr e{\K,\Env, \x} = \src{\SubCast\t\x} \HS \WHERE \HS \TypeCk{\K,\Env}\x\t
 \\[1mm]
 \tr e{\K,\Env,\Call\this\f{}}  = \src{\SubCast\t{\Call\this{\namet\f\any}{}}}\\
-   \>           \> \TypeCk{\K,\Env}\this\C,\HS  \Ftype\f\t\IN\C
+   \>  \WHERE  \> \TypeCk{\K,\Env}\this\C,\HS  \Ftype\f\t\IN\App\K\C
 \\[1mm]
 \tr e{\Call\this\f\e} =  \src{\SubCast\t{\Call\this{\name\f\any\any}\ep}} \\
-   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\IN\C,\HS \ep = \tr a{\K,\Env,\any,\e}
-\\[1mm]
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
-   \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\In\App\K\C\\
+   \>       \>  \ep = \tr a{\K,\Env,\any,\e}
 \end{tabbing}
 \end{minipage}
-&&
+& \hspace{.3cm} &
 \begin{minipage}{8cm}  
 \begin{tabbing}
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
+\HS \=\WHERE \HS\= \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+\\[1mm]
 \tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\tp{\Call{\eps 1}{\name\m\any\any}{\eps 2}}}\\
-\HS   \=\WHERE\HS \= \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m\t\tp\IN\C\\
+   \>\WHERE\> \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m\t\tp\In\App\K\C\\
    \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \\[1mm]
 \tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\\
-   \>\WHERE \> \Ftype{\f_1}{\t_1}\IN\C ~..\\
-   \>       \>  \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
+   \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C,\HS  \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
 \\[1mm]
 \tr a{\K,\Env,\t,\e} = \src{\SubCast\t\e}\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t = \any \OR \tp = \any)\\
-   \>            \> \ep = \tr e{\K,\Env,\e}
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t = \any \OR \tp = \any),\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
 \tr a{\K,\Env,\t,\e} = \src\ep\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t \Sub \tp \OR \consistent\K\t\tp)\\
-   \>            \>  \ep = \tr e{\K,\Env,\e}
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\EM{\K\vdash\t \Sub \tp} \OR \consistent\K\t\tp)\\
+   \>            \> \ep = \tr e{\K,\Env,\e}
 \end{tabbing}
 \end{minipage}
 \end{tabular}
 \caption{Transient}\end{figure}
-
-\begin{figure}
-\begin{mathpar}
-\IRule[width=20em]{TA-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule[width=30em]{TA-CLASS1}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtrans {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TA-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TA-FIELD}{
-}{
-  \fieldtrans{\Fdef\f\t}{\Fdef\f\t}{}
-}
-
-\IRule[width=25em]{TA-METHODANY}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\any}}{\e}\ep{\any} \\
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
-}
-
-\IRule[width=25em]{TA-METHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
-    \Mdef\m\x\any\any{\SubCast\Cp\x ; \ep}}{} % sequencing is sugar
-}
-\end{mathpar}
-\begin{mathpar}
-\IRule{TAS-VAR}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\SubCast\t\x}\t}
-
-
-\IRule[width=30em]{TAS-TYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
-}
-
-\IRule{TAS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule[width=20em]{TAS-FIELD}{
-    \HasType{\E}\this\C \\ 
-    \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ 
-    \b{\AnaCast\K\Env{\e_1}{\e_2}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\this}\f{\b{\e_1}}}{\Call{\this}\f{\b{\e_2}}}{\any}
-}
-
-\IRule{TAS-NEW}{
-  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-\end{mathpar}
-\begin{mathpar}
-\IRule{TAA-SUB}{
-  \GenCast\K\E\e\ep\tp \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCast\K\E\e\ep\t
-}
-
-\IRule{TAA-CONS}{
-  \GenCast\K\E\e\ep\D \\
-  \consistent\K\D\C
-}{
-  \AnaCast\K\E\e{\SubCast\C\ep}\C
-}
-
-\IRule{TAA-ANY}{
-  \GenCast\K\E\e\ep\tp \\
-  \tp = \any \vee \t = \any \\
-}{
-  \AnaCast\K\E\e{\SubCast\t\ep}\t
-}
-\end{mathpar}
-\caption{Bidirectional Transient}
-\end{figure}
 
 
 \newcommand{\A}{\EMxt A}
