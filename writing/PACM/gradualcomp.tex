@@ -2300,120 +2300,8 @@ typing system highlights the essences which makes each system unique.
 \label{appendix:kafka}
 
 
-\subsection{Syntax}
-
-\begin{figure}[!h]
-% \hrulefill
-
-\hspace{0.1cm}
-\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
-\e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
-   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \SubCast\t\e \\
-%    &\B \ShaCast\t\e  
-   &\B \a \\
-\end{tabular}\end{minipage}
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-%    ~ \k &::= \Class {\C \Exten \Cp} {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-% \md &::= \NMdef\m\this\t\x\t\t\e   &\B  \NMdef\f\this\t\x\t\t\e &\B \\ &\qquad \NMdefz\f\this\t\t\e \\
-\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-~ \t&::= ~ \any  \B   \C  \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-~\s&::= \{\b{\Bind\a{\obj\C{\b\a}}}\} \\
-\end{tabular}\end{minipage}
-
-% \hrulefill
-\caption{\kafka Syntax.}
-\end{figure}
-
-
 
 \subsection{Semantics}
-
-\begin{figure}[!b]
-% \hrulefill
-
-\begin{minipage}{8cm}
-  \opdef{\Reduce \K\e\s \Kp\ep\sp}
-        {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
-\begin{tabular}{l@{}l@{~}l@{~}l}
-\CondRule{E1}{  %% new C -> a
-   \fresh\ap 
-}{ 
-  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
-}
-\CondRule{E2}{  %% a.f() -> e
-    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
-}{
-   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
-}
-\CondRule{E3}{  %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
-}{
-   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E4}{  %% a.f() -> e
- \readf \s\a\f\K =  \ap 
-}{
-  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
-}
-\CondRule{E5}{  %% a.f(e) -> e
- \setf \s\a\f\ap\K =  \sp
-}{
-  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
-}
-\CondRule{E6a}{  %% a.m(a) -> e
-  \Mdef\m\x\tp\t\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
-}{
- \ReduceA \K{\KCall\a\m\ap\tp\t}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E7}{  %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
-}{
-  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{E8}{  %% Subtypecast
-}{ 
-  \ReduceA \K{\SubCast \any\a}\s \K\a\s
-}
-\CondRule{E9}{  %% Subtypecast
-  \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
-}{ 
-  \ReduceA \K{\SubCast \D\a}\s \K\a\s
-}
-\CondRule{E10}{  %% E[e] -> E[e']
-  \Reduce \K\e\s \Kp\ep\sp
-}{
- \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
-}
-\end{tabular}\end{minipage}
-
-%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-~\\[2mm]
-
-\begin{minipage}{4cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
-\EE &::= \Get\EE\f     &\B
-        \Set\EE\f\e   &\B
-        \Set\a\f\EE   &\B  
-        \KCall\EE\m\e\t\t  &\B
-        \KCall\a\m{\EE}\t\t &\B
-        \DynCall\EE\m\e   &\B
-        \DynCall\a\m\EE   \\
-   &\B~
-       \SubCast\t\EE  &\B
-       \New\C{\b \a\,\EE\,\b\e}
-  &\B \EM{\square}
-\end{tabular}
-\end{minipage}
-
-% \hrulefill
-\caption{\kafka Semantics.}
-\end{figure}
-
-%\clearpage
 
 \subsection{Subtyping}
 
@@ -2750,575 +2638,576 @@ given method definitions.
 }
 \end{mathpar}
 
-% \subsection{Source Method Overloading}
-% 
-% \opdef{~${\soverloading_{\cmdp}(\b\md ~\b\fd)}$}{Method overloading}
-% \begin{mathpar}
-% \IRule{MSO1}{
-% }{
-% {\soverloading_{\cmd}(\emptyset)}
-% }
-% 
-% \IRule{MSO2}{
-%  {\Mtype\m\t\t \notin \cmd} \\
-%  {\cmdp = \cmd, \Mtype\m\t\t} \\
-%  {\soverloading_{\cmdp}(\b\md)}
-% }{
-%  {\soverloading_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)}
-% }
-% \end{mathpar}
-% 
-% \opdef{~${\soverloading(\b\fd)}$}{field overloading}
-% \begin{mathpar}
-% \IRule{FSO1}{
-%  {\f \notin \xt{names}(\cmd)} \\
-%  {\cmdp = \cmd, \Fdef\f\t} \\
-%  {\soverloading_{\cmdp}(\b\fd)}
-% }{
-% {\soverloading_{\cmd}(\Fdef\f\t ~ \b\fd)}
-% }
-% \end{mathpar}
-
-\section{Complete translation for TypeScript}
-
-\subsection{TypeScript translation for program, class, and method}
-
-\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{TypeScript translation for programs}
-\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{TypeScript translation for classes} 
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{TypeScript translation for methods} 
-\opdef{$\fieldtrans {\fd}{\fd'}{}$}{TypeScript translation for fields} 
-
-\begin{mathpar}
-\IRule[width=20em]{TS-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule[width=30em]{TS-CLASS1}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtrans {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TS-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TS-FIELD}{
-}{
-  \fieldtrans{\Fdef\f\t}{\Fdef\f\any}{}
-}
-
-\IRule{TS-METHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any{\SubCast\any\ep}}{}
-}
-\end{mathpar}
-
-\subsection{TypeScript synthetic translation for expressions}
-
-\opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
-
-% \begin{mathpar}
-
-\colorbox[gray]{1}{
-\begin{minipage}{\textwidth}
-\begin{mathpar}
-\IRule{TSS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
-
-\IRule[width=30em]{TSS-TYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
-}
-
-\IRule[width=10em]{TSS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule[width=20em]{TSS-FIELD}{
-    {\HasType{\Env}\this\C} \\ 
-    {\f(\b{\t}):\t \in \classoff\C\K} \\ 
-    \b{\AnaCast\K\Env{\e}{\ep}{\t}}
-}{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\b\ep}}{\t}
-}
-
-\IRule{TSS-NEW}{
-  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  {\Class \C {\b{\Fdef\f\t}} {\b{\md}} \in \K}
-}{
-  \GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}
-}
-\end{mathpar}
-\end{minipage}
-}
-
-
-\subsection{TypeScript analytic translation for expressions}
-
-\opdef{$\AnaCast\K\Env\e\ep\t$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
-
-\colorbox[gray]{1}{
-\begin{minipage}{\textwidth}
-\begin{mathpar}
-\IRule{TSA-SUB}{
-  \GenCast\K\Env\e\ep\tp \\
-  {\K \vdash \tp \Sub \t}
-}{
-  \AnaCast\K\Env\e\ep\t
-}
-
-\IRule{TSA-TRANS1}{
-  \GenCast\K\Env\e\ep\any
-}{
-  \AnaCast\K\Env\e\ep\t
-}
-
-\IRule{TSA-TRANS2}{
-  \GenCast\K\Env\e\ep\C
-}{
-  \AnaCast\K\Env\e\ep\any
-}
-\end{mathpar}
-\end{minipage}
-}
-
-
-\section{Complete translation for Thorn}
-
-\subsection{Thorn Type Translation}
-\opdef{$\Kt{\t} = \src{\tp}$}{The \kafka equivalent of $\t$ is $\tp$}
-
-\begin{mathpar}
-\IRule{THT-ANY}{
-}{
-  \src\any = \Kt{\any}
-}
-
-\IRule{THT-CONC}{
-}{
-  \src\C = \Kt{\C}
-}
-
-\IRule{THT-WEAK}{
-}{
-  \src\any = \Kt{\dt\C}
-}
-\end{mathpar}
-\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Thorn translation for programs}
-\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Thorn translation for classes} 
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Thorn translation for methods} 
-\opdef{$\fieldtrans {\fd}{\fd'}{}$}{Thorn translation for fields} 
-\begin{mathpar}
-\IRule[width=20em]{TH-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule[width=30em]{TH-CLASS1}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtrans {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TH-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TH-FIELD}{
-  \src\tp = \Kt\t
-}{
-  \fieldtrans{\Fdef\f\t}{\Fdef\f\tp}{}
-}
-
-\IRule[width=25em]{TH-METHODANY}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t[1]}}{\e}\ep{\t[2]} \\
-  \src{\Kt{\t[1]} = \Kt{\t[2]} = \any}
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t[1]}{\t[2]}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
-}
-
-\IRule[width=25em]{TH-METHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{\begin{array}{c}
-    \Mdef\m\x{\Cp}{\Cpp}{\ep} \\
-    \Mdef\m\x{\any}{\any}{\SubCast\any{\KCall\this\m{\SubCast\Cp\x}\Cp\Cpp}} \\
-  \end{array}}{}
-}
-\end{mathpar}
-
-\subsection{Thorn synthetic translation for expressions}
-
-\opdef{$\GenCast\K\Env\e\ep\t$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
-
-\begin{mathpar}
-\IRule{THS-VAR}{
-  \HasType\Env\x\t
-}{
-  \GenCast\K\Env\x\x\t
-}
-
-\IRule[width=30em]{THS-FIELD}{
-    \GenCast\K\Env{\e_1}{\e_3}\C \\ 
-    {\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
-    \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
-}
-
-\IRule[width=30em]{THS-OPTTCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
-    {\m({\D_1}):\D_2 \in \classoff\C\K} \\ 
-    \AnaCast\K\Env{\e_2}{\e_4}{\D_1}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\D_2}{\DynCall{\e_3}\m{\SubCast\any{\e_4}}}}{\D_2} %Q: do I need to cast the return value of non-bang
-}
-
-\IRule[width=20em]{THS-OPTUCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
-    {\m({\t_1}):\t \in \classoff\C\K} \\ 
-    \src{\any} = \Kt{\t[1]}\\
-    \AnaCast\K\Env{\e_2}{\e_4}{\t_1} 
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\t}
-    %Q: do I need to cast the return value of non-bang
-}
-
-\IRule[width=30em]{THS-TYCALL}{
-  \GenCast\K\Env{\e_1}{\e_3}{\D} \\
-  {\Mtype\m\t\tp \in \classoff\D\K} \\
-  \AnaCast\K\Env{\e_2}{\e_4}{\t}
-}{
-  \GenCast\K\Env{\Call{\e_1}\m{\e_2}}{\KCall{\e_3}\m{\e_4}\t\tp}{\tp}
-}
-
-\IRule{THS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}\any \\ 
-    \AnaCast\K\Env{\e_2}{\e_4}\any
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
-}
-
-\IRule{THS-NEW}{
-  \b{\AnaCast\K\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b\md} \in \K
-  }{
-  \GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}\C
-}
-\end{mathpar}
-\subsection{Thorn analytic translation for expressions}
-
-\opdef{$\AnaCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
-
-\begin{mathpar}
-\IRule{THA-CSUB}{
-  \GenCast\K\Env{\e_1}{\e_2}{\t_2} \\
-  {\ThorSub\K\cdot{\t_2}{\t_1}}\\
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\t_1}
-}
-
-\IRule{THA-OPTCONC}{
-  \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
-  {\ThorSub\K\cdot\D\C}
-}{
-  \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
-}
-
-\IRule{THA-ANYOPT}{
-  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
-}
-
-\IRule{THA-ANYCONC}{
-  \GenCast\K\Env{\e_1}{\e_2}{\any} \\
-}{
-  \AnaCast\K\Env{\e_1}{\SubCast\C{\e_2}}{\C}
-}
-
-\IRule{THA-TOANY}{
-  \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
-}{
-  \AnaCast\K\Env{\e_1}{\e_2}{\any}
-}
-\end{mathpar}
-
-\subsection{Supporting Text for Thorn}
-
-\subsubsection{Attempted Explanation of Bidirectional}
-
-
-Cast insertion in our system is illustrated by the following example:
-
-\begin{verbatim}
-class C {
-  f : C
-  m(x:*):* {
-    new C(x)
-  }
-}
-\end{verbatim}
-
-Here, in method \m, the only type that \x can possibly have is \any, in spite of the surrounding invocation requiring that it 
-be an instance of a \C. Likewise, the only type that makes sense for \New\C\x is \C, despite the return type being declared as
-\any. We have to insert casts to make these two cases be well typed, giving us the following translated code:
-
-\begin{verbatim}
-class C {
-  f : C
-  m(x:*):* {
-    <*>new C(<C>x)
-  }
-}
-\end{verbatim}
-
-Our cast insertion system is based on this intuition, finding the places where an expression's type is absolute (like \x being 
-of type \any), yet is surrounded by an expression that requires it to be something quite different (e.g. \New\C\x requires that
-\x must be a \C), drawing on a commonly used approach from type inference, bidirectional typing.
-
-In our approach, we compute ``real'' types using the so-called \emph{synthetic} case of typing, written $\GenCast\K\Env\e\ep\t$,
-meaning that $\e$ will always have type $\t$, while translating to $\ep$. Likewise, we enforce ``required'' types through the 
-\emph{analytic} judgment, written $\AnaCast\K\Env\e\ep\t$, meaning that if $\e$ is required to be of type $\t$, then the translated
-$\ep$ will be of type $\t$.
-
-As a illustrative example, consider $\x$ in the above. We know that $\x$ will always have type $\any$ - expressed as
-$\GenCast\K\Env\x\x\any$ by rule \RuleRef{THS-VAR} - no matter what happens around it. However, we also know that $\New\C\x$ 
-requires that $\x$ has type $\C$ - expressed as $\AnaCast\K\Env\x?\C$, using ? as a placeholder for the result of translation
-- and need to insert a cast so that the types make sense. We can then apply rule \RuleRef{THA-ANYCONC} to \x with \C to find out
-that we can make \x have type \C via casting, concluding that $\AnaCast\K\Env\x{\SubCast\C\x}\C$.
-
-
-\subsubsection{Explanation of Synthetic Cases}
-\begin{itemize}
-  \item \RuleRef{THS-VAR} is used to determine the type of variables, reporting the variable's type in the context.
-  \item \RuleRef{THS-FIELD} determines the type of both field access and assignment, denoted by the field accessors having 0 or 1 arguments, respectively. A field reference will have type $\t$ if the field is of type $\t$, and for a field assignment, the new value must also be of type $\t$.
-  \item \RuleRef{THS-OPTTCALL} handles the case when we are making a call 
-\end{itemize}
-
-\section{Complete translation for Transient}
-
-\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Transient translation for programs}
-\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Transient translation for classes} 
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Transient translation for methods} 
-\opdef{$\fieldtrans {\fd}{\fd'}{}$}{Transient translation for fields} 
-\begin{mathpar}
-\IRule[width=20em]{TA-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule[width=30em]{TA-CLASS1}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtrans {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TA-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TA-FIELD}{
-}{
-  \fieldtrans{\Fdef\f\t}{\Fdef\f\t}{}
-}
-
-\IRule[width=25em]{TA-METHODANY}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\any}}{\e}\ep{\any} \\
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
-}
-
-\IRule[width=25em]{TA-METHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
-    \Mdef\m\x\any\any{\SubCast\Cp\x ; \ep}}{} % sequencing is sugar
-}
-\end{mathpar}
-
-\subsection{Transient synthetic translation for expressions}
-
-\opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{Transient translation for expressions}
-
-\begin{mathpar}
-\IRule{TAS-VAR}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\SubCast\t\x}\t}
-
-
-\IRule[width=30em]{TAS-TYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
-}
-
-\IRule{TAS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule[width=20em]{TAS-FIELD}{
-    \HasType{\E}\this\C \\ 
-    \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ 
-    \b{\AnaCast\K\Env{\e_1}{\e_2}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\this}\f{\b{\e_1}}}{\Call{\this}\f{\b{\e_2}}}{\any}
-}
-
-\IRule{TAS-NEW}{
-  \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-\end{mathpar}
-
-\subsection{Transient analytic translation for expressions}
-
-\opdef{$\AnaCast\K\E\e\ep\t$}{Transient translation for bidirectional expressions}
-
-\begin{mathpar}
-\IRule{TAA-SUB}{
-  \GenCast\K\E\e\ep\tp \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCast\K\E\e\ep\t
-}
-
-\IRule{TAA-CONS}{
-  \GenCast\K\E\e\ep\tp \\
-  \consistent\K\tp\t
-}{
-  \AnaCast\K\E\e{\SubCast\t\ep}\t
-}
-\end{mathpar}
-
-\section{Complete translation for Typed Racket}
-
-\subsection{Typed Racket translation for program, class, and method}
-
-
-\opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Typed Racket translation for programs}
-\opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Typed Racket translation for classes} 
-\opdef{$\methtranst {\K}{\C}{\md}{\md'}{}$}{Typed Racket translation for typed methods} 
-\opdef{$\methtransu {\K}{\C}{\md}{\md'}{}$}{Typed Racket translation for untyped methods} 
-\opdef{$\fieldtranst {\fd}{\fd'}{}$}{Typed Racket translation for typed fields} 
-\opdef{$\fieldtransu {\fd}{\fd'}{}$}{Typed Racket translation for untyped fields} 
-\begin{mathpar}
-\IRule[width=20em]{TR-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule[width=30em]{TR-TCLASS}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtranst {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtranst {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule[width=25em]{TR-UCLASS}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtransu {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtransu {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TR-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TR-TFIELD}{
-}{
-  \fieldtranst{\Fdef\f\C}{\Fdef\f\C}{}
-}
-
-\IRule{TR-UFIELD}{
-}{
-  \fieldtransu{\Fdef\f\any}{\Fdef\f\any}{}
-}
-
-\IRule[width=25em]{TR-TMETHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
-}{
-  \methtranst {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
-    \Mdef\m\x\Cp\Cpp{\e} }{}
-}
-
-\IRule[width=25em]{TR-UMETHOD}{
-  \AnaCast {\K}{\HT\this{\any}~\HT\x{\any}}{\e}\ep{\any} \\
-}{
-  \methtransu {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{
-    \Mdef\m\x\any\any{\e} }{}
-}
-\end{mathpar}
-
-\subsection{Typed Racket synthetic translation}
-
-\opdef{$\GenCast{\K}\Env\e\ep\t$}{Typed Racket synthetic translation}
-
-\begin{mathpar}
-\IRule{TRS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
-
-\IRule[width=30em]{TRS-FIELD}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
-}
-
-\IRule[width=30em]{TRS-TYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\Cp):\Cpp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\Cp}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}\Cp\Cpp}{\Cpp}
-}
-
-\IRule{TRS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule{TRS-NEW}{
-  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-\end{mathpar}
-
-\subsection{Typed Racket analytic translation}
-
-\opdef{$\AnaCast\K\Env\e\ep\t$}{Typed Racket analytic translation}
-
-\begin{mathpar}
-\IRule{TRA-SUB}{
-  \GenCast\K\Env\e\ep\tp \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCast\K\Env\e\ep\t
-}
-
-\IRule{TRA-WRAP}{
-  \GenCast\K\Env\e\ep\tp \\
-  \t \neq \tp
-}{
-  \AnaCast\K\Env\e{\BehCast\t{\ep}}\t
-}
-\end{mathpar}
+%% % \subsection{Source Method Overloading}
+%% % 
+%% % \opdef{~${\soverloading_{\cmdp}(\b\md ~\b\fd)}$}{Method overloading}
+%% % \begin{mathpar}
+%% % \IRule{MSO1}{
+%% % }{
+%% % {\soverloading_{\cmd}(\emptyset)}
+%% % }
+%% % 
+%% % \IRule{MSO2}{
+%% %  {\Mtype\m\t\t \notin \cmd} \\
+%% %  {\cmdp = \cmd, \Mtype\m\t\t} \\
+%% %  {\soverloading_{\cmdp}(\b\md)}
+%% % }{
+%% %  {\soverloading_{\cmd}(\Mdef\m\x\t\t\e~\b\md~\b\fd)}
+%% % }
+%% % \end{mathpar}
+%% % 
+%% % \opdef{~${\soverloading(\b\fd)}$}{field overloading}
+%% % \begin{mathpar}
+%% % \IRule{FSO1}{
+%% %  {\f \notin \xt{names}(\cmd)} \\
+%% %  {\cmdp = \cmd, \Fdef\f\t} \\
+%% %  {\soverloading_{\cmdp}(\b\fd)}
+%% % }{
+%% % {\soverloading_{\cmd}(\Fdef\f\t ~ \b\fd)}
+%% % }
+%% % \end{mathpar}
+
+%% \section{Complete translation for TypeScript}
+
+
+%% \subsection{TypeScript translation for program, class, and method}
+
+%% \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{TypeScript translation for programs}
+%% \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{TypeScript translation for classes} 
+%% \opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{TypeScript translation for methods} 
+%% \opdef{$\fieldtrans {\fd}{\fd'}{}$}{TypeScript translation for fields} 
+
+%% \begin{mathpar}
+%% \IRule[width=20em]{TS-PROGRAM}{
+%%   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+%% }{\progtrans{\e~\K}{\e'~{\K'}}}
+
+%% \IRule[width=30em]{TS-CLASS1}{ 
+%%   \cload{\b\md ~ \b\fd}\\
+%%   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+%%   \b{\fieldtrans {\fd}{\fd'}{}} \\
+%%   {\C \not\in \Kp} \\
+%%   \classtrans {\K}{\Kp}\Kpp
+%% }{
+%%    \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+%% \IRule{TS-CLASS2}{ 
+%% }{
+%%   \classtrans {\K}\cdot\cdot
+%% }
+
+%% \IRule{TS-FIELD}{
+%% }{
+%%   \fieldtrans{\Fdef\f\t}{\Fdef\f\any}{}
+%% }
+
+%% \IRule{TS-METHOD}{
+%%   \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
+%% }{
+%%   \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any{\SubCast\any\ep}}{}
+%% }
+%% \end{mathpar}
+
+%% \subsection{TypeScript synthetic translation for expressions}
+
+%% \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
+
+%% % \begin{mathpar}
+
+%% \colorbox[gray]{1}{
+%% \begin{minipage}{\textwidth}
+%% \begin{mathpar}
+%% \IRule{TSS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+
+%% \IRule[width=30em]{TSS-TYCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
+%% }
+
+%% \IRule[width=10em]{TSS-DYCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+%% }
+
+%% \IRule[width=20em]{TSS-FIELD}{
+%%     {\HasType{\Env}\this\C} \\ 
+%%     {\f(\b{\t}):\t \in \classoff\C\K} \\ 
+%%     \b{\AnaCast\K\Env{\e}{\ep}{\t}}
+%% }{
+%%     \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\b\ep}}{\t}
+%% }
+
+%% \IRule{TSS-NEW}{
+%%   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
+%%   {\Class \C {\b{\Fdef\f\t}} {\b{\md}} \in \K}
+%% }{
+%%   \GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}
+%% }
+%% \end{mathpar}
+%% \end{minipage}
+%% }
+
+
+%% \subsection{TypeScript analytic translation for expressions}
+
+%% \opdef{$\AnaCast\K\Env\e\ep\t$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
+
+%% \colorbox[gray]{1}{
+%% \begin{minipage}{\textwidth}
+%% \begin{mathpar}
+%% \IRule{TSA-SUB}{
+%%   \GenCast\K\Env\e\ep\tp \\
+%%   {\K \vdash \tp \Sub \t}
+%% }{
+%%   \AnaCast\K\Env\e\ep\t
+%% }
+
+%% \IRule{TSA-TRANS1}{
+%%   \GenCast\K\Env\e\ep\any
+%% }{
+%%   \AnaCast\K\Env\e\ep\t
+%% }
+
+%% \IRule{TSA-TRANS2}{
+%%   \GenCast\K\Env\e\ep\C
+%% }{
+%%   \AnaCast\K\Env\e\ep\any
+%% }
+%% \end{mathpar}
+%% \end{minipage}
+%% }
+
+
+%% \section{Complete translation for Thorn}
+
+%% \subsection{Thorn Type Translation}
+%% \opdef{$\Kt{\t} = \src{\tp}$}{The \kafka equivalent of $\t$ is $\tp$}
+
+%% \begin{mathpar}
+%% \IRule{THT-ANY}{
+%% }{
+%%   \src\any = \Kt{\any}
+%% }
+
+%% \IRule{THT-CONC}{
+%% }{
+%%   \src\C = \Kt{\C}
+%% }
+
+%% \IRule{THT-WEAK}{
+%% }{
+%%   \src\any = \Kt{\dt\C}
+%% }
+%% \end{mathpar}
+%% \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Thorn translation for programs}
+%% \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Thorn translation for classes} 
+%% \opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Thorn translation for methods} 
+%% \opdef{$\fieldtrans {\fd}{\fd'}{}$}{Thorn translation for fields} 
+%% \begin{mathpar}
+%% \IRule[width=20em]{TH-PROGRAM}{
+%%   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+%% }{\progtrans{\e~\K}{\e'~{\K'}}}
+
+%% \IRule[width=30em]{TH-CLASS1}{ 
+%%   \cload{\b\md ~ \b\fd}\\
+%%   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+%%   \b{\fieldtrans {\fd}{\fd'}{}} \\
+%%   {\C \not\in \Kp} \\
+%%   \classtrans {\K}{\Kp}\Kpp
+%% }{
+%%    \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+%% \IRule{TH-CLASS2}{ 
+%% }{
+%%   \classtrans {\K}\cdot\cdot
+%% }
+
+%% \IRule{TH-FIELD}{
+%%   \src\tp = \Kt\t
+%% }{
+%%   \fieldtrans{\Fdef\f\t}{\Fdef\f\tp}{}
+%% }
+
+%% \IRule[width=25em]{TH-METHODANY}{
+%%   \AnaCast {\K}{\HT\this{\C}~\HT\x{\t[1]}}{\e}\ep{\t[2]} \\
+%%   \src{\Kt{\t[1]} = \Kt{\t[2]} = \any}
+%% }{
+%%   \methtrans {\K}{\C}{\Mdef\m\x{\t[1]}{\t[2]}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
+%% }
+
+%% \IRule[width=25em]{TH-METHOD}{
+%%   \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
+%% }{
+%%   \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{\begin{array}{c}
+%%     \Mdef\m\x{\Cp}{\Cpp}{\ep} \\
+%%     \Mdef\m\x{\any}{\any}{\SubCast\any{\KCall\this\m{\SubCast\Cp\x}\Cp\Cpp}} \\
+%%   \end{array}}{}
+%% }
+%% \end{mathpar}
+
+%% \subsection{Thorn synthetic translation for expressions}
+
+%% \opdef{$\GenCast\K\Env\e\ep\t$}{$\e$ translates to $\ep$ producing type $\t$, with context $\Env$ and class table $\K$}
+
+%% \begin{mathpar}
+%% \IRule{THS-VAR}{
+%%   \HasType\Env\x\t
+%% }{
+%%   \GenCast\K\Env\x\x\t
+%% }
+
+%% \IRule[width=30em]{THS-FIELD}{
+%%     \GenCast\K\Env{\e_1}{\e_3}\C \\ 
+%%     {\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ 
+%%     \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
+%% }
+
+%% \IRule[width=30em]{THS-OPTTCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
+%%     {\m({\D_1}):\D_2 \in \classoff\C\K} \\ 
+%%     \AnaCast\K\Env{\e_2}{\e_4}{\D_1}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\D_2}{\DynCall{\e_3}\m{\SubCast\any{\e_4}}}}{\D_2} %Q: do I need to cast the return value of non-bang
+%% }
+
+%% \IRule[width=20em]{THS-OPTUCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\dt\C} \\ 
+%%     {\m({\t_1}):\t \in \classoff\C\K} \\ 
+%%     \src{\any} = \Kt{\t[1]}\\
+%%     \AnaCast\K\Env{\e_2}{\e_4}{\t_1} 
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\t}
+%%     %Q: do I need to cast the return value of non-bang
+%% }
+
+%% \IRule[width=30em]{THS-TYCALL}{
+%%   \GenCast\K\Env{\e_1}{\e_3}{\D} \\
+%%   {\Mtype\m\t\tp \in \classoff\D\K} \\
+%%   \AnaCast\K\Env{\e_2}{\e_4}{\t}
+%% }{
+%%   \GenCast\K\Env{\Call{\e_1}\m{\e_2}}{\KCall{\e_3}\m{\e_4}\t\tp}{\tp}
+%% }
+
+%% \IRule{THS-DYCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}\any \\ 
+%%     \AnaCast\K\Env{\e_2}{\e_4}\any
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}\any
+%% }
+
+%% \IRule{THS-NEW}{
+%%   \b{\AnaCast\K\Env{\e_1}{\e_2}\t} \\ 
+%%   \Class \C {\b{\Ftype\f\t}} {\b\md} \in \K
+%%   }{
+%%   \GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}\C
+%% }
+%% \end{mathpar}
+%% \subsection{Thorn analytic translation for expressions}
+
+%% \opdef{$\AnaCast\K\Env{\e}{\ep}{\t}$}{$\e$ translates to $\ep$ against type $\t$, with context $\Env$ and class table $\K$}
+
+%% \begin{mathpar}
+%% \IRule{THA-CSUB}{
+%%   \GenCast\K\Env{\e_1}{\e_2}{\t_2} \\
+%%   {\ThorSub\K\cdot{\t_2}{\t_1}}\\
+%% }{
+%%   \AnaCast\K\Env{\e_1}{\e_2}{\t_1}
+%% }
+
+%% \IRule{THA-OPTCONC}{
+%%   \GenCast\K\Env{\e_1}{\e_2}{\dt\D} \\ 
+%%   {\ThorSub\K\cdot\D\C}
+%% }{
+%%   \AnaCast\K\Env{\e_1}{\SubCast{\C}{\e_2}}{\C}
+%% }
+
+%% \IRule{THA-ANYOPT}{
+%%   \GenCast\K\Env{\e_1}{\e_2}{\any} \\
+%% }{
+%%   \AnaCast\K\Env{\e_1}{\e_2}{\dt\C}
+%% }
+
+%% \IRule{THA-ANYCONC}{
+%%   \GenCast\K\Env{\e_1}{\e_2}{\any} \\
+%% }{
+%%   \AnaCast\K\Env{\e_1}{\SubCast\C{\e_2}}{\C}
+%% }
+
+%% \IRule{THA-TOANY}{
+%%   \GenCast\K\Env{\e_1}{\e_2}{\t} \\ \t \neq \any
+%% }{
+%%   \AnaCast\K\Env{\e_1}{\e_2}{\any}
+%% }
+%% \end{mathpar}
+
+%% \subsection{Supporting Text for Thorn}
+
+%% \subsubsection{Attempted Explanation of Bidirectional}
+
+
+%% Cast insertion in our system is illustrated by the following example:
+
+%% \begin{verbatim}
+%% class C {
+%%   f : C
+%%   m(x:*):* {
+%%     new C(x)
+%%   }
+%% }
+%% \end{verbatim}
+
+%% Here, in method \m, the only type that \x can possibly have is \any, in spite of the surrounding invocation requiring that it 
+%% be an instance of a \C. Likewise, the only type that makes sense for \New\C\x is \C, despite the return type being declared as
+%% \any. We have to insert casts to make these two cases be well typed, giving us the following translated code:
+
+%% \begin{verbatim}
+%% class C {
+%%   f : C
+%%   m(x:*):* {
+%%     <*>new C(<C>x)
+%%   }
+%% }
+%% \end{verbatim}
+
+%% Our cast insertion system is based on this intuition, finding the places where an expression's type is absolute (like \x being 
+%% of type \any), yet is surrounded by an expression that requires it to be something quite different (e.g. \New\C\x requires that
+%% \x must be a \C), drawing on a commonly used approach from type inference, bidirectional typing.
+
+%% In our approach, we compute ``real'' types using the so-called \emph{synthetic} case of typing, written $\GenCast\K\Env\e\ep\t$,
+%% meaning that $\e$ will always have type $\t$, while translating to $\ep$. Likewise, we enforce ``required'' types through the 
+%% \emph{analytic} judgment, written $\AnaCast\K\Env\e\ep\t$, meaning that if $\e$ is required to be of type $\t$, then the translated
+%% $\ep$ will be of type $\t$.
+
+%% As a illustrative example, consider $\x$ in the above. We know that $\x$ will always have type $\any$ - expressed as
+%% $\GenCast\K\Env\x\x\any$ by rule \RuleRef{THS-VAR} - no matter what happens around it. However, we also know that $\New\C\x$ 
+%% requires that $\x$ has type $\C$ - expressed as $\AnaCast\K\Env\x?\C$, using ? as a placeholder for the result of translation
+%% - and need to insert a cast so that the types make sense. We can then apply rule \RuleRef{THA-ANYCONC} to \x with \C to find out
+%% that we can make \x have type \C via casting, concluding that $\AnaCast\K\Env\x{\SubCast\C\x}\C$.
+
+
+%% \subsubsection{Explanation of Synthetic Cases}
+%% \begin{itemize}
+%%   \item \RuleRef{THS-VAR} is used to determine the type of variables, reporting the variable's type in the context.
+%%   \item \RuleRef{THS-FIELD} determines the type of both field access and assignment, denoted by the field accessors having 0 or 1 arguments, respectively. A field reference will have type $\t$ if the field is of type $\t$, and for a field assignment, the new value must also be of type $\t$.
+%%   \item \RuleRef{THS-OPTTCALL} handles the case when we are making a call 
+%% \end{itemize}
+
+%% \section{Complete translation for Transient}
+
+%% \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Transient translation for programs}
+%% \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Transient translation for classes} 
+%% \opdef{$\methtrans {\K}{\C}{\md}{\md'}{}$}{Transient translation for methods} 
+%% \opdef{$\fieldtrans {\fd}{\fd'}{}$}{Transient translation for fields} 
+%% \begin{mathpar}
+%% \IRule[width=20em]{TA-PROGRAM}{
+%%   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+%% }{\progtrans{\e~\K}{\e'~{\K'}}}
+
+%% \IRule[width=30em]{TA-CLASS1}{ 
+%%   \cload{\b\md ~ \b\fd}\\
+%%   \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
+%%   \b{\fieldtrans {\fd}{\fd'}{}} \\
+%%   {\C \not\in \Kp} \\
+%%   \classtrans {\K}{\Kp}\Kpp
+%% }{
+%%    \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+%% \IRule{TA-CLASS2}{ 
+%% }{
+%%   \classtrans {\K}\cdot\cdot
+%% }
+
+%% \IRule{TA-FIELD}{
+%% }{
+%%   \fieldtrans{\Fdef\f\t}{\Fdef\f\t}{}
+%% }
+
+%% \IRule[width=25em]{TA-METHODANY}{
+%%   \AnaCast {\K}{\HT\this{\C}~\HT\x{\any}}{\e}\ep{\any} \\
+%% }{
+%%   \methtrans {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{\Mdef\m\x{\any}{\any}{\ep}}{}
+%% }
+
+%% \IRule[width=25em]{TA-METHOD}{
+%%   \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
+%% }{
+%%   \methtrans {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
+%%     \Mdef\m\x\any\any{\SubCast\Cp\x ; \ep}}{} % sequencing is sugar
+%% }
+%% \end{mathpar}
+
+%% \subsection{Transient synthetic translation for expressions}
+
+%% \opdef{$\GenCast\K\Env{\e}{\ep}{\t}$}{Transient translation for expressions}
+
+%% \begin{mathpar}
+%% \IRule{TAS-VAR}{\HasType{\E}\x\t}{\GenCast{\K}\E\x{\SubCast\t\x}\t}
+
+
+%% \IRule[width=30em]{TAS-TYCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\SubCast{\t_2}{\KCall{{\e_3}}\m{\SubCast{\any}{\e_4}}\any\any}}{\t_2}
+%% }
+
+%% \IRule{TAS-DYCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+%% }
+
+%% \IRule[width=20em]{TAS-FIELD}{
+%%     \HasType{\E}\this\C \\ 
+%%     \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ 
+%%     \b{\AnaCast\K\Env{\e_1}{\e_2}{\t_1}}
+%% }{
+%%     \GenCast\K\Env{\Call{\this}\f{\b{\e_1}}}{\Call{\this}\f{\b{\e_2}}}{\any}
+%% }
+
+%% \IRule{TAS-NEW}{
+%%   \b{\AnaCast{\K}\E{\e_1}{\e_2}\t} \\ 
+%%   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
+%%   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+%% \end{mathpar}
+
+%% \subsection{Transient analytic translation for expressions}
+
+%% \opdef{$\AnaCast\K\E\e\ep\t$}{Transient translation for bidirectional expressions}
+
+%% \begin{mathpar}
+%% \IRule{TAA-SUB}{
+%%   \GenCast\K\E\e\ep\tp \\
+%%   \K \vdash \tp \Sub \t
+%% }{
+%%   \AnaCast\K\E\e\ep\t
+%% }
+
+%% \IRule{TAA-CONS}{
+%%   \GenCast\K\E\e\ep\tp \\
+%%   \consistent\K\tp\t
+%% }{
+%%   \AnaCast\K\E\e{\SubCast\t\ep}\t
+%% }
+%% \end{mathpar}
+
+%% \section{Complete translation for Typed Racket}
+
+%% \subsection{Typed Racket translation for program, class, and method}
+
+
+%% \opdef{$\progtrans {\e~\K}{\e'~{\K'}}$}{Typed Racket translation for programs}
+%% \opdef{$\classtrans {\K} {\Class \C{...}{...}~\K} {\Class \C{...}{...}~\K}$}{Typed Racket translation for classes} 
+%% \opdef{$\methtranst {\K}{\C}{\md}{\md'}{}$}{Typed Racket translation for typed methods} 
+%% \opdef{$\methtransu {\K}{\C}{\md}{\md'}{}$}{Typed Racket translation for untyped methods} 
+%% \opdef{$\fieldtranst {\fd}{\fd'}{}$}{Typed Racket translation for typed fields} 
+%% \opdef{$\fieldtransu {\fd}{\fd'}{}$}{Typed Racket translation for untyped fields} 
+%% \begin{mathpar}
+%% \IRule[width=20em]{TR-PROGRAM}{
+%%   {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
+%% }{\progtrans{\e~\K}{\e'~{\K'}}}
+
+%% \IRule[width=30em]{TR-TCLASS}{ 
+%%   \cload{\b\md ~ \b\fd}\\
+%%   \b{\methtranst {\K}{\C}{\md}{\md'}{}} \\
+%%   \b{\fieldtranst {\fd}{\fd'}{}} \\
+%%   {\C \not\in \Kp} \\
+%%   \classtrans {\K}{\Kp}\Kpp
+%% }{
+%%    \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+%% \IRule[width=25em]{TR-UCLASS}{ 
+%%   \cload{\b\md ~ \b\fd}\\
+%%   \b{\methtransu {\K}{\C}{\md}{\md'}{}} \\
+%%   \b{\fieldtransu {\fd}{\fd'}{}} \\
+%%   {\C \not\in \Kp} \\
+%%   \classtrans {\K}{\Kp}\Kpp
+%% }{
+%%    \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
+
+%% \IRule{TR-CLASS2}{ 
+%% }{
+%%   \classtrans {\K}\cdot\cdot
+%% }
+
+%% \IRule{TR-TFIELD}{
+%% }{
+%%   \fieldtranst{\Fdef\f\C}{\Fdef\f\C}{}
+%% }
+
+%% \IRule{TR-UFIELD}{
+%% }{
+%%   \fieldtransu{\Fdef\f\any}{\Fdef\f\any}{}
+%% }
+
+%% \IRule[width=25em]{TR-TMETHOD}{
+%%   \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
+%% }{
+%%   \methtranst {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
+%%     \Mdef\m\x\Cp\Cpp{\e} }{}
+%% }
+
+%% \IRule[width=25em]{TR-UMETHOD}{
+%%   \AnaCast {\K}{\HT\this{\any}~\HT\x{\any}}{\e}\ep{\any} \\
+%% }{
+%%   \methtransu {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{
+%%     \Mdef\m\x\any\any{\e} }{}
+%% }
+%% \end{mathpar}
+
+%% \subsection{Typed Racket synthetic translation}
+
+%% \opdef{$\GenCast{\K}\Env\e\ep\t$}{Typed Racket synthetic translation}
+
+%% \begin{mathpar}
+%% \IRule{TRS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
+
+%% \IRule[width=30em]{TRS-FIELD}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
+%% }
+
+%% \IRule[width=30em]{TRS-TYCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\Cp):\Cpp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\Cp}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}\Cp\Cpp}{\Cpp}
+%% }
+
+%% \IRule{TRS-DYCALL}{
+%%     \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
+%% }{
+%%     \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
+%% }
+
+%% \IRule{TRS-NEW}{
+%%   \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
+%%   \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
+%%   }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
+%% \end{mathpar}
+
+%% \subsection{Typed Racket analytic translation}
+
+%% \opdef{$\AnaCast\K\Env\e\ep\t$}{Typed Racket analytic translation}
+
+%% \begin{mathpar}
+%% \IRule{TRA-SUB}{
+%%   \GenCast\K\Env\e\ep\tp \\
+%%   \K \vdash \tp \Sub \t
+%% }{
+%%   \AnaCast\K\Env\e\ep\t
+%% }
+
+%% \IRule{TRA-WRAP}{
+%%   \GenCast\K\Env\e\ep\tp \\
+%%   \t \neq \tp
+%% }{
+%%   \AnaCast\K\Env\e{\BehCast\t{\ep}}\t
+%% }
+%% \end{mathpar}
 
 \section{Generative Behavioural Casts}
 
