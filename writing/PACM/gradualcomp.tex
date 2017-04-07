@@ -474,7 +474,7 @@ dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
 
-\paragraph{Syntax} The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f and \Set\e\f\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  Class definitions have a class name and (possibly empty) sequences of
+\paragraph{Syntax} The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f\t and \Set\e\f\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  Class definitions have a class name and (possibly empty) sequences of
 field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 definitions consist of a field and its type, \Fdef\f\t. Method definitions
 have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
@@ -498,7 +498,7 @@ The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subt
 \smallskip
 \begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
+   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
    &\B \SubCast\t\e &\B \BehCast\t\e 
 \end{tabular}\end{minipage}
@@ -755,7 +755,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \CondRule{E2}{  %% a.f() -> e
     \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
 }{
-   \ReduceA \K{\Get\a\f}\s \K{[\a/\this]\e}\s
+   \ReduceA \K{\Get\a\f\t}\s \K{[\a/\this]\e}\s
 }
 \CondRule{E3}{  %% a.f(a) -> e
     \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
@@ -765,7 +765,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \CondRule{E4}{  %% a.f() -> e
  \readf \s\a\f\K =  \ap 
 }{
-  \ReduceA \K{\Get\a{\f}}\s  \K\ap\s
+  \ReduceA \K{\Get\a{\f}\t}\s  \K\ap\s
 }
 \CondRule{E5}{  %% a.f(e) -> e
  \setf \s\a\f\ap\K =  \sp
@@ -808,7 +808,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \smallskip
 
 \begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
-\EE &::= \Get\EE\f     &\B
+\EE &::= \Get\EE\f\t     &\B
         \Set\EE\f\e   &\B
         \Set\a\f\EE   &\B  
         \Call\EE\m\e  &\B
@@ -958,35 +958,35 @@ to its corresponding method in the source type.
     \wrap\C\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
+\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\[-2mm]
-\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\[-2mm]
-\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
+\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
 &     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
 \\[-2mm]
-\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that} \m {\x} }~}
+\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that\C} \m {\x} }~}
 &    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
 \\[-2mm]
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }~}
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }~}
 &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
 \\[-2mm]
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\x} }~}
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\x} }~}
 &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
 \\[-2mm]
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\[-2mm]
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\x~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\[-2mm]
-\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that}\m{\x}~}
+\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that\C}\m{\x}~}
 &    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 % \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
 % &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
@@ -999,11 +999,11 @@ to its corresponding method in the source type.
 \wrapAny\C\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
+\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
 &  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
 &  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that}\m{\bscast{\t}\x} }~}
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that\C}\m{\bscast{\t}\x} }~}
 &  \Mtype\m\t\t\in\b\mt \\
 \\
 \SP \}\\
@@ -1462,7 +1462,7 @@ causes all calls to be dynamic.
        \>          \>          \> \HS\HS  {\bf otherwise}  ..                   \\[1mm]
 \tr e{\K, \Env, \x} = \src \x
 \\[1mm]       
-\tr e{\K, \Env, \Call\e\f{}} = \src{\Call\ep{\namet\f\t}{}}  \\
+\tr e{\K, \Env, \Call\e\f{}} = \src{\Get\ep\f\t}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \In\App\K\C  
 \end{tabbing}
 \end{minipage}
@@ -1544,7 +1544,7 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 \\[1mm]
 \tr e{\K,\Env, \x} = \src{\SubCast\t\x} \HS \WHERE \HS \TypeCk{\K,\Env}\x\t
 \\[1mm]
-\tr e{\K,\Env,\Call\this\f{}}  = \src{\SubCast\t{\Call\this{\namet\f\any}{}}}\\
+\tr e{\K,\Env,\Call\this\f{}}  = \src{\SubCast\t{\Get\this\f\any}}\\
    \>  \WHERE  \> \TypeCk{\K,\Env}\this\C,\HS  \Ftype\f\t\IN\App\K\C
 \\[1mm]
 \tr e{\Call\this\f\e} =  \src{\SubCast\t{\Call\this{\name\f\any\any}\ep}} \\
@@ -1735,7 +1735,7 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \\[1mm]
 \tr e{\K,\Env, \x} = \src{\x}
 \\[1mm]
-\tr e{\K,\Env,\Call\e\f{}}  = \src{\Call\ep{\namet\f\t}{}}\\
+\tr e{\K,\Env,\Call\e\f{}}  = \src{\Get\ep\f\t}\\
    \> \WHERE    \> \TypeCk{\K,\Env}\e\t,\HS  \Mtype\f{}\t\In\App\K\C,\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
 \tr e{\K,\Env, \Call{\e_1}\f{\e_2}} =  \src{\Call{\eps 1}{\name\f\t\t}{\eps 2}} \\
@@ -2493,7 +2493,7 @@ to the name of \t not to \t.
   \EnvType \Env\s\K\e\C \\
   \Mtype \f{}\t \in \classoff\C\K
 }{
-  \EnvType \Env\s\K{\Get\e\f}\t
+  \EnvType \Env\s\K{\Get\e\t}\t
 }    
 
 \IRule[width=20em]{W4}{
@@ -3288,35 +3288,35 @@ to its corresponding method in the source type.
     \wrap\C\bmt\bmtp\D = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
+\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\
-\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\
-\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
+\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
 &     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
 \\
-\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that} \m {\x} }~}
+\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that\C} \m {\x} }~}
 &    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
 \\
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }~}
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }~}
 &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
 \\
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\x} }~}
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\x} }~}
 &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
 \\
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\x~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\
-\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that}\m{\x}~}
+\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that\C}\m{\x}~}
 &    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 \\
 % \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
@@ -3330,11 +3330,11 @@ to its corresponding method in the source type.
 \wrapAny\C\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
+\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f}~}
 &  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
 &  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that}\m{\bscast{\t}\x} }~}
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that\C}\m{\bscast{\t}\x} }~}
 &  \Mtype\m\t\t\in\b\mt \\
 \\
 \SP \}\\
@@ -3642,7 +3642,7 @@ field/method.
 \hspace{0.1cm}
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x          &\B \this          \\
-   &\B \New\C{\b\e}  &\B \Get\e\f       &\B \Set\e\f\e   \\
+   &\B \New\C{\b\e}  &\B \sGet\e\f       &\B \Set\e\f\e   \\
    &\B \Call\e\m\e   &\B \a \\ 
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
@@ -3838,7 +3838,7 @@ field/method.
   \EnvTypeW \Env\s\K\e\C \\
   \Mtype \f{}\tp \in \classoff\C\K
 }{
-  \EnvTypeW \Env\s\K{\Get\e\f}\tp
+  \EnvTypeW \Env\s\K{\sGet\e\f}\tp
 }    
 
 \IRule{TW5}{
@@ -4169,7 +4169,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \subsection{New source}
 \begin{tabular}{r@{}l}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-\e &::=  \x         &\B \this    &\B \Get\e\f      \\
+\e &::=  \x         &\B \this    &\B \sGet\e\f      \\
    &\B \Set\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
    &\B \New\C{\b\e}  \\ 
    
@@ -4185,7 +4185,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \rowcolor{gray!10}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f     &\B \Set\e\f\e   \\
+   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
    &\B \SubCast\t\e &\B \BehCast\t\e 
 \end{tabular}\end{minipage} &
