@@ -2072,6 +2072,53 @@ the case of an untyped object gaining a type assertion (\RuleRef{TRA2}), a
 shallow cast ensures that the value has all of the required method names
 before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 
+\begin{figure}[!h]
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+ \small
+\begin{minipage}{8cm}  
+\begin{tabbing}
+\tr c{\K, \Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fds 1..}{\mdsp 1.. } }\\
+\HS\= \WHERE\HS \= \mdsp 1 = \tr m{\K, \Ftype\this\C, \mds 1} ~..
+\\[1mm]
+\tr m{\K,\Env, \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\t\tp\ep}\\
+   \> \WHERE    \> \ep = \tr a{\K,\Env\;\Ftype\x\t,\tp,\e}
+\\[1mm]
+\tr e{\K,\Env, \x} = \src{\x}
+\\[1mm]
+\tr e{\K,\Env,\Call\this\f{}}  = \src{\Call\this{\namet\f\any}{}}
+\\[1mm]
+\tr e{\Call\this\f\e} =  \src{\Call\this{\name\f\any\any}\ep} \\
+   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\IN\C,\HS \ep = \tr a{\K,\Env,\t,\e}
+\\[1mm]
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
+   \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+\end{tabbing}
+\end{minipage}
+&&
+\begin{minipage}{8cm}  
+\begin{tabbing}
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\t{\Call{\eps 1}{\name\m\any\any}{\eps 2}}}\\
+\HS   \=\WHERE\HS \= \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m\t\tp\IN\C\\
+   \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+\\[1mm]
+\tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\\
+   \>\WHERE \> \Ftype{\f_1}{\t_1}\IN\C ~..\\
+   \>       \>  \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
+\\[1mm]
+\tr a{\K,\Env,\t,\e} = \src{\SubCast\t\e}\\
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t = \any \OR \tp = \any)\\
+   \>            \> \ep = \tr e{\K,\Env,\e}
+\\[1mm]
+\tr a{\K,\Env,\t,\e} = \src\ep\\
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t \Sub \tp \OR \consistent\K\t\tp)\\
+   \>            \>  \ep = \tr e{\K,\Env,\e}
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+\caption{Transient}\end{figure}
+
+
+
 \begin{figure}[h!]
 \begin{mathpar}
 \IRule[width=20em]{TR-PROGRAM}{
