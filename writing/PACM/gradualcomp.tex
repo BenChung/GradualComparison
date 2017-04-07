@@ -488,7 +488,7 @@ representing a method receiver, while \that is a distinguished field name that w
 in wrapper classes. 
 
  Providing two different cast mechanisms is the most original feature of the calculus.
-The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). The design of the semantics of the behavioural cast is intricate, and deserves its own section.  
+The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). The design of the behavioural cast is intricate, and deserves its own section.  
 
 
 
@@ -551,7 +551,7 @@ are well-typed. Some restrictions: a class that defines a field \f is not allowe
 getter or setter methods of that name, and a class can have at most two
 definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
 \Mdef\m\x\any\any\e.  The static semantics of \kafka is mostly unsurprising,
-so we report in Fig.~\ref{f:staticsem} only the subtype rule for classes and the type rules for method calls and casts.
+so we report in Fig.~\ref{f:staticsem} only the subtype rule for classes and the type rules for method calls, casts and references.
 The complete
 set of rules appear in Appendix section~\ref{appendix:kafka}.  
 
@@ -596,6 +596,17 @@ set of rules appear in Appendix section~\ref{appendix:kafka}.
   \EnvType \Env\s\K{\BehCast\t\e}\t
 }
 
+\IRule{W9}{
+  \s(\a) = \obj\C{\b\ap}
+}{
+  \EnvType \Env\s\K\a\C
+}
+
+\IRule{W10}{
+ }{
+   \EnvType \Env\s\K\a\any
+}
+
 
 %\IRule{W10}{
 %  \EnvType \Env\s\K\e\tp
@@ -609,35 +620,14 @@ set of rules appear in Appendix section~\ref{appendix:kafka}.
 
 The
 subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
-subtyping: the environment \M keeps track of the set of subtype relations assumed.  
+subtyping: for this the environment \M keeps track of the set of subtype relations assumed.  
 Its only distinctive feature is that fields
 appears in the type signature as getter/setter pairs with the exception of
-the \that field that is hidden from the class type signature. 
-
-
-%The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
-%is a subtype of \tp in the environment \M composing a set of subtype relations and
-%a class table \K.  
-
-%\noindent 
-%The type judgments, \EnvType\Env\s\K\e\t, are mostly
-%unsurprising, and . 
-
-Method calls use \emph{syntactic} disambiguation to select between
+the \that field that is hidden from the class type signature.  Method calls use \emph{syntactic} disambiguation to select between
 typed and untyped methods. The dynamically resolved call places no
-requirements on the receiver or argument, and returns type \any. The subtype
-cast rule \RuleRef{W9} states that result is of the cast type, but it does
-not preclude silly casts.  
-Rule \RuleRef{W10} describes the semantics of the
-shallow casts, which merely asserts the presence of method names, without
-making any statements about the type of the object being cast.  
-%The
-%subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
-%subtyping. The distinctive feature of the subtype relation is that fields
-%appears in the type signature as getter/setter pairs with the exception of
-%the \that field that is hidden from the class type signature. 
-%
-% The set of subtype relations can be omitted if its empty.
+requirements on the receiver or argument, and returns type \any. 
+Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how their soundness is enforced at run-time is very different though.  References can be typed both as dynamic, or with the type of the object the point to in the current heap \(\sigma\).
+
 
 
 %%
@@ -747,8 +737,7 @@ making any statements about the type of the object being cast.
 
 
 \paragraph{Dynamic Semantics}
-
-The small operational step operational semantics for \kafka appears in \figref{fig:semantics}.
+The small  step operational semantics for \kafka is reported in \figref{fig:semantics}.
 
 
 
@@ -888,7 +877,7 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 
 
-\subsection{Behavioural Casts}
+\paragraph{Behavioural Casts}
 
 A behavioural cast \BehCast\t\a ensures that the result, \ap, will follow
 all of the type guarantees in \t. The cast creates a wrapper which holds a
@@ -1131,18 +1120,12 @@ thereby enforcing the dynamic type guarantees. \FZ{Check this text.}  \FZ{REWRIT
 %highlighted by the number of casts inserted into the wrappers.
 
 
-\subsection{Type soundness}
-
-
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+\paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce to values or are stuck on a dynamic method invocation or on a structural cast.  Formally:
+given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
 such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
-or $\e$ is stuck in one of the following forms:
-\begin{itemize} 
-\item $\a$
-\item $\EE[\DynCall\a\m{\ap}]$
-\item $\EE[\SubCast\tp\a]$
-\item $\EE[\ShaCast\tp\a]$
-\end{itemize}
+or $\e$ is in one of the following forms:
+$\a$, $\EE[\DynCall\a\m{\ap}]$ or $\EE[\SubCast\tp\a]$.  Proof is in the Appendix.
+
 
 
 
