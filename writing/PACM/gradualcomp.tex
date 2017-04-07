@@ -1820,132 +1820,36 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \tr e{\K,\Env,\Call\e\f{}}  = \src{\Call\ep{\namet\f\t}{}}\\
    \> \WHERE    \> \TypeCk{\K,\Env}\e\t,\HS  \Mtype\f{}\t\In\App\K\C,\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
-\tr e{\Call{\e_1}\f{\e_2}} =  \src{\Call\this{\name\f\any\any}\ep} \\
-   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\IN\C,\HS \ep = \tr a{\K,\Env,\t,\e}
+\tr e{\K,\Env, \Call{\e_1}\f{\e_2}} =  \src{\Call{\eps 1}{\name\f\t\t}{\eps 2}} \\
+   \>\WHERE \> \TypeCk\K{\e_1}\C, \HS \Ftype\f\t\In\App\K\C\\
+   \>       \>  \eps 1 = \tr e{\K,\Env,\e_1},\HS  \eps 2 = \tr a{\K,\Env,\t,\e}
 \\[1mm]
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
+\tr e{\K,\Env, \Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
    \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \end{tabbing}
 \end{minipage}
 &&
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\t{\Call{\eps 1}{\name\m\any\any}{\eps 2}}}\\
-\HS   \=\WHERE\HS \= \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m\t\tp\IN\C\\
-   \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\Call{\eps 1}{\name\m{\D_1}{\D_2}}{\eps 2}}\\
+\HS   \=\WHERE\HS \= \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m{\D_1}{\D_2}\In\App\K\C\\
+   \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\D_1,\e_2}
 \\[1mm]
 \tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\\
-   \>\WHERE \> \Ftype{\f_1}{\t_1}\IN\C ~..\\
+   \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C ~..\\
    \>       \>  \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
 \\[1mm]
-\tr a{\K,\Env,\t,\e} = \src{\SubCast\t\e}\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t = \any \OR \tp = \any)\\
-   \>            \> \ep = \tr e{\K,\Env,\e}
-\\[1mm]
 \tr a{\K,\Env,\t,\e} = \src\ep\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t \Sub \tp \OR \consistent\K\t\tp)\\
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \Sub \tp}\\
    \>            \>  \ep = \tr e{\K,\Env,\e}
+\\[1mm]
+\tr a{\K,\Env,\t,\e} = \src{\BehCast\t\e}\\
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \not \Sub \tp}\\
+   \>            \> \ep = \tr e{\K,\Env,\e}
 \end{tabbing}
 \end{minipage}
 \end{tabular}
-\caption{Tryped Racket}\end{figure}
-
-
-
-\begin{figure}[h!]
-\begin{mathpar}
-\IRule[width=20em]{TR-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule[width=30em]{TR-TCLASS}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtranst {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtranst {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule[width=25em]{TR-UCLASS}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtransu {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtransu {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TR-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TR-TFIELD}{
-}{
-  \fieldtranst{\Fdef\f\C}{\Fdef\f\C}{}
-}
-
-\IRule{TR-UFIELD}{
-}{
-  \fieldtransu{\Fdef\f\any}{\Fdef\f\any}{}
-}
-
-\IRule[width=25em]{TR-TMETHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\Cp}}{\e}\ep{\Cpp} \\
-}{
-  \methtranst {\K}{\C}{\Mdef\m\x{\Cp}{\Cpp}{\e}}{
-    \Mdef\m\x\Cp\Cpp{\e} }{}
-}
-
-\IRule[width=25em]{TR-UMETHOD}{
-  \AnaCast {\K}{\HT\this{\any}~\HT\x{\any}}{\e}\ep{\any} \\
-}{
-  \methtransu {\K}{\C}{\Mdef\m\x{\any}{\any}{\e}}{
-    \Mdef\m\x\any\any{\e} }{}
-}
-
-\IRule{TRS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
-
-\IRule[width=30em]{TRS-FIELD}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \f(\b{\t_1}):\t_2 \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}
-}
-
-\IRule[width=30em]{TRS-TYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m(\Cp):\Cpp \in \classoff\C\K \\ \b{\AnaCast\K\Env{\e_2}{\e_4}{\Cp}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}\Cp\Cpp}{\Cpp}
-}
-
-\IRule{TRS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule{TRS-NEW}{
-  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \in \K
-  }{\GenCast\K\Env{\New\C{\b{\e_1}}}{\New\C{\b{\e_2}}}{\C}}
-  
-\IRule{TRA-SUB}{
-  \GenCast\K\Env\e\ep\tp \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCast\K\Env\e\ep\t
-}
-
-\IRule{TRA-WRAP}{
-  \GenCast\K\Env\e\ep\tp \\
-  \t \neq \tp
-}{
-  \AnaCast\K\Env\e{\BehCast\t{\ep}}\t
-}
-\end{mathpar}
-\caption{Typed Racket translation.}\label{fb}
-\end{figure}
+\caption{Typed Racket}\end{figure}
 
 
 \subsection{Behavioural Casts}
