@@ -1826,8 +1826,15 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 }
 
 \IRule{TAA-CONS}{
+  \GenCast\K\E\e\ep\D \\
+  \consistent\K\D\C
+}{
+  \AnaCast\K\E\e{\SubCast\C\ep}\C
+}
+
+\IRule{TAA-ANY}{
   \GenCast\K\E\e\ep\tp \\
-  \consistent\K\tp\t
+  \tp = \any \vee \t = \any \\
 }{
   \AnaCast\K\E\e{\SubCast\t\ep}\t
 }
