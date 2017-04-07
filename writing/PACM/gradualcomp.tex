@@ -527,10 +527,9 @@ The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subt
 %invocation, \KCall\e\m\e\t\t, dynamically resolved method invocation,
 %\DynCall\e\m\e, subtype casts, \SubCast\t\e, and behavioural casts, \BehCast\t\e.
 %, and shallow casts, \ShaCast\t\e.
-Types consist of class names and the dynamic type, written
-\any. 
+
 %Class definitions have a class name and (possibly empty) sequences of
-f%ield definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
+%field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 %definitions consist of a field and its type, \Fdef\f\t. Method definitions
 %have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
 %Fields are read by calling getter methods and updated by setter methods,
@@ -544,22 +543,32 @@ f%ield definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 
 %\subsection{Static Semantics}
 
-A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
+Types consist of class names and the dynamic type, written
+\any.  A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
 class table \K where each class \k in \K is well-formed and \e is well-typed
 with respect to \K.  A class is well-formed if all its fields and methods
-are well-typed. A class that defines a field \f is not allowed to have
-getter or setter methods of that name.  \kafka supports a limited form of overloading: a class can have at most two
+are well-typed. Some restrictions: a class that defines a field \f is not allowed to have
+getter or setter methods of that name, and a class can have at most two
 definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
-\Mdef\m\x\any\any\e. The type judgments, \EnvType\Env\s\K\e\t, are mostly
-unsurprising, with the following rules for method calls and casts.
+\Mdef\m\x\any\any\e.  The static semantics of \kafka is mostly unsurprising,
+so we report in Fig.~\ref{f:staticsem} only the subtype rule for classes and the type rules for method calls and casts.
+The complete
+set of rules appear in Appendix section~\ref{appendix:kafka}.  
 
-\FZ{EXPLAIN IN ONE PARAGRAPH HOW SUBTYPING WORKS}
 
 \begin{figure}[!t]
 \hrulefill
 
 {\small
 \begin{mathpar}
+\IRule{SRec}{
+ \M' = \M~\C\Sub\D\\
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \StrSub{\M'}\K\mt{\mtp}
+}{
+ \StrSub \M\K \C \D 
+}
+
+
 \IRule{W6}{
   \EnvType \Env\s\K\e\C \\
   \Mtype \m\tp\tpp\in \classoff\C\K  \\
@@ -595,23 +604,40 @@ unsurprising, with the following rules for method calls and casts.
 %}
 \end{mathpar}}
 \hrulefill
-\caption{\kafka static semantics (excerpt)}
+\caption{\kafka static semantics (excerpt)}\label{f:staticsem}
 \end{figure}
 
-\noindent Method calls use \emph{syntactic} disambiguation to select between
+The
+subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
+subtyping: the environment \M keeps track of the set of subtype relations assumed.  
+Its only distinctive feature is that fields
+appears in the type signature as getter/setter pairs with the exception of
+the \that field that is hidden from the class type signature. 
+
+
+%The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
+%is a subtype of \tp in the environment \M composing a set of subtype relations and
+%a class table \K.  
+
+%\noindent 
+%The type judgments, \EnvType\Env\s\K\e\t, are mostly
+%unsurprising, and . 
+
+Method calls use \emph{syntactic} disambiguation to select between
 typed and untyped methods. The dynamically resolved call places no
 requirements on the receiver or argument, and returns type \any. The subtype
 cast rule \RuleRef{W9} states that result is of the cast type, but it does
 not preclude silly casts.  
-%Rule \RuleRef{W10} describes the semantics of the
-%shallow casts, which merely asserts the presence of method names, without
-%making any statements about the type of the object being cast.  
-The
-subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
-subtyping. The distinctive feature of the subtype relation is that fields
-appears in the type signature as getter/setter pairs with the exception of
-the \that field that is hidden from the class type signature.  The complete
-set of rules appear in Appendix section~\ref{appendix:kafka}.
+Rule \RuleRef{W10} describes the semantics of the
+shallow casts, which merely asserts the presence of method names, without
+making any statements about the type of the object being cast.  
+%The
+%subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
+%subtyping. The distinctive feature of the subtype relation is that fields
+%appears in the type signature as getter/setter pairs with the exception of
+%the \that field that is hidden from the class type signature. 
+%
+% The set of subtype relations can be omitted if its empty.
 
 
 %%
