@@ -1772,18 +1772,22 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
  \small
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr c{\K, \Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fds 1..}{\mdsp 1.. } }\\
-\HS\= \WHERE\HS \= \mdsp 1 = \tr m{\K, \Ftype\this\C, \mds 1} ~..\\[1mm]
+\tr c{\K, \Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fdsp 1..}{\mdsp 1.. } }\\
+\HS\= \WHERE\HS \= \fds 1 = \Ftype\f\t, \HS  \fdsp 1 = \src{\Ftype\f\any} ..\\
+   \>           \>  \mdsp 1 = \tr m{\K, \Ftype\this\C, \mds 1} ~..\\[1mm]
 \tr m{\K,\Env, \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep}}\\
    \> \WHERE    \> \ep = \tr a{\K,\Env\;\Ftype\x\t,\tp,\e}
+\\[1mm]
+\tr e{\K,\Env, \this} = \src{\this}
 \\[1mm]
 \tr e{\K,\Env, \x} = \src{\SubCast\t\x}\\
    \> \WHERE    \> \TypeCk{\K,\Env}\x\t
 \\[1mm]
-\tr e{\K,\Env,\Call\this\f{}}  = \src{\Call\this{\namet\f\any}{}}
+\tr e{\K,\Env,\Call\this\f{}}  = \src{\SubCast\t{\Call\this{\namet\f\any}{}}}\\
+   \>           \> \TypeCk{\K,\Env}\this\C,\HS  \Ftype\f\t\IN\C
 \\[1mm]
-\tr e{\Call\this\f\e} =  \src{\Call\this{\name\f\any\any}\ep} \\
-   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\IN\C,\HS \ep = \tr a{\K,\Env,\t,\e}
+\tr e{\Call\this\f\e} =  \src{\SubCast\t{\Call\this{\name\f\any\any}\ep}} \\
+   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\IN\C,\HS \ep = \tr a{\K,\Env,\any,\e}
 \\[1mm]
 \tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
    \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
@@ -1792,7 +1796,7 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 &&
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\t{\Call{\eps 1}{\name\m\any\any}{\eps 2}}}\\
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\tp{\Call{\eps 1}{\name\m\any\any}{\eps 2}}}\\
 \HS   \=\WHERE\HS \= \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m\t\tp\IN\C\\
    \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \\[1mm]
@@ -2063,9 +2067,10 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \\[1mm]
 \tr e{\K,\Env, \x} = \src{\x}
 \\[1mm]
-\tr e{\K,\Env,\Call\this\f{}}  = \src{\Call\this{\namet\f\any}{}}
+\tr e{\K,\Env,\Call\e\f{}}  = \src{\Call\ep{\namet\f\t}{}}\\
+   \> \WHERE    \> \TypeCk\K\Env\e,  \HS \Mtype\f{}\t,\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
-\tr e{\Call\this\f\e} =  \src{\Call\this{\name\f\any\any}\ep} \\
+\tr e{\Call{\e_1}\f{\e_2}} =  \src{\Call\this{\name\f\any\any}\ep} \\
    \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\IN\C,\HS \ep = \tr a{\K,\Env,\t,\e}
 \\[1mm]
 \tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}}\\
@@ -2093,7 +2098,7 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \end{tabbing}
 \end{minipage}
 \end{tabular}
-\caption{Transient}\end{figure}
+\caption{Tryped Racket}\end{figure}
 
 
 
