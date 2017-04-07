@@ -474,7 +474,7 @@ dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
 taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
 
-\paragraph{Syntax} The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f\t and \Set\e\f\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  Class definitions have a class name and (possibly empty) sequences of
+\paragraph{Syntax} The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f\t and \Set\e\f\t\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  Class definitions have a class name and (possibly empty) sequences of
 field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 definitions consist of a field and its type, \Fdef\f\t. Method definitions
 have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
@@ -498,7 +498,7 @@ The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subt
 \smallskip
 \begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\e   \\
+   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\t\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
    &\B \SubCast\t\e &\B \BehCast\t\e 
 \end{tabular}\end{minipage}
@@ -652,7 +652,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \CondRule{E3}{  %% a.f(a) -> e
     \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
 }{
-   \ReduceA \K{\Set\a\f\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+   \ReduceA \K{\Set\a\f\t\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
 \CondRule{E4}{  %% a.f() -> e
  \readf \s\a\f\K =  \ap 
@@ -662,7 +662,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \CondRule{E5}{  %% a.f(e) -> e
  \setf \s\a\f\ap\K =  \sp
 }{
-  \ReduceA \K{\Set\a{\f}\ap}\s \K\ap\sp
+  \ReduceA \K{\Set\a{\f}\t\ap}\s \K\ap\sp
 }
 \CondRule{E6}{  %% a.m(a) -> e
   \Mdef\m\x\t\tp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
@@ -701,8 +701,8 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 
 \begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
 \EE &::= \Get\EE\f\t     &\B
-        \Set\EE\f\e   &\B
-        \Set\a\f\EE   &\B  
+        \Set\EE\f\t\e   &\B
+        \Set\a\f\t\EE   &\B  
         \Call\EE\m\e  &\B
         \Call\a\m{\EE} &\B
         \DynCall\EE\m\e   &\B
@@ -853,7 +853,7 @@ to its corresponding method in the source type.
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\[-2mm]
-\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\[-2mm]
 \SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
@@ -875,10 +875,10 @@ to its corresponding method in the source type.
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\[-2mm]
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\x~}
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\[-2mm]
-\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that\C}\m{\x}~}
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\Get\this\that\C}\m{\x}\t\tp~}
 &    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 % \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
 % &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
@@ -893,10 +893,10 @@ to its corresponding method in the source type.
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
 &  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
 &  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that\C}\m{\bscast{\t}\x} }~}
-&  \Mtype\m\t\t\in\b\mt \\
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
+&  \Mtype\m\t\tp\in\b\mt \\
 \\
 \SP \}\\
 \end{array}\]
@@ -1151,7 +1151,7 @@ causes all calls to be dynamic.
        \>          \> \mds 1   \> = \Mdef\m\x{\t_1}{\t_2}\e                       \\
        \>          \> \mdsp 1  \> = \src{\Mdef\m\x{\kty{\t_1}}{\kty{\t_2}}{\ep}}  \\
        \>          \> \ep      \> = \tr{a}{\K, \Ftype\this\C\,\Ftype\x{\t_1}, \t_2, \e} \\
-       \>          \> \mdspp 1 \>=  \src{\Mdef\m\x\any\any{\SubCast\any{\Call\this{\name\m{\t_1}{\t_2}}{\SubCast{\t_1}\x}}}}\\
+       \>          \> \mdspp 1 \>=  \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\t_1}\x}{\t_1}{\t_2}}}}\\
        \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \D\\
        \>          \>          \>\HS empty\\
        \>          \>          \> \HS\HS  {\bf otherwise}  ..                   \\[1mm]
@@ -1164,7 +1164,7 @@ causes all calls to be dynamic.
 &~~ \hspace{.51cm} ~~~ &
 \begin{minipage}{5cm}
   \begin{tabbing}
-\tr e{\K, \Env,  \Call{\e_1}\f{\e_2}} = \src{\Call{\eps 1}{\name\f\t\t}{\eps 2}} \\
+\tr e{\K, \Env,  \Call{\e_1}\f{\e_2}} = \src{\Set{\eps 1}\f\t{\eps 2}} \\
 \HS   \=\WHERE\HS\= \TypeCk{\K, \Env}{\e_1}\C, \HS  \Mtype\f\t\t\In\App\K\C \\
       \>          \>  \eps 1 = \tr e{\K, \Env,  \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \kty\t, \e_2} 
 \\[1mm]
@@ -1172,7 +1172,7 @@ causes all calls to be dynamic.
 \HS   \>\WHERE\HS\> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
      \>          \> \eps 1= \tr e{\K,\Env, \e_1}, \HS \eps 2=\tr a{\K,\Env, \any, \e_2}
 \\[1mm]
-\tr e{\K,\Env, \Call{\e_1}\m{\e_2}} = \src{\Call{\eps 1}{\name\m{\t_1}{\t_2}}{\eps 2}} \\
+\tr e{\K,\Env, \Call{\e_1}\m{\e_2}} = \src{\KCall{\eps 1}{\m}{\eps 2}{\t_1}{\t_2}} \\
      \> \WHERE   \>  \TypeCk{\K,\Env}{\e_1}\C, \HS  \eps 1 = \tr e{\K,\Env,\e_1} \\
      \>          \>  \ \Mtype\m{\t_1}{\t_2}\In\App\K\C, \HS  \eps 2 = \tr a{\K, \Env, \t_2, \e_2} 
 \\[1mm]
@@ -1242,7 +1242,7 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 \tr e{\K,\Env,\Call\this\f{}}  = \src{\SubCast\t{\Get\this\f\any}}\\
    \>  \WHERE  \> \TypeCk{\K,\Env}\this\C,\HS  \Ftype\f\t\IN\App\K\C
 \\[1mm]
-\tr e{\Call\this\f\e} =  \src{\SubCast\t{\Call\this{\name\f\any\any}\ep}} \\
+\tr e{\Call\this\f\e} =  \src{\SubCast\t{\Set\this\f\any\ep}} \\
    \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\In\App\K\C\\
    \>       \>  \ep = \tr a{\K,\Env,\any,\e}
 \end{tabbing}
@@ -1253,7 +1253,7 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 \tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}}\\
 \HS \=\WHERE \HS\= \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \\[1mm]
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\tp{\Call{\eps 1}{\name\m\any\any}{\eps 2}}}\\
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\tp{\KCall{\eps 1}{\m}{\eps 2}\any\any}}\\
    \>\WHERE\> \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m\t\tp\In\App\K\C\\
    \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \\[1mm]
@@ -1433,7 +1433,7 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \tr e{\K,\Env,\Call\e\f{}}  = \src{\Get\ep\f\t}\\
    \> \WHERE    \> \TypeCk{\K,\Env}\e\t,\HS  \Mtype\f{}\t\In\App\K\C,\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
-\tr e{\K,\Env, \Call{\e_1}\f{\e_2}} =  \src{\Call{\eps 1}{\name\f\t\t}{\eps 2}} \\
+\tr e{\K,\Env, \Call{\e_1}\f{\e_2}} =  \src{\Set{\eps 1}{\f}\t{\eps 2}} \\
    \>\WHERE \> \TypeCk\K{\e_1}\C, \HS \Ftype\f\t\In\App\K\C\\
    \>       \>  \eps 1 = \tr e{\K,\Env,\e_1},\HS  \eps 2 = \tr a{\K,\Env,\t,\e}
 \\[1mm]
@@ -1444,7 +1444,7 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 &&
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\Call{\eps 1}{\name\m{\D_1}{\D_2}}{\eps 2}}\\
+\tr e{\Call{\e1_1}\m{\e_2}} = \src{\KCall{\eps 1}{\m}{\eps 2}{\D_1}{\D_2}}\\
 \HS   \=\WHERE\HS \= \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m{\D_1}{\D_2}\In\App\K\C\\
    \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\D_1,\e_2}
 \\[1mm]
@@ -2196,7 +2196,7 @@ to the name of \t not to \t.
   \Mtype \f\t\t \in \classoff\C\K  \\
   \EnvType \Env\s\K\ep\t
 }{
-  \EnvType \Env\s\K{\Set\e\f\ep}\t
+  \EnvType \Env\s\K{\Set\e\f\t\ep}\t
 }    
 
 \IRule[width=20em]{W5}{
@@ -2415,7 +2415,7 @@ to its corresponding method in the source type.
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\
-\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\
 \SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
@@ -2437,10 +2437,10 @@ to its corresponding method in the source type.
 \SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\x~}
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\
-\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that\C}\m{\x}~}
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\Get\this\that\C}\m{\x}\t\tp~}
 &    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 \\
 % \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
@@ -2456,10 +2456,10 @@ to its corresponding method in the source type.
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f}~}
 &  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f{\bscast\t\x}}~}
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
 &  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that\C}\m{\bscast{\t}\x} }~}
-&  \Mtype\m\t\t\in\b\mt \\
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
+&  \Mtype\m\t\tp\in\b\mt \\
 \\
 \SP \}\\
 \end{array}\]
@@ -2766,7 +2766,7 @@ field/method.
 \hspace{0.1cm}
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x          &\B \this          \\
-   &\B \New\C{\b\e}  &\B \sGet\e\f       &\B \Set\e\f\e   \\
+   &\B \New\C{\b\e}  &\B \sGet\e\f       &\B \sSet\e\f\e   \\
    &\B \Call\e\m\e   &\B \a \\ 
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
@@ -2970,7 +2970,7 @@ field/method.
   \Mtype \f\tp\tp \in \classoff\C\K  \\
   \EnvTypeW \Env\s\K\ep\tp
 }{
-  \EnvTypeW \Env\s\K{\Set\e\f\ep}\tp
+  \EnvTypeW \Env\s\K{\sSet\e\f\ep}\tp
 }    
 
 \IRule{TW6}{
@@ -3294,7 +3294,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \begin{tabular}{r@{}l}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this    &\B \sGet\e\f      \\
-   &\B \Set\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
+   &\B \sSet\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
    &\B \New\C{\b\e}  \\ 
    
 \end{tabular}\end{minipage} &
@@ -3309,7 +3309,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \rowcolor{gray!10}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\e   \\
+   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\t\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
    &\B \SubCast\t\e &\B \BehCast\t\e 
 \end{tabular}\end{minipage} &
