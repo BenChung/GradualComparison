@@ -626,7 +626,7 @@ appears in the type signature as getter/setter pairs with the exception of
 the \that field that is hidden from the class type signature.  Method calls use \emph{syntactic} disambiguation to select between
 typed and untyped methods. The dynamically resolved call places no
 requirements on the receiver or argument, and returns type \any. 
-Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how their soundness is enforced at run-time is very different though.  References can be typed both as dynamic, or with the type of the object the point to in the current heap \(\sigma\).
+Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how their soundness is enforced at run-time is very different though.  References can be typed both as dynamic, or with the type of the object the point to in the current heap \(\sigma\).   \FZ{Fix rules names.}
 
 
 
@@ -736,9 +736,6 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 
 
 
-\paragraph{Dynamic Semantics}
-The small  step operational semantics for \kafka is reported in \figref{fig:semantics}.
-
 
 
 %
@@ -828,6 +825,21 @@ The small  step operational semantics for \kafka is reported in \figref{fig:sema
 \end{tabular}\end{minipage}
 
 \medskip
+\(
+\readf \s\a\f\K = \ap 
+  ~~\mathit{if}~~ \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots} ~\wedge~
+ \Class\C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}\in\K \)
+ \medskip
+ 
+ \(
+\setf \s\a\f\ap\K= \Map\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
+  ~~\mathit{if}~~ 
+   \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots} ~\wedge~
+   \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
+   \)
+
+
+\medskip
 \begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
 \EE &::= \Get\EE\f     &\B
         \Set\EE\f\e   &\B
@@ -855,6 +867,9 @@ The small  step operational semantics for \kafka is reported in \figref{fig:sema
 
 %\noindent\hrulefill
 
+
+\paragraph{Dynamic Semantics}
+The small  step operational semantics for \kafka is reported in \figref{fig:semantics}.
  A configuration is a triple \K\e\s, where \K is a class
 table, \e is an expression and \s is a heap mapping addresses ranged over by \a
 to objects denoted \hspace{-1mm}\obj\C{\b\a}.  A configuration evaluates in one
@@ -862,20 +877,19 @@ step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new configuration may
 include a new class table built by extending the previous table with new
 classes. Field access either reads a field from the object (if the class has a
 field definition) or invokes a getter function (if the class has a getter method
-of the field name), and setters are treated similarly. Calling forms specify the
+of the field name), and setters are treated similarly. \FZ{Don't understand.  Jan explained - must integrate in text - : Getter/Setter:    A class that has fields `fd1..`  also has implicit getter/setter methods `f1():t` and `f1(x:t):t`.  These implicit g/s methods do not show up in the class table. The semantics knows that if you are trying to call an implicit get / set method it should retrieve the field and read from or write to it.
+The reason they are implicit is that we could not write their body without introducing assignment statements.
+and reads.
+Both of these are tricky because under wrapper semantics you want to be able to interpose on all reads writes.
+An alternative and equivalent design would have been to allow assignments but only in one place — the getter/setter methods of the class that defines a field.  This carries into downsides.
+} 
+Calling forms specify the
 typing, typed methods are invoked with static calls and untyped methods are
-invoked with dynamically resolved calls. Casts to \any are trivially satisfied
-while subtype casts to \C check that the runtime object is an instance of a
-subtype of \C.
+invoked with dynamically resolved calls. Structural casts to \any always succeed
+while structural casts to \C check that the runtime object is an instance of a
+subtype of \C.  
 %, while shallow casts check inclusion of method names. 
-Evaluation contexts are deterministic and enforce a strict evaluation order.
-
-
-
-%%% HERE
-
-
-
+Evaluation contexts are deterministic and enforce a strict evaluation order
 
 \paragraph{Behavioural Casts}
 
@@ -886,7 +900,7 @@ guarantees. The behavioural cast is generative as it creates both a class
 and a new instance of that class. The cast's dynamic semantics appear in
 \figref{behave}. \RuleRef{BC1} wraps a reference \a with a freshly generated
 wrapper \k for some type \t, adds it into a new heap, and then hands it back
-to the top level dynamics. \RuleRef{BC2} does the same, except that it wraps
+to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 \a with the guards to let \a act like an instance of \any.
 
 \begin{figure}[!ht]
@@ -927,68 +941,162 @@ types. Internally, wrappers either forward values, as in the case of getters
 and setters, or mimic the behaviour of the underlying object, in the case of
 methods, ensuring that the type guarantees of both the externally visible
 type and the wrapped object are respected.
-Wapper generation is implemented by \xt{wrap}, a meta function of 5
-arguments derived from the class table and the names of the types in
-question.  An example is shown in next, where we wrap an
-instance of \C, which we want to make sure acts like a \D. \xt{wrap}
-generates a proxy method for \m, which acts like \C's implementation of \m,
-but has casts enforcing the type guarantees of \D.
+Wrapper generation is implemented by the \xt{wrap} function, that takes two class types and the two
+sets of method typing. The class type $\C$ is the type of the expression being casted, also known 
+as the source type and represented by $\tp$ in the typing rule \xt{WB}.
+The class type $\D$ is a fresh class name, and represents the type of the wrapper class.
+The method typing $\bmt$ corresponds to the typing definition of every method in $\C$.
+The method typing $\bmtp$ is the set of method typing for the casting type. The casting
+type is also known as the target type, shown by $\t$ in \xt{WB}.
+
+% 
+%\opdef{\mt ~~::= \Mtype\m\t\t \B  \Mtype\f\t\t  \B \Mtype\f{}\t 
+%}{ method typing
+%} \\
+
+% 
+
+Every wrapper class has a \xt{that} field pointing to the source type.
+
+The last three cases is for when the methods are in the source type but not the 
+target type. For each of these method, their method call is redirected 
+to its corresponding method in the source type.
 
 
-{  \small
-\hspace{-6mm}\begin{tabular}{ER{3.5cm}ER{3cm}l}
-wrap( & 
-\begin{lstlisting}
-class C {
-  m (x :*):* {x}}
-\end{lstlisting}& , &
-\begin{lstlisting}
-class D {
-  m (x  A):B}
-\end{lstlisting}&) =
-\end{tabular}
-\begin{tabular}{@{}l@{}r@{}}
-&
-\begin{minipage}{7cm}
-\begin{lstlisting}
-class D {
- that:C
- m(x:A):B { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-0mm}@*)x}
-}
-\end{lstlisting}
-\end{minipage}
-\end{tabular}
-}
+\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
+
+\vspace{4mm}
+%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\IGNOREUNLESSNEEDED{
+\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+    \wrap\C\bmt\bmtp\D = \\
+\SP \class ~\D ~ \{\\
+\SPP \Fdef\that\C \\
+\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that}\f}~}
+&    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
+\\[-2mm]
+\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
+\\[-2mm]
+\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }}~}
+&     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\\[-2mm]
+\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that} \m {\x} }~}
+&    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\\[-2mm]
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\bscast{\Cp}\x} }~}
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\\[-2mm]
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that} \m {\x} }~}
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\\[-2mm]
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that}\f~}
+&    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
+\\[-2mm]
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that}\f\x~}
+&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
+\\[-2mm]
+\SPP \Mdef\m\x{\t}{\tp}{~\Set{\Get\this\that}\m{\x}~}
+&    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+% \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
+% &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
+% \\
+\SP \}
+\\
+\end{array}\]
+
+\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+\wrapAny\C\bmt\D = \\
+\SP \class~\D~\{\\
+\SPP \Fdef \that \C\\ 
+\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that}}\f}~}
+&  \Mtype\f{}\t \in \bmt\\
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that}\f{\bscast\t\x}}~}
+&  \Mtype\f\t\t \in \bmt\\
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that}\m{\bscast{\t}\x} }~}
+&  \Mtype\m\t\t\in\b\mt \\
+\\
+\SP \}\\
+\end{array}\]
 
 
-\begin{figure}[!ht]
-\begin{tabular}{ER{4.5cm}ER{3.5cm}E}
-wrap( & 
-\begin{lstlisting}
-class C { 
-  m (x : *) : * { x }}
-\end{lstlisting}& , &
-\begin{lstlisting}
-class D { 
-  m (x : A) : B}
-\end{lstlisting}&) =
-\end{tabular}
-\begin{tabular}{@{}l@{}r@{}}
-\hspace{4cm} \,&
-\begin{minipage}{\textwidth-2cm}
-\begin{lstlisting}
-class D {
-  m(x : A) : B { 
-    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(<*>this.that())@m((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-1mm}@*)x) }
-}
-\end{lstlisting}
-\end{minipage}
-\end{tabular}
-\caption{Naive wrapper generation}
-\label{fig:rktex2}
-\end{figure}
 
-\FZ{Add semantics of wrap.}
+%%%%%%%%%%% COPIED UNTIL HERE
+
+
+
+
+
+% EXAMPLE << MIGHT BE USEFUL
+%
+%
+%{  \small
+%\hspace{-6mm}\begin{tabular}{ER{3.5cm}ER{3cm}l}
+%wrap( & 
+%\begin{lstlisting}
+%class C {
+%  m (x :*):* {x}}
+%\end{lstlisting}& , &
+%\begin{lstlisting}
+%class D {
+%  m (x  A):B}
+%\end{lstlisting}&) =
+%\end{tabular}
+%\begin{tabular}{@{}l@{}r@{}}
+%&
+%\begin{minipage}{7cm}
+%\begin{lstlisting}
+%class D {
+% that:C
+% m(x:A):B { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-0mm}@*)x}
+%}
+%\end{lstlisting}
+%\end{minipage}
+%\end{tabular}
+%}
+%
+
+
+
+% EXAMPLE << MIGHT BE USEFUL
+
+% An example is shown in next, where we wrap an
+%instance of \C, which we want to make sure acts like a \D. \xt{wrap}
+%generates a proxy method for \m, which acts like \C's implementation of \m,
+%but has casts enforcing the type guarantees of \D.
+%
+%\begin{figure}[!ht]
+%\begin{tabular}{ER{4.5cm}ER{3.5cm}E}
+%wrap( & 
+%\begin{lstlisting}
+%class C { 
+%  m (x : *) : * { x }}
+%\end{lstlisting}& , &
+%\begin{lstlisting}
+%class D { 
+%  m (x : A) : B}
+%\end{lstlisting}&) =
+%\end{tabular}
+%\begin{tabular}{@{}l@{}r@{}}
+%\hspace{4cm} \,&
+%\begin{minipage}{\textwidth-2cm}
+%\begin{lstlisting}
+%class D {
+%  m(x : A) : B { 
+%    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(<*>this.that())@m((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-1mm}@*)x) }
+%}
+%\end{lstlisting}
+%\end{minipage}
+%\end{tabular}
+%\caption{Naive wrapper generation}
+%\label{fig:rktex2}
+%\end{figure}
+
+
 
 
 Copying the behaviour of the wrapped object is unusual, but this is how we
@@ -3676,7 +3784,7 @@ target type. For each of these method, their method call is redirected
 to its corresponding method in the source type.
 
 
-\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
+\renewcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
 
 \vspace{4mm}
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
