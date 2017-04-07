@@ -746,7 +746,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \begin{minipage}{14cm}
   \opdef{\Reduce \K\e\s \Kp\ep\sp}
         {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
-\begin{tabular}{l@{}l@{~}l@{~}l}
+\begin{tabular}{l@{}lll}
 \CondRule{E1}{  %% new C -> a
    \fresh\ap 
 }{ 
@@ -813,7 +813,8 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \CondRule{E11}{  %% Behavioral cast  
   \behcast \a\t\s\K  \Kp\ap\sp    
 }{    
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
+  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp-
+
 } 
 \CondRule{E11 \FZ{FIX numbering}}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
@@ -825,20 +826,16 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \end{tabular}\end{minipage}
 
 \medskip
-\(
-\readf \s\a\f\K = \ap 
-  ~~\mathit{if}~~ \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots} ~\wedge~
- \Class\C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}\in\K \)
- \medskip
- 
- \(
-\setf \s\a\f\ap\K= \Map\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
-  ~~\mathit{if}~~ 
-   \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots} ~\wedge~
-   \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
-   \)
-
-
+\[
+\begin{array}{r@{~}l}
+\readf \s\a\f\K &= \ap\\ 
+    ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_1\dots\a_n \ap \dots}\\
+    ~~\mathit{and}~~ &\Class\C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}\in\K \\
+\setf \s\a\f\ap\K &= \Map\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}\\
+  ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots} \\
+  ~~\mathit{and}~~&\Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
+\end{array}
+\]
 \medskip
 \begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
 \EE &::= \Get\EE\f     &\B
