@@ -1591,6 +1591,7 @@ causes all calls to be dynamic.
 \end{figure}
 
 
+\begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
   \hspace{-.5cm}\begin{minipage}{8cm}  
@@ -1600,38 +1601,32 @@ causes all calls to be dynamic.
        \>          \> \mds 1   \> = \Mdef\m\x{\t_1}{\t_2}\e                       \\
        \>          \> \mdsp 1  \> = \src{\Mdef\m\x{\kty{\t_1}}{\kty{\t_2}}{\ep}}  \\
        \>          \> \ep      \> = \tr{a}{\K, \Ftype\this\C\,\Ftype\x{\t_1}, \t_2, \e} \\
-       \>          \> \mdspp 1 \>=  \src{\Mdef\m\x\any\any{ \SubCast{\t_2}{ \Call\this{\name\m{\t_1}{\t_2}}{ \SubCast{\t_1}\x } } }}\\
-       \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \Dp\\
+       \>          \> \mdspp 1 \>=  \src{\Mdef\m\x\any\any{\SubCast\any{\Call\this{\name\m{\t_1}{\t_2}}{\SubCast{\t_1}\x}}}}\\
+       \>          \>          \> \HS\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \D\\
        \>          \>          \>\HS empty\\
        \>          \>          \> \HS\HS  {\bf otherwise}  ..                   \\[1mm]
 \tr e{\K, \Env, \x} = \src \x
 \\[1mm]       
-\tr e{\K, \Env, \Call\this\f{}}  = \src{\Call\this{\namet\f\t}{}} \\
-       \> \WHERE   \> \Ftype\f\t \EM{\in} \C,   \HS \TypeCk{\K,\Env}{\this}\C
-\\[1mm]
 \tr e{\K, \Env, \Call\e\f{}} = \src{\DynCall\ep{\namet\f\any}{}}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env,  \e}, \HS  \TypeCk{\K,\Env}\e\t, \HS  \kty\t=\any
 \\[1mm]
 \tr e{\K, \Env, \Call\e\f{}} = \src{\Call\ep{\name\f\t}{}}  \\
       \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \IN \C  
 \\[1mm]
-\tr e{\K, \Env, \Call\this\f\e} = \src{\Call\this{\name\f\t\t}{\ep}} \\
-\> \WHERE   \> \ep = \tr a{\K, \Env, \kty\t, \e}, \HS  \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\IN\C 
+\tr e{\K, \Env, \Call{\e_1}\f{\e_2}} = \src{\DynCall{\e_1}{\name\f\any\any}{\eps 2}}\\
+      \>\WHERE\HS \> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
+      \>          \>  \eps 1 = \tr e{\K, \Env, \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \any, \e_2 }
 \end{tabbing}
 \end{minipage}
 &~~ \hspace{1cm} ~~~ &
 \begin{minipage}{5cm}
   \begin{tabbing}
-    \tr e{\K, \Env, \Call{\e_1}\f{\e_2}} = \src{\DynCall{\e_1}{\name\f\any\any}{\eps 2}}\\
-\HS\=\WHERE\HS\= \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
-      \>          \>  \eps 1 = \tr e{\K, \Env, \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \any, \e_2 }
-\\[1mm]
 \tr e{\K, \Env,  \Call{\e_1}\f{\e_2}} = \src{\Call{\eps 1}{\name\f\t\t}{\eps 2}} \\
-      \> \WHERE   \> \TypeCk{\K, \Env}{\e_1}\C, \HS  \Ftype\f\t\IN\C \\
+\HS   \=\WHERE\HS\= \TypeCk{\K, \Env}{\e_1}\C, \HS  \Mtype\f\t\t\IN\C \\
       \>          \>  \eps 1 = \tr e{\K, \Env,  \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \kty\t, \e_2} 
 \\[1mm]
 \tr e{\K, \Env, \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}} \\
-     \> \WHERE   \> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
+\HS   \>\WHERE\HS\> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
      \>          \> \eps 1= \tr e{\K,\Env, \e_1}, \HS \eps 2=\tr a{\K,\Env, \any, \e_2}
 \\[1mm]
 \tr e{\K,\Env, \Call{\e_1}\m{\e_2}} = \src{\Call{\eps 1}{\name\m{\t_1}{\t_2}}{\eps 2}} \\
@@ -1639,18 +1634,18 @@ causes all calls to be dynamic.
      \>          \>  \ \Mtype\m{\t_1}{\t_2}\IN \C, \HS  \eps 2 = \tr a{\K, \Env, \t_2, \e_2} 
 \\[1mm]
 \tr e{\K, \Env, \New\C{\e_1..}} = \src{\New\C{\eps 1..}} \\
-     \> \WHERE   \>  \Ftype{\f_1}{\t_1}\IN\C, \HS  \eps 1= \tr a{\K,\Env,\t_1,\e_1} ..
+     \> \WHERE   \>  \Ftype{\f_1}{\t_1}\IN\C, \HS  \eps 1 = \tr a{\K,\Env,\t_1,\e_1} ..
 \\[1mm]
 \tr a{\K, \Env, \t, \e} = \src\ep\\
-\> \WHERE \> \kty\tp <: \kty\t, \TypeCk{\K,\E}\e\tp, \ep =\tr e{\K,\Env,\e}
+\> \WHERE \> \kty\tp <: \kty\t, \TypeCk{\K,\E}\e\tp, \ep = \tr e{\K,\Env,\e}
 \\[1mm]
-\tr a{\K, \Env, \t, \e} = \src{\SubCast\t\ep}\\
-\> \WHERE \> not \kty\tp <: \kty\t, \TypeCk{\K,\E}\e\tp, \ep =\tr e{\K,\Env,\e}
+\tr a{\K, \Env, \t, \e} = \src{\SubCast{\kty\t}\ep}\\
+\> \WHERE \> not \kty\tp <: \kty\t, \TypeCk{\K,\E}\e\tp, \ep = \tr e{\K,\Env,\e}
 \end{tabbing}
 \end{minipage}
 \end{tabular}
-
-
+\caption{Thorn translation.  \kty\t = \any if  \t=?\C, \t otherwise. }
+\end{figure}
 
 \subsection{Transient Python}
 
