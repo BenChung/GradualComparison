@@ -1334,113 +1334,43 @@ of this bidirectional framework, we then have a fairly typical set of
 translation judgments.
 
 
-\newpage
-\begin{verbatim}
-tc( class C { fd1.. md1.. }  ) =  class C { fd1'.. md1'.. } 
-      where fd1 = f:t,  fd1 = f:* .. 
-             md1' = tm(  md1 ) ..
-tm( m (x:t):t' { e } ) =  m(x:*):*{ e' }
-           where e' = te( e )
-te( this.f() )    =  this.f() 
-te( e.f() )       =  e'@f()        where e'  = te( e )
-te( this.f(e) )   =  this.f( e' )  where e'  = te( e )
-te( e1.f(e2) )    =  e1'@f(e2')    where e1' = te( e1 ), e2' = te( e2 )
-te( e1.m(e2) )    =  e1'@m(e2')    where e1' = te( e1 ), e2' = te( e2 )
-te( new C(e1..) ) =  new C(e1..)   where e1' = te( e1 ).. 
-\end{verbatim}
-
-
-
 \begin{figure}[!h]
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
-\begin{mathpar}
-\IRule[width=20em]{TS-PROGRAM}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
+  \hspace{-.5cm}\begin{minipage}{8cm}  
+\begin{tabbing}
 
-\IRule[width=30em]{TS-CLASS1}{ 
-  \cload{\b\md ~ \b\fd}\\
-  \b{\methtrans {\K}{\C}{\md}{\md'}{}} \\
-  \b{\fieldtrans {\fd}{\fd'}{}} \\
-  {\C \not\in \Kp} \\
-  \classtrans {\K}{\Kp}\Kpp
-}{
-   \classtrans {\K}{{\Class \C{\b{\fd}}{\b\md}~\Kp}}{\Class \C {\b{\fd'}}{\b{\md'}}~\Kpp}}
-
-\IRule{TS-CLASS2}{ 
-}{
-  \classtrans {\K}\cdot\cdot
-}
-
-\IRule{TS-FIELD}{
-}{
-  \fieldtrans{\Fdef\f\t}{\Fdef\f\any}{}
-}
-
-\IRule{TS-METHOD}{
-  \AnaCast {\K}{\HT\this{\C}~\HT\x{\t}}{\e}\ep{\tp}
-}{
-  \methtrans {\K}{\C}{\Mdef\m\x{\t}{\tp}{\e}}{\Mdef\m\x\any\any{\SubCast\any\ep}}{}
-}
-\end{mathpar}
-
-\begin{minipage}{\textwidth}
-\begin{mathpar}
-\IRule{TSS-VAR}{\HasType{\Env}\x\t}{\GenCast{\K}\Env\x\x\t}
-
-\IRule[width=30em]{TSS-TYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\C} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ {\AnaCast\K\Env{\e_2}{\e_4}{\t_1}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\SubCast\any{\e_3}}\m{\SubCast\any{\e_4}}}{\t_2}
-}
-
-\IRule[width=10em]{TSS-DYCALL}{
-    \GenCast\K\Env{\e_1}{\e_3}{\any} \\ {\AnaCast\K\Env{\e_2}{\e_4}{\any}}
-}{
-    \GenCast\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}
-}
-
-\IRule[width=20em]{TSS-FIELD}{
-    {\HasType{\Env}\this\C} \\ 
-    {\f(\b{\t}):\t \in \classoff\C\K} \\ 
-    \b{\AnaCast\K\Env{\e}{\ep}{\t}}
-}{
-    \GenCast\K\Env{\Call{\this}\f{\b\e}}{\Call{\this}\f{\b\ep}}{\t}
-}
-
-\IRule{TSS-NEW}{
-  \b{\AnaCast{\K}\Env{\e_1}{\e_2}\t} \\ 
-  {\Class \C {\b{\Fdef\f\t}} {\b{\md}} \in \K}
-}{
-  \GenCast\K\Env{\New\C{\b{\e_1}}}{\SubCast\any{\New\C{\b{\e_2}}}}{\C}
-}
-\end{mathpar}
+\tr c{\K, \Class \C{\fds 1..}{\mds 1 .. }} = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..}} \\
+\HS \= \WHERE\HS\= \fds 1\HS\= = \Ftype\f\t, \HS \HS  \fdsp 1   = \src{\Ftype\f\any} ..     \\
+       \>          \> \mds 1   \> = \Mdef\m\x{\t_1}{\t_2}\e                       \\
+       \>          \> \mdsp 1  \> = \src{\Mdef\m\x\any\any\ep}  \\
+       \>          \> \ep      \> = \tr a{\K, \Ftype\this\C\,\Ftype\x{\t_1}, \t_2, \e}
+\\[1mm]
+\tr e{\x} = \src \x
+\\[1mm]       
+\tr e{ \Call\e\f{}} = \src{\DynCall\ep{\namet\f\any}{}}  \HS \WHERE\HS \ep = \tr e{  \e}
+\\[1mm]
+\tr e{ \Call{\e_1}\f{\e_2}} = \src{\DynCall{\e_1}{\name\f\any\any}{\eps 2}}\\
+      \>\WHERE\HS \> \eps 1 = \tr e{ \e_1}, \HS  \eps 2 = \tr a{ \any, \e_2 }
+\end{tabbing}
 \end{minipage}
-
-\begin{minipage}{\textwidth}
-\begin{mathpar}
-\IRule{TSA-SUB}{
-  \GenCast\K\Env\e\ep\tp \\
-  {\K \vdash \tp \Sub \t}
-}{
-  \AnaCast\K\Env\e\ep\t
-}
-
-\IRule{TSA-TRANS1}{
-  \GenCast\K\Env\e\ep\any
-}{
-  \AnaCast\K\Env\e\ep\t
-}
-
-\IRule{TSA-TRANS2}{
-  \GenCast\K\Env\e\ep\C
-}{
-  \AnaCast\K\Env\e\ep\any
-}
-\end{mathpar}
+&~~ \hspace{.51cm} ~~~ &
+\begin{minipage}{5cm}
+  \begin{tabbing}
+\tr e{ \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\name\m\any\any}{\eps 2}} \\
+\HS   \=\WHERE\HS\= \eps 1= \tr e{ \e_1}, \HS \eps 2=\tr a{ \any, \e_2}
+\\[1mm]
+\tr e{\New\C{\e_1..}} = \src{\New\C{\eps 1..}} \HS \WHERE \HS   \eps 1 = \tr a{\any,\e_1} ..
+\\[1mm]
+\tr a{ \t, \this} = \src{\SubCast\any\this}
+\\[1mm]
+\tr a{ \t, \New\C{\e_1..}} = \src{\SubCast\any\e} \HS\WHERE \HS \e = \tr e{\New\C{\e_1..}}
+\\[1mm]
+ \tr a{ \t, \e} = \src\e
+\end{tabbing}
 \end{minipage}
-\caption{TypeScript translation.}
-\label{fig:tstrans_exp2}
+\end{tabular}
+\caption{TypeScript}
 \end{figure}
 
 The synthetic case of translation is uninteresting, with the exception of
