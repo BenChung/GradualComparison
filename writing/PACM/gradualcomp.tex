@@ -1813,12 +1813,12 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \HS\= \WHERE\HS \= \mdsp 1 = \tr m{\K, \Ftype\this\C, \mds 1} ~..
 \\[1mm]
 \tr m{\K,\Env, \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\t\tp\ep}\\
-   \> \WHERE    \> \ep = \tr a{\K,\Env\;\Ftype\x\t,\tp,\e}
+   \> \WHERE    \> \ep = \tr e{\K,\Env\;\Ftype\x\t,\e}
 \\[1mm]
 \tr e{\K,\Env, \x} = \src{\x}
 \\[1mm]
 \tr e{\K,\Env,\Call\e\f{}}  = \src{\Call\ep{\namet\f\t}{}}\\
-   \> \WHERE    \> \TypeCk\K\Env\e,  \HS \Mtype\f{}\t,\HS  \ep = \tr e{\K,\Env,\e}
+   \> \WHERE    \> \TypeCk{\K,\Env}\e\t,\HS  \Mtype\f{}\t\In\App\K\C,\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
 \tr e{\Call{\e_1}\f{\e_2}} =  \src{\Call\this{\name\f\any\any}\ep} \\
    \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\IN\C,\HS \ep = \tr a{\K,\Env,\t,\e}
