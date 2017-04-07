@@ -746,7 +746,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \begin{minipage}{14cm}
   \opdef{\Reduce \K\e\s \Kp\ep\sp}
         {\e\s evaluates to \ep\xspace in a step}\\[-1mm]
-\begin{tabular}{l@{}lll}
+\begin{tabular}{r@{\;}l@{}lll}
 \CondRule{E1}{  %% new C -> a
    \fresh\ap 
 }{ 
@@ -791,32 +791,13 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 }{ 
   \ReduceA \K{\SubCast \D\a}\s \K\a\s
 }
-%\CondRule{E10}{  %% Shallow Structural
-%}{ 
-%  \ReduceA \K{\ShaCast \any\a}\s \K\a\s
-%}
-%\CondRule{E10b}{  %% Shallow Structural
-% \names{{\App\K\C}}  $\supseteq$  \names{{\App\K\D}} \AND \App\s\a=\obj\C{\b\a} 
-%}{ 
-%  \ReduceA \K{\ShaCast \D\a}\s \K\a\s
-%}
-% \CondRule{E11}{  %% Behavioral cast
-%   \behcast \a\t\s\K  \Kp\ap\sp
-% }{ 
-%   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
-% }
-% \CondRule{E12}{  %% Monotonic cast
-%   \moncast \a\t\s\K  \Kp\sp
-% }{ 
-%   \ReduceA \K{\MonCast\t\a}\s \Kp\a\sp
-% }
-\CondRule{E11}{  %% Behavioral cast  
+\CondRule{E10}{  %% Behavioral cast  
   \behcast \a\t\s\K  \Kp\ap\sp    
 }{    
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp-
+  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
 
 } 
-\CondRule{E11 \FZ{FIX numbering}}{  %% E[e] -> E[e']
+\CondRule{E11}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
 }{
  \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
