@@ -2292,7 +2292,7 @@ The function $\xt{overloading}(\b\md ~ \b\fd)$ there are no overloaded method na
 given method definitions.
 
 
-\opdef{~\xt{overloading}$_{\cmdp}$(\b\md ~\b\fd)}{Method overloading}
+\opdef{~\xt{overloading}$_{\cmd}$(\b\md ~\b\fd)}{Method overloading}
 \begin{mathpar}
 \IRule{MO1}{
 }{
@@ -2300,7 +2300,7 @@ given method definitions.
 }
 
 \IRule{MO2}{
- \Mtype\m\any\any \notin \cmd \\
+ \Mtype\m\any\any \notin \b\md \\
  \cmdp = \cmd, \Mtype\m\any\any \\
  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
@@ -2308,15 +2308,15 @@ given method definitions.
 }
 
 \IRule{MO3}{
- \Mtype\m\t\t \in \cmd \implies \t = \any \\
+ \Mtype\m\t\t \in \b\md \implies \t = \any \\
  \cmdp = \cmd, \Mtype\m\t\t \\
  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
-\xt{overloading}_{\cmd}(\Mdef\m\x\C\C\e~\b\md~\b\fd)
+\xt{overloading}_{\cmd}(\Mdef\m\x\C\Cp\e~\b\md~\b\fd)
 }
 
 \IRule{MO4}{
- \f \in \xt{names}(\cmd) \implies \f \notin \xt{names}(\cmd \setminus \Mtype\f{}\t)  \\
+ \f \in \xt{names}(\b\md) \implies \f \notin \xt{names}(\b\md \setminus \Mtype\f{}\t)  \\
  \cmdp = \cmd, \Mtype\f\t\t  \\
  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
@@ -2324,14 +2324,14 @@ given method definitions.
 }
 
 \IRule{MO5}{
- \f \in \xt{names}(\cmd) \implies \f \notin \xt{names}(\cmd \setminus \Mtype\f\t\t)  \\ \cmdp = \cmd, \Mtype\f\t\t \\
+ \f \in \xt{names}(\b\md) \implies \f \notin \xt{names}(\b\md \setminus \Mtype\f\t\t)  \\ \cmdp = \cmd, \Mtype\f\t\t \\
  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
 \xt{overloading}_{\cmd}(\Mdefz\f\t\e ~ \b\md ~ \b\fd)
 }
 \end{mathpar}
 
-\opdef{~\xt{overloading}(\b\fd)}{field overloading}
+\opdef{~\xt{overloading}$_{\cmd}$(\b\fd)}{field overloading}
 \begin{mathpar}
 \IRule{FO1}{
  \f \notin \xt{names}(\cmd) \\
@@ -2763,14 +2763,14 @@ field/method.
 }
 
 \IRule{CMT2}{
-  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdef\f\x\t\t\e)  \\
+  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdef\f\x\t\t\ep)  \\
  \cload\bmd
 }{
 \cload{\Mdefz\f\t\e \,\, \b\md}
 }
 
 \IRule{CMT3}{
-  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdefz\f\t\e)  \\
+  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdefz\f\t\ep)  \\
  \cload\bmd
 }{
 \cload{\Mdef\f\x\t\t\e \,\, \b\md}
@@ -3299,6 +3299,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \cond{\App\s\a = \obj\C{\b{\a_1}}}\lbl{cond5}
    \cond{\sp = \Map \s{\Bind\ap{\obj\D{\a}}}}\lbl{cond6}
    \cond{\cload{\bmt}}\lbl{cond7}
+   \cond{\fresh\that}\lbl{cond8}
   \end{conds}
   
   \then\axiom{\WF{}\sp{\K~\k}{\k}}
@@ -3431,28 +3432,155 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{\EnvType \Envp\sp\Kk{\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}}{\any}}{\byjdg{WB}{\trf{M8}}}\lbl{M9}
       \longstepC{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\any\any {~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT1}{\trf{M9},~\trf{M3}}}\lbl{M10}
      \end{case}
-     
-     \begin{case}{\xt{overloading}$_{\cmd}$(\b\md~\b\fd)}\lbl{N}
-      \step{Trivial}{\textbf{that} is fresh and \bylemm{\ref{lem:DM-OL}}{DupMeth gives overloading}{\trf{cond7}}}\lbl{N1}
-     \end{case}
+    
+     \step{$\Class \D {\b\fd}{\b\md} \in \K~\k$}{\trf{cond7}}\lbl{N2}
+     \step{\cload{\classoff\D{\K~\k}}}{\trf{cond8}, \bylemm{\ref{lem:DM-WR}}{DupMeth over wrappers}{\trf{cond7}, \trf{cond4}}}\lbl{N1}
+     \step{\xt{overloading}$_{\cmd}$(\b\md~\b\fd) \textbf{for} \k}{\bylemm{\ref{lem:DM-OL}}{DupMeth gives overloading}{\trf{cond7}}, \trf{N2}, \trf{N1}}\lbl{N3}   
+     \done{\trf{1}, \trf{N3}, and \textbf{Case}}
     \end{proof}
    \end{theorem}
 
+\begin{lemma}{DupMeth over wrappers}{DM-WR}
 
+  \begin{conds}
+   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond4}
+   \cond{\cload{\classoff\C\K}}\lbl{cond1}
+  \end{conds}
+  
+  \then\axiom{\cload{\classoff\D{\K~\k}}}
+
+   \begin{proof} \innatE{on the construction of \k}
+    \step{\names{\classoff\D{\K~\k}} $\subseteq$ \names{\classoff\C{\K}}.}{\trf{cond4}, \textbf{wrap} function (ensures all methods in \D must be in \C).}\lbl{1}
+    \step{\cload{\classoff\D{\K~\k}}}{\trf{1}, \trf{cond1}, \textbf{dupMeth} function}\lbl{2}
+    \done{\trf{2}}
+   \end{proof}
+\end{lemma}
+   
+   
+% dupMeth   
+%   
+%    \IRule{CMT1}{
+%   \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f{}\t)  \\
+%  \cload{\bmt}
+% }{
+% \cload{\Mtype\f\t\t \,\, \bmt}
+% }
+% 
+% \IRule{CMT2}{
+%   \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f\t\t)  \\
+%  \cload\bmt
+% }{
+% \cload{\Mtype\f{}\t \,\, \b\mt}
+% }
+% 
+% \IRule{CMT3}{
+%  \m \not\in \names\bmt \\
+%  \cload\bmt
+% }{
+% \cload{\Mtype\m\t\t \,\, \b\mt}
+% }
+%    
+   
+
+% Overloading   
+%    
+% \IRule{MO2}{
+%  \Mtype\m\any\any \notin \b\md \\
+%  \cmdp = \cmd, \Mtype\m\any\any \\
+%  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
+% }{
+% \xt{overloading}_{\cmd}(\Mdef\m\x\any\any\e~\b\md~\b\fd)
+% }
+% 
+% \IRule{MO3}{
+%  \Mtype\m\t\t \in \b\md \implies \t = \any \\
+%  \cmdp = \cmd, \Mtype\m\t\t \\
+%  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
+% }{
+% \xt{overloading}_{\cmd}(\Mdef\m\x\C\C\e~\b\md~\b\fd)
+% }
+% 
+% \IRule{MO4}{
+%  \f \in \xt{names}(\b\md) \implies \f \notin \xt{names}(\b\md \setminus \Mtype\f{}\t)  \\
+%  \cmdp = \cmd, \Mtype\f\t\t  \\
+%  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
+% }{
+% \xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e ~ \b\md ~\b\fd)
+% }
+% 
+% \IRule{MO5}{
+%  \f \in \xt{names}(\b\md) \implies \f \notin \xt{names}(\b\md \setminus \Mtype\f\t\t)  \\ 
+%  \cmdp = \cmd, \Mtype\f\t\t \\
+%  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
+% }{
+% \xt{overloading}_{\cmd}(\Mdefz\f\t\e ~ \b\md ~ \b\fd)
+% }
+   
+   
+   
 \begin{lemma}{DupMeth gives overloading}{DM-OL}
 
   \begin{conds}
-  \cond{$\Class \C {\b\fd}{\b\md} \in \K$}\lbl{cond3}
-  \cond{\bmt = \classoff\C\K}\lbl{cond2}
-  \cond{\cload{\bmt}}\lbl{cond1}
+   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond1}
+   \cond{$\Class \D {\b\fd}{\b\md} \in \K~\k$}\lbl{cond2}
+   \cond{\bmt = \classoff\D{\K~\k}}\lbl{cond3}
+   \cond{\cload{\bmt}}\lbl{cond4}
+   \cond{\fresh{\textbf{that}}}\lbl{cond5}
   \end{conds}
   
   \then\axiom{\xt{overloading}$_{\emptyset}$(\b\md~\b\fd)}
 
-   \begin{proof} \indana{\trf{cond1}}
-    
+   \begin{proof} \indana{\trf{cond4}}
+     \begin{case}{FO1}\lbl{A}
+      \step{\xt{overloading}$_{\cmd}$(\namet{\that}{\C})}{\trf{cond5}, \trf{cond1}}\lbl{A1}
+      \done{\trf{A1}}
+     \end{case}
+     
+     \begin{case}{MO1}\lbl{B}
+      \statem{Trivial, axiom.}\lbl{B1}
+      \done{\trf{B1}}
+     \end{case}
+
+     \begin{case}{MO2}\lbl{C}
+      \step{\xt{overloading}$_{\cmd}$(\Mdef\m\x\any\any\e ~ \b\mdp ~\b\fd)}{def of \textbf{case}}\lbl{C1}
+      \step{\m $\not\in$ \names{\b\mtp}}{\trf{cond4} on \textbf{case}}\lbl{C2}
+      \step{\Mdef\m\x\any\any\e $\not\in$ \b\mdp}{\trf{C1}, \trf{C2}}\lbl{C3}
+      \slet{\cmdp}{\cmd,~\Mdef\m\x\any\any\e}\lbl{C4}
+      \step{\xt{overloading}$_{\cmdp}$(\b\mdp~\b\fd)}{Ind Hyp on \textbf{case}, \trf{C1}, \trf{C3}, \trf{C4}}\lbl{C5}
+      \done{\trf{C3}, \trf{C4}, \trf{C5}}
+     \end{case}
+
+     \begin{case}{MO3}\lbl{D}
+      \step{\xt{overloading}$_{\cmd}$(\Mdef\m\x\C\Cp\e ~ \b\mdp ~\b\fd)}{def of \textbf{case}}\lbl{D1}
+      \step{\m $\not\in$ \names{\b\mtp}}{\trf{cond4} on \textbf{case}}\lbl{D2}
+      \step{\Mdef\m\x\C\Cp\e $\not\in$ \mdp}{\trf{D1}, \trf{D2}}\lbl{D3}
+      \slet{\cmdp}{\cmd, ~\Mdef\m\x\C\Cp\e}\lbl{D4}
+      \step{\xt{overloading}$_{\cmdp}$(\b\mdp~\b\fd)}{Ind Hyp on \textbf{case}, \trf{D1}, \trf{D3}, \trf{D4}}\lbl{D5}
+      \done{\trf{D3}, \trf{D4}, \trf{D5}}      
+     \end{case}
+
+     \begin{case}{MO4}\lbl{E}
+      \step{\xt{overloading}$_{\cmd}$(\Mdef\f\x\t\t\e ~ \b\mdp ~\b\fd)}{def of \textbf{case}}\lbl{E1}
+      \step{\f $\in$ \names\bmtp $\implies$ \f $\notin$ \xt{names}(\bmtp $\setminus$ \Mtype\f{}\t)}{\trf{cond4} on \textbf{case}}\lbl{E2}
+      \step{\f $\in$ \xt{names}(\b\mdp) $\implies$ \f $\notin$ \xt{names}(\b\mdp $\setminus$ \Mtype\f{}\t)}{\trf{E1}, \trf{E2}}\lbl{E3}
+      \slet{\cmdp}{\cmd, ~\Mdef\f\x\t\t\e}\lbl{E4}
+      \step{\xt{overloading}$_{\cmdp}$(\b\mdp~\b\fd)}{Ind Hyp on \textbf{case}, \trf{E1}, \trf{E3}, \trf{E4}}\lbl{E5}
+      \done{\trf{E3}, \trf{E4}, \trf{E5}}      
+     \end{case}
+     
+     \begin{case}{MO5}\lbl{F}
+      \step{\xt{overloading}$_{\cmd}$(\Mdefz\f\t\e ~ \b\mdp ~\b\fd)}{def of \textbf{case}}\lbl{F1}
+      \step{\f $\in$ \names\bmt $\implies$ \f $\notin$ \xt{names}(\bmtp $\setminus$ \Mtype\f\t\t)}{\trf{cond4} on \textbf{case}}\lbl{F2}
+      \step{\f $\in$ \xt{names}(\b\mdp) $\implies$ \f $\notin$ \xt{names}(\b\mdp $\setminus$ \Mtype\f\t\t)}{\trf{F1}, \trf{F2}}\lbl{F3}
+      \slet{\cmdp}{\cmd, ~\Mdefz\f\t\e}\lbl{F4}
+      \step{\xt{overloading}$_{\cmdp}$(\b\mdp~\b\fd)}{Ind Hyp on \textbf{case}, \trf{F1}, \trf{F3}, \trf{F4}}\lbl{F5}
+      \done{\trf{F3}, \trf{F4}, \trf{F5}}     
+     \end{case}
+     
    \end{proof}
 \end{lemma}
+
+
 
 \subsection{Type Soundness of Transient Translation}
 
