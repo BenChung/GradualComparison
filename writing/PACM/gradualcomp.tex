@@ -1284,7 +1284,7 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
    \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t = \any \OR \tp = \any),\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
 \tr a{\K,\Env,\t,\e} = \src\ep\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\EM{\K\vdash\t \Sub \tp} \OR \consistent\K\t\tp)\\
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\EM{\ConSub{}\K\t\tp})\\
    \>            \> \ep = \tr e{\K,\Env,\e}
 \end{tabbing}
 \end{minipage}
@@ -2055,6 +2055,52 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
   \StrSub \M\K {\t[1]} {\t[2]}
 }{
  \StrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
+}
+\end{mathpar}
+
+\subsection{Consistent Subtyping}
+
+\opdef{\ConSub\M\K\t\tp}{\t is a consistent subtype of \tp}
+\begin{mathpar}
+\IRule{CSCons}{
+  \t = \any \vee \tp = \any \vee \t = \tp
+}{
+ \ConSub\M\K \t \tp
+}
+
+\IRule{CSAss}{
+\C \Sub \D \in \M
+}{
+ \ConSub \M\K \C\D
+}
+
+\IRule{CSRec}{
+ \M' = \M~\C\Sub\D\\
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ConSub{\M'}\K\mt{\mtp}
+}{
+ \ConSub \M\K \C \D 
+}
+\end{mathpar}
+
+\opdef{\ConSub\M\K\mt\mtp}{$\mt$ is a consistent subtype of $\mtp$}
+\begin{mathpar}
+\IRule{CSMet}{
+  \ConSub \M\K {\t[1]} {\t[2]} \\
+  \ConSub \M\K {\tp[2]} {\tp[1]}
+}{
+ \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+}
+
+\IRule{CSGet}{
+  \ConSub \M\K {\t[1]} {\t[2]}
+}{
+ \ConSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
+}
+
+\IRule{CSSet}{
+  \ConSub \M\K {\t[1]} {\t[2]}
+}{
+ \ConSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
 }
 \end{mathpar}
 
