@@ -2060,7 +2060,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 
 \begin{mathpar}
 \IRule{WC}{
- \xt{overloading}_{\emptyset}(\b\md~\b\fd)\OK \\
+ \xt{overloading}_{\emptyset}(\b\md~\b\fd) \\
  \fd\in\b\fd\implies \WF {}{}\K \fd \\
  \md\in\b\md\implies \WF {\text{this}:\C~}\s\K \md 
 }{
@@ -2105,7 +2105,7 @@ field or method names within the given field and method definitions. \\
 }
 
 \IRule{WS2}{
- \EnvType {\Env{~\Ftype\x\Cp}~}\s\K \e\C \\
+ \EnvType {\Env{~\Ftype\x\C}~}\s\K \e\C \\
  \WFtype \K\C 
 }{
  \WF  \Env\s\K {\Mdef\f\x\C\C\e}
@@ -2145,7 +2145,7 @@ field or method names within the given field and method definitions. \\
 \opdef{~\WFtype\K\s}{Well-formed heaps}
 \begin{mathpar}
 \IRule{WH}{
-\Bind\ap{\obj\C{\a_1 \ldots \a_n}}~\in~\s \implies \Class\C{\HT{\f_1}{\t_1} \ldots \HT{\f_n}{\t_n}}{\b\md}\in\K~\wedge \\ 
+\Bind\ap{\obj\C{\a_1 \ldots \a_n}}~\in~\s \implies \Class\C{\HT{\f_1}{\t_1} \ldots \HT{\f_n}{\t_n}}{\b\md}\in\K ~~~\wedge~~~  
 \EnvType\cdot\s\K{\a_1}{\t_1} ~\ldots~ \EnvType\cdot\s\K{\a_n}{\t_n}
 }{
  \WFtype\K\s
@@ -2356,6 +2356,7 @@ given method definitions.
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
   \fresh\ap \\
+  \fresh\that \\
   \cload{\classoff\C\K} \\
   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D \\
@@ -2368,6 +2369,7 @@ given method definitions.
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
   \fresh\ap \\
+  \fresh\that \\
   \k = \wrapAny\C{\classoff\C\K}\D\\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -2415,32 +2417,32 @@ to its corresponding method in the source type.
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\
-\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\
-\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
-&     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }}~}
+&     if\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~ \Mtype\m\any\any\not\in\bmtp} \\
 \\
-\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that\C} \m {\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\KCall{\this.\that()_{\C}} \m {\bscast\any\x}\any\any }~}
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~  \Mtype\m\any\any\not\in\bmtp } \\
 \\
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\SPP \Mdef\m\x\any\any{~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast{\Cp}\x}\Cp\Cpp}~}
+&    if\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~   \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~  \Mtype\m\Dp\Dpp\not\in\bmtp } \\
 \\
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\SPP \Mdef\m\x\any\any{~{\KCall{\this.\that()_{\C}}\m{\x}\any\any}~}
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~ \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\not\in\bmtp} \\
 \\
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f\t~}
 &    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
 &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\
-\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\Get\this\that\C}\m{\x}\t\tp~}
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
 &    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 \\
 % \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
@@ -2454,15 +2456,17 @@ to its corresponding method in the source type.
 \wrapAny\C\bmt\D = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f}~}
+\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
 &  \Mtype\f{}\t \in \bmt\\
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
 &  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
-&  \Mtype\m\t\tp\in\b\mt \\
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that\C}{\m_}{\bscast{\t}\x} }~}
+&  \Mtype\m\t\t\in\b\mt \\
 \\
 \SP \}\\
 \end{array}\]
+
+
 
 
 \subsection{Static function}
@@ -2847,6 +2851,7 @@ field/method.
 \opdef{~\WFpW{\e}{\K}}{Well-formed program}
 
 \begin{mathpar}
+
 \IRule{WP}{
   \k \in \K \implies \WFW{}\cdot\K\k \\
   \EnvTypeW\Env\cdot\K\e\t
@@ -2858,7 +2863,7 @@ field/method.
 \opdef{\WFW{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
 
 \begin{mathpar}
-\IRule{WC}{
+\IRule{WCL}{
  \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
  \fd\in\b\fd\implies \WFW {}{}\K \fd \\
  \md\in\b\md\implies \WFW {\text{this}:\C~}\s\K \md 
@@ -3268,23 +3273,166 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \cond{\WFq{\K~\e~\s}}\lbl{cond1}
    \cond{\names{\classoff\Cp\K} $\subseteq$ \names{\classoff\C\K}}\lbl{cond2}
    \cond{\fresh\D}\lbl{cond3}
-   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond4}
+   \cond{\bmt = \classoff\C\K}\lbl{cond3a}
+   \cond{\bmtp = \classoff\Cp\K}\lbl{cond3b}
+   \cond{k = \wrap\C{\bmt}{\bmtp}\D}\lbl{cond4}
+   \cond{\App\s\a = \obj\C{\b{\a_1}}}\lbl{cond5}
+   \cond{\sp = \Map \s{\Bind\ap{\obj\D{\a}}}}\lbl{cond6}
+   \cond{\cload{\bmt}}\lbl{cond7}
   \end{conds}
   
-  \then\axiom{\WF{}\s\K{\k}}
+  \then\axiom{\WF{}\sp{\K~\k}{\k}}
   
-    \begin{proof} \innat
-    
-%       \begin{case}{R-Field}
-% 	\begin{steps}{\bydef{R-Field}{\trf{cond3}}}
-	  \step{asdf}\lbl{A1}
-	  \step{asdf}\lbl{A2}
-	  \step{\C$'$ = \C}\lbl{A3}
-% 	\end{steps}
-%       \end{case}
+    \begin{proof} \innatE{on the definition of the \xt{wrap} function}
+     \step{\WFtype{\K~\k}{\Fdef\that\C}}{\byjdg{WF}\trf{cond5},~\trf{cond1}}\lbl{1}
+     
+     \begin{case}{\t = \any, \Mtype\f{}\tp $\not\in$ \bmtp \textbf{for} \Mdefz\f\t {\Get{\Get\this\that\C}\f\t}}\lbl{A}
+      \step{\WFtype\Kk\any}{\byjdg{WA}{$\any$}}\lbl{A2}
+      \step{\Mtype\f{}\any $\in$ \bmt }{\trf{cond4}, defintion of case}\lbl{A3}
+      \step{\EnvType \Env\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{A4}
+      \step{\EnvType \Env\sp\Kk{\Get{\Get\this\that\C}\f\t}\any }{\byjdg{W3}{\trf{A3},~\trf{A4}}}\lbl{A5}
+      \step{\WF{\Env}{\sp}{\Kk}{\Mdefz\f\any{\Get{\Get\this\that\C}\f\t}}}{\byjdg{WG1}{\trf{A5},~\trf{A2}}} \lbl{A6}
+     \end{case}
+     
+     \begin{case}{\t = \Cpp, \Mtype\f{}\tp $\not\in$ \bmtp  \textbf{for} \Mdefz\f\t {\Get{\Get\this\that\C}\f\t}}\lbl{B}
+      \step{\Mtype\f{}\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{B3}
+      \step{\Cpp $\in$ \Kk}{\trf{B3}}\lbl{B3a}
+      \step{\WFtype\Kk\Cpp}{\byjdg{WC}{\trf{B3a}}}\lbl{B4}
+      \step{\EnvType \Env\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{B5}
+      \step{\EnvType \Env\sp\Kk{\Get{\Get\this\that\C}\f\t}\Cpp }{\byjdg{W3}{\trf{B4},~\trf{B5}}}\lbl{B6}
+      \step{\WF{\Env}{\sp}{\Kk}{\Mdefz\f\Cpp{\Get{\Get\this\that\C}\f\t}}}{\byjdg{WG2}{\trf{B6},~\trf{B3}}} \lbl{B7}      
+     \end{case}
+     
+     \begin{case}{\t = \any, \Mtype\f\tp\tp $\not\in$ \bmtp  \textbf{for} \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}}\lbl{C}
+      \step{\WFtype\Kk\any}{\byjdg{WA}{$\any$}}\lbl{C1}
+      \step{\Mtype\f\any\any $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{C2} 
+      \slet{\Envp}{\Env, ~\namet{\x}{\any}}\lbl{C3}
+      \step{\EnvType {\Envp}\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{C4}
+      \step{\EnvType {\Envp}\sp\Kk{\x}\any}{\byjdg{W1}{\trf{C3}}}\lbl{C5}      
+      \step{\EnvType {\Envp}\sp\Kk{\Set{\Get\this\that\C}\f\t\x}\any }{\byjdg{W4}{\trf{C2},~\trf{C4},~\trf{C5}}}\lbl{C6}
+      \step{\WF{\Envp}{\sp}{\Kk}{\Mdef\f\x\any\any { ~\Set{\Get\this\that\C}\f\t\x~}}}{\byjdg{WS1}{\trf{C6},~\trf{C2}}} \lbl{B7}           
+     \end{case}
+
+     \begin{case}{\t = \Cpp, \Mtype\f\tp\tp $\not\in$ \bmtp  \textbf{for} \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}}\lbl{D}
+      \statem{Same as $\t$ = \any, by defintion of case, \trf{cond1}, \trf{cond4}, and with WS2 and WC instead of WS1 and WA 
+      respectively.}\lbl{D1}
+     \end{case}
+
+     \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\m\tpp\tppp $\not\in$ \bmtp \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}}\lbl{E}
+      \step{\Mtype\m\Cpp\Cppp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{E1}
+      \step{\Cpp $\in$ \Kk}{\trf{E1}}\lbl{E2}
+      \step{\Cppp $\in$ \Kk}{\trf{E1}}\lbl{E3}
+      \step{\WFtype\Kk\Cpp}{\byjdg{WC}{\trf{E2}}}\lbl{E4}
+      \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{E3}}}\lbl{E5}
+      \slet{\Envp}{\Env, ~\namet{\x}{\Cpp}}\lbl{E7}
+      \step{\EnvType \Env\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{E6}     
+      \step{\EnvType {\Envp}\sp\Kk{\x}\Cpp}{\byjdg{W1}{\trf{E7}}}\lbl{E8}  
+      \step{\EnvType {\Envp}\sp\Kk{\KCall{\this.\that}\m{\x}\Cpp\Cppp}\Cppp}{\byjdg{W5}{\trf{E6}, \trf{E8}, \trf{E1}}}\lbl{E9}
+      \step{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x{\Cpp}{\Cppp}{~\KCall{\this.\that}\m{\x}\Cpp\Cppp~}}}{\byjdg{WT2}{\trf{E9},~\trf{E4}, ~\trf{E5}}} \lbl{E10}                 
+      \end{case}
+
+     \begin{case}{\t = \any, \tp = \any, \Mtype\m\tpp\tppp $\not\in$ \bmtp \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that}\m{\x}\t\tp~}}\lbl{F}
+      \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WT1 and WA instead of WT2 and WC 
+      respectively.}\lbl{F1}      
+     \end{case}
+
+     \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\f{}\tp $\in$ \bmtp \textbf{for} \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}}\lbl{G}
+      \step{\Mtype\f{}\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{G1}
+      \step{\EnvType \Env\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{G4}  
+      \step{\EnvType \Env\sp\Kk{\Get{\Get\this\that\C}\f\t}\Cpp }{\byjdg{W3}{\trf{G1},~\trf{G4}}}\lbl{G5}
+      \step{\EnvType \Env\sp\Kk{\bscast\Cppp{\Get{\Get\this\that\C}\f\t}}{\Cppp}}{\byjdg{WB}{\trf{G5}}}\lbl{G6}
+      \step{\Mtype\f{}\Cppp $\in$ \bmtp }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{G7}
+      \step{\Cppp $\in$ \Kk}{\trf{G7}}\lbl{G8}      
+      \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{G8}}}\lbl{G9}
+      \step{\WF{\Env}{\sp}{\Kk}{\Mdefz\f{\Cppp}{~\bscast\Cppp{\Get{\Get\this\that\C}\f\t}~}}}{\byjdg{WG2}{\trf{G6}, \trf{G9}}}\lbl{G10}
+     \end{case}
+
+     \begin{case}{\t = \any, \tp = \any, \Mtype\f{}\tp $\in$ \bmtp \textbf{for} \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}}\lbl{H}
+      \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WG1 and WA instead of WG2 and WC 
+      respectively.}\lbl{H1}      
+     \end{case}
+
+     \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\f\tp\tp $\in$ \bmtp \textbf{for} \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}}\lbl{I}
+      \step{\Mtype\f\Cppp\Cppp $\in$ \bmtp }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{I1}
+      \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{I1}}}\lbl{I1a}
+      \step{\Mtype\f\Cpp\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{I1b}
+      \slet{\Envp}{\Env, ~\namet{\x}{\Cppp}}\lbl{I1c}
+      \step{\EnvType\Envp\sp\Kk{\x}{\Cppp}}{\byjdg{W1}{\trf{I1c}}}\lbl{I1d}
+      \step{\EnvType\Envp\sp\Kk{\bscast\Cpp\x}{\Cpp}}{\byjdg{WB}{\trf{I1d}}}\lbl{I1e}
+      \step{\EnvType \Envp\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{I2}
+      \step{\EnvType \Envp\sp\Kk{\Set{\Get\this\that\C}\f\t{\bscast\Cpp\x}}\Cpp }{\byjdg{W4}{\trf{I1b},~\trf{I2},~\trf{I1e},~\trf{cond3a}}}\lbl{I3}
+      \step{\EnvType \Envp\sp\Kk{\bscast\Cppp{\Set{\Get\this\that\C}\f\t{\bscast\Cpp\x}}}{\Cppp}}{\byjdg{WB}{\trf{I3}}}\lbl{I4}
+      \longstepA{\WF{\Envp}{\sp}{\Kk}{\Mdef\f\x\Cppp\Cppp {~\bscast\Cppp{\Set{\Get\this\that\C}\f\t{\bscast\Cpp\x}}~}}}{\byjdg{WS2}{\trf{I4}, \trf{I1}}}\lbl{I5}
+     \end{case}
+
+     \begin{case}{\t = \any, \tp = \any, \Mtype\f\tp\tp $\in$ \bmtp \textbf{for} \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}}\lbl{J}
+      \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WS1 and WA instead of WS2 and WC 
+      respectively.}\lbl{J1}       
+     \end{case}
+
+     \begin{case}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}~}}\lbl{K}
+      \step{\Mtype\m\Dp\Dpp $\in$ \bmtp }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{K1}
+      \step{\WFtype\Kk\Dp}{\byjdg{WC}{\trf{K1}}}\lbl{K1a}      
+      \step{\WFtype\Kk\Dpp}{\byjdg{WC}{\trf{K1}}}\lbl{K1b}      
+      \step{\Mtype\m\Cp\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{K2}
+      \slet{\Envp}{\Env, ~\namet{\x}{\Dp}}\lbl{K3}
+      \step{\EnvType\Envp\sp\Kk{\x}{\Dp}}{\byjdg{W1}{\trf{K3}}}\lbl{K4}
+      \step{\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}{\byjdg{WB}{\trf{K4}}}\lbl{K5}
+      \step{\EnvType \Envp\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{K6}
+      \step{\EnvType \Envp\sp\Kk{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }\Cpp }{\byjdg{W4}{\trf{K6},~\trf{K2},~\trf{K5},~\trf{cond3a}}}\lbl{K7}
+      \step{\EnvType \Envp\sp\Kk{\bscast\Dpp{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}}{\Dpp}}{\byjdg{WB}{\trf{K7}}}\lbl{K8}
+      \longstepB{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT2}{\trf{K8},~\trf{K1a},~\trf{K1b}}}\lbl{K9}
+      
+     \end{case}
+
+     \begin{case}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\this.\that()_{\C}}\m{\bscast\any\x}\any\any}~}}\lbl{L}
+      \step{\Mtype\m\Dp\Dpp $\in$ \bmtp }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{L1}
+      \step{\WFtype\Kk\Dp}{\byjdg{WC}{\trf{L1}}}\lbl{L2}      
+      \step{\WFtype\Kk\Dpp}{\byjdg{WC}{\trf{L1}}}\lbl{L3}      
+      \step{\Mtype\m\any\any $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{L4}
+      \slet{\Envp}{\Env, ~\namet{\x}{\Dp}}\lbl{L5}
+      \step{\EnvType\Envp\sp\Kk{\x}{\Dp}}{\byjdg{W1}{\trf{L5}}}\lbl{L6}
+      \step{\EnvType\Envp\sp\Kk{\bscast\any\x}{\any}}{\byjdg{WB}{\trf{L6}}}\lbl{L7}
+      \step{\EnvType \Envp\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable}, definition of \textbf{mtypes}}\lbl{L8}      
+      \step{\EnvType \Envp\sp\Kk{\KCall{\this.\that()_{\C}} \m {\bscast{\any}\x}\any\any }\any }{\byjdg{W4}{\trf{L8},~\trf{L4},~\trf{L7},~\trf{cond3a}}}\lbl{L9}
+      \step{\EnvType \Envp\sp\Kk{\bscast\Dpp{\KCall{\this.\that()_{\C}}\m{\bscast\any\x}\any\any}}{\Dpp}}{\byjdg{WB}{\trf{L9}}}\lbl{L10}
+      \longstepB{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\this.\that()_{\C}}\m{\bscast\any\x}\any\any}~}}}{\byjdg{WT2}{\trf{L10},~\trf{L2},~\trf{L3}}}\lbl{L11}
+     \end{case}
+
+     \begin{case}{\Mdef\m\x\any\any {~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}~}}\lbl{M}
+      \step{\Mtype\m\any\any $\in$ \bmtp }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{M1}
+      \step{\Mtype\m\Cp\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{M2}
+      \step{\WFtype\Kk\any}{\byjdg{WA}{\any}}\lbl{M3}      
+      \slet{\Envp}{\Env, ~\namet{\x}{\any}}\lbl{M4}
+      \step{\EnvType\Envp\sp\Kk{\x}{\any}}{\byjdg{W1}{\trf{M4}}}\lbl{M5}
+      \step{\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}{\byjdg{WB}{\trf{M5}}}\lbl{M6}
+      \step{\EnvType \Envp\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable}, definition of \textbf{mtypes}}\lbl{M7}
+      \step{\EnvType \Envp\sp\Kk{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }\Cpp }{\byjdg{W4}{\trf{M7},~\trf{M6},~\trf{M2},~\trf{cond3a}}}\lbl{M8}
+      \step{\EnvType \Envp\sp\Kk{\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}}{\any}}{\byjdg{WB}{\trf{M8}}}\lbl{M9}
+      \longstepC{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\any\any {~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT1}{\trf{M9},~\trf{M3}}}\lbl{M10}
+     \end{case}
+     
+     \begin{case}{\xt{overloading}$_{\cmd}$(\b\md~\b\fd)}\lbl{N}
+      \step{Trivial}{\textbf{that} is fresh and \bylemm{\ref{lem:DM-OL}}{DupMeth gives overloading}{\trf{cond7}}}\lbl{N1}
+     \end{case}
     \end{proof}
    \end{theorem}
 
+
+\begin{lemma}{DupMeth gives overloading}{DM-OL}
+
+  \begin{conds}
+  \cond{$\Class \C {\b\fd}{\b\md} \in \K$}\lbl{cond3}
+  \cond{\bmt = \classoff\C\K}\lbl{cond2}
+  \cond{\cload{\bmt}}\lbl{cond1}
+  \end{conds}
+  
+  \then\axiom{\xt{overloading}$_{\emptyset}$(\b\md~\b\fd)}
+
+   \begin{proof} \indana{\trf{cond1}}
+    
+   \end{proof}
+\end{lemma}
 
 \subsection{Type Soundness of Transient Translation}
 
