@@ -795,7 +795,7 @@ to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 \hrulefill
 %%%%%%%%%%%%%%%%% BEHCAST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C\bmt\bmtp\D = \\
+    \wrap\C\bmt\bmtp\D\that = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
@@ -833,7 +833,7 @@ to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 % \\
 \SP \}
 \\[3mm]
-\wrapAny\C\bmt\D = \\
+\wrapAny\C\bmt\D\that = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
@@ -867,7 +867,7 @@ to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 \IRule{BC1}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\\
+  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\that\\
   \fresh\app \\
   \sp = \Map \s{\Bind\app{\obj\D{\a}}} \\  
 }{
@@ -877,7 +877,7 @@ to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\\
+  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\that\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -1506,7 +1506,7 @@ to the top level dynamics. \RuleRef{BC2} does the same, except that it wraps
 \IRule{BC1}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that\\
   \fresh\app \\
   \sp = \Map \s{\Bind\app{\obj\D{\a}}} \\  
 }{
@@ -1516,7 +1516,7 @@ to the top level dynamics. \RuleRef{BC2} does the same, except that it wraps
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrapAny\C{\classoff\C\K}\D\\
+  \k = \wrapAny\C{\classoff\C\K}\D\that\\
   \fresh\ap \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
@@ -2379,7 +2379,7 @@ given method definitions.
   \fresh\that \\
   \cload{\classoff\C\K} \\
   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D \\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\Cp\s\K {\K\,\k}\ap\sp
@@ -2390,7 +2390,7 @@ given method definitions.
   \fresh\D \\
   \fresh\ap \\
   \fresh\that \\
-  \k = \wrapAny\C{\classoff\C\K}\D\\
+  \k = \wrapAny\C{\classoff\C\K}\D\that\\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\any\s\K {\K\,\k}\ap\sp
@@ -2431,7 +2431,7 @@ to its corresponding method in the source type.
 %%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\IGNOREUNLESSNEEDED{
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C\bmt\bmtp\D = \\
+    \wrap\C\bmt\bmtp\D\that = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
@@ -2473,7 +2473,7 @@ to its corresponding method in the source type.
 \end{array}\]
 
 \[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-\wrapAny\C\bmt\D = \\
+\wrapAny\C\bmt\D\that = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
@@ -3087,7 +3087,7 @@ If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\b{\fd}}{\b\md}~.~\WFtype\K{\b\fd}~\w
 
 \subsection{Correctness of $\xt{wrap}$}
 
-If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C\bmt\bmtp\D$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
+If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C\K$, $\bmt = \classoff\C\K$, $\bmtp = \classoff\Cp\K$, and $\k = \wrap\C\bmt\bmtp\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
 
 \subsection{Type Soundness of Core \kafka Typing}
 
@@ -3264,7 +3264,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \begin{proofy}
         \stepp Let $\D$ be fresh.
         \stepp Let $\ap$ be fresh.
-        \stepp[wcorr] Let $\k$ be $\k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D$.
+        \stepp[wcorr] Let $\k$ be $\k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that$.
         \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
         \stepp[b2] $\EnvType\cdot{\K\k}\sp\ap\D$ \basis \RuleRef{W9}
         \stepp[b1] $\StrSub\cdot{\K\k}\D\Cp$ \basis correctness of $\xt{wrap}$ on \refby{wcorr}
@@ -3275,7 +3275,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \begin{proofy}
         \stepp Let $\D$ be fresh.
         \stepp Let $\ap$ be fresh.
-        \stepp[wcorr2] Let $\k$ be $\k = \wrapAny\C{\classoff\C\K}\D$.
+        \stepp[wcorr2] Let $\k$ be $\k = \wrapAny\C{\classoff\C\K}\D\that$.
         \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
         \stepp[b21] $\EnvType\cdot{\K\k}\sp\ap\any$ \basis \RuleRef{W10}
         \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{b21,wcorr2}
@@ -3295,7 +3295,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \cond{\fresh\D}\lbl{cond3}
    \cond{\bmt = \classoff\C\K}\lbl{cond3a}
    \cond{\bmtp = \classoff\Cp\K}\lbl{cond3b}
-   \cond{k = \wrap\C{\bmt}{\bmtp}\D}\lbl{cond4}
+   \cond{k = \wrap\C{\bmt}{\bmtp}\D\that}\lbl{cond4}
    \cond{\App\s\a = \obj\C{\b{\a_1}}}\lbl{cond5}
    \cond{\sp = \Map \s{\Bind\ap{\obj\D{\a}}}}\lbl{cond6}
    \cond{\cload{\bmt}}\lbl{cond7}
@@ -3443,7 +3443,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \begin{lemma}{DupMeth over wrappers}{DM-WR}
 
   \begin{conds}
-   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond4}
+   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that}\lbl{cond4}
    \cond{\cload{\classoff\C\K}}\lbl{cond1}
   \end{conds}
   
@@ -3460,7 +3460,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 \begin{lemma}{DupMeth gives overloading}{DM-OL}
 
   \begin{conds}
-   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D}\lbl{cond1}
+   \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that}\lbl{cond1}
    \cond{$\Class \D {\b\fd}{\b\md} \in \K~\k$}\lbl{cond2}
    \cond{\bmt = \classoff\D{\K~\k}}\lbl{cond3}
    \cond{\cload{\bmt}}\lbl{cond4}
