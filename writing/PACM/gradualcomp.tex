@@ -468,29 +468,39 @@ slow downs in pathological cases.
 \vspace{-3mm}
 
 \noindent
-The basis of our formal approach is the \kafka calculus. At its heart,
+The basis of our formal approach is the \kafka calculus.  At its heart,
 \kafka is a class-based, object-oriented, structurally typed language with
 dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
-taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.
+taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.  Its design is guided by two remarks:
 
-\paragraph{Syntax} The syntax of \kafka is given in \figref{syn}.  Intuitively \kafka can be thought of as a simple object calculus with fields accesses protected by getters and setters (denoted \Get\e\f\t and \Set\e\f\t\e), and with statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).  Class definitions have a class name and (possibly empty) sequences of
+\begin{itemize}
+\item to represent faithfully the semantics of modern approaches to gradual typing, the calculus must support \emph{wrappers creation} around objects, \emph{new class} generation, and \emph{dynamic type checks} (casts);
+\item wrappers might interpose on field accesses, so the calculus must provide a mechanism where reads and writes are satisfied through a wrapper.  For this we protect accesses to object fields with \emph{getters} and \emph{setters}.
+\end{itemize}
+
+
+
+
+\paragraph{Syntax}  \kafka is a simple object calculus that satisfies the design requirements streamlined above. Its syntax is given in \figref{syn}.   Types consist of class names \C, \D, ...\ and the dynamic type, written
+\any.  The calculus supports both statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e); getters and setters use a similar syntax, and are denoted \Get\e\f\t and \Set\e\f\t\e.
+    Class definitions have a class name and (possibly empty) sequences of
 field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 definitions consist of a field and its type, \Fdef\f\t. Method definitions
 have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
  % Types are either class names  \C, \D and \E, or the dynamic type, and 
   \kafka   supports a limited form of overloading, allowing both a typed implementation and an untyped (dynamically checked) implementation for each method. The static dispatch resolves overloading via the type tag
 %   (either \(\C \to \D\) or \(\any \to \any\))
-on the method call.  We let meta-variables \C, \D and \E
-range over class names, the dynamic type is denoted \(\any\), \x ranges over variable names, \m and \f range over
+on the method call.  We let meta-variables \x ranges over variable names, \m and \f range over
 methods and fields respectively; \this is a distinguished identifier
 representing a method receiver, while \that is a distinguished field name that will be used
 in wrapper classes. 
 
  Providing two different cast mechanisms is the most original feature of the calculus.
-The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). The design of the behavioural cast is intricate, and deserves its own section.  
+The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). The design of the behavioural cast is intricate, and deserves its own section below.  
 
-
+State is represented via a heap \s mapping addresses ranged over by \a
+to objects denoted \hspace{-1mm}\obj\C{\b\a}.
 
 \begin{figure}[!t]
 \hrulefill
@@ -543,8 +553,7 @@ The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subt
 
 %\subsection{Static Semantics}
 
-Types consist of class names and the dynamic type, written
-\any.  A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
+ A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
 class table \K where each class \k in \K is well-formed and \e is well-typed
 with respect to \K.  A class is well-formed if all its fields and methods
 are well-typed. Some restrictions: a class that defines a field \f is not allowed to have
@@ -553,7 +562,7 @@ definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
 \Mdef\m\x\any\any\e.  The static semantics of \kafka is mostly unsurprising,
 so we report in Fig.~\ref{f:staticsem} only the subtype rule for classes and the type rules for method calls, casts and references.
 The complete
-set of rules appear in Appendix section~\ref{appendix:kafka}.  
+set of rules is reported in Appendix section~\ref{appendix:kafka}.  
 
 
 \begin{figure}[!t]
@@ -641,7 +650,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \begin{tabular}{r@{\;}l@{}l@{\hspace{2em}}ll}
 \CondRule{E1}{  %% new C -> a
    \fresh\ap 
-}{ https://just-r.slack.com/team/bchung
+}{ 
   \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
 \CondRule{E2}{  %% a.f() -> e
@@ -748,10 +757,9 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 
 \paragraph{Dynamic Semantics}
 The small  step operational semantics for \kafka is reported in \figref{fig:semantics}.
- A configuration is a triple \K\e\s, where \K is a class
-table, \e is an expression and \s is a heap mapping addresses ranged over by \a
-to objects denoted \hspace{-1mm}\obj\C{\b\a}.  A configuration evaluates in one
-step to a new configuration, \Reduce \K\e\s\Kp\ep\sp, the new configuration may
+ It is defined over \emph{configurations}: triples \K\e\s, where \K is a class
+table, \e is an expression and \s is a heap.  A configuration evaluates in one
+step to a new configuration, \Reduce \K\e\s\Kp\ep\sp;  the new configuration may
 include a new class table built by extending the previous table with new
 classes. Field access either reads a field from the object (if the class has a
 field definition) or invokes a getter function (if the class has a getter method
@@ -772,7 +780,7 @@ Evaluation contexts are deterministic and enforce a strict evaluation order
 \paragraph{Behavioural Casts}
 
 A behavioural cast \BehCast\t\a ensures that the result, \ap, will follow
-all of the type guarantees in \t. The cast creates a wrapper which holds a
+all of the type guarantees defined in \t by creating a wrapper which holds a
 reference to the original object \a and dynamically enforces the type
 guarantees. The behavioural cast is generative as it creates both a class
 and a new instance of that class. The cast's dynamic semantics appear in
@@ -781,9 +789,78 @@ wrapper \k for some type \t, adds it into a new heap, and then hands it back
 to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 \a with the guards to let \a act like an instance of \any.
 
+\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
+
 \begin{figure}[!ht]
+\hrulefill
 %%%%%%%%%%%%%%%%% BEHCAST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\vspace{-2mm}
+\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+    \wrap\C\bmt\bmtp\D = \\
+\SP \class ~\D ~ \{\\
+\SPP \Fdef\that\C \\
+\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
+&    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
+\\[-3mm]
+\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
+\\[-3mm]
+\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
+&     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\\[-3mm]
+\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that\C} \m {\x} }~}
+&    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\\[-3mm]
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }~}
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\\[-3mm]
+\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\x} }~}
+&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\\[-3mm]
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
+&    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
+\\[-3mm]
+\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
+&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
+\\[-3mm]
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\Get\this\that\C}\m{\x}\t\tp~}
+&    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+% \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
+% &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
+% \\
+\SP \}
+\\[3mm]
+\wrapAny\C\bmt\D = \\
+\SP \class~\D~\{\\
+\SPP \Fdef \that \C\\ 
+\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
+&  if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt\\
+\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+&  if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt\\
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
+& if\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
+\SP \}\\
+
+\end{array}\]
+%
+%\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+%\wrapAny\C\bmt\D = \\
+%\SP \class~\D~\{\\
+%\SPP \Fdef \that \C\\ 
+%\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
+%&  \Mtype\f{}\t \in \bmt\\
+%\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+%&  \Mtype\f\t\t \in \bmt\\
+%\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
+%&  \Mtype\m\t\tp\in\b\mt \\
+%\\
+%\SP \}\\
+%\end{array}\]
+
+
 
 {  \small
   \begin{mathpar}
@@ -808,13 +885,14 @@ to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 }
 \end{mathpar}}  
 
+\hrulefill
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\caption{Behavioural casts.}\label{behave}
+\caption{Behavioural casts.}\label{behavetext}
 \end{figure}
 
 A wrapper generated for a type \C is a subtype of \C allowing us to refer to
-object instances and wrappers under the original, source language,
+object instances and wrappers under the original, source langu age,
 types. Internally, wrappers either forward values, as in the case of getters
 and setters, or mimic the behaviour of the underlying object, in the case of
 methods, ensuring that the type guarantees of both the externally visible
@@ -841,65 +919,7 @@ target type. For each of these method, their method call is redirected
 to its corresponding method in the source type.
 
 
-\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
 
-\vspace{4mm}
-%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\IGNOREUNLESSNEEDED{
-\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C\bmt\bmtp\D = \\
-\SP \class ~\D ~ \{\\
-\SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
-&    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
-\\[-2mm]
-\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
-\\[-2mm]
-\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
-&     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
-\\[-2mm]
-\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that\C} \m {\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
-\\[-2mm]
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
-\\[-2mm]
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
-\\[-2mm]
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
-&    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
-\\[-2mm]
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
-&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
-\\[-2mm]
-\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\Get\this\that\C}\m{\x}\t\tp~}
-&    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-% \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
-% &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
-% \\
-\SP \}
-\\
-\end{array}\]
-
-\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-\wrapAny\C\bmt\D = \\
-\SP \class~\D~\{\\
-\SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
-&  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-&  \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
-&  \Mtype\m\t\tp\in\b\mt \\
-\\
-\SP \}\\
-\end{array}\]
 
 Copying the behaviour of the wrapped object is unusual, but this is how we
 maintain one of the semantic Typed Racket, we will describe this in detail in \FZ{Forward pointer to description of Racket}.
