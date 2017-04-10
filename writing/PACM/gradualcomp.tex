@@ -1192,22 +1192,9 @@ written $\dt\C$, which has its own subtyping relation, and compiles down to
 sound counterpart, but generates no runtime casts.  Over this new type, we
 define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
 \kafka subtyping except in that \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D
-both hold if \C~\src\Sub~\D.  The synthetic cases describe the traditional
-``bottom-up'' style of typing judgment. Each case produce an equivalent
-\kafka term for the given Thorn expression under the \kafka type that
-matches the Thorn type. Rules \RuleRef{THS1}, \RuleRef{THS2},
-\RuleRef{THS5}, and \RuleRef{THS6} are all effectively direct translations
-of the traditional typing rules for variables, calls, dynamic invocation,
-and new, respectively.  However, two rules, \RuleRef{THS3} and
-\RuleRef{THS4}, break this pattern. These rules are applied when the
-receiver type is an unsound type and case analyze is performed on the
-declared return type. In \RuleRef{THS3}, the return type is a concrete type,
-or a sound type, from an unsound type, and therefore requires an insertion
-of a runtime cast, and the alternative case is shown in \RuleRef{THS4}. It
-is important to note that both \RuleRef{THS3} and \RuleRef{THS4} produce
-dynamic calls on the receiver, despite the receiver having a source language
-type. This is because Thorn's unsound types are translated to \any, which
-causes all calls to be dynamic.
+both hold if \C~\src\Sub~\D.  
+
+...Explain translation
 
 
 \begin{figure}[!h]
@@ -1340,17 +1327,10 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 \end{tabular}
 \caption{Transient}\end{figure}
 
+...Say: sequencing
 
-\newcommand{\A}{\EMxt A}
 
-The Transient semantics of \figref{trans} illustrates the use of the
-structural shallow cast, $\ShaCast\t\e$. \FZ{FIXME: we have no shallow casts now.} The Transient semantics makes
-guarantee about what methods are avaible in the argument and return value of
-each typed method.  The translation require several additional rules in
-order to generate well-typed terms. Rule \RuleRef{TPM1} uses an auxiliary
-class \A which is a tuple for sequencing. It first performans a shallow cast
-of the argument \x to \C and then evaluates the body of the method. (The
-call to \f return the second field in \A, i.e., body's value).  All type
+... All type
 annotations are erased and replaced by \any.  Every call, typed or untyped,
 in Transient becomes untyped.  Every typed method call must be guarded with
 a cast to ensure that the return type of the method is correct, as shown in
@@ -1365,9 +1345,11 @@ field accessor methods.  Rule \RuleRef{TPR2} provides consistency for
 Transient. In gradual type systems with consistency, consistency is used to
 conclude an analytic judgment, as consistency allows the system to break
 type guarantees, adding and removing types from sub-parts of a
-program. Consistency within \kafka is defined in a later section, \FZ{where?}
-%detailing the monotonic cast semantic and the translation for the monotonic system,
-it is used in the transient system to allow typed and untyped code to
+program. 
+
+... Consistency within \kafka is...
+
+...it is used in the transient system to allow typed and untyped code to
 interact. When consistency is used, a check is inserted to ensure that all
 the methods that are required are declared on the provided type, but the
 types of the methods are ignored, as they are the responsibility of the
@@ -1441,50 +1423,6 @@ seen so far that we will extend the syntax and semantics of \kafka to
 support it.  For an expression \e and type \t, the cast \BehCast\t\e depicts
 the behavioural cast, and the typing and semantic rules are next.
 
-\begin{figure}[h!]
-\colorbox{vlightgray}{
-\begin{minipage}{0.25\textwidth}
-\textbf{Static Typing}
-\vspace{-1.5mm}
-\begin{mathpar}
-\IRule{WB1}{
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\BehCast\t\e}\t
-}
-\end{mathpar}
-\end{minipage}
-}
-\hspace{0.08\textwidth}
-\colorbox{vlightgray}{
-\begin{minipage}{0.6\textwidth}
-\begin{tabular}{r@{\;}l@{}l@{\hspace{3em}}l@{~}l}
-\multicolumn{4}{l}{\textbf{Dynamics}} \\
-\CondRule{E12}{  %% Behavioral cast  
-  \behcast \a\t\s\K  \Kp\ap\sp    
-}{    
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
-}
-\\
-\multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
-\end{tabular}
-\end{minipage}
-}
-\end{figure}
-
-\noindent
-The definition of $\behcastz\a\t\s\K$ are presented in the next
-subsection. Observe that, despite not checking the value, we assert that the
-type is correct, and, notice that the cast returns a new object reference
-\ap and an updated class table \Kp. This is a wrapper object that is, being
-construction, of the correct type.  The wrapper's class, added in \Kp, has
-code to ensure that the value behaves appropriately.  The translation is
-fairly simple as a result of the strong type invariants that are exposed to
-the static code.  \RuleRef{TRA2} and \RuleRef{TRA3} are the most important
-cases of cast insertion; they capture values crossing type boundaries. In
-the case of an untyped object gaining a type assertion (\RuleRef{TRA2}), a
-shallow cast ensures that the value has all of the required method names
-before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 
 \begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
@@ -1534,127 +1472,8 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \caption{Typed Racket}\end{figure}
 
 
-\subsection{Behavioural Casts}
-
-A behavioural cast \BehCast\t\a ensures that the result, \ap, will follow
-all of the type guarantees in \t. The cast creates a wrapper which holds a
-reference to the original object \a and dynamically enforces the type
-guarantees. The behavioural cast is generative as it creates both a class
-and a new instance of that class. The cast's dynamic semantics appear in
-\figref{behave}. \RuleRef{BC1} wraps a reference \a with a freshly generated
-wrapper \k for some type \t, adds it into a new heap, and then hands it back
-to the top level dynamics. \RuleRef{BC2} does the same, except that it wraps
-\a with the guards to let \a act like an instance of \any.
-
-\begin{figure}[!ht]
-%%%%%%%%%%%%%%%%% BEHCAST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\vspace{-2mm}
-
-{  \small
-  \begin{mathpar}
-\IRule{BC1}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that\\
-  \fresh\app \\
-  \sp = \Map \s{\Bind\app{\obj\D{\a}}} \\  
-}{
-  \behcast\a\Cp\s\K {\K\,\k}\app\sp
-}
-
-\IRule{BC2}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \k = \wrapAny\C{\classoff\C\K}\D\that\\
-  \fresh\ap \\
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-}{
-  \behcast\a\any\s\K {\K\,\k}\ap\sp
-}
-\end{mathpar}}  
-
-\vspace{-2mm}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\caption{Behavioural casts.}\label{behave}
-\end{figure}
-
-A wrapper generated for a type \C is a subtype of \C allowing us to refer to
-object instances and wrappers under the original, source language,
-types. Internally, wrappers either forward values, as in the case of getters
-and setters, or mimic the behaviour of the underlying object, in the case of
-methods, ensuring that the type guarantees of both the externally visible
-type and the wrapped object are respected.
-Wapper generation is implemented by \xt{wrap}, a meta function of 5
-arguments derived from the class table and the names of the types in
-question.  An example is shown in next, where we wrap an
-instance of \C, which we want to make sure acts like a \D. \xt{wrap}
-generates a proxy method for \m, which acts like \C's implementation of \m,
-but has casts enforcing the type guarantees of \D.
 
 
-{  \small
-\hspace{-6mm}\begin{tabular}{ER{3.5cm}ER{3cm}l}
-wrap( & 
-\begin{lstlisting}
-class C {
-  m (x :*):* {x}}
-\end{lstlisting}& , &
-\begin{lstlisting}
-class D {
-  m (x  A):B}
-\end{lstlisting}&) =
-\end{tabular}
-\begin{tabular}{@{}l@{}r@{}}
-&
-\begin{minipage}{6cm}
-\begin{lstlisting}
-class D {
- that:C
- m(x:A):B { (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-0mm}@*)x}
-}
-\end{lstlisting}
-\end{minipage}
-\end{tabular}
-}
-
-
-\begin{figure}[!ht]
-\begin{tabular}{ER{4.5cm}ER{3.5cm}E}
-wrap( & 
-\begin{lstlisting}
-class C { 
-  m (x : *) : * { x }}
-\end{lstlisting}& , &
-\begin{lstlisting}
-class D { 
-  m (x : A) : B}
-\end{lstlisting}&) =
-\end{tabular}
-\begin{tabular}{@{}l@{}r@{}}
-\hspace{4cm} \,&
-\begin{minipage}{\textwidth-4cm}
-\begin{lstlisting}
-class D {
-  m(x : A) : B { 
-    (*@\hspace{-1.5mm}\BehStart\hspace{-1.5mm}@*)B(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)B(*@\ShaEnd\hspace{0mm}@*)(<*>this.that())@m((*@\hspace{-0.5mm}\BehStart\hspace{-1.5mm}@*)*(*@\BehEnd@*)(*@\ShaStart\hspace{-1.5mm}@*)*(*@\ShaEnd\hspace{-1mm}@*)x) }
-}
-\end{lstlisting}
-\end{minipage}
-\end{tabular}
-\caption{Naive wrapper generation}
-\label{fig:rktex2}
-\end{figure}
-
-Copying the behaviour of the wrapped object is unusual, and is how we
-maintain one of the semantic Typed Racket. If we were to implement the
-wrappers directly, as seen in figure~\ref{fig:rktex2}, we will diverge from
-Typed Racket despite remaining typesafe. The issue is that Typed Racket
-requires that self-references respect the external type
-invariants~\cite{Takikawa:2012}, despite it not being strictly required for
-soundness, as seen in figure~\ref{fig:arktex3}. We use the lifting
-mechanism, copying wrapped class functionality, to ensure that
-self-references refer to the wrapper, rather than to the wrapped object,
-thereby enforcing the dynamic type guarantees.
 
 \begin{figure}
 \begin{tabular}{cc}
