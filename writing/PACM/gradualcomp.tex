@@ -2120,18 +2120,6 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
 }{
  \StrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
 }
-
-\IRule{SGet}{
-  \StrSub \M\K {\t[1]} {\t[2]}
-}{
- \StrSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
-}
-
-\IRule{SSet}{
-  \StrSub \M\K {\t[1]} {\t[2]}
-}{
- \StrSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
-}
 \end{mathpar}
 
 \subsection{Consistent Subtyping}
@@ -2165,18 +2153,6 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
   \ConSub \M\K {\tp[2]} {\tp[1]}
 }{
  \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-
-\IRule{CSGet}{
-  \ConSub \M\K {\t[1]} {\t[2]}
-}{
- \ConSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
-}
-
-\IRule{CSSet}{
-  \ConSub \M\K {\t[1]} {\t[2]}
-}{
- \ConSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
 }
 \end{mathpar}
 
@@ -2222,42 +2198,12 @@ field or method names within the given field and method definitions. \\
  \WF \Env\s\K {\Mdef\m\x\any\any\e}
 }
 
-\IRule{WS1}{
- \EnvType {\Env{~\Ftype\x\any}~}\s\K \e\any \\
- \WFtype \K\any 
-}{
- \WF  \Env\s\K {\Mdef\f\x\any\any\e}
-}
-
-\IRule{WG1}{
- \EnvType \Env\s\K\e\any \\
- \WFtype \K\any
-}{
- \WF \Env\s\K {\Mdefz\f\any\e}
-}
-\end{mathpar}
-
-\begin{mathpar}
 \IRule[width=18em]{WT2}{
  \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\Cp\\
  \WFtype\K\C \\
  \WFtype\K\Cp \\
 }{
  \WF \Env\s\K {\Mdef\m\x\C\Cp\e}
-}
-
-\IRule{WS2}{
- \EnvType {\Env{~\Ftype\x\C}~}\s\K \e\C \\
- \WFtype \K\C 
-}{
- \WF  \Env\s\K {\Mdef\f\x\C\C\e}
-}
-
-\IRule{WG2}{
- \EnvType \Env\s\K\e\C \\
- \WFtype \K\C
-}{
- \WF \Env\s\K {\Mdefz\f\C\e}
 }
 \end{mathpar}
 
@@ -2333,20 +2279,20 @@ to the name of \t not to \t.
   \EnvType \Env\s\K{\Get\e\t}\t
 }    
 
-\IRule[width=20em]{W4}{
-  \EnvType \Env\s\K\e\C \\
-  \Mtype \f\t\t \in \classoff\C\K  \\
-  \EnvType \Env\s\K\ep\t
+\IRule[width=12em]{W4}{
+  \HasType\Env\this\C\\
+  \Fdef\f\t \in \C \\
+  \EnvType \Env\s\K\e\t
 }{
-  \EnvType \Env\s\K{\Set\e\f\t\ep}\t
+  \EnvType \Env\s\K{\FWrite\f\e}\t
 }    
 
-\IRule[width=20em]{W5}{
-  \EnvType \Env\s\K\e\C \\
-  \Mtype \m\t\tp\in \classoff\C\K  \\
-  \EnvType \Env\s\K\ep\t
+\IRule[width=12em]{W5}{
+  \HasType\Env\this\C\\
+  \Fdef\f\t \in \C \\
+  \EnvType \Env\s\K\e\t
 }{
-  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
+  \EnvType \Env\s\K{\FRead\f}\t
 }    
 
 \IRule{W6}{
@@ -2356,7 +2302,7 @@ to the name of \t not to \t.
   \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
 
-\IRule{W7}{
+\IRule[width=20em]{W7}{
  \EnvType \Env\s\K{\e_1}{\t_1}\dots 
  \EnvType \Env\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
@@ -2435,21 +2381,6 @@ given method definitions.
  \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
 }{
 \xt{overloading}_{\cmd}(\Mdef\m\x\C\Cp\e~\b\md~\b\fd)
-}
-
-\IRule{MO4}{
- \f \in \xt{names}(\b\md) \implies \f \notin \xt{names}(\b\md \setminus \Mtype\f{}\t)  \\
- \cmdp = \cmd, \Mtype\f\t\t  \\
- \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
-}{
-\xt{overloading}_{\cmd}(\Mdef\f\x\t\t\e ~ \b\md ~\b\fd)
-}
-
-\IRule{MO5}{
- \f \in \xt{names}(\b\md) \implies \f \notin \xt{names}(\b\md \setminus \Mtype\f\t\t)  \\ \cmdp = \cmd, \Mtype\f\t\t \\
- \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
-}{
-\xt{overloading}_{\cmd}(\Mdefz\f\t\e ~ \b\md ~ \b\fd)
 }
 \end{mathpar}
 
