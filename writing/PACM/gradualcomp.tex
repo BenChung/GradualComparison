@@ -1978,10 +1978,17 @@ to the name of \t not to \t.
 
 \IRule[width=12em]{KT-READ}{
   \HasType\Env\this\C\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvType \Env\s\K{\FRead\f}\t
+}  
+
+\IRule[width=12em]{KT-REFREAD}{
+  \EnvType \Env\s\K\a\C \\
   \Fdef\f\t \in \App\K\C \\
   \EnvType \Env\s\K\e\t
 }{
-  \EnvType \Env\s\K{\FRead\f}\t
+  \EnvType \Env\s\K{\FReadR\a\f}\t
 }  
 
 \IRule[width=12em]{KT-WRITE}{
@@ -1991,6 +1998,14 @@ to the name of \t not to \t.
 }{
   \EnvType \Env\s\K{\FWrite\f\e}\t
 }    
+
+\IRule[width=12em]{KT-REFWRITE}{
+  \EnvType \Env\s\K\a\C \\
+  \Fdef\f\t \in \App\K\C \\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FWriteR\a\f\e}\t
+}  
 
 \IRule[width=16em]{KT-CALL}{
   \EnvType \Env\s\K\e\C \\
@@ -2008,7 +2023,7 @@ to the name of \t not to \t.
 }    
 
 
-\IRule[width=20em]{KT-YesNEW}{
+\IRule[width=20em]{KT-NEW}{
  \EnvType \Env\s\K{\e_1}{\t_1}\dots 
  \EnvType \Env\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
@@ -2044,29 +2059,31 @@ to the name of \t not to \t.
 \end{mathpar}
 
 
-\subsection{Field read}
+\subsection{Field access}
 
 The function $\readf\s\a\f\K$ reads the value in the field \f in the object \a.
 
-\begin{equation*}
-\readf \s\a\f\K = \ap 
-  ~~\mathit{if}~~ \begin{cases}  \s(\a) = \obj\C{\a_1\dots\a_n \ap \dots}\\
- \Class\C {\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\Ftype\f\t\dots}{\b\md}\in\K
- \end{cases}
-\end{equation*}
+\(
+\begin{array}{r@{~}l}
+\readf \s\a\f\K &= \ap\\ 
+    ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_i \dots ~\ap~ \a_j \dots}\\
+    ~~\mathit{and}~~ &\Class\C {\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j \dots}{\md \dots}\in\K \\
+\end{array} 
+\)
 
 \subsection{Field write}
 
 The function \setf\s\a\f\ap\K denotes writing of value \ap to the field \f of
 the object stored at \a in \s.
 
-\begin{equation*}
-\setf \s\a\f\ap\K= \Map\s{\Bind{\a}{\obj\C{\a_1\dots\a_n\,\ap\dots}}}
-  ~~\mathit{if}~~ \begin{cases}
-   \s(\a) = \obj\C{\a_1\dots\a_n\,\app\dots}\\
-   \Class\C{\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n}\,\Fdef\f\t\dots}{\b\md}\in\K
-\end{cases}
-\end{equation*}
+
+\(
+\begin{array}{r@{~}l}
+\setf \s\a\f\ap\K &= \Map\s{\Bind{\a}{\obj\C{\a_i\dots ~\ap~ \a_j\dots}}}\\
+  ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_i\dots ~\app~ \a_j\dots} \\
+  ~~\mathit{and}~~&\Class\C{\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j\dots}{\md \dots}\in\K
+\end{array}
+\)
 
 \subsection{Method overloading}
 
@@ -2603,8 +2620,7 @@ If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
 
 \paragraph{Weakening of $\xt{mtypes}$}
 
-If $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\n{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.\\
-If $\Mtype\f{}\t \in \classoff\C\K$, then $\Mtype\f{}\t \in \classoff\C{\K~\Kp}$, for some $\Kp$.
+If $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.
 
 \paragraph{Substitution}
 
@@ -2613,11 +2629,7 @@ If $\EnvType{\b{\HT\x\tp}}\s\K\e\t$ and $\b{\EnvType\cdot\s\K\a\tp}$, then $\Env
 \paragraph{Correctness of \classoff{\C}{\K}}
 
 If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
-If $\Mtype\f{\b\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\Call\a\f{\b\ap}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. \\
-If $\Mtype\f{}\tp \in \classoff{\C}{\K}$ and $\EnvType\cdot\s\K\a\C$, 
-then $\Reduce \K{\Call\a\f{}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$.
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. 
 
 \paragraph{Canonical forms}
 
@@ -2641,73 +2653,66 @@ If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\b\md = \getmds\C
 
 \subsection{Type Soundness of Core \kafka Typing}
 
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ and $\Kpp$ (with $\Kp = \K~\Kpp$) 
 such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
 or $\e$ is stuck in one of the following forms:
 \begin{itemize} 
 \item $\a$
 \item $\EE[\DynCall\a\m{\ap}]$
 \item $\EE[\SubCast\tp\a]$
+\item $\EE[\BehCast\tp\a]$
 \end{itemize}
 
 We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
 Note that we refer to rule preconditions from left to right.
 
 \begin{itemize}
-  \item \RuleRef{W1}
+  \item \RuleRef{KT-VAR}
         Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
-  \item \RuleRef{W2}
-
+  \item \RuleRef{KT-SUB}
         We apply the IH to the first precondition. If we get stuck in the IH, then the entire
         expression gets stuck or terminates, trivially. Therefore, the interesting case is when
         $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. Since, by the
         second precondition, we know that $\StrSub \M\K \tp \t$, it follows by weakening of subtyping $\StrSub\M\Kp\tp\t$.
         We can then apply \RuleRef{W2} to find that $\EnvType\cdot\sp\Kp\ep\t$, and therefore $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\t$, and the theorem holds.
-  \item \RuleRef{W3}
+  \item \RuleRef{KT-READ}
+        Since $\Gamma = \cdot$ by assumption, \RuleRef{KT-READ} cannot have applied.
+  \item \RuleRef{KT-REFREAD}
+        By inversion of $\RuleRef{KT-REFREAD}$, we know that the expression is of form $\FReadR\a\f$. It follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd_i \ldots~\Fdef\f\t ~ \fd_j \ldots}{\md~\ldots}$ and from well-formedness of heaps that $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a_i\dots ~\ap~ \a_j\dots}}}$ that $\EnvType\cdot\s\K\ap\t$. Therefore, $\Reduce\K{\FReadR\a\f}\s\K\ap\s$ and $\WFp\K{\ap~\s}$, so the theorem holds.
+  \item \RuleRef{KT-WRITE}
+        Since $\Gamma = \cdot$ by assumption, \RuleRef{KT-WRITE} cannot have applied.
+  \item \RuleRef{KT-REFWRITE}
+        By inversion of $\RuleRef{KT-REFWRITE}$, we know that the expression is of form $\FWriteR\a\f\e$. Applying the IH to the third precondition, we find that either $\e$ is a value $\ap$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
 
-        We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
+        If $\e$ steps to some $\ep$, we can trivially apply $\RuleRef{KT-REFWRITE}$ again, with weakening of typing over class tables and heaps, to conclude that $\EnvType\cdot\sp\Kp{\FWriteR\a\f\ep}\t$.
 
-        If $\e$ steps to some $\ep$, and since we know that $\Mtype\f{}\tp \in \classoff{\C}{\K}$, we can then apply \RuleRef{W3} via weakening of $\xt{mtypes}$.
-
-        If $\e$ is a value $\a$, then we apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f{}}\s\K\ep\s$ for some $\ep$, and that $\EnvType\cdot\s\K\ep\t$. Therefore, the theorem holds.
+        If $\e$ is a value $\ap$, then it follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd_i \ldots~\Fdef\f\t ~ \fd_j \ldots}{\md~\ldots}$ and from well-formedness of heaps that $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a_i\dots ~\app~ \a_j\dots}}}$. Therefore, we can apply the definition of $\xt{write}$ to find that $\setf\s\a\f\K\ap = \Map\s{\Bind{\a}{\obj\C{\a_i\dots ~\ap~ \a_j\dots}}}$, which we then define as $\sp$. Since we know that $\EnvType\cdot\s\K\ap\t$, and we know that $\forall \a \in \sigma, \Map\s{\Bind{\a}{\obj\C{\ldots}}} \implies \Map\sp{\Bind\a{\obj\C{\ldots}}}$, it follows that $\EnvType\cdot\sp\K\ap\t$, and from there that $\WFp\K{\ap~\sp}$ and $\EnvType\cdot\sp\K\ap\t$, so the theorem holds.
 
         If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
-  \item \RuleRef{W4}
+
+  \item \RuleRef{KT-CALL}
 
       We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
       \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{W4} to find that $\EnvType\cdot\sp\Kp{\Call\epp\f\ep}\tp$.
+        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{KT-CALL} to find that $\EnvType\cdot\sp\Kp{\KCall\epp\m\ep\t\tp}\tp$.
         \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
         \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. Then, $\Reduce\K{\Call\a\f\ep}\s\Kp{\Call\a\f\epp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{W4} to conclude that $\EnvType\cdot\sp\Kp{\Call\a\f\epp}\tp$.
-          \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\Call\a\f\ap}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
-          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \Call\a\f{\EE[\epp]}$, which is stuck.
-        \end{itemize}
-        \item If $\e$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \Call{\EE[\epp]}\f\ep$, which is stuck.
-      \end{itemize}
-  \item \RuleRef{W5}
-
-      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
-      \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{W5} to find that $\EnvType\cdot\sp\Kp{\KCall\epp\m\ep\t\tp}\tp$.
-        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
-        \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{W5} to conclude that $\EnvType\cdot\sp\Kp{\KCall\a\m\epp\t\tp}\tp$.
+          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{KT-CALL} to conclude that $\EnvType\cdot\sp\Kp{\KCall\a\m\epp\t\tp}\tp$.
           \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\KCall\a\m\ap\t\tp}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
           \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall\a\m{\EE[\epp]}\t\tp$, which is stuck.
         \end{itemize}
         \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall{\EE[\epp]}\m{\ep}\t\tp$, which is stuck.
       \end{itemize}
   
-  \item \RuleRef{W6}
+  \item \RuleRef{KT-DYNCALL}
   
       We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$, then case analyze.
       \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\any$, and apply \RuleRef{W6} to find that $\EnvType\cdot\sp\Kp{\DynCall\epp\m\ep}\any$.
+        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\any$, and apply \RuleRef{KT-DYNCALL} to find that $\EnvType\cdot\sp\Kp{\DynCall\epp\m\ep}\any$.
         \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. 
         \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\any$, then use \RuleRef{W6} to conclude that $\EnvType\cdot\sp\Kp{\DynCall\a\m\epp}\any$.
-          \item $\e' = \ap$. If $\sigma(a) = \C\{\b{\app}\}$, and if $\Mdef\m\x\any\any\e \in \K(\C)$, then $\Reduce\K{\DynCall\a\m\ap}\s\K{[\a/\this ~ \ap/\x]\e}\any$, by the definition of evaluation. Then, since $\WFp\K{\e~\s}$, it follows that $\WFq\C$, and then that $\EnvType{\HT{\this}{\C}~\HT{\x}{\any}}\s\K\e\any$. Then, since we have that $\EnvType\cdot\s\K\a\C$ (by application of \RuleRef{W10}), and that $\EnvType\cdot\s\K\ep\any$, we can use the substitution lemma to find that $\EnvType\cdot\s\K{[\a/\this ~ \ap/\x]\e}\any$, and the theorem holds.
+          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\any$, then use \RuleRef{KT-DYNCALL} to conclude that $\EnvType\cdot\sp\Kp{\DynCall\a\m\epp}\any$.
+          \item $\e' = \ap$. If $\sigma(a) = \C\{\b{\app}\}$, and if $\Mdef\m\x\any\any\e \in \K(\C)$, then $\Reduce\K{\DynCall\a\m\ap}\s\K{[\a/\this ~ \ap/\x]\e}\any$, by the definition of evaluation. Then, since $\WFp\K{\e~\s}$, it follows that $\WFq\C$, and then that $\EnvType{\HT{\this}{\C}~\HT{\x}{\any}}\s\K\e\any$. Then, since we have that $\EnvType\cdot\s\K\a\C$ (by application of \RuleRef{KT-REFTYPE}), and that $\EnvType\cdot\s\K\ep\any$, we can use the substitution lemma to find that $\EnvType\cdot\s\K{[\a/\this ~ \ap/\x]\e}\any$, and the theorem holds.
 
 
           If the precondition does not apply, and $\C$ does not contain $\m$ under type $\any$, then the expression gets stuck, and the theorem holds.
@@ -2716,7 +2721,7 @@ Note that we refer to rule preconditions from left to right.
         \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall{\EE[\epp]}\m{\ep}$, which is stuck.
       \end{itemize}
       
-  \item \RuleRef{W7}
+  \item \RuleRef{KT-NEW}
   
   We apply the IH to the preconditions $\e_{1} \cdots \e_{n}$, finding that either $\e_{i}$ is a value $\a$, $\e_{i}$ is a stuck state, 
   or $\Reduce\K{\e_i}\s\Kp{\ep_i}\sp$, $\WFp\Kp{\ep_i~\sp}$, and $\EnvType\cdot\sp\Kp{\ep_i}\C_i$, then case analyze.
@@ -2742,7 +2747,7 @@ Note that we refer to rule preconditions from left to right.
    \item done by (17) and (12)
   \end{enumerate}
 
-  \item \RuleRef{W8}
+  \item \RuleRef{KT-SUBCAST}
   
       Apply the IH to the precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$. If it gets stuck at one of the three stuck states, or steps to a new expression, then the case is trivial.
 
@@ -2755,35 +2760,8 @@ Note that we refer to rule preconditions from left to right.
           \item Otherwise, $\SubCast\t\a$ is stuck, and the theorem holds.
         \end{itemize}
       \end{itemize}
-  
-  \item \RuleRef{W9}
-  
-      Trivial, as $\e=\a$.
-  
-  \item \RuleRef{W10}
-  
-      Trivial, as $\e=\a$.
-
-  
-\end{itemize}
-
-
-\subsection{Type Soundness of \kafka Behavioral Cast}
-
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
-such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
-or $\e$ is stuck in one of the following forms:
-\begin{itemize} 
-\item $\a$
-\item $\EE[\DynCall\a\m{\ap}]$
-\item $\EE[\SubCast\tp\a]$
-\item $\EE[\BehCast\tp\a]$
-\end{itemize}
-
-Note that the majority of the proof is identical to that seen in the above proof
-for soundness of the \kafka core, and is therefore elided. We will only cover
-the case for the \kafka behavioural cast, \RuleRef{WB1}.
-
+      
+  \item \RuleRef{KT-BEHCAST}
 \begin{proofy}
 \stepp[base] $\EnvType\cdot\s\K\e\tp$ \basis By assumption.
 \stepp[progform] $\WFp \K{\e~\s}$ \basis By assumption
@@ -2797,7 +2775,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
     \end{iknown}} 
   \begin{proofy}
   \stepp $\Reduce\K{\BehCast{\t}{\e}}\s\Kp{\BehCast{\t}{\ep}}\sp$ \basis By defn. of evaluation environments on \refby{kred}
-  \stepp[ktype] $\EnvType\cdot\sp\Kp{\BehCast\t\ep}\t$ \basis By \RuleRef{WB1}
+  \stepp[ktype] $\EnvType\cdot\sp\Kp{\BehCast\t\ep}\t$ \basis By \RuleRef{KT-BEHCAST}
   \stepp $\WFp\Kp{\ep~\sp}$ \basis By \refby{kbase, ktype}
   \end{proofy}
   \caseof{$\e$ is stuck in one of the allowed stuck states $\EE[\ep]$}
@@ -2834,6 +2812,32 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \end{proofy}
 \end{casel}
 \end{proofy}
+  
+  \item \RuleRef{KT-REFTYPE}
+  
+      Trivial, as $\e=\a$.
+  
+  \item \RuleRef{KT-REFANY}
+  
+      Trivial, as $\e=\a$.
+\end{itemize}
+
+
+\subsection{Type Soundness of \kafka Behavioral Cast}
+
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+or $\e$ is stuck in one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\EE[\DynCall\a\m{\ap}]$
+\item $\EE[\SubCast\tp\a]$
+\item $\EE[\BehCast\tp\a]$
+\end{itemize}
+
+Note that the majority of the proof is identical to that seen in the above proof
+for soundness of the \kafka core, and is therefore elided. We will only cover
+the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
 \subsection{Wrap function creates well-formed classes}
 
