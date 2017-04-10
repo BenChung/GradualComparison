@@ -2026,7 +2026,7 @@ subtyping mechanism does allow both. However, C\# does allow for
 contravariant interface implementation, by explicitly calling out the
 interface method to implement and forwarding to the actual implementation.
 
-\subsection{Validation of \kafka}
+\subsection{Proof of concept}
 
 The goal of our implementation was to validate the choice of features to
 include in \kafka by showing that they are similar to those provided in
@@ -2048,6 +2048,8 @@ threesomes~\cite{siek10}, combined with the severe inherent restrictions on
 what programs can be reasonably written in \kafka. As a result, any
 performance evaluation based on our \kafka implementation would not be
 representative of the performance of a real implementation. %\clearpage
+
+\subsection{Proof of formalism}
 
 \section{Conclusion}
 
@@ -2477,12 +2479,13 @@ to its corresponding method in the source type.
     \wrap\C\bmt\bmtp\D\that = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
-&    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\
-\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
-\\
+% \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
+% &    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
+% \\
+% \SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+% &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
+% \\
 \SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }}~}
 &     if\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~ \Mtype\m\any\any\not\in\bmtp} \\
@@ -2499,12 +2502,12 @@ to its corresponding method in the source type.
 &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~ \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\not\in\bmtp} \\
 \\
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f\t~}
-&    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
-\\
-\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
-&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
-\\
+% \SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f\t~}
+% &    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
+% \\
+% \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
+% &    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
+% \\
 \SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
 &    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 \\
@@ -2519,10 +2522,10 @@ to its corresponding method in the source type.
 \wrapAny\C\bmt\D\that = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
-&  \Mtype\f{}\t \in \bmt\\
-\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-&  \Mtype\f\t\t \in \bmt\\
+% \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
+% &  \Mtype\f{}\t \in \bmt\\
+% \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+% &  \Mtype\f\t\t \in \bmt\\
 \SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that\C}{\m_}{\bscast{\t}\x} }~}
 &  \Mtype\m\t\t\in\b\mt \\
 \\
@@ -2598,7 +2601,8 @@ getter or setter method for that field. This is enforced by the
 \classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
 
  \Class \C {\b{\Ftype\f\t}}{\b\md} \in \K\\
- \b\mt = \sign{\b\md} \oplus \forall ~\Ftype\f\t \in \b{\Ftype\f\t} ~|~ \f \notin \names{\b\md} ~\wedge~ \f\neq\that ~.~ \typez{\Ftype\f\t}
+ \b\mt = \sign{\b\md} 
+%  \oplus \forall ~\Ftype\f\t \in \b{\Ftype\f\t} ~|~ \f \notin \names{\b\md} ~\wedge~ \f\neq\that ~.~ \typez{\Ftype\f\t}
 
 \end{cases}
 \end{equation*}
@@ -2634,28 +2638,28 @@ The \xt{dyn} function returns all the methods with $\star$ type for a particular
 signatures of method typing.
 
 \begin{mathpar}
-\IRule{DYN1}{
- \dyn{\b\mt} = \b{\mtp} \\
-}{
-  \dyn{\Mtype{\m}{\t}{\t} ~\,\b\mt} = \Mtype{\m}{\any}{\any}~\,\b\mtp
-}
-
-\IRule{DYN2}{
- \dyn{\b\mt} = \b{\mtp} \\
-}{
-  \dyn{\Mtype{\f}{\t}{\t} ~\,\b\mt} = \Mtype{\f}{\any}{\any}~\,\b\mtp
-}
-
-\IRule{DYN3}{
- \dyn{\b\mt} = \b{\mtp} \\
-}{
-  \dyn{\Mtype{\f}{}{\t} ~\,\b\mt} = \Mtype{\f}{}{\any}~\,\b\mtp
-}
-
 \IRule{DYNE}{
 }{
   \dyn{\cdot} = \cdot
 }
+
+\IRule{DYN}{
+ \dyn{\b\mt} = \b{\mtp} \\
+}{
+  \dyn{\Mtype{\m}{\t}{\t} ~\,\b\mt} = \Mtype{\m}{\any}{\any}~\,\b\mtp
+}
+% 
+% \IRule{DYN2}{
+%  \dyn{\b\mt} = \b{\mtp} \\
+% }{
+%   \dyn{\Mtype{\f}{\t}{\t} ~\,\b\mt} = \Mtype{\f}{\any}{\any}~\,\b\mtp
+% }
+% 
+% \IRule{DYN3}{
+%  \dyn{\b\mt} = \b{\mtp} \\
+% }{
+%   \dyn{\Mtype{\f}{}{\t} ~\,\b\mt} = \Mtype{\f}{}{\any}~\,\b\mtp
+% }
 \end{mathpar}
 
 \subsection{Signature function}
@@ -2668,38 +2672,38 @@ The \xt{signature} function returns method typing signatures ($\mt$) of method d
   \sign{\cdot} = \cdot
 }
 
-\IRule{SG1}{
+\IRule{SG}{
   \md = \Mdef\m\x\t\t\e \\
   \sign{\b\md} = \b\mt \\
 }{
   \sign{\md\,\b\md} = \Mtype\m\t\t~~\b\mt
 }
 
-\IRule{SG2}{
-  \md = \Mdef\f\x\t\t\e \\
-  \sign{\b\md} = \b\mt \\
-}{
-  \sign{\md\,\b\md} = \Mtype\f\t\t~~\b\mt
-}
-
-\IRule{SG3}{
-  \md = \Mdefz\f\t\e \\ 
-  \sign{\b\md} = \b\mt \\
-}{
-  \sign{\md\,\b\md} = \Mtype\f{}\t~~\b\mt
-}
+% \IRule{SG2}{
+%   \md = \Mdef\f\x\t\t\e \\
+%   \sign{\b\md} = \b\mt \\
+% }{
+%   \sign{\md\,\b\md} = \Mtype\f\t\t~~\b\mt
+% }
+% 
+% \IRule{SG3}{
+%   \md = \Mdefz\f\t\e \\ 
+%   \sign{\b\md} = \b\mt \\
+% }{
+%   \sign{\md\,\b\md} = \Mtype\f{}\t~~\b\mt
+% }
 \end{mathpar}
 
-\subsection{Typing function}
-
-The \xt{typing} function takes field definitions and returns the method typing signature of that field's getter and setter methods. 
-
-\begin{mathpar}
-\IRule{TY1}{
-}{
-  \typez{\Ftype\f\t} = \Mtype\f\t\t~~\Mtype\f{}\t
-}
-\end{mathpar}
+% \subsection{Typing function}
+% 
+% The \xt{typing} function takes field definitions and returns the method typing signature of that field's getter and setter methods. 
+% 
+% \begin{mathpar}
+% \IRule{TY1}{
+% }{
+%   \typez{\Ftype\f\t} = \Mtype\f\t\t~~\Mtype\f{}\t
+% }
+% \end{mathpar}
 
 \subsection{Names function}
 
@@ -2716,78 +2720,82 @@ field/method.
 \opdef{~\names{\b\fd}}{field naming}
 \begin{mathpar}
 \IRule{NF}{
- \b\x = \f, \names{\b\fd}
+ \b\x = \f, ~\names{\b\fd}
 }{
-\names{\Fdef\f\t, \b\fd} = \b\x
+\names{\Fdef\f\t, ~\b\fd} = \b\x
 }
 \end{mathpar}
 
 \opdef{~\names{\b\md}}{method naming}
 \begin{mathpar}
-\IRule{NM1}{
- \b\x = \m, \names{\b\md}
+\IRule{NM}{
+ \b\x = \m, ~\names{\b\md}
 }{
-\names{\Mdef\m\x\t\t\e, \b\md} = \b\x
+\names{\Mdef\m\x\t\t\e, ~\b\md} = \b\x
 }
 
-\IRule{NM2}{
- \b\x = \f, \names{\b\md}
-}{
-\names{\Mdef\f\x\t\t\e, \b\md} = \b\x
-}
-
-\IRule{NM3}{
- \b\x = \f, \names{\b\md}
-}{
-\names{\Mdefz\f\t\e, \b\md} = \b\x
-}
+% \IRule{NM2}{
+%  \b\x = \f, \names{\b\md}
+% }{
+% \names{\Mdef\f\x\t\t\e, \b\md} = \b\x
+% }
+% 
+% \IRule{NM3}{
+%  \b\x = \f, \names{\b\md}
+% }{
+% \names{\Mdefz\f\t\e, \b\md} = \b\x
+% }
 \end{mathpar}
 
 \opdef{~\names{\b\mt}}{type naming}
 \begin{mathpar}
-\IRule{NMT1}{
+\IRule{NMT}{
  \b\x = \m, \names{\b\md}
 }{
 \names{\Mtype\m\t\t, \b\mt} = \b\x
 }
 
-\IRule{NMT2}{
- \b\x = \f, \names{\b\md}
-}{
-\names{\Mtype\f\t\t, \b\mt} = \b\x
-}
-
-\IRule{NMT3}{
- \b\x = \f, \names{\b\md}
-}{
-\names{\Mtype\f{}\t, \b\mt} = \b\x
-}
+% \IRule{NMT2}{
+%  \b\x = \f, \names{\b\md}
+% }{
+% \names{\Mtype\f\t\t, \b\mt} = \b\x
+% }
+% 
+% \IRule{NMT3}{
+%  \b\x = \f, \names{\b\md}
+% }{
+% \names{\Mtype\f{}\t, \b\mt} = \b\x
+% }
 \end{mathpar}
 
 \subsection{Duplicated method names}
 
-\opdef{\cload\mt}{Duplicated method name over $\mt$}
+
 \begin{mathpar}
 \IRule{CMTE}{
 }{
 \cload{\emptyset}
 }
+\end{mathpar}
 
-\IRule{CMT1}{
-  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f{}\t)  \\
- \cload{\bmt}
-}{
-\cload{\Mtype\f\t\t \,\, \bmt}
-}
 
-\IRule{CMT2}{
-  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f\t\t)  \\
- \cload\bmt
-}{
-\cload{\Mtype\f{}\t \,\, \b\mt}
-}
+\opdef{\cload\mt}{Duplicated method name over $\mt$}
+\begin{mathpar}
+% \IRule{CMT1}{
+%   \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f{}\t)  \\
+%  \cload{\bmt}
+% }{
+% \cload{\Mtype\f\t\t \,\, \bmt}
+% }
+% 
+% \IRule{CMT2}{
+%   \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mtype\f\t\t)  \\
+%  \cload\bmt
+% }{
+% \cload{\Mtype\f{}\t \,\, \b\mt}
+% }
 
-\IRule{CMT3}{
+\IRule{CMT}{
  \m \not\in \names\bmt \\
  \cload\bmt
 }{
@@ -2798,26 +2806,26 @@ field/method.
 \opdef{\cload\md}{Duplicated method name over $\md$}
 \begin{mathpar}
 
-\IRule{CMT1}{
+\IRule{CMT}{
  \m \not\in \names\bmd \\
  \cload{\bmd}
 }{
 \cload{\Mdef\m\x\t\t\e \,\, \bmd}
 }
 
-\IRule{CMT2}{
-  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdef\f\x\t\t\ep)  \\
- \cload\bmd
-}{
-\cload{\Mdefz\f\t\e \,\, \b\md}
-}
-
-\IRule{CMT3}{
-  \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdefz\f\t\ep)  \\
- \cload\bmd
-}{
-\cload{\Mdef\f\x\t\t\e \,\, \b\md}
-}
+% \IRule{CMT2}{
+%   \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdef\f\x\t\t\ep)  \\
+%  \cload\bmd
+% }{
+% \cload{\Mdefz\f\t\e \,\, \b\md}
+% }
+% 
+% \IRule{CMT3}{
+%   \f \in \names\bmt \implies \f \notin \xt{names}(\bmt \setminus \Mdefz\f\t\ep)  \\
+%  \cload\bmd
+% }{
+% \cload{\Mdef\f\x\t\t\e \,\, \b\md}
+% }
 \end{mathpar}
 
 \clearpage
