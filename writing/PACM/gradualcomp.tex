@@ -508,7 +508,7 @@ to objects denoted \hspace{-1mm}\obj\C{\b\a}.
 \smallskip
 \begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\t\e   \\
+   &\B \New\C{\b\e}  &\B \FRead\f     &\B \FWrite\f\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
    &\B \SubCast\t\e &\B \BehCast\t\e 
 \end{tabular}\end{minipage}
@@ -934,7 +934,10 @@ all  the type guarantees defined in \t independently of the original type of \a.
 and a new instance of that class. Its dynamic semantics is reported in
 \figref{behavetext}. The rule \RuleRef{BC1} wraps a reference \a with a freshly generated
 wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, and then hands it back
-to the top level dynamics. Similarly, \RuleRef{BC2} wraps
+to the top level dynamics. While doing so it performs several sanity checks:
+
+
+Similarly, \RuleRef{BC2} wraps
 \a with the guards to let \a act like an instance of \any.
 
 \FZ{define mtypes: returns the typing definition for all methods (including getter and setters) and for all of the fields and creates an implicit getter/setters}
