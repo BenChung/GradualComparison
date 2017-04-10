@@ -785,42 +785,84 @@ Evaluation contexts are deterministic and enforce a strict evaluation order
 \begin{figure}[!ht]
 \hrulefill
 %%%%%%%%%%%%%%%%% BEHCAST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+%\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+%    \wrap\C\bmt\bmtp\D\that = \\
+%\SP \class ~\D ~ \{\\
+%\SPP \Fdef\that\C \\
+%\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
+%&    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
+%\\[-3mm]
+%\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+%&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
+%\\[-3mm]
+%\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
+%&     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+%&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+%\\[-3mm]
+%\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that\C} \m {\x} }~}
+%&    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
+%&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+%\\[-3mm]
+%\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }~}
+%&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
+%&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+%\\[-3mm]
+%\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\x} }~}
+%&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
+%&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+%\\[-3mm]
+%\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
+%&    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
+%\\[-3mm]
+%\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
+%&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
+%\\[-3mm]
+%\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\Get\this\that\C}\m{\x}\t\tp~}
+%&    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+%% \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
+%% &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
+%% \\
+%\SP \}
+
+
+\[
+\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
     \wrap\C\bmt\bmtp\D\that = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
-&    if\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
+&    \textit{if}\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
 \\[-3mm]
-\SPP \Mdef\f\x\tp\tp {~\bscast\t{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
+\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
 \\[-3mm]
-\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }}~}
-&     if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }}~}
+&     \textit{if}\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~ \Mtype\m\any\any\not\in\bmtp} \\
 \\[-3mm]
-\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\Call{\Get\this\that\C} \m {\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\KCall{\this.\that()_{\C}} \m {\bscast\any\x}\any\any }~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~  \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~  \Mtype\m\any\any\not\in\bmtp } \\
 \\[-3mm]
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\bscast{\Cp}\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\any\any\not\in\bmt} \\
+\SPP \Mdef\m\x\any\any{~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast{\Cp}\x}\Cp\Cpp}~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~   \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~  \Mtype\m\Dp\Dpp\not\in\bmtp } \\
 \\[-3mm]
-\SPP \Mdef\m\x\any\any{~\bscast\any{\Call{\Get\this\that\C} \m {\x} }~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmtp ~\wedge~ \Mtype\m\any\any\in\bmt ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Dp\Dpp\not\in\bmtp ~\wedge~ \Mtype\m\Cp\Cpp\not\in\bmt} \\
+\SPP \Mdef\m\x\any\any{~{\KCall{\this.\that()_{\C}}\m{\x}\any\any}~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~ \\
+&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\not\in\bmtp} \\
 \\[-3mm]
-\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f~}
-&    if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
+\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f\t~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
 \\[-3mm]
 \SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
-&    if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
+&    \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
 \\[-3mm]
-\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\Get\this\that\C}\m{\x}\t\tp~}
-&    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+\\[-3mm]
 % \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
-% &    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
+% &    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
 % \\
 \SP \}
 \\[3mm]
@@ -828,11 +870,11 @@ Evaluation contexts are deterministic and enforce a strict evaluation order
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
 \SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
-&  if\,\,\,\,\,\, \Mtype\f{}\t \in \bmt\\
+&  \textit{if}\,\,\,\,\,\, \Mtype\f{}\t \in \bmt\\
 \SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-&  if\,\,\,\,\,\, \Mtype\f\t\t \in \bmt\\
+&  \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt\\
 \SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
-& if\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
+& \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
 \SP \}\\
 
 \end{array}\]
@@ -851,32 +893,34 @@ Evaluation contexts are deterministic and enforce a strict evaluation order
 %\SP \}\\
 %\end{array}\]
 
-
-
-{  \small
   \begin{mathpar}
+  
 \IRule{BC1}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrap\C{\getmds\C\K}{\classoff\C\K}{\classoff\Cp\K}\D\that\\
-  \fresh\app \\
-  \sp = \Map \s{\Bind\app{\obj\D{\a}}} \\  
+  \fresh\ap \\
+  \fresh\that \\
+  \cload{\classoff\C\K} \\
+  \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
-  \behcast\a\Cp\s\K {\K\,\k}\app\sp
+  \behcast\a\Cp\s\K {\K\,\k}\ap\sp
 }
 
 \IRule{BC2}{
   \App\s\a = \obj\C{\b{\a_1}}  \\
   \fresh\D \\
-  \k = \wrapAny\C{\getmds\C\K}{\classoff\C\K}\D\that\\
   \fresh\ap \\
+  \fresh\that \\
+  \k = \wrapAny\C{\classoff\C\K}\D\that\\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\any\s\K {\K\,\k}\ap\sp
 }
-\end{mathpar}}  
+\end{mathpar}
 
-\FZ{FIX THAT, define mtypes}
+
 \hrulefill
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -891,13 +935,18 @@ and a new instance of that class. Its dynamic semantics is reported in
 \figref{behavetext}. The rule \RuleRef{BC1} wraps a reference \a with a freshly generated
 wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, and then hands it back
 to the top level dynamics. Similarly, \RuleRef{BC2} wraps
-\a with the guards to let \a act like an instance of \any.\FZ{rule arguments look bogus}
+\a with the guards to let \a act like an instance of \any.
+
+\FZ{define mtypes: returns the typing definition for all methods (including getter and setters) and for all of the fields and creates an implicit getter/setters}
+
+\FZ{define dupMeth: methods are all unique, and for fields and sets...}
+
+
 
 Wrapper generation is implemented by the \xt{wrap} function.  Its first argument \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the \emph{source} type), the type declarations of all its methods (including the getters and setters for the fields), and the type declarations of all the methods of class type the expressions is being casted to (the \emph{target} type).  The final argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. \FZ{and that?}  The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the interface in \(\bmt\) and the return type following the interface in \(\bmtp\) \FZ{why behavioural and not structural casts?}.  Getters and setters are wrapped similarly.   Methods (and getters/setters) defined in the source type but missing from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
  
- \FZ{how are overloaded methods translated?}  \FZ{Don't you have to cast to *?}
+ \FZ{EXPLAIN THEY ARE NOT. how are overloaded methods translated?} 
 
-\FZ{Logic to have the * casts or not in the internal cases?}  \FZ{REMARK THAT BEHAVIOURAL CASTS ARE USED INTERNALLY}
 
 
 
@@ -927,9 +976,11 @@ Wrapper generation for dyn\FZ{FIX} is simpler, as wrappers only cast arguments a
 
 
 
-A wrapper generated for a type \C is a subtype of \C \FZ{EH?} allowing us to refer to
+A wrapper generated for a type \C is a subtype of \C \FZ{EH?  might be related to consistency.} allowing us to refer to
 object instances and wrappers under the original, source language,
-types. Internally, wrappers either forward values, as in the case of getters
+types. 
+
+Internally, wrappers either forward values, as in the case of getters
 and setters, or mimic the behaviour of the underlying object, in the case of
 methods, ensuring that the type guarantees of both the externally visible
 type and the wrapped object are respected.
@@ -937,12 +988,18 @@ type and the wrapped object are respected.
 
 
 
+
+
 Copying the behaviour of the wrapped object is unusual, but this is how we
-maintain one of the semantic Typed Racket, we will describe this in detail in \FZ{Forward pointer to description of Racket}.
-We use the lifting
-mechanism, copying wrapped class functionality, to ensure that
-self-references refer to the wrapper, rather than to the wrapped object,
-thereby enforcing the dynamic type guarantees. \FZ{Check this text.} 
+maintain one of the semantic Typed Racket, we will describe this in detail in \FZ{OLD SENTENCE, should go?}
+%We use the lifting
+%mechanism, copying wrapped class functionality, to ensure that
+%self-references refer to the wrapper, rather than to the wrapped object,
+%thereby enforcing the dynamic type guarantees. \FZ{Check this text.} 
+%
+
+\FZ{ADD TO TEXT: whenever a method is overloaded in the base class, it cannot be behaviourally wrapped.  }
+
 
 
 \paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce to values or are stuck on a dynamic method invocation or on a structural cast.  Formally:
