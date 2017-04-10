@@ -474,19 +474,11 @@ The basis of our formal approach is the \kafka calculus.  At its heart,
 \kafka is a class-based, object-oriented, structurally typed language with
 dynamic dispatch, modeled off of common compilation targets such as the
 JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
-taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.  Its design is guided by two remarks:
+taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.   Its design is guided by 
+the remark that the semantics of mainstream approaches to gradual typing can be faithfully represented via a combination of \emph{dynamic type checks} (casts), \emph{wrappers creation} around objects, and \emph{new class} generation.
 
-\begin{itemize}
-\item to represent faithfully the semantics of modern approaches to gradual typing, the calculus must support \emph{wrappers creation} around objects, \emph{new class} generation, and \emph{dynamic type checks} (casts);
-\item wrappers might interpose on field accesses, so the calculus must provide a mechanism where reads and writes are satisfied through a wrapper.  For this we protect accesses to object fields with \emph{getters} and \emph{setters}.
-\end{itemize}
-
-
-
-
-\paragraph{Syntax}  \kafka is a simple object calculus that satisfies the design requirements streamlined above. Its syntax is given in \figref{syn}.   Types consist of class names \C, \D, ...\ and the dynamic type, written
-\any.  The calculus supports both statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e); getters and setters use a similar syntax, and are denoted \Get\e\f\t and \Set\e\f\t\e.
-    Class definitions have a class name and (possibly empty) sequences of
+\paragraph{Syntax}  \kafka is a simple object calculus that satisfies the above design requirement. Its syntax is given in \figref{syn}.   Types consist of class names \C, \D, ...\ and the dynamic type, written
+\any.  Fields are private to objects, and can be accessed only from the object scope; reading a field is denoted  \(\FRead\f\)  and writing a field is denoted \(\FWrite\f\e  \).  The calculus supports both statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).    Class definitions have a class name and (possibly empty) sequences of
 field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 definitions consist of a field and its type, \Fdef\f\t. Method definitions
 have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
@@ -559,8 +551,7 @@ to objects denoted \hspace{-1mm}\obj\C{\b\a}.
  A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
 class table \K where each class \k in \K is well-formed and \e is well-typed
 with respect to \K.  A class is well-formed if all its fields and methods
-are well-typed. Some restrictions: a class that defines a field \f is not allowed to have
-getter or setter methods of that name, and a class can have at most two
+are well-typed with the restriction that a class can have at most two
 definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
 \Mdef\m\x\any\any\e.  The static semantics of \kafka is mostly unsurprising,
 so we report in Fig.~\ref{f:staticsem} only the subtype rule for classes and the type rules for method calls, casts and references.
@@ -632,9 +623,8 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
 The
 subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
 subtyping: for this the environment \M keeps track of the set of subtype relations assumed.  
-Its only distinctive feature is that fields
-appears in the type signature as getter/setter pairs with the exception of
-the \that field that is hidden from the class type signature.  Method calls use \emph{syntactic} disambiguation to select between
+Recall that all fields are hidden from the class type signature. \FZ{TODO: define mtypes here: returns the typing definition for all methods}
+Method calls use \emph{syntactic} disambiguation to select between
 typed and untyped methods. The dynamically resolved call places no
 requirements on the receiver or argument, and returns type \any. 
 Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how their soundness is enforced at run-time is very different though.  References can be typed both as dynamic, or with the type of the object the point to in the current heap \(\sigma\).   \FZ{Fix rules names.}
@@ -766,21 +756,23 @@ The small  step operational semantics for \kafka is reported in \figref{fig:sema
 table, \e is an expression and \s is a heap.  A configuration evaluates in one
 step to a new configuration, \Reduce \K\e\s\Kp\ep\sp;  the new configuration may
 include a new class table built by extending the previous table with new
-classes. Field access either reads a field from the object (if the class has a
-field definition) or invokes a getter function (if the class has a getter method
-of the field name), and setters are treated similarly. \FZ{Don't understand.  Jan explained - must integrate in text - : Getter/Setter:    A class that has fields `fd1..`  also has implicit getter/setter methods `f1():t` and `f1(x:t):t`.  These implicit g/s methods do not show up in the class table. The semantics knows that if you are trying to call an implicit get / set method it should retrieve the field and read from or write to it.
-The reason they are implicit is that we could not write their body without introducing assignment statements.
-and reads.
-Both of these are tricky because under wrapper semantics you want to be able to interpose on all reads writes.
-An alternative and equivalent design would have been to allow assignments but only in one place — the getter/setter methods of the class that defines a field.  This carries into downsides.
-} 
+classes.
+%
+% Field access either reads a field from the object (if the class has a
+%field definition) or invokes a getter function (if the class has a getter method
+%of the field name), and setters are treated similarly. \FZ{Don't understand.  Jan explained - must integrate in text - : Getter/Setter:    A class that has fields `fd1..`  also has implicit getter/setter methods `f1():t` and `f1(x:t):t`.  These implicit g/s methods do not show up in the class table. The semantics knows that if you are trying to call an implicit get / set method it should retrieve the field and read from or write to it.
+%The reason they are implicit is that we could not write their body without introducing assignment statements.
+%and reads.
+%Both of these are tricky because under wrapper semantics you want to be able to interpose on all reads writes.
+%An alternative and equivalent design would have been to allow assignments but only in one place — the getter/setter methods of the class that defines a field.  This carries into downsides.
+%} 
 Calling forms specify the
 typing, typed methods are invoked with static calls and untyped methods are
 invoked with dynamically resolved calls. Structural casts to \any always succeed
 while structural casts to \C check that the runtime object is an instance of a
 subtype of \C.  
 %, while shallow casts check inclusion of method names. 
-Evaluation contexts are deterministic and enforce a strict evaluation order
+Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 \paragraph{Behavioural Casts}
 
@@ -955,28 +947,15 @@ all  the type guarantees defined in \t independently of the original type of \a.
 and a new instance of that class. Its dynamic semantics is reported in
 \figref{behavetext}. The rule \RuleRef{BC1} wraps a reference \a with a freshly generated
 wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, and then hands it back
-to the top level dynamics. While doing so it performs several sanity checks:
-
-
+to the top level dynamics. While doing so it performs several sanity checks: the target type cannot define methods not defined in the source type, \FZ{define source target here}., and only objects with no overloaded methods can be wrapped \FZ{define dupMeth: methods are all unique}.  \FZ{explain why}.
 Similarly, \RuleRef{BC2} wraps
 \a with the guards to let \a act like an instance of \any.
 
-\FZ{define mtypes: returns the typing definition for all methods (including getter and setters) and for all of the fields and creates an implicit getter/setters}
 
-\FZ{define dupMeth: methods are all unique, and for fields and sets...}
-
-
-
-Wrapper generation is implemented by the \xt{wrap} function.  Its first argument \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the \emph{source} type), the type declarations of all its methods (including the getters and setters for the fields), and the type declarations of all the methods of class type the expressions is being casted to (the \emph{target} type).  The final argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. \FZ{and that?}  The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the interface in \(\bmt\) and the return type following the interface in \(\bmtp\) \FZ{why behavioural and not structural casts?}.  Getters and setters are wrapped similarly.   Methods (and getters/setters) defined in the source type but missing from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
+Wrapper generation is implemented by the \xt{wrap} function.  Its first argument \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the \emph{source} type), the type declarations of all its methods, and the type declarations of all the methods of class type the expressions is being casted to (the \emph{target} type).  The final argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. \FZ{and that?}  The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the interface in \(\bmt\) and the return type following the interface in \(\bmtp\) \FZ{why behavioural and not structural casts?}.    Methods defined in the source type but missing from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
  
- \FZ{EXPLAIN THEY ARE NOT. how are overloaded methods translated?} 
 
-
-
-
-
-
-Observe that invoking a method/field not presenet in the wrapped class results in computation getting stuck.\FZ{comment on all cases where computation gets stuck}
+Observe that invoking a method/field not present in the wrapped class results in computation getting stuck.\FZ{comment on all cases where computation gets stuck}
 
 
 Wrapper generation for dyn\FZ{FIX} is simpler, as wrappers only cast arguments and return types for all fields and methods to \any. 
@@ -1000,37 +979,36 @@ Wrapper generation for dyn\FZ{FIX} is simpler, as wrappers only cast arguments a
 
 
 
-A wrapper generated for a type \C is a subtype of \C \FZ{EH?  might be related to consistency.} allowing us to refer to
+The behavioural cast reduction rule ensures that a wrapper class type \C  is a subtype of \C allowing us to refer to
 object instances and wrappers under the original, source language,
-types. 
-
-Internally, wrappers either forward values, as in the case of getters
-and setters, or mimic the behaviour of the underlying object, in the case of
-methods, ensuring that the type guarantees of both the externally visible
-type and the wrapped object are respected.
-
-
-
-
+types.   \FZ{FIX THE TEXT}.
+%
+%Internally, wrappers either forward values, as in the case of getters
+%and setters, or mimic the behaviour of the underlying object, in the case of
+%methods, ensuring that the type guarantees of both the externally visible
+%type and the wrapped object are respected.
+%
+%
 
 
-Copying the behaviour of the wrapped object is unusual, but this is how we
-maintain one of the semantic Typed Racket, we will describe this in detail in \FZ{OLD SENTENCE, should go?}
-%We use the lifting
+
+%
+%Copying the behaviour of the wrapped object is unusual, but this is how we
+%maintain one of the semantic Typed Racket, we will describe this in detail in \FZ{OLD SENTENCE, should go?}
+%%We use the lifting
 %mechanism, copying wrapped class functionality, to ensure that
 %self-references refer to the wrapper, rather than to the wrapped object,
 %thereby enforcing the dynamic type guarantees. \FZ{Check this text.} 
 %
 
-\FZ{ADD TO TEXT: whenever a method is overloaded in the base class, it cannot be behaviourally wrapped.  }
 
 
 
-\paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce to values or are stuck on a dynamic method invocation or on a structural cast.  Formally:
+\paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce to values or are stuck on a dynamic method invocation or on a cast.  Formally:
 given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
 such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
 or $\e$ is in one of the following forms:
-$\a$, $\EE[\DynCall\a\m{\ap}]$ or $\EE[\SubCast\tp\a]$.  Proof is in the Appendix.
+$\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  Proof is in the Appendix.
 
 
 
