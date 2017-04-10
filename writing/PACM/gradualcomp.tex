@@ -2860,38 +2860,6 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   
     \begin{proof} \innatE{on the definition of the \xt{wrap} function}
      \step{\WFtype{\K~\k}{\Fdef\that\C}}{\byjdg{WF}\trf{cond5},~\trf{cond1}}\lbl{1}
-     
-     \begin{case}{\t = \any, \Mtype\f{}\tp $\not\in$ \bmtp \textbf{for} \Mdefz\f\t {\Get{\Get\this\that\C}\f\t}}\lbl{A}
-      \step{\WFtype\Kk\any}{\byjdg{WA}{$\any$}}\lbl{A2}
-      \step{\Mtype\f{}\any $\in$ \bmt }{\trf{cond4}, defintion of case}\lbl{A3}
-      \step{\EnvType \Env\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{A4}
-      \step{\EnvType \Env\sp\Kk{\Get{\Get\this\that\C}\f\t}\any }{\byjdg{W3}{\trf{A3},~\trf{A4}}}\lbl{A5}
-      \step{\WF{\Env}{\sp}{\Kk}{\Mdefz\f\any{\Get{\Get\this\that\C}\f\t}}}{\byjdg{WG1}{\trf{A5},~\trf{A2}}} \lbl{A6}
-     \end{case}
-     
-     \begin{case}{\t = \Cpp, \Mtype\f{}\tp $\not\in$ \bmtp  \textbf{for} \Mdefz\f\t {\Get{\Get\this\that\C}\f\t}}\lbl{B}
-      \step{\Mtype\f{}\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{B3}
-      \step{\Cpp $\in$ \Kk}{\trf{B3}}\lbl{B3a}
-      \step{\WFtype\Kk\Cpp}{\byjdg{WC}{\trf{B3a}}}\lbl{B4}
-      \step{\EnvType \Env\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{B5}
-      \step{\EnvType \Env\sp\Kk{\Get{\Get\this\that\C}\f\t}\Cpp }{\byjdg{W3}{\trf{B4},~\trf{B5}}}\lbl{B6}
-      \step{\WF{\Env}{\sp}{\Kk}{\Mdefz\f\Cpp{\Get{\Get\this\that\C}\f\t}}}{\byjdg{WG2}{\trf{B6},~\trf{B3}}} \lbl{B7}      
-     \end{case}
-     
-     \begin{case}{\t = \any, \Mtype\f\tp\tp $\not\in$ \bmtp  \textbf{for} \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}}\lbl{C}
-      \step{\WFtype\Kk\any}{\byjdg{WA}{$\any$}}\lbl{C1}
-      \step{\Mtype\f\any\any $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{C2} 
-      \slet{\Envp}{\Env, ~\namet{\x}{\any}}\lbl{C3}
-      \step{\EnvType {\Envp}\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{C4}
-      \step{\EnvType {\Envp}\sp\Kk{\x}\any}{\byjdg{W1}{\trf{C3}}}\lbl{C5}      
-      \step{\EnvType {\Envp}\sp\Kk{\Set{\Get\this\that\C}\f\t\x}\any }{\byjdg{W4}{\trf{C2},~\trf{C4},~\trf{C5}}}\lbl{C6}
-      \step{\WF{\Envp}{\sp}{\Kk}{\Mdef\f\x\any\any { ~\Set{\Get\this\that\C}\f\t\x~}}}{\byjdg{WS1}{\trf{C6},~\trf{C2}}} \lbl{B7}           
-     \end{case}
-
-     \begin{case}{\t = \Cpp, \Mtype\f\tp\tp $\not\in$ \bmtp  \textbf{for} \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}}\lbl{D}
-      \statem{Same as $\t$ = \any, by defintion of case, \trf{cond1}, \trf{cond4}, and with WS2 and WC instead of WS1 and WA 
-      respectively.}\lbl{D1}
-     \end{case}
 
      \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\m\tpp\tppp $\not\in$ \bmtp \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}}\lbl{E}
       \step{\Mtype\m\Cpp\Cppp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{E1}
@@ -2909,40 +2877,6 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
      \begin{case}{\t = \any, \tp = \any, \Mtype\m\tpp\tppp $\not\in$ \bmtp \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that}\m{\x}\t\tp~}}\lbl{F}
       \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WT1 and WA instead of WT2 and WC 
       respectively.}\lbl{F1}      
-     \end{case}
-
-     \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\f{}\tp $\in$ \bmtp \textbf{for} \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}}\lbl{G}
-      \step{\Mtype\f{}\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{G1}
-      \step{\EnvType \Env\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{G4}  
-      \step{\EnvType \Env\sp\Kk{\Get{\Get\this\that\C}\f\t}\Cpp }{\byjdg{W3}{\trf{G1},~\trf{G4}}}\lbl{G5}
-      \step{\EnvType \Env\sp\Kk{\bscast\Cppp{\Get{\Get\this\that\C}\f\t}}{\Cppp}}{\byjdg{WB}{\trf{G5}}}\lbl{G6}
-      \step{\Mtype\f{}\Cppp $\in$ \bmtp }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{G7}
-      \step{\Cppp $\in$ \Kk}{\trf{G7}}\lbl{G8}      
-      \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{G8}}}\lbl{G9}
-      \step{\WF{\Env}{\sp}{\Kk}{\Mdefz\f{\Cppp}{~\bscast\Cppp{\Get{\Get\this\that\C}\f\t}~}}}{\byjdg{WG2}{\trf{G6}, \trf{G9}}}\lbl{G10}
-     \end{case}
-
-     \begin{case}{\t = \any, \tp = \any, \Mtype\f{}\tp $\in$ \bmtp \textbf{for} \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}}\lbl{H}
-      \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WG1 and WA instead of WG2 and WC 
-      respectively.}\lbl{H1}      
-     \end{case}
-
-     \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\f\tp\tp $\in$ \bmtp \textbf{for} \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}}\lbl{I}
-      \step{\Mtype\f\Cppp\Cppp $\in$ \bmtp }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{I1}
-      \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{I1}}}\lbl{I1a}
-      \step{\Mtype\f\Cpp\Cpp $\in$ \bmt }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{I1b}
-      \slet{\Envp}{\Env, ~\namet{\x}{\Cppp}}\lbl{I1c}
-      \step{\EnvType\Envp\sp\Kk{\x}{\Cppp}}{\byjdg{W1}{\trf{I1c}}}\lbl{I1d}
-      \step{\EnvType\Envp\sp\Kk{\bscast\Cpp\x}{\Cpp}}{\byjdg{WB}{\trf{I1d}}}\lbl{I1e}
-      \step{\EnvType \Envp\sp\Kk{\this.\that()_{\C}}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable, definition of \textbf{mtypes}}}\lbl{I2}
-      \step{\EnvType \Envp\sp\Kk{\Set{\Get\this\that\C}\f\t{\bscast\Cpp\x}}\Cpp }{\byjdg{W4}{\trf{I1b},~\trf{I2},~\trf{I1e},~\trf{cond3a}}}\lbl{I3}
-      \step{\EnvType \Envp\sp\Kk{\bscast\Cppp{\Set{\Get\this\that\C}\f\t{\bscast\Cpp\x}}}{\Cppp}}{\byjdg{WB}{\trf{I3}}}\lbl{I4}
-      \longstepA{\WF{\Envp}{\sp}{\Kk}{\Mdef\f\x\Cppp\Cppp {~\bscast\Cppp{\Set{\Get\this\that\C}\f\t{\bscast\Cpp\x}}~}}}{\byjdg{WS2}{\trf{I4}, \trf{I1}}}\lbl{I5}
-     \end{case}
-
-     \begin{case}{\t = \any, \tp = \any, \Mtype\f\tp\tp $\in$ \bmtp \textbf{for} \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}}\lbl{J}
-      \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WS1 and WA instead of WS2 and WC 
-      respectively.}\lbl{J1}       
      \end{case}
 
      \begin{case}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\this.\that()_{\C}}\m{\bscast\Cp\x}\Cp\Cpp}~}}\lbl{K}
@@ -3051,25 +2985,6 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{\xt{overloading}$_{\cmdp}$(\b\mdp~\b\fd)}{Ind Hyp on \textbf{case}, \trf{D1}, \trf{D3}, \trf{D4}}\lbl{D5}
       \done{\trf{D3}, \trf{D4}, \trf{D5}}      
      \end{case}
-
-     \begin{case}{MO4}\lbl{E}
-      \step{\xt{overloading}$_{\cmd}$(\Mdef\f\x\t\t\e ~ \b\mdp ~\b\fd)}{def of \textbf{case}}\lbl{E1}
-      \step{\f $\in$ \names\bmtp $\implies$ \f $\notin$ \xt{names}(\bmtp $\setminus$ \Mtype\f{}\t)}{\trf{cond4} on \textbf{case}}\lbl{E2}
-      \step{\f $\in$ \xt{names}(\b\mdp) $\implies$ \f $\notin$ \xt{names}(\b\mdp $\setminus$ \Mtype\f{}\t)}{\trf{E1}, \trf{E2}}\lbl{E3}
-      \slet{\cmdp}{\cmd, ~\Mdef\f\x\t\t\e}\lbl{E4}
-      \step{\xt{overloading}$_{\cmdp}$(\b\mdp~\b\fd)}{Ind Hyp on \textbf{case}, \trf{E1}, \trf{E3}, \trf{E4}}\lbl{E5}
-      \done{\trf{E3}, \trf{E4}, \trf{E5}}      
-     \end{case}
-     
-     \begin{case}{MO5}\lbl{F}
-      \step{\xt{overloading}$_{\cmd}$(\Mdefz\f\t\e ~ \b\mdp ~\b\fd)}{def of \textbf{case}}\lbl{F1}
-      \step{\f $\in$ \names\bmt $\implies$ \f $\notin$ \xt{names}(\bmtp $\setminus$ \Mtype\f\t\t)}{\trf{cond4} on \textbf{case}}\lbl{F2}
-      \step{\f $\in$ \xt{names}(\b\mdp) $\implies$ \f $\notin$ \xt{names}(\b\mdp $\setminus$ \Mtype\f\t\t)}{\trf{F1}, \trf{F2}}\lbl{F3}
-      \slet{\cmdp}{\cmd, ~\Mdefz\f\t\e}\lbl{F4}
-      \step{\xt{overloading}$_{\cmdp}$(\b\mdp~\b\fd)}{Ind Hyp on \textbf{case}, \trf{F1}, \trf{F3}, \trf{F4}}\lbl{F5}
-      \done{\trf{F3}, \trf{F4}, \trf{F5}}     
-     \end{case}
-     
    \end{proof}
 \end{lemma}
 
