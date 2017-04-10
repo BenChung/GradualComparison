@@ -643,9 +643,13 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \noindent\hrulefill
 \smallskip
 
+e  ::= \dots \B \FReadR\a\f \B \FWriteR\a\f\e
+
 \begin{minipage}{\textwidth}
   \opdef{\Reduce \K\e\s \Kp\ep\sp}
         {\e\s evaluates to \ep\xspace in one step}\\[-7mm]
+        
+        
 \begin{center}
 \begin{tabular}{r@{\;}l@{}l@{\hspace{2em}}ll}
 \CondRule{E1}{  %% new C -> a
@@ -653,25 +657,26 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 }{ 
   \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
-\CondRule{E2}{  %% a.f() -> e
-    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
-}{
-   \ReduceA \K{\Get\a\f\t}\s \K{[\a/\this]\e}\s
-}
-\CondRule{E3}{  %% a.f(a) -> e
-    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
-}{
-   \ReduceA \K{\Set\a\f\t\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
+%\CondRule{E2}{  %% a.f() -> e
+%    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
+%}{
+%   \ReduceA \K{\FRead\f}\s \K{[\a/\this]\e}\s
+%}
+%\CondRule{E3}{  %% a.f(a) -> e
+%    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
+%}{
+%   \ReduceA \K{\Set\a\f\t\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
+%}
 \CondRule{E4}{  %% a.f() -> e
- \readf \s\a\f\K =  \ap 
+  \readf \s\a\f\K =  \ap
+ %\App\s\a = \obj\C{\a_i \dots ~\ap~ \a_j \dots}  \AND $ \Class\C {\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j \dots}{\md \dots}\in\K$
 }{
-  \ReduceA \K{\Get\a{\f}\t}\s  \K\ap\s
+  \ReduceA \K{\FReadR\a{\f}}\s  \K\ap\s
 }
 \CondRule{E5}{  %% a.f(e) -> e
  \setf \s\a\f\ap\K =  \sp
 }{
-  \ReduceA \K{\Set\a{\f}\t\ap}\s \K\ap\sp
+  \ReduceA \K{\FWriteR\a{\f}\ap}\s \K\ap\sp
 }
 \CondRule{E6}{  %% a.m(a) -> e
   \Mdef\m\x\t\tp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
@@ -696,7 +701,6 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
   \behcast \a\t\s\K  \Kp\ap\sp    
 }{    
   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
-
 } 
 \CondRule{E11}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
@@ -706,17 +710,15 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \end{tabular}
 \end{center}\end{minipage}
 
-\smallskip
+\medskip
 
-\begin{minipage}{14cm}\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
-\EE &::= \Get\EE\f\t     &\B
-        \Set\EE\f\t\e   &\B
-        \Set\a\f\t\EE   &\B  
-        \Call\EE\m\e  &\B
-        \Call\a\m{\EE} &\B
+%\begin{minipage}{14cm}
+\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+\EE &::=  \FWriteR\a\f\EE   &\B  
+        \KCall\EE\m\e\t\t  &\B
+        \KCall\a\m{\EE}\t\t &\B
         \DynCall\EE\m\e   &\B
-        \DynCall\a\m\EE   \\
-   &\B~
+        \DynCall\a\m\EE   &\B
        \SubCast\t\EE  &\B
        %\ShaCast\t\EE  &\B
       \BehCast\t\EE  &\B
@@ -724,7 +726,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
        \New\C{\b \a\,\EE\,\b\e}
   &\B \EM{\square}
 \end{tabular}
-\end{minipage}
+%\end{minipage}
 
 \medskip
 \begin{tabular}{c@{\hspace{-0.6em}}c}
