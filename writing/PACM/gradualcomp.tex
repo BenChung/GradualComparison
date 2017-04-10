@@ -779,15 +779,6 @@ Evaluation contexts are deterministic and enforce a strict evaluation order
 
 \paragraph{Behavioural Casts}
 
-A behavioural cast \BehCast\t\a ensures that the result, \ap, will follow
-all of the type guarantees defined in \t by creating a wrapper which holds a
-reference to the original object \a and dynamically enforces the aforementioned type
-guarantees. The behavioural cast is generative as it creates both a class
-and a new instance of that class. Its dynamic semantics appears in
-\figref{behavetext}. \RuleRef{BC1} wraps a reference \a with a freshly generated
-wrapper \k for some type \t, adds it into a new heap, and then hands it back
-to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
-\a with the guards to let \a act like an instance of \any.
 
 \newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
 
@@ -885,26 +876,41 @@ to the top level dynamics. \RuleRef{BC2} is similar, except that it wraps
 }
 \end{mathpar}}  
 
+\FZ{FIX THAT, define mtypes}
 \hrulefill
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \caption{Behavioural casts.}\label{behavetext}
 \end{figure}
 
-A wrapper generated for a type \C is a subtype of \C allowing us to refer to
-object instances and wrappers under the original, source langu age,
-types. Internally, wrappers either forward values, as in the case of getters
-and setters, or mimic the behaviour of the underlying object, in the case of
-methods, ensuring that the type guarantees of both the externally visible
-type and the wrapped object are respected.
-Wrapper generation is implemented by the \xt{wrap} function, that takes two class types and the two
-sets of method typing. The class type $\C$ is the type of the expression being casted, also known 
-as the source type and represented by $\tp$ in the typing rule \xt{WB}.
-The class type $\D$ is a fresh class name, and represents the type of the wrapper class.
-The method typing $\bmt$ corresponds to the typing definition of every method in $\C$.
-The method typing $\bmtp$ is the set of method typing for the casting type. The casting
-type is also known as the target type, shown by $\t$ in \xt{WB}.
+A behavioural cast \BehCast\t\a creates a wrapper which holds a
+reference to the original object \a and dynamically enforces the type
+guarantees of \ap.  This ensures that the result, \ap, satisfies at run-time 
+all  the type guarantees defined in \t independently of the original type of \a.  The behavioural cast is generative as it creates both a class
+and a new instance of that class. Its dynamic semantics is reported in
+\figref{behavetext}. The rule \RuleRef{BC1} wraps a reference \a with a freshly generated
+wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, and then hands it back
+to the top level dynamics. Similarly, \RuleRef{BC2} wraps
+\a with the guards to let \a act like an instance of \any.\FZ{rule arguments look bogus}
 
+Wrapper generation is implemented by the \xt{wrap} function.  Its first argument \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the \emph{source} type), the type declarations of all its fields and methods, and the type declarations of all the fields and methods of class type the expressions is being casted to (the \emph{target} type).  The final argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. \FZ{and that?}  The function \xt{wrap} builds a new wrapper class with name \(\D\), a \xt{that} field pointing to the source type and storing the wrapped object.
+
+\FZ{DESCRIBE INTERNAL CASES}  \FZ{REMARK THAT BEHAVIOURAL CASTS ARE USED INTERNALLY}
+
+The last three cases deal with methods defined in the source type but not in the 
+target type. For each of these method, their method call is redirected 
+to its corresponding method in the source type.  
+
+Wrapper generation for dyn is simpler, as wrappers only cast arguments and return types for all fields and methods to \any. 
+%
+%, that takes two class types \C and \D, and the two
+%sets of method typing \bmt and \bmtp,   The class type $\C$ is the type of the expression being casted, also referred to as the source type, and represented by $\tp$ in the typing rule \xt{WB}.
+%The class type $\D$ is a fresh class name, and represents the type of the wrapper class.
+%%
+%The method typing $\bmt$ corresponds to the typing definition of every method in $\C$.
+%The method typing $\bmtp$ is the set of method typing for the casting type. The casting
+%type is also known as the target type, shown by $\t$ in \xt{WB}.
+%
 % 
 %\opdef{\mt ~~::= \Mtype\m\t\t \B  \Mtype\f\t\t  \B \Mtype\f{}\t 
 %}{ method typing
@@ -912,11 +918,16 @@ type is also known as the target type, shown by $\t$ in \xt{WB}.
 
 % 
 
-Every wrapper class has a \xt{that} field pointing to the source type.
+%Every wrapper class has a \xt{that} field pointing to the source type.
 
-The last three cases is for when the methods are in the source type but not the 
-target type. For each of these method, their method call is redirected 
-to its corresponding method in the source type.
+
+
+A wrapper generated for a type \C is a subtype of \C \FZ{if C is the target type, otherwise no!} allowing us to refer to
+object instances and wrappers under the original, source language,
+types. Internally, wrappers either forward values, as in the case of getters
+and setters, or mimic the behaviour of the underlying object, in the case of
+methods, ensuring that the type guarantees of both the externally visible
+type and the wrapped object are respected.
 
 
 
@@ -926,7 +937,7 @@ maintain one of the semantic Typed Racket, we will describe this in detail in \F
 We use the lifting
 mechanism, copying wrapped class functionality, to ensure that
 self-references refer to the wrapper, rather than to the wrapped object,
-thereby enforcing the dynamic type guarantees. \FZ{Check this text.}  \FZ{REWRITE, and decide how much of the explanation of this we postpone to the typed racket section later.}
+thereby enforcing the dynamic type guarantees. \FZ{Check this text.} 
 
 
 \paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce to values or are stuck on a dynamic method invocation or on a structural cast.  Formally:
