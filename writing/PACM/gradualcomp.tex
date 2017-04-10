@@ -893,15 +893,20 @@ wrapper \k for some type \t, adds it to the heap, updates the class table with t
 to the top level dynamics. Similarly, \RuleRef{BC2} wraps
 \a with the guards to let \a act like an instance of \any.\FZ{rule arguments look bogus}
 
-Wrapper generation is implemented by the \xt{wrap} function.  Its first argument \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the \emph{source} type), the type declarations of all its fields and methods, and the type declarations of all the fields and methods of class type the expressions is being casted to (the \emph{target} type).  The final argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. \FZ{and that?}  The function \xt{wrap} builds a new wrapper class with name \(\D\), a \xt{that} field pointing to the source type and storing the wrapped object.
+Wrapper generation is implemented by the \xt{wrap} function.  Its first argument \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the \emph{source} type), the type declarations of all its methods (including the getters and setters for the fields), and the type declarations of all the methods of class type the expressions is being casted to (the \emph{target} type).  The final argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. \FZ{and that?}  The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the interface in \(\bmt\) and the return type following the interface in \(\bmtp\) \FZ{why behavioural and not structural casts?}.  Getters and setters are wrapped similarly.   Methods (and getters/setters) defined in the source type but missing from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
+ 
+ \FZ{how are overloaded methods translated?}  \FZ{Don't you have to cast to *?}
 
-\FZ{DESCRIBE INTERNAL CASES}  \FZ{REMARK THAT BEHAVIOURAL CASTS ARE USED INTERNALLY}
+\FZ{Logic to have the * casts or not in the internal cases?}  \FZ{REMARK THAT BEHAVIOURAL CASTS ARE USED INTERNALLY}
 
-The last three cases deal with methods defined in the source type but not in the 
-target type. For each of these method, their method call is redirected 
-to its corresponding method in the source type.  
 
-Wrapper generation for dyn is simpler, as wrappers only cast arguments and return types for all fields and methods to \any. 
+
+
+
+Observe that invoking a method/field not presenet in the wrapped class results in computation getting stuck.\FZ{comment on all cases where computation gets stuck}
+
+
+Wrapper generation for dyn\FZ{FIX} is simpler, as wrappers only cast arguments and return types for all fields and methods to \any. 
 %
 %, that takes two class types \C and \D, and the two
 %sets of method typing \bmt and \bmtp,   The class type $\C$ is the type of the expression being casted, also referred to as the source type, and represented by $\tp$ in the typing rule \xt{WB}.
@@ -922,7 +927,7 @@ Wrapper generation for dyn is simpler, as wrappers only cast arguments and retur
 
 
 
-A wrapper generated for a type \C is a subtype of \C \FZ{if C is the target type, otherwise no!} allowing us to refer to
+A wrapper generated for a type \C is a subtype of \C \FZ{EH?} allowing us to refer to
 object instances and wrappers under the original, source language,
 types. Internally, wrappers either forward values, as in the case of getters
 and setters, or mimic the behaviour of the underlying object, in the case of
