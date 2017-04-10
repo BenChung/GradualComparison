@@ -1045,58 +1045,32 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$ or $\EE[\SubCast\tp\a]$.  Proof is in the Appendi
 \vspace{-5mm}
 
 \noindent
-This section gives semantics to the five gradual type systems of interest.
+This section gives semantics to the four gradual type systems of interest.
 In each case, the semantics of the source languages are defined by
-translation to \kafka programs. Source and target share most of their
-syntax, and when we need to distinguish them, we will use underline to denote
-source terms.  Casts are not used in the source languages, but are inserted
-by the translations.  The general approach in each translation is the
-following, starting with a program \src{\K\,\e}, we define a translation to
-a \kafka configuration \K\,\e.
+translation to \kafka.
 
-{\begin{center}\large
-\begin{tabular}{|ccrcr|}\hline
-\src{\K\,\e}
-&
-\EM{\progtrans{}{}}
-&
-\K\,\e
-&
-\EM{\longrightarrow}
-&
-\Kp\,\ep\,\s
-\\
-&
-&
-\WFp\K\e
-&
-&
-\EnvType\cdot\s\Kp\ep\t\\
-&&
-\EnvType\cdot\cdot\K\e\t
-&&\\\hline
-\end{tabular}
-\end{center}}
+Explain the source language
 
-\noindent
-Each translation guarantees a few key properties. A translated program is
-well-formed, a well-formed program will reduce or get stuck at a cast or a
-dynamically resolved call.
+Casts are not used in the source languages, but are inserted by the
+translations.  
 
+...The general approach is that for each gradual type system there is a translation function defined on well-typed programs. 
+
+...For each class it produces a well-typed Kafka class.
 
 
 \subsection{TypeScript}
 
-
-Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript with
-classes and type annotations. Type equivalence is structural and subtyping of
-recursive types is supported (types arise from class declarations). Missing
-annotations are treated as \any. The role of types is to catch simple errors,
-such as misspelt method names, as well as assisting IDEs.  A typical example is
-shown here. The first expression is ill-typed because method \code o does not
-exist, the second is erroneous as it provides an instance of \code A where \code
-C is expected. The third expression is statically correct as the instance of
-\code A is cast to a \code C by the \code{n} method.
+Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
+with classes and type annotations. Type equivalence is structural and
+subtyping of recursive types is supported (types arise from class
+declarations). Missing annotations are treated as \any. The role of types is
+to catch simple errors, such as misspelt method names, as well as assisting
+IDEs.  A typical example is shown here. The first expression is ill-typed
+because method \code o does not exist, the second is erroneous as it
+provides an instance of \code A where \code C is expected. The third
+expression is statically correct as the instance of \code A is cast to a
+\code C by the \code{n} method.
 
 \begin{lstlisting}
  class A { 
@@ -1120,77 +1094,57 @@ definition and the last expression:
  new A()@m(new A()@n(new A()))    
 \end{lstlisting}
 
-\noindent Dynamically resolved calls (written \code @) are calls that may fail
-because the receiver need not have the requested method. Method signatures see
-their types set to \any.  The designers of TypeScript saw unsoundness as a way
-to ensure, ({\em a}) that types do not get in the way of running correct
-programs, e.g. when importing a new library with type annotations inconsistent
-with existing client code; and ({\em b}) an insurance for backwards
-compatibility, as ignoring types means all browsers can run TypeScript code --
-with no additional overhead.
+\noindent Dynamically resolved calls are calls that may fail because the
+receiver need not have the requested method. Method signatures see their
+types set to \any.  The designers of TypeScript saw unsoundness as a way to
+ensure, ({\em a}) that types do not get in the way of running correct
+programs, e.g. when importing a new library with type annotations
+inconsistent with existing client code; and ({\em b}) an insurance for
+backwards compatibility, as ignoring types means all browsers can run
+TypeScript code -- with no additional overhead.
 
 To model TypeScript, we use a very simple translation mechanism, where every
 type becomes \any and every call becomes a dynamic call.  We proceed through
-translation top-down, translating classes and the main expression.  Beyond
-the top level translation, we have two judgments that perform cast insertion
-on expressions, following Pierce and Turner~\cite{pierce:1998:local}, the
-synthetic cast insertion judgment $\GenCast\K\Env\e\ep\t$, which states that
-against context \Env and class table \src\K, expression \src\e\,translates to
-\ep\, producing source type \src\t, and the analytic judgment
-$\AnaCast\K\Env\e\ep\t$, which ensures that the translated expression $\ep$
-will model source type \src\t, coming from source expression \src\e.  Inside
-of this bidirectional framework, we then have a fairly typical set of
-translation judgments.
+translation top-down, translating classes and the main expression.  
 
 
 \begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
-  \hspace{-.5cm}\begin{minipage}{8cm}  
+ \begin{minipage}{8cm}  
 \begin{tabbing}
 
 \tr c{\K, \Class \C{\fds 1..}{\mds 1 .. }} = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..}} \\
 \HS \= \WHERE\HS\= \fds 1\HS\= = \Ftype\f\t, \HS \HS  \fdsp 1   = \src{\Ftype\f\any} ..     \\
        \>          \> \mds 1   \> = \Mdef\m\x{\t_1}{\t_2}\e                       \\
        \>          \> \mdsp 1  \> = \src{\Mdef\m\x\any\any\ep}  \\
-       \>          \> \ep      \> = \tr a{\K, \Ftype\this\C\,\Ftype\x{\t_1}, \t_2, \e}
-\\[1mm]
-\tr e{\x} = \src \x
-\\[1mm]       
+       \>          \> \ep      \> = \tr e\e
 \end{tabbing}
 \end{minipage}
 &~~ \hspace{.51cm} ~~~ &
 \begin{minipage}{5cm}
   \begin{tabbing}
-\tr e{ \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}} \\
-\HS   \=\WHERE\HS\= \eps 1= \tr e{ \e_1}, \HS \eps 2=\tr a{ \any, \e_2}
+\tr e{\FRead\f} = \src{\FRead\f}
 \\[1mm]
-\tr e{\New\C{\e_1..}} = \src{\New\C{\eps 1..}} \HS \WHERE \HS   \eps 1 = \tr a{\any,\e_1} ..
+\tr e{\FWrite\f\e} = \src{\FWrite\f\ep} \HS\WHERE~\ep=\tr e\e
 \\[1mm]
-\tr a{ \t, \this} = \src{\SubCast\any\this}
+\tr e{\this} = \src{\SubCast\any\this}
 \\[1mm]
-\tr a{ \t, \New\C{\e_1..}} = \src{\SubCast\any\e} \HS\WHERE \HS \e = \tr e{\New\C{\e_1..}}
+\tr e{\x} = \src \x
+\\[1mm]       
+\tr e{ \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}} 
+\HS   \=\WHERE\HS\= \eps 1= \tr e{ \e_1}, \HS \eps 2=\tr e{\e_2}
 \\[1mm]
- \tr a{ \t, \e} = \src\e
+\tr e{\New\C{\e_1..}} = \src{\SubCast\any{\New\C{\eps 1..}}} \HS \WHERE \HS   \eps 1 = \tr e{\e_1} ..
 \end{tabbing}
 \end{minipage}
 \end{tabular}
 \caption{TypeScript}
 \end{figure}
 
-The synthetic case of translation is uninteresting, with the exception of
-\RuleRef{TSS4}, which allows access to fields via the self-reference, whose
-type is always known.  Of more interest are the analytic rules:
-\RuleRef{TSA1} requires the interaction between typed parts of the program
-to be well-typed, but \RuleRef{TSA2} and \RuleRef{TSA3} allow untyped values
-to be passed into typed references without any extra checks, and are what
-causes TypeScript to be unsound.  The translation produces well-typed terms
-as it erases all types in the source during translation. The translation is
-weak due to the type erasure, as it befits TypeScript's optional and unsound
-nature. 
+...The unsoundness comes from the use of \tr a(\any,\e) which discards the type of \e.
 
-
-
+...The casts inserted in the translation are there to keep the kafka type system happy and have no operational effect
 
 
 \subsection{Thorn}
