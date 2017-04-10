@@ -1139,9 +1139,6 @@ translation judgments.
 \\[1mm]
 \tr e{\x} = \src \x
 \\[1mm]       
-\tr e{\FRead\f} = \src{\FRead\f}
-\\[1mm]
-\tr e{\FWrite\f\e} = \src{\FWrite\f\ep} \HS\WHERE~\ep=\tr a{\any,\e}
 \end{tabbing}
 \end{minipage}
 &~~ \hspace{.51cm} ~~~ &
@@ -1256,18 +1253,19 @@ causes all calls to be dynamic.
        \>          \>          \> \HS\HS  {\bf otherwise}  ..                   \\[1mm]
 \tr e{\K, \Env, \x} = \src \x
 \\[1mm]       
-\tr e{\K, \Env, \FRead\f} = \src{\FRead\f} 
-\\[1mm]
-\tr e{\K, \Env,  \FWrite\f\e} = \src{\FWrite\f\ep} \\
-\HS   \>\WHERE    \>  \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\In\App\K\C \\
-      \>          \>  \ep = \tr a{\K, \Env, \kty\t, \e} 
+\tr e{\K, \Env, \Call\e\f{}} = \src{\Get\ep\f\t}  \\
+      \> \WHERE   \> \ep = \tr e{\K, \Env, \e}, \HS  \TypeCk{\K,\Env}\e\C, \HS \Ftype\f\t \In\App\K\C  
 \end{tabbing}
 \end{minipage}
 &~~ \hspace{.51cm} ~~~ &
 \begin{minipage}{5cm}
   \begin{tabbing}
+\tr e{\K, \Env,  \Call{\e_1}\f{\e_2}} = \src{\Set{\eps 1}\f\t{\eps 2}} \\
+\HS   \=\WHERE\HS\= \TypeCk{\K, \Env}{\e_1}\C, \HS  \Mtype\f\t\t\In\App\K\C \\
+      \>          \>  \eps 1 = \tr e{\K, \Env,  \e_1}, \HS  \eps 2 = \tr a{\K, \Env, \kty\t, \e_2} 
+\\[1mm]
 \tr e{\K, \Env, \Call{\e_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}} \\
-\HS   \=\WHERE\HS\= \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
+\HS   \>\WHERE\HS\> \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any\\
      \>          \> \eps 1= \tr e{\K,\Env, \e_1}, \HS \eps 2=\tr a{\K,\Env, \any, \e_2}
 \\[1mm]
 \tr e{\K,\Env, \Call{\e_1}\m{\e_2}} = \src{\KCall{\eps 1}{\m}{\eps 2}{\t_1}{\t_2}} \\
@@ -1337,10 +1335,10 @@ conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore
 \\[1mm]
 \tr e{\K,\Env, \x} = \src{\SubCast\t\x} \HS \WHERE \HS \TypeCk{\K,\Env}\x\t
 \\[1mm]
-\tr e{\K,\Env,\FRead\f}  = \src{\SubCast\t{\FRead\f}}\\
+\tr e{\K,\Env,\Call\this\f{}}  = \src{\SubCast\t{\Get\this\f\any}}\\
    \>  \WHERE  \> \TypeCk{\K,\Env}\this\C,\HS  \Ftype\f\t\IN\App\K\C
 \\[1mm]
-\tr e{\FWrite\f\e} =  \src{\SubCast\t{\FWrite\f\any}} \\
+\tr e{\Call\this\f\e} =  \src{\SubCast\t{\Set\this\f\any\ep}} \\
    \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\In\App\K\C\\
    \>       \>  \ep = \tr a{\K,\Env,\any,\e}
 \end{tabbing}
@@ -1528,11 +1526,15 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
 \\[1mm]
 \tr e{\K,\Env, \x} = \src{\x}
 \\[1mm]
-\tr e{\K,\Env,\FRead\f}  = \src{\FRead\f}
+\tr e{\K,\Env,\Call\e\f{}}  = \src{\Get\ep\f\t}\\
+   \> \WHERE    \> \TypeCk{\K,\Env}\e\t,\HS  \Mtype\f{}\t\In\App\K\C,\HS  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
-\tr e{\K,\Env, \FWrite\f\e} =  \src{\FWrite\f\ep} \\
-   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\In\App\K\C\\
-   \>       \>  \ep = \tr a{\K,\Env,\t,\e}
+\tr e{\K,\Env, \Call{\e_1}\f{\e_2}} =  \src{\Set{\eps 1}{\f}\t{\eps 2}} \\
+   \>\WHERE \> \TypeCk\K{\e_1}\C, \HS \Ftype\f\t\In\App\K\C\\
+   \>       \>  \eps 1 = \tr e{\K,\Env,\e_1},\HS  \eps 2 = \tr a{\K,\Env,\t,\e}
+\\[1mm]
+\tr e{\K,\Env, \Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}}\\
+   \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
 \end{tabbing}
 \end{minipage}
 &&
@@ -1543,13 +1545,16 @@ before applying the behavioural cast. \FZ{FIXME: no shallow casts}
    \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\D_1,\e_2}
 \\[1mm]
 \tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\\
-   \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C,\HS \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
+   \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C ~..\\
+   \>       \>  \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
 \\[1mm]
 \tr a{\K,\Env,\t,\e} = \src\ep\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \Sub \tp},\HS  \ep = \tr e{\K,\Env,\e}
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \Sub \tp}\\
+   \>            \>  \ep = \tr e{\K,\Env,\e}
 \\[1mm]
 \tr a{\K,\Env,\t,\e} = \src{\BehCast\t\e}\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \not \Sub \tp},\HS \ep = \tr e{\K,\Env,\e}
+   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \not \Sub \tp}\\
+   \>            \> \ep = \tr e{\K,\Env,\e}
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -2299,7 +2304,7 @@ to the name of \t not to \t.
 }    
 
 
-\IRule[width=20em]{KT-NEW}{
+\IRule[width=20em]{KT-YesNEW}{
  \EnvType \Env\s\K{\e_1}{\t_1}\dots 
  \EnvType \Env\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
@@ -2402,27 +2407,7 @@ given method definitions.
 
 \section{Generative Behavioural Casts}
 
-\subsection{Behavioural cast static and dynamic rules}
-
-\begin{minipage}{0.35\textwidth}
-\begin{mathpar}
-\IRule{WB}{
-  \EnvType \Env\s\K\e\tp
-}{
-  \EnvType \Env\s\K{\BehCast\t\e}\t
-}
-\end{mathpar}
-\end{minipage}
-\begin{minipage}{0.5\textwidth}
-\begin{tabular}{l@{}l@{~}l@{~}l}
-\CondRule{E11}{  %% Behavioral cast  
-  \behcast \a\t\s\K  \Kp\ap\sp    
-}{    
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp   
-} \\
-\multicolumn{4}{l}{\EE ::= \ldots \B \BehCast\t\EE }
-\end{tabular}
-\end{minipage}
+\subsection{Behavioural cast dynamics}
 
 \begin{figure}[!ht]
 \vspace{-2mm}
@@ -3011,20 +2996,20 @@ field/method.
 
 \IRule{STH-GET}{
    \HasType \Env\this\C \\
-  \Fdef\f\t \in \C
+  \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeW \Env\s\K{\FRead\f}\t
 }    
 
 \IRule{STH-SET}{
   \HasType \Env\this\C \\
-  \Fdef\f\t \in \C
+  \Fdef\f\t \in \App\K\C \\
   \EnvTypeW \Env\s\K\e\t
 }{
   \EnvTypeW \Env\s\K{\FWrite\f\e}\t
 }    
 
-\IRule{TW6}{
+\IRule[width=20em]{STH-CALL}{
   \EnvTypeW \Env\s\K\e\C \\
   \Mtype \m\tp\tpp\in \classoff\C\K  \\
   \EnvTypeW \Env\s\K\ep\tp
@@ -3032,19 +3017,13 @@ field/method.
   \EnvTypeW \Env\s\K{\Call\e\m\ep}\tpp
 }    
 
-\IRule{TW7}{
+\IRule{STH-NEW}{
  \EnvTypeW \Env\s\K{\e_1}{\t_1}~~\dots~~ 
  \EnvTypeW \Env\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
   \EnvTypeW \Env\s\K{\New\C{\e_1\dots\e_n}}\C
-}
-
-\IRule{TW8}{
-  \s(\a) = \obj\C{\b\ap}
-}{
-  \EnvTypeW \Env\s\K\a\C
 }
 \end{mathpar}
 
