@@ -2254,50 +2254,52 @@ to the name of \t not to \t.
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 \begin{mathpar}
 
-\IRule{W1}{
+\IRule{KT-VAR}{
    \HasType \Env\x\t
  }{
    \EnvType \Env\s\K\x\t
 }
 
-\IRule{W2}{ 
+\IRule{KT-SUB}{ 
   \EnvType \Env\s\K\e\tp \\
  \StrSub \cdot\K \tp \t
  }{
   \EnvType \Env\s\K\e\t 
 }   
 
-\IRule{W3}{
-  \EnvType \Env\s\K\e\C \\
-  \Mtype \f{}\t \in \classoff\C\K
-}{
-  \EnvType \Env\s\K{\Get\e\t}\t
-}    
-
-\IRule[width=12em]{W4}{
+\IRule[width=12em]{KT-READ}{
   \HasType\Env\this\C\\
-  \Fdef\f\t \in \C \\
+  \Fdef\f\t \in \App\K\C \\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FRead\f}\t
+}  
+
+\IRule[width=12em]{KT-WRITE}{
+  \HasType\Env\this\C\\
+  \Fdef\f\t \in \App\K\C \\
   \EnvType \Env\s\K\e\t
 }{
   \EnvType \Env\s\K{\FWrite\f\e}\t
 }    
 
-\IRule[width=12em]{W5}{
-  \HasType\Env\this\C\\
-  \Fdef\f\t \in \C \\
-  \EnvType \Env\s\K\e\t
+\IRule[width=16em]{KT-CALL}{
+  \EnvType \Env\s\K\e\C \\
+  \Mtype\m\t\tp \in \classoff\C\K \\
+  \EnvType \Env\s\K\ep\t
 }{
-  \EnvType \Env\s\K{\FRead\f}\t
+  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
 }    
 
-\IRule{W6}{
+\IRule{KT-DYNCALL}{
   \EnvType \Env\s\K\e\any \\
   \EnvType \Env\s\K\ep\any
 }{
   \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
 
-\IRule[width=20em]{W7}{
+
+\IRule[width=20em]{KT-NEW}{
  \EnvType \Env\s\K{\e_1}{\t_1}\dots 
  \EnvType \Env\s\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}\dots\Fdef{\f_n}{\t_n} \\ 
@@ -2306,19 +2308,27 @@ to the name of \t not to \t.
   \EnvType\Env\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 
-\IRule{W8}{
+\IRule{KT-SUBCAST}{
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\SubCast\t\e}\t
 }
 
-\IRule{W9}{
+\IRule{KT-BEHCAST}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\BehCast\t\e}\t
+}
+
+\\
+
+\IRule{KT-REFTYPE}{
   \s(\a) = \obj\C{\b\ap}
 }{
   \EnvType \Env\s\K\a\C
 }
 
-\IRule{W10}{
+\IRule{KT-REFANY}{
  }{
    \EnvType \Env\s\K\a\any
 }
@@ -2838,14 +2848,14 @@ field/method.
 \hspace{0.1cm}
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x          &\B \this          \\
-   &\B \New\C{\b\e}  &\B \sGet\e\f       &\B \sSet\e\f\e   \\
-   &\B \Call\e\m\e   &\B \a \\ 
+   &\B \New\C{\b\e}  &\B \FRead\f       \\
+   &\B \FWrite\f\e   &\B \Call\e\m\e   &\B \a \\ 
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\b\fd}{\b\md}
 \end{tabular}
 \begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+\md &::= \Mdef\m\x\t\t\e \\
 %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
 ~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
@@ -2900,18 +2910,6 @@ field/method.
 }{
  \ThorSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
 }
-
-\IRule{SGet}{
-  \ThorSub \M\K {\t[1]} {\t[2]}
-}{
- \ThorSub \M\K {\Mtype\f{}{\t[1]}} {\Mtype\f{}{\t[2]}}
-}
-
-\IRule{SSet}{
-  \ThorSub \M\K {\t[1]} {\t[2]}
-}{
- \ThorSub \M\K {\Mtype\f{\t[1]}{\t[1]}} {\Mtype\f{\t[2]}{\t[2]}}
-}
 \end{mathpar}
 
 \subsection{Thorn well-formedness}
@@ -2919,7 +2917,6 @@ field/method.
 \opdef{~\WFpW{\e}{\K}}{Well-formed program}
 
 \begin{mathpar}
-
 \IRule{WP}{
   \k \in \K \implies \WFW{}\cdot\K\k \\
   \EnvTypeW\Env\cdot\K\e\t
@@ -2963,20 +2960,6 @@ field/method.
 }{
  \WFW \Env\s\K{\Mdef\m\x\any\any\e}
 }
-
-\IRule{WS}{
- \EnvTypeW {\Env{~\Ftype\x\tp}~}\s\K \e\t \\
- \WFtypeW \K\t 
-}{
- \WFW  \Env\s\K {\Mdef\f\x\t\t\e}
-}
-
-\IRule{WG}{
- \EnvTypeW \Env\s\K\e\t \\
- \WFtypeW \K\t
-}{
- \WFW \Env\s\K {\Mdefz\f\t\e}
-}
 \end{mathpar}
 
 \opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
@@ -3013,37 +2996,32 @@ field/method.
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 \begin{mathpar}
 
-\IRule{TW1}{
+\IRule{STH-VAR}{
    \HasType \Env\x\t
  }{
    \EnvTypeW \Env\s\K\x\t
 }
 
-\IRule{TW2}{
- }{
-   \EnvTypeW \Env\s\K\a\any
-}
-
-\IRule{TW3}{
+\IRule{STH-SUB}{
   \EnvTypeW \Env\s\K\e\tp \\
- \ThrSub \M\K \tp \t
+  \ThorSub \M\K \tp \t
  }{
   \EnvTypeW \Env\s\K\e\t 
 }   
 
-\IRule{TW4}{
-  \EnvTypeW \Env\s\K\e\C \\
-  \Mtype \f{}\tp \in \classoff\C\K
+\IRule{STH-GET}{
+   \HasType \Env\this\C \\
+  \Fdef\f\t \in \C
 }{
-  \EnvTypeW \Env\s\K{\sGet\e\f}\tp
+  \EnvTypeW \Env\s\K{\FRead\f}\t
 }    
 
-\IRule{TW5}{
-  \EnvTypeW \Env\s\K\e\C \\
-  \Mtype \f\tp\tp \in \classoff\C\K  \\
-  \EnvTypeW \Env\s\K\ep\tp
+\IRule{STH-SET}{
+  \HasType \Env\this\C \\
+  \Fdef\f\t \in \C
+  \EnvTypeW \Env\s\K\e\t
 }{
-  \EnvTypeW \Env\s\K{\sSet\e\f\ep}\tp
+  \EnvTypeW \Env\s\K{\FWrite\f\e}\t
 }    
 
 \IRule{TW6}{
