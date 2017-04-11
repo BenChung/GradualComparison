@@ -2430,9 +2430,15 @@ field/method.
 }
 \end{mathpar}
 
+
+
 \subsection{Thorn well-formedness}
 
-\opdef{~\WFpW{\e}{\K}}{Well-formed program}
+\opdef{~\WFpW{\e}{\K}}{Well-formed programs}
+\opdef{\WFW{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed classes}
+\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
+\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
+\opdef{~\WFtypeW\K\t}{Well-formed types}
 
 \begin{mathpar}
 \IRule{WP}{
@@ -2441,22 +2447,15 @@ field/method.
 }{
   \WFpW\e\K
 }
-\end{mathpar}
 
-\opdef{\WFW{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
-
-\begin{mathpar}
-\IRule{WCL}{
+\IRule[width=25em]{WCL}{
  \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
  \fd\in\b\fd\implies \WFW {}{}\K \fd \\
  \md\in\b\md\implies \WFW {\text{this}:\C~}\s\K \md 
 }{
  \WFW {}\s\K {\Class \C {\b\fd}{\b\md}}
 }
-\end{mathpar}
 
-\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
-\begin{mathpar}
 \IRule[width=18em]{WT}{
  \EnvTypeW {\Env{~\Ftype\x\C}~}\s\K\e\D\\
  \WFtypeW\K\C \\
@@ -2473,19 +2472,15 @@ field/method.
 }{
  \WFW \Env\s\K {\Mdef\m\x\t\tp\e}
 }
-\end{mathpar}
 
-\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
-\begin{mathpar}
 \IRule{WF}{
  \WFtypeW\K\t 
 }{
  \WFtypeW\K{\Fdef\f\t}
 }
-\end{mathpar}
 
-\opdef{~\WFtypeW\K\t}{Well-formed types}
-\begin{mathpar}
+\\
+
 \IRule{WA}{
 }{
  \WFtypeW\K\any
@@ -2568,7 +2563,70 @@ field/method.
 }
 \end{mathpar}
 
-\subsection{Source expression typing}
+
+\subsection{Non-thorn well-formedness}
+
+We use $x$ as a placeholder to mean either $s$ (for the basic source typing, used by Typed Racket and Typescript) or $tr$ (transient, used by the transient semantics).
+
+\opdef{~$\WFpx{\e}{\K}$}{Well-formed programs}
+\opdef{\WFx{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed classes}
+\opdef{~\WFx \Env\s\K \md}{Well-formed methods}
+\opdef{~\WFtypex \K {\Fdef\f\t}}{Well-formed fields}
+\opdef{~\WFtypex\K\t}{Well-formed types}
+
+\begin{mathpar}
+\IRule{SWF-PROG}{
+  \k \in \K \implies \WFx{}\cdot\K\k \\
+  \EnvTypex\Env\cdot\K\e\t
+}{
+  \WFpx\e\K
+}
+
+\IRule[width=25em]{SWF-CLASS}{
+ \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
+ \fd\in\b\fd\implies \WFx {}{}\K \fd \\
+ \md\in\b\md\implies \WFx {\text{this}:\C~}\s\K \md 
+}{
+ \WFx {}\s\K {\Class \C {\b\fd}{\b\md}}
+}
+
+\IRule[width=18em]{SWF-TYMETH}{
+ \EnvTypex {\Env{~\Ftype\x\C}~}\s\K\e\D\\
+ \WFtypex\K\C \\
+ \WFtypex\K\D \\
+}{
+ \WFx \Env\s\K {\Mdef\m\x\C\D\e}
+}
+
+\IRule[width=18em]{SWF-DYMETH}{
+ \EnvTypex {\Env{~\Ftype\x\any}~}\s\K\e\any\\
+ \WFtypex\K\any \\
+ \WFtypex\K\any
+}{
+ \WFx \Env\s\K {\Mdef\m\x\any\any\e}
+}
+
+\IRule{SWF-FIELD}{
+ \WFtypex\K\t 
+}{
+ \WFtypex\K{\Fdef\f\t}
+}
+
+\\
+
+\IRule{SWT-ANY}{
+}{
+ \WFtypex\K\any
+}
+
+\IRule{SWT-TYPE}{
+ \C \in \K
+}{
+ \WFtypex\K\C
+} 
+\end{mathpar}
+
+\subsection{Typescript and Typed Racket expression typing}
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 \begin{mathpar}
@@ -2616,6 +2674,57 @@ field/method.
   \Class \C {\b\fd}{\b\md} \in \K
 }{
   \EnvTypeS \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+}
+\end{mathpar}
+
+\subsection{Transient expression typing}
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\begin{mathpar}
+
+\IRule{STT-VAR}{
+   \HasType \Env\x\t
+ }{
+   \EnvTypeT \Env\s\K\x\t
+}
+
+\IRule{STT-SUB}{
+  \EnvTypeT \Env\s\K\e\tp \\
+  \ConSub \M\K \tp \t
+ }{
+  \EnvTypeT \Env\s\K\e\t 
+}   
+
+\IRule{STT-GET}{
+   \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeT \Env\s\K{\FRead\f}\t
+}    
+
+\IRule{STT-SET}{
+  \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C \\
+  \EnvTypeT \Env\s\K\e\t
+}{
+  \EnvTypeT \Env\s\K{\FWrite\f\e}\t
+}    
+
+\IRule[width=20em]{STT-CALL}{
+  \EnvTypeT \Env\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
+  \EnvTypeT \Env\s\K\ep\tp
+}{
+  \EnvTypeT \Env\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{STT-NEW}{
+ \EnvTypeT \Env\s\K{\e_1}{\t_1}~~\dots~~ 
+ \EnvTypeT \Env\s\K{\e_n}{\t_n}\ \\ 
+ \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
+  \Class \C {\b\fd}{\b\md} \in \K
+}{
+  \EnvTypeT \Env\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 \end{mathpar}
 
