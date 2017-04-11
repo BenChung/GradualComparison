@@ -1025,12 +1025,31 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 
 \vspace{-5mm}
 
-\noindent
-This section gives semantics to the four gradual type systems of interest.
-In each case, the semantics of the source languages are defined by
-translation to \kafka.
 
-Explain the source language
+\begin{figure}[!h]\hrulefill
+
+\hspace{0.1cm}
+\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+\e &::=  \x          &\B \this          \\
+   &\B \New\C{\b\e}  &\B \FRead\f       \\
+   &\B \FWrite\f\e   &\B \Call\e\m\e   &\B \a \\ 
+\end{tabular}\end{minipage}
+\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+   ~ \k &::= \Class \C {\b\fd}{\b\md}\\
+\md &::= \Mdef\m\x\t\t\e \\
+%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
+~\fd&::= ~ \Fdef\f\t \\ 
+~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
+\end{tabular}\end{minipage}
+
+\FZ{TODO: grey ?C out}
+\hrulefill
+\caption{Syntax of source languages}\label{f:sourcesyntax}
+\end{figure}
+
+\noindent
+We are now ready to give semantics to the four gradual type systems of interest.  For this we use the idealised syntax reported in \figref{f:sourcesyntax}, and we define the semantics of each gradual type system by
+translation to \kafka.  The source syntax allows typed and untyped terms to interact freely, as in the gradually typed systems of interest, constrained only by the source type system rules.  The compilation into \kafka makes explicit which type casts (aka type-checks and wrapper introduction) are implicitly inserted by the run-time of each language.  To avoid unnecessary clutter, the source syntax we use is just \kafka one without casts.
 
 Casts are not used in the source languages, but are inserted by the
 translations.  
