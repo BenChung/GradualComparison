@@ -1273,48 +1273,54 @@ argument to \code m has all the methods defined by \code C. For this we use
   x}, which only checks for the presence of method names, not for the
 conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore.}
 
+
 \begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~}ll}
  \small
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr c{\K, \Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fdsp 1..}{\mdsp 1.. } }\\
-\HS\= \WHERE\HS \= \fds 1 = \Ftype\f\t, \HS  \fdsp 1 = \src{\Ftype\f\any} ..\\
-   \>           \>  \mdsp 1 = \tr m{\K, \Ftype\this\C, \mds 1} ~..\\[1mm]
-\tr m{\K,\Env, \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep}}\\
-   \> \WHERE    \> \ep = \tr a{\K,\Env\;\Ftype\x\t,\tp,\e}
-\\[1mm]
-\tr e{\K,\Env, \this} = \src{\this}
-\\[1mm]
-\tr e{\K,\Env, \x} = \src{\SubCast\t\x} \HS \WHERE \HS \TypeCk{\K,\Env}\x\t
-\\[1mm]
-\tr e{\K,\Env,\Call\this\f{}}  = \src{\SubCast\t{\Get\this\f\any}}\\
-   \>  \WHERE  \> \TypeCk{\K,\Env}\this\C,\HS  \Ftype\f\t\IN\App\K\C
-\\[1mm]
-\tr e{\Call\this\f\e} =  \src{\SubCast\t{\Set\this\f\any\ep}} \\
-   \>\WHERE \> \TypeCk\K\this\C, \HS \Ftype\f\t\In\App\K\C\\
-   \>       \>  \ep = \tr a{\K,\Env,\any,\e}
+\TR{\Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fdsp 1..}{\mdsp 1.. } }\\
+\hspace{.5cm}  \WHERE\HS \=
+  \fdsp 1 = \src{\Ftype\f\any} .., \HS
+  \fds 1 = \Ftype\f\t ..,\HS\HS
+  \mdsp 1 = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\eps 1}} .., \HS
+  \mds 1 = \Mdef\m\x\t\tp\e ..,\HS\HS
+   \eps 1 = \TAG\e{\x:\t\,\this:\C}\tp~ ..
 \end{tabbing}
-\end{minipage}
-& \hspace{.3cm} &
-\begin{minipage}{8cm}  
 \begin{tabbing}
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}}\\
-\HS \=\WHERE \HS\= \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+\TRG\this\Env \hspace{1cm} \= = \src\this
 \\[1mm]
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\SubCast\tp{\KCall{\eps 1}{\m}{\eps 2}\any\any}}\\
-   \>\WHERE\> \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m\t\tp\In\App\K\C\\
-   \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+\TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
 \\[1mm]
-\tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\\
-   \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C,\HS  \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
+\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C,\HS\HS\=\Ftype\f\t\In\App\K\C
 \\[1mm]
-\tr a{\K,\Env,\t,\e} = \src{\SubCast\t\e}\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\t = \any \OR \tp = \any),\HS  \ep = \tr e{\K,\Env,\e}
+\TRG{\FWrite\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
+  \>\WHERE\HS
+  \TypeCk\K\this\C,
+  \> \Ftype\f\t\In\App\K\C, \hspace{.7cm}
+  \= \ep = \TAG\e\Env\any
 \\[1mm]
-\tr a{\K,\Env,\t,\e} = \src\ep\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS (\EM{\ConSub{}\K\t\tp})\\
-   \>            \> \ep = \tr e{\K,\Env,\e}
+  \TRG{\Call{\e1_1}\m{\e_2}}\Env \>= \src{\DynCall{\eps 1}\m{\eps 2}}
+  \>\WHERE \HS 
+  \TypeCk{\K,\Env}{\e_1}\any, \HS
+  \> \eps 1 = \TRG{\e_1}\Env, 
+  \> \eps 2 = \TAG{\e_2}\Env\any
+\\[1mm]
+\TRG{\Call{\e1_1}\m{\e_2}}\Env \>= \src{\SubCast\tp{\KCall{\eps 1}\m{\eps 2}\t\tp}}
+   \>\WHERE\HS
+   \TypeCk{\K,\Env}{\e_1}\C,
+   \> \Mtype\m\t\tp\In\App\K\C,\HS
+   \> \eps 1 = \TRG{\e_1}\Env, \HS\HS
+   \eps 2 = \TAG{\e_2}\Env\any
+\\[1mm]
+\TRG{\New\C{\e_1..}}\Env \>=  \src{\New\C{\eps 1..}} \>\WHERE\HS
+\Ftype{\f_1}{\t_1}\In\App\K\C,
+  \>\eps 1 = \TAG{\e_1}\Env{\t_1} ~..
+\\[1mm]
+\TAG\e\Env\t \>= \src{\SubCast\t\e}
+    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp, \> (\t = \any \OR \tp = \any),\HS \> \ep = \TRG\e\Env
+\\[1mm]
+\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp, \HS\>(\EM{\ConSub{}\K\t\tp}),\HS \> \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -1422,43 +1428,48 @@ the behavioural cast, and the typing and semantic rules are next.
  \small
 \begin{minipage}{8cm}  
 \begin{tabbing}
-\tr c{\K, \Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fds 1..}{\mdsp 1.. } }\\
-\HS\= \WHERE\HS \= \mdsp 1 = \tr m{\K, \Ftype\this\C, \mds 1} ~..
-\\[1mm]
-\tr m{\K,\Env, \Mdef\m\x\t\tp\e} = \src{\Mdef\m\x\t\tp\ep}\\
-   \> \WHERE    \> \ep = \tr e{\K,\Env\;\Ftype\x\t,\e}
-\\[1mm]
-\tr e{\K,\Env, \x} = \src{\x}
-\\[1mm]
-\tr e{\K,\Env,\Call\e\f{}}  = \src{\Get\ep\f\t}\\
-   \> \WHERE    \> \TypeCk{\K,\Env}\e\t,\HS  \Mtype\f{}\t\In\App\K\C,\HS  \ep = \tr e{\K,\Env,\e}
-\\[1mm]
-\tr e{\K,\Env, \Call{\e_1}\f{\e_2}} =  \src{\Set{\eps 1}{\f}\t{\eps 2}} \\
-   \>\WHERE \> \TypeCk\K{\e_1}\C, \HS \Ftype\f\t\In\App\K\C\\
-   \>       \>  \eps 1 = \tr e{\K,\Env,\e_1},\HS  \eps 2 = \tr a{\K,\Env,\t,\e}
-\\[1mm]
-\tr e{\K,\Env, \Call{\e1_1}\m{\e_2}} = \src{\DynCall{\eps 1}{\m}{\eps 2}}\\
-   \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS  \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\any,\e_2}
+\TR{\Class\C{\fds 1..}{\mds 1.. }} =  \src{\Class \C {\fds 1..}{\mdsp 1.. } }\\
+\hspace{.7cm} \WHERE\HS 
+\mdsp 1 = \src{\Mdef\m\x\t\tp{\eps 1}} ..,\HS\HS
+\mds 1 = \Mdef\m\x\t\tp{\e_1} ..,\HS\HS
+\eps 1 = \TRG{\e_1}{\x:\t\,\this:\C}
 \end{tabbing}
-\end{minipage}
-&&
-\begin{minipage}{8cm}  
 \begin{tabbing}
-\tr e{\Call{\e1_1}\m{\e_2}} = \src{\KCall{\eps 1}{\m}{\eps 2}{\D_1}{\D_2}}\\
-\HS   \=\WHERE\HS \= \TypeCk{\K,\Env}{\e_1}\C, \HS \Mtype\m{\D_1}{\D_2}\In\App\K\C\\
-   \>       \> \eps 1 = \tr e{\K,\Env,\e_1},\HS \eps 2 = \tr a{\K,\Env,\D_1,\e_2}
+\TRG\x\Env = \src{\x}
 \\[1mm]
-\tr e{\New\C{\e_1..}} =  \src{\New\C{\eps 1..}}\\
-   \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C ~..\\
-   \>       \>  \eps 1 = \tr a{\K,\Env,\t_1, \e_1} ~..
+\TRG{\FRead\f}\Env  = \src{\FRead\f}
 \\[1mm]
-\tr a{\K,\Env,\t,\e} = \src\ep\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \Sub \tp}\\
-   \>            \>  \ep = \tr e{\K,\Env,\e}
+\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{.5cm}
+\=\WHERE
+\= \TypeCk\K{\e_1}\C, \HS\HS
+\= \Ftype\f\t\In\App\K\C, \hspace{1cm}
+\=  \eps 1 = \TRG{\e_1}\Env,\HS\HS\HS
+\= \eps 2 = \TAG\e\Env\t
 \\[1mm]
-\tr a{\K,\Env,\t,\e} = \src{\BehCast\t\e}\\
-   \> \WHERE     \> \TypeCk{\K,\Env}\e\tp, \HS \EM{\K\vdash \t \not \Sub \tp}\\
-   \>            \> \ep = \tr e{\K,\Env,\e}
+\TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\DynCall{\eps 1}\m{\eps 2}}
+\>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS
+\> \eps 1 = \TRG{\e_1}\Env,\HS
+\> \eps 2 = \TAG{\e_2}\Env\any
+\\
+\TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\KCall{\eps 1}{\m}{\eps 2}{\D_1}{\D_2}}
+\>\WHERE \> \TypeCk{\K,\Env}{\e_1}\C, \HS
+\> \Mtype\m{\D_1}{\D_2}\In\App\K\C, \HS
+\> \eps 1 = \TRG{\e_1}\Env,\HS
+\> \eps 2 = \TAG{\e_2}\Env{\D_1}
+\\[1mm]
+\TRG{\New\C{\e_1..}}\Env =  \src{\New\C{\eps 1..}}
+   \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C ~..
+   \>       \>  \eps 1 = \TAG{\e_1}\Env{\t_1} ~..
+\\[1mm]
+\TAG\e\Env\t = \src\ep
+\> \WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
+\> \EM{\K\vdash \t \Sub \tp},
+\>  \ep = \TRG\e\Env
+\\[1mm]
+\TAG\e\Env\t = \src{\BehCast\t\e}
+\>\WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
+   \> \EM{\K\vdash \t \not \Sub \tp}
+   \>     \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
 \end{tabular}
