@@ -2482,17 +2482,12 @@ field/method.
 }
 
 \IRule[width=18em]{WWT}{
- \EnvTypeW {\Env{~\Ftype\x\CW}~}\s\K\e\DW\\
- \WFtypeW\K\CW \\
- \WFtypeW\K\DW \\
+ \EnvTypeW {\Env{~\Ftype\x\t}~}\s\K\e\tp\\
+ \WFtypeW\K\t \\
+ \WFtypeW\K\tp \\
+ \kty\t = \kty\tp = \any
 }{
- \WFW \Env\s\K {\Mdef\m\x\CW\DW\e}
-}
-
-\IRule[width=18em]{WU}{
- \EnvTypeW {\Env~\Ftype\x\any~}\s\K \e\any\\
-}{
- \WFW \Env\s\K{\Mdef\m\x\any\any\e}
+ \WFW \Env\s\K {\Mdef\m\x\t\tp\e}
 }
 \end{mathpar}
 
@@ -2586,6 +2581,57 @@ field/method.
   \Class \C {\b\fd}{\b\md} \in \K
 }{
   \EnvTypeW \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+}
+\end{mathpar}
+
+\subsection{Source expression typing}
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\begin{mathpar}
+
+\IRule{STG-VAR}{
+   \HasType \Env\x\t
+ }{
+   \EnvTypeS \Env\s\K\x\t
+}
+
+\IRule{STG-SUB}{
+  \EnvTypeS \Env\s\K\e\tp \\
+  \StrSub \M\K \tp \t
+ }{
+  \EnvTypeS \Env\s\K\e\t 
+}   
+
+\IRule{STG-GET}{
+   \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeS \Env\s\K{\FRead\f}\t
+}    
+
+\IRule{STG-SET}{
+  \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C \\
+  \EnvTypeS \Env\s\K\e\t
+}{
+  \EnvTypeS \Env\s\K{\FWrite\f\e}\t
+}    
+
+\IRule[width=20em]{STG-CALL}{
+  \EnvTypeS \Env\s\K\e\C \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
+  \EnvTypeS \Env\s\K\ep\tp
+}{
+  \EnvTypeS \Env\s\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{STG-NEW}{
+ \EnvTypeS \Env\s\K{\e_1}{\t_1}~~\dots~~ 
+ \EnvTypeS \Env\s\K{\e_n}{\t_n}\ \\ 
+ \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
+  \Class \C {\b\fd}{\b\md} \in \K
+}{
+  \EnvTypeS \Env\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 \end{mathpar}
 
