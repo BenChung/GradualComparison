@@ -936,6 +936,8 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 }
 \end{mathpar}
 
+\FZ{TODO: Collapse the wrap cases - or explain them in the text}
+
 
 \hrulefill
 \vspace{-2mm}
@@ -954,14 +956,13 @@ Similarly, \RuleRef{BC2} wraps
 \a with the guards to let \a act like an instance of \any.
 
 Wrapper generation is implemented by the \xt{wrap} function.  Its first three arguments \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the source type), the type declarations of all its methods, and the type declarations of all the methods of class type the expressions is being casted to (the target type).  The fourth argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. The last argument is used to ensure that the name of the \that field is  fresh.   The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the interface in \(\bmt\) and the return type following the interface in \(\bmtp\).    Methods defined in the source type but missing from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
+Wrapping an object so that it behaves as \any is simpler, as the wrapper systematically protects the input type and casts back the return type to \any.
 
-\FZ{UNTIL HERE}
- 
 
-Observe that invoking a method not present in the wrapped class results in computation getting stuck.\FZ{comment on all cases where computation gets stuck}
- \FZ{why behavioural and not structural casts?}.
+%
+%Observe that invoking a method not present in the wrapped class results in computation getting stuck.\FZ{comment on all cases where computation gets stuck}
+% \FZ{why behavioural and not structural casts?}.
 
-Wrapper generation for dyn\FZ{FIX} is simpler, as wrappers only cast arguments and return types for all fields and methods to \any. 
 %
 %, that takes two class types \C and \D, and the two
 %sets of method typing \bmt and \bmtp,   The class type $\C$ is the type of the expression being casted, also referred to as the source type, and represented by $\tp$ in the typing rule \xt{WB}.
