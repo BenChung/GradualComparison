@@ -2511,52 +2511,60 @@ field/method.
    \EnvTypeW \Env\s\K\x\t
 }
 
-\IRule{STH-SUB}{
-  \EnvTypeW \Env\s\K\e\tp \\
-  \ThorSub \M\K \tp \t
- }{
-  \EnvTypeW \Env\s\K\e\t 
-}   
-
-\IRule{STH-OPT}{
-  \EnvTypeW \Env\s\K\e\any
- }{
-  \EnvTypeW \Env\s\K\e\CW 
-}   
-
-\IRule{STH-CONC}{
-  \EnvTypeW \Env\s\K\e\CW \\
-  \ThorSub \M\K\C\D
- }{
-  \EnvTypeW \Env\s\K\e\D 
-}   
-
 \IRule{STH-GET}{
-   \HasType \Env\this\C \\
+  \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeW \Env\s\K{\FRead\f}\t
 }    
 
-\IRule{STH-SET}{
+\IRule[width=20em]{STH-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeW \Env\s\K\e\t
+  \EnvTypeW \Env\s\K\e\tp \\
+  \ThorSub\cdot\K\tp\t \vee \t = \any
 }{
   \EnvTypeW \Env\s\K{\FWrite\f\e}\t
 }    
 
+\IRule[width=20em]{STH-OSET}{
+  \HasType \Env\this\C \\
+  \Fdef\f{\Cp} \in \App\K\C \\
+  \EnvTypeW \Env\s\K\e{\dt\Cpp} \\
+  \ThorSub\cdot\K\Cpp\Cp
+}{
+  \EnvTypeW \Env\s\K{\FWrite\f\e}\Cp
+}    
+
 \IRule[width=20em]{STH-CALL}{
   \EnvTypeW \Env\s\K\e\C \\
-  \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvTypeW \Env\s\K\ep\tp
+  \Mtype \m{\t}\tp\in \classoff\C\K  \\
+  \EnvTypeW \Env\s\K\ep\tpp \\
+  \ThorSub\cdot\K\tpp\t \vee \t = \any
 }{
-  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tpp
+  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tp
+}    
+
+\IRule[width=20em]{STH-OCALL}{
+  \EnvTypeW \Env\s\K\e\C \\
+  \Mtype \m{\D}\tp\in \classoff\C\K  \\
+  \EnvTypeW \Env\s\K\ep{\dt\Dp} \\
+  \ThorSub\cdot\K\Dp\D
+}{
+  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tp
+}    
+
+
+\IRule[width=20em]{STH-DCALL}{
+  \EnvTypeW \Env\s\K\e\any \\
+  \EnvTypeW \Env\s\K\ep\t
+}{
+  \EnvTypeW \Env\s\K{\Call\e\m\ep}\any
 }    
 
 \IRule{STH-NEW}{
- \EnvTypeW \Env\s\K{\e_1}{\t_1}~~\dots~~ 
- \EnvTypeW \Env\s\K{\e_n}{\t_n}\ \\ 
+ (\EnvTypeW \Env\s\K{\e_1}{\tp_1} \wedge (\ThorSub\cdot\K{\tp[1]}{\t[1]} \vee \t[1] = \any \vee (\t[1] = \D \wedge \tp[1] = \dt\Dp \wedge \ThorSub\cdot\K{\Dp}{\D}))) \\ ~~\dots~~ 
+ (\EnvTypeW \Env\s\K{\e_n}{\tp_n} \wedge (\ThorSub\cdot\K{\tp[n]}{\t[n]} \vee \t[n] = \any \vee (\t[n] = \D \wedge \tp[n] = \dt\Dp \wedge \ThorSub\cdot\K{\Dp}{\D})))\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
