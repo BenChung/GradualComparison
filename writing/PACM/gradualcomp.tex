@@ -2451,31 +2451,36 @@ field/method.
 
 \subsection{Thorn expression typing}
 
-\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+
+\opdef{\ConvertE\K{th}\t\tp}{type convertibility between \t and \tp.}
 \begin{mathpar}
 
 \IRule{STHC-SUB}{
   \ThorSub\cdot\K\t\tp
 }{
-  \Convertible\K\t\tp
+  \ConvertE\K{th}\t\tp
 }
 
 \IRule{STHC-TOANY}{
 }{
-  \Convertible\K\t\any
+  \ConvertE\K{th}\t\any
 }
 
 \IRule{STHC-OPTCONC}{
   \ThorSub\cdot\K\C\D
 }{
-  \Convertible\K\CW\D
+  \ConvertE\K{th}\CW\D
 }
 
 \IRule{STHC-ANYCONC}{
 }{
-  \Convertible\K\any\t
+  \ConvertE\K{th}\any\t
 }
-\\
+
+\end{mathpar} \\
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\begin{mathpar}
 \IRule{STH-VAR}{
    \HasType \Env\x\t
  }{
@@ -2493,7 +2498,7 @@ field/method.
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
   \EnvTypeW \Env\K\e\tp \\
-  \Convertible\K\tp\t
+  \ConvertE\K{th}\tp\t
 }{
   \EnvTypeW \Env\K{\FWrite\f\e}\t
 }    
@@ -2502,7 +2507,7 @@ field/method.
   \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\
   \Mtype \m{\t}\tp\in \classoff{\C}\K  \\
   \EnvTypeW \Env\K\ep\tpp \\
-  \Convertible\K\tpp\t
+  \ConvertE\K{th}\tpp\t
 }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
@@ -2510,14 +2515,14 @@ field/method.
 \IRule[width=20em]{STH-DCALL}{
   \EnvTypeW \Env\K\e\any \\
   \EnvTypeW \Env\K\ep\tpp \\
-  \Convertible\K\tpp\any
+  \ConvertE\K{th}\tpp\any
 }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\any
 }    
 
 \IRule{STH-NEW}{
  \EnvTypeW \Env\K{\e_1}{\tp_1} ~~\dots~~ \EnvTypeW \Env\K{\e_n}{\tp_n} \\
- \Convertible\K{\tp[1]}{\t[1]} ~~\dots~~ \Convertible\K{\tp[n]}{\t[n]} \\
+ \ConvertE\K{th}{\tp[1]}{\t[1]} ~~\dots~~ \ConvertE\K{th}{\tp[n]}{\t[n]} \\
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
@@ -2589,6 +2594,28 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 
 \subsection{Typescript and Typed Racket expression typing}
 
+\opdef{\ConvertE\K{s}\t\tp}{type convertibility between \t and \tp.}
+\begin{mathpar}
+
+\IRule{STGC-SUB}{
+  \ThorSub\cdot\K\t\tp
+}{
+  \ConvertE\K{s}\t\tp
+}
+
+\IRule{STGC-TOANY}{
+}{
+  \ConvertE\K{s}\t\any
+}
+
+\IRule{STGC-ANYCONC}{
+}{
+  \ConvertE\K{s}\any\D
+}
+
+\end{mathpar} \\
+
+
 \opdef{\EnvTypeS\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
 \begin{mathpar}
 
@@ -2615,22 +2642,25 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \IRule{STG-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeS \Env\K\e\t
+  \EnvTypeS \Env\K\e\tp
+  \ConvertE\K{s}\tp\t
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STG-CALL}{
   \EnvTypeS \Env\K\e\C \\
-  \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvTypeS \Env\K\ep\tp
+  \Mtype \m\t\tp\in \classoff\C\K  \\
+  \EnvTypeS \Env\K\ep\tpp
+  \ConvertE\K{s}\tpp\tp
 }{
-  \EnvTypeS \Env\K{\Call\e\m\ep}\tpp
+  \EnvTypeS \Env\K{\Call\e\m\ep}\tp
 }    
 
 \IRule{STG-NEW}{
- \EnvTypeS \Env\K{\e_1}{\t_1}~~\dots~~ 
- \EnvTypeS \Env\K{\e_n}{\t_n}\ \\ 
+ \EnvTypeS \Env\K{\e_1}{\tp[1]}~~\dots~~ 
+ \EnvTypeS \Env\K{\e_n}{\tp[n]}\ \\  
+ \ConvertE\K{s}{\tp[1]}{\t[1]} ~~\dots~~ \ConvertE\K{s}{\tp[n]}{\t[n]} \\
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
