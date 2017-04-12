@@ -2524,6 +2524,29 @@ field/method.
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 \begin{mathpar}
 
+\IRule{STHC-SUB}{
+  \ThorSub\cdot\K\t\tp
+}{
+  \Compatible\K\t\tp
+}
+
+\IRule{STHC-TOANY}{
+  \kty\tp = \any
+}{
+  \Compatible\K\t\tp
+}
+
+\IRule{STHC-OPTCONC}{
+  \ThorSub\cdot\K\C\D
+}{
+  \Compatible\K\CW\D
+}
+
+\IRule{STHC-ANYCONC}{
+}{
+  \Compatible\K\any\D
+}
+\\
 \IRule{STH-VAR}{
    \HasType \Env\x\t
  }{
@@ -2541,56 +2564,37 @@ field/method.
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
   \EnvTypeW \Env\s\K\e\tp \\
-  \ThorSub\cdot\K\tp\t \vee \t = \any
+  \Compatible\K\tp\t
 }{
   \EnvTypeW \Env\s\K{\FWrite\f\e}\t
-}    
-
-\IRule[width=20em]{STH-OSET}{
-  \HasType \Env\this\C \\
-  \Fdef\f{\Cp} \in \App\K\C \\
-  \EnvTypeW \Env\s\K\e{\dt\Cpp} \\
-  \ThorSub\cdot\K\Cpp\Cp
-}{
-  \EnvTypeW \Env\s\K{\FWrite\f\e}\Cp
 }    
 
 \IRule[width=20em]{STH-CALL}{
   \EnvTypeW \Env\s\K\e\C \\
   \Mtype \m{\t}\tp\in \classoff\C\K  \\
   \EnvTypeW \Env\s\K\ep\tpp \\
-  \ThorSub\cdot\K\tpp\t \vee \t = \any
+  \Compatible\K\tpp\t
 }{
   \EnvTypeW \Env\s\K{\Call\e\m\ep}\tp
 }    
-
-\IRule[width=20em]{STH-OCALL}{
-  \EnvTypeW \Env\s\K\e\C \\
-  \Mtype \m{\D}\tp\in \classoff\C\K  \\
-  \EnvTypeW \Env\s\K\ep{\dt\Dp} \\
-  \ThorSub\cdot\K\Dp\D
-}{
-  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tp
-}    
-
 
 \IRule[width=20em]{STH-DCALL}{
   \EnvTypeW \Env\s\K\e\any \\
-  \EnvTypeW \Env\s\K\ep\t
+  \EnvTypeW \Env\s\K\ep\tpp \\
+  \Compatible\K\tpp\any
 }{
   \EnvTypeW \Env\s\K{\Call\e\m\ep}\any
 }    
 
 \IRule{STH-NEW}{
- (\EnvTypeW \Env\s\K{\e_1}{\tp_1} \wedge (\ThorSub\cdot\K{\tp[1]}{\t[1]} \vee \t[1] = \any \vee (\t[1] = \D \wedge \tp[1] = \dt\Dp \wedge \ThorSub\cdot\K{\Dp}{\D}))) \\ ~~\dots~~ 
- (\EnvTypeW \Env\s\K{\e_n}{\tp_n} \wedge (\ThorSub\cdot\K{\tp[n]}{\t[n]} \vee \t[n] = \any \vee (\t[n] = \D \wedge \tp[n] = \dt\Dp \wedge \ThorSub\cdot\K{\Dp}{\D})))\ \\ 
+ \EnvTypeW \Env\s\K{\e_1}{\tp_1} ~~\dots~~ \EnvTypeW \Env\s\K{\e_n}{\tp_n} \\
+ \Compatible\K{\tp[1]}{\t[1]} ~~\dots~~ \Compatible\K{\tp[n]}{\t[n]} \\
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
   \EnvTypeW \Env\s\K{\New\C{\e_1\dots\e_n}}\C
 }
 \end{mathpar}
-
 
 \subsection{Non-thorn well-formedness}
 
