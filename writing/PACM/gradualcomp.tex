@@ -2473,7 +2473,7 @@ field/method.
 
 \IRule{STHC-ANYCONC}{
 }{
-  \Convertible\K\any\D
+  \Convertible\K\any\t
 }
 \\
 \IRule{STH-VAR}{
@@ -3143,22 +3143,33 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
     \cond{$\ep = \TRG{\e}\Env$}\lbl{cond3}
     \cond{$\TR\K = \Kp$}\lbl{cond4}
     \cond{$\TR\Env = \Envp$}\lbl{cond5}
-    \cond{$\EnvType\Envp\cdot\Kp{\ep}{\kty\t}$}
+    \cond{$\EnvType\Envp\cdot\Kp{\ep}{\kty\t}$}\lbl{cond6}
   \end{conds}
   \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}
 
   \begin{proof}{\indmsg{$\Convertible\K\t\tp$}}
 
   \begin{case}{STHC-SUB}
+    \step{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}{correctness of Thorn typing over $\kty{}$ on case}\lbl{CS1}
+    \step{$\TAG\e\Env\tp = \ep$}{TTR7 on \trf{cond6}, \trf{CS1}}\lbl{CS2}
+    \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on \trf{CS1}, \trf{CS2}, \trf{cond6}}
   \end{case}
 
+  % WTS: \EnvType\Envp\cdot\Kp{\ep}{\any}
   \begin{case}{STHC-TOANY}
+    \step{$\TAG\e\Env\any = \SubCast\any\ep$}{TTR8 on case}
+    \step{$\EnvType\Envp\cdot\Kp{\SubCast\any\ep}{\any}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
   \end{case}
 
+  % WTS: \EnvType\Envp\cdot\Kp{\ep}{\C}
   \begin{case}{STHC-OPTCONC}
+    \step{$\TAG\e\Env\C = \SubCast\C\ep$}{TTR8 on case}
+    \step{$\EnvType\Envp\cdot\Kp{\SubCast\C\ep}{\C}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
   \end{case}
 
   \begin{case}{STHC-ANYCONC}
+    \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTR8 on case}
+    \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
   \end{case}
 
   \end{proof}
