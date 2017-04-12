@@ -73,6 +73,7 @@
 %\SetAlCapNameFnt{\small}
 %\SetAlCapHSkip{0pt}
 %\IncMargin{-\parindent}
+
 %
 %% Metadata Information
 %\acmJournal{POMACS}
@@ -240,16 +241,10 @@ that are inserted at type boundaries.  Two different \emph{structural} casts
 are built-in to \kafka; they only inspect the structure of objects.  The
 subtype cast \SubCast\t\a is a structural cast that checks if the object
 references by \a is a subtype of type \t. 
-%The shallow cast \ShaCast\t\a
-%merely checks that the object has all the methods of type \t without looking
-%at their signatures.  
 To support some of the more complex type systems,
 \kafka is extended by \emph{generative} casts which create new wrapper
 classes.  The behavioral cast \BehCast\t\a generates a wrapper object that
 monitors that methods invoked on \a abide by the interface of type \t. 
-% The monotone cast \MonCast\t\a returns a wrapper monitoring all invocations to
-% the object referenced by \a, furthermore this wrapper can only be refined by
-% removing occurrences of \any in its type.
 
 Another contribution is the translation of five type systems representative
 of the main strains of gradual typing for objects. Each gradually typed
@@ -524,31 +519,6 @@ to objects denoted \hspace{-1mm}\obj\C{\b\a}.
 \end{figure}
 
 \paragraph{Static semantics}
-% Meta-variables \C, \D and \E
-%range over class names, \x ranges over variable names, \m and \f range over
-%methods and fields respectively. Finally, \this is a distinguished identifier
-%representing a method receiver, while \that is a distinguished field name that will be used
-%in wrapper classes. 
-% Expressions include object creation, \New\C{\b\e},
-%field reads, \Get\e\f, field updates, \Set\e\f\e, statically resolved method
-%invocation, \KCall\e\m\e\t\t, dynamically resolved method invocation,
-%\DynCall\e\m\e, subtype casts, \SubCast\t\e, and behavioural casts, \BehCast\t\e.
-%, and shallow casts, \ShaCast\t\e.
-
-%Class definitions have a class name and (possibly empty) sequences of
-%field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
-%definitions consist of a field and its type, \Fdef\f\t. Method definitions
-%have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
-%Fields are read by calling getter methods and updated by setter methods,
-%these can be defined as, respectively, \Mdefz\f\t\e and \Mdef\f\x\t\t\e.
-
-
-%% TODO Put somewhere????
-%\E  &::= \Ftype\x\t  \B \none\\
-% \s  &::= ~~\none ~~ \B ~~  {\Bind{\a}{\obj\C{\b\a}}}~\s
-
-
-%\subsection{Static Semantics}
 
  A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
 class table \K where each class \k in \K is well-formed and \e is well-typed
@@ -610,13 +580,6 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
  }{
    \EnvType \Env\s\K\a\any
 }
-
-
-%\IRule{W10}{
-%  \EnvType \Env\s\K\e\tp
-%}{
-%  \EnvType \Env\s\K{\ShaCast\t\e}\any  %%!!!  not \t !!!
-%}
 \end{mathpar}}
 \hrulefill
 \caption{\kafka static semantics (excerpt)}\label{f:staticsem}
@@ -651,16 +614,6 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 }{ 
   \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
-%\CondRule{E2}{  %% a.f() -> e
-%    \Mdefz\f\t\e \In \App\K\C \AND  \App\s\a =\obj\C{\b\a}
-%}{
-%   \ReduceA \K{\FRead\f}\s \K{[\a/\this]\e}\s
-%}
-%\CondRule{E3}{  %% a.f(a) -> e
-%    \Mdef\f\x\t\t\e \In \App\K\C \AND  \App\s\a=\obj\C{\b\a}
-%}{
-%   \ReduceA \K{\Set\a\f\t\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-%}
 \CondRule{E4}{  %% a.f() -> e
   \readf \s\a\f\K =  \ap
  %\App\s\a = \obj\C{\a_i \dots ~\ap~ \a_j \dots}  \AND $ \Class\C {\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j \dots}{\md \dots}\in\K$
@@ -714,9 +667,7 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
         \DynCall\EE\m\e   &\B
         \DynCall\a\m\EE   &\B
        \SubCast\t\EE  &\B
-       %\ShaCast\t\EE  &\B
       \BehCast\t\EE  &\B
-% MOVEME       \MonCast\t\EE  &\B
        \New\C{\b \a\,\EE\,\b\e}
   &\B \EM{\square}
 \end{tabular}
@@ -784,61 +735,6 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 \begin{figure}[!ht]
 \hrulefill
-%%%%%%%%%%%%%%%%% BEHCAST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%\[
-%\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-%    \wrap\C\bmt\bmtp\D\that = \\
-%\SP \class ~\D ~ \{\\
-%\SPP \Fdef\that\C \\
-%\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
-%\\[-3mm]
-%\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
-%\\[-3mm]
-%\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }}~}
-%&     \textit{if}\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~ \Mtype\m\any\any\not\in\bmtp} \\
-%\\[-3mm]
-%\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\KCall{\this.\that()_{\C}} \m {\bscast\any\x}\any\any }~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~  \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~  \Mtype\m\any\any\not\in\bmtp } \\
-%\\[-3mm]
-%\SPP \Mdef\m\x\any\any{~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast{\Cp}\x}\Cp\Cpp}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~   \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~  \Mtype\m\Dp\Dpp\not\in\bmtp } \\
-%\\[-3mm]
-%\SPP \Mdef\m\x\any\any{~{\KCall{\this.\that()_{\C}}\m{\x}\any\any}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~ \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\not\in\bmtp} \\
-%\\[-3mm]
-%\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f\t~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
-%\\[-3mm]
-%\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
-%\\[-3mm]
-%\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-%\\[-3mm]
-%% \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
-%% &    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
-%% \\
-%\SP \}
-%\\[3mm]
-%\wrapAny\C\bmt\D\that = \\
-%\SP \class~\D~\{\\
-%\SPP \Fdef \that \C\\ 
-%\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
-%&  \textit{if}\,\,\,\,\,\, \Mtype\f{}\t \in \bmt\\
-%\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-%&  \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt\\
-%\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
-%& \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
-%\SP \}\\
-%
-%\end{array}\]
 
 
 \[
@@ -846,12 +742,6 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
     \wrap\C\bmt\bmtp\D\that = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
-%\SPP \Mdefz\f{\tp}{~\bscast\tp{\Get{\Get\this\that\C}\f\t}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f{}\t\in\bmt ~\wedge~ \Mtype\f{}\tp \in \bmtp \\
-%\\[-3mm]
-%\SPP \Mdef\f\x\tp\tp {~\bscast\tp{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt ~\wedge~ \Mtype\f\tp\tp \in \bmtp \\
-%\\[-3mm]
 \SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }}~}
 &     \textit{if}\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~ \Mtype\m\any\any\not\in\bmtp} \\
@@ -868,46 +758,19 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 &    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~ \\
 &     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\not\in\bmtp} \\
 \\[-3mm]
-%\SPP \Mdefz\f\t { ~\Get{\Get\this\that\C}\f\t~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f{}\t \in \bmt ~\wedge~ \Mtype\f{}\tp \not\in \bmtp \\
-%\\[-3mm]
-%\SPP \Mdef\f\x\t\t { ~\Set{\Get\this\that\C}\f\t\x~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt~\wedge~ \Mtype\f\tp\tp \not\in \bmtp \\
-%\\[-3mm]
 \SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
 &    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
 \\[-3mm]
-% \SPP \Mdef\m\x\any\any{~\Set{\Get\this\that}\m{\x}~}
-% &    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt  ~\wedge~ \Mtype\m\t\tp\not\in\bmtp \\
-% \\
 \SP \}
 \\[3mm]
 \wrapAny\C\bmt\D\that = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-%\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
-%&  \textit{if}\,\,\,\,\,\, \Mtype\f{}\t \in \bmt\\
-%\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-%&  \textit{if}\,\,\,\,\,\, \Mtype\f\t\t \in \bmt\\
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that\C}\m{\bscast{\t}\x}\t\tp }~}
 & \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
 \SP \}\\
 
 \end{array}\]
-%
-%\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-%\wrapAny\C\bmt\D = \\
-%\SP \class~\D~\{\\
-%\SPP \Fdef \that \C\\ 
-%\SPP   \Mdefz\f\any{~\BehCast\any{\Get{{\Get\this\that\C}}\f\t}~}
-%&  \Mtype\f{}\t \in \bmt\\
-%\SPP   \Mdef\f\x\any\any{~\BehCast\any{\Set{\Get\this\that\C}\f\t{\bscast\t\x}}~}
-%&  \Mtype\f\t\t \in \bmt\\
-%\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\Get\this\that\C}\m{\bscast{\t}\x}\t\tp }~}
-%&  \Mtype\m\t\tp\in\b\mt \\
-%\\
-%\SP \}\\
-%\end{array}\]
 
   \begin{mathpar}
   
@@ -1229,10 +1092,10 @@ both hold if \C~\src\Sub~\D.
 \TRG{\New\C{\e_1..}}\Env\> = \src{\New\C{\eps 1..}} 
      \>\WHERE\HS    \Ftype{\f_1}{\t_1}\In\C, \HS  \eps 1 = \TAG{\e_1}\Env{\t_1} ..
 \\[1mm]
-\TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \TRG\e\Env
+\TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
 \\[1mm]
  \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
-\>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \TRG\e\Env
+\>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -1263,18 +1126,12 @@ second is going to end up with a type error as a \code D is passed to a method
 expecting a \code C.  When translating to \kafka, all types are erased and casts
 are inserted on method entry and prior to returning.
 
-\begin{lstlisting}
- class A {
-   m(x: *): * { (*@\ShaStart \tt D \ShaEnd@*)((*@\ShaStart \tt C \ShaEnd @*)x)@n(new C()) }
-   n(x: *): * { x } }
-\end{lstlisting}
+...removed broken translation 
 
 \noindent The translated class \code A has a check to validate that the
-argument to \code m has all the methods defined by \code C. For this we use
-\kafka's \emph{shallow structural cast}, written {\ShaStart \tt C \ShaEnd
-  x}, which only checks for the presence of method names, not for the
-conformance of type signatures.  \FZ{FIXME, we do not have shallow casts anymore.}
+argument to \code m has all the methods defined by \code C.
 
+...removed broken
 
 \begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~}ll}
@@ -1397,7 +1254,7 @@ follows:
   class BW {
    that : B
    n(x: *): * { (*@\BehStart \any \BehEnd@*) that.n( (*@\BehStart B \BehEnd
-     \ShaStart B \ShaEnd x@*) ) }
+     ShaStart B ShaEnd x@*) ) }
    n(x: B): C { that.n(x) } }
 \end{lstlisting}
 
@@ -1493,43 +1350,6 @@ reduce the set of required methods by casting a \C to a \D, we retain the method
 subtyping relationships, as the generated wrappers only appear as values, and
 the operation only adds additional methods.
 
-%%%%%%%%%%%%%%%%% EXAMPLE  <C><D>new C %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{figure}[h!]
-\footnotesize
-\begin{tabular}{ll}\begin{minipage}{6cm}
-\[\begin{array}{l}
-\class ~\C~ \{\\
-\SP  \Mdef\m\x\E\E\x\\
-\SP  \Mdef\mp\x\E\E\x\\
-\}\\[2mm]
-\class ~\EMxt{CtoD}~ \{\\
-\SP  \Fdef\that\C\\
-\SP  \Mdef \m\x\any\any{\BehCast\any{\ShaCast\any{\BehCast\E{\ShaCast\E\x}}}}\\
-\SP  \Mdef \mp\x\E\E{\x}\\
-\}\\
-\end{array}\]
-\end{minipage}
-&
-\begin{minipage}{5cm}
-\[\begin{array}{l}
-\class ~\D~ \{\\
-\SP  \Mdef\m\x\any\any\x\\
-\}
-\\
-\\[2mm]
-\class ~\EMxt{CtoDtoC}~ \{\\
-\SP  \Fdef\that{\EMxt{CtoD}}\\
-\SP  \HT{\m(\HT\x\E)}{\E}\;\{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any{}}}} \\
-\SP ~~~~{\BehCast\E{\ShaCast\E{\BehCast\any{\ShaCast\any\x}}}}\}\\
-\SP  \Mdef\mp\x\E\E{ \BehCast\E{\ShaCast\E{\BehCast\E{\ShaCast\E\x}}}}\\
-\SP  \Mdef\mp\x\any\any{ \BehCast\any{\Call\this\mp{\BehCast\E{\ShaCast\E{\x}}}}}\\
-\}\\
-\end{array}\]
-\end{minipage}
-\end{tabular}
-\caption{Wrapper classes generated by \BehCast\C{(\BehCast\D{\New\C{}})}}
-\label{ctod}
-\end{figure}
 
 The Typed Racket translation demonstrates some of the key issues inherent in
 a wrapper-based system, where wrapper-inserting casts build up very quickly
@@ -1654,7 +1474,7 @@ new T()@t(
 
 
 \center
-\renewcommand{\V}{\EM{\checkmark}}
+
 \begin{tabular}{|r|l@{~}l@{~}l@{~}l|}\hline
                      & L1 & L2 & L3 & L4\\\hline\rowcolor{Gray}
 Thorn                &    &    &    &   \\
@@ -2232,7 +2052,7 @@ to its corresponding method in the source type.
 \wrapAny\C\bmt\D\that = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\Get\this\that\C}{\m_}{\bscast{\t}\x} }~}
+\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\FRead\that\C}{\m_}{\bscast{\t}\x} }~}
 &  \Mtype\m\t\t\in\b\mt \\
 \SP \}\\
 \end{array}\]
@@ -2798,10 +2618,10 @@ TTR5 \TRG{\Call{\e_1}\m{\e_2}}\Env \>= \src{\KCall{\eps 1}{\m}{\eps 2}{\t[2]}{\t
 TTR6 \TRG{\New\C{\e_1..}}\Env\> = \src{\New\C{\eps 1..}} 
      \>\WHERE\HS    \Ftype{\f_1}{\t_1}\In\C, \HS  \eps 1 = \TAG{\e_1}\Env{\t_1} ..
 \\[1mm]
-TTR7 \TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \TRG\e\Env
+TTR7 \TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
 \\[1mm]
 TTR8 \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
-\>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \TRG\e\Env
+\>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -3307,8 +3127,8 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
 \subsection{New source}
 \begin{tabular}{r@{}l}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-\e &::=  \x         &\B \this    &\B \sGet\e\f      \\
-   &\B \sSet\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
+\e &::=  \x         &\B \this    &\B \FRead\f      \\
+   &\B \FWrite\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
    &\B \New\C{\b\e}  \\ 
    
 \end{tabular}\end{minipage} &
@@ -3323,7 +3143,7 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
 \rowcolor{gray!10}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
 \e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\t\e   \\
+   &\B \New\C{\b\e}  &\B \FRead\f\t   &\B \FWrite\f\t\e   \\
    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
    &\B \SubCast\t\e &\B \BehCast\t\e 
 \end{tabular}\end{minipage} &
@@ -3331,8 +3151,7 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
    ~ \k &::= \Class \C {\b\fd}{\b\md}
 \end{tabular}
 \begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
+\md &::= \Mdef\m\x\t\t\e   \\
 ~ \t&::= ~ \any  \B   \C  \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
 \end{tabular}\end{minipage}
