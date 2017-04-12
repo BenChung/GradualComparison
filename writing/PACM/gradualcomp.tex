@@ -2533,9 +2533,8 @@ field/method.
 }
 
 \IRule{STHC-TOANY}{
-  \kty\tp = \any
 }{
-  \Compatible\K\t\tp
+  \Compatible\K\t\any
 }
 
 \IRule{STHC-OPTCONC}{
@@ -3262,13 +3261,14 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
 
     \begin{case}{STH-CALL}
       \step{$\EnvTypeW\Env\K{\Call{\e_1}\m{\ep_1}}\t$}{case}\lbl{THCA1}
-      \step{$\EnvTypeW\Env\K{\e_1}\C$}{case}\lbl{THCA2}
+      \step{$\EnvTypeW\Env\K{\e_1}{\t[a]}$}{case}\lbl{THCA2}
+      \step{$\t[a] = \C \vee \t[a] = \CW$}{case}\lbl{TSSA5}
       \step{$\Mtype\m\tp\t \in \classoff\C\K$}{case}\lbl{THCA3}
       \step{$\EnvTypeW\Env\K{\ep_1}\tpp$}{case}\lbl{THCA4}
       \step{$\Compatible\K\tpp\tp$}{case}\lbl{THCA5}
       \slet{$\e_2$}{${\TRG{\e_1}\Env}$}\lbl{TSSA1}
       \slet{$\ep_2$}{${\TRG{\ep_1}\Env}$}\lbl{TSSA2}
-      \step{$\EnvType\Envp\cdot\Kp{\e_2}\C$}{IH on \trf{THCA2}, \trf{TSSA1}}\lbl{THCA6}
+      \step{$\EnvType\Envp\cdot\Kp{\e_2}{\kty{\t[a]}}$}{IH on \trf{THCA2}, \trf{TSSA1}}\lbl{THCA6}
       \step{$\EnvType\Envp\cdot\Kp{\ep_2}{\kty\tpp}$}{IH on \trf{THCA4}, \trf{TSSA2}}\lbl{THCA7}
       \slet{$\epp_2$}{${\TAG{\ep_1}\Env{\tp}}$}\lbl{TSSA3}
       \step{$\EnvType\Envp\cdot\Kp{\epp_2}{\kty\tp}$}{lemma \ref{lem:THT-COMP} on \trf{THCA5}, \trf{THCA7}}\lbl{THCA8}
