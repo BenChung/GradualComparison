@@ -3290,6 +3290,129 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \end{proof}
 \end{lemma}
 
+\subsection{Type Soundness of TypeScript Translation}
+\begin{lemma}{Soundness of TypeScript convertibility}{THTS-COMP}
+  \begin{conds}
+    \cond{$\ConvertE\K{s}\t\tp$}\lbl{cond1}
+    \cond{$\EnvTypeS\Env\K\e\t$}\lbl{cond2}
+    \cond{$\ep = \TRG{\e}\Env$}\lbl{cond3}
+    \cond{$\TR\K = \Kp$}\lbl{cond4}
+    \cond{$\TR\Env = \Envp$}\lbl{cond5}
+    \cond{$\EnvType\Envp\cdot\Kp{\ep}{\any}$}\lbl{cond6}
+  \end{conds}
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\any}}{\any}$}
+
+  \begin{proof}{ \indmsg{$\ConvertE\K{s}\t\tp$}}
+
+  \begin{case}{STGC-SUB}
+    \begin{case}{$\StrSub\cdot\Kp{\any}{\any}$}
+    \end{case}
+
+    \begin{case}{$\StrNotSub\cdot\Kp{\any}{\any}$}
+    \end{case}
+  \end{case}
+
+  \begin{case}{STGC-TOANY}
+  \end{case}
+
+  \begin{case}{STGC-ANYCONC}
+  \end{case}
+
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Type correctness of TypeScript translation}{THTS-TRANS}
+  \begin{conds}
+    \cond{$\WFpX\K\e{s}$}\lbl{cond1}
+    \cond{$\WFtypeX \K{s}\t$}\lbl{cond2}
+    \cond{$\HT\x\tp \in \Env \implies \WFtypeX\K{s}\tp$}\lbl{cond3}
+    \cond{\EnvTypeE\Env\K{s}\e\t}\lbl{cond4}
+    \cond{$\TR\K = \Kp$}\lbl{cond5}
+    \cond{$\TR\Env = \Envp$}\lbl{cond6}
+  \end{conds}
+
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\any}$}
+
+  \begin{proof} \indmsg{\EnvTypeE\Env\K{s}\e\t}
+
+    \begin{case}{STG-VAR}    
+    \end{case}
+
+    \begin{case}{STG-GET}
+    \end{case}
+
+    \begin{case}{STG-SET}
+    \end{case}
+
+    \begin{case}{STG-CALL}
+    \end{case}
+
+    \begin{case}{STG-DCALL}
+    \end{case}
+
+    \begin{case}{STG-NEW}
+    \end{case}
+  \end{proof}
+\end{lemma}
+\subsection{Type Soundness of Typed Racket Translation}
+\begin{lemma}{Soundness of Typed Racket convertibility}{THTR-COMP}
+  \begin{conds}
+    \cond{$\ConvertE\K{s}\t\tp$}\lbl{cond1}
+    \cond{$\EnvTypeS\Env\K\e\t$}\lbl{cond2}
+    \cond{$\ep = \TRG{\e}\Env$}\lbl{cond3}
+    \cond{$\TR\K = \Kp$}\lbl{cond4}
+    \cond{$\TR\Env = \Envp$}\lbl{cond5}
+    \cond{$\EnvType\Envp\cdot\Kp{\ep}{\t}$}\lbl{cond6}
+  \end{conds}
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\tp}$}
+
+  \begin{proof}{ \indmsg{$\ConvertE\K{s}\t\tp$}}
+
+  \begin{case}{STGC-SUB}
+  \end{case}
+
+  \begin{case}{STGC-TOANY}
+  \end{case}
+
+  \begin{case}{STGC-ANYCONC}
+  \end{case}
+
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Type correctness of Typed Racket translation}{THTR-TRANS}
+  \begin{conds}
+    \cond{$\WFpX\K\e{s}$}\lbl{cond1}
+    \cond{$\WFtypeX \K{s}\t$}\lbl{cond2}
+    \cond{$\HT\x\tp \in \Env \implies \WFtypeX\K{s}\tp$}\lbl{cond3}
+    \cond{\EnvTypeE\Env\K{s}\e\t}\lbl{cond4}
+    \cond{$\TR\K = \Kp$}\lbl{cond5}
+    \cond{$\TR\Env = \Envp$}\lbl{cond6}
+  \end{conds}
+
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$}
+
+  \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
+
+    \begin{case}{STG-VAR}    
+    \end{case}
+
+    \begin{case}{STG-GET}
+    \end{case}
+
+    \begin{case}{STG-SET}
+    \end{case}
+
+    \begin{case}{STG-CALL}
+    \end{case}
+
+    \begin{case}{STG-DCALL}
+    \end{case}
+
+    \begin{case}{STG-NEW}
+    \end{case}
+  \end{proof}
+\end{lemma}
 \subsection{Type Soundness of Thorn Translation}
 
 \begin{lemma}{Soundness of compatibility}{THT-COMP}
@@ -3425,42 +3548,69 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \end{proof}
 \end{lemma}
 
-% \subsection{Type Soundness of Transient Translation}
-% 
-% \section{New Source Language and Translations}
-% 
-% \subsection{New source}
-% \begin{tabular}{r@{}l}
-% \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-% \e &::=  \x         &\B \this    &\B \sGet\e\f      \\
-%    &\B \sSet\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
-%    &\B \New\C{\b\e}  \\ 
-%    
-% \end{tabular}\end{minipage} &
-% \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-%    ~ \k &::= \Class \C {\b\fd}{\b\md}
-% \end{tabular}
-% \begin{tabular}{l@{~}l@{}l@{}l}
-% \md &::= \Mdef\m\x\t\t\e   \\
-% ~ \t&::= ~ \any  \B   \C  \\ 
-% ~\fd&::= ~ \Fdef\f\t \\ 
-% \end{tabular}\end{minipage} \\
-% \rowcolor{gray!10}
-% \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-% \e &::=  \x         &\B \this         &\B \that      \\
-%    &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\t\e   \\
-%    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
-%    &\B \SubCast\t\e &\B \BehCast\t\e 
-% \end{tabular}\end{minipage} &
-% \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-%    ~ \k &::= \Class \C {\b\fd}{\b\md}
-% \end{tabular}
-% \begin{tabular}{l@{~}l@{}l@{}l}
-% \md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-% %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
-% ~ \t&::= ~ \any  \B   \C  \\ 
-% ~\fd&::= ~ \Fdef\f\t \\ 
-% \end{tabular}\end{minipage}
-% \end{tabular}
 
+\subsection{Type Soundness of Transient Translation}
+\begin{lemma}{Soundness of Transient convertibility}{THTA-COMP}
+  \begin{conds}
+    \cond{$\ConvertE\K{tr}\t\tp$}\lbl{cond1}
+    \cond{$\EnvTypeS\Env\K\e\t$}\lbl{cond2}
+    \cond{$\ep = \TRG{\e}\Env$}\lbl{cond3}
+    \cond{$\TR\K = \Kp$}\lbl{cond4}
+    \cond{$\TR\Env = \Envp$}\lbl{cond5}
+    \cond{$\EnvType\Envp\cdot\Kp{\ep}{\t}$}\lbl{cond6}
+  \end{conds}
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}
+
+  \begin{proof}{ \indmsg{$\Convertible\K\t\tp$}}
+
+  \begin{case}{STC-SUB}
+    \begin{case}{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}
+    \end{case}
+
+    \begin{case}{$\StrNotSub\cdot\Kp{\kty\t}{\kty\tp}$}
+    \end{case}
+  \end{case}
+
+  \begin{case}{STC-TOANY}
+  \end{case}
+
+  \begin{case}{STC-OPTCONC}
+  \end{case}
+
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Type correctness of Transient translation}{THTA-TRANS}
+  \begin{conds}
+    \cond{$\WFpX\K\e{tr}$}\lbl{cond1}
+    \cond{$\WFtypeX \K{tr}\t$}\lbl{cond2}
+    \cond{$\HT\x\tp \in \Env \implies \WFtypeX\K{tr}\tp$}\lbl{cond3}
+    \cond{\EnvTypeE\Env\K{tr}\e\t}\lbl{cond4}
+    \cond{$\TR\K = \Kp$}\lbl{cond5}
+    \cond{$\TR\Env = \Envp$}\lbl{cond6}
+  \end{conds}
+
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$}
+
+  \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
+
+    \begin{case}{STT-VAR}    
+    \end{case}
+
+    \begin{case}{STT-GET}
+    \end{case}
+
+    \begin{case}{STT-SET}
+    \end{case}
+
+    \begin{case}{STT-CALL}
+    \end{case}
+
+    \begin{case}{STT-DCALL}
+    \end{case}
+
+    \begin{case}{STT-NEW}
+    \end{case}
+  \end{proof}
+\end{lemma}
 \end{document}
