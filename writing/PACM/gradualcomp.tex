@@ -880,9 +880,9 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Translating Gradual Types}
+\section{Translating Gradual Type Systems}
 
-\vspace{-2mm}
+%\vspace{-2mm}
 
 \epigraph{\small ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
 
@@ -891,7 +891,7 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 
 \begin{figure}[!h]\hrulefill
 
-\hspace{0.1cm}
+\hspace{2mm}
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x          &\B \this          \\
    &\B \New\C{\b\e}  &\B \FRead\f       \\
@@ -902,27 +902,37 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 \md &::= \Mdef\m\x\t\t\e \\
 %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
-~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
+~ \t&::= ~ \any   \B   \C   \B   \fcolorbox{lightgray}{lightgray}{\CW} \\ 
 \end{tabular}\end{minipage}
 
-\FZ{TODO: grey ?C out}
 \hrulefill
-\caption{Syntax of source languages}\label{f:sourcesyntax}
+\caption{Idealised syntax of source languages}\label{f:sourcesyntax}
 \end{figure}
 
 \noindent
-We are now ready to give semantics to the four gradual type systems of interest.  For this we use the idealised syntax reported in \figref{f:sourcesyntax}, and we define the semantics of each gradual type system by
-translation to \kafka.  The source syntax allows typed and untyped terms to interact freely, as in the gradually typed systems of interest, constrained only by the source type system rules.  The compilation into \kafka makes explicit which type casts (aka type-checks and wrapper introduction) are implicitly inserted by the run-time of each language.  To avoid unnecessary clutter, the source syntax we use is just \kafka one without casts.
+We are now ready to give semantics to the four gradual type systems of interest, by translating them into \kafka. 
+Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the run-time of each language, highlighting the similarities and differences among them.   
 
-Casts are not used in the source languages, but are inserted by the
-translations.  
+To avoid unnecessary clutter, we represent the source languages using the idealised syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
 
-...The general approach is that for each gradual type system there is a translation function defined on well-typed programs. 
 
-...For each class it produces a well-typed Kafka class.
+% On top of this uniform source syntax, for each language a type system defines the well-typed terms that can be defined.   
+
+
+%
+% To avoid unnecessary clutter, the source syntax we use is just \kafka one without casts.
+%
+%Casts are not used in the source languages, but are inserted by the
+%translations.  
+%
+%...The general approach is that for each gradual type system there is a translation function defined on well-typed programs. 
+%
+%...For each class it produces a well-typed Kafka class.
 
 
 \subsection{TypeScript}
+
+\FZ{UNTIL HERE}
 
 Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
