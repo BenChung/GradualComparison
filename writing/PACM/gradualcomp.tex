@@ -1239,6 +1239,8 @@ both hold if \C~\src\Sub~\D.
 \caption{Thorn translation.  \kty\t = \any if  \t=?\C, \t otherwise. }
 \end{figure}
 
+
+
 \subsection{Transient Python}
 
 The Transient variant of Reticulated Python~\cite{siek14} aims for soundness
@@ -2462,35 +2464,35 @@ field/method.
 
 \begin{mathpar}
 \IRule{WP}{
-  \k \in \K \implies \WFW{}\cdot\K\k \\
-  \EnvTypeW\Env\cdot\K\e\t
+  \k \in \K \implies \WFW{}\K\k \\
+  \EnvTypeW\Env\K\e\t
 }{
   \WFpW\e\K
 }
 
 \IRule[width=25em]{WCL}{
  \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
- \fd\in\b\fd\implies \WFW {}{}\K \fd \\
- \md\in\b\md\implies \WFW {\text{this}:\C~}\s\K \md 
+ \fd\in\b\fd\implies \WFW {}\K \fd \\
+ \md\in\b\md\implies \WFW {\text{this}:\C~}\K \md 
 }{
- \WFW {}\s\K {\Class \C {\b\fd}{\b\md}}
+ \WFW {}\K {\Class \C {\b\fd}{\b\md}}
 }
 
 \IRule[width=18em]{WT}{
- \EnvTypeW {\Env{~\Ftype\x\C}~}\s\K\e\D\\
+ \EnvTypeW {\Env{~\Ftype\x\C}~}\K\e\D\\
  \WFtypeW\K\C \\
  \WFtypeW\K\D \\
 }{
- \WFW \Env\s\K {\Mdef\m\x\C\D\e}
+ \WFW \Env\K {\Mdef\m\x\C\D\e}
 }
 
 \IRule[width=18em]{WWT}{
- \EnvTypeW {\Env{~\Ftype\x\t}~}\s\K\e\tp\\
+ \EnvTypeW {\Env{~\Ftype\x\t}~}\K\e\tp\\
  \WFtypeW\K\t \\
  \WFtypeW\K\tp \\
  \kty\t = \kty\tp = \any
 }{
- \WFW \Env\s\K {\Mdef\m\x\t\tp\e}
+ \WFW \Env\K {\Mdef\m\x\t\tp\e}
 }
 
 \IRule{WF}{
@@ -2550,49 +2552,49 @@ field/method.
 \IRule{STH-VAR}{
    \HasType \Env\x\t
  }{
-   \EnvTypeW \Env\s\K\x\t
+   \EnvTypeW \Env\K\x\t
 }
 
 \IRule{STH-GET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C
 }{
-  \EnvTypeW \Env\s\K{\FRead\f}\t
+  \EnvTypeW \Env\K{\FRead\f}\t
 }    
 
 \IRule[width=20em]{STH-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeW \Env\s\K\e\tp \\
+  \EnvTypeW \Env\K\e\tp \\
   \Compatible\K\tp\t
 }{
-  \EnvTypeW \Env\s\K{\FWrite\f\e}\t
+  \EnvTypeW \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STH-CALL}{
-  \EnvTypeW \Env\s\K\e\C \\
+  \EnvTypeW \Env\K\e\C \\
   \Mtype \m{\t}\tp\in \classoff\C\K  \\
-  \EnvTypeW \Env\s\K\ep\tpp \\
+  \EnvTypeW \Env\K\ep\tpp \\
   \Compatible\K\tpp\t
 }{
-  \EnvTypeW \Env\s\K{\Call\e\m\ep}\tp
+  \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
 
 \IRule[width=20em]{STH-DCALL}{
-  \EnvTypeW \Env\s\K\e\any \\
-  \EnvTypeW \Env\s\K\ep\tpp \\
+  \EnvTypeW \Env\K\e\any \\
+  \EnvTypeW \Env\K\ep\tpp \\
   \Compatible\K\tpp\any
 }{
-  \EnvTypeW \Env\s\K{\Call\e\m\ep}\any
+  \EnvTypeW \Env\K{\Call\e\m\ep}\any
 }    
 
 \IRule{STH-NEW}{
- \EnvTypeW \Env\s\K{\e_1}{\tp_1} ~~\dots~~ \EnvTypeW \Env\s\K{\e_n}{\tp_n} \\
+ \EnvTypeW \Env\K{\e_1}{\tp_1} ~~\dots~~ \EnvTypeW \Env\K{\e_n}{\tp_n} \\
  \Compatible\K{\tp[1]}{\t[1]} ~~\dots~~ \Compatible\K{\tp[n]}{\t[n]} \\
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
-  \EnvTypeW \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+  \EnvTypeW \Env\K{\New\C{\e_1\dots\e_n}}\C
 }
 \end{mathpar}
 
@@ -2617,25 +2619,25 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \IRule[width=25em]{SWF-CLASS}{
  \xt{overloading}_{\emptyset}(\b\fd,\b\md) \\
  \fd\in\b\fd\implies \WFx {}{}\K \fd \\
- \md\in\b\md\implies \WFx {\text{this}:\C~}\s\K \md 
+ \md\in\b\md\implies \WFx {\text{this}:\C~}\K \md 
 }{
- \WFx {}\s\K {\Class \C {\b\fd}{\b\md}}
+ \WFx {}\K {\Class \C {\b\fd}{\b\md}}
 }
 
 \IRule[width=18em]{SWF-TYMETH}{
- \EnvTypex {\Env{~\Ftype\x\C}~}\s\K\e\D\\
+ \EnvTypex {\Env{~\Ftype\x\C}~}\K\e\D\\
  \WFtypex\K\C \\
  \WFtypex\K\D \\
 }{
- \WFx \Env\s\K {\Mdef\m\x\C\D\e}
+ \WFx \Env\K {\Mdef\m\x\C\D\e}
 }
 
 \IRule[width=18em]{SWF-DYMETH}{
- \EnvTypex {\Env{~\Ftype\x\any}~}\s\K\e\any\\
+ \EnvTypex {\Env{~\Ftype\x\any}~}\K\e\any\\
  \WFtypex\K\any \\
  \WFtypex\K\any
 }{
- \WFx \Env\s\K {\Mdef\m\x\any\any\e}
+ \WFx \Env\K {\Mdef\m\x\any\any\e}
 }
 
 \IRule{SWF-FIELD}{
@@ -2660,106 +2662,150 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 
 \subsection{Typescript and Typed Racket expression typing}
 
-\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\opdef{\EnvTypeS\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
 \begin{mathpar}
 
 \IRule{STG-VAR}{
    \HasType \Env\x\t
  }{
-   \EnvTypeS \Env\s\K\x\t
+   \EnvTypeS \Env\K\x\t
 }
 
 \IRule{STG-SUB}{
-  \EnvTypeS \Env\s\K\e\tp \\
+  \EnvTypeS \Env\K\e\tp \\
   \StrSub \M\K \tp \t
  }{
-  \EnvTypeS \Env\s\K\e\t 
+  \EnvTypeS \Env\K\e\t 
 }   
 
 \IRule{STG-GET}{
    \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C
 }{
-  \EnvTypeS \Env\s\K{\FRead\f}\t
+  \EnvTypeS \Env\K{\FRead\f}\t
 }    
 
 \IRule{STG-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeS \Env\s\K\e\t
+  \EnvTypeS \Env\K\e\t
 }{
-  \EnvTypeS \Env\s\K{\FWrite\f\e}\t
+  \EnvTypeS \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STG-CALL}{
-  \EnvTypeS \Env\s\K\e\C \\
+  \EnvTypeS \Env\K\e\C \\
   \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvTypeS \Env\s\K\ep\tp
+  \EnvTypeS \Env\K\ep\tp
 }{
-  \EnvTypeS \Env\s\K{\Call\e\m\ep}\tpp
+  \EnvTypeS \Env\K{\Call\e\m\ep}\tpp
 }    
 
 \IRule{STG-NEW}{
- \EnvTypeS \Env\s\K{\e_1}{\t_1}~~\dots~~ 
- \EnvTypeS \Env\s\K{\e_n}{\t_n}\ \\ 
+ \EnvTypeS \Env\K{\e_1}{\t_1}~~\dots~~ 
+ \EnvTypeS \Env\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
-  \EnvTypeS \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+  \EnvTypeS \Env\K{\New\C{\e_1\dots\e_n}}\C
 }
 \end{mathpar}
 
 \subsection{Transient expression typing}
 
-\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\opdef{\EnvTypeT\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
 \begin{mathpar}
 
 \IRule{STT-VAR}{
    \HasType \Env\x\t
  }{
-   \EnvTypeT \Env\s\K\x\t
+   \EnvTypeT \Env\K\x\t
 }
 
 \IRule{STT-SUB}{
-  \EnvTypeT \Env\s\K\e\tp \\
+  \EnvTypeT \Env\K\e\tp \\
   \ConSub \M\K \tp \t
  }{
-  \EnvTypeT \Env\s\K\e\t 
+  \EnvTypeT \Env\K\e\t 
 }   
 
 \IRule{STT-GET}{
    \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C
 }{
-  \EnvTypeT \Env\s\K{\FRead\f}\t
+  \EnvTypeT \Env\K{\FRead\f}\t
 }    
 
 \IRule{STT-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeT \Env\s\K\e\t
+  \EnvTypeT \Env\K\e\t
 }{
-  \EnvTypeT \Env\s\K{\FWrite\f\e}\t
+  \EnvTypeT \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STT-CALL}{
-  \EnvTypeT \Env\s\K\e\C \\
+  \EnvTypeT \Env\K\e\C \\
   \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvTypeT \Env\s\K\ep\tp
+  \EnvTypeT \Env\K\ep\tp
 }{
-  \EnvTypeT \Env\s\K{\Call\e\m\ep}\tpp
+  \EnvTypeT \Env\K{\Call\e\m\ep}\tpp
 }    
 
 \IRule{STT-NEW}{
- \EnvTypeT \Env\s\K{\e_1}{\t_1}~~\dots~~ 
- \EnvTypeT \Env\s\K{\e_n}{\t_n}\ \\ 
+ \EnvTypeT \Env\K{\e_1}{\t_1}~~\dots~~ 
+ \EnvTypeT \Env\K{\e_n}{\t_n}\ \\ 
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
-  \EnvTypeT \Env\s\K{\New\C{\e_1\dots\e_n}}\C
+  \EnvTypeT \Env\K{\New\C{\e_1\dots\e_n}}\C
 }
 \end{mathpar}
 
+\section{Translations}
+
+\subsection{Thorn}
+
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\small
+  \hspace{-.5cm}\begin{minipage}{8cm}  
+\begin{tabbing}
+\TR{\Class \C{\fds 1..}{\mds 1 .. }}\= = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..~ \mdspp 1..}} 
+\HS \WHERE~\= \fdsp 1 = \src{\Ftype\f{\kty\t}} .., \HS\HS\HS\HS\HS \=\fds 1 = \Ftype\f\t ..   \\
+\> \mdsp 1 = \src{\Mdef\m\x{\kty{\t_1}}{\kty{\t_2}}{\ep}} .., \HS \> \mds 1 = \Mdef\m\x{\t_1}{\t_2}\e ..,\HS\HS\> \ep = \TAG{\e}{\this:\C\,\x:{\t_1}}{\t_2} ..,\\
+\> \mdspp 1 = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\t_1}\x}{\t_1}{\t_2}}}}
+\HS \IF \kty{\t_1} = \D \OR \kty{\t_2} = \D\\
+          \>\hspace{1cm} empty \HS  {\bf otherwise}  ..   \\
+\TR{\k .. \e} \>= \TR{\k} .. \TRG{\e}\cdot \\
+\TR{\x:\t~\Env} \>= \x : \kty{\t} ~ \TR\Env
+\end{tabbing}
+\begin{tabbing}
+TTR1 \TRG{\x}\Env \hspace{1.4cm}\= = \src \x
+\\[1mm]       
+TTR2 \TRG{\FRead\f}\Env \> = \src{\FRead\f} 
+\\[1mm]
+TTR3 \TRG{\FWrite\f\e}\Env \> = \src{\FWrite\f\ep} \hspace{.5cm} \=
+\WHERE\HS\= \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\In\App\K\C, \HS \ep = \TAG\e\Env{\kty\t}
+\\[1mm]
+TTR4 \TRG{\Call{\e_1}\m{\e_2}}\Env \>= \src{\DynCall{\eps 1}{\m}{\eps 2}} 
+\HS  \>\WHERE\HS \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any, \HS
+ \eps 1= \TRG{\e_1}\Env, \HS \eps 2=\TAG{\e_2}\Env\any
+\\[1mm]
+TTR5 \TRG{\Call{\e_1}\m{\e_2}}\Env \>= \src{\KCall{\eps 1}{\m}{\eps 2}{\t[2]}{\tp[2]}} 
+\>\WHERE\HS   \TypeCk{\K,\Env}{\e_1}\C, \HS  \eps 1 = \TRG{\e_1}\Env, \HS
+ \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C, \HS  \eps 2 = \TAG{\e_2}\Env{\t[2]}, \\
+ \> \> \> \t[2] = \kty{\t[1]}, \HS \tp[2] = \kty{\tp[1]}
+\\[1mm]
+TTR6 \TRG{\New\C{\e_1..}}\Env\> = \src{\New\C{\eps 1..}} 
+     \>\WHERE\HS    \Ftype{\f_1}{\t_1}\In\C, \HS  \eps 1 = \TAG{\e_1}\Env{\t_1} ..
+\\[1mm]
+TTR7 \TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \TRG\e\Env
+\\[1mm]
+TTR8 \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+\>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\E}\e\tp, \ep = \TRG\e\Env
+\end{tabbing}
+\end{minipage}
+\end{tabular}
 
 \section{Proofs of Related Theorems}
 
@@ -3161,7 +3207,100 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
 
 
-\subsection{Type Soundness of Transient Translation}
+\subsection{Type Soundness of Thorn Translation}
+
+Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$ translated to $\Kp$. (proof: rule induction on thorn subtyping)
+
+\begin{lemma}{Soundness of compatibility}{THT-COMP}
+  \begin{conds}
+    \cond{$\Compatible\K\t\tp$}\lbl{cond1}
+    \cond{$\EnvTypeW\Env\K\e\t$}\lbl{cond2}
+    \cond{$\ep = \TRG{\e}\Env$}\lbl{cond3}
+    \cond{$\TR\K = \Kp$}\lbl{cond4}
+    \cond{$\TR\Env = \Envp$}\lbl{cond5}
+    \cond{$\EnvType\Envp\cdot\Kp{\ep}{\kty\t}$}
+  \end{conds}
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\kty\tp}}{\kty\tp}$}
+\end{lemma}
+
+\begin{lemma}{Type correctness of Thorn translation}{THT-TRANS}
+  \begin{conds}
+    \cond{$\WFpW\K\e$}\lbl{cond1}
+    \cond{$\WFtypeW \K\t$}\lbl{cond2}
+    \cond{$\HT\x\tp \in \Env \implies \WFtypeW\K\tp$}\lbl{cond3}
+    \cond{\EnvTypeW\Env\K\e\t}\lbl{cond4}
+    \cond{$\TR\K = \Kp$}\lbl{cond5}
+    \cond{$\TR\Env = \Envp$}\lbl{cond6}
+  \end{conds}
+
+  \then\axiom{$\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\kty\t}$}
+
+  \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
+
+    \begin{case}{STH-VAR}
+      \step{$\TRG{\x}\Env = \x$}{TTR1}\lbl{TSSL1}
+      \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond6}, \RuleRef{KT-VAR}}\lbl{TSSL2}
+      \done{\trf{TSSL2}}      
+    \end{case}
+
+    \begin{case}{STH-GET}
+      \step{$\TRG{\FRead\f}\Env = \FRead\f$}{TTR2}\lbl{TSSL3}
+      \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL4}
+    \end{case}
+
+    \begin{case}{STH-SET}
+      \step{$\EnvTypeW\Env\K{\FWrite\f\e}\t$}{case}\lbl{TSSL5}
+      \step{$\Compatible\K\tp\t$}{case}\lbl{TSSLC}
+      \step{$\EnvTypeW\Env\K\e\tp$}{inversion on \trf{TSSL5}}\lbl{TSSL6}
+      \slet{\ep}{\TRG\e\Env}\lbl{TSSA1}
+      \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{TSSL6}}\lbl{TSSL7}
+      \slet{\epp}{{\TAG\e\Env{\kty\t}}}\lbl{TSSA2}
+      \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{TSSL7}}\lbl{TSSL8}
+      \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{TTR3 on \trf{TSSA2},\trf{TSSL5},\trf{cond5}}\lbl{TSSL8}
+      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{TSSL8},\trf{TSSL5},\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL9}
+    \end{case}
+
+    \begin{case}{STH-CALL}
+      \step{$\EnvTypeW\Env\K{\Call{\e_1}\m{\ep_1}}\t$}{case}\lbl{THCA1}
+      \step{$\EnvTypeW\Env\K{\e_1}\C$}{case}\lbl{THCA2}
+      \step{$\Mtype\m\tp\t \in \classoff\C\K$}{case}\lbl{THCA3}
+      \step{$\EnvTypeW\Env\K{\ep_1}\tpp$}{case}\lbl{THCA4}
+      \step{$\Compatible\K\tpp\tp$}{case}\lbl{THCA5}
+      \slet{$\e_2$}{${\TRG{\e_1}\Env}$}\lbl{TSSA1}
+      \slet{$\ep_2$}{${\TRG{\ep_1}\Env}$}\lbl{TSSA2}
+      \step{$\EnvType\Envp\cdot\Kp{\e_2}\C$}{IH on \trf{THCA2}, \trf{TSSA1}}\lbl{THCA6}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_2}{\kty\tpp}$}{IH on \trf{THCA4}, \trf{TSSA2}}\lbl{THCA7}
+      \slet{$\epp_2$}{${\TAG{\ep_1}\Env{\kty\tp}}$}\lbl{TSSA3}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_2}{\kty\tp}$}{lemma \ref{lem:THT-COMP} on \trf{THCA5}, \trf{THCA7}}\lbl{THCA8}
+      \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}$}{TTR5 on \trf{TSSA1},\trf{THCA3},\trf{TSSA3}}
+      \step{$\EnvType\Envp\cdot\Kp{\KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA6},\trf{THCA8},\trf{cond5},\RuleRef{KT-CALL}}\lbl{TSSL9}
+    \end{case}
+
+    \begin{case}{STH-DCALL}
+      \step{$\EnvTypeW\Env\K{\Call{\e_1}\m{\ep_1}}\t$}{case}\lbl{THCD1}
+      \step{$\EnvTypeW\Env\K{\e_1}\any$}{case}\lbl{THCD2}
+      \step{$\EnvTypeW\Env\K{\ep_1}\any$}{case}\lbl{THCD3}
+      \slet{$\e_2$}{${\TRG{\e_1}\Env}$}\lbl{TSSD1}
+      \slet{$\ep_2$}{${\TRG{\ep_1}\Env}$}\lbl{TSSD2}
+      \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \DynCall{\e_2}\m{\ep_2}$}{TTR4 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCD4}
+      \step{$\EnvType\Envp\cdot\Kp{\e_2}\any$}{IH on \trf{THCD2}}\lbl{THCD5}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_2}\any$}{IH on \trf{THCD3}}\lbl{THCD6}
+      \step{$\EnvType\Envp\cdot\Kp{\DynCall{\e_2}\m{\ep_2}}{\kty\t}$}{\trf{THCD5},\trf{THCD6},\RuleRef{KT-DYNCALL}}\lbl{THCD9}
+    \end{case}
+
+    \begin{case}{STH-NEW}
+      \step{$\EnvTypeW\Env\K{\New\C{\e_1,\ldots}}\t$}{case}\lbl{THCN1}
+      \step{$\EnvTypeW\Env\K{\e_1}\tp_1 ~ \ldots$}{case}\lbl{THCN2}
+      \step{$\Compatible\K{\tp_1}{\t_1} ~ \ldots$}{case}\lbl{THCN3}
+      \slet{$\ep_i$}{${\TRG{\e_i}\Env}$ for all $i$}\lbl{TSSN1}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\kty{\tp_i}}$}{IH on \trf{THCN2}}\lbl{THCN4}
+      \slet{$\epp_i$}{${\TAG{\ep_i}\Env{\kty{\t_i}}}$ for all $i$}\lbl{TSSN2}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\kty{\t_i}}$}{lemma \ref{lem:THT-COMP} on \trf{TSSN2}, \trf{THCN2}}\lbl{THCN5}
+      \step{$\TRG{\New\C{\e_1,\ldots}}\Env = \New\C{\epp_1,\ldots}$}{TTR6 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCN6}
+      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp_1,\ldots}}{\kty\t}$}{\trf{THCN5},\RuleRef{KT-NEW}}\lbl{THCN7}
+    \end{case}
+  \end{proof}
+\end{lemma}
 
 \section{New Source Language and Translations}
 
