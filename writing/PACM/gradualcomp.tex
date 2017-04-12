@@ -2768,6 +2768,14 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
   \EnvTypeS \Env\K{\Call\e\m\ep}\tp
 }    
 
+\IRule[width=20em]{STG-DCALL}{
+  \EnvTypeS \Env\K\e\any \\
+  \EnvTypeS \Env\K\ep\tpp \\
+  \ConvertE\K{s}\tpp\any
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}\any
+}    
+
 \IRule{STG-NEW}{
  \EnvTypeS \Env\K{\e_1}{\tp[1]}~~\dots~~ 
  \EnvTypeS \Env\K{\e_n}{\tp[n]}\ \\  
@@ -2834,6 +2842,14 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
   \ConvertE\K{tr}\tpp\tp
 }{
   \EnvTypeT \Env\K{\Call\e\m\ep}\tp
+}    
+
+\IRule[width=20em]{STT-DCALL}{
+  \EnvTypeT \Env\K\e\any \\
+  \EnvTypeT \Env\K\ep\tpp \\
+  \ConvertE\K{tr}\tpp\any
+}{
+  \EnvTypeT \Env\K{\Call\e\m\ep}\any
 }    
 
 \IRule{STT-NEW}{
