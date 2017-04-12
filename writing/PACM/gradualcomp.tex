@@ -1002,7 +1002,7 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 We are now ready to give semantics to the four gradual type systems of interest, by translating them into \kafka. 
 Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the run-time of each language, highlighting the similarities and differences among them.   
 
-To avoid unnecessary clutter, we represent the source languages using the idealised syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
+To avoid unnecessary clutter, we represent the source languages using the idealised syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without method overloading and, most importantly, cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
 
 
 % On top of this uniform source syntax, for each language a type system defines the well-typed terms that can be defined.   
@@ -1024,21 +1024,32 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 \begin{figure}
 \hrulefill
 
-\opdef{\EnvTypeS\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
+%\opdef{\ConvertE\K{s}\t\tp}{type convertibility between \t and \tp.}
 \begin{mathpar}
+
+\IRule{STGC-SUB}{
+  \StrSub\cdot\K\t\tp
+}{
+  \ConvertE\K{s}\t\tp
+}
+
+\IRule{STGC-TOANY}{
+}{
+  \ConvertE\K{s}\t\any
+}
+
+\IRule{STGC-ANYCONC}{
+}{
+  \ConvertE\K{s}\any\tp
+}
+
 
 \IRule{STG-VAR}{
    \HasType \Env\x\t
  }{
    \EnvTypeS \Env\K\x\t
-}
+} 
 
-\IRule{STG-SUB}{
-  \EnvTypeS \Env\K\e\tp \\
-  \StrSub \M\K \tp \t
- }{
-  \EnvTypeS \Env\K\e\t 
-}   
 
 \IRule{STG-GET}{
    \HasType \Env\this\C \\
@@ -1046,26 +1057,35 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 }{
   \EnvTypeS \Env\K{\FRead\f}\t
 }    
+%\end{mathpar} \\
+
+
+%\opdef{\EnvTypeS\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
+%\begin{mathpar}
+
 
 \IRule{STG-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeS \Env\K\e\t
+  \EnvTypeS \Env\K\e\tp \\
+  \ConvertE\K{s}\tp\t
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STG-CALL}{
   \EnvTypeS \Env\K\e\C \\
-  \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvTypeS \Env\K\ep\tp
+  \Mtype \m\t\tp\in \classoff\C\K  \\
+  \EnvTypeS \Env\K\ep\tpp \\
+  \ConvertE\K{s}\tpp\tp
 }{
-  \EnvTypeS \Env\K{\Call\e\m\ep}\tpp
+  \EnvTypeS \Env\K{\Call\e\m\ep}\tp
 }    
 
 \IRule{STG-NEW}{
- \EnvTypeS \Env\K{\e_1}{\t_1}~~\dots~~ 
- \EnvTypeS \Env\K{\e_n}{\t_n}\ \\ 
+ \EnvTypeS \Env\K{\e_1}{\tp[1]}~~\dots~~ 
+ \EnvTypeS \Env\K{\e_n}{\tp[n]}\ \\  
+ \ConvertE\K{s}{\tp[1]}{\t[1]} ~~\dots~~ \ConvertE\K{s}{\tp[n]}{\t[n]} \\
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
@@ -1078,13 +1098,13 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 \end{figure}
 
 
-Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
+Typescript~\cite{BAT14} is a backward compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
 subtyping of recursive types is supported (types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
 to catch simple errors, such as misspelt method names, as well as assisting
 IDEs.  A typical example is shown here. The first expression is ill-typed
-because method \code o does not exist, the second is erroneous as it
+because method \(o\) does not exist, the second is erroneous as it
 provides an instance of \C where \D is expected. The third
 expression is statically correct as the instance of \C is cast to a
 \D by the \n method.
@@ -1107,7 +1127,7 @@ expression is statically correct as the instance of \C is cast to a
 
 \medskip
 
-\FZ{fix typesetting of method name o}
+%\FZ{fix typesetting of method name o}
 
 %\begin{lstlisting}
 % class A { 
@@ -1120,17 +1140,35 @@ expression is statically correct as the instance of \C is cast to a
 %\end{lstlisting}
 %
 \noindent
-The TypeScript type system is reported in \figref{f:typescriptts}.  Well-typed code is translated to plain JavaScript with all types erased and methods resolved dynamically. 
+The TypeScript type system is reported in \figref{f:typescriptts}.  
+
+The auxiliary relation of \emph{convertibility}, denoted   \ConvertE\K{s}\t\tp, captures all ...
+
+
+\FZ{EXPLAIN CONVERTIBILITY + RULES} Well-typed code is translated to plain JavaScript with all types erased and methods resolved dynamically. 
 In \kafka, one would translate the class
 definition and the last expression:
 
-\begin{lstlisting}
- class A { 
-    m(x: *): * { this }
-    n(x: *): * { x } }
- new A()@m(new A()@n(new A()))    
-\end{lstlisting}
 
+\medskip
+\(
+\Class \C {   \Mdef\m\x\any\any \this  ; \   \Mdef\n\x\any\any \x }
+\)
+
+\medskip
+
+\(\DynCall {\New \C{}} \m {\DynCall {\New \C{}} \n {\New \C{}}} \)
+
+
+\medskip
+%
+%\begin{lstlisting}
+% class A { 
+%    m(x: *): * { this }
+%    n(x: *): * { x } }
+% new A()@m(new A()@n(new A()))    
+%\end{lstlisting}
+%
 \noindent Dynamically resolved calls are calls that may fail because the
 receiver need not have the requested method. Method signatures see their
 types set to \any.  The designers of TypeScript saw unsoundness as a way to
