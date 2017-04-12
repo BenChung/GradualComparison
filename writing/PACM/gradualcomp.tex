@@ -3090,10 +3090,18 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
       \slet{$\ep_2$}{${\TRG{\ep_1}\Env}$}\lbl{TSSA2}
       \step{$\EnvType\Envp\cdot\Kp{\e_2}{\kty{\t[a]}}$}{IH on \trf{THCA2}, \trf{TSSA1}}\lbl{THCA6}
       \step{$\EnvType\Envp\cdot\Kp{\ep_2}{\kty\tpp}$}{IH on \trf{THCA4}, \trf{TSSA2}}\lbl{THCA7}
-      \slet{$\epp_2$}{${\TAG{\ep_1}\Env{\tp}}$}\lbl{TSSA3}
+      \slet{$\epp_2$}{${\TAG{\ep_1}\Env{\t[a]}}$}\lbl{TSSA3}
       \step{$\EnvType\Envp\cdot\Kp{\epp_2}{\kty\tp}$}{lemma \ref{lem:THT-COMP} on \trf{THCA5}, \trf{THCA7}}\lbl{THCA8}
-      \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}$}{TTR5 on \trf{TSSA1},\trf{THCA3},\trf{TSSA3}}
-      \step{$\EnvType\Envp\cdot\Kp{\KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA6},\trf{THCA8},\trf{cond5},\RuleRef{KT-CALL}}\lbl{TSSL9}
+
+      \begin{case}{$\t[a] = \C$}
+        \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}$}{TTR5 on \trf{THCA2},\trf{THCA8},\trf{THCA3}}
+        \step{$\EnvType\Envp\cdot\Kp{\KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA6},\trf{THCA8},\trf{cond5},\RuleRef{KT-CALL}}\lbl{TSSL9}
+      \end{case}
+
+      \begin{case}{$\t[a] = \CW$}
+        \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \DynCall{\e_2}\m{\epp_2}$}{TTR4 on \trf{THCA2},\trf{THCA8}}
+        \step{$\EnvType\Envp\cdot\Kp{\KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA2},\trf{THCA8},\RuleRef{KT-DYNCALL}}\lbl{TSSL10}
+      \end{case}
     \end{case}
 
     \begin{case}{STH-DCALL}
