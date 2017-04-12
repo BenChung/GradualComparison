@@ -2679,7 +2679,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \begin{mathpar}
 
 \IRule{STGC-SUB}{
-  \ThorSub\cdot\K\t\tp
+  \StrSub\cdot\K\t\tp
 }{
   \ConvertE\K{s}\t\tp
 }
@@ -2704,14 +2704,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
    \HasType \Env\x\t
  }{
    \EnvTypeS \Env\K\x\t
-}
-
-\IRule{STG-SUB}{
-  \EnvTypeS \Env\K\e\tp \\
-  \StrSub \M\K \tp \t
- }{
-  \EnvTypeS \Env\K\e\t 
-}   
+} 
 
 \IRule{STG-GET}{
    \HasType \Env\this\C \\
@@ -2723,7 +2716,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \IRule{STG-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeS \Env\K\e\tp
+  \EnvTypeS \Env\K\e\tp \\
   \ConvertE\K{s}\tp\t
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
@@ -2732,7 +2725,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \IRule[width=20em]{STG-CALL}{
   \EnvTypeS \Env\K\e\C \\
   \Mtype \m\t\tp\in \classoff\C\K  \\
-  \EnvTypeS \Env\K\ep\tpp
+  \EnvTypeS \Env\K\ep\tpp \\
   \ConvertE\K{s}\tpp\tp
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}\tp
@@ -2755,7 +2748,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \begin{mathpar}
 
 \IRule{STTC-SUB}{
-  \ThorSub\cdot\K\t\tp
+  \ConSub\cdot\K\t\tp
 }{
   \ConvertE\K{tr}\t\tp
 }
@@ -2781,13 +2774,6 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
    \EnvTypeT \Env\K\x\t
 }
 
-\IRule{STT-SUB}{
-  \EnvTypeT \Env\K\e\tp \\
-  \ConSub \M\K \tp \t
- }{
-  \EnvTypeT \Env\K\e\t 
-}   
-
 \IRule{STT-GET}{
    \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C
@@ -2798,7 +2784,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \IRule{STT-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeT \Env\K\e\tp
+  \EnvTypeT \Env\K\e\tp \\
   \ConvertE\K{tr}\tp\t
 }{
   \EnvTypeT \Env\K{\FWrite\f\e}\t
@@ -2807,7 +2793,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \IRule[width=20em]{STT-CALL}{
   \EnvTypeT \Env\K\e\C \\
   \Mtype \m\t\tp\in \classoff\C\K  \\
-  \EnvTypeT \Env\K\ep\tpp
+  \EnvTypeT \Env\K\ep\tpp \\
   \ConvertE\K{tr}\tpp\tp
 }{
   \EnvTypeT \Env\K{\Call\e\m\ep}\tp
