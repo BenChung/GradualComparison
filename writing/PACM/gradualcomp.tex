@@ -1636,7 +1636,7 @@ typing system highlights the essences which makes each system unique.
 
 
 
-\subsection{Semantics}
+% \subsection{Semantics}
 
 \subsection{Subtyping}
 
@@ -3049,8 +3049,6 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \end{proof}
 \end{lemma}
 
-
-
 \subsection{Type Soundness of Thorn Translation}
 
 Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$ translated to $\Kp$. (proof: rule induction on thorn subtyping)
@@ -3155,39 +3153,42 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
   \end{proof}
 \end{lemma}
 
-\section{New Source Language and Translations}
-
-\subsection{New source}
-\begin{tabular}{r@{}l}
-\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-\e &::=  \x         &\B \this    &\B \FRead\f      \\
-   &\B \FWrite\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
-   &\B \New\C{\b\e}  \\ 
-   
-\end{tabular}\end{minipage} &
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   \\
-~ \t&::= ~ \any  \B   \C  \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage} \\
-\rowcolor{gray!10}
-\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-\e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \FRead\f\t   &\B \FWrite\f\t\e   \\
-   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
-   &\B \SubCast\t\e &\B \BehCast\t\e 
-\end{tabular}\end{minipage} &
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   \\
-~ \t&::= ~ \any  \B   \C  \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage}
-\end{tabular}
+% \subsection{Type Soundness of Transient Translation}
+% 
+% \section{New Source Language and Translations}
+% 
+% \subsection{New source}
+% \begin{tabular}{r@{}l}
+% \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
+% \e &::=  \x         &\B \this    &\B \sGet\e\f      \\
+%    &\B \sSet\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
+%    &\B \New\C{\b\e}  \\ 
+%    
+% \end{tabular}\end{minipage} &
+% \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+%    ~ \k &::= \Class \C {\b\fd}{\b\md}
+% \end{tabular}
+% \begin{tabular}{l@{~}l@{}l@{}l}
+% \md &::= \Mdef\m\x\t\t\e   \\
+% ~ \t&::= ~ \any  \B   \C  \\ 
+% ~\fd&::= ~ \Fdef\f\t \\ 
+% \end{tabular}\end{minipage} \\
+% \rowcolor{gray!10}
+% \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
+% \e &::=  \x         &\B \this         &\B \that      \\
+%    &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\t\e   \\
+%    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
+%    &\B \SubCast\t\e &\B \BehCast\t\e 
+% \end{tabular}\end{minipage} &
+% \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+%    ~ \k &::= \Class \C {\b\fd}{\b\md}
+% \end{tabular}
+% \begin{tabular}{l@{~}l@{}l@{}l}
+% \md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+% %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
+% ~ \t&::= ~ \any  \B   \C  \\ 
+% ~\fd&::= ~ \Fdef\f\t \\ 
+% \end{tabular}\end{minipage}
+% \end{tabular}
 
 \end{document}
