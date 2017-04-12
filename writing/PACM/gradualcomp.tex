@@ -536,6 +536,13 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
 
 {\small
 \begin{mathpar}
+\IRule{SAss}{
+\C \Sub \D \in \M
+}{
+ \StrSub \M\K \C\D
+}
+
+
 \IRule{SRec}{
  \M' = \M~\C\Sub\D\\
 \mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \StrSub{\M'}\K\mt{\mtp}
@@ -1015,7 +1022,62 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 
 \subsection{TypeScript}
 
-\FZ{UNTIL HERE}
+\begin{figure}
+\hrulefill
+
+\opdef{\EnvTypeS\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
+\begin{mathpar}
+
+\IRule{STG-VAR}{
+   \HasType \Env\x\t
+ }{
+   \EnvTypeS \Env\K\x\t
+}
+
+\IRule{STG-SUB}{
+  \EnvTypeS \Env\K\e\tp \\
+  \StrSub \M\K \tp \t
+ }{
+  \EnvTypeS \Env\K\e\t 
+}   
+
+\IRule{STG-GET}{
+   \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeS \Env\K{\FRead\f}\t
+}    
+
+\IRule{STG-SET}{
+  \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C \\
+  \EnvTypeS \Env\K\e\t
+}{
+  \EnvTypeS \Env\K{\FWrite\f\e}\t
+}    
+
+\IRule[width=20em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\C \\
+  \Mtype \m\tp\tpp\in \classoff\C\K  \\
+  \EnvTypeS \Env\K\ep\tp
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}\tpp
+}    
+
+\IRule{STG-NEW}{
+ \EnvTypeS \Env\K{\e_1}{\t_1}~~\dots~~ 
+ \EnvTypeS \Env\K{\e_n}{\t_n}\ \\ 
+ \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
+  \Class \C {\b\fd}{\b\md} \in \K
+}{
+  \EnvTypeS \Env\K{\New\C{\e_1\dots\e_n}}\C
+}
+\end{mathpar}
+
+\hrulefill
+\caption{TypeScript type system}\label{f:typescriptts}
+\end{figure}
+
 
 Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
@@ -1024,23 +1086,43 @@ declarations). Missing annotations are treated as \any. The role of types is
 to catch simple errors, such as misspelt method names, as well as assisting
 IDEs.  A typical example is shown here. The first expression is ill-typed
 because method \code o does not exist, the second is erroneous as it
-provides an instance of \code A where \code C is expected. The third
-expression is statically correct as the instance of \code A is cast to a
-\code C by the \code{n} method.
+provides an instance of \C where \D is expected. The third
+expression is statically correct as the instance of \C is cast to a
+\D by the \n method.
+%
+%\[
+%\begin{array}{l}
 
-\begin{lstlisting}
- class A { 
-    m(x: C): A { this }
-    n(x: *): C { x } }
+\medskip
+\(
+\Class \C {   \Mdef\m\x\D\C \this  ; \   \Mdef\n\x\any\D \x }
+\)
 
- new A().o(new C()) // ERR wrong method
- new A().m(new A()) // ERR wrong type
- new A().m(new A().n(new A())) // OK 
-\end{lstlisting}
+\medskip
+\( \Call {\New \C{}} o {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{    // ERR wrong method } \)
 
+\(\Call {\New \C{}} \m {\New \C{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // ERR wrong type } \)
+
+\(\Call {\New \C{}} \m {\Call {\New \C{}} \n {\New \C{}}} \ \ \ \texttt{ // OK } \)
+
+
+\medskip
+
+\FZ{fix typesetting of method name o}
+
+%\begin{lstlisting}
+% class A { 
+%    m(x: C): A { this }
+%    n(x: *): C { x } }
+%
+% new A().o(new C()) // ERR wrong method
+% new A().m(new A()) // ERR wrong type
+% new A().m(new A().n(new A())) // OK 
+%\end{lstlisting}
+%
 \noindent
-Well-typed code is translated to plain JavaScript with all types erased and
-methods resolved dynamically. In \kafka, one would translate the class
+The TypeScript type system is reported in \figref{f:typescriptts}.  Well-typed code is translated to plain JavaScript with all types erased and methods resolved dynamically. 
+In \kafka, one would translate the class
 definition and the last expression:
 
 \begin{lstlisting}
@@ -1058,7 +1140,6 @@ programs, e.g. when importing a new library with type annotations
 inconsistent with existing client code; and ({\em b}) an insurance for
 backwards compatibility, as ignoring types means all browsers can run
 TypeScript code -- with no additional overhead.
-
 To model TypeScript, we use a very simple translation mechanism, where every
 type becomes \any and every call becomes a dynamic call.  We proceed through
 translation top-down, translating classes and the main expression.  
