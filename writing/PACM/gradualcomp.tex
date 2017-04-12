@@ -763,6 +763,17 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \\[-3mm]
 \SP \}
 \\[3mm]
+\wrap{\C}{\bmt}{\bmtp}{\D}{\that}_{collapsed} = \\
+\SP \class ~\D ~ \{\\
+\SPP \Fdef\that\C \\
+\SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
+&     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
+\\[-3mm]
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+\\[-3mm]
+\SP \}
+\\[3mm]
 \wrapAny\C\bmt\D\that = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
@@ -808,18 +819,90 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \caption{Behavioural casts.}\label{behavetext}
 \end{figure}
 
-A behavioural cast \BehCast\t\a creates a wrapped obect \ap which dynamically ensures the type
-guarantees defined by \t, independently of the original type of \a.  We refer to the type of \a as the \emph{source} type, and to the type \t as the \emph{target} type.
+A behavioural cast \BehCast\t\a creates a wrapped object \ap which dynamically ensures the type
+guarantees defined by \t, independently of the original type of \a.  We refer to the type of \a as the \emph{source} type, 
+and to the type \t as the \emph{target} type.
 The behavioural cast is generative as it creates both a class (for the wrapper object)
 and a new instance of that class (the wrapper itself). Its dynamic semantics is reported in
 \figref{behavetext}. The rule \RuleRef{BC1} wraps a reference \a with a freshly generated
-wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, and then hands it back
-to the top level dynamics. While doing so it performs several sanity checks; in particular the target type cannot define methods not defined in the source type, and only objects with no overloaded methods can be wrapped (for this the \textsf{dupMeth} function checks for multiple method definitions with the same name).  This second condition prevents ambiguity when in method resolution in wrapped objects.
-Similarly, \RuleRef{BC2} wraps
+wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, 
+and then hands it back to the top level dynamics. While doing so it performs several sanity checks; in particular the
+target type cannot define methods not defined in the source type, and only objects with no overloaded methods can be wrapped 
+(for this the \textsf{dupMeth} function checks for multiple method definitions with the same name).  This second condition 
+prevents ambiguity when in method resolution in wrapped objects. Similarly, \RuleRef{BC2} wraps
 \a with the guards to let \a act like an instance of \any.
 
-Wrapper generation is implemented by the \xt{wrap} function.  Its first three arguments \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the source type), the type declarations of all its methods, and the type declarations of all the methods of class type the expressions is being casted to (the target type).  The fourth argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. The last argument is used to ensure that the name of the \that field is  fresh.   The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the interface in \(\bmt\) and the return type following the interface in \(\bmtp\).    Methods defined in the source type but missing from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
-Wrapping an object so that it behaves as \any is simpler, as the wrapper systematically protects the input type and casts back the return type to \any.
+Wrapper generation is implemented by the \xt{wrap} function.  Its first three arguments \(\C\), \(\bmt\), \(\bmtp\) are the type
+of the expression being casted (the source type), the type declarations of all its methods, and the type declarations of all the
+methods of class type the expressions is being casted to (the target type).  The fourth argument, \(\D\), is the class name  of 
+the wrapper class being built; this is always a fresh name in our semantics. The last argument is used to ensure that the name of
+the \that field is  fresh.   The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a 
+reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to 
+the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the
+interface in \(\bmt\) and the return type following the interface in \(\bmtp\).    Methods defined in the source type but missing
+from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
+Wrapping an object so that it behaves as \any is simpler, as the wrapper systematically protects the input type and casts back the 
+return type to \any.
+
+
+% 
+% \begin{figure}[!ht]
+% \hrulefill
+% \[
+% \begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+%     \wrap\C\bmt\bmtp\D\that = \\
+% \SP \class ~\D ~ \{\\
+% \SPP \Fdef\that\C \\
+% \SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
+% &     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
+% \\[-3mm]
+% \SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
+% &    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+% \\[-3mm]
+% \SP \}
+% \\[3mm]
+% \wrapAny\C\bmt\D\that = \\
+% \SP \class~\D~\{\\
+% \SPP \Fdef \that \C\\ 
+% \SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that\C}\m{\bscast{\t}\x}\t\tp }~}
+% & \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
+% \SP \}\\
+% 
+% \end{array}\]
+% 
+%   \begin{mathpar}
+%   
+% \IRule{BC1}{
+%   \App\s\a = \obj\C{\b{\a_1}}  \\
+%   \fresh\D \\
+%   \fresh\ap \\
+%   \fresh\that \\
+%   \cload{\classoff\C\K} \\
+%   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
+%   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
+%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+% }{
+%   \behcast\a\Cp\s\K {\K\,\k}\ap\sp
+% }
+% 
+% \IRule{BC2}{
+%   \App\s\a = \obj\C{\b{\a_1}}  \\
+%   \fresh\D \\
+%   \fresh\ap \\
+%   \fresh\that \\
+%   \k = \wrapAny\C{\classoff\C\K}\D\that\\
+%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+% }{
+%   \behcast\a\any\s\K {\K\,\k}\ap\sp
+% }
+% \end{mathpar}
+% 
+% 
+% \hrulefill
+% \vspace{-2mm}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \caption{Behavioural casts (Collapsed).}\label{behavetextC}
+% \end{figure}
 
 
 %
