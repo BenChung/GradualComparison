@@ -2474,7 +2474,7 @@ field/method.
 
 \IRule{STHC-ANYCONC}{
 }{
-  \ConvertE\K{th}\any\t
+  \ConvertE\K{th}\any\tp
 }
 
 \end{mathpar} \\
@@ -2610,7 +2610,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 
 \IRule{STGC-ANYCONC}{
 }{
-  \ConvertE\K{s}\any\D
+  \ConvertE\K{s}\any\tp
 }
 
 \end{mathpar} \\
@@ -2670,6 +2670,27 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 
 \subsection{Transient expression typing}
 
+\opdef{\ConvertE\K{tr}\t\tp}{type convertibility between \t and \tp.}
+\begin{mathpar}
+
+\IRule{STGC-SUB}{
+  \ThorSub\cdot\K\t\tp
+}{
+  \ConvertE\K{tr}\t\tp
+}
+
+\IRule{STGC-TOANY}{
+}{
+  \ConvertE\K{tr}\t\any
+}
+
+\IRule{STGC-ANYCONC}{
+}{
+  \ConvertE\K{tr}\any\tp
+}
+
+\end{mathpar} \\
+
 \opdef{\EnvTypeT\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
 \begin{mathpar}
 
@@ -2696,22 +2717,25 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \IRule{STT-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
-  \EnvTypeT \Env\K\e\t
+  \EnvTypeT \Env\K\e\tp
+  \ConvertE\K{tr}\tp\t
 }{
   \EnvTypeT \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STT-CALL}{
   \EnvTypeT \Env\K\e\C \\
-  \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvTypeT \Env\K\ep\tp
+  \Mtype \m\t\tp\in \classoff\C\K  \\
+  \EnvTypeT \Env\K\ep\tpp
+  \ConvertE\K{tr}\tpp\tp
 }{
-  \EnvTypeT \Env\K{\Call\e\m\ep}\tpp
+  \EnvTypeT \Env\K{\Call\e\m\ep}\tp
 }    
 
 \IRule{STT-NEW}{
- \EnvTypeT \Env\K{\e_1}{\t_1}~~\dots~~ 
- \EnvTypeT \Env\K{\e_n}{\t_n}\ \\ 
+ \EnvTypeT \Env\K{\e_1}{\tp[1]}~~\dots~~ 
+ \EnvTypeT \Env\K{\e_n}{\tp[n]}\ \\ 
+ \ConvertE\K{tr}{\tp[1]}{\t[1]} ~~\dots~~ \ConvertE\K{tr}{\tp[n]}{\t[n]} \\ 
  \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
   \Class \C {\b\fd}{\b\md} \in \K
 }{
