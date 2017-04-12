@@ -2418,13 +2418,13 @@ field/method.
 % \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D both hold if \C~\src\Sub~\D
 
 \begin{mathpar}
-\IRule{SWeak}{
+\IRule{TSWeak}{
   \ThorSub \M\K\C\D
 }{
   \ThorSub \M\K{\dt\C}{\dt\D}
 }
 
-\IRule{SLow}{
+\IRule{TSLow}{
   \ThorSub \M\K\C\D
 }{
   \ThorSub \M\K{\C}{\dt\D}
@@ -2432,18 +2432,18 @@ field/method.
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{SRef}{
+\IRule{TSRef}{
 }{
  \ThorSub\M\K \t \t
 }
 
-\IRule{SAss}{
+\IRule{TSAss}{
 \C \Sub_t \D \in \M
 }{
  \ThorSub\M\K \C \D
 }
 
-\IRule{SRec}{
+\IRule{TSRec}{
  \M' = \M~\C\Sub_t\D\\
 \mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ThorSub{\M'}\K\mt{\mtp}
 }{
@@ -2452,7 +2452,7 @@ field/method.
 \end{mathpar}
 
 \begin{mathpar}
-\IRule{SMet}{
+\IRule{TSMet}{
   \ThorSub \M\K {\t[1]} {\t[2]} \\
   \ThorSub \M\K {\tp[2]} {\tp[1]}
 }{
@@ -3254,8 +3254,6 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
 \subsection{Type Soundness of Thorn Translation}
 
-Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$ translated to $\Kp$. (proof: rule induction on thorn subtyping)
-
 \begin{lemma}{Soundness of compatibility}{THT-COMP}
   \begin{conds}
     \cond{$\Convertible\K\t\tp$}\lbl{cond1}
@@ -3267,12 +3265,18 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
   \end{conds}
   \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}
 
-  \begin{proof}{\indmsg{$\Convertible\K\t\tp$}}
+  \begin{proof}{ \indmsg{$\Convertible\K\t\tp$}}
 
   \begin{case}{STHC-SUB}
-    \step{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}{correctness of Thorn typing over $\kty{}$ on case}\lbl{CS1}
-    \step{$\TAG\e\Env\tp = \ep$}{TTR7 on \trf{cond6}, \trf{CS1}}\lbl{CS2}
-    \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on \trf{CS1}, \trf{CS2}, \trf{cond6}}
+    \begin{case}{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}
+      \step{$\TAG\e\Env\tp = \ep$}{TTR7 on \trf{cond6}, case}\lbl{CS2}
+      \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on case, \trf{CS2}, \trf{cond6}}
+    \end{case}
+
+    \begin{case}{$\StrNotSub\cdot\Kp{\kty\t}{\kty\tp}$}
+      \step{$\TAG\e\Env\tp = \SubCast{\kty\tp}\ep$}{TTR8 on \trf{cond6}, case}\lbl{CS2}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\tp}\ep}{\kty\tp}$}{\RuleRef{KT-SUBCAST} on case, \trf{CS2}, \trf{cond6}}
+    \end{case}
   \end{case}
 
   % WTS: \EnvType\Envp\cdot\Kp{\ep}{\any}
