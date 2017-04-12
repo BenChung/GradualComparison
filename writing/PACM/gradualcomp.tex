@@ -763,6 +763,17 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \\[-3mm]
 \SP \}
 \\[3mm]
+\wrap{\C}{\bmt}{\bmtp}{\D}{\that}_{collapsed} = \\
+\SP \class ~\D ~ \{\\
+\SPP \Fdef\that\C \\
+\SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
+&     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
+\\[-3mm]
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+\\[-3mm]
+\SP \}
+\\[3mm]
 \wrapAny\C\bmt\D\that = \\
 \SP \class~\D~\{\\
 \SPP \Fdef \that \C\\ 
@@ -808,18 +819,90 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \caption{Behavioural casts.}\label{behavetext}
 \end{figure}
 
-A behavioural cast \BehCast\t\a creates a wrapped obect \ap which dynamically ensures the type
-guarantees defined by \t, independently of the original type of \a.  We refer to the type of \a as the \emph{source} type, and to the type \t as the \emph{target} type.
+A behavioural cast \BehCast\t\a creates a wrapped object \ap which dynamically ensures the type
+guarantees defined by \t, independently of the original type of \a.  We refer to the type of \a as the \emph{source} type, 
+and to the type \t as the \emph{target} type.
 The behavioural cast is generative as it creates both a class (for the wrapper object)
 and a new instance of that class (the wrapper itself). Its dynamic semantics is reported in
 \figref{behavetext}. The rule \RuleRef{BC1} wraps a reference \a with a freshly generated
-wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, and then hands it back
-to the top level dynamics. While doing so it performs several sanity checks; in particular the target type cannot define methods not defined in the source type, and only objects with no overloaded methods can be wrapped (for this the \textsf{dupMeth} function checks for multiple method definitions with the same name).  This second condition prevents ambiguity when in method resolution in wrapped objects.
-Similarly, \RuleRef{BC2} wraps
+wrapper \k for some type \t, adds it to the heap, updates the class table with the class the wrapper is an instance of, 
+and then hands it back to the top level dynamics. While doing so it performs several sanity checks; in particular the
+target type cannot define methods not defined in the source type, and only objects with no overloaded methods can be wrapped 
+(for this the \textsf{dupMeth} function checks for multiple method definitions with the same name).  This second condition 
+prevents ambiguity when in method resolution in wrapped objects. Similarly, \RuleRef{BC2} wraps
 \a with the guards to let \a act like an instance of \any.
 
-Wrapper generation is implemented by the \xt{wrap} function.  Its first three arguments \(\C\), \(\bmt\), \(\bmtp\) are the type of the expression being casted (the source type), the type declarations of all its methods, and the type declarations of all the methods of class type the expressions is being casted to (the target type).  The fourth argument, \(\D\), is the class name  of the wrapper class being built; this is always a fresh name in our semantics. The last argument is used to ensure that the name of the \that field is  fresh.   The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the interface in \(\bmt\) and the return type following the interface in \(\bmtp\).    Methods defined in the source type but missing from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
-Wrapping an object so that it behaves as \any is simpler, as the wrapper systematically protects the input type and casts back the return type to \any.
+Wrapper generation is implemented by the \xt{wrap} function.  Its first three arguments \(\C\), \(\bmt\), \(\bmtp\) are the type
+of the expression being casted (the source type), the type declarations of all its methods, and the type declarations of all the
+methods of class type the expressions is being casted to (the target type).  The fourth argument, \(\D\), is the class name  of 
+the wrapper class being built; this is always a fresh name in our semantics. The last argument is used to ensure that the name of
+the \that field is  fresh.   The function \xt{wrap} builds a new wrapper class with name \(\D\).  The field \xt{that} stores a 
+reference to the wrapped object and has thus type \(\C\).  The invocation of a method that appears in \(\bmtp\) is forwarded to 
+the corresponding method invocation in \(\bmt\), except that the arguments are protected by behavioural wrappers following the
+interface in \(\bmt\) and the return type following the interface in \(\bmtp\).    Methods defined in the source type but missing
+from \(\bmtp\) are added to the wrapper class and simply redirected to corresponding method in the wrapped object.
+Wrapping an object so that it behaves as \any is simpler, as the wrapper systematically protects the input type and casts back the 
+return type to \any.
+
+
+% 
+% \begin{figure}[!ht]
+% \hrulefill
+% \[
+% \begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+%     \wrap\C\bmt\bmtp\D\that = \\
+% \SP \class ~\D ~ \{\\
+% \SPP \Fdef\that\C \\
+% \SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
+% &     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
+% \\[-3mm]
+% \SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
+% &    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+% \\[-3mm]
+% \SP \}
+% \\[3mm]
+% \wrapAny\C\bmt\D\that = \\
+% \SP \class~\D~\{\\
+% \SPP \Fdef \that \C\\ 
+% \SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that\C}\m{\bscast{\t}\x}\t\tp }~}
+% & \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
+% \SP \}\\
+% 
+% \end{array}\]
+% 
+%   \begin{mathpar}
+%   
+% \IRule{BC1}{
+%   \App\s\a = \obj\C{\b{\a_1}}  \\
+%   \fresh\D \\
+%   \fresh\ap \\
+%   \fresh\that \\
+%   \cload{\classoff\C\K} \\
+%   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
+%   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
+%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+% }{
+%   \behcast\a\Cp\s\K {\K\,\k}\ap\sp
+% }
+% 
+% \IRule{BC2}{
+%   \App\s\a = \obj\C{\b{\a_1}}  \\
+%   \fresh\D \\
+%   \fresh\ap \\
+%   \fresh\that \\
+%   \k = \wrapAny\C{\classoff\C\K}\D\that\\
+%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+% }{
+%   \behcast\a\any\s\K {\K\,\k}\ap\sp
+% }
+% \end{mathpar}
+% 
+% 
+% \hrulefill
+% \vspace{-2mm}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \caption{Behavioural casts (Collapsed).}\label{behavetextC}
+% \end{figure}
 
 
 %
@@ -880,9 +963,9 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Translating Gradual Types}
+\section{Translating Gradual Type Systems}
 
-\vspace{-2mm}
+%\vspace{-2mm}
 
 \epigraph{\small ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
 
@@ -891,7 +974,7 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 
 \begin{figure}[!h]\hrulefill
 
-\hspace{0.1cm}
+\hspace{2mm}
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x          &\B \this          \\
    &\B \New\C{\b\e}  &\B \FRead\f       \\
@@ -902,27 +985,37 @@ $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
 \md &::= \Mdef\m\x\t\t\e \\
 %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
-~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
+~ \t&::= ~ \any   \B   \C   \B   \fcolorbox{lightgray}{lightgray}{\CW} \\ 
 \end{tabular}\end{minipage}
 
-\FZ{TODO: grey ?C out}
 \hrulefill
-\caption{Syntax of source languages}\label{f:sourcesyntax}
+\caption{Idealised syntax of source languages}\label{f:sourcesyntax}
 \end{figure}
 
 \noindent
-We are now ready to give semantics to the four gradual type systems of interest.  For this we use the idealised syntax reported in \figref{f:sourcesyntax}, and we define the semantics of each gradual type system by
-translation to \kafka.  The source syntax allows typed and untyped terms to interact freely, as in the gradually typed systems of interest, constrained only by the source type system rules.  The compilation into \kafka makes explicit which type casts (aka type-checks and wrapper introduction) are implicitly inserted by the run-time of each language.  To avoid unnecessary clutter, the source syntax we use is just \kafka one without casts.
+We are now ready to give semantics to the four gradual type systems of interest, by translating them into \kafka. 
+Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the run-time of each language, highlighting the similarities and differences among them.   
 
-Casts are not used in the source languages, but are inserted by the
-translations.  
+To avoid unnecessary clutter, we represent the source languages using the idealised syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
 
-...The general approach is that for each gradual type system there is a translation function defined on well-typed programs. 
 
-...For each class it produces a well-typed Kafka class.
+% On top of this uniform source syntax, for each language a type system defines the well-typed terms that can be defined.   
+
+
+%
+% To avoid unnecessary clutter, the source syntax we use is just \kafka one without casts.
+%
+%Casts are not used in the source languages, but are inserted by the
+%translations.  
+%
+%...The general approach is that for each gradual type system there is a translation function defined on well-typed programs. 
+%
+%...For each class it produces a well-typed Kafka class.
 
 
 \subsection{TypeScript}
+
+\FZ{UNTIL HERE}
 
 Typescript~\cite{BAT14} is a backwards compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
@@ -1579,6 +1672,21 @@ representative of the performance of a real implementation. %\clearpage
 
 \subsection{Proof of formalism}
 
+The complete type soundness proofs for the formalism of \kafka is avaliable 
+in the appendix. 
+
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
+such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+or $\e$ is stuck in one of the following forms:
+\begin{itemize} 
+\item $\a$
+\item $\EE[\DynCall\a\m{\ap}]$
+\item $\EE[\SubCast\tp\a]$
+\item $\EE[\BehCast\tp\a]$
+\end{itemize}
+
+
+
 \section{Conclusion}
 
 Gradual typing is no longer simply a popular research topic in academia.
@@ -1611,7 +1719,7 @@ typing system highlights the essences which makes each system unique.
 
 
 
-\subsection{Semantics}
+% \subsection{Semantics}
 
 \subsection{Subtyping}
 
@@ -2391,8 +2499,8 @@ field/method.
 }    
 
 \IRule[width=20em]{STH-CALL}{
-  \EnvTypeW \Env\K\e\C \vee \EnvTypeW \Env\K\e\CW \\
-  \Mtype \m{\t}\tp\in \classoff\C\K  \\
+  \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\
+  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\
   \EnvTypeW \Env\K\ep\tpp \\
   \Convertible\K\tpp\t
 }{
@@ -2881,8 +2989,8 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   
   \begin{conds}
    \cond{\WFq{\K~\e~\s}}\lbl{cond1}
-   \cond{\names{\classoff\Cp\K} $\subseteq$ \names{\classoff\C\K}}\lbl{cond2}
-   \cond{\fresh\D}\lbl{cond3}
+%    \cond{\names{\classoff\Cp\K} $\subseteq$ \names{\classoff\C\K}}\lbl{cond2}
+%    \cond{\fresh\D}\lbl{cond3}
    \cond{\bmt = \classoff\C\K}\lbl{cond3a}
    \cond{\bmtp = \classoff\Cp\K}\lbl{cond3b}
    \cond{k = \wrap\C{\bmt}{\bmtp}\D\that}\lbl{cond4}
@@ -3024,8 +3132,6 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \end{proof}
 \end{lemma}
 
-
-
 \subsection{Type Soundness of Thorn Translation}
 
 Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$ translated to $\Kp$. (proof: rule induction on thorn subtyping)
@@ -3146,39 +3252,42 @@ Assume: $\ThorSub\cdot\K\t\tp \implies \StrSub\cdot\Kp{\kty\t}{\kty\tp}$ if $\K$
   \end{proof}
 \end{lemma}
 
-\section{New Source Language and Translations}
-
-\subsection{New source}
-\begin{tabular}{r@{}l}
-\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-\e &::=  \x         &\B \this    &\B \FRead\f      \\
-   &\B \FWrite\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
-   &\B \New\C{\b\e}  \\ 
-   
-\end{tabular}\end{minipage} &
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   \\
-~ \t&::= ~ \any  \B   \C  \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage} \\
-\rowcolor{gray!10}
-\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-\e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \FRead\f\t   &\B \FWrite\f\t\e   \\
-   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
-   &\B \SubCast\t\e &\B \BehCast\t\e 
-\end{tabular}\end{minipage} &
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e   \\
-~ \t&::= ~ \any  \B   \C  \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage}
-\end{tabular}
+% \subsection{Type Soundness of Transient Translation}
+% 
+% \section{New Source Language and Translations}
+% 
+% \subsection{New source}
+% \begin{tabular}{r@{}l}
+% \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
+% \e &::=  \x         &\B \this    &\B \sGet\e\f      \\
+%    &\B \sSet\e\f\e &\B \Call\e\m\e &\B \DynCall\e\m\e  \\
+%    &\B \New\C{\b\e}  \\ 
+%    
+% \end{tabular}\end{minipage} &
+% \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+%    ~ \k &::= \Class \C {\b\fd}{\b\md}
+% \end{tabular}
+% \begin{tabular}{l@{~}l@{}l@{}l}
+% \md &::= \Mdef\m\x\t\t\e   \\
+% ~ \t&::= ~ \any  \B   \C  \\ 
+% ~\fd&::= ~ \Fdef\f\t \\ 
+% \end{tabular}\end{minipage} \\
+% \rowcolor{gray!10}
+% \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
+% \e &::=  \x         &\B \this         &\B \that      \\
+%    &\B \New\C{\b\e}  &\B \Get\e\f\t     &\B \Set\e\f\t\e   \\
+%    &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
+%    &\B \SubCast\t\e &\B \BehCast\t\e 
+% \end{tabular}\end{minipage} &
+% \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+%    ~ \k &::= \Class \C {\b\fd}{\b\md}
+% \end{tabular}
+% \begin{tabular}{l@{~}l@{}l@{}l}
+% \md &::= \Mdef\m\x\t\t\e   &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
+% %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
+% ~ \t&::= ~ \any  \B   \C  \\ 
+% ~\fd&::= ~ \Fdef\f\t \\ 
+% \end{tabular}\end{minipage}
+% \end{tabular}
 
 \end{document}
