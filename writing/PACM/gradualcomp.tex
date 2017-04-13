@@ -3733,16 +3733,23 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
     \begin{case}{STT-GET}
       \slet{$\ep$}{$\TRG{\FRead\f}\Env$}\lbl{STTGet1}
       \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond5} on case}\lbl{STTGet2}
-      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTGet3}
-      \step{$\ep = \SubCast\t{\FRead\x}$}{TTR3 on \trf{STTGet2}, \trf{STTGet3}}
-      \step{$\EnvType\Envp\cdot\Kp{\FRead\x}\t$}{\RuleRef{KT-REFREAD} on \trf{STTGet2}, \trf{STTGet3}}
+      \step{$\Fdef\f\any \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTGet3}
+      \step{$\ep = \SubCast\t{\FRead\f}$}{TTR3 on case}
+      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}\any$}{\RuleRef{KT-
+      READ} on \trf{STTGet2}, \trf{STTGet3}}\lbl{STTGet4}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FRead\f}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTGet4}}
     \end{case}
 
     \begin{case}{STT-SET}
-      \slet{$\ep$}{$\TRG{\FWrite\f\e}\Env$}\lbl{STTSet1}
-      \slet{$\epp$}{$\TRG{\e}\Env$}\lbl{STTSet2}
-      \step{$\EnvType\Envp\cdot\Kp\epp\t$}{IH on \trf{STTSet2}}\lbl{STTSet3}
-      \step{$\ep = \SubCast\t{\FWrite\f\epp}$}{TTR2 on \trf{cond4}, \trf{STTVar1}}
+      \slet{$\e_1$}{$\TRG{\FWrite\f\e}\Env$}\lbl{STTSet1}
+      \slet{$\e_2$}{$\TRG{\e}\Env$}\lbl{STTSet2}
+      \step{$\EnvType\Envp\cdot\Kp{\e_2}\t$}{IH on \trf{STTSet2}}\lbl{STTSet3}
+      \slet{$\ep_2$}{$\TAG{\e_2}\Env\any$}\lbl{STTSet4}
+      \step{$\e_1 = \SubCast\t{\FWrite\f{\ep_2}}$}{TTR4 on case, \trf{STTSet4}}
+      \step{$\Fdef\f\any \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTSet6}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_2}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTSet4} and case}\lbl{STTSet7}
+      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f{\ep_2}}\any$}{\RuleRef{KT-WRITE} on \trf{cond5},\trf{STTSet6},\trf{STTSet7}}\lbl{STTSet8}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FWrite\f{\ep_2}}}\any$}{\RuleRef{KT-SUBCAST} on \trf{STTSet8}}\lbl{STTSet9}
     \end{case}
 
     \begin{case}{STT-CALL}
