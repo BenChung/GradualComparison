@@ -1146,39 +1146,14 @@ expression is statically correct as the instance of \C is cast to a
 %\end{lstlisting}
 %
 \noindent
-Our formalisation of the TypeScript type system is reported in \figref{f:typescriptts}.  We illustrate its design by focussing on the examples above and study how the \RuleRef{STG-CALL} rule enforces the expected outcome.  Since the receiver has type \C, the first expression is simply ruled out by the check that the called method must be part of the class signature.  The second is more interesting: the method exists but expects a \D argument while we are passing a \C.  The \emph{convertibility} relation, denoted   \ConvertE\K{s}\t\tp, captures precisely the allowed implicit type conversion.  For TypeScript, values can flow freely to and from \any, and it is also allowed to pass a subtype when a supertype is expected.  Since \C and \D are incompatible, in our example the convertibility check fails.
+Our formalisation of the TypeScript type system is reported in \figref{f:typescriptts}.  We illustrate its design by focussing on the examples above and study how the \RuleRef{STG-CALL} rule enforces the expected outcome.  Since the receiver has type \C, the first expression is simply ruled out by the check that the called method must be part of the class signature.  The second is more interesting: the method exists but expects a \D argument while we are passing a \C.  The \emph{convertibility} relation, denoted   \ConvertE\K{s}\t\tp, captures precisely the allowed implicit type conversion.  For TypeScript, values can flow freely to and from \any, and it is also allowed to pass a subtype when a supertype is expected.  Since in our second example, the types \C and \D are incompatible, the convertibility check fails.
 
-\FZ{Until here}
-
-TypeScript then translates well-typed code to plain JavaScript, with all types erased and methods resolved dynamically.   Dynamically resolved calls are calls that may fail because the
-receiver need not have the requested method. Method signatures see their
-types set to \any.  The designers of TypeScript saw unsoundness as a way to
+The TypeScript compiler then translates well-typed code to plain JavaScript, with all types erased and methods resolved dynamically. Of course, since convertibility allows arbitrary values can be passed whenever a \any value is expected, dynamically resolved calls may fail because the receiver need not have the requested method. The designers of TypeScript saw this unsoundness as a way to
 ensure, ({\em a}) that types do not get in the way of running correct
 programs, e.g. when importing a new library with type annotations
 inconsistent with existing client code; and ({\em b}) an insurance for
 backwards compatibility, as ignoring types means all browsers can run
 TypeScript code -- with no additional overhead.
-
-%
-%\begin{lstlisting}
-% class A { 
-%    m(x: *): * { this }
-%    n(x: *): * { x } }
-% new A()@m(new A()@n(new A()))    
-%\end{lstlisting}
-%
-%\noindent Dynamically resolved calls are calls that may fail because the
-%receiver need not have the requested method. Method signatures see their
-%types set to \any.  The designers of TypeScript saw unsoundness as a way to
-%ensure, ({\em a}) that types do not get in the way of running correct
-%programs, e.g. when importing a new library with type annotations
-%inconsistent with existing client code; and ({\em b}) an insurance for
-%backwards compatibility, as ignoring types means all browsers can run
-%TypeScript code -- with no additional overhead.
-This can be made generalised.  To model TypeScript, we use a very simple translation mechanism, where every
-type becomes \any and every call becomes a dynamic call.  We proceed through
-translation top-down, translating classes and the main expression.  
-
 
 
 \newcommand{\TR}[1]{\EM{\llbracket    #1 \rrbracket}}
@@ -1187,39 +1162,10 @@ translation top-down, translating classes and the main expression.
 \newcommand{\TRG}[2]{\EM{\llbracket    #1 \rrbracket_{#2}}}
 \newcommand{\TAG}[3]{\EM{\llparenthesis #1 \rrparenthesis_{#2}^{#3}}}
 
-
-\begin{figure}[!h]
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-\small
- \begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class \C{\fds 1..}{\mds 1 .. } } = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..}}\HS \WHERE\HS
-  \=\fds 1 = \Ftype\f\t ..,\HS\HS\=\fdsp 1 = \src{\Ftype\f\any} .., \HS\HS\=\mds 1 = \Mdef\m\x{\t_1}{\t_2}\e \\
-  \>\mdsp 1 = \src{\Mdef\m\x\any\any\ep},\HS\HS \>\>\ep = \TR{\e}
-\end{tabbing}
-\begin{tabbing}
-\TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
-\\[1mm]
-\tr e{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
-\\[1mm]
-\TR\this           \>= \src{\SubCast\any\this}
-\\[1mm]
-\TR\x \> = \src \x
-\\[1mm]       
-\TR{\Call{\e_1}\m{\e_2}} \> = \src{\DynCall{\eps 1}{\m}{\eps 2}} \HS\>\WHERE\HS\eps 1 = \TR{ \e_1}, \HS \eps 2 = \TR{\e_2}
-\\[1mm]
-\TR{\New\C{\e_1..}} \> = \src{\SubCast\any{\New\C{\eps 1..}}} \HS \>\WHERE \HS   \eps 1 = \TR{\e_1} ..
-\end{tabbing}
-\end{minipage}
-\end{tabular}
-\caption{TypeScript}
-\end{figure}
-
-
-
- In \kafka, one would translate the class
+The TypeScript dynamic semantics can be modelled in \kafka with a very simple translation mechanism, where every
+type becomes \any  (including in method signatures) and every call becomes a dynamic call.  
+For instance one would translate the class
 definition and the last expression above as:
-
 
 \medskip
 \(
@@ -1232,10 +1178,50 @@ definition and the last expression above as:
 
 
 \medskip
+\noindent This  scheme can be implemented by the simple top-down algorithm in \figref{f:typescriptkafka}.  The translation function \(\TR{\dots}\) is applied to both class definitions and expression; to avoid confusion, the grey background is used to identify translated terms (that is \kafka terms).  
 
-...The unsoundness comes from the use of \tr a(\any,\e) which discards the type of \e.
+
+\begin{figure}[!h]
+\hrulefill
+
+\smallskip
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\small
+ \begin{minipage}{8cm}  
+\begin{tabbing}
+\TR{\Class \C{\fds 1..}{\mds 1 .. } } = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..}}\HS \WHERE\HS
+  \=\fds 1 = \Ftype\f\t ..,\HS\HS\=\fdsp 1 = \src{\Ftype\f\any} .., \HS\HS\=\mds 1 = \Mdef\m\x{\t_1}{\t_2}\e \\
+  \>\mdsp 1 = \src{\Mdef\m\x\any\any\ep},\HS\HS \>\>\ep = \TR{\e}
+\end{tabbing}
+\begin{tabbing}
+\TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
+\\[1mm]
+\TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
+\\[1mm]
+\TR\this           \>= \src{\SubCast\any\this}
+\\[1mm]
+\TR\x \> = \src \x
+\\[1mm]       
+\TR{\Call{\e_1}\m{\e_2}} \> = \src{\DynCall{\eps 1}{\m}{\eps 2}} \HS\>\WHERE\HS\eps 1 = \TR{ \e_1}, \HS \eps 2 = \TR{\e_2}
+\\[1mm]
+\TR{\New\C{\e_1..}} \> = \src{\SubCast\any{\New\C{\eps 1..}}} \HS \>\WHERE \HS   \eps 1 = \TR{\e_1} ..
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+
+\smallskip
+\hrulefill
+\caption{TypeScript to \kafka translation}\label{f:typescriptkafka}
+\end{figure}
+
+
+\noindent  All TypeScript types are represented with the dynamic \kafka type, \any, and all translated expressions have type \any.  The casts inserted in the translation are there to keep the kafka type system happy and have no operational effect.
+
+  The unsoundness comes from the use of \TR a(\any,\e) which discards the type of \e.
 
 ...The casts inserted in the translation are there to keep the kafka type system happy and have no operational effect
+
+
 
 
 \subsection{Thorn}
