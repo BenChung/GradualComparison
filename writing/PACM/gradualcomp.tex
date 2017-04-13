@@ -959,11 +959,17 @@ types.
 
 
 
-\paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce to values or are stuck on a dynamic method invocation or on a cast.  Formally:
+\paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce 
+to values or are stuck on a dynamic method invocation or on a cast.  Formally:
 given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
 such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
 or $\e$ is in one of the following forms:
-$\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  Proof is in the Appendix.
+$\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$, or $\EE[\BehCast\tp\a]$.  
+The wrapper generation function will always produce a well-formed class for a target type $\D$. The reason
+being that the wrapper class only contain methods from either the source or the target type. The wrapper class
+will also never contain any duplicates as it can only contain methods that exists in the source type.
+Furthermore, at most the wrapper class will contain every method of the source type.
+Proof is in the Appendix.
 
 
 
