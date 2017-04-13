@@ -1896,7 +1896,7 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
 \opdef{\ConSub\M\K\t\tp}{\t is a consistent subtype of \tp}
 \begin{mathpar}
 \IRule{CSCons}{
-  \t = \any \vee \tp = \any \vee \t = \tp
+  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
 }{
  \ConSub\M\K \t \tp
 }
@@ -2012,16 +2012,8 @@ field or method names within the given field and method definitions. \\
 \subsection{Expression typing}
 
 The expression typing judgments for \kafka includes in ascending order as listed in the formalism:
-variable, untyped address, subsumption, field set, field get, static method invocation, dynamic method invocation, object creation,
-subtype cast,
-% shallow cast, 
-typed address, \xt{that} field get, and \xt{that} field set.
-
-Field access rules W3 and W4 require a typed receiver, since \any does not
-have any methods a receiver typed at \any will never typecheck.
-
-Shallow casts, W9, do not change the type of the expression, as we are casting
-to the name of \t not to \t.  
+variable, untyped address, subsumption, field assignment, field read, static method invocation, dynamic method invocation, object creation,
+subtype cast, typed address.
 
 ~\\
 
@@ -2245,8 +2237,6 @@ type is also known as the target type, shown by $\t$ in \xt{WB}. \\
 } \\
 
 Every wrapper class has a \xt{that} field pointing to the source type.
-
-
 The last three cases is for when the methods are in the source type but not the 
 target type. For each of these method, their method call is redirected 
 to its corresponding method in the source type.
@@ -2299,12 +2289,8 @@ to its corresponding method in the source type.
 
 The \texttt{mtypes} function takes a class name $\C$ and the class table
 $\K$, and outputs a list of typing signatures $\b\mt$ for every method in
-class $\C$, which includes the implicit getter and setter methods for every
-field in the definition of class $\C$.  (\textbf{Note}: An user cannot
-define a getter or setter method for any field that already exists in the
-class. Similarly, a field cannot be declared in a class that already has a
-getter or setter method for that field. This is enforced by the
-\texttt{overloading} function in class well-formedness.) \\
+class $\C$. \\
+
 
 \begin{equation*}
 \classoff\C\K = \b\mt ~~\mathit{if}~~ \begin{cases}
