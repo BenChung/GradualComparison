@@ -454,7 +454,7 @@ every call. Finally, languages with generative casts tend to suffer prohibitive
 slow downs in pathological cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+ \newpage
 \section{KafKa: A Core Calculus}
 
 
@@ -465,23 +465,24 @@ slow downs in pathological cases.
 \vspace{-3mm}
 
 \noindent
-The basis of our formal approach is the \kafka calculus.  At its heart,
-\kafka is a class-based, object-oriented, structurally typed language with
-dynamic dispatch, modeled off of common compilation targets such as the
-JVM's Java Bytecode or the .NET CLR's Common Intermediate Language, and
-taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.   Its design is guided by 
-the remark that the semantics of mainstream approaches to gradual typing can be faithfully represented via a combination of \emph{dynamic type checks} (casts), \emph{wrappers creation} around objects, and \emph{new class} generation.
+The basis of our formal approach \kafka, a class-based, object-oriented,
+structurally typed language with dynamic dispatch, modeled on common
+compilation targets such as the JVM's Java Bytecode or the .NET CLR's Common
+Intermediate Language. 
+%, and taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.  
+Our design is guided by the observation that the
+semantics of mainstream approaches to gradual typing can be faithfully
+represented via a combination of \emph{dynamic type checks} (casts),
+\emph{wrappers creation} around objects, and \emph{new class} generation.
 
 \paragraph{Syntax}  \kafka is a simple object calculus that satisfies the above design requirement. Its syntax is given in \figref{syn}.   Types consist of class names \C, \D, ...\ and the dynamic type, written
 \any.  Class definitions have a class name and (possibly empty) sequences of
 field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
 definitions consist of a field and its type, \Fdef\f\t. Method definitions
 have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
- % Types are either class names  \C, \D and \E, or the dynamic type, and 
   \kafka   supports a limited form of overloading, allowing both a typed implementation and an untyped (dynamically checked) implementation for each method. 
   Fields are private to objects, and can be accessed only from the object scope; reading a field is denoted  \(\FRead\f\)  and writing a field is denoted \(\FWrite\f\e  \).  The calculus supports both statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).    The static dispatch resolves overloading via the type tag
 on the method call.
-%;  the constraint on method overloading implies that the tag is either \(\C \to \D\) or \(\any \to \any\)).  
 We let meta-variables \x ranges over variable names, \m and \f range over
 methods and fields respectively; \this is a distinguished identifier
 representing a method receiver, while \that is a distinguished field name that will be used
@@ -493,26 +494,37 @@ The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subt
 State is represented via a heap \s mapping addresses ranged over by \a
 to objects denoted \hspace{-1mm}\obj\C{\b\a}.
 
-\begin{figure}[!t]
+\begin{figure}[!h]
 \hrulefill
 
-\smallskip
-\begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l}
-\e &::=  \x         &\B \this         &\B \that      \\
-   &\B \New\C{\b\e}  &\B \FRead\f     &\B \FWrite\f\e   \\
-   &\B \KCall\e\m\e\t\t &\B \DynCall\e\m\e &\B \a \\ 
-   &\B \SubCast\t\e &\B \BehCast\t\e 
-\end{tabular}\end{minipage}
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+\vspace{4mm}
+
+\small
+\begin{tabular}{@{}lll}
+
+\begin{minipage}{9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+    &\B \this         
+   &\B \that      
+   &\B \FRead\f     
+   &\B \FWrite\f\e   
+   &\B \KCall\e\m\e\t\t \\
+   & &
+   &\B \SubCast\t\e 
+   &\B \BehCast\t\e 
+   &\B \New\C{\b\e}  
+   &\B \DynCall\e\m\e 
+\end{tabular}\end{minipage}&
+\begin{minipage}{2.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\b\fd}{\b\md} \\
-%\end{tabular}
-%\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e \\
-%  &\B  \Mdef\f\x\t\t\e &\B \Mdefz\f\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ TODO!!!! MOVE
-~\fd&::= ~ \Fdef\f\t \\ 
 ~ \t&::= ~ \any  \B   \C  \\ 
-\end{tabular}\end{minipage}
+\end{tabular}\end{minipage} &
+\begin{minipage}{2.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e \\
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}\end{tabular}
+
+\vspace{4mm}
 
 \noindent\hrulefill
 \caption{\kafka Syntax.}\label{syn}
@@ -609,54 +621,55 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \noindent\hrulefill
 \smallskip
 
+\small
+
 \begin{minipage}{\textwidth}
-  \opdef{\Reduce \K\e\s \Kp\ep\sp}
-        {\e\s evaluates to \ep\xspace in one step}\\[-7mm]
+  \opdef{\Reduce \K\e\s \Kp\ep\sp}{}
         
         
 \begin{center}
 \begin{tabular}{r@{\;}l@{}l@{\hspace{2em}}ll}
-\CondRule{E1}{  %% new C -> a
+\CondRule{}{  %% new C -> a
    \fresh\ap 
 }{ 
   \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
 }
-\CondRule{E4}{  %% a.f() -> e
+\CondRule{}{  %% a.f() -> e
   \readf \s\a\f\K =  \ap
  %\App\s\a = \obj\C{\a_i \dots ~\ap~ \a_j \dots}  \AND $ \Class\C {\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j \dots}{\md \dots}\in\K$
 }{
   \ReduceA \K{\FReadR\a{\f}}\s  \K\ap\s
 }
-\CondRule{E5}{  %% a.f(e) -> e
+\CondRule{}{  %% a.f(e) -> e
  \setf \s\a\f\ap\K =  \sp
 }{
   \ReduceA \K{\FWriteR\a{\f}\ap}\s \K\ap\sp
 }
-\CondRule{E6}{  %% a.m(a) -> e
+\CondRule{}{  %% a.m(a) -> e
   \Mdef\m\x\t\tp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
 }{
  \ReduceA \K{\KCall\a\m\ap\t\tp}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
-\CondRule{E7}{  %% a@m(a) -> e
+\CondRule{}{  %% a@m(a) -> e
     \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
 }{
   \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
 }
-\CondRule{E8}{  %% Subtypecast
+\CondRule{}{  %% Subtypecast
 }{ 
   \ReduceA \K{\SubCast \any\a}\s \K\a\s
 }
-\CondRule{E9}{  %% Subtypecast
+\CondRule{}{  %% Subtypecast
   \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
 }{ 
   \ReduceA \K{\SubCast \D\a}\s \K\a\s
 }
-\CondRule{E10}{  %% Behavioral cast  
+\CondRule{}{  %% Behavioral cast  
   \behcast \a\t\s\K  \Kp\ap\sp    
 }{    
   \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
 } 
-\CondRule{E11}{  %% E[e] -> E[e']
+\CondRule{}{  %% E[e] -> E[e']
   \Reduce \K\e\s \Kp\ep\sp
 }{
  \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
@@ -711,7 +724,9 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 
 \paragraph{Dynamic Semantics}
 The small  step operational semantics for \kafka is reported in \figref{fig:semantics}.  To resolve the \this reference in field accesses, the syntax of expressions is extended at runtime with forms 
-\[ e  ::= \dots \B \FReadR\a\f \B \FWriteR\a\f\e \]
+%
+\[ e  ::= \dots \B \a \B \FReadR\a\f \B \FWriteR\a\f\e \]
+%
 where \a is the pointer to the object referenced by \this and \f a field name.
 The dynamic semantics is thus defined over \emph{configurations}: triples \K\e\s, where \K is a class
 table, \e is an expression and \s is a heap.  A configuration evaluates in one
