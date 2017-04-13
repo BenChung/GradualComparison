@@ -3761,10 +3761,15 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{$\Fdef\f\any \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTSet6}
       \step{$\EnvType\Envp\cdot\Kp{\ep_2}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTSet4} and case}\lbl{STTSet7}
       \step{$\EnvType\Envp\cdot\Kp{\FWrite\f{\ep_2}}\any$}{\RuleRef{KT-WRITE} on \trf{cond5},\trf{STTSet6},\trf{STTSet7}}\lbl{STTSet8}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FWrite\f{\ep_2}}}\any$}{\RuleRef{KT-SUBCAST} on \trf{STTSet8}}\lbl{STTSet9}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FWrite\f{\ep_2}}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTSet8}}\lbl{STTSet9}
     \end{case}
 
     \begin{case}{STT-CALL}
+      \slet{$\e$}{$\TRG{\Call{\e_1}\m{\ep_1}}\Env$}\lbl{STTCall1}
+      \slet{$\e_2$}{$\TRG{\e_1}\Env$}\lbl{STTCall2}
+      \slet{$\ep_2$}{$\TRG{\ep_1}\Env$}\lbl{STTCall3}
+      \slet{$\epp_2$}{$\TAG{\ep_1}\Env\t$}\lbl{STTCall4}
+      \step{$\e = \SubCast\t{\KCall{\e_2}\m{\epp_2}\any\any}$}{TTR6 on case}
     \end{case}
 
     \begin{case}{STT-DCALL}
