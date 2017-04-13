@@ -554,11 +554,31 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
 
 
 \Rule{SRec}{
- \M' = \M~\C\Sub\D\\
+ \M' = \M~\C\Sub\D\\\\
 \md \in \App\K\D \implies \mdp \in \App\K\C ~.~ \StrSub{\M'}\K\md{\mdp}
 }{
  \StrSub \M\K \C \D 
 }
+
+
+\Rule{SMet}{
+  \StrSub \M\K {\t[1]} {\tp[1]} \\\\
+  \StrSub \M\K {\tp[2]} {\t[2]}
+}{
+ \StrSub \M\K {\Mdef\m\x{\t[1]}{\t[2]}\e} {\Mdef\m\x{\tp[1]}{\tp[2]}\ep}
+}
+
+\end{mathpar}
+
+\hrulefill
+\caption{\kafka subtyping}\label{f:staticsem}
+\end{figure}
+
+
+
+\begin{figure}[!t] \hrulefill\small
+
+\begin{mathpar}
 
 \Rule{W6}{
   \EnvType \Env\s\K\e\C \\
