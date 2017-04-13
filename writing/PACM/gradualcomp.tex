@@ -543,26 +543,24 @@ The complete
 set of rules is reported in Appendix section~\ref{appendix:kafka}.  
 
 
-\begin{figure}[!t]
-\hrulefill
+\begin{figure}[!t] \hrulefill\small
 
-{\small
 \begin{mathpar}
-\IRule{SAss}{
+\Rule{SAss}{
 \C \Sub \D \in \M
 }{
  \StrSub \M\K \C\D
 }
 
 
-\IRule{SRec}{
+\Rule{SRec}{
  \M' = \M~\C\Sub\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \StrSub{\M'}\K\mt{\mtp}
+\md \in \App\K\D \implies \mdp \in \App\K\C ~.~ \StrSub{\M'}\K\md{\mdp}
 }{
  \StrSub \M\K \C \D 
 }
 
-\IRule{W6}{
+\Rule{W6}{
   \EnvType \Env\s\K\e\C \\
   \Mtype \m\tp\tpp\in \classoff\C\K  \\
   \EnvType \Env\s\K\ep\tp
@@ -570,36 +568,37 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
   \EnvType \Env\s\K{\KCall\e\m\ep{\t'}{\t''}}\tpp
 }    
 
-\IRule{W7}{
+\Rule{W7}{
   \EnvType \Env\s\K\e\any \\
   \EnvType \Env\s\K\ep\any
 }{
   \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
 
-\IRule{W9}{
+\Rule{W9}{
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\SubCast\t\e}\t
 }
 
-\IRule{WB}{
+\Rule{WB}{
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\BehCast\t\e}\t
 }
 
-\IRule{W9}{
+\Rule{W9}{
   \s(\a) = \obj\C{\b\ap}
 }{
   \EnvType \Env\s\K\a\C
 }
 
-\IRule{W10}{
+\Rule{W10}{
  }{
    \EnvType \Env\s\K\a\any
 }
-\end{mathpar}}
+\end{mathpar}
+
 \hrulefill
 \caption{\kafka static semantics (excerpt)}\label{f:staticsem}
 \end{figure}
@@ -619,53 +618,37 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 %
 \begin{figure}[!t]
 \noindent\hrulefill
-\smallskip
 
+
+\medskip
 \small
 
 \begin{minipage}{\textwidth}
-  \opdef{\Reduce \K\e\s \Kp\ep\sp}{}
 \small        
-        
-\begin{center}
 \begin{tabbing}
-  \K~ \New\C{\b\a} \HS\HS\HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a_1..}}}}
+\K\HS \New\C{\b\a} \HS\HS\HS\= \s~ \HS\HS \=\Red\HS\HS \= \K \HS\= \ap \HS\HS\= \sp\HS\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a_1..}}}}
 \\
-\K ~ \FReadR\a{\f_i} \> \s           \>\Red\>     \K \>$\a_i$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a_1..\a_i..}
+\K\HS \FReadR\a{\f_i} \> \s           \>\Red\>     \K \>$\a_i$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a_1..\a_i..}
 \\
-\K ~ {\FWriteR\a{\f_i}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a_1..\a_i..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a_1..\ap..}}}
+\K\HS {\FWriteR\a{\f_i}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a_1..\a_i..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a_1..\ap..}}}
 \\
-\K ~ {\KCall\a\m\ap\t\tp} \> \s    \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep ={[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x\t\tp\e\In \App\K\C  \HS  \App\s\a=\obj\C{\a_1..}
+\K\HS{\KCall\a\m\ap\t\tp} \> \s    \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x\t\tp\e\In \App\K\C  \HS  \App\s\a=\obj\C{\a_1..}
 \\
- \K ~ {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \> \Mdef\m\x\any\any\e \In \App\K\C \HS \App\s\a=\obj\C{\a_1..}
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \> \Mdef\m\x\any\any\e \In \App\K\C \HS \App\s\a=\obj\C{\a_1..}
 \\
- \K ~ {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
+ \K\HS {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
 \\
- \K ~ {\SubCast \D\a} \> \s        \>\Red\>    \K \> \a \> \s \>  \WHERE\> \StrSub {}\K\C \D \>\App\s\a=\obj\C{\a_1..} 
+ \K\HS {\SubCast \D\a} \> \s        \>\Red\>    \K \> \a \> \s \>  \WHERE\> \StrSub {}\K\C \D \>\App\s\a=\obj\C{\a_1..} 
 \\
- \K ~ {\BehCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \behcast \a\t\s\K \Kp\ap\sp    
+ \K\HS {\BehCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \behcast \a\t\s\K \Kp\ap\sp    
 \\
-\K~ \e \>\s                         \>\Red\>   \Kp \> \ep \> \sp
+\K\HS\e \>\s                         \>\Red\>   \Kp \> \ep \> \sp
 \\
- \K ~ \EM{\EE[\e]} \> \s               \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
+ \K \HS \EM{\EE[\e]} \> \s               \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
 \end{tabbing}
-\end{center}\end{minipage}
+\end{minipage}
 
 \medskip
-
-%\begin{minipage}{14cm}
-\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
-\EE &::=  \FWriteR\a\f\EE   &\B  
-        \KCall\EE\m\e\t\t  &\B
-        \KCall\a\m{\EE}\t\t &\B
-        \DynCall\EE\m\e   &\B
-        \DynCall\a\m\EE   &\B
-       \SubCast\t\EE  &\B
-      \BehCast\t\EE  &\B
-       \New\C{\b \a\,\EE\,\b\e}
-  &\B \EM{\square}
-\end{tabular}
-%\end{minipage}
 
 \hrulefill
 \caption{\kafka dynamic semantics}\label{fig:semantics}
@@ -688,6 +671,23 @@ table, \e is an expression and \s is a heap.  A configuration evaluates in one
 step to a new configuration, \Reduce \K\e\s\Kp\ep\sp;  the new configuration may
 include a new class table built by extending the previous table with new
 classes.
+
+
+%\begin{minipage}{14cm}
+\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+\EE &::=  \FWriteR\a\f\EE   &\B  
+        \KCall\EE\m\e\t\t  &\B
+        \KCall\a\m{\EE}\t\t &\B
+        \DynCall\EE\m\e   &\B
+        \DynCall\a\m\EE   &\B
+       \SubCast\t\EE  &\B
+      \BehCast\t\EE  &\B
+       \New\C{\b \a\,\EE\,\b\e}
+  &\B \EM{\square}
+\end{tabular}
+%\end{minipage}
+
+
 %
 % Field access either reads a field from the object (if the class has a
 %field definition) or invokes a getter function (if the class has a getter method
@@ -821,112 +821,9 @@ Wrapping an object so that it behaves as \any is simpler, as the wrapper systema
 return type to \any.
 
 
-% 
-% \begin{figure}[!ht]
-% \hrulefill
-% \[
-% \begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-%     \wrap\C\bmt\bmtp\D\that = \\
-% \SP \class ~\D ~ \{\\
-% \SPP \Fdef\that\C \\
-% \SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
-% &     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
-% \\[-3mm]
-% \SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
-% &    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-% \\[-3mm]
-% \SP \}
-% \\[3mm]
-% \wrapAny\C\bmt\D\that = \\
-% \SP \class~\D~\{\\
-% \SPP \Fdef \that \C\\ 
-% \SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that\C}\m{\bscast{\t}\x}\t\tp }~}
-% & \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
-% \SP \}\\
-% 
-% \end{array}\]
-% 
-%   \begin{mathpar}
-%   
-% \IRule{BC1}{
-%   \App\s\a = \obj\C{\b{\a_1}}  \\
-%   \fresh\D \\
-%   \fresh\ap \\
-%   \fresh\that \\
-%   \cload{\classoff\C\K} \\
-%   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
-%   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
-%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-% }{
-%   \behcast\a\Cp\s\K {\K\,\k}\ap\sp
-% }
-% 
-% \IRule{BC2}{
-%   \App\s\a = \obj\C{\b{\a_1}}  \\
-%   \fresh\D \\
-%   \fresh\ap \\
-%   \fresh\that \\
-%   \k = \wrapAny\C{\classoff\C\K}\D\that\\
-%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-% }{
-%   \behcast\a\any\s\K {\K\,\k}\ap\sp
-% }
-% \end{mathpar}
-% 
-% 
-% \hrulefill
-% \vspace{-2mm}
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \caption{Behavioural casts (Collapsed).}\label{behavetextC}
-% \end{figure}
-
-
-%
-%Observe that invoking a method not present in the wrapped class results in computation getting stuck.\FZ{comment on all cases where computation gets stuck}
-% \FZ{why behavioural and not structural casts?}.
-
-%
-%, that takes two class types \C and \D, and the two
-%sets of method typing \bmt and \bmtp,   The class type $\C$ is the type of the expression being casted, also referred to as the source type, and represented by $\tp$ in the typing rule \xt{WB}.
-%The class type $\D$ is a fresh class name, and represents the type of the wrapper class.
-%%
-%The method typing $\bmt$ corresponds to the typing definition of every method in $\C$.
-%The method typing $\bmtp$ is the set of method typing for the casting type. The casting
-%type is also known as the target type, shown by $\t$ in \xt{WB}.
-%
-% 
-%\opdef{\mt ~~::= \Mtype\m\t\t \B  \Mtype\f\t\t  \B \Mtype\f{}\t 
-%}{ method typing
-%} \\
-
-% 
-
-%Every wrapper class has a \xt{that} field pointing to the source type.
-
-
 The behavioural cast reduction rule satisfies a property instrumental to our design: a wrapper class generated for a target type \D,  is always a subtype of \D.  This will allow us to refer to both
 unwrapped and wrapped objects via the original, source language,
 types.   
-%
-%Internally, wrappers either forward values, as in the case of getters
-%and setters, or mimic the behaviour of the underlying object, in the case of
-%methods, ensuring that the type guarantees of both the externally visible
-%type and the wrapped object are respected.
-%
-%
-
-
-
-%
-%Copying the behaviour of the wrapped object is unusual, but this is how we
-%maintain one of the semantic Typed Racket, we will describe this in detail in \FZ{OLD SENTENCE, should go?}
-%%We use the lifting
-%mechanism, copying wrapped class functionality, to ensure that
-%self-references refer to the wrapper, rather than to the wrapped object,
-%thereby enforcing the dynamic type guarantees. \FZ{Check this text.} 
-%
-
-
 
 
 \paragraph{Type soundness} Well-typed \kafka configurations satisfy a type-preservation theorem, and either reduce 
@@ -965,7 +862,6 @@ Proof is in the Appendix.
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\b\fd}{\b\md}\\
 \md &::= \Mdef\m\x\t\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
 ~\fd&::= ~ \Fdef\f\t \\ 
 ~ \t&::= ~ \any   \B   \C   \B   \fcolorbox{lightgray}{lightgray}{\CW} \\ 
 \end{tabular}\end{minipage}
@@ -981,19 +877,6 @@ Four each source language, compilation into \kafka is realised by a translation 
 To avoid unnecessary clutter, we represent the source languages using the idealised syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without method overloading and, most importantly, cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
 
 
-% On top of this uniform source syntax, for each language a type system defines the well-typed terms that can be defined.   
-
-
-%
-% To avoid unnecessary clutter, the source syntax we use is just \kafka one without casts.
-%
-%Casts are not used in the source languages, but are inserted by the
-%translations.  
-%
-%...The general approach is that for each gradual type system there is a translation function defined on well-typed programs. 
-%
-%...For each class it produces a well-typed Kafka class.
-
 
 \subsection{TypeScript}
 
@@ -1001,7 +884,7 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 \hrulefill
 \begin{mathpar}
 
-\IRule{STGC-SUB}{
+\Rule{STGC-SUB}{
   \StrSub\cdot\K\t\tp
 }{
   \ConvertE\K{s}\t\tp
