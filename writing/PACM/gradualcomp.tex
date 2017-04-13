@@ -625,56 +625,30 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 
 \begin{minipage}{\textwidth}
   \opdef{\Reduce \K\e\s \Kp\ep\sp}{}
-        
+\small        
         
 \begin{center}
-\begin{tabular}{r@{\;}l@{}l@{\hspace{2em}}ll}
-\CondRule{}{  %% new C -> a
-   \fresh\ap 
-}{ 
-  \ReduceA \K{\New\C{\b\a}}\s \K\ap{\Map\s{\Bind\ap{\obj\C{\b\a}}}}
-}
-\CondRule{}{  %% a.f() -> e
-  \readf \s\a\f\K =  \ap
- %\App\s\a = \obj\C{\a_i \dots ~\ap~ \a_j \dots}  \AND $ \Class\C {\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j \dots}{\md \dots}\in\K$
-}{
-  \ReduceA \K{\FReadR\a{\f}}\s  \K\ap\s
-}
-\CondRule{}{  %% a.f(e) -> e
- \setf \s\a\f\ap\K =  \sp
-}{
-  \ReduceA \K{\FWriteR\a{\f}\ap}\s \K\ap\sp
-}
-\CondRule{}{  %% a.m(a) -> e
-  \Mdef\m\x\t\tp\e  \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
-}{
- \ReduceA \K{\KCall\a\m\ap\t\tp}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{}{  %% a@m(a) -> e
-    \Mdef\m\x\any\any\e \In \App\K\C \AND \App\s\a=\obj\C{\b\a}
-}{
-  \ReduceA \K{\DynCall\a\m\ap}\s \K{[\a/\this~{\ap/\x}]\e}\s
-}
-\CondRule{}{  %% Subtypecast
-}{ 
-  \ReduceA \K{\SubCast \any\a}\s \K\a\s
-}
-\CondRule{}{  %% Subtypecast
-  \StrSub {}\K\C \D \AND \App\s\a=\obj\C{\b\a} 
-}{ 
-  \ReduceA \K{\SubCast \D\a}\s \K\a\s
-}
-\CondRule{}{  %% Behavioral cast  
-  \behcast \a\t\s\K  \Kp\ap\sp    
-}{    
-  \ReduceA  \K{\BehCast \t\a}\s \Kp\ap\sp
-} 
-\CondRule{}{  %% E[e] -> E[e']
-  \Reduce \K\e\s \Kp\ep\sp
-}{
- \ReduceA \K{\EE[\e]}\s \Kp{\EE[\ep]}\sp
-}
-\end{tabular}
+\begin{tabbing}
+  \K~ \New\C{\b\a} \HS\HS\HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a_1..}}}}
+\\
+\K ~ \FReadR\a{\f_i} \> \s           \>\Red\>     \K \>$\a_i$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a_1..\a_i..}
+\\
+\K ~ {\FWriteR\a{\f_i}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a_1..\a_i..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a_1..\ap..}}}
+\\
+\K ~ {\KCall\a\m\ap\t\tp} \> \s    \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep ={[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x\t\tp\e\In \App\K\C  \HS  \App\s\a=\obj\C{\a_1..}
+\\
+ \K ~ {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \> \Mdef\m\x\any\any\e \In \App\K\C \HS \App\s\a=\obj\C{\a_1..}
+\\
+ \K ~ {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
+\\
+ \K ~ {\SubCast \D\a} \> \s        \>\Red\>    \K \> \a \> \s \>  \WHERE\> \StrSub {}\K\C \D \>\App\s\a=\obj\C{\a_1..} 
+\\
+ \K ~ {\BehCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \behcast \a\t\s\K \Kp\ap\sp    
+\\
+\K~ \e \>\s                         \>\Red\>   \Kp \> \ep \> \sp
+\\
+ \K ~ \EM{\EE[\e]} \> \s               \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
+\end{tabbing}
 \end{center}\end{minipage}
 
 \medskip
@@ -692,25 +666,6 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
   &\B \EM{\square}
 \end{tabular}
 %\end{minipage}
-
-\medskip
-\begin{tabular}{c@{\hspace{-0.6em}}c}
-\(
-\begin{array}{r@{~}l}
-\readf \s\a\f\K &= \ap\\ 
-    ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_i \dots ~\ap~ \a_j \dots}\\
-    ~~\mathit{and}~~ &\Class\C {\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j \dots}{\md \dots}\in\K \\
-\end{array} 
-\) &
-\(
-\begin{array}{r@{~}l}
-\setf \s\a\f\ap\K &= \Map\s{\Bind{\a}{\obj\C{\a_i\dots ~\ap~ \a_j\dots}}}\\
-  ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_i\dots ~\app~ \a_j\dots} \\
-  ~~\mathit{and}~~&\Class\C{\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j\dots}{\md \dots}\in\K
-\end{array}
-\)
-\end{tabular}
-\medskip
 
 \hrulefill
 \caption{\kafka dynamic semantics}\label{fig:semantics}
