@@ -734,19 +734,18 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \hrulefill
 \small
 
+\begin{tabbing}
+  \wrap{\C}{\mts 1..}{\mtps 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mtpps 1..}}\\
+\HS\HS\WHERE\HS\=\mtpps 1 = \src{ \Mdef\m\x{\tp_1}{\tp_2}{~\BehCast\tppp{ \KCall{\FRead\that} \m {\bscast{\t_1}\x}{\t_1}{\t_2}} } }   ..
+    \HS \= \textbf{if} \HS \Mtype\m{\t_1}{\t_2}\In\mts 1.. \HS\HS \Mtype\m{\tp_1}{\tp_2}\In\mtps 1.. \\
+\\[-3mm]
+\> \EM{\mtpps 1} =  \src{\Mdef\m\x{\t}{\tp}{~\KCall{\FRead\that}\m{\x}\t\tp~}} ..
+   \> \textbf{if} \HS\ \Mtype\m\t\tp\In\mts 1.. \HS\HS \Mtype\m{\tp_1}{\tp_2}$\not\In$ \mtps 1..
+\end{tabbing}
+
+
 \[
 \begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-  \wrap{\C}{\mt_1..}{\mtp_1..}{\D}{\that} = \src{\class ~ \{ \Fdef\that\C \mtpp_1.. \} }\\
-  \WHERE  \mtp = \src{ \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\FRead\this\that} \m {\bscast{\t}\x}\t\tp }}~}}
-&     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
-\\[-3mm]
-\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
-&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-\\[-3mm]
-\SP \}
-\\[3mm]
-
-
  \wrap{\C}{\bmt}{\bmtp}{\D}{\that} = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
