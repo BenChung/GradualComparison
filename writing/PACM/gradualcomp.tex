@@ -1083,7 +1083,7 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
   \EnvTypeS \Env\K\e\C \\
   \Mtype \m\t\tp\in \classoff\C\K  \\
   \EnvTypeS \Env\K\ep\tpp \\
-  \ConvertE\K{s}\tpp\tp
+  \ConvertE\K{s}\tpp\t
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}\tp
 }    
@@ -1106,11 +1106,11 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 
 Typescript~\cite{BAT14} is a backward compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
-subtyping of recursive types is supported (types arise from class
+subtyping of recursive types is supported (as in \kafka types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
 to catch simple errors, such as misspelt method names, as well as assisting
 IDEs.  A typical example is shown here. The first expression is ill-typed
-because method \(o\) does not exist, the second is erroneous as it
+because method \(o\) does not exist in class \C, while the second is erroneous as it
 provides an instance of \C where \D is expected. The third
 expression is statically correct as the instance of \C is cast to a
 \D by the \n method.
@@ -1146,27 +1146,19 @@ expression is statically correct as the instance of \C is cast to a
 %\end{lstlisting}
 %
 \noindent
-The TypeScript type system is reported in \figref{f:typescriptts}.  
+Our formalisation of the TypeScript type system is reported in \figref{f:typescriptts}.  We illustrate its design by focussing on the examples above and study how the \RuleRef{STG-CALL} rule enforces the expected outcome.  Since the receiver has type \C, the first expression is simply ruled out by the check that the called method must be part of the class signature.  The second is more interesting: the method exists but expects a \D argument while we are passing a \C.  The \emph{convertibility} relation, denoted   \ConvertE\K{s}\t\tp, captures precisely the allowed implicit type conversion.  For TypeScript, values can flow freely to and from \any, and it is also allowed to pass a subtype when a supertype is expected.  Since \C and \D are incompatible, in our example the convertibility check fails.
 
-The auxiliary relation of \emph{convertibility}, denoted   \ConvertE\K{s}\t\tp, captures all ...
+\FZ{Until here}
 
+TypeScript then translates well-typed code to plain JavaScript, with all types erased and methods resolved dynamically.   Dynamically resolved calls are calls that may fail because the
+receiver need not have the requested method. Method signatures see their
+types set to \any.  The designers of TypeScript saw unsoundness as a way to
+ensure, ({\em a}) that types do not get in the way of running correct
+programs, e.g. when importing a new library with type annotations
+inconsistent with existing client code; and ({\em b}) an insurance for
+backwards compatibility, as ignoring types means all browsers can run
+TypeScript code -- with no additional overhead.
 
-\FZ{EXPLAIN CONVERTIBILITY + RULES} Well-typed code is translated to plain JavaScript with all types erased and methods resolved dynamically. 
-In \kafka, one would translate the class
-definition and the last expression:
-
-
-\medskip
-\(
-\Class \C {   \Mdef\m\x\any\any \this  ; \   \Mdef\n\x\any\any \x }
-\)
-
-\medskip
-
-\(\DynCall {\New \C{}} \m {\DynCall {\New \C{}} \n {\New \C{}}} \)
-
-
-\medskip
 %
 %\begin{lstlisting}
 % class A { 
@@ -1175,15 +1167,15 @@ definition and the last expression:
 % new A()@m(new A()@n(new A()))    
 %\end{lstlisting}
 %
-\noindent Dynamically resolved calls are calls that may fail because the
-receiver need not have the requested method. Method signatures see their
-types set to \any.  The designers of TypeScript saw unsoundness as a way to
-ensure, ({\em a}) that types do not get in the way of running correct
-programs, e.g. when importing a new library with type annotations
-inconsistent with existing client code; and ({\em b}) an insurance for
-backwards compatibility, as ignoring types means all browsers can run
-TypeScript code -- with no additional overhead.
-To model TypeScript, we use a very simple translation mechanism, where every
+%\noindent Dynamically resolved calls are calls that may fail because the
+%receiver need not have the requested method. Method signatures see their
+%types set to \any.  The designers of TypeScript saw unsoundness as a way to
+%ensure, ({\em a}) that types do not get in the way of running correct
+%programs, e.g. when importing a new library with type annotations
+%inconsistent with existing client code; and ({\em b}) an insurance for
+%backwards compatibility, as ignoring types means all browsers can run
+%TypeScript code -- with no additional overhead.
+This can be made generalised.  To model TypeScript, we use a very simple translation mechanism, where every
 type becomes \any and every call becomes a dynamic call.  We proceed through
 translation top-down, translating classes and the main expression.  
 
@@ -1222,6 +1214,24 @@ translation top-down, translating classes and the main expression.
 \end{tabular}
 \caption{TypeScript}
 \end{figure}
+
+
+
+ In \kafka, one would translate the class
+definition and the last expression above as:
+
+
+\medskip
+\(
+\Class \C {   \Mdef\m\x\any\any \this  ; \   \Mdef\n\x\any\any \x }
+\)
+
+\medskip
+
+\(\DynCall {\New \C{}} \m {\DynCall {\New \C{}} \n {\New \C{}}} \)
+
+
+\medskip
 
 ...The unsoundness comes from the use of \tr a(\any,\e) which discards the type of \e.
 
