@@ -1115,40 +1115,62 @@ Observe that the TypeScript translations does insert some structural casts to \a
 \subsection{Thorn}
 
 Thorn~\cite{oopsla09} is an object-oriented language with multiple inheritance,
-nominal type equivalence, and a combination of optional and concrete types.
-Optional types (written \code{?T}) are translated to the \any type with
+nominal type equivalence, and a combination of \emph{optional} and \emph{concrete} types.
+Optional types (written \dt\C) are translated to the \any type with
 dynamically resolved method invocation, as in TypeScript. Concrete types
-(written \code{T}) behave as one would expect: a variable \code{x:C} is
-guaranteed to refer to an instance of \code C or a subtype thereof. Consider the
-following program with calls to concretely typed method \code n and optionally
-typed \code m, and assume that \code D is not a subtype of \C.
+(written \C) behave as one would expect: a variable {\x:\C} is
+guaranteed to refer to an instance of \C or a subtype thereof. Consider the
+following program with calls to concretely typed method \n and optionally
+typed \m, and assume that \D is not a subtype of \C.
 
-\begin{lstlisting}
- class A {
-    m(x: ?C): ?C { x }
-    n(x:  C):  C { x } }
+\medskip
+\(
+ \Class \A {
+    \Mdef \m\x{\dt\C} {\dt\C}  \x  ; \ 
+    \Mdef \n\x\C\C  \x 
+    }
+\)
 
- new A().m( new D() ) // OK -- warning
- new A().n( new D() ) // ERR -- D !<: C
- new A().m( new A.n(new C()) // OK
- new A().n( new A.m(new C()) // Cast
-\end{lstlisting}
+\medskip
+\( \Call {\New \A{}}\m {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // OK -- warning }\)
 
-\noindent The first call to \code m is allowed because the argument of \code m
+\( \Call {\New \A{}}\n {\New \D{} } \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// ERR -- D !<: C} \)
+
+\( \Call {\New \A{}} \m { \Call {\New \A {}} \n {\New \C{}} } \ \ \ \ \ \texttt{ // OK }\)
+
+\( \Call {\New \A{}} \n { \Call {\New \A{}} \m {\New \C{}}} \ \ \ \ \texttt{ // Cast } \)
+
+\medskip
+%
+%\begin{lstlisting}
+% class A {
+%    m(x: ?C): ?C { x }
+%    n(x:  C):  C { x } }
+%
+% new A().m( new D() ) // OK -- warning
+% new A().n( new D() ) // ERR -- D !<: C
+% new A().m( new A.n(new C()) // OK
+% new A().n( new A.m(new C()) // Cast
+%\end{lstlisting}
+
+\noindent The first call to \m is allowed because the argument of \m
 is treated as type \any, and a warning is emitted. The second call is ruled
-incorrect as a concrete type is expected for \code n. The third call is allowed
-as a \code C is a subtype of \code{?C}. The last call results in a cast being
-inserted as \code{?C} cannot be guaranteed to hold an instance of \code{C} or a
+incorrect as a concrete type is expected for \n. The third call is allowed
+as a \C is a subtype of \dt\C. The last call results in a cast being
+inserted as \dt\C cannot be guaranteed to hold an instance of \C or a
 subtype.  The translation of Thorn to \kafka turns optional types to \any and
-inserts structural casts to \code{C} when an expression of type \any, or of type
-\code{?C} is assigned to a \code{C}. So class \code A would translate to:
+inserts structural casts to \C when an expression of type \any, or of type
+\dt\C is assigned to a \C. So class \A would translate to:
 
-\begin{lstlisting}
- class A {
-    m(x:  *):  * { x }
-    n(x:  C):  C { x } }
-\end{lstlisting}
+\medskip
+\(
+ \Class \A {
+    \Mdef \m\x\any \any  \x  ; \ 
+    \Mdef \n\x\C\C  \x 
+    }
+\)
 
+\medskip
 
 \begin{figure}
 \hrulefill
@@ -1229,7 +1251,7 @@ inserts structural casts to \code{C} when an expression of type \any, or of type
 \end{figure}
 
 To model Thorn we extend the syntax of source terms with an ``unsound'' type
-written $\dt\C$, which has its own subtyping relation, and compiles down to
+written \dt\C, which has its own subtyping relation, and compiles down to
 \any. This unsound type still enforces the same static requirements as its
 sound counterpart, but generates no runtime casts.  Over this new type, we
 define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
@@ -1241,6 +1263,8 @@ both hold if \C~\src\Sub~\D.
 
 
 \begin{figure}[!h]
+\hrulefill
+
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
   \hspace{-.5cm}\begin{minipage}{8cm}  
@@ -1278,6 +1302,8 @@ both hold if \C~\src\Sub~\D.
 \end{tabbing}
 \end{minipage}
 \end{tabular}
+
+\hrulefill
 \caption{Thorn translation.  \kty\t = \any if  \t=?\C, \t otherwise. }
 \end{figure}
 
