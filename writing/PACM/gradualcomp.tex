@@ -3714,6 +3714,31 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
 
 \subsection{Type Soundness of Transient Translation}
+
+\begin{lemma}{Consistent Subtyping Implies Kafka Subtyping}{THTA-SUB}
+  \begin{conds}
+    \cond{$\ConSub\cdot\K{\t}{\tp}$}\lbl{cond1}
+    \cond{$\ConSub\cdot\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}$}\lbl{cond2}
+    \cond{$\TR\K = \Kp$}\lbl{cond3}
+  \end{conds}
+  \then\axiom{$\StrSub\cdot\Kp{\t[1]}{\tp[1]} \wedge \StrSub \cdot\Kp {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}$}
+
+  \begin{proof}{ mutual induction on the derivation of {$\ConSub\cdot\K\t\tp$} and $\ConSub\cdot\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}$}
+
+    \begin{case}{CSCons}
+    \end{case}
+    
+    \begin{case}{CSAss}
+    \end{case}
+    
+    \begin{case}{CSRec}
+    \end{case}
+    
+    \begin{case}{CSMet}
+    \end{case}
+  \end{proof}
+\end{lemma}
+
 \begin{lemma}{Soundness of Transient convertibility}{THTA-COMP}
   \begin{conds}
     \cond{$\ConvertE\K{tr}\t\tp$}\lbl{cond1}
@@ -3728,11 +3753,6 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \begin{proof}{ \indmsg{$\Convertible\K\t\tp$}}
 
   \begin{case}{STC-SUB}
-    \begin{case}{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}
-    \end{case}
-
-    \begin{case}{$\StrNotSub\cdot\Kp{\kty\t}{\kty\tp}$}
-    \end{case}
   \end{case}
 
   \begin{case}{STC-TOANY}
