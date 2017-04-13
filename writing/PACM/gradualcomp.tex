@@ -2844,7 +2844,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \end{mathpar}
 
 \section{Translations}
-
+\renewcommand{\trulename}[1]{#1}
 \subsection{Thorn}
 
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
@@ -2861,28 +2861,28 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \TR{\x:\t~\Env} \>= \x : \kty{\t} ~ \TR\Env
 \end{tabbing}
 \begin{tabbing}
-TTR1 \TRG{\x}\Env \hspace{1.4cm}\= = \src \x
+\trulename{TTH1} \TRG{\x}\Env \hspace{1.4cm}\= = \src \x
 \\[1mm]       
-TTR2 \TRG{\FRead\f}\Env \> = \src{\FRead\f} 
+\trulename{TTH2} \TRG{\FRead\f}\Env \> = \src{\FRead\f} 
 \\[1mm]
-TTR3 \TRG{\FWrite\f\e}\Env \> = \src{\FWrite\f\ep} \hspace{.5cm} \=
+\trulename{TTH3} \TRG{\FWrite\f\e}\Env \> = \src{\FWrite\f\ep} \hspace{.5cm} \=
 \WHERE\HS\= \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\In\App\K\C, \HS \ep = \TAG\e\Env{\kty\t}
 \\[1mm]
-TTR4 \TRG{\Call{\e_1}\m{\e_2}}\Env \>= \src{\DynCall{\eps 1}{\m}{\eps 2}} 
+\trulename{TTH4} \TRG{\Call{\e_1}\m{\e_2}}\Env \>= \src{\DynCall{\eps 1}{\m}{\eps 2}} 
 \HS  \>\WHERE\HS \TypeCk{\K,\Env}{\e_1}\t, \HS \kty\t=\any, \HS
  \eps 1= \TRG{\e_1}\Env, \HS \eps 2=\TAG{\e_2}\Env\any
 \\[1mm]
-TTR5 \TRG{\Call{\e_1}\m{\e_2}}\Env \>= \src{\KCall{\eps 1}{\m}{\eps 2}{\t[2]}{\tp[2]}} 
+\trulename{TTH5} \TRG{\Call{\e_1}\m{\e_2}}\Env \>= \src{\KCall{\eps 1}{\m}{\eps 2}{\t[2]}{\tp[2]}} 
 \>\WHERE\HS   \TypeCk{\K,\Env}{\e_1}\C, \HS  \eps 1 = \TRG{\e_1}\Env, \HS
  \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C, \HS  \eps 2 = \TAG{\e_2}\Env{\t[2]}, \\
  \> \> \> \t[2] = \kty{\t[1]}, \HS \tp[2] = \kty{\tp[1]}
 \\[1mm]
-TTR6 \TRG{\New\C{\e_1..}}\Env\> = \src{\New\C{\eps 1..}} 
+\trulename{TTH6} \TRG{\New\C{\e_1..}}\Env\> = \src{\New\C{\eps 1..}} 
      \>\WHERE\HS    \Ftype{\f_1}{\t_1}\In\C, \HS  \eps 1 = \TAG{\e_1}\Env{\t_1} ..
 \\[1mm]
-TTR7 \TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
+\trulename{TTH7} \TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
 \\[1mm]
-TTR8 \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+\trulename{TTH8} \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
 \>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
@@ -2901,17 +2901,17 @@ TTR8 \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
   \>\mdsp 1 = \src{\Mdef\m\x\any\any\ep},\HS\HS \>\>\ep = \TR{\e}
 \end{tabbing}
 \begin{tabbing}
-TTS1 \TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
+\trulename{TTS1} \TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
 \\[1mm]
-TTS2 \tr e{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
+\trulename{TTS2} \tr e{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
 \\[1mm]
-TTS3 \TR\this           \>= \src{\SubCast\any\this}
+\trulename{TTS3} \TR\this           \>= \src{\SubCast\any\this}
 \\[1mm]
-TTS4 \TR\x \> = \src \x
+\trulename{TTS4} \TR\x \> = \src \x
 \\[1mm]       
-TTS5 \TR{\Call{\e_1}\m{\e_2}} \> = \src{\DynCall{\eps 1}{\m}{\eps 2}} \HS\>\WHERE\HS\eps 1 = \TR{ \e_1}, \HS \eps 2 = \TR{\e_2}
+\trulename{TTS5} \TR{\Call{\e_1}\m{\e_2}} \> = \src{\DynCall{\eps 1}{\m}{\eps 2}} \HS\>\WHERE\HS\eps 1 = \TR{ \e_1}, \HS \eps 2 = \TR{\e_2}
 \\[1mm]
-TTS6 \TR{\New\C{\e_1..}} \> = \src{\SubCast\any{\New\C{\eps 1..}}} \HS \>\WHERE \HS   \eps 1 = \TR{\e_1} ..
+\trulename{TTS6} \TR{\New\C{\e_1..}} \> = \src{\SubCast\any{\New\C{\eps 1..}}} \HS \>\WHERE \HS   \eps 1 = \TR{\e_1} ..
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -2934,38 +2934,38 @@ TTS6 \TR{\New\C{\e_1..}} \> = \src{\SubCast\any{\New\C{\eps 1..}}} \HS \>\WHERE 
 \eps 1 = \TRG{\e_1}{\x:\t\,\this:\C}
 \end{tabbing}
 \begin{tabbing}
-TTK1 \TRG\x\Env = \src{\x}
+\trulename{TTK1} \TRG\x\Env = \src{\x}
 \\[1mm]
-TTK2 \TRG{\FRead\f}\Env  = \src{\FRead\f}
+\trulename{TTK2} \TRG{\FRead\f}\Env  = \src{\FRead\f}
 \\[1mm]
-TTK3 \TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{.5cm}
+\trulename{TTK3} \TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{.5cm}
 \=\WHERE
 \= \TypeCk\K{\e_1}\C, \HS\HS
 \= \Ftype\f\t\In\App\K\C, \hspace{1cm}
 \=  \eps 1 = \TRG{\e_1}\Env,\HS\HS\HS
 \= \eps 2 = \TAG\e\Env\t
 \\[1mm]
-TTK4 \TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\DynCall{\eps 1}\m{\eps 2}}
+\trulename{TTK4} \TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\DynCall{\eps 1}\m{\eps 2}}
 \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS
 \> \eps 1 = \TRG{\e_1}\Env,\HS
 \> \eps 2 = \TAG{\e_2}\Env\any
 \\
-TTK5 \TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\KCall{\eps 1}{\m}{\eps 2}{\D_1}{\D_2}}
+\trulename{TTK5} \TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\KCall{\eps 1}{\m}{\eps 2}{\D_1}{\D_2}}
 \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\C, \HS
 \> \Mtype\m{\D_1}{\D_2}\In\App\K\C, \HS
 \> \eps 1 = \TRG{\e_1}\Env,\HS
 \> \eps 2 = \TAG{\e_2}\Env{\D_1}
 \\[1mm]
-TTK6 \TRG{\New\C{\e_1..}}\Env =  \src{\New\C{\eps 1..}}
+\trulename{TTK6} \TRG{\New\C{\e_1..}}\Env =  \src{\New\C{\eps 1..}}
    \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C ~..
    \>       \>  \eps 1 = \TAG{\e_1}\Env{\t_1} ~..
 \\[1mm]
-TTK7 \TAG\e\Env\t = \src\ep
+\trulename{TTK7} \TAG\e\Env\t = \src\ep
 \> \WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
 \> \EM{\K\vdash \t \Sub \tp},
 \>  \ep = \TRG\e\Env
 \\[1mm]
-TTK8 \TAG\e\Env\t = \src{\BehCast\t\e}
+\trulename{TTK8} \TAG\e\Env\t = \src{\BehCast\t\e}
 \>\WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
    \> \EM{\K\vdash \t \not \Sub \tp}
    \>     \ep = \TRG\e\Env
@@ -2991,39 +2991,39 @@ TTK8 \TAG\e\Env\t = \src{\BehCast\t\e}
    \eps 1 = \TAG\e{\x:\t\,\this:\C}\tp~ ..
 \end{tabbing}
 \begin{tabbing}
-\TRG\this\Env \hspace{1cm} \= = \src\this
+\trulename{TTR1} \TRG\this\Env \hspace{1cm} \= = \src\this
 \\[1mm]
-\TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
+\trulename{TTR2} \TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
 \\[1mm]
-\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C,\HS\HS\=\Ftype\f\t\In\App\K\C
+\trulename{TTR3} \TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C,\HS\HS\=\Ftype\f\t\In\App\K\C
 \\[1mm]
-\TRG{\FWrite\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
+\trulename{TTR4} \TRG{\FWrite\f1\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
   \>\WHERE\HS
   \TypeCk\K\this\C,
   \> \Ftype\f\t\In\App\K\C, \hspace{.7cm}
   \= \ep = \TAG\e\Env\any
 \\[1mm]
-  \TRG{\Call{\e1_1}\m{\e_2}}\Env \>= \src{\DynCall{\eps 1}\m{\eps 2}}
+\trulename{TTR5}   \TRG{\Call{\e1_1}\m{\e_2}}\Env \>= \src{\DynCall{\eps 1}\m{\eps 2}}
   \>\WHERE \HS 
   \TypeCk{\K,\Env}{\e_1}\any, \HS
   \> \eps 1 = \TRG{\e_1}\Env, 
   \> \eps 2 = \TAG{\e_2}\Env\any
 \\[1mm]
-\TRG{\Call{\e1_1}\m{\e_2}}\Env \>= \src{\SubCast\tp{\KCall{\eps 1}\m{\eps 2}\t\tp}}
+\trulename{TTR6} \TRG{\Call{\e1_1}\m{\e_2}}\Env \>= \src{\SubCast\tp{\KCall{\eps 1}\m{\eps 2}\t\tp}}
    \>\WHERE\HS
    \TypeCk{\K,\Env}{\e_1}\C,
    \> \Mtype\m\t\tp\In\App\K\C,\HS
    \> \eps 1 = \TRG{\e_1}\Env, \HS\HS
    \eps 2 = \TAG{\e_2}\Env\any
 \\[1mm]
-\TRG{\New\C{\e_1..}}\Env \>=  \src{\New\C{\eps 1..}} \>\WHERE\HS
+\trulename{TTR7} \TRG{\New\C{\e_1..}}\Env \>=  \src{\New\C{\eps 1..}} \>\WHERE\HS
 \Ftype{\f_1}{\t_1}\In\App\K\C,
   \>\eps 1 = \TAG{\e_1}\Env{\t_1} ~..
 \\[1mm]
-\TAG\e\Env\t \>= \src{\SubCast\t\e}
+\trulename{TTR8} \TAG\e\Env\t \>= \src{\SubCast\t\e}
     \>\WHERE\HS \TypeCk{\K,\Env}\e\tp, \> (\t = \any \OR \tp = \any),\HS \> \ep = \TRG\e\Env
 \\[1mm]
-\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp, \HS\>(\EM{\ConSub{}\K\t\tp}),\HS \> \ep = \TRG\e\Env
+\trulename{TTR9} \TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp, \HS\>(\EM{\ConSub{}\K\t\tp}),\HS \> \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -3539,30 +3539,30 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
   \begin{case}{STHC-SUB}
     \begin{case}{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}
-      \step{$\TAG\e\Env\tp = \ep$}{TTR7 on \trf{cond6}, case}\lbl{CS2}
+      \step{$\TAG\e\Env\tp = \ep$}{TTH7 on \trf{cond6}, case}\lbl{CS2}
       \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on case, \trf{CS2}, \trf{cond6}}
     \end{case}
 
     \begin{case}{$\StrNotSub\cdot\Kp{\kty\t}{\kty\tp}$}
-      \step{$\TAG\e\Env\tp = \SubCast{\kty\tp}\ep$}{TTR8 on \trf{cond6}, case}\lbl{CS2}
+      \step{$\TAG\e\Env\tp = \SubCast{\kty\tp}\ep$}{TTH8 on \trf{cond6}, case}\lbl{CS2}
       \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\tp}\ep}{\kty\tp}$}{\RuleRef{KT-SUBCAST} on case, \trf{CS2}, \trf{cond6}}
     \end{case}
   \end{case}
 
   % WTS: \EnvType\Envp\cdot\Kp{\ep}{\any}
   \begin{case}{STHC-TOANY}
-    \step{$\TAG\e\Env\any = \SubCast\any\ep$}{TTR8 on case}
+    \step{$\TAG\e\Env\any = \SubCast\any\ep$}{TTH8 on case}
     \step{$\EnvType\Envp\cdot\Kp{\SubCast\any\ep}{\any}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
   \end{case}
 
   % WTS: \EnvType\Envp\cdot\Kp{\ep}{\C}
   \begin{case}{STHC-OPTCONC}
-    \step{$\TAG\e\Env\C = \SubCast\C\ep$}{TTR8 on case}
+    \step{$\TAG\e\Env\C = \SubCast\C\ep$}{TTH8 on case}
     \step{$\EnvType\Envp\cdot\Kp{\SubCast\C\ep}{\C}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
   \end{case}
 
   \begin{case}{STHC-ANYCONC}
-    \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTR8 on case}
+    \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTH8 on case}
     \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
   \end{case}
 
@@ -3584,13 +3584,13 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
 
     \begin{case}{STH-VAR}
-      \step{$\TRG{\x}\Env = \x$}{TTR1}\lbl{TSSL1}
+      \step{$\TRG{\x}\Env = \x$}{TTH1}\lbl{TSSL1}
       \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond6}, \RuleRef{KT-VAR}}\lbl{TSSL2}
       \done{\trf{TSSL2}}      
     \end{case}
 
     \begin{case}{STH-GET}
-      \step{$\TRG{\FRead\f}\Env = \FRead\f$}{TTR2}\lbl{TSSL3}
+      \step{$\TRG{\FRead\f}\Env = \FRead\f$}{TTH2}\lbl{TSSL3}
       \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL4}
     \end{case}
 
@@ -3602,7 +3602,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{TSSL6}}\lbl{TSSL7}
       \slet{\epp}{{\TAG\e\Env{\t}}}\lbl{TSSA2}
       \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{TSSL7}}\lbl{TSSL8}
-      \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{TTR3 on \trf{TSSA2},\trf{TSSL5},\trf{cond5}}\lbl{TSSL8}
+      \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{TTH3 on \trf{TSSA2},\trf{TSSL5},\trf{cond5}}\lbl{TSSL8}
       \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{TSSL8},\trf{TSSL5},\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL9}
     \end{case}
 
@@ -3621,12 +3621,12 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{$\EnvType\Envp\cdot\Kp{\epp_2}{\kty\tp}$}{lemma \ref{lem:THT-COMP} on \trf{THCA5}, \trf{THCA7}}\lbl{THCA8}
 
       \begin{case}{$\t[a] = \C$}
-        \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}$}{TTR5 on \trf{THCA2},\trf{THCA8},\trf{THCA3}}
+        \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}$}{TTH5 on \trf{THCA2},\trf{THCA8},\trf{THCA3}}
         \step{$\EnvType\Envp\cdot\Kp{\KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA6},\trf{THCA8},\trf{cond5},\RuleRef{KT-CALL}}\lbl{TSSL9}
       \end{case}
 
       \begin{case}{$\t[a] = \CW$}
-        \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \DynCall{\e_2}\m{\epp_2}$}{TTR4 on \trf{THCA2},\trf{THCA8}}
+        \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \DynCall{\e_2}\m{\epp_2}$}{TTH4 on \trf{THCA2},\trf{THCA8}}
         \step{$\EnvType\Envp\cdot\Kp{\KCall{\e_2}\m{\epp_2}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA2},\trf{THCA8},\RuleRef{KT-DYNCALL}}\lbl{TSSL10}
       \end{case}
     \end{case}
@@ -3637,7 +3637,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{$\EnvTypeW\Env\K{\ep_1}\any$}{case}\lbl{THCD3}
       \slet{$\e_2$}{${\TRG{\e_1}\Env}$}\lbl{TSSD1}
       \slet{$\ep_2$}{${\TRG{\ep_1}\Env}$}\lbl{TSSD2}
-      \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \DynCall{\e_2}\m{\ep_2}$}{TTR4 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCD4}
+      \step{$\TRG{\Call{\e_1}\m{\ep_1}}\Env = \DynCall{\e_2}\m{\ep_2}$}{TTH4 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCD4}
       \step{$\EnvType\Envp\cdot\Kp{\e_2}\any$}{IH on \trf{THCD2}}\lbl{THCD5}
       \step{$\EnvType\Envp\cdot\Kp{\ep_2}\any$}{IH on \trf{THCD3}}\lbl{THCD6}
       \step{$\EnvType\Envp\cdot\Kp{\DynCall{\e_2}\m{\ep_2}}{\kty\t}$}{\trf{THCD5},\trf{THCD6},\RuleRef{KT-DYNCALL}}\lbl{THCD9}
@@ -3651,7 +3651,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\kty{\tp_i}}$}{IH on \trf{THCN2}}\lbl{THCN4}
       \slet{$\epp_i$}{${\TAG{\ep_i}\Env{{\t_i}}}$ for all $i$}\lbl{TSSN2}
       \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\kty{\t_i}}$}{lemma \ref{lem:THT-COMP} on \trf{TSSN2}, \trf{THCN2}}\lbl{THCN5}
-      \step{$\TRG{\New\C{\e_1,\ldots}}\Env = \New\C{\epp_1,\ldots}$}{TTR6 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCN6}
+      \step{$\TRG{\New\C{\e_1,\ldots}}\Env = \New\C{\epp_1,\ldots}$}{TTH6 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCN6}
       \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp_1,\ldots}}{\kty\t}$}{\trf{THCN5},\RuleRef{KT-NEW}}\lbl{THCN7}
     \end{case}
   \end{proof}
@@ -3724,12 +3724,25 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
 
     \begin{case}{STT-VAR}    
+      \slet{$\ep$}{$\TRG{\x}\Env$}\lbl{STTVar1}
+      \step{$\ep = \SubCast\t\x$}{TTR2 on \trf{cond4}, \trf{STTVar1}}
+      \step{$\EnvType\Envp\cdot\Kp\x\any$}{\trf{cond5}, case}\lbl{STTVar2}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t\x}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTVar2}}
     \end{case}
 
     \begin{case}{STT-GET}
+      \slet{$\ep$}{$\TRG{\FRead\f}\Env$}\lbl{STTGet1}
+      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond5} on case}\lbl{STTGet2}
+      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTGet3}
+      \step{$\ep = \SubCast\t{\FRead\x}$}{TTR3 on \trf{STTGet2}, \trf{STTGet3}}
+      \step{$\EnvType\Envp\cdot\Kp{\FRead\x}\t$}{\RuleRef{KT-REFREAD} on \trf{STTGet2}, \trf{STTGet3}}
     \end{case}
 
     \begin{case}{STT-SET}
+      \slet{$\ep$}{$\TRG{\FWrite\f\e}\Env$}\lbl{STTSet1}
+      \slet{$\epp$}{$\TRG{\e}\Env$}\lbl{STTSet2}
+      \step{$\EnvType\Envp\cdot\Kp\epp\t$}{IH on \trf{STTSet2}}\lbl{STTSet3}
+      \step{$\ep = \SubCast\t{\FWrite\f\epp}$}{TTR2 on \trf{cond4}, \trf{STTVar1}}
     \end{case}
 
     \begin{case}{STT-CALL}
