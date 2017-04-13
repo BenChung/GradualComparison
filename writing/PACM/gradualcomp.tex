@@ -761,13 +761,13 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 \end{array}\]
 
-  \begin{mathpar}
+\begin{mathpar}
   
 \IRule{BC1}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \fresh\ap \\
-  \fresh\that \\
+  \App\s\a = \obj\C{\b{\a_1}}  \qquad
+  \freshb\D \qquad
+  \freshb\ap \qquad 
+  \freshb\that \\
   \cload{\classoff\C\K} \\
   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
@@ -777,16 +777,42 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 }
 
 \IRule{BC2}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \fresh\ap \\
-  \fresh\that \\
+  \App\s\a = \obj\C{\b{\a_1}}  \qquad
+  \freshb\D \qquad
+  \freshb\ap \qquad
+  \freshb\that \\
   \k = \wrapAny\C{\classoff\C\K}\D\that\\
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
 }{
   \behcast\a\any\s\K {\K\,\k}\ap\sp
 }
 \end{mathpar}
+
+
+
+%%%%%%%%%%%%% new behcast %%%%%%%%%%%%%
+
+\begin{equation*}
+  \behcast\a\Cp\s\K {\K\,\k}\ap\sp ~~\mathit{if}~~ \begin{cases}
+  \App\s\a = \obj\C{\b{\a_1}} \\
+  \freshb\D \qquad \freshb\ap \qquad \freshb\that \\
+  \cload{\classoff\C\K} \\
+  \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\  
+  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\ 
+  \end{cases}
+\end{equation*}
+
+
+
+\begin{equation*}
+  \behcast\a\any\s\K {\K\,\k}\ap\sp  ~~\mathit{if}~~ \begin{cases}
+  \App\s\a = \obj\C{\b{\a_1}} \\
+  \freshb\D \qquad \freshb\ap \qquad \freshb\that \\
+  \k = \wrapAny\C{\classoff\C\K}\D\that\\
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\ 
+  \end{cases}
+\end{equation*}
 
 
 \hrulefill
