@@ -1029,8 +1029,6 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 
 \begin{figure}
 \hrulefill
-
-%\opdef{\ConvertE\K{s}\t\tp}{type convertibility between \t and \tp.}
 \begin{mathpar}
 
 \IRule{STGC-SUB}{
@@ -1063,12 +1061,6 @@ To avoid unnecessary clutter, we represent the source languages using the ideali
 }{
   \EnvTypeS \Env\K{\FRead\f}\t
 }    
-%\end{mathpar} \\
-
-
-%\opdef{\EnvTypeS\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
-%\begin{mathpar}
-
 
 \IRule{STG-SET}{
   \HasType \Env\this\C \\
@@ -1222,7 +1214,7 @@ definition and the last expression above as:
 ...The casts inserted in the translation are there to keep the kafka type system happy and have no operational effect
 
 
-
+% \clearpage
 
 \subsection{Thorn}
 
@@ -1261,6 +1253,84 @@ inserts structural casts to \code{C} when an expression of type \any, or of type
     n(x:  C):  C { x } }
 \end{lstlisting}
 
+
+\begin{figure}
+\hrulefill
+\begin{mathpar}
+
+\IRule{STHC-SUB}{
+  \ThorSub\cdot\K\t\tp
+}{
+  \ConvertE\K{th}\t\tp
+}
+
+\IRule{STHC-TOANY}{
+}{
+  \ConvertE\K{th}\t\any
+}
+
+\IRule{STHC-OPTCONC}{
+  \ThorSub\cdot\K\C\D
+}{
+  \ConvertE\K{th}\CW\D
+}
+
+\IRule{STHC-ANYCONC}{
+}{
+  \ConvertE\K{th}\any\tp
+}
+
+\IRule{STH-VAR}{
+   \HasType \Env\x\t
+ }{
+   \EnvTypeW \Env\K\x\t
+}
+
+\IRule{STH-GET}{
+  \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeW \Env\K{\FRead\f}\t
+}    
+
+\IRule[width=20em]{STH-SET}{
+  \HasType \Env\this\C \\
+  \Fdef\f\t \in \App\K\C \\
+  \EnvTypeW \Env\K\e\tp \\
+  \ConvertE\K{th}\tp\t
+}{
+  \EnvTypeW \Env\K{\FWrite\f\e}\t
+}    
+
+\IRule[width=20em]{STH-CALL}{
+  \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\
+  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\
+  \EnvTypeW \Env\K\ep\tpp \\
+  \ConvertE\K{th}\tpp\t
+}{
+  \EnvTypeW \Env\K{\Call\e\m\ep}\tp
+}    
+
+\IRule[width=20em]{STH-DCALL}{
+  \EnvTypeW \Env\K\e\any \\
+  \EnvTypeW \Env\K\ep\tpp \\
+  \ConvertE\K{th}\tpp\any
+}{
+  \EnvTypeW \Env\K{\Call\e\m\ep}\any
+}    
+
+\IRule{STH-NEW}{
+ \EnvTypeW \Env\K{\e_1}{\tp_1} ~~\dots~~ \EnvTypeW \Env\K{\e_n}{\tp_n} \\
+ \ConvertE\K{th}{\tp[1]}{\t[1]} ~~\dots~~ \ConvertE\K{th}{\tp[n]}{\t[n]} \\
+ \b\fd=\Fdef{\f_1}{\t_1}~\dots~\Fdef{\f_n}{\t_n} \\ 
+  \Class \C {\b\fd}{\b\md} \in \K
+}{
+  \EnvTypeW \Env\K{\New\C{\e_1\dots\e_n}}\C
+}
+\end{mathpar}
+\hrulefill
+\caption{Thorn type system}\label{f:thornts}
+\end{figure}
 
 To model Thorn we extend the syntax of source terms with an ``unsound'' type
 written $\dt\C$, which has its own subtyping relation, and compiles down to
@@ -1340,6 +1410,34 @@ expecting a \code C.  When translating to \kafka, all types are erased and casts
 are inserted on method entry and prior to returning.
 
 ...removed broken translation 
+
+\begin{figure}
+\hrulefill
+\begin{mathpar}
+
+\IRule{STTC-SUB}{
+  \ConSub\cdot\K\t\tp
+}{
+  \ConvertE\K{tr}\t\tp
+}
+
+\IRule{STTC-TOANY}{
+}{
+  \ConvertE\K{tr}\t\any
+}
+
+\IRule{STTC-ANYCONC}{
+}{
+  \ConvertE\K{tr}\any\tp
+}
+
+\end{mathpar}
+\hrulefill
+\caption{Transient convertibility rules}\label{f:transientts}
+\end{figure}
+
+The expression typing rules for our Transient Racket source is identical to the 
+typing rules, presented in figure \ref{f:typescriptts}, for our TypeScript source.
 
 \noindent The translated class \code A has a check to validate that the
 argument to \code m has all the methods defined by \code C.
@@ -1485,6 +1583,8 @@ resolution) but calls can still fail at casts within the wrapper. An easily
 overlooked, but significant, feature of Racket is that the \this variable is
 wrapped by any wrapper(s) applied at the call site.
 
+The complete type system for our Typed Racket source is identical to the type
+system of our TypeScript source presented in figure \ref{f:typescriptts}.
 
 Our model of Typed Racket does not preserve the ``macro'' model of gradual
 typing of the source language, as it does not effect the fundamental
