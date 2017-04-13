@@ -736,32 +736,18 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 \[
 \begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-%    \wrap\C\bmt\bmtp\D\that = \\
-%\SP \class ~\D ~ \{\\
-%\SPP \Fdef\that\C \\
-%\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }}~}
-%&     \textit{if}\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~ \Mtype\m\any\any\not\in\bmtp} \\
-%\\[-3mm]
-%\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\KCall{\this.\that()_{\C}} \m {\bscast\any\x}\any\any }~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~  \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~  \Mtype\m\any\any\not\in\bmtp } \\
-%\\[-3mm]
-%\SPP \Mdef\m\x\any\any{~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast{\Cp}\x}\Cp\Cpp}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~   \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~  \Mtype\m\Dp\Dpp\not\in\bmtp } \\
-%\\[-3mm]
-%\SPP \Mdef\m\x\any\any{~{\KCall{\this.\that()_{\C}}\m{\x}\any\any}~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~ \\
-%&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\not\in\bmtp} \\
-%\\[-3mm]
-%\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
-%&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-%\\[-3mm]
-%\SP \}
-%\\[3mm]
+  \wrap{\C}{\mt_1..}{\mtp_1..}{\D}{\that} = \src{\class ~ \{ \Fdef\that\C \mtpp_1.. \} }\\
+  \WHERE  \mtp = \src{ \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\FRead\this\that} \m {\bscast{\t}\x}\t\tp }}~}}
+&     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
+\\[-3mm]
+\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
+&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+\\[-3mm]
+\SP \}
+\\[3mm]
 
-\wrap{\C}{\bmt}{\bmtp}{\D}{\that} = \\
+
+ \wrap{\C}{\bmt}{\bmtp}{\D}{\that} = \\
 \SP \class ~\D ~ \{\\
 \SPP \Fdef\that\C \\
 \SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
