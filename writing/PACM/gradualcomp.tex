@@ -857,7 +857,7 @@ Proof is in the Appendix.
 \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
 \e &::=  \x          &\B \this          \\
    &\B \New\C{\b\e}  &\B \FRead\f       \\
-   &\B \FWrite\f\e   &\B \Call\e\m\e   &\B \a \\ 
+   &\B \FWrite\f\e   &\B \Call\e\m\e    \\ 
 \end{tabular}\end{minipage}
 \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\b\fd}{\b\md}\\
@@ -867,14 +867,14 @@ Proof is in the Appendix.
 \end{tabular}\end{minipage}
 
 \hrulefill
-\caption{Idealised syntax of source languages}\label{f:sourcesyntax}
+\caption{Common syntax of source languages}\label{f:sourcesyntax}
 \end{figure}
 
 \noindent
 We are now ready to give semantics to the four gradual type systems of interest, by translating them into \kafka. 
 Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the run-time of each language, highlighting the similarities and differences among them.   
 
-To avoid unnecessary clutter, we represent the source languages using the idealised syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without method overloading and, most importantly, cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
+To avoid unnecessary clutter, we represent the source languages using the common syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without method overloading and, most importantly, cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
 
 
 
@@ -1060,12 +1060,9 @@ definition and the last expression above as:
 \end{figure}
 
 
-\noindent  All TypeScript types are represented with the dynamic \kafka type, \any, and all translated expressions have type \any.  The casts inserted in the translation are there to keep the kafka type system happy and have no operational effect.
+\noindent  All TypeScript types are represented with the dynamic \kafka type, \any, and all translated expressions have type \any.  This is a simple instance of a general property that all our translations into \kafka satisfy.  Let \(\kty\t\) be a mapping from source types to \kafka types -- for TypeScript the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then holds that if \e is a well-typed source expression with type \t, then \TR{\e} is a well-typed \kafka expression with type \kty{\t}.  The precise statement and proof are reported in the Appendix.
 
-  The unsoundness comes from the use of \TR a(\any,\e) which discards the type of \e.
-
-...The casts inserted in the translation are there to keep the kafka type system happy and have no operational effect
-
+Observe that the TypeScript translations does insert some structural casts to \any, but these have no operational effect (a structural cast to \any always succeed at runtime) and are only needed to satisfy the constraints of the \kafka type system.  The unsoundness comes from discarding the type of the callee and systematically relying on  dynamic method invocation for method calls.
 
 % \clearpage
 
