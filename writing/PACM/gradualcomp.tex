@@ -1243,8 +1243,28 @@ define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
 \kafka subtyping except in that \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D
 both hold if \C~\src\Sub~\D.  
 
-...Explain translation
 
+\FZ{FROM HERE}
+
+...Explain translation  --- random ideas ---
+
+
+how does the translation work:
+
+- types: * and ?C are mapped to * ; C are mapped to C
+
+- we use two functions [[ ]] and (( )):
+
+  -- [[ ]] translates terms (since we need to typecheck we carry an environment of free variables).  The interesting case is when we translate method invocation.  If, by typechecking, the callee has a dynamic or optional type (eg. kty( t ) = *, the we map it to dynamic method invocation.  Otherwise we compile to the static method invocation. 
+
+- The type of the method imposes a type for the methods.  This might / might not require casts to be inserted to satisfy this constraint.   the arguments are more interesting...  we know the type we must translate them to.  so we use a second function (()) to translate them, possibly inserting casts.  this second function translates the argument t with the usual [[]] function, but then checks the ktys types expected and obtained, and if needed inserts a structural cast to preserve the integrity of the method invocation (eg. if that was expecting a C).
+
+- translation of classes (interesting because for the first time we see why we need overloading in kafka): 
+  -- we generate a method from kty(t1) to kty(t2), inserting a cast around the return value if needed. 
+  --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
+  
+ 
+\FZ{TO HERE}
 
 
 \begin{figure}[!h]
