@@ -3767,14 +3767,36 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \slet{$\e$}{$\TRG{\Call{\e_1}\m{\ep_1}}\Env$}\lbl{STTCall1}
       \slet{$\e_2$}{$\TRG{\e_1}\Env$}\lbl{STTCall2}
       \slet{$\ep_2$}{$\TRG{\ep_1}\Env$}\lbl{STTCall3}
-      \slet{$\epp_2$}{$\TAG{\ep_1}\Env\t$}\lbl{STTCall4}
+      \slet{$\epp_2$}{$\TAG{\ep_1}\Env\any$}\lbl{STTCall4}
       \step{$\e = \SubCast\t{\KCall{\e_2}\m{\epp_2}\any\any}$}{TTR6 on case}
+      \step{$\EnvType\Envp\cdot\Kp{\e_2}\C$}{IH on case}\lbl{STTCall5}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_2}\tpp$}{IH on case}\lbl{STTCall6}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_2}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTCall6}}\lbl{STTCall7}
+      \step{$\Mtype\m\any\any \in \classoff\C\Kp$}{\trf{cond5}}\lbl{STTCall8}
+      \step{$\EnvType\Envp\cdot\Kp{\KCall{\e_2}\m{\epp_2}\any\any}\any$}{\RuleRef{KT-CALL} on \trf{STTCall5},\trf{STTCall8},\trf{STTCall7}}\lbl{STTCall9}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\KCall{\e_2}\m{\epp_2}\any\any}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTCall9}}
     \end{case}
 
     \begin{case}{STT-DCALL}
+      \slet{$\e$}{$\TRG{\Call{\e_1}\m{\ep_1}}\Env$}\lbl{STTDCall1}
+      \slet{$\e_2$}{$\TRG{\e_1}\Env$}\lbl{STTDCall2}
+      \slet{$\ep_2$}{$\TRG{\ep_1}\Env$}\lbl{STTDCall3}
+      \slet{$\epp_2$}{$\TAG{\ep_1}\Env\any$}\lbl{STTDCall4}
+      \step{$\EnvType\Envp\cdot\Kp{\e_2}\any$}{IH on case}\lbl{STTDCall5}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_2}\tpp$}{IH on case}\lbl{STTDCall6}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_2}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTDCall3},\trf{STTDCall6}, case}\lbl{STTDCall7}
+      \step{$\e = {\DynCall{\e_2}\m{\epp_2}}$}{TTR5 on case}
+      \step{$\EnvType\Envp\cdot\Kp{\DynCall{\e_2}\m{\epp_2}}\any$}{\RuleRef{KT-DYNCALL} on \trf{STTDCall5}, \trf{STTDCall7}}\lbl{STTCall8}
     \end{case}
 
     \begin{case}{STT-NEW}
+      \slet{$\e$}{$\TRG{\New\C{\e_i \ldots}}\Env$}\lbl{STTNew1}
+      \slet{$\ep_i$}{$\TRG{\e_i}\Env$}\lbl{STTNew2}
+      \slet{$\epp_i$}{$\TAG{\e_i}\Env{\t_i}$}\lbl{STTNew3}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\tp_i}$}{IH on case}\lbl{STTNew4}
+      \step{$\Fdef{\f_i}\any \ldots \in \App\Kp\C$}{\trf{cond4}}\lbl{STTNew5}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\t_i}$}{lemma \ref{lem:THTA-COMP} on \trf{STTNew4}, case}\lbl{STTNew6}
+      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp_i \ldots}}{\C}$}{\RuleRef{KT-NEW} on \trf{STTNew6}}
     \end{case}
   \end{proof}
 \end{lemma}
