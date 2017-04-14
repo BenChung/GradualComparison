@@ -567,6 +567,8 @@ the way their soundness is enforced at run-time is very different.
 
 \begin{figure}[!t] \hrulefill\small
 
+\vspace{-2mm}
+
 \begin{mathpar}
 \Rule{SAss}{
 \C \Sub \D \in \M
@@ -656,10 +658,8 @@ where \a is a reference.  The static typing of references
 (Fig.~\ref{f:staticsem}) can be either the class of the object they map to
 in the heap \s or the dynamic type \any.
 We also use evaluation contexts, \EE, defined as follows
-
-%\begin{minipage}{14cm}
 \[
-\begin{tabular}{l@{~~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l@{~}l}
+\begin{tabular}{llllllllllllllllll}
 \EE &::=& ~ \FWriteR\a\f\EE   &\B  
         \KCall\EE\m\e\t\t  &\B
         \KCall\a\m{\EE}\t\t &\B
@@ -671,7 +671,6 @@ We also use evaluation contexts, \EE, defined as follows
       \EM{\square}
 \end{tabular}
 \]
-
 \noindent
 The dynamic semantics is thus defined over \emph{configurations}: triples
 \K\e\s, where \K is a class table, \e is an expression and \s is a heap.  A
@@ -743,7 +742,7 @@ the class table.  The cast performs a semantic check that the source type
 has at least all the method names requested by the target type.  Also the
 cast is not define for classes with overloaded methods (\textsf{nodups}
 checks that).  This prevents ambiguity when in method resolution in wrapped
-objects. Similarly, when the target type is \any, the cast will allow \a to
+objects. Similarly, when the target type is \any, the cast allows \a to
 act like an instance of \any.
 
 \newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
@@ -751,6 +750,8 @@ act like an instance of \any.
 \begin{figure}[!b]
 \hrulefill
 \small
+
+\vspace{-4mm}
 
 \begin{equation*}
   \behcastE\a\Cp\s\K \Kp\ap\sp \HS\HS\WHERE\HS\HS \begin{cases}
@@ -778,7 +779,7 @@ act like an instance of \any.
 \hrulefill
 \small
 
-\begin{tabbing}
+\begin{tabbing}\small
   \wrap\C{\mds 1..}{\mdps 1..}\D\that = \src{\Class\D{\Fdef\that\C}{\mdpps 1..}}\\
   \HS\HS\WHERE\HS\= \Mdef\m\x{\t_1}{\t_2}\e\In\mds 1.. \\
                  \> \mdpps 1 =\= \src{\Mdef\m\x{\tp_1}{\tp_2}{~\BehCast{\tp_2}{\KCall{\FRead\that}\m{\bscast{\tp_1}\x}{\t_1}{\t_2}}}} ..
@@ -790,9 +791,8 @@ act like an instance of \any.
 \HS\HS\WHERE\HS\=\mdps 1 = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
     \HS\HS\HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\mds 1.. \\
 \end{tabbing}
-% \end{array}\]
-\vspace{-5mm}
 
+\vspace{-5mm}
 
 \hrulefill
 \vspace{-2mm}
@@ -832,7 +832,10 @@ class will contain every method of the source type.
 \paragraph{Type soundness} 
 Well-typed \kafka configurations satisfy a type-preservation theorem, and
 either reduce to values or are stuck on a dynamic method invocation or on a
-cast.  Formally: given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$,
+cast.  
+
+\medskip\noindent{\bf Theorem 1:} ~
+Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$,
 then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and
 $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is in one of
 the following forms: $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$,
