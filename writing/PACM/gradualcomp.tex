@@ -921,7 +921,6 @@ To avoid unnecessary clutter, we represent the source languages using the common
    \EnvTypeS \Env\K\x\t
 } 
 
-
 \IRule{STG-GET}{
    \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C
@@ -930,9 +929,9 @@ To avoid unnecessary clutter, we represent the source languages using the common
 }    
 
 \IRule{STG-SET}{
-  \HasType \Env\this\C \\
-  \Fdef\f\t \in \App\K\C \\
-  \EnvTypeS \Env\K\e\tp \\
+  \HasType \Env\this\C \qquad
+  {\Fdef\f\t \in \App\K\C} \\
+  \EnvTypeS \Env\K\e\tp \qquad
   \ConvertE\K{s}\tp\t
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
@@ -3471,49 +3470,94 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \begin{proof} \indmsg{\EnvTypeE\Env\K{s}\e\t}
 
     \begin{case}{STG-VAR}\lbl{A}
-      \step{$\TRG{\x}\Env = \x$}{\byjdg{TTS4}{\trf{cond4}}}\lbl{A1}
-      \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond4}, \trf{cond5}, \trf{cond6}, \RuleRef{KT-VAR}}\lbl{A2}
-      \done{\trf{A2}}      
+      \begin{case}{\x $\neq$ \this}\lbl{AA}
+	\step{$\TR{\x} = \x$}{\byjdg{TTS4}{case, \trf{cond4}}}\lbl{AA1}
+	\step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond4}, \trf{cond5}, \trf{cond6}, \RuleRef{KT-VAR}}\lbl{AA2}
+	\done{\trf{AA2}}
+      \end{case}
       
+      \begin{case}{\x = \this}\lbl{AB}
+	\step{\EnvTypeS\Env\K\this\t}{case}\lbl{AB1}
+	\step{\HasType\Env\this\t}{\byjdg{Inversion}{\trf{AB1}}}\lbl{AB2}
+	\step{\TR\this = \SubCast\any\this}{\byjdg{TTS3}{case, \trf{cond4}}}\lbl{AB3}
+	\step{\EnvType\Envp\cdot\Kp\this{\t}}{\byjdg{KT-VAR}{\trf{AB2}}}\lbl{AB4}
+	\step{\EnvType\Envp\cdot\Kp{\SubCast\any\this}{\any}}{\byjdg{KT-SBUCAST}{\trf{AB4}}}\lbl{AB5}
+	\done{\trf{AB5}}
+      \end{case}
     \end{case}
-
+    
     \begin{case}{STG-GET}\lbl{B}
-      \step{$\TRG{\FRead\f}\Env = \FRead\f$}{\byjdg{TTS1}{\trf{cond4}}}\lbl{B1}
-      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\trf{cond4}, \trf{cond5}, \trf{cond6}, \RuleRef{KT-READ}}\lbl{B2}
+      \step{$\TR{\FRead\f} = \FRead\f$}{\byjdg{TTS1}{\trf{cond4}}}\lbl{B1}
+      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\byjdg{KT-READ}{\trf{cond4}, \trf{cond5}, \trf{cond6}}}\lbl{B2}
       \done{\trf{B2}}
     \end{case}
 
     \begin{case}{STG-SET}\lbl{C}
-      \step{$\EnvTypeW\Env\K{\FWrite\f\e}\t$}{case}\lbl{C1}
-      \step{$\Convertible\K\tp\t$}{case}\lbl{C2}
-      \step{$\EnvTypeW\Env\K\e\tp$}{inversion on \trf{C1}}\lbl{C3}
+      \step{$\EnvTypeS\Env\K{\FWrite\f\e}\t$}{case}\lbl{C1}
+      \step{$\ConvertE\K{s}\tp\t$}{case}\lbl{C2}
+      \step{$\EnvTypeS\Env\K\e\tp$}{inversion on \trf{C1}}\lbl{C3}
       \slet{\ep}{\TRG\e\Env}\lbl{C4}
-      \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{C3}}\lbl{C5}
-      \slet{\epp}{{\TAG\e\Env{\t}}}\lbl{C6}
-      \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{C5}}\lbl{C7}
-      \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{\byjdg{TTS2}{\trf{C6}, \trf{C1}, \trf{cond5}}}\lbl{C8}
-      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{C8}, \trf{C1}, \trf{cond5}, \RuleRef{KT-READ}}\lbl{C9}    
+      \step{$\EnvType\Envp\cdot\Kp\ep{\any}$}{\byjdg{Ind Hyp.}{\trf{C3}, \trf{C4}}}\lbl{C5}
+      \step{$\TR{\FWrite\f\e} = \FWrite\f\ep$}{\byjdg{TTS2}{\trf{C1}, \trf{C4}, \trf{cond5}}}\lbl{C6}
+      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\ep}{\any}$}{\byjdg{KT-WRITE}{\trf{C6}, \trf{C5}, \trf{cond5}}}\lbl{C7}    
+      \done{\trf{C7}}
     \end{case}
-
-%       \step{$\EnvTypeW\Env\K{\FWrite\f\e}\t$}{case}\lbl{TSSL5}
-%       \step{$\Convertible\K\tp\t$}{case}\lbl{TSSLC}
-%       \step{$\EnvTypeW\Env\K\e\tp$}{inversion on \trf{TSSL5}}\lbl{TSSL6}
-%       \slet{\ep}{\TRG\e\Env}\lbl{TSSA1}
-%       \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{TSSL6}}\lbl{TSSL7}
-%       \slet{\epp}{{\TAG\e\Env{\t}}}\lbl{TSSA2}
-%       \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{TSSL7}}\lbl{TSSL8}
-%       \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{TTH3 on \trf{TSSA2},\trf{TSSL5},\trf{cond5}}\lbl{TSSL8}
-%       \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{TSSL8},\trf{TSSL5},\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL9}
     
     \begin{case}{STG-CALL}\lbl{D}
-      \step{}{}\lbl{}
+      \step{\EnvTypeS\Env\K{\Call{\e}\m{\ep}}\tp}{case}\lbl{D1}
+      
+      \begin{steps}{\byjdg{Inversion lemma}{\trf{D1}}}
+	\step{\EnvTypeS\Env\K{\e}{\C}}\lbl{D2}
+	\step{\EnvTypeS\Env\K{\ep}{\tpp}}\lbl{D3}
+	\step{\Mtype\m\t\tp $\in$ \classoff\C\K}\lbl{D4}
+	\step{\ConvertE\K{s}\tpp\t}\lbl{D5}
+      \end{steps}
+      
+      \slet{\e$_1$}{\TRG\e\Env}\lbl{D6}
+      \slet{\ep$_{1}$}{\TRG\ep\Env}\lbl{D7}
+      \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e_1}\m{\ep_1}}{\byjdg{TTS4}{\trf{D6}, \trf{D7}, \trf{D1}}}\lbl{D8}
+      \step{\EnvType\Envp\cdot\Kp{\e_1}\any}{\byjdg{Ind Hyp.}{\trf{D2}, \trf{cond5}, \trf{cond6}}}\lbl{D9}
+      \step{\EnvType\Envp\cdot\Kp{\ep_1}\any}{\byjdg{Ind Hyp.}{\trf{D3}, \trf{cond5}, \trf{cond6}}}\lbl{D10}
+      \step{\EnvType\Envp\cdot\Kp{\DynCall{\e_1}\m{\ep_1}}{\any}}{\byjdg{KT-DYNCALL}{\trf{D9}, \trf{D10}}}\lbl{D11}
+      \done{\trf{D11}}
+    \end{case}
+    
+    \begin{case}{STG-DCALL}\lbl{E}
+      \step{\EnvTypeS\Env\K{\Call{\e}\m{\ep}}\any}{case}\lbl{E1}
+      
+      \begin{steps}{\byjdg{Inversion lemma}{\trf{E1}}}
+	\step{\EnvTypeS\Env\K{\e}{\any}}\lbl{E2}
+	\step{\EnvTypeS\Env\K{\ep}{\tpp}}\lbl{E3}
+	\step{\ConvertE\K{s}\tpp\any}\lbl{E4}
+      \end{steps}
+      
+      \slet{\e$_1$}{\TRG\e\Env}\lbl{E5}
+      \slet{\ep$_{1}$}{\TRG\ep\Env}\lbl{E6}
+      \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e_1}\m{\ep_1}}{\byjdg{TTS4}{\trf{E5}, \trf{E6}, \trf{E1}}}\lbl{E7}
+      \step{\EnvType\Envp\cdot\Kp{\e_1}\any}{\byjdg{Ind Hyp.}{\trf{E2}, \trf{cond5}, \trf{cond6}}}\lbl{E8}
+      \step{\EnvType\Envp\cdot\Kp{\ep_1}\any}{\byjdg{Ind Hyp.}{\trf{E3}, \trf{cond5}, \trf{cond6}}}\lbl{E9}
+      \step{\EnvType\Envp\cdot\Kp{\DynCall{\e_1}\m{\ep_1}}{\any}}{\byjdg{KT-DYNCALL}{\trf{E8}, \trf{E9}}}\lbl{E10}
+      \done{\trf{E10}}
     \end{case}
 
-    \begin{case}{STG-DCALL}
+    \begin{case}{STG-NEW}\lbl{F}
+      \begin{steps}{case}
+	\step{\EnvTypeS\Env\K{\New\C{\e_1 ~\ldots}}\t}\lbl{F1A}
+	\step{\b\fd=\Fdef{\f_1}{\t_1}~\dots}\lbl{F1B}
+	\step{\Class \C {\b\fd}{\b\md} $\in$ \K}\lbl{F1C}
+      \end{steps}
+      \begin{steps}{\byjdg{Inversion}{\trf{F1A}}}
+	\step{\EnvTypeS\Env\K{\e_1}\tp$_1$ ~ \ldots}\lbl{F2}
+	\step{\ConvertE\K{s}{\tp_1}{\t_1} ~ \ldots}\lbl{F3}
+      \end{steps}
+       \slet{$\ep_{i}$}{$\TR{\e_{i}} \xt{~for~all~} i$}\lbl{F4}
+       \step{\EnvType\Envp\cdot\Kp{\ep_i}{\any}}{\byjdg{Ind Hyp.}{\trf{F2}}}\lbl{F5}
+       \step{\TR{\New\C{\e_1,\ldots}} = \SubCast\any{\New\C{\ep_1,\ldots}}}{\byjdg{TTS6}{\trf{F1A}}}\lbl{F6}
+       \step{\EnvType\Envp\cdot\Kp{\New\C{\ep_1,\ldots}}{\C}}{\byjdg{KT-NEW}{\trf{F5}, \trf{F1B}, \trf{F1C}}}\lbl{F7}
+       \step{\EnvType\Envp\cdot\Kp{\SubCast\any{\New\C{\ep_1,\ldots}}}{\any}}{\byjdg{KT-SUBCAST}{\trf{F7}}}\lbl{F8}
+       \done{F8}
     \end{case}
-
-    \begin{case}{STG-NEW}
-    \end{case}
+  
   \end{proof}
 \end{lemma}
 
