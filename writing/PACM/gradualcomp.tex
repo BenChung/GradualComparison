@@ -3536,12 +3536,22 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \begin{proof}{ \indmsg{$\ConvertE\K{s}\t\tp$}}
 
   \begin{case}{STGC-SUB}
+      \step{$\StrSub\cdot\Kp\t\tp$}{\trf{cond4}, case}\lbl{SUB-V1}
+      \step{$\e = \TAG\e\Env{\tp}$}{TTK7 on \trf{SUB-V1}}
+      \step{$\EnvType\Envp\cdot\Kp{\e}\tp$}{\RuleRef{KT-SUB} on \trf{cond6}, \trf{SUB-V1}}\lbl{SUB-V2}
+      \done{\trf{SUB-V2}}
   \end{case}
 
   \begin{case}{STGC-TOANY}
+      \step{$\e = \TAG\e\Env{\any}$}{TTK8 on \trf{TOANY-V1}}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast\any\e}\any$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}\lbl{TOANY-V2}
+      \done{\trf{TOANY-V2}}
   \end{case}
 
   \begin{case}{STGC-ANYCONC}
+      \step{$\e = \TAG\e\Env{\t}$}{TTK8 on \trf{ANYCONC-V1}}
+      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t\e}\t$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}\lbl{ANYCONC-V2}
+      \done{\trf{ANYCONC-V2}}
   \end{case}
 
   \end{proof}
@@ -3562,68 +3572,68 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
 
     \begin{case}{STG-VAR}    
-      \step{$\e = \x$}{case}\lbl{V1}
-      \step{${\TRG{\e}\Env} = \x$}{TTK1}\lbl{V2}
-      \step{$\EnvType\Envp\cdot\Kp\x\t$}{\RuleRef{KT-VAR}, \trf{cond6}}\lbl{V3}
-      \done{\trf{V3}}
+      \step{$\e = \x$}{case}\lbl{VAR-V1}
+      \step{${\TRG{\e}\Env} = \x$}{TTK1}\lbl{VAR-V2}
+      \step{$\EnvType\Envp\cdot\Kp\x\t$}{\RuleRef{KT-VAR}, \trf{cond6}}\lbl{VAR-V3}
+      \done{\trf{VAR-V3}}
     \end{case}
 
     \begin{case}{STG-GET} 
-      \step{$\e = \FRead\f$}{case}\lbl{V1}
-      \step{${\TRG{\e}\Env} = \FRead\f$}{TTK2}\lbl{V2}
-      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{V3}
-      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{V4}
-      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}\t$}{\RuleRef{KT-READ} on \trf{V3}, \trf{V4}}\lbl{V5}
-      \done{\trf{V5}}
+      \step{$\e = \FRead\f$}{case}\lbl{GET-V1}
+      \step{${\TRG{\e}\Env} = \FRead\f$}{TTK2}\lbl{GET-V2}
+      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{GET-V3}
+      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{GET-V4}
+      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}\t$}{\RuleRef{KT-READ} on \trf{GET-V3}, \trf{GET-V4}}\lbl{GET-V5}
+      \done{\trf{GET-V5}}
     \end{case}
 
     \begin{case}{STG-SET} 
-      \step{$\e = \FWrite\f{\e_1}$}{case}\lbl{V1}
-      \slet{$\ep_1$}{$\TRG{\e_1}\Env$}\lbl{V2}
-      \step{$\EnvType\Envp\cdot\Kp{\ep_1}\tp$}{IH on case}\lbl{V3}
-      \slet{$\epp_1$}{$\TAG{\e_1}\Env\t$}\lbl{V4}
+      \step{$\e = \FWrite\f{\e_1}$}{case}\lbl{SET-V1}
+      \slet{$\ep_1$}{$\TRG{\e_1}\Env$}\lbl{SET-V2}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_1}\tp$}{IH on case}\lbl{SET-V3}
+      \slet{$\epp_1$}{$\TAG{\e_1}\Env\t$}\lbl{SET-V4}
       \slet{$\e$}{$\FWrite\f{\epp_1}$}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_1}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{V4}}\lbl{V5}
-      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{V6}
-      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{V7}
-      \step{$\EnvType\Envp\cdot\Kp{\e}\t$}{\byjdg{\RuleRef{KT-WRITE}}{\trf{V5}, \trf{V6}, \trf{V7}}}\lbl{V8}
-      \done{\trf{V8}}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_1}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{SET-V4}}\lbl{SET-V5}
+      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{SET-V6}
+      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{SET-V7}
+      \step{$\EnvType\Envp\cdot\Kp{\e}\t$}{\byjdg{\RuleRef{KT-WRITE}}{\trf{SET-V5}, \trf{SET-V6}, \trf{SET-V7}}}\lbl{SET-V8}
+      \done{\trf{SET-V8}}
     \end{case}
 
     \begin{case}{STG-CALL} 
-      \step{$\e = \Call\ep\m\epp$}{case}\lbl{V1}
+      \step{$\e = \Call\ep\m\epp$}{case}\lbl{CALL-V1}
       \slet{$\ep_1$}{$\TRG{\ep}\Env$}
       \slet{$\epp_1$}{$\TRG{\epp}\Env$}
       \slet{$\epp_2$}{$\TAG{\epp}\Env\t$}
-      \step{$\EnvType\Envp\cdot\Kp{\ep_1}\C$}{IH on case}\lbl{V2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_1}\tpp$}{IH on case}\lbl{V3}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_2}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{V3}}\lbl{V4}
-      \step{$\Mtype\m\t\tp \in \App\Kp\C$}{\trf{cond5}}\lbl{V5}
-      \step{$\EnvType\Envp\cdot\Kp{\Call{\ep_1}\m{\epp_2}}\tp$}{\byjdg{\RuleRef{KT-CALL}}{\trf{V2}, \trf{V4}, \trf{V5}}}\lbl{V6}
-      \done{\trf{V6}}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_1}\C$}{IH on case}\lbl{CALL-V2}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_1}\tpp$}{IH on case}\lbl{CALL-V3}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_2}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{CALL-V3}}\lbl{CALL-V4}
+      \step{$\Mtype\m\t\tp \in \App\Kp\C$}{\trf{cond5}}\lbl{CALL-V5}
+      \step{$\EnvType\Envp\cdot\Kp{\Call{\ep_1}\m{\epp_2}}\tp$}{\byjdg{\RuleRef{KT-CALL}}{\trf{CALL-V2}, \trf{CALL-V4}, \trf{CALL-V5}}}\lbl{CALL-V6}
+      \done{\trf{CALL-V6}}
     \end{case}
 
     \begin{case}{STG-DCALL} 
-      \step{$\e = \Call\ep\m\epp$}{case}\lbl{V1}
+      \step{$\e = \Call\ep\m\epp$}{case}\lbl{DCALL-V1}
       \slet{$\ep_1$}{$\TRG{\ep}\Env$}
       \slet{$\epp_1$}{$\TRG{\epp}\Env$}
       \slet{$\epp_2$}{$\TAG{\epp}\Env\t$}
-      \step{$\EnvType\Envp\cdot\Kp{\ep_1}\any$}{IH on case}\lbl{V2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_1}\tpp$}{IH on case}\lbl{V3}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_2}\any$}{lemma \ref{lem:THTS-COMP} on case, \trf{V3}}\lbl{V4}
-      \step{$\EnvType\Envp\cdot\Kp{\Call{\ep_1}\m{\epp_2}}\tp$}{\byjdg{\RuleRef{KT-DYNCALL}}{\trf{V2}, \trf{V4}}}\lbl{V5}
-      \done{\trf{V5}}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_1}\any$}{IH on case}\lbl{DCALL-V2}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_1}\tpp$}{IH on case}\lbl{DCALL-V3}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_2}\any$}{lemma \ref{lem:THTS-COMP} on case, \trf{DCALL-V3}}\lbl{DCALL-V4}
+      \step{$\EnvType\Envp\cdot\Kp{\Call{\ep_1}\m{\epp_2}}\tp$}{\byjdg{\RuleRef{KT-DYNCALL}}{\trf{DCALL-V2}, \trf{DCALL-V4}}}\lbl{DCALL-V5}
+      \done{\trf{DCALL-V5}}
     \end{case}
 
     \begin{case}{STG-NEW} 
-      \step{$\e = \New\C{\e_i ~ \ldots}$}{case}\lbl{V1}
+      \step{$\e = \New\C{\e_i ~ \ldots}$}{case}\lbl{NEW-V1}
       \slet{$\ep_i$}{$\TRG{\epp}\Env$}
       \slet{$\epp_i$}{$\TAG{\epp}\Env{\t_i}$}
-      \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\tp_i}$}{IH on case}\lbl{V2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\t_i}$}{lemma \ref{lem:THTS-COMP} on case, \trf{V2}}\lbl{V3}
-      \step{$\Fdef{\f_i}{\t_i} \in \App\Kp\C$}{\trf{cond5}}\lbl{V4}
-      \step{$\EnvType\Envp\cdot\Kp{\New\C{\e_i ~ \ldots}}\C$}{\byjdg{\RuleRef{KT-NEW}}{\trf{V3}, \trf{V4}}}\lbl{V5}
-      \done{\trf{V5}}
+      \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\tp_i}$}{IH on case}\lbl{NEW-V2}
+      \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\t_i}$}{lemma \ref{lem:THTS-COMP} on case, \trf{NEW-V2}}\lbl{NEW-V3}
+      \step{$\Fdef{\f_i}{\t_i} \in \App\Kp\C$}{\trf{cond5}}\lbl{NEW-V4}
+      \step{$\EnvType\Envp\cdot\Kp{\New\C{\e_i ~ \ldots}}\C$}{\byjdg{\RuleRef{KT-NEW}}{\trf{NEW-V3}, \trf{NEW-V4}}}\lbl{NEW-V5}
+      \done{\trf{NEW-V5}}
     \end{case}
   \end{proof}
 \end{lemma}
