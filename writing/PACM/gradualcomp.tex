@@ -2216,9 +2216,7 @@ are no duplicates.
 }{
   \ThorSub \M\K{\C}{\dt\D}
 }
-\end{mathpar}
 
-\begin{mathpar}
 \IRule{TSRef}{
 }{
  \ThorSub\M\K \t \t
@@ -2236,9 +2234,7 @@ are no duplicates.
 }{
  \ThorSub\M\K \C \D 
 }
-\end{mathpar}
 
-\begin{mathpar}
 \IRule{TSMet}{
   \ThorSub \M\K {\t[1]} {\t[2]} \\
   \ThorSub \M\K {\tp[2]} {\tp[1]}
@@ -2256,7 +2252,7 @@ are no duplicates.
 \opdef{~\WFW \Env\s\K \md}{Well-formed methods}
 \opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
 \opdef{~\WFtypeW\K\t}{Well-formed types}
-
+\vspace{-3mm}
 \begin{mathpar}
 \IRule{WP}{
   \k \in \K \implies \WFW{}\K\k \\
@@ -2318,10 +2314,9 @@ are no duplicates.
 
 \subsection{Thorn expression typing}
 
-
 \opdef{\ConvertE\K{th}\t\tp}{type convertibility between \t and \tp.}
+\vspace{-5mm}
 \begin{mathpar}
-
 \IRule{STHC-SUB}{
   \ThorSub\cdot\K\t\tp
 }{
@@ -2343,10 +2338,11 @@ are no duplicates.
 }{
   \ConvertE\K{th}\any\tp
 }
-
-\end{mathpar} \\
+\end{mathpar}
+\vspace{-4mm}
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\vspace{-4mm}
 \begin{mathpar}
 \IRule{STH-VAR}{
    \HasType \Env\x\t
@@ -2361,7 +2357,7 @@ are no duplicates.
   \EnvTypeW \Env\K{\FRead\f}\t
 }    
 
-\IRule[width=20em]{STH-SET}{
+\IRule{STH-SET}{
   \HasType \Env\this\C \\
   \Fdef\f\t \in \App\K\C \\
   \EnvTypeW \Env\K\e\tp \\
@@ -2370,7 +2366,7 @@ are no duplicates.
   \EnvTypeW \Env\K{\FWrite\f\e}\t
 }    
 
-\IRule[width=20em]{STH-CALL}{
+\IRule{STH-CALL}{
   \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\
   \Mtype \m{\t}\tp\in \classoff{\C}\K  \\
   \EnvTypeW \Env\K\ep\tpp \\
@@ -2379,7 +2375,7 @@ are no duplicates.
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
 
-\IRule[width=20em]{STH-DCALL}{
+\IRule{STH-DCALL}{
   \EnvTypeW \Env\K\e\any \\
   \EnvTypeW \Env\K\ep\tpp \\
   \ConvertE\K{th}\tpp\any
@@ -2399,7 +2395,7 @@ are no duplicates.
 
 \subsection{Non-thorn well-formedness}
 
-We use $x$ as a placeholder to mean either $s$ (for the basic source typing, used by Typed Racket and Typescript) or $tr$ (transient, used by the transient semantics).
+We use $x$ as a placeholder to mean either $s$ (for Typed Racket and Typescript) or $tr$ (for the Transient semantics).
 
 \opdef{~$\WFpx{\e}{\K}$}{Well-formed programs}
 \opdef{\WFx{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed classes}
@@ -2459,7 +2455,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 } 
 \end{mathpar}
 
-\clearpage 
+% \clearpage 
 
 \subsection{Typescript and Typed Racket expression typing}
 
@@ -2645,10 +2641,14 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 }
 \end{mathpar}
 
+\clearpage
+
 \section{Translations}
 \renewcommand{\trulename}[1]{#1}
+
 \subsection{Thorn}
 
+\begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
   \hspace{-.5cm}\begin{minipage}{8cm}  
@@ -2689,14 +2689,15 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \end{tabbing}
 \end{minipage}
 \end{tabular}
-\clearpage
+\caption{Thorn}
+\end{figure}
 
 \subsection{TypeScript}
 
 \begin{figure}[!h]
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 \small
- \begin{minipage}{8cm}  
+ \hspace{-.5cm}\begin{minipage}{8cm}  
 \begin{tabbing}
 \TR{\Class \C{\fds 1..}{\mds 1 .. } } = \src{ \Class \C{ \fdsp 1..}{\mdsp 1..}}\HS \WHERE\HS
   \=\fds 1 = \Ftype\f\t ..,\HS\HS\=\fdsp 1 = \src{\Ftype\f\any} .., \HS\HS\=\mds 1 = \Mdef\m\x{\t_1}{\t_2}\e \\
@@ -2721,6 +2722,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \end{figure}
 
 
+ \clearpage
 
 \subsection{Typed Racket}
 
@@ -2775,7 +2777,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \end{tabular}
 \caption{Typed Racket}\end{figure}
 
-\clearpage
+
 \subsection{Transient}
 
 \begin{figure}[!h]
@@ -2830,6 +2832,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \end{tabular}
 \caption{Transient}\end{figure}
 
+\clearpage
 
 \section{Proofs of Related Theorems}
 
