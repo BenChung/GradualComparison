@@ -1084,7 +1084,7 @@ Observe that the TypeScript translations does insert some structural casts to \a
 
 Thorn~\cite{oopsla09} is an object-oriented language with multiple inheritance,
 nominal type equivalence, and a combination of \emph{dynamic}, \emph{optional} (aka.~\emph{like}), and \emph{concrete} types.  Concrete types (written \C) behave as one would expect: a variable {\x:\C} is
-guaranteed to refer to an instance of \C or a subtype thereof.  Occurrences of optionally typed variables, denoted {\x:\dt\C}, are checked statically within their scope but may be bound to dynamic values and their usage is checked dynamically.  Analogously to TypeScript type annotations, optional types provide some of the benefits of static typing without decreasing the expressiveness and flexibility of the language.  To get a glimpse of Thorn in action, consider a class definition with two methods, one optionally and one concretely typed:
+guaranteed to refer to an instance of \C or a subtype thereof.  Occurrences of optionally typed variables, denoted {\x:\dt\C}, are checked statically within their scope but may be bound to dynamic values and their usage is checked dynamically.  Analogously to TypeScript type annotations, optional types provide some of the benefits of static typing without decreasing the expressiveness and flexibility of the language.  Subtyping on optional types is inherited from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D} whenever \C \Sub \D; also, it always hold that \C \Sub  \dt\C. To get a glimpse of Thorn in action, consider a class definition with two methods, one optionally and one concretely typed:
 
 \medskip
 \(
@@ -1095,12 +1095,12 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Occurrences of o
 \)
 \medskip
 
-\noindent Assume that \D is not a subtype of \C.  The following expressions illustrate the interesting cases of the interaction between the types of the arguments and the declared type of the method parameter:
+\noindent Assume that \D is not a subtype of \C.  The following expressions illustrate the interesting cases of the interaction between the types of the arguments and the declared type of the method parameter, whenever the callee has a concrete type:
 
 \medskip
-\( \Call {\New \A{}}\n {\New \D{} } \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// ERR -- D !<: C} \)
+\( \Call {\New \A{}}\n {\New \D{} } \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// ERR -- D !<: C} \)
 
-\( \Call {\New \A{}}\m {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // OK -- warning }\)
+\( \Call {\New \A{}}\m {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // OK\ \ -- warning }\)
 
 \( \Call {\New \A{}} \m { \Call {\New \A {}} \n {\New \C{}} } \ \ \ \ \ \texttt{ // OK }\)
 
@@ -1108,40 +1108,34 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Occurrences of o
 
 \medskip
 
-\noindent The first call to \m is allowed because the argument of \m
-is treated as type \any, and a warning is emitted. The second call is ruled
-incorrect as a concrete type is expected for \n. The third call is allowed
-as a \C is a subtype of \dt\C. The last call results in a cast being
-inserted as \dt\C cannot be guaranteed to hold an instance of \C or a
-subtype. 
+\noindent The first call is rejected by the static type system because the concretely typed method \n expects a value of type \C, while a value of type \D has been passed.  Formally, the Thorn type system (reported in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\) convertibilty test required by the STH-CALL rule fails.    The second call  is instead allowed because arbitrary values can flow into a \dt\C typed variable: convertibility follows from 
 
+.  Since \D and \C are incompatible the static type system emits a warning as guidance for the programmer; in the third call it is a \C value that is passed where a \dt\C is expected: not only this is allowed but in this case no warnings are emitted.  The last expression invokes \n passing an argument of type \dt\C where a \C is expected; this is potentially incorrect but to foster program evolution Thorn static type system allows it, and a dynamic type check is inserted to protect the call.
+
+
+The type system of Thorn is reported in Fig.~\figref{f:thornts}.  The convertibility relation allows passing a \dt\C when a \D is expected provided that \C <: \D (expression 3), \FZ{ANYCONC should go to be in synch with Fig.2 of the liketype paper}.
+
+, distinguishes method invocation whether the callee is a concrete or optional type, or dynamic.  
+
+
+%To model Thorn we extend the syntax of source terms with an ``unsound'' type
+%written \dt\C, which has its own subtyping relation, and compiles down to
+%\any. This unsound type still enforces the same static requirements as its
+%sound counterpart, but generates no runtime casts.  
+
+%Over this new type, we
+%define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
+%\kafka subtyping except in that \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D
+%both hold if \C~\src\Sub~\D.  
 
 
 \FZ{UNTIL HERE}
 
+%If the callee has a dynamic type  // what if like?  in fig 2 it is slightly different...
+
 Optional types (written \dt\C) are translated to the \any type with
-dynamically resolved method invocation, as in TypeScript.  Consider the
-following program with calls to concretely typed method \n and optionally
-typed \m, and assume that \D is not a subtype of \C.
+dynamically resolved method invocation, as in TypeScript.
 
-\medskip
-\(
- \Class \A {
-    \Mdef \m\x{\dt\C} {\dt\C}  \x  ; \ 
-    \Mdef \n\x\C\C  \x 
-    }
-\)
-
-\medskip
-\( \Call {\New \A{}}\m {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // OK -- warning }\)
-
-\( \Call {\New \A{}}\n {\New \D{} } \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// ERR -- D !<: C} \)
-
-\( \Call {\New \A{}} \m { \Call {\New \A {}} \n {\New \C{}} } \ \ \ \ \ \texttt{ // OK }\)
-
-\( \Call {\New \A{}} \n { \Call {\New \A{}} \m {\New \C{}}} \ \ \ \ \texttt{ // Cast } \)
-
-\medskip
 %
 %\begin{lstlisting}
 % class A {
@@ -1154,12 +1148,8 @@ typed \m, and assume that \D is not a subtype of \C.
 % new A().n( new A.m(new C()) // Cast
 %\end{lstlisting}
 
-\noindent The first call to \m is allowed because the argument of \m
-is treated as type \any, and a warning is emitted. The second call is ruled
-incorrect as a concrete type is expected for \n. The third call is allowed
-as a \C is a subtype of \dt\C. The last call results in a cast being
-inserted as \dt\C cannot be guaranteed to hold an instance of \C or a
-subtype.  The translation of Thorn to \kafka turns optional types to \any and
+
+The translation of Thorn to \kafka turns optional types to \any and
 inserts structural casts to \C when an expression of type \any, or of type
 \dt\C is assigned to a \C. So class \A would translate to:
 
@@ -1199,6 +1189,7 @@ inserts structural casts to \C when an expression of type \any, or of type
   \ConvertE\K{th}\any\tp
 }
 
+\\
 \IRule{STH-VAR}{
    \HasType \Env\x\t
  }{
@@ -1250,14 +1241,6 @@ inserts structural casts to \C when an expression of type \any, or of type
 \hrulefill
 \caption{Thorn type system}\label{f:thornts}
 \end{figure}
-
-To model Thorn we extend the syntax of source terms with an ``unsound'' type
-written \dt\C, which has its own subtyping relation, and compiles down to
-\any. This unsound type still enforces the same static requirements as its
-sound counterpart, but generates no runtime casts.  Over this new type, we
-define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
-\kafka subtyping except in that \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D
-both hold if \C~\src\Sub~\D.  
 
 
 The starting point for translating Thorn is fix a mapping for source to \kafka types.  Since variables with a concrete type \C are guaranteed to always point to an instance of the class \C, we can use statically checked method invocation on those, and we can map concrete types to \kafka classes.  On the other hand,  dynamic and the optional types must be are mapped to the \kafka dynamic type: invocation on methods on objects of these types must be resolved dynamically.  
@@ -1330,6 +1313,9 @@ how does the translation work:
 \end{figure}
 
 
+
+
+\FZ{DONT FORGET COMMENT ON * SUBTYPING IN SEC 3!!!}
 
 \subsection{Transient Python}
 
