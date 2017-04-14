@@ -834,13 +834,16 @@ Well-typed \kafka configurations satisfy a type-preservation theorem, and
 either reduce to values or are stuck on a dynamic method invocation or on a
 cast.  
 
-\medskip\noindent{\bf Theorem 1:} ~
+\medskip\noindent{\bf Theorem 1: Type Soundness.} ~
 Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$,
 then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and
 $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is in one of
 the following forms: $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$,
 or $\EE[\BehCast\tp\a]$.
 
+
+
+\medskip\noindent{\bf Lemma 1: Well-formed Wrappers.} ~
 
 
 
@@ -1868,44 +1871,44 @@ typing system highlights the essences which makes each system unique.
 
 % \subsection{Semantics}
 
-\subsection{Subtyping}
-
-The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
-is a subtype of \tp in the environment \M composing a set of subtype relations and
-a class table \K.   The set of subtype relations can be omitted if its empty.
-
-~\\
-
-\opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
-\begin{mathpar}
-\IRule{SRef}{
-}{
- \StrSub\M\K \t \t
-}
-
-\IRule{SAss}{
-\C \Sub \D \in \M
-}{
- \StrSub \M\K \C\D
-}
-
-\IRule{SRec}{
- \M' = \M~\C\Sub\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \StrSub{\M'}\K\mt{\mtp}
-}{
- \StrSub \M\K \C \D 
-}
-\end{mathpar}
-
-\opdef{\StrSub\M\K\mt\mtp}{\mt is a subtype of \mtp}
-\begin{mathpar}
-\IRule{SMet}{
-  \StrSub \M\K {\t[2]} {\t[1]} \\
-  \StrSub \M\K {\tp[1]} {\tp[2]}
-}{
- \StrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-\end{mathpar}
+% \subsection{Subtyping}
+% 
+% The structural subtype relation, written \StrSub\M\K\t\tp, asserts that \t
+% is a subtype of \tp in the environment \M composing a set of subtype relations and
+% a class table \K.   The set of subtype relations can be omitted if its empty.
+% 
+% ~\\
+% 
+% \opdef{\StrSub\M\K\t\tp}{\t is a subtype of \tp}
+% \begin{mathpar}
+% \IRule{SRef}{
+% }{
+%  \StrSub\M\K \t \t
+% }
+% 
+% \IRule{SAss}{
+% \C \Sub \D \in \M
+% }{
+%  \StrSub \M\K \C\D
+% }
+% 
+% \IRule{SRec}{
+%  \M' = \M~\C\Sub\D\\
+% \mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \StrSub{\M'}\K\mt{\mtp}
+% }{
+%  \StrSub \M\K \C \D 
+% }
+% \end{mathpar}
+% 
+% \opdef{\StrSub\M\K\mt\mtp}{\mt is a subtype of \mtp}
+% \begin{mathpar}
+% \IRule{SMet}{
+%   \StrSub \M\K {\t[2]} {\t[1]} \\
+%   \StrSub \M\K {\tp[1]} {\tp[2]}
+% }{
+%  \StrSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+% }
+% \end{mathpar}
 
 \subsection{Well-formedness}
 
@@ -1914,7 +1917,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 ~\\
 
 \opdef{~\WFq{\K~\e~\s}}{Well-formed program}
-
+\vspace{-3mm}
 \begin{mathpar}
 \IRule{WP}{
   \k \in \K \implies \WF{}\cdot\K\k \\
@@ -1926,31 +1929,35 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 \end{mathpar}
 
 \opdef{\WF{}\s\K {\Class\C{\b\fd}{\b\md}}}{Well-formed class}
-
+\vspace{-2.5mm}
 \begin{mathpar}
 \IRule{WC}{
- \xt{overloading}_{\emptyset}(\b\md~\b\fd) \\
- \fd\in\b\fd\implies \WF {}{}\K \fd \\
- \md\in\b\md\implies \WF {\text{this}:\C~}\s\K \md 
+ \cload{\mds{1..}~\fds{1..}} \\
+ \WF {}{}\K {\fds 1..} \\
+ \WF {\text{this}:\C~}\s\K {\mds 1..} 
 }{
- \WF {}\s\K {\Class \C {\b\fd}{\b\md}}
+ \WF {}\s\K {\Class \C {\fds 1..}{\mds 1..}}
 }
 \end{mathpar}
 
-The \xt{overloading} auxiliary function states that there are no overloaded 
+The \xt{nodups} function states that there are no overloaded 
 field or method names within the given field and method definitions. \\
 
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
+\vspace{-3mm}
 \begin{mathpar}
 \IRule[width=18em]{WT1}{
- \EnvType {\Env{~\Ftype\x\any}~}\s\K\e\any\\
+ \Envp = \Env{~\Ftype\x\any} \\
+ \EnvType \Envp\s\K\e\any\\
  \WFtype\K\any \\
 }{
  \WF \Env\s\K {\Mdef\m\x\any\any\e}
 }
 
-\IRule[width=18em]{WT2}{
- \EnvType {\Env{~\Ftype\x\C}~}\s\K\e\Cp\\
+% \IRule[width=18em]{WT2}{
+\IRule{WT2}{
+ \Envp = \Env{~\Ftype\x\C}\\ 
+ \EnvType \Envp\s\K\e\Cp\\
  \WFtype\K\C \\
  \WFtype\K\Cp \\
 }{
@@ -1959,6 +1966,7 @@ field or method names within the given field and method definitions. \\
 \end{mathpar}
 
 \opdef{~\WFtype \K {\fd}}{Well-formed fields}
+\vspace{-3mm}
 \begin{mathpar}
 \IRule{WF}{
  \WFtype\K\t 
@@ -1968,6 +1976,7 @@ field or method names within the given field and method definitions. \\
 \end{mathpar}
  
 \opdef{~\WFtype\K\t}{Well-formed types}
+\vspace{-3mm}
 \begin{mathpar}
 \IRule{WA}{
 }{
@@ -1984,8 +1993,8 @@ field or method names within the given field and method definitions. \\
 \opdef{~\WFtype\K\s}{Well-formed heaps}
 \begin{mathpar}
 \IRule{WH}{
-\Bind\ap{\obj\C{\a_1 \ldots \a_n}}~\in~\s \implies \Class\C{\HT{\f_1}{\t_1} \ldots \HT{\f_n}{\t_n}}{\b\md}\in\K ~~~\wedge~~~  
-\EnvType\cdot\s\K{\a_1}{\t_1} ~\ldots~ \EnvType\cdot\s\K{\a_n}{\t_n}
+\Bind\ap{\obj\C{\a_1 \ldots}}~\in~\s \implies \Class\C{\fds 1..}{\mds 1..}\in\K ~~~\wedge~~~  
+\EnvType\cdot\s\K{\a_1}{\t_1} ~\ldots
 }{
  \WFtype\K\s
 }
@@ -2000,6 +2009,7 @@ subtype cast, typed address.
 ~\\
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+\vspace{-6mm}
 \begin{mathpar}
 \IRule{KT-VAR}{
    \HasType \Env\x\t
@@ -2080,7 +2090,7 @@ subtype cast, typed address.
 }{
   \EnvType \Env\s\K{\BehCast\t\e}\t
 }
-\\
+
 \IRule{KT-REFTYPE}{
   \s(\a) = \obj\C{\b\ap}
 }{
@@ -2092,176 +2102,6 @@ subtype cast, typed address.
    \EnvType \Env\s\K\a\any
 }
 \end{mathpar}
-
-
-\subsection{Field access}
-
-The function $\readf\s\a\f\K$ reads the value in the field \f in the object \a.
-
-\(
-\begin{array}{r@{~}l}
-\readf \s\a\f\K &= \ap\\ 
-    ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_i \dots ~\ap~ \a_j \dots}\\
-    ~~\mathit{and}~~ &\Class\C {\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j \dots}{\md \dots}\in\K \\
-\end{array} 
-\)
-
-\subsection{Field write}
-
-The function \setf\s\a\f\ap\K denotes writing of value \ap to the field \f of
-the object stored at \a in \s.
-
-
-\(
-\begin{array}{r@{~}l}
-\setf \s\a\f\ap\K &= \Map\s{\Bind{\a}{\obj\C{\a_i\dots ~\ap~ \a_j\dots}}}\\
-  ~~\mathit{if}~~ &\s(\a) = \obj\C{\a_i\dots ~\app~ \a_j\dots} \\
-  ~~\mathit{and}~~&\Class\C{\fd_i \dots ~\Fdef{\f}{\t}~ \fd_j\dots}{\md \dots}\in\K
-\end{array}
-\)
-
-\subsection{Method overloading}
-
-The function $\xt{overloading}(\b\md ~ \b\fd)$ there are no overloaded method names in the
-given method definitions.
-
-
-\opdef{~\xt{overloading}$_{\cmd}$(\b\md ~\b\fd)}{Method overloading}
-\begin{mathpar}
-\IRule{MO1}{
-}{
-\xt{overloading}_{\cmd}(\emptyset)
-}
-
-\IRule{MO2}{
- \Mtype\m\any\any \notin \b\md \\
- \cmdp = \cmd, \Mtype\m\any\any \\
- \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
-}{
-\xt{overloading}_{\cmd}(\Mdef\m\x\any\any\e~\b\md~\b\fd)
-}
-
-\IRule{MO3}{
- \Mtype\m\t\t \in \b\md \implies \t = \any \\
- \cmdp = \cmd, \Mtype\m\t\t \\
- \xt{overloading}_{\cmdp}(\b\md\,\b\fd)
-}{
-\xt{overloading}_{\cmd}(\Mdef\m\x\C\Cp\e~\b\md~\b\fd)
-}
-\end{mathpar}
-
-\opdef{~\xt{overloading}$_{\cmd}$(\b\fd)}{field overloading}
-\begin{mathpar}
-\IRule{FO1}{
- \f \notin \xt{names}(\cmd) \\
- \cmdp = \cmd, \Fdef\f\t \\
- \xt{overloading}_{\cmdp}(\b\fd)
-}{
-\xt{overloading}_{\cmd}(\Fdef\f\t ~ \b\fd)
-}
-\end{mathpar}
-
-\subsection{Behavioural cast dynamics}
-
-\begin{figure}[!ht]
-\vspace{-2mm}
-
-{  
-  \begin{mathpar}
-  
-\IRule{BC1}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \fresh\ap \\
-  \fresh\that \\
-  \cload{\classoff\C\K} \\
-  \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-}{
-  \behcast\a\Cp\s\K {\K\,\k}\ap\sp
-}
-
-\IRule{BC2}{
-  \App\s\a = \obj\C{\b{\a_1}}  \\
-  \fresh\D \\
-  \fresh\ap \\
-  \fresh\that \\
-  \k = \wrapAny\C{\classoff\C\K}\D\that\\
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-}{
-  \behcast\a\any\s\K {\K\,\k}\ap\sp
-}
-\end{mathpar}}  
-
-\vspace{-2mm}
-\caption{Behavioural casts.}\label{behaves}
-\end{figure}
-
-
-\subsection{Class wrapper for Behavioural semantics}\label{wrap}
-
-The \xt{wrap} function is used by the Type Racket language to generate the wrapper classes
-for the behavioral cast semantics. The \xt{wrap} function takes two class types and the two
-sets of method typing. The class type $\C$ is the type of the expression being casted, also known 
-as the source type and represented by $\tp$ in the typing rule \xt{WB}.
-The class type $\D$ is a fresh type, and represents the type of the wrapper class.
-The method typing $\bmt$ corresponds to the typing definition of every method in $\C$.
-The method typing $\bmtp$ is the set of method typing for the casting type. The casting
-type is also known as the target type, shown by $\t$ in \xt{WB}. \\
- 
-\opdef{\mt ~~::= \Mtype\m\t\t \B  \Mtype\f\t\t  \B \Mtype\f{}\t 
-}{ method typing
-} \\
-
-Every wrapper class has a \xt{that} field pointing to the source type.
-The last three cases is for when the methods are in the source type but not the 
-target type. For each of these method, their method call is redirected 
-to its corresponding method in the source type.
-
-
-\renewcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
-
-\vspace{4mm}
-%%%%%%%%%%%%%%%%%%%%%% WRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\IGNOREUNLESSNEEDED{
-\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-    \wrap\C\bmt\bmtp\D\that = \\
-\SP \class ~\D ~ \{\\
-\SPP \Fdef\that\C \\
-\\
-\SPP \Mdef\m\x\Dp\Dpp {~\bscast\Dpp{{\KCall{\this.\that()_{\C}} \m {\bscast{\Cp}\x}\Cp\Cpp }}~}
-&     if\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~ \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~ \Mtype\m\any\any\not\in\bmtp} \\
-\\
-\SPP \Mdef\m\x\Dp\Dpp{~\bscast\Dpp{\KCall{\this.\that()_{\C}} \m {\bscast\any\x}\any\any }~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\in\bmtp ~\wedge~  \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~  \Mtype\m\any\any\not\in\bmtp } \\
-\\
-\SPP \Mdef\m\x\any\any{~\bscast\any{\KCall{\this.\that()_{\C}}\m{\bscast{\Cp}\x}\Cp\Cpp}~}
-&    if\,\,\,\,\,\, \Mtype\m\Cp\Cpp\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~   \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\any\any\not\in\bmt ~\wedge~  \Mtype\m\Dp\Dpp\not\in\bmtp } \\
-\\
-\SPP \Mdef\m\x\any\any{~{\KCall{\this.\that()_{\C}}\m{\x}\any\any}~}
-&    if\,\,\,\,\,\, \Mtype\m\any\any\in\bmt ~\wedge~ \Mtype\m\any\any\in\bmtp ~\wedge~ \\
-&     \multicolumn{5}{l}{\qquad \Mtype\m\Cp\Cpp\not\in\bmt ~\wedge~ \Mtype\m\Dp\Dpp\not\in\bmtp} \\
-\\
-\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
-&    if\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-\\
-\SP \}
-\\
-\end{array}\]
-
-\[\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-\wrapAny\C\bmt\D\that = \\
-\SP \class~\D~\{\\
-\SPP \Fdef \that \C\\ 
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\Call{\FRead\that\C}{\m_}{\bscast{\t}\x} }~}
-&  \Mtype\m\t\t\in\b\mt \\
-\SP \}\\
-\end{array}\]
-
 
 \subsection{Mtype function}
 
@@ -2326,105 +2166,39 @@ The \xt{signature} function returns method typing signatures ($\mt$) of method d
 
 \subsection{Names function}
 
-The \xt{Names} function takes either a field definition, method definition, or method typing, and returns the name of the respective
-field/method.
-
-\begin{mathpar}
-\IRule{NE}{
-}{
-\names{\emptyset} = \emptyset
-}
-\end{mathpar}
-
-\opdef{~\names{\b\fd}}{field naming}
-\begin{mathpar}
-\IRule{NF}{
- \b\x = \f, ~\names{\b\fd}
-}{
-\names{\Fdef\f\t, ~\b\fd} = \b\x
-}
-\end{mathpar}
-
-\opdef{~\names{\b\md}}{method naming}
-\begin{mathpar}
-\IRule{NM}{
- \b\x = \m, ~\names{\b\md}
-}{
-\names{\Mdef\m\x\t\t\e, ~\b\md} = \b\x
-}
-\end{mathpar}
-
-\opdef{~\names{\b\mt}}{type naming}
-\begin{mathpar}
-\IRule{NMT}{
- \b\x = \m, ~\names{\b\md}
-}{
-\names{\Mtype\m\t\t, ~\b\mt} = \b\x
-}
-
-\end{mathpar}
+The \xt{names} function (\names{\b\fd}, \names{\b\md}, \names{\b\mt}) takes either field definitions, method definitions, or 
+method typings, and returns the name of the respective fields or methods.
 
 \subsection{Duplicated method names}
 
-
-\begin{mathpar}
-\IRule{CMTE}{
-}{
-\cload{\emptyset}
-}
-\end{mathpar}
-
-
-\opdef{\cload\mt}{Duplicated method name over $\mt$}
-\begin{mathpar}
-\IRule{CMT}{
- \m \not\in \names\bmt \\
- \cload\bmt
-}{
-\cload{\Mtype\m\t\t \,\, \b\mt}
-}
-\end{mathpar}
-
-\opdef{\cload\md}{Duplicated method name over $\md$}
-\begin{mathpar}
-
-\IRule{CMT}{
- \m \not\in \names\bmd \\
- \cload{\bmd}
-}{
-\cload{\Mdef\m\x\t\t\e \,\, \bmd}
-}
-\end{mathpar}
-
-\clearpage
-
-
+The \xt{nodups} function (\cload{\b\mt}, \cload{\b\md}) takes either method definitions or method typings, and ensures there
+are no duplicates.
 
 \section{Source language syntax and semantics}
 
-\subsection{Syntax}
-
-\begin{figure}[!h]\hrulefill
-
-\hspace{0.1cm}
-\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
-\e &::=  \x          &\B \this          \\
-   &\B \New\C{\b\e}  &\B \FRead\f       \\
-   &\B \FWrite\f\e   &\B \Call\e\m\e \\ 
-\end{tabular}\end{minipage}
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}
-\end{tabular}
-\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e \\
-%\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
-~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage}
-
-\hrulefill
-\caption{Source language syntax.}\label{sou-syn}
-\end{figure}
+% \subsection{Syntax}
+% 
+% \begin{figure}[!h]\hrulefill
+% 
+% \hspace{0.1cm}
+% \begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
+% \e &::=  \x          &\B \this          \\
+%    &\B \New\C{\b\e}  &\B \FRead\f       \\
+%    &\B \FWrite\f\e   &\B \Call\e\m\e \\ 
+% \end{tabular}\end{minipage}
+% \begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+%    ~ \k &::= \Class \C {\b\fd}{\b\md}
+% \end{tabular}
+% \begin{tabular}{l@{~}l@{}l@{}l}
+% \md &::= \Mdef\m\x\t\t\e \\
+% %\mt &::= \Mtype\m\t\t &\B~  \Mtype\f\t\t  &\B \Mtype\f{}\t  \\ 
+% ~ \t&::= ~ \any   \B   \C   \B   \CW \\ 
+% ~\fd&::= ~ \Fdef\f\t \\ 
+% \end{tabular}\end{minipage}
+% 
+% \hrulefill
+% \caption{Source language syntax.}\label{sou-syn}
+% \end{figure}
 
 \subsection{Thorn subtyping}
 
