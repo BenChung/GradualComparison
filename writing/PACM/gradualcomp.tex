@@ -455,7 +455,7 @@ slow downs in pathological cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  \newpage
-\section{KafKa: A Core Calculus}
+\section{KafKa: A Core Calculus}\label{kafkacore}
 
 
 %\vspace{-2mm}
@@ -1431,7 +1431,7 @@ of \this.  As a result, accesses to fields have to go through user-defined
 field accessor methods.  Rule \RuleRef{TPR2} provides consistency for
 Transient. In gradual type systems with consistency, consistency is used to
 conclude an analytic judgment, as consistency allows the system to break
-type guarantees, adding and removing types from sub-parts of a
+type guarantees, adding and removing types from sub-parts of  a
 program. 
 
 ... Consistency within \kafka is...
@@ -1445,17 +1445,42 @@ callee to check.
 
 
 
-
-
 \subsection{Typed Racket}
 
-Typed Racket has an expressive object system with first-class
-classes~\cite{Takikawa:2012}, which we restrict to the core of the system, a
-class-based object system with structural subtyping. Classes are either typed,
-in which case all variables have types different from \any, or untyped, where
-all types are \any.  In the following example, \code A is untyped, it constructs
-an instance of the typed class \code{B} and invokes method \code{n} with \code
-x, a variable of type \any.
+Typed Racket~\cite{Takikawa:2012} is an extension of the Racket programming
+language, supporting Racket's key functionality, including first
+class classes. Our model of Typed Racket is not complete, missing several
+features, including:
+
+\begin{itemize}
+  \item First-class classes, as they are not easily mapped to \kafka and 
+  add substantially to the complexity of the translation.
+  \item Protecting against externally ill-typed internal method calls. By
+  default, Typed Racket ensures that the receiver of a method call abides
+  by the externally asserted type of that receiver. This behavior is needed to 
+  ensure soundness in the presence of inheritance, but is not needed for 
+  \kafka.
+  \item Our model does not enforce so-called ``macro'' gradual typing, as 
+  Typed Racket does. In Typed Racket, types must be added one module at a 
+  time, whereas in our system, individual methods can be typed inside
+  untyped classes.
+\end{itemize}
+
+As a result of these changes, our model is very similar to Vitousek, Kent, and
+Siek's  guarded Reticulated Python~\cite{siek14}, offering only the bare 
+minimum of functionality expected of an object-oriented gradually typed 
+language.
+
+The core of any gradual typing system is its enforcement mechanism, ensuring
+that values passing a typed/untyped boundary are consistent with their
+declared types. Thorn handles this problem through the use of \emph{concrete}
+typing, checking that the type tag on the value is statically known to be a subtype
+of the required type. In contrast, Typed Racket ensures type correctness of 
+untyped code through the insertion of wrapper contracts, protecting typed values
+from untyped code and typed code from untyped values.
+
+Our Typed Racket model differs from our Thorn representation most notably
+in 
 
 \begin{lstlisting}
  class A {
@@ -2945,19 +2970,18 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \=\WHERE
 \= \TypeCk\K{\this}\C, \HS\HS
 \= \Ftype\f\t\In\App\K\C, \hspace{1cm}
-\=
 \= \ep = \TAG\e\Env\t
 \\[1mm]
 \trulename{TTK4} \TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\DynCall{\eps 1}\m{\eps 2}}
 \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\any, \HS
-\> \eps 1 = \TRG{\e_1}\Env,\HS
-\> \eps 2 = \TAG{\e_2}\Env\any
+\> \eps 1 = \TRG{\e_1}\Env,\HS \hspace{1cm}
+\= \eps 2 = \TAG{\e_2}\Env\any
 \\
 \trulename{TTK5} \TRG{\Call{\e1_1}\m{\e_2}}\Env = \src{\KCall{\eps 1}{\m}{\eps 2}{\D_1}{\D_2}}
 \>\WHERE \> \TypeCk{\K,\Env}{\e_1}\C, \HS
 \> \Mtype\m{\D_1}{\D_2}\In\App\K\C, \HS
-\> \eps 1 = \TRG{\e_1}\Env,\HS
-\> \eps 2 = \TAG{\e_2}\Env{\D_1}
+\> \eps 1 = \TRG{\e_1}\Env,\HS 
+\= \eps 2 = \TAG{\e_2}\Env{\D_1}
 \\[1mm]
 \trulename{TTK6} \TRG{\New\C{\e_1..}}\Env =  \src{\New\C{\eps 1..}}
    \>\WHERE \> \Ftype{\f_1}{\t_1}\In\App\K\C ~..
