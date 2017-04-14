@@ -735,93 +735,39 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \small
 
 \begin{tabbing}
-  \wrap{\C}{\mts 1..}{\mtps 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mds 1..}}\\
-\HS\HS\WHERE\HS\=\mds 1 = \src{ \Mdef\m\x{\tp_1}{\tp_2}{~\BehCast{\tp_2}{ \KCall{\FRead\that} \m {\bscast{\t_1}\x}{\t_1}{\t_2}} } }   ..
-    \HS \= \textbf{if} \HS \Mtype\m{\t_1}{\t_2}\In\mts 1.. \HS\HS \Mtype\m{\tp_1}{\tp_2}\In\mtps 1.. \\
+  \wrap\C{\mds 1..}{\mdps 1..}\D\that = \src{\Class\D{\Fdef\that\C}{\mdpps 1..}}\\
+  \HS\HS\WHERE\HS\= \Mdef\m\x{\t_1}{\t_2}\e\In\mds 1.. \\
+                 \> \mdpps 1 =\= \src{\Mdef\m\x{\tp_1}{\tp_2}{~\BehCast{\tp_2}{\KCall{\FRead\that}\m{\bscast{\tp_1}\x}{\t_1}{\t_2}}}} ..
+    \HS \= \textbf{if} \HS \Mdef\m\x{\tp_1}{\tp_2}\ep\In\mdps 1.. \\
 \\[-3mm]
-\> \EM{\mds 1} =  \src{\Mdef\m\x{\t}{\tp}{~\KCall{\FRead\that}\m{\x}\t\tp~}} ..
-   \> \textbf{if} \HS\ \Mtype\m\t\tp\In\mts 1.. \HS\HS \Mtype\m{\tp_1}{\tp_2}$\not\In$ \mtps 1..
+\> \>  \src{\Mdef\m\x{\t_1}{\t_2}{~\KCall{\FRead\that}\m{\x}{\t_1}{\t_2}}} ..  \>\textbf{otherwise}
 \\[3mm]
-  \wrapAny{\C}{\mts 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mds 1..}}\\
+  \wrapAny{\C}{\mds 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mds 1..}}\\
 \HS\HS\WHERE\HS\=\mds 1 = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
-    \HS\HS\HS\HS \= \textbf{if} \HS \Mtype\m{\t}{\tp}\In\mts 1.. \\
+    \HS\HS\HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\mds 1.. \\
 \end{tabbing}
-
-
-% \[
-% \begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
-%  \wrap{\C}{\bmt}{\bmtp}{\D}{\that} = \\
-% \SP \class ~\D ~ \{\\
-% \SPP \Fdef\that\C \\
-% \SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
-% &     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
-% \\[-3mm]
-% \SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
-% &    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-% \\[-3mm]
-% \SP \}
-% \\[3mm]
-% \wrapAny\C\bmt\D\that = \\
-% \SP \class~\D~\{\\
-% \SPP \Fdef \that \C\\ 
-% \SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that()_{\C}}\m{\bscast{\t}\x}\t\tp }~}
-% & \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
-% \SP \}\\
-% 
 % \end{array}\]
-
-% \begin{mathpar}
-%   
-% \IRule{BC1}{
-%   \App\s\a = \obj\C{\b{\a_1}}  \qquad
-%   \freshb\D \qquad
-%   \freshb\ap \qquad 
-%   \freshb\that \\
-%   \cload{\classoff\C\K} \\
-%   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
-%   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
-%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-% }{
-%   \behcast\a\Cp\s\K {\K\,\k}\ap\sp
-% }
-% 
-% \IRule{BC2}{
-%   \App\s\a = \obj\C{\b{\a_1}}  \qquad
-%   \freshb\D \qquad
-%   \freshb\ap \qquad
-%   \freshb\that \\
-%   \k = \wrapAny\C{\classoff\C\K}\D\that\\
-%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-% }{
-%   \behcast\a\any\s\K {\K\,\k}\ap\sp
-% }
-% \end{mathpar}
-
 \vspace{-5mm}
 
 %%%%%%%%%%%%% new behcast %%%%%%%%%%%%%
 
 \begin{equation*}
-  \behcastE\a\Cp\s\K {\K\,\k}\ap\sp ~~\mathit{if}~~ \begin{cases}
-  \App\s\a = \obj\C{\b{\a_1}} \\
-  \freshb\D \qquad \freshb\ap \qquad \freshb\that \\
-  \bmt = \classoff\C\K \qquad \bmtp = \classoff\Cp\K \\
-  \cload{\bmt} \qquad
-  \names{\bmtp} \subseteq \names{\bmt} \\  
-  \k = \wrap\C{\bmt}{\bmtp}\D\that \qquad
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\ 
+  \behcastE\a\Cp\s\K \Kp\ap\sp ~~\WHERE~~ \begin{cases}
+  \App\s\a = \obj\C{\a_1..} \HS\HS
+  \fresh{\D,\ap,\that} \HS\HS
+  \mds 1.. = \App\K\C \qquad \mdps 1.. = \App\K\Cp \\
+  \names{\mds 1..} \subseteq \names{\mdps 1..} \HS\HS
+  \Kp = \K\,\wrap\C{\mds 1..}{\mdps 1..}\D\that \HS\HS
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
   \end{cases}
 \end{equation*}
 
-
-
 \begin{equation*}
-  \behcastE\a\any\s\K {\K\,\k}\ap\sp  ~~\mathit{if}~~ \begin{cases}
-  \App\s\a = \obj\C{\b{\a_1}} \qquad \bmt = \classoff\C\K\\
-  \freshb\D \qquad \freshb\ap \qquad \freshb\that \\
-  \k = \wrapAny\C{\bmt}\D\that \qquad
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\ 
-  \end{cases}
+  \behcastE\a\any\s\K \Kp\ap\sp  ~~\WHERE~~ 
+  \App\s\a = \obj\C{\a_1..} \HS \mds 1.. = \App\K\C \HS
+  \fresh{\D,\ap,\that} \HS
+  \Kp = \K\,\wrapAny\C{\mds 1..}\D\that \HS
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
 \end{equation*}
 
 
