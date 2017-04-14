@@ -478,45 +478,11 @@ of object-oriented languages with gradual types can be translated to a
 common representation by the introduction of \emph{casts} and
 \emph{wrappers}.
 
-\paragraph{Syntax}  
-\kafka is a simple object calculus that satisfies the above design
-requirement. Its syntax is given in \figref{syn}.  Types consist of class
-names \C, \D, ...\ and the dynamic type, written \any.  Class definitions
-have a class name and (possibly empty) sequences of field definitions and
-method definitions, \Class\C{\b\fd}{\b\md}. Field definitions consist of a
-field and its type, \Fdef\f\t. Method definitions have (for simplicity) a
-single argument and an expression, denoted \Mdef\m\x\t\t\e.  \kafka supports
-a limited form of overloading, allowing both a typed implementation and an
-untyped (dynamically checked) implementation for each method.  Fields are
-private to objects, and can be accessed only from the object scope; reading
-a field is denoted \(\FRead\f\) and writing a field is denoted \(\FWrite\f\e
-\).  The calculus supports both statically and dynamically resolved method
-invocation (denoted \KCall\e\m\e\t\t and \DynCall\e\m\e).  The static
-dispatch resolves overloading via the type tag on the method call.  We let
-meta-variables \x ranges over variable names, \m and \f range over methods
-and fields respectively; \this is a distinguished identifier representing a
-method receiver, while \that is a distinguished field name that will be used
-in wrapper classes.
-
-Providing two different cast mechanisms is the most original feature of the
-calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes
-the usual subtype cast that dynamically type-checks its argument.  The
-latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that
-type-checking the argument at run-time, builds a wrapper around it.  The
-wrapper then ensures that all the successive requests to the object will be
-understood (or raise an error). The design of the behavioural cast is
-intricate, and deserves its own section below.
-
-State is represented via a heap \s mapping addresses ranged over by \a
-to objects denoted \hspace{-1mm}\obj\C{\b\a}.
-
-\begin{figure}[!h]
-\hrulefill
+\begin{figure}[!h]\hrulefill
 
 \vspace{4mm}
 
-\small
-\begin{tabular}{@{}lll}
+\small\begin{tabular}{@{}lll}
 
 \begin{minipage}{9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
 \e\hspace{.1cm} ::= & \hspace{.2cm} \x        
@@ -546,17 +512,58 @@ to objects denoted \hspace{-1mm}\obj\C{\b\a}.
 \caption{\kafka Syntax.}\label{syn}
 \end{figure}
 
-\paragraph{Static semantics}
+\paragraph{Syntax}  
+\kafka is an object calculus that satisfies the above design
+requirement. Its syntax is given in \figref{syn}.  Types consist of class
+names \C, \D and the dynamic type, written \any.  Class definitions have a
+class name and (possibly empty) sequences of field and method definitions,
+\Class\C{\fd_1..}{\md_1..}. Field definitions consist of a field and its
+type, \Fdef\f\t. Method definitions have (for simplicity) a single argument
+and an expression, denoted \Mdef\m\x\t\t\e.  \kafka supports a limited form
+of overloading, allowing both a typed implementation and an untyped
+(dynamically checked) implementation for each method.  Fields are private to
+objects, and can be accessed only from the object scope; reading a field is
+denoted \(\FRead\f\) and writing a field is denoted \(\FWrite\f\e \).  The
+calculus supports both statically and dynamically resolved method invocation
+(denoted \KCall\e\m\e\t\t and \DynCall\e\m\e).  The static dispatch resolves
+overloading via the type tag on the method call.  We let meta-variables \x
+ranges over variable names, \m and \f range over methods and fields
+respectively; \this is a distinguished identifier representing a method
+receiver, while \that is a distinguished field name that will be used in
+wrapper classes.  Providing two different cast mechanisms is a key feature
+of the calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\),
+denotes the usual subtype cast that dynamically type-checks its argument.
+The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that
+type-checking the argument at run-time, builds a wrapper around it.  The
+wrapper then ensures that all the successive requests to the object will be
+understood (or raise an error). The design of the behavioural cast is
+intricate, and deserves its own section below.
+State is represented via a heap \s mapping addresses ranged over by \a
+to objects denoted \hspace{-1mm}\obj\C{\a_1..}.
 
- A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
-class table \K where each class \k in \K is well-formed and \e is well-typed
-with respect to \K.  A class is well-formed if all its fields and methods
-are well-typed with the restriction that a class can have at most two
-definitions for any method \m, one typed \Mdef\m\x\C\D\e and one untyped
-\Mdef\m\x\any\any\e.  The static semantics of \kafka is mostly standard,
-so we report in Fig.~\ref{f:staticsem} only the subtype rule for classes and the type rules for method calls, casts and references.
-The complete
-set of rules is reported in Appendix section~\ref{appendix:kafka}.  
+
+\paragraph{Static semantics}
+A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
+class table \K where each class \k is well-formed and \e is well-typed with
+respect to \K.  A class is well-formed if all its fields and methods are
+well-typed and it has at most two definitions for any method \m, one typed
+\Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The static semantics
+of \kafka is mostly standard; the complete set of rules is in Appendix.  The
+subtype relation, \StrSub\M\K\t\tp, shown in Fig.~\ref{sub}, allows for
+recursive structural subtyping: for this the environment \M keeps track of
+the set of subtype relations assumed.  The notation \md\In\App\K\C denotes
+the method definition \md occurring in class \C and class table \K.  Recall
+fields are hidden from the class type signature, so subtyping is limited to
+method definitions.  
+Key type rules are in Fig.~\ref{f:staticsem}.
+Method calls use \emph{syntactic} disambiguation to
+select between typed and untyped methods. The dynamically resolved call
+places no requirements on the receiver or argument, and returns type \any.
+Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar;
+how their soundness is enforced at run-time is very different though.
+References can be typed both as dynamic, or with the type of the object the
+point to in the current heap \(\sigma\).  \FZ{Fix rules names.}
+
 
 
 \begin{figure}[!t] \hrulefill\small
@@ -568,6 +575,7 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
  \StrSub \M\K \C\D
 }
 
+\hspace{-8mm}
 
 \Rule{SRec}{
  \M' = \M~\C\Sub\D\\\\
@@ -576,6 +584,7 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
  \StrSub \M\K \C \D 
 }
 
+\hspace{-8mm}
 
 \Rule{SMet}{
   \StrSub \M\K {\t[1]} {\tp[1]} \\\\
@@ -583,25 +592,20 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
 }{
  \StrSub \M\K {\Mdef\m\x{\t[1]}{\t[2]}\e} {\Mdef\m\x{\tp[1]}{\tp[2]}\ep}
 }
-
 \end{mathpar}
 
-\hrulefill
-\caption{\kafka subtyping}\label{f:staticsem}
-\end{figure}
+\hrulefill\caption{\kafka subtyping}\label{sub}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
-\begin{figure}[!t] \hrulefill\small
+\hrulefill\small
 
 \begin{mathpar}
-
 \Rule{W6}{
   \EnvType \Env\s\K\e\C \\
-  \Mtype \m\tp\tpp\in \classoff\C\K  \\
-  \EnvType \Env\s\K\ep\tp
+  \Mdef\m\x\t\tp\epp \in \App\K\C  \\
+  \EnvType \Env\s\K\ep\t
 }{
-  \EnvType \Env\s\K{\KCall\e\m\ep{\t'}{\t''}}\tpp
+  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
 }    
 
 \Rule{W7}{
@@ -610,6 +614,8 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
 }{
   \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
+
+\\
 
 \Rule{W9}{
   \EnvType \Env\s\K\e\tp
@@ -624,7 +630,7 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
 }
 
 \Rule{W9}{
-  \s(\a) = \obj\C{\b\ap}
+  \s(\a) = \obj\C{\ap_1..}
 }{
   \EnvType \Env\s\K\a\C
 }
@@ -638,16 +644,6 @@ set of rules is reported in Appendix section~\ref{appendix:kafka}.
 \hrulefill
 \caption{\kafka static semantics (excerpt)}\label{f:staticsem}
 \end{figure}
-
-The
-subtyping relation, \StrSub\M\K\t\tp, allows for recursive structural
-subtyping: for this the environment \M keeps track of the set of subtype relations assumed.  The \texttt{mtypes} function takes a class name $\C$ and the class table
-$\K$, and outputs a list of typing signatures $\b\mt$ for every method in
-class $\C$; recall that all fields are hidden from the class type signature. 
-Method calls use \emph{syntactic} disambiguation to select between
-typed and untyped methods. The dynamically resolved call places no
-requirements on the receiver or argument, and returns type \any. 
-Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how their soundness is enforced at run-time is very different though.  References can be typed both as dynamic, or with the type of the object the point to in the current heap \(\sigma\).   \FZ{Fix rules names.}
 
 
 
@@ -690,14 +686,11 @@ Statically subtype cast rules \RuleRef{W9} and \RuleRef{W10} are similar; how th
 \caption{\kafka dynamic semantics}\label{fig:semantics}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%% CONTEXTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%\noindent\hrulefill
-
 
 \paragraph{Dynamic Semantics}
-The small  step operational semantics for \kafka is reported in \figref{fig:semantics}.  To resolve the \this reference in field accesses, the syntax of expressions is extended at runtime with forms 
+The small step operational semantics for \kafka is reported in
+\figref{fig:semantics}.  To resolve the \this reference in field accesses,
+the syntax of expressions is extended at runtime with forms
 %
 \[ e  ::= \dots \B \a \B \FReadR\a\f \B \FWriteR\a\f\e \]
 %
