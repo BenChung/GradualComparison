@@ -1069,11 +1069,44 @@ Observe that the TypeScript translations does insert some structural casts to \a
 \subsection{Thorn}
 
 Thorn~\cite{oopsla09} is an object-oriented language with multiple inheritance,
-nominal type equivalence, and a combination of \emph{optional} and \emph{concrete} types.
+nominal type equivalence, and a combination of \emph{dynamic}, \emph{optional} (aka.~\emph{like}), and \emph{concrete} types.  Concrete types (written \C) behave as one would expect: a variable {\x:\C} is
+guaranteed to refer to an instance of \C or a subtype thereof.  Occurrences of optionally typed variables, denoted {\x:\dt\C}, are checked statically within their scope but may be bound to dynamic values and their usage is checked dynamically.  Analogously to TypeScript type annotations, optional types provide some of the benefits of static typing without decreasing the expressiveness and flexibility of the language.  To get a glimpse of Thorn in action, consider a class definition with two methods, one optionally and one concretely typed:
+
+\medskip
+\(
+ \Class \A {
+    \Mdef \m\x{\dt\C} {\dt\C}  \x  ; \ 
+    \Mdef \n\x\C\C  \x 
+    }
+\)
+\medskip
+
+\noindent Assume that \D is not a subtype of \C.  The following expressions illustrate the interesting cases of the interaction between the types of the arguments and the declared type of the method parameter:
+
+\medskip
+\( \Call {\New \A{}}\n {\New \D{} } \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// ERR -- D !<: C} \)
+
+\( \Call {\New \A{}}\m {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // OK -- warning }\)
+
+\( \Call {\New \A{}} \m { \Call {\New \A {}} \n {\New \C{}} } \ \ \ \ \ \texttt{ // OK }\)
+
+\( \Call {\New \A{}} \n { \Call {\New \A{}} \m {\New \C{}}} \ \ \ \ \ \texttt{ // Cast } \)
+
+\medskip
+
+\noindent The first call to \m is allowed because the argument of \m
+is treated as type \any, and a warning is emitted. The second call is ruled
+incorrect as a concrete type is expected for \n. The third call is allowed
+as a \C is a subtype of \dt\C. The last call results in a cast being
+inserted as \dt\C cannot be guaranteed to hold an instance of \C or a
+subtype. 
+
+
+
+\FZ{UNTIL HERE}
+
 Optional types (written \dt\C) are translated to the \any type with
-dynamically resolved method invocation, as in TypeScript. Concrete types
-(written \C) behave as one would expect: a variable {\x:\C} is
-guaranteed to refer to an instance of \C or a subtype thereof. Consider the
+dynamically resolved method invocation, as in TypeScript.  Consider the
 following program with calls to concretely typed method \n and optionally
 typed \m, and assume that \D is not a subtype of \C.
 
@@ -1213,7 +1246,9 @@ define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
 both hold if \C~\src\Sub~\D.  
 
 
-\FZ{FROM HERE}
+The starting point for translating Thorn is fix a mapping for source to \kafka types.  Since variables with a concrete type \C are guaranteed to always point to an instance of the class \C, we can use statically checked method invocation on those, and we can map concrete types to \kafka classes.  On the other hand,  dynamic and the optional types must be are mapped to the \kafka dynamic type: invocation on methods on objects of these types must be resolved dynamically.  
+
+At runtime, in Thorn design there is a clear dichotomy between dynamic and optional types on the one side, and concrete types on the other.    We can mimick this by defining kty so that it maps \any and and the 
 
 ...Explain translation  --- random ideas ---
 
@@ -1233,7 +1268,6 @@ how does the translation work:
   --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
   
  
-\FZ{TO HERE}
 
 
 \begin{figure}[!h]
