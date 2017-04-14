@@ -735,65 +735,69 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \small
 
 \begin{tabbing}
-  \wrap{\C}{\mts 1..}{\mtps 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mtpps 1..}}\\
-\HS\HS\WHERE\HS\=\mtpps 1 = \src{ \Mdef\m\x{\tp_1}{\tp_2}{~\BehCast\tppp{ \KCall{\FRead\that} \m {\bscast{\t_1}\x}{\t_1}{\t_2}} } }   ..
+  \wrap{\C}{\mts 1..}{\mtps 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mds 1..}}\\
+\HS\HS\WHERE\HS\=\mds 1 = \src{ \Mdef\m\x{\tp_1}{\tp_2}{~\BehCast\tppp{ \KCall{\FRead\that} \m {\bscast{\t_1}\x}{\t_1}{\t_2}} } }   ..
     \HS \= \textbf{if} \HS \Mtype\m{\t_1}{\t_2}\In\mts 1.. \HS\HS \Mtype\m{\tp_1}{\tp_2}\In\mtps 1.. \\
 \\[-3mm]
-\> \EM{\mtpps 1} =  \src{\Mdef\m\x{\t}{\tp}{~\KCall{\FRead\that}\m{\x}\t\tp~}} ..
+\> \EM{\mds 1} =  \src{\Mdef\m\x{\t}{\tp}{~\KCall{\FRead\that}\m{\x}\t\tp~}} ..
    \> \textbf{if} \HS\ \Mtype\m\t\tp\In\mts 1.. \HS\HS \Mtype\m{\tp_1}{\tp_2}$\not\In$ \mtps 1..
+\\[3mm]
+  \wrapAny{\C}{\mts 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mds 1..}}\\
+\HS\HS\WHERE\HS\=\mds 1 = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
+    \HS\HS\HS\HS \= \textbf{if} \HS \Mtype\m{\t}{\tp}\In\mts 1.. \\
 \end{tabbing}
 
 
-\[
-\begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
- \wrap{\C}{\bmt}{\bmtp}{\D}{\that} = \\
-\SP \class ~\D ~ \{\\
-\SPP \Fdef\that\C \\
-\SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
-&     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
-\\[-3mm]
-\SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
-&    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
-\\[-3mm]
-\SP \}
-\\[3mm]
-\wrapAny\C\bmt\D\that = \\
-\SP \class~\D~\{\\
-\SPP \Fdef \that \C\\ 
-\SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that\C}\m{\bscast{\t}\x}\t\tp }~}
-& \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
-\SP \}\\
+% \[
+% \begin{array}{@{}ll@{}l@{}r@{~}c@{~}r}
+%  \wrap{\C}{\bmt}{\bmtp}{\D}{\that} = \\
+% \SP \class ~\D ~ \{\\
+% \SPP \Fdef\that\C \\
+% \SPP \Mdef\m\x\tpp\tppp {~\bscast\tppp{{\KCall{\this.\that()_{\C}} \m {\bscast{\t}\x}\t\tp }}~}
+% &     \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\in\bmtp \\
+% \\[-3mm]
+% \SPP \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that()_{\C}}\m{\x}\t\tp~}
+% &    \textit{if}\,\,\,\,\,\, \Mtype\m\t\tp\in\bmt ~\wedge~ \Mtype\m\tpp\tppp\not\in \bmtp \\
+% \\[-3mm]
+% \SP \}
+% \\[3mm]
+% \wrapAny\C\bmt\D\that = \\
+% \SP \class~\D~\{\\
+% \SPP \Fdef \that \C\\ 
+% \SPP   \Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that()_{\C}}\m{\bscast{\t}\x}\t\tp }~}
+% & \textit{if}\,\,\,\,\,\,  \Mtype\m\t\tp\in\b\mt \\
+% \SP \}\\
+% 
+% \end{array}\]
 
-\end{array}\]
+% \begin{mathpar}
+%   
+% \IRule{BC1}{
+%   \App\s\a = \obj\C{\b{\a_1}}  \qquad
+%   \freshb\D \qquad
+%   \freshb\ap \qquad 
+%   \freshb\that \\
+%   \cload{\classoff\C\K} \\
+%   \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
+%   \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
+%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+% }{
+%   \behcast\a\Cp\s\K {\K\,\k}\ap\sp
+% }
+% 
+% \IRule{BC2}{
+%   \App\s\a = \obj\C{\b{\a_1}}  \qquad
+%   \freshb\D \qquad
+%   \freshb\ap \qquad
+%   \freshb\that \\
+%   \k = \wrapAny\C{\classoff\C\K}\D\that\\
+%   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
+% }{
+%   \behcast\a\any\s\K {\K\,\k}\ap\sp
+% }
+% \end{mathpar}
 
-\begin{mathpar}
-  
-\IRule{BC1}{
-  \App\s\a = \obj\C{\b{\a_1}}  \qquad
-  \freshb\D \qquad
-  \freshb\ap \qquad 
-  \freshb\that \\
-  \cload{\classoff\C\K} \\
-  \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-}{
-  \behcast\a\Cp\s\K {\K\,\k}\ap\sp
-}
-
-\IRule{BC2}{
-  \App\s\a = \obj\C{\b{\a_1}}  \qquad
-  \freshb\D \qquad
-  \freshb\ap \qquad
-  \freshb\that \\
-  \k = \wrapAny\C{\classoff\C\K}\D\that\\
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\  
-}{
-  \behcast\a\any\s\K {\K\,\k}\ap\sp
-}
-\end{mathpar}
-
-
+\vspace{-5mm}
 
 %%%%%%%%%%%%% new behcast %%%%%%%%%%%%%
 
@@ -801,9 +805,10 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
   \behcastE\a\Cp\s\K {\K\,\k}\ap\sp ~~\mathit{if}~~ \begin{cases}
   \App\s\a = \obj\C{\b{\a_1}} \\
   \freshb\D \qquad \freshb\ap \qquad \freshb\that \\
-  \cload{\classoff\C\K} \\
-  \names{\classoff\Cp\K} \subseteq \names{\classoff\C\K} \\  
-  \k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that \\
+  \bmt = \classoff\C\K \qquad \bmtp = \classoff\Cp\K \\
+  \cload{\bmt} \qquad
+  \names{\bmtp} \subseteq \names{\bmt} \\  
+  \k = \wrap\C{\bmt}{\bmtp}\D\that \qquad
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\ 
   \end{cases}
 \end{equation*}
@@ -812,9 +817,9 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 
 \begin{equation*}
   \behcastE\a\any\s\K {\K\,\k}\ap\sp  ~~\mathit{if}~~ \begin{cases}
-  \App\s\a = \obj\C{\b{\a_1}} \\
+  \App\s\a = \obj\C{\b{\a_1}} \qquad \bmt = \classoff\C\K\\
   \freshb\D \qquad \freshb\ap \qquad \freshb\that \\
-  \k = \wrapAny\C{\classoff\C\K}\D\that\\
+  \k = \wrapAny\C{\bmt}\D\that \qquad
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\ 
   \end{cases}
 \end{equation*}
