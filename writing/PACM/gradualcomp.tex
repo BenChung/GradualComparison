@@ -1241,53 +1241,56 @@ If the receiver object has an optional type, then method invocation is staticall
 
 
 
- The translation of Thorn into \kafka is given in~\figref{f:thorntokafka}.  
+ The translation of Thorn into \kafka is given in~\figref{f:thorntokafka}.  Contrarily to TypeScript, the compilation of method invocation must now perform different operations depending on the type of the receiver object. For this, the translation function \TRG{...}\Env takes in input a typing environment \Env, typechecks the callee, and distinguishes two cases.  If the receiver has a concrete type then method invocation is mapped to static method invocation; if instead it has optional or dynamic type, then method invocation is mapped to dynamically checked method invocation.  To complete the translation of method invocation we must translate the argument.  However it might now be necessary to insert the appropriate dynamic type check (that is, the appropriate structural cast) around the argument of the method to satisfy the type constraints imposed by the called method.  This is realised by the second translation function, \TAG{..}\Env\t.  This function first translates its argument; then it checks if its type is a subtype of the expected type \t, and if not it inserts the appropriate structural type cast.  This subtype test must be performed in the \kafka type system, and not in the source type system, and must respect the mapping from Thorn types to \kafka types.  This one is defined by the \kty\t function: Thorn optional and dynamic types are mapped to the \any type of \kafka, while Thorn concrete types are mapped to the equivalent Thorn concrete types.
+ 
+We can now define the translation of classes: 
+
+  -- we generate a method from kty(t1) to kty(t2), inserting a cast around the return value if needed. 
+
+ --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
+
+(interesting because for the first time we see why we need overloading in kafka)
+
+Finally, each field \f:\t is mapped to the corresponding \f:\kty\t field.
+ 
+ 
+
  
  \FZ{UNTIL HERE}
 
- 
- For this, the \kafka transaltion will introduce the appropriate casts, as it this is a dynamic method invocation.
- 
+
  
 
  \FZ{ANYCONC should go to be in synch with Fig.2 of the liketype paper}.
 
-, distinguishes method invocation whether the callee is a concrete or optional type, or dynamic.  
+%
+%The starting point for translating Thorn is fix a mapping for source to \kafka types.  Since variables with a concrete type \C are guaranteed to always point to an instance of the class \C, we can use statically checked method invocation on those, and we can map concrete types to \kafka classes.  On the other hand,  dynamic and the optional types must be are mapped to the \kafka dynamic type: invocation on methods on objects of these types must be resolved dynamically.  
+%
+%At runtime, in Thorn design there is a clear dichotomy between dynamic and optional types on the one side, and concrete types on the other.    We can mimick this by defining kty so that it maps \any and and the 
+%
 
-
-%To model Thorn we extend the syntax of source terms with an ``unsound'' type
-%written \dt\C, which has its own subtyping relation, and compiles down to
-%\any. This unsound type still enforces the same static requirements as its
-%sound counterpart, but generates no runtime casts.  
-
-%Over this new type, we
-%define a subtyping relation, \t~\src\Sub~\t. The relation is identical to
-%\kafka subtyping except in that \dt\C~\src\Sub~\dt\D and \C~\src\Sub~\dt\D
-%both hold if \C~\src\Sub~\D.  
-
-
-
-%If the callee has a dynamic type  // what if like?  in fig 2 it is slightly different...
-
-Optional types (written \dt\C) are translated to the \any type with
-dynamically resolved method invocation, as in TypeScript.
 
 %
-%\begin{lstlisting}
-% class A {
-%    m(x: ?C): ?C { x }
-%    n(x:  C):  C { x } }
+%how does the translation work:
 %
-% new A().m( new D() ) // OK -- warning
-% new A().n( new D() ) // ERR -- D !<: C
-% new A().m( new A.n(new C()) // OK
-% new A().n( new A.m(new C()) // Cast
-%\end{lstlisting}
+%- types: * and ?C are mapped to * ; C are mapped to C
+%
+%- we use two functions [[ ]] and (( )):
+%
+%  -- [[ ]] translates terms (since we need to typecheck we carry an environment of free variables).  The interesting case is when we translate method invocation.  If, by typechecking, the callee has a dynamic or optional type (eg. kty( t ) = *, the we map it to dynamic method invocation.  Otherwise we compile to the static method invocation. 
+%
+%- The type of the method imposes a type for the methods.  This might / might not require casts to be inserted to satisfy this constraint.   the arguments are more interesting...  we know the type we must translate them to.  so we use a second function (()) to translate them, possibly inserting casts.  this second function translates the argument t with the usual [[]] function, but then checks the ktys types expected and obtained, and if needed inserts a structural cast to preserve the integrity of the method invocation (eg. if that was expecting a C).
+%
+%- translation of classes (interesting because for the first time we see why we need overloading in kafka): 
+%  -- we generate a method from kty(t1) to kty(t2), inserting a cast around the return value if needed. 
+%  --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
+%  
+ 
 
-
-The translation of Thorn to \kafka turns optional types to \any and
+Summarising,
+the translation of Thorn to \kafka turns optional types to \any and
 inserts structural casts to \C when an expression of type \any, or of type
-\dt\C is assigned to a \C. So class \A would translate to:
+\dt\C is assigned to a \C.  Class \A would translate to:
 
 \medskip
 \(
@@ -1298,31 +1301,6 @@ inserts structural casts to \C when an expression of type \any, or of type
 \)
 
 \medskip
-
-
-The starting point for translating Thorn is fix a mapping for source to \kafka types.  Since variables with a concrete type \C are guaranteed to always point to an instance of the class \C, we can use statically checked method invocation on those, and we can map concrete types to \kafka classes.  On the other hand,  dynamic and the optional types must be are mapped to the \kafka dynamic type: invocation on methods on objects of these types must be resolved dynamically.  
-
-At runtime, in Thorn design there is a clear dichotomy between dynamic and optional types on the one side, and concrete types on the other.    We can mimick this by defining kty so that it maps \any and and the 
-
-...Explain translation  --- random ideas ---
-
-
-how does the translation work:
-
-- types: * and ?C are mapped to * ; C are mapped to C
-
-- we use two functions [[ ]] and (( )):
-
-  -- [[ ]] translates terms (since we need to typecheck we carry an environment of free variables).  The interesting case is when we translate method invocation.  If, by typechecking, the callee has a dynamic or optional type (eg. kty( t ) = *, the we map it to dynamic method invocation.  Otherwise we compile to the static method invocation. 
-
-- The type of the method imposes a type for the methods.  This might / might not require casts to be inserted to satisfy this constraint.   the arguments are more interesting...  we know the type we must translate them to.  so we use a second function (()) to translate them, possibly inserting casts.  this second function translates the argument t with the usual [[]] function, but then checks the ktys types expected and obtained, and if needed inserts a structural cast to preserve the integrity of the method invocation (eg. if that was expecting a C).
-
-- translation of classes (interesting because for the first time we see why we need overloading in kafka): 
-  -- we generate a method from kty(t1) to kty(t2), inserting a cast around the return value if needed. 
-  --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
-  
- 
-
 
 
 \FZ{DONT FORGET COMMENT ON * SUBTYPING IN SEC 3!!!}
