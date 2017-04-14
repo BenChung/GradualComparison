@@ -2885,7 +2885,7 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \begin{tabbing}
 \trulename{TTS1} \TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
 \\[1mm]
-\trulename{TTS2} \tr e{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
+\trulename{TTS2} \TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
 \\[1mm]
 \trulename{TTS3} \TR\this           \>= \src{\SubCast\any\this}
 \\[1mm]
@@ -3410,9 +3410,9 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
    \end{proof}
 \end{lemma}
 
-\subsection{Type Soundness of TypeScript Translation}
+\subsection{Type Soundness of TypeScript and Typed Racket Translation}
 
-\begin{lemma}{Type correctness of TypeScript translation}{THTS-TRANS}
+\begin{lemma}{Type correctness of TypeScript/Typed Racket translation}{THTS-TRANS}
   \begin{conds}
     \cond{$\WFpX\K\e{s}$}\lbl{cond1}
     \cond{$\WFtypeX \K{s}\t$}\lbl{cond2}
@@ -3426,16 +3426,43 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
   \begin{proof} \indmsg{\EnvTypeE\Env\K{s}\e\t}
 
-    \begin{case}{STG-VAR}    
+    \begin{case}{STG-VAR}\lbl{A}
+      \step{$\TRG{\x}\Env = \x$}{\byjdg{TTS4}{\trf{cond4}}}\lbl{A1}
+      \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond4}, \trf{cond5}, \trf{cond6}, \RuleRef{KT-VAR}}\lbl{A2}
+      \done{\trf{A2}}      
+      
     \end{case}
 
-    \begin{case}{STG-GET}
+    \begin{case}{STG-GET}\lbl{B}
+      \step{$\TRG{\FRead\f}\Env = \FRead\f$}{\byjdg{TTS1}{\trf{cond4}}}\lbl{B1}
+      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\trf{cond4}, \trf{cond5}, \trf{cond6}, \RuleRef{KT-READ}}\lbl{B2}
+      \done{\trf{B2}}
     \end{case}
 
-    \begin{case}{STG-SET}
+    \begin{case}{STG-SET}\lbl{C}
+      \step{$\EnvTypeW\Env\K{\FWrite\f\e}\t$}{case}\lbl{C1}
+      \step{$\Convertible\K\tp\t$}{case}\lbl{C2}
+      \step{$\EnvTypeW\Env\K\e\tp$}{inversion on \trf{C1}}\lbl{C3}
+      \slet{\ep}{\TRG\e\Env}\lbl{C4}
+      \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{C3}}\lbl{C5}
+      \slet{\epp}{{\TAG\e\Env{\t}}}\lbl{C6}
+      \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{C5}}\lbl{C7}
+      \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{\byjdg{TTS2}{\trf{C6}, \trf{C1}, \trf{cond5}}}\lbl{C8}
+      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{C8}, \trf{C1}, \trf{cond5}, \RuleRef{KT-READ}}\lbl{C9}    
     \end{case}
 
-    \begin{case}{STG-CALL}
+%       \step{$\EnvTypeW\Env\K{\FWrite\f\e}\t$}{case}\lbl{TSSL5}
+%       \step{$\Convertible\K\tp\t$}{case}\lbl{TSSLC}
+%       \step{$\EnvTypeW\Env\K\e\tp$}{inversion on \trf{TSSL5}}\lbl{TSSL6}
+%       \slet{\ep}{\TRG\e\Env}\lbl{TSSA1}
+%       \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{TSSL6}}\lbl{TSSL7}
+%       \slet{\epp}{{\TAG\e\Env{\t}}}\lbl{TSSA2}
+%       \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{TSSL7}}\lbl{TSSL8}
+%       \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{TTH3 on \trf{TSSA2},\trf{TSSL5},\trf{cond5}}\lbl{TSSL8}
+%       \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{TSSL8},\trf{TSSL5},\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL9}
+    
+    \begin{case}{STG-CALL}\lbl{D}
+      \step{}{}\lbl{}
     \end{case}
 
     \begin{case}{STG-DCALL}
@@ -3445,8 +3472,8 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
     \end{case}
   \end{proof}
 \end{lemma}
-\subsection{Type Soundness of Typed Racket Translation}
-\begin{lemma}{Soundness of Typed Racket convertibility}{THTR-COMP}
+
+\begin{lemma}{Soundness of TypeScript/Typed Racket convertibility}{THTS-COMP}
   \begin{conds}
     \cond{$\ConvertE\K{s}\t\tp$}\lbl{cond1}
     \cond{$\EnvTypeS\Env\K\e\t$}\lbl{cond2}
@@ -3504,6 +3531,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
     \end{case}
   \end{proof}
 \end{lemma}
+
 \subsection{Type Soundness of Thorn Translation}
 
 \begin{lemma}{Soundness of convertibility}{THT-COMP}
@@ -3573,7 +3601,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
     \begin{case}{STH-GET}
       \step{$\TRG{\FRead\f}\Env = \FRead\f$}{TTH2}\lbl{TSSL3}
-      \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL4}
+      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL4}
     \end{case}
 
     \begin{case}{STH-SET}
