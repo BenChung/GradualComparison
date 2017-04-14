@@ -854,30 +854,41 @@ or $\EE[\BehCast\tp\a]$.
 \vspace{-5mm}
 
 
-\begin{figure}[!h]\hrulefill
-
-\hspace{2mm}
-\begin{minipage}{5.9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}ll}
-\e &::=  \x          &\B \this          \\
-   &\B \New\C{\b\e}  &\B \FRead\f       \\
-   &\B \FWrite\f\e   &\B \Call\e\m\e    \\ 
-\end{tabular}\end{minipage}
-\begin{minipage}{5.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\b\fd}{\b\md}\\
-\md &::= \Mdef\m\x\t\t\e \\
-~\fd&::= ~ \Fdef\f\t \\ 
-~ \t&::= ~ \any   \B   \C   \B   \fcolorbox{lightgray}{lightgray}{\CW} \\ 
-\end{tabular}\end{minipage}
-
-\hrulefill
-\caption{Common syntax of source languages}\label{f:sourcesyntax}
-\end{figure}
-
 \noindent
 We are now ready to give semantics to the four gradual type systems of interest, by translating them into \kafka. 
 Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the run-time of each language, highlighting the similarities and differences among them.   
 
 To avoid unnecessary clutter, we represent the source languages using the common syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without method overloading and, most importantly, cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
+
+
+
+\begin{figure}[!h]\hrulefill
+\hspace{2mm}
+
+\begin{tabular}{lll}
+\begin{minipage}{8cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+    &\B \this         
+   &\B \FRead\f     
+   &\B \FWrite\f\e   
+   &\B \Call\e\m\e \\
+   &
+   &\B \that      
+   &\B \New\C{\b\e}  
+\end{tabular}\end{minipage}&
+\begin{minipage}{2.9cm}\begin{tabular}{l@{~}l@{}l@{}ll}
+   ~ \k &::= \Class \C {\b\fd}{\b\md} \\
+~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
+\end{tabular}\end{minipage} &
+\begin{minipage}{2.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e \\
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}\end{tabular}
+
+\hrulefill
+\caption{Common syntax of source languages}\label{f:sourcesyntax}
+\end{figure}
+
 
 
 
