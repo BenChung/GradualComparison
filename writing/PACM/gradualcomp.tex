@@ -465,31 +465,47 @@ slow downs in pathological cases.
 \vspace{-3mm}
 
 \noindent
-The basis of our formal approach \kafka, a class-based, object-oriented,
-structurally typed language with dynamic dispatch, modeled on common
-compilation targets such as the JVM's Java Bytecode or the .NET CLR's Common
-Intermediate Language. 
-%, and taking inspiration from C\#'s approach to gradual typing~\cite{Bierman10}.  
-Our design is guided by the observation that the
-semantics of mainstream approaches to gradual typing can be faithfully
-represented via a combination of \emph{dynamic type checks} (casts),
-\emph{wrappers creation} around objects, and \emph{new class} generation.
+The basis of our formal approach \kafka, a class-based, statically typed
+object-oriented language. The distinctive features of the calculus are its
+support for both typed and untyped method innovation, as well as that
+dynamic class generation by explicit class tables.  The features of \kafka
+are modeled on common compilation targets for object-oriented language such
+as the JVM's Java Bytecode or the .NET CLR's Common Intermediate
+Language. Both of which have typed intermediate language with support for
+untyped method call (through their reflection API) and class generation (by
+dynamic loading).  Our design is guided by the intuition that the semantics
+of object-oriented languages with gradual types can be translated to a
+common representation by the introduction of \emph{casts} and
+\emph{wrappers}.
 
-\paragraph{Syntax}  \kafka is a simple object calculus that satisfies the above design requirement. Its syntax is given in \figref{syn}.   Types consist of class names \C, \D, ...\ and the dynamic type, written
-\any.  Class definitions have a class name and (possibly empty) sequences of
-field definitions and method definitions, \Class\C{\b\fd}{\b\md}. Field
-definitions consist of a field and its type, \Fdef\f\t. Method definitions
-have (for simplicity) a single argument and an expression, denoted \Mdef\m\x\t\t\e.
-  \kafka   supports a limited form of overloading, allowing both a typed implementation and an untyped (dynamically checked) implementation for each method. 
-  Fields are private to objects, and can be accessed only from the object scope; reading a field is denoted  \(\FRead\f\)  and writing a field is denoted \(\FWrite\f\e  \).  The calculus supports both statically and dynamically resolved method invocation (denoted  \KCall\e\m\e\t\t and \DynCall\e\m\e).    The static dispatch resolves overloading via the type tag
-on the method call.
-We let meta-variables \x ranges over variable names, \m and \f range over
-methods and fields respectively; \this is a distinguished identifier
-representing a method receiver, while \that is a distinguished field name that will be used
-in wrapper classes. 
+\paragraph{Syntax}  
+\kafka is a simple object calculus that satisfies the above design
+requirement. Its syntax is given in \figref{syn}.  Types consist of class
+names \C, \D, ...\ and the dynamic type, written \any.  Class definitions
+have a class name and (possibly empty) sequences of field definitions and
+method definitions, \Class\C{\b\fd}{\b\md}. Field definitions consist of a
+field and its type, \Fdef\f\t. Method definitions have (for simplicity) a
+single argument and an expression, denoted \Mdef\m\x\t\t\e.  \kafka supports
+a limited form of overloading, allowing both a typed implementation and an
+untyped (dynamically checked) implementation for each method.  Fields are
+private to objects, and can be accessed only from the object scope; reading
+a field is denoted \(\FRead\f\) and writing a field is denoted \(\FWrite\f\e
+\).  The calculus supports both statically and dynamically resolved method
+invocation (denoted \KCall\e\m\e\t\t and \DynCall\e\m\e).  The static
+dispatch resolves overloading via the type tag on the method call.  We let
+meta-variables \x ranges over variable names, \m and \f range over methods
+and fields respectively; \this is a distinguished identifier representing a
+method receiver, while \that is a distinguished field name that will be used
+in wrapper classes.
 
- Providing two different cast mechanisms is the most original feature of the calculus.
-The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast that dynamically type-checks its argument.  The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that type-checking the argument at run-time, builds a wrapper around it.  The wrapper then ensures that all the successive requests to the object will be  understood (or raise an error). The design of the behavioural cast is intricate, and deserves its own section below.  
+Providing two different cast mechanisms is the most original feature of the
+calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\), denotes
+the usual subtype cast that dynamically type-checks its argument.  The
+latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that
+type-checking the argument at run-time, builds a wrapper around it.  The
+wrapper then ensures that all the successive requests to the object will be
+understood (or raise an error). The design of the behavioural cast is
+intricate, and deserves its own section below.
 
 State is represented via a heap \s mapping addresses ranged over by \a
 to objects denoted \hspace{-1mm}\obj\C{\b\a}.
@@ -707,23 +723,12 @@ classes.
 \end{tabular}
 %\end{minipage}
 
-
-%
-% Field access either reads a field from the object (if the class has a
-%field definition) or invokes a getter function (if the class has a getter method
-%of the field name), and setters are treated similarly. \FZ{Don't understand.  Jan explained - must integrate in text - : Getter/Setter:    A class that has fields `fd1..`  also has implicit getter/setter methods `f1():t` and `f1(x:t):t`.  These implicit g/s methods do not show up in the class table. The semantics knows that if you are trying to call an implicit get / set method it should retrieve the field and read from or write to it.
-%The reason they are implicit is that we could not write their body without introducing assignment statements.
-%and reads.
-%Both of these are tricky because under wrapper semantics you want to be able to interpose on all reads writes.
-%An alternative and equivalent design would have been to allow assignments but only in one place — the getter/setter methods of the class that defines a field.  This carries into downsides.
-%} 
-Calling forms specify the
-typing of the method to resolve overloading; this is always \(\any \to \any\) for dynamic calls, but can be either \(\C \to \D\) or \(\any \to \any\) for  static calls.
-Structural casts to \any always succeed
-while structural casts to \C check that the runtime object is an instance of a
-subtype of \C.  
-%, while shallow casts check inclusion of method names. 
-Evaluation contexts are deterministic and enforce a strict evaluation order.
+Calling forms specify the typing of the method to resolve overloading; this
+is always \(\any \to \any\) for dynamic calls, but can be either \(\C \to
+\D\) or \(\any \to \any\) for static calls.  Structural casts to \any always
+succeed while structural casts to \C check that the runtime object is an
+instance of a subtype of \C.  Evaluation contexts are deterministic and
+enforce a strict evaluation order.
 
 \paragraph{Behavioural Casts}
 
@@ -742,33 +747,42 @@ Evaluation contexts are deterministic and enforce a strict evaluation order.
 \\[-3mm]
 \> \>  \src{\Mdef\m\x{\t_1}{\t_2}{~\KCall{\FRead\that}\m{\x}{\t_1}{\t_2}}} ..  \>\textbf{otherwise}
 \\[3mm]
-  \wrapAny{\C}{\mds 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mds 1..}}\\
-\HS\HS\WHERE\HS\=\mds 1 = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
+  \wrapAny{\C}{\mds 1..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mdps 1..}}\\
+\HS\HS\WHERE\HS\=\mdps 1 = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
     \HS\HS\HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\mds 1.. \\
 \end{tabbing}
 % \end{array}\]
 \vspace{-5mm}
 
-%%%%%%%%%%%%% new behcast %%%%%%%%%%%%%
+
+\hrulefill
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\caption{Behavioural casts.}\label{behavetext}
+\end{figure}
+
+\begin{figure}[!ht]
+\hrulefill
+\small
 
 \begin{equation*}
-  \behcastE\a\Cp\s\K \Kp\ap\sp ~~\WHERE~~ \begin{cases}
-  \App\s\a = \obj\C{\a_1..} \HS\HS
+  \behcastE\a\Cp\s\K \Kp\ap\sp \HS\HS\WHERE\HS\HS \begin{cases}
+\HS  \App\s\a = \obj\C{\a_1..} \HS\HS
   \fresh{\D,\ap,\that} \HS\HS
-  \mds 1.. = \App\K\C \qquad \mdps 1.. = \App\K\Cp \\
-  \names{\mds 1..} \subseteq \names{\mdps 1..} \HS\HS
+  \mds 1.. \In \App\K\C \qquad \mdps 1.. \In \App\K\Cp \\\HS
+  \names{\mds 1..} \subseteq \names{\mdps 1..} \HS\HS \cload{\mdps 1..} \\\HS
   \Kp = \K\,\wrap\C{\mds 1..}{\mdps 1..}\D\that \HS\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
   \end{cases}
 \end{equation*}
 
 \begin{equation*}
-  \behcastE\a\any\s\K \Kp\ap\sp  ~~\WHERE~~ 
-  \App\s\a = \obj\C{\a_1..} \HS \mds 1.. = \App\K\C \HS
-  \fresh{\D,\ap,\that} \HS
-  \Kp = \K\,\wrapAny\C{\mds 1..}\D\that \HS
+  \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
+  \App\s\a = \obj\C{\a_1..} \HS\HS \mds 1.. = \App\K\C \HS\HS
+  \fresh{\D,\ap,\that} \HS\HS \cload{\mdps 1..} \\\HS
+  \Kp = \K\,\wrapAny\C{\mds 1..}\D\that \HS\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
-\end{equation*}
+\end{cases}\end{equation*}
 
 
 \hrulefill
