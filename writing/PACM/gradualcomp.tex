@@ -1908,40 +1908,6 @@ a class table \K.   The set of subtype relations can be omitted if its empty.
 }
 \end{mathpar}
 
-\subsection{Consistent Subtyping}
-
-\opdef{\ConSub\M\K\t\tp}{\t is a consistent subtype of \tp}
-\begin{mathpar}
-\IRule{CSCons}{
-  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
-}{
- \ConSub\M\K \t \tp
-}
-
-\IRule{CSAss}{
-\C \Sub \D \in \M
-}{
- \ConSub \M\K \C\D
-}
-
-\IRule{CSRec}{
- \M' = \M~\C\Sub\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ConSub{\M'}\K\mt{\mtp}
-}{
- \ConSub \M\K \C \D 
-}
-\end{mathpar}
-
-\opdef{\ConSub\M\K\mt\mtp}{$\mt$ is a consistent subtype of $\mtp$}
-\begin{mathpar}
-\IRule{CSMet}{
-  \ConSub \M\K {\t[2]} {\t[1]} \\
-  \ConSub \M\K {\tp[1]} {\tp[2]}
-}{
- \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-\end{mathpar}
-
 \subsection{Well-formedness}
 
 The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
@@ -2799,6 +2765,38 @@ We use $x$ as a placeholder to mean either $s$ (for the basic source typing, use
 \end{mathpar}
 
 \subsection{Transient expression typing}
+
+\opdef{\ConSub\M\K\t\tp}{\t is a consistent subtype of \tp}
+\begin{mathpar}
+\IRule{CSCons}{
+  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
+}{
+ \ConSub\M\K \t \tp
+}
+
+\IRule{CSAss}{
+\C \Sub \D \in \M
+}{
+ \ConSub \M\K \C\D
+}
+
+\IRule{CSRec}{
+ \M' = \M~\C\Sub\D\\
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ConSub{\M'}\K\mt{\mtp}
+}{
+ \ConSub \M\K \C \D 
+}
+\end{mathpar}
+
+\opdef{\ConSub\M\K\mt\mtp}{$\mt$ is a consistent subtype of $\mtp$}
+\begin{mathpar}
+\IRule{CSMet}{
+  \ConSub \M\K {\t[2]} {\t[1]} \\
+  \ConSub \M\K {\tp[1]} {\tp[2]}
+}{
+ \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+}
+\end{mathpar}
 
 \opdef{\ConvertE\K{tr}\t\tp}{type convertibility between \t and \tp.}
 \begin{mathpar}
