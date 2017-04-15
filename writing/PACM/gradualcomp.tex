@@ -1437,15 +1437,17 @@ semantics of the typing system.  We also omit first-class classes: they are not 
 Vitousek, Kent, and Siek's Guarded Reticulated Python~\cite{siek14}, though we
 do not support consistent subtyping, as Vitousek et al do.
 
-The core of any gradual typing system is its enforcement mechanism, ensuring
+The type system of Typed Racket is analogous to that of TypeScript, already reported in~\figref{f:typescriptts}.  However, contrarily to TypeScript, Typed Racked  ensures
 that values passing a typed/untyped boundary are consistent with their
-declared types. Thorn handled this problem through the use of \emph{concrete}
+declared types.  This enforcement mechanism constitutes the core of any gradual typing system:
+ Thorn handled this problem through the use of \emph{concrete}
 typing, checking that the type tag on the value is statically known to be a subtype
 of the required type, and Transient tasks the user with ensuring that the operations
 that they require are safe. In contrast, Typed Racket ensures type correctness of 
 untyped code through the insertion of wrapper contracts, interposed between typed
 and untyped code. 
 
+\FZ{... UNTIL HERE}
 \begin{lstlisting}
  class A { m(x: *): * { new B().n(x) } }
  class B { n(x: B): C { x.n(x) } }
@@ -1457,6 +1459,8 @@ and untyped code.
 be given an \code A. To guard against this eventuality, Typed Racket will
 insert a wrapper at the typed/untyped boundary where \code A calls \code B,
 which (as expected) 
+
+
 
 The
 translation to \kafka is such that typed code remains untouched, untyped
@@ -1493,9 +1497,10 @@ wrapped by any wrapper(s) applied at the call site.
 The complete type system for our Typed Racket source is identical to the type
 system of our TypeScript source presented in figure \ref{f:typescriptts}.
 
-Our model of Typed Racket does not preserve the ``macro'' model of gradual
-typing of the source language, as it does not effect the fundamental
-semantics of the typing system.  Typed Racket requires a new cast, a
+%Our model of Typed Racket does not preserve the ``macro'' model of gradual
+%typing of the source language, as it does not effect the fundamental
+%semantics of the typing system. 
+ Typed Racket requires a new cast, a
 \emph{generative cast}, which is sufficiently different from what we have
 seen so far that we will extend the syntax and semantics of \kafka to
 support it.  For an expression \e and type \t, the cast \BehCast\t\e depicts
