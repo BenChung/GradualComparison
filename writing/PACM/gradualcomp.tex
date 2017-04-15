@@ -2018,13 +2018,6 @@ class $\C$. \\
 \end{cases}
 \end{equation*}
 
-\subsection{getmds function}
-
-The function $\getmds\C\K$ denotes the function that returns the method definitions inside the class \C.
-
-\begin{equation*}
-\getmds\C\K = \md[1].. ~~\mathit{if}~~ \Class\C{\fd[1]..}{\md[1]..} \in \K
-\end{equation*}
 
 \subsection{Dynamic function}
 
@@ -2761,7 +2754,7 @@ If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\fd[1]..}{\md[1]..}~.~\WFtype\K{\fd[1
 
 \subsection{Correctness of $\xt{wrap}$}
 
-If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\md[1].. = \getmds\C\K$, $\mt[1].. = \classoff\C\K$, $\mtp[1].. = \classoff\Cp\K$, and $\k = \wrap\C{\mt[1].. }{\mtp[1]..}\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
+If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\md[1].. \In\App\K\C$, $\mt[1].. = \classoff\C\K$, $\mtp[1].. = \classoff\Cp\K$, and $\k = \wrap\C{\mt[1].. }{\mtp[1]..}\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
 
 \subsection{Type Soundness of Core \kafka Typing}
 
@@ -3578,7 +3571,7 @@ FIXME%     \step{\cload{\classoff\D{\K~\k}}}{\trf{cond8}, \bylemm{\ref{lem:DM-WR
       \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\tp_i}$}{IH on case}\lbl{STTNew4}
       \step{$\Fdef{\f_i}\any .. \in \App\Kp\C$}{\trf{cond4}}\lbl{STTNew5}
       \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\t_i}$}{lemma \ref{lem:THTA-COMP} on \trf{STTNew4}, case}\lbl{STTNew6}
-      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp_i \ldots}}{\C}$}{\RuleRef{KT-NEW} on \trf{STTNew6}}
+      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp_i..}}{\C}$}{\RuleRef{KT-NEW} on \trf{STTNew6}}
     \end{case}
   \end{proof}
 \end{lemma}

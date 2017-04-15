@@ -93,8 +93,6 @@
 \newcommand{\KCall}[5] {\EM{{#1}.{#2}_{{#4} \shortrightarrow {#5}}(#3)}}
 \newcommand{\DynCall}[3]  {\EM{#1@#2_{\any\shortrightarrow\any}(#3)}}
 \newcommand{\sDynCall}[3]  {\EM{#1@#2(#3)}}
-\newcommand{\READ}[1]{\EM{\this.#1}}
-\newcommand{\WRITE}[2]{\EM{\this.#1 = #2}}
 
 \newcommand{\New}[2]   {\EM{\new\;#1(#2)}}
 \newcommand{\SubCast}[2]{\EM{<\hspace{-.6mm}{#1}\hspace{-.6mm}>\hspace{-1mm}\;{#2}}}
@@ -102,27 +100,18 @@
 \newcommand{\BehEnd}{\EM{\blacktriangleright}}
 \newcommand{\BehCast}[2]{\EM{\BehStart #1 \BehEnd #2}}
 
-
 \newcommand{\new}      {\EM{\bt{new}}}
 \newcommand{\HT}[2]    {\EM{{#1}\!:{#2}}}
 \newcommand{\Mdef}[5]  {\EM{ \HT{ #1( \HT{#2}{#3})}{#4}\;\{{#5}\}}}
-\newcommand{\NMdef}[7]  {\EM{ \HT{ #1(\HT{#2}{#3}, ~\HT{#4}{#5})}{#6}\;\{{#7}\}}}
-\newcommand{\Mdefz}[3] {\EM{ \HT{ #1()}{#2}\;\{{#3}\}}}
-\newcommand{\NMdefz}[5] {\EM{ \HT{#1(\HT{#2}{#3})}{#4}\;\{{#5}\}}}
-\newcommand{\Mdefa}[4]  {\EM{ \HT{ #1( #2 )}{#3}~\{{#4}\}}}
 \newcommand{\obj}[2]   { \EM{ #1\{#2\}}}
 \newcommand{\ThorSub}[4]{\EM{#1~#2 \vdash #3 \Sub_t #4}}
 \newcommand{\behcast}[7]{\EM{#5\,#6\,#7 = \xt{bcast}(#1, #2, #3, #4)}}
 \newcommand{\behcastE}[7]{\EM{\xt{bcast}(#1, #2, #3, #4) = #5\,#6\,#7}}
 
-
 \newcommand{\Alt}[1]   { &\B #1 \\}
 \newcommand{\B}        {\EM{~|~}}
 
-
 \newcommand{\Red}{\EM{\rightarrow}}
-\newcommand{\readf}[4]{\EM{\xt{read}(#1,#2,#3,#4)}}
-\newcommand{\setf}[5] {\EM{\xt{write}(#1,#2,#3,#4,#5)}}
 \newcommand{\Reduce}[6]   {\EM{{#1}~{#2}~{#3} \Red {#4}~{#5}~{#6}}}
 \newcommand{\ReduceA}[6]  {\EM{#1~#2~#3 } & \EM{\Red #4~#5~#6}}
 \newcommand{\class}       {\EM{\bf{class}}}
@@ -131,18 +120,14 @@
 \newcommand{\Ftype}[2]    {\EM{ \HT{#1}{#2} }}
 \newcommand{\Fdef}[2]    {\EM{ \HT{#1}{#2} }}
 \newcommand{\Mtype}[3]    {\EM{ \HT{#1(#2)}{#3}}}
-
-
 \newcommand{\opdef}[2]    {\framebox[1.1\width]{#1} ~ #2\\}
 \newcommand{\Map}[2]     {\EM{ #1[#2] }}
 \newcommand{\Bind}[2]     {\EM{#1 \mapsto #2}}
 
 \newcommand{\Sub}{\EM{<:}}
-\newcommand{\Exten}{\EM{:<:}}
 \newcommand{\OK}{\EM{~\checkmark}}
 \newcommand{\names}[1]{\EM{\xt{names}(#1)}}
 \newcommand{\cload}[1]{\EM{\xt{nodups}(#1)}}
-
 
 \newcommand{\ConsSub}{\EM{\lesssim}}
 
@@ -152,7 +137,6 @@
 \newcommand{\SuchRule}[3]{ #3 &~{\emph{s.t.}} #2 \\}
 \newcommand{\EnvType}[5]{ \EM{#1\,#2\,#3\vdash #4 : #5}}
 \newcommand{\EnvTypex}[5]{ \EM{#1\,#2\,#3\vdash_x #4 : #5}}
-\newcommand{\EnvTypeNA}[3]{ \EM{#1\vdash #2 : #3}}
 
 \newcommand{\RuleRef}[1]{\hyperlink{infer:#1}{\TirNameStyle{#1}}}
 \newcommand{\IRule}[4][]{\inferrule*[lab={\tiny \hypertarget{infer:#2}{#2}},#1]{#3}{#4}}
@@ -160,36 +144,15 @@
 \newcommand{\HasType}[3]{ \EM{#1} (\EM{#2}) = \EM{#3}}
 \newcommand{\wrap}[5]{\EM{\xt{W}(#1,#2,#3,#4,#5)}}
 \newcommand{\wrapAny}[4]{\EM{\xt{W}\!\any(#1,#2,#3,#4)}}
-\newcommand{\spec}[4]{\EM{\xt{spec}(#1,#2,#3,#4)}}
 
-\newcommand{\gmeth}[2]{\EM{\xt{genMeth}(#1,#2)}}
-\newcommand{\gmethUT}[2]{\EM{\xt{genMeth}(#1)}}
-
-\newcommand{\castfn}[4]{\text{cast}(#1,#2,#3,#4)}
-\newcommand{\GenCast}[5]{#1~#2 \vdash #3 \Uparrow #5 \hookrightarrow \src{~#4~}} 
-\newcommand{\AnaCast}[5]{#1~#2 \vdash #3 \Downarrow #5 \hookrightarrow ~\src{#4}}
-\newcommand{\AnaCastG}[5]{\greyBox{#1~#2 \vdash #3 \Downarrow #5 \hookrightarrow} ~#4}
-\newcommand{\GenCastMono}[6]{\src{#1~#2} \vdash \src{#3} \Uparrow \src{#5} \hookrightarrow #4~#6 }
-\newcommand{\AnaCastMono}[6]{\src{#1~#2} \vdash \src{#3} \Downarrow \src{#5} \hookrightarrow #4~#6}
-\newcommand{\TransClass}[2]{\EM{ #1 \rightharpoonup #2 }}
-\newcommand{\inv}[2]{\xt{invoke}(#1, #2)}
 \newcommand{\classoff}[2]{\EM{\xt{mtypes}(#1,~#2)}}
-\newcommand{\classoffs}[3]{\EM{\xt{mtypes}(#1,#2,#3)}}
+
 \newcommand{\mtype}[3]{\EM{\xt{mtype}(#1,#2,#3)}}
-\newcommand{\wftype}[3]{\EM{\xt{wftype}(#1,#2,#3)}}
-\newcommand{\GenType}[4]{#1~#2 \vdash #3 \Uparrow #4}
-\newcommand{\AnaType}[4]{#1~#2 \vdash #3 \Downarrow #4}
 
 \newcommand{\Convertible}[3]{\EM{#1 \vdash #2 \Mapsto #3}}
 \newcommand{\ConvertE}[4]{\EM{#1 \vdash_{#2} #3 \Mapsto #4}}
-
-
-
-\newcommand{\field}[2]{\EM{\xt{field}(#1,#2)}}
 \newcommand{\In}{\EM{\in}}
-
 \newcommand{\T}{\EM{\xt T}}
-
 \newcommand{\AND}{\EM{\wedge}}
 \newcommand{\App}[2]{\EM{#1(#2)}}
 
@@ -203,10 +166,7 @@
 \newcommand{\EnvTypeS}[4]{ \EM{#1\,#2\vdash_{s} #3 : #4}}
 \newcommand{\EnvTypeT}[4]{ \EM{#1\,#2\vdash_{tr} #3 : #4}}
 \newcommand{\EnvTypeE}[5]{ \EM{#1\,#2\vdash_{#3} #4 : #5}}
-
 \newcommand{\trulename}[1]{#1}
-
-
 
 \newcommand{\sign}[1]{\xt{signature}(#1)}
 
@@ -228,7 +188,6 @@
 
 \newcommand{\V}{\EM{\checkmark}}
 
-\newcommand{\getmds}[2]{\xt{getmds}(#1,#2)} % getmds(C,K)
 \newcommand{\dyn}[1]{\xt{dyn}(#1)}
 
 \newcommand{\fresh}[1]{\EM{#1~\xt{fresh}}}
@@ -236,7 +195,6 @@
 \newcommand{\All}[1]{\EM{\forall ~\xt #1 ~.~}}
 \newcommand{\SP}{\hspace{.5cm}}
 \newcommand{\SPP}{\SP\SP}
-\renewcommand\dots{\makebox[1em][c]{.\hfil.\hfil.}}
 
 \newcommand{\IGNOREUNLESSNEEDED}[1]{}
 \newcommand{\figref}[1]{Fig.~\ref{#1}\xspace}
