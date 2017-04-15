@@ -843,10 +843,11 @@ To avoid unnecessary clutter, we represent the source languages using the common
 
 
 \begin{figure}[!h]\hrulefill
-\hspace{2mm}
+\vspace{2mm}  \small
+
 
 \begin{tabular}{lll}
-\begin{minipage}{8cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
 \e\hspace{.1cm} ::= & \hspace{.2cm} \x        
     &\B \this         
    &\B \FRead\f     
@@ -856,7 +857,7 @@ To avoid unnecessary clutter, we represent the source languages using the common
    &\B \that      
    &\B \New\C{\e[1]..}  
 \end{tabular}\end{minipage}&
-\begin{minipage}{2.9cm}\begin{tabular}{l@{~}l@{}l@{}ll}
+\begin{minipage}{4.4cm}\begin{tabular}{l@{~}l@{}l@{}ll}
    ~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
 ~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
 \end{tabular}\end{minipage} &
@@ -865,7 +866,7 @@ To avoid unnecessary clutter, we represent the source languages using the common
 ~\fd&::= ~ \Fdef\f\t \\ 
 \end{tabular}\end{minipage}\end{tabular}
 
-\hrulefill
+\vspace{2mm}\hrulefill
 \caption{Common syntax of source languages}\label{f:sourcesyntax}
 \end{figure}
 
@@ -874,66 +875,81 @@ To avoid unnecessary clutter, we represent the source languages using the common
 
 \subsection{TypeScript}
 
-\begin{figure}
-\hrulefill
+\begin{figure}[!h] \hrulefill  \small
+  \vspace{-3mm}
+  
 \begin{mathpar}
-
 \Rule{STGC-SUB}{
   \StrSub\cdot\K\t\tp
 }{
   \ConvertE\K{s}\t\tp
 }
 
-\IRule{STGC-TOANY}{
+\Rule{STGC-TOANY}{~
 }{
   \ConvertE\K{s}\t\any
 }
 
-\IRule{STGC-ANYCONC}{
+\Rule{STGC-ANYCONC}{~
 }{
   \ConvertE\K{s}\any\tp
 }
+\end{mathpar}
+\vspace{-5mm}
+
+\hrulefill\caption{TypeScript type convertibility}\label{f:typescriptts}
+
+\hrulefill  \small
 
 
-\IRule{STG-VAR}{
+\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllll}  
+\begin{minipage}{1.3cm}\begin{mathpar}  
+ \Rule{STG-VAR}{
+      ~\\\\
    \HasType \Env\x\t
  }{
    \EnvTypeS \Env\K\x\t
-} 
-
-\IRule{STG-GET}{
-   \HasType \Env\this\C \\
+}
+\end{mathpar}\end{minipage}
+&
+ \begin{minipage}{2cm}\begin{mathpar}
+  \Rule{STG-GET}{
+   \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeS \Env\K{\FRead\f}\t
 }    
-
-\IRule{STG-SET}{
-  \HasType \Env\this\C \qquad
-  {\Fdef\f\t \in \App\K\C} \\
-  \EnvTypeS \Env\K\e\tp \qquad
+\end{mathpar}
+\end{minipage} &
+  \begin{minipage}{3.3cm}\begin{mathpar}  
+\Rule{STG-SET}{
+  \HasType \Env\this\C \quad
+  {\Fdef\f\t \in \App\K\C} \\\\
+  \EnvTypeS \Env\K\e\tp \quad
   \ConvertE\K{s}\tp\t
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
 }    
-
-\IRule[width=20em]{STG-CALL}{
-  \EnvTypeS \Env\K\e\C \\
-  \Mtype \m\t\tp\in \classoff\C\K  \\
-  \EnvTypeS \Env\K\ep\tpp \\
-  \ConvertE\K{s}\tpp\t
+\end{mathpar}\end{minipage}& \begin{minipage}{3.9cm}\begin{mathpar}  
+\Rule[width=15em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\C \quad
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
+  \EnvTypeS \Env\K\ep\t \quad
+  \ConvertE\K{s}\t{\t[1]}
 }{
-  \EnvTypeS \Env\K{\Call\e\m\ep}\tp
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
 }    
-
-\IRule{STG-NEW}{
- \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\
-  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..~~ \\
- \ConvertE\K{s}{\tp[1]}{\t[1]}..\\
+\end{mathpar}\end{minipage}&\begin{minipage}{3cm}\begin{mathpar}  
+\Rule{STG-NEW}{
+ \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\\\
+  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad
+ \ConvertE\K{s}{\tp[1]}{\t[1]}..
 }{
   \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+
+\vspace{2mm}
 
 \hrulefill
 \caption{TypeScript type system}\label{f:typescriptts}
