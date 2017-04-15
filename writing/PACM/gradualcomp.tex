@@ -723,7 +723,7 @@ act like an instance of \any.
 \HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
   \fresh{\D,\ap,\that} \HS\HS
   \md[1].. \In \App\K\C \qquad \mdp[1].. \In \App\K\Cp \\\HS
-  \names{\md[1]..} \subseteq \names{\mdp[1]..} \HS\HS \cload{\mdp[1]..} \\\HS
+  \names{\mdp[1]..} \subseteq \names{\md[1]..} \HS\HS \cload{\mdp[1]..} \\\HS
   \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that \HS\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
   \end{cases}
@@ -790,9 +790,6 @@ wrapper class will also never contain any duplicates as it can only contain
 methods that exists in the source type.  Furthermore, at most the wrapper
 class will contain every method of the source type.
 
-
-
-
 \paragraph{Type soundness} 
 Well-typed \kafka configurations satisfy a type-preservation theorem, and
 either reduce to values or are stuck on a dynamic method invocation or on a
@@ -803,11 +800,24 @@ Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$,
 then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and
 $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is in one of
 the following forms: $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$,
-or $\EE[\BehCast\tp\a]$.
+or $\EE[\BehCast\tp\a]$.\\
+
+The wrapper class generated from behavioural cast will not contain
+any duplicate methods or fields.
+
+\medskip\noindent{\bf Lemma 1: Wrapper preserves no duplication.} ~
+Given the source methods $\md[1].. \In \App\K\C$ whereby $\cload{\md[1]..}$, 
+then the wrapper class $\wrapE{\C, ..}$ does not contain 
+any duplicate methods and fields.\\
+
+The wrapper class generated from behavioural cast is always a subtype
+of the target type, otherwise known as type that is being casted with.
+
+\medskip\noindent{\bf Lemma 2: Wrapper preserves subtype over target type.} ~
+Given the source methods $\md[1].. \In \App\K\C$, the target methods $\mdp[1].. \In \App\K\Cp$, 
+and the wrapper $\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, then $\StrSub\emptyset\K\D\Cp$.
 
 
-
-\medskip\noindent{\bf Lemma 1: Well-formed Wrappers.} ~
 
 
 
@@ -2970,7 +2980,7 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{\Cppp $\in$ \Kk}{\trf{E1}}\lbl{E3}
       \step{\WFtype\Kk\Cpp}{\byjdg{WC}{\trf{E2}}}\lbl{E4}
       \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{E3}}}\lbl{E5}
-FIXME%      \slet{\Envp}{\Env, ~\namet{\x}{\Cpp}}\lbl{E7}
+      \slet{\Envp}{\Env, ~\namet{\x}{\Cpp}}\lbl{E7}
       \step{\EnvType \Env\sp\Kk{\FRead\that}\C }{\byjdg{W3}{\trf{1},  \this variable, definition of \textbf{mtypes}}}\lbl{E6}     
       \step{\EnvType {\Envp}\sp\Kk{\x}\Cpp}{\byjdg{W1}{\trf{E7}}}\lbl{E8}  
       \step{\EnvType {\Envp}\sp\Kk{\KCall{\this.\that}\m{\x}\Cpp\Cppp}\Cppp}{\byjdg{W5}{\trf{E6}, \trf{E8}, \trf{E1}}}\lbl{E9}
@@ -2989,12 +2999,8 @@ FIXME%      \slet{\Envp}{\Env, ~\namet{\x}{\Cpp}}\lbl{E7}
       \step{\Mtype\m\Cp\Cpp $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{K2}
       \slet{\Envp}{\Env,~\namet{\x}{\Dp}}\lbl{K3}
       \step{\EnvType\Envp\sp\Kk{\x}{\Dp}}{\byjdg{W1}{\trf{K3}}}\lbl{K4}
-      \step
-          {\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}
-          {\byjdg{WB}
-            {\trf{K4}}}
-          \lbl{K5}
-FIXME%      \step{\EnvType \Envp\sp\Kk{\FRead\that}}{\byjdg{W3}{\trf{1}, \this variable, definition of \textbf{mtypes}} \lbl{K6}
+      \step{\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}{\byjdg{WB}{\trf{K4}}}\lbl{K5}
+      \step{\EnvType \Envp\sp\Kk{\FRead\that}\C}{\byjdg{W3}{\trf{1}, $\this$ variable, definition of $\textbf{mtypes}$}}\lbl{K6}
       \step{\EnvType \Envp\sp\Kk{\KCall{\FRead\that} \m {\bscast{\Cp}\x}\Cp\Cpp }\Cpp }{\byjdg{W4}{\trf{K6},~\trf{K2},~\trf{K5},~\trf{cond3a}}}\lbl{K7}
       \step{\EnvType \Envp\sp\Kk{\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}}{\Dpp}}{\byjdg{WB}{\trf{K7}}}\lbl{K8}
       \longstepB{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT2}{\trf{K8},~\trf{K1a},~\trf{K1b}}}\lbl{K9}
@@ -3029,7 +3035,7 @@ FIXME%      \step{\EnvType \Envp\sp\Kk{\FRead\that}}{\byjdg{W3}{\trf{1}, \this v
      \end{case}
     
      \step{$\Class \D {\fd[1]..}{\md[1]..} \in \K~\k$}{\trf{cond7}}\lbl{N2}
-FIXME%     \step{\cload{\classoff\D{\K~\k}}}{\trf{cond8}, \bylemm{\ref{lem:DM-WR}}{DupMeth over wrappers}{\trf{cond7}, \trf{cond4}}}\lbl{N1}
+     \step{\cload{\classoff\D{\K~\k}}}{\trf{cond8}, \bylemm{\ref{lem:DM-WR}}{DupMeth over wrappers}{\trf{cond7}, \trf{cond4}}}\lbl{N1}
      \step{\xt{overloading}$_{\cmd}$(\md[1]..~\fd[1]..) \textbf{for} \k}{\bylemm{\ref{lem:DM-OL}}{DupMeth gives overloading}{\trf{cond7}}, \trf{N2}, \trf{N1}}\lbl{N3}   
      \done{\trf{1}, \trf{N3}, and \textbf{Case}}
     \end{proof}
