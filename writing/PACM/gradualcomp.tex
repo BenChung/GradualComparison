@@ -175,31 +175,27 @@ degrading performance.\footnote{Dart, Typescript and Hack are good examples,
   checks are performed, and thus type errors are not caught.}
 
 This paper explores the design space of gradual type systems for
-object-oriented languages. We aim to expose the forces that influenced
-existing systems and discuss the implication of key design decisions. While
-there are significant practical challenges that, in the end, may prevent
-adoption of some of the more ambitious type systems, there may be workable
-compromises that have not been fully explored yet.  To capture the essence
-of gradual typing for objects and to highlight the design choices at hand,
-we present translations of representative subsets of four gradually typed
+object-oriented languages. We aim to expose the forces that influenced the
+design of existing systems and discuss the implication of key
+decisions. While there are practical challenges that, in the end, may
+prevent adoption of some of the more ambitious type systems, there may be
+workable compromises that have not been fully explored yet.  To capture the
+essence of gradual typing and to highlight the choices at hand, we present
+translations of representative subsets of four gradually typed
 object-oriented languages into a common target language. This target
 language, which we name \kafka, is modeled on the intermediate language of
-the Java Virtual Machine and the Common Language Runtime.
-
-implementers face, we present translations of representative subsets of
-gradually typed languages into a common target language. Targeting the same
-language lets us reason about the type systems in the same framework and
-allows for comparison. But which language should we target? The language
-should avoid linguistic clutter while expressing key object-oriented
-features directly rather than by encoding. We propose to target a typed
-object-oriented language inspired by modern language runtime such as the
-Java Virtual Machine and the CLR in .Net. They have a static type system
-with classes and subtyping but they also allow for dynamic resolution of
-method dispatch.\footnote{Both runtime support reflective invocation based
-  on method names. Dynamic resolution was added to C\# in version
+the Java Virtual Machine and the Common Language Runtime -- both of which
+have been used as targets for implementations of gradual typing systems.
+The features that we exploit here are the presence of static type system
+equipped with dynamic casts that test the run-time type of values, the
+ability to dynamic resolve method targets, and support for generating new
+classes at run-time.\footnote{Both the JVM and the CLR have runtime type
+  tests, reflective invocation based on method names and runtime code
+  generation. Dynamic resolution was added to C\# in version
   4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for custom method
-  dispatch.} As well as reasonably efficient implementations, and in both
-environments, primitive types can be unboxed.
+  dispatch. The languages have similar class loading mechanisms.} 
+
+
 
 A contribution of this work is the design of \kafka, a statically typed object
 calculus.  \kafka is class based (with an explicit class table \K), with mutable
@@ -216,11 +212,11 @@ The heart of any gradual type system implementation is the explicit casts
 that are inserted at type boundaries.  Two different \emph{structural} casts
 are built-in to \kafka; they only inspect the structure of objects.  The
 subtype cast \SubCast\t\a is a structural cast that checks if the object
-references by \a is a subtype of type \t. 
-To support some of the more complex type systems,
-\kafka is extended by \emph{generative} casts which create new wrapper
-classes.  The behavioral cast \BehCast\t\a generates a wrapper object that
-monitors that methods invoked on \a abide by the interface of type \t. 
+references by \a is a subtype of type \t.  To support some of the more
+complex type systems, \kafka is extended by \emph{generative} casts which
+create new wrapper classes.  The behavioral cast \BehCast\t\a generates a
+wrapper object that monitors that methods invoked on \a abide by the
+interface of type \t.
 
 Another contribution is the translation of five type systems representative
 of the main strains of gradual typing for objects. Each gradually typed
@@ -240,9 +236,8 @@ maps to itself \C. Typed Racket has \emph{promised types}; a well-typed
 program will not get stuck at a call to \m, because \u\x refers to an
 object, or wrapper, that implements \m.  Wrappers may fail if their target
 does not behave like a \u\C. Finally we describe the 
-%monotonic and 
 transient variant of Reticulated Python which has somewhat surprising
-semantic properties. \FZ{Does it?}
+semantic properties. 
 
 %\newpage %% Sanity check.  If you see it, then something went wrong.
 
