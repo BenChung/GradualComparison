@@ -2801,7 +2801,11 @@ Note that we refer to rule preconditions from left to right.
 
         If $\e$ steps to some $\ep$, we can trivially apply $\RuleRef{KT-REFWRITE}$ again, with weakening of typing over class tables and heaps, to conclude that $\EnvType\cdot\sp\Kp{\FWriteR\a\f\ep}\t$.
 
-        If $\e$ is a value $\ap$, then it follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd[i] ..~\Fdef\f\t ~ \fd[j]..}{\md..}$ and from well-formedness of heaps that $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a[i]..~\app~ \a[j]..}}}$. Therefore, we can apply the definition of $\xt{write}$ to find that $\setf\s\a\f\K\ap = \Map\s{\Bind{\a}{\obj\C{\a[i].. ~\ap~ \a[j]..}}}$, which we then define as $\sp$. Since we know that $\EnvType\cdot\s\K\ap\t$, and we know that $\forall \a \in \sigma, \Map\s{\Bind{\a}{\obj\C{..}}} \implies \Map\sp{\Bind\a{\obj\C{..}}}$, it follows that $\EnvType\cdot\sp\K\ap\t$, and from there that $\WFp\K{\ap~\sp}$ and $\EnvType\cdot\sp\K\ap\t$, so the theorem holds.
+        If $\e$ is a value $\ap$, then it follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd[i] ..~\Fdef\f\t ~ \fd[j]..}{\md..}$ and from well-formedness of heaps that
+        $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a[i]..~\app~ \a[j]..}}}$. Therefore, we can apply the definition of $\xt{write}$ implicitly, which we then define as $\sp$. 
+        Since we know that $\EnvType\cdot\s\K\ap\t$, and we know that $\forall \a \in 
+        \sigma, \Map\s{\Bind{\a}{\obj\C{..}}} \implies \Map\sp{\Bind\a{\obj\C{..}}}$, it follows that $\EnvType\cdot\sp\K\ap\t$, and from there that $\WFp\K{\ap~\sp}$ and 
+        $\EnvType\cdot\sp\K\ap\t$, so the theorem holds.
 
         If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
 
