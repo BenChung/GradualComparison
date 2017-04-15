@@ -1422,37 +1422,48 @@ callee to check.
 \subsection{Typed Racket}
 
 Typed Racket~\cite{Takikawa:2012} is an extension of the Racket programming
-language, supporting Racket's key functionality
-%, including first class classes, 
-through a system of contracts, dynamically enforcing type guarantees. 
-Our translation from Typed Racket to \kafka encapsulates the core of Typed Racket's
-functionality, highlighting the key issues of type identity that Typed Racket raises.  For this we leave out some
-features that are important for a real programming language, but are not
-relevant to  the core of the language.   For instance we omit the ``macro'' model of gradual
-typing of the source language: in Typed Racket types must be added one module at a time, whereas in our system individual methods can be typed inside untyped classes.  This does not affect the fundamental
-semantics of the typing system.  We also omit first-class classes: they are not easily mapped to \kafka and supporting them on a common compilation target as the JVM or .NET CLR requires substantial complexity.  More interestingly, by default Typed Racket ensures that the receiver of a method call abides
-  by the externally asserted type of that receiver. This mechanism, which can be disabled, is needed to 
-  ensure soundness in the presence of inheritance, but is not needed for 
-  \kafka and we omit it.  The source language can also be compared to
-Vitousek, Kent, and Siek's Guarded Reticulated Python~\cite{siek14}, though we
-do not support consistent subtyping, as Vitousek et al do.
+language, supporting Racket's key functionality %, including first class
+classes,  through a system of contracts, dynamically enforcing type
+guarantees.  Our translation from Typed Racket to \kafka encapsulates the core
+of Typed Racket's functionality, highlighting the key issues of type identity
+that Typed Racket raises.  For this we leave out some features that are
+important for a real programming language, but are not relevant to  the core
+of the language.   For instance we omit the ``macro'' model of gradual typing
+of the source language: in Typed Racket types must be added one module at a
+time, whereas in our system individual methods can be typed inside untyped
+classes.  This does not affect the fundamental semantics of the typing system.
+We also omit first-class classes: they are not easily mapped to \kafka and
+supporting them on a common compilation target as the JVM or .NET CLR requires
+substantial complexity.  More interestingly, by default Typed Racket ensures
+that the receiver of a method call abides   by the externally asserted type of
+that receiver. This mechanism, which can be disabled, is needed to    ensure
+soundness in the presence of inheritance, but is not needed for    \kafka and
+we omit it.  The source language can also be compared to Vitousek, Kent, and
+Siek's Guarded Reticulated Python~\cite{siek14}, though we do not support
+consistent subtyping, as Vitousek et al do.
 
-The type system of Typed Racket is analogous to that of TypeScript, already reported in~\figref{f:typescriptts}.  However, contrarily to TypeScript, Typed Racked  ensures
-that values passing a typed/untyped boundary are consistent with their
-declared types.  This enforcement mechanism constitutes the core of any gradual typing system:
- Thorn handled this problem through the use of \emph{concrete}
-typing, checking that the type tag on the value is statically known to be a subtype
-of the required type, and Transient tasks the user with ensuring that the operations
-that they require are safe. In contrast, Typed Racket ensures type correctness of 
-untyped code through the insertion of wrapper contracts, interposed between typed
-and untyped code. 
+The type system of Typed Racket is analogous to that of TypeScript, already
+reported in~\figref{f:typescriptts}.  However, contrarily to TypeScript, Typed
+Racked  ensures that values passing a typed/untyped boundary are consistent
+with their declared types.  This enforcement mechanism constitutes the core of
+any gradual typing system:  Thorn handled this problem through the use of
+\emph{concrete} typing, checking that the type tag on the value is statically
+known to be a subtype of the required type, and Transient tasks the user with
+ensuring that the operations that they require are safe. In contrast, Typed
+Racket ensures type correctness of  untyped code through the insertion of
+wrapper contracts, interposed between typed and untyped code.
 
 \FZ{... UNTIL HERE}
 \begin{lstlisting}
- class A { m(x: *): * { new B().n(x) } }
- class B { n(x: B): C { x.n(x) } }
- class 
- new A().m( new A())
+ class A { m(x: *): * { new B().m(x) } }
+ class B { m(x: C): D { x.n(x) } }
+ new A().m(new A())
+\end{lstlisting}
+
+\begin{lstlisting}
+ class A { m(x: *): * { <|*|> new B().m(<|C|> x) } }
+ class B { m(x: C): D { x.n(x) } }
+ new A().m(new A())
 \end{lstlisting}
 
 \noindent Class \code B expects \code x to be of type \code B, yet it will
