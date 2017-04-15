@@ -1427,16 +1427,19 @@ callee to check.
 \subsection{Typed Racket}
 
 Typed Racket~\cite{Takikawa:2012} is an extension of the Racket programming
-language, supporting Racket's key functionality, including first
-class classes, through a system of contracts, dynamically enforcing type guarantees. 
+language, supporting Racket's key functionality
+%, including first class classes, 
+through a system of contracts, dynamically enforcing type guarantees. 
 Our translation from Typed Racket to \kafka encapsulates the core of Typed Racket's
-functionality, highlighting the key issues of type identity that Typed Racket raises.
-
-To illustrate how Typed Racket approaches gradual typing, we leave out several
+functionality, highlighting the key issues of type identity that Typed Racket raises.  For this we leave out some
 features that are important for a real programming language, but are not
-relevant to  the core of the language, including first class classes and
-inheritance. As a result of these changes, our model is very similar to
-Vitousek, Kent, and Siek's guarded Reticulated Python~\cite{siek14}, though we
+relevant to  the core of the language.   For instance we omit the ``macro'' model of gradual
+typing of the source language: in Typed Racket types must be added one module at a time, whereas in our system individual methods can be typed inside untyped classes.  This does not affect the fundamental
+semantics of the typing system.  We also omit first-class classes: they are not easily mapped to \kafka and supporting them on a common compilation target as the JVM or .NET CLR requires substantial complexity.  More interestingly, by default Typed Racket ensures that the receiver of a method call abides
+  by the externally asserted type of that receiver. This mechanism, which can be disabled, is needed to 
+  ensure soundness in the presence of inheritance, but is not needed for 
+  \kafka and we omit it.  The source language can also be compared to
+Vitousek, Kent, and Siek's Guarded Reticulated Python~\cite{siek14}, though we
 do not support consistent subtyping, as Vitousek et al do.
 
 The core of any gradual typing system is its enforcement mechanism, ensuring
@@ -1505,9 +1508,11 @@ the behavioural cast, and the typing and semantic rules are next.
 
 
 \begin{figure}[!h]
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\hrulefill
+
+%\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
  \small
-\begin{minipage}{8cm}  
+\begin{minipage}{12cm}  
 \begin{tabbing}
 \TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
 \hspace{.7cm} \WHERE\HS 
@@ -1520,7 +1525,7 @@ the behavioural cast, and the typing and semantic rules are next.
 \\[1mm]
 \TRG{\FRead\f}\Env  = \src{\FRead\f}
 \\[1mm]
-\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{.5cm}
+\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{1cm}
 \=\WHERE
 \= \TypeCk\K{\e[1]}\C, \HS\HS
 \= \Ftype\f\t\In\App\K\C, \hspace{1cm}
@@ -1553,8 +1558,11 @@ the behavioural cast, and the typing and semantic rules are next.
    \>     \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
-\end{tabular}
-\caption{Typed Racket}\end{figure}
+%\end{tabular}
+
+\hrulefill
+\caption{Typed Racket}\label{f:typedrackettothorn}
+\end{figure}
 
 
 
