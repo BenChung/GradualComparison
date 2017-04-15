@@ -2219,7 +2219,7 @@ method definitions or method typings, and ensures there are no duplicates.
 \subsection{Thorn expression typing}
 
 \opdef{\ConvertE\K{th}\t\tp}{type convertibility between \t and \tp.}
-\vspace{-5mm}
+\vspace{-1mm}
 \begin{mathpar}
 \IRule{STHC-SUB}{
   \ThorSub\cdot\K\t\tp
@@ -2298,13 +2298,15 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \subsection{Non-thorn well-formedness}
 
-We use $x$ as a placeholder to mean either $s$ (for Typed Racket and Typescript) or $tr$ (for the Transient semantics).
+We use $x$ as a placeholder to mean either $s$ (for Typed Racket and Typescript) or $tr$ (for the Transient semantics). \\
 
 \opdef{~$\WFpx{\e}{\K}$}{Well-formed programs}
 \opdef{\WFx{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed classes}
 \opdef{~\WFx \Env\s\K \md}{Well-formed methods}
 \opdef{~\WFtypex \K {\Fdef\f\t}}{Well-formed fields}
 \opdef{~\WFtypex\K\t}{Well-formed types}
+
+\vspace{-5mm}
 
 \begin{mathpar}
 \IRule{SWF-PROG}{
@@ -2315,7 +2317,7 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and Typescript)
 }
 
 \IRule[width=25em]{SWF-CLASS}{
- \xt{overloading}_{\emptyset}(\fd[1]..,\md[1]..) \\
+ \cload{\fd[1]..,\md[1]..} \\
  \fd\in\fd[1]..\implies \WFx {}{}\K \fd \\
  \md\in\md[1]..\implies \WFx {\this:\C~}{}\K \md 
 }{
