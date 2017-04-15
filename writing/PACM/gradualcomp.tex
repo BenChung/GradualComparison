@@ -1027,7 +1027,7 @@ definition and the last expression above as:
 \\[1mm]       
 \TR{\Call{\e[1]}\m{\e[2]}} \> = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} \HS\>\WHERE\HS\ep[1] = \TR{ \e[1]}, \HS \ep[2] = \TR{\e[2]}
 \\[1mm]
-\TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e 1} ..
+\TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e[1]} ..
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -1165,7 +1165,7 @@ If the receiver object has an optional type,  method invocation is statically ch
 \small
   \hspace{-.5cm}\begin{minipage}{8cm}  
 \begin{tabbing}
-\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\md[1]..~ \mdpp[1]..}} 
+\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
 \HS \WHERE~\= \fdp[1] = \src{\Ftype\f{\kty\t}} .., \HS\HS\HS\HS\HS \=\fd[1] = \Ftype\f\t ..   \\
 \> \mdp[1] = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .., \HS \> \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..,\HS\HS\> \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..,\\
 \> \mdpp[1] = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
@@ -1178,15 +1178,16 @@ If the receiver object has an optional type,  method invocation is statically ch
 \TRG{\FRead\f}\Env \> = \src{\FRead\f} 
 \\[1mm]
 \TRG{\FWrite\f\e}\Env \> = \src{\FWrite\f\ep} \hspace{.5cm} \=
-\WHERE\HS\= \TypeCk{\K, \Env}\e\C, \HS  \Ftype\f\t\In\App\K\C, \HS \ep = \TAG\e\Env{\kty\t}
+\WHERE\HS\= \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\In\App\K\C, \HS \ep = \TAG\e\Env{\kty\t}
 \\[1mm]
 \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
-\HS  \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t, \HS \kty\t=\any
+\HS  \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t, \HS \kty\t=\any, \HS
  \ep[1]= \TRG{\e[1]}\Env, \HS \ep[2]=\TAG{\e[2]}\Env\any
 \\[1mm]
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[1]}{\t[2]}} 
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
 \>\WHERE\HS   \TypeCk{\K,\Env}{\e[1]}\C, \HS  \ep[1] = \TRG{\e[1]}\Env, \HS
- \Mtype\m{\t[1]}{\t[2]}\In\App\K\C, \HS  \ep[2] = \TAG{\e[2]}\Env{\t[1]}
+ \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C, \HS  \ep[2] = \TAG{\e[2]}\Env{\t[2]}, \\
+ \> \> \> \t[2] = \kty{\t[1]}, \HS \tp[2] = \kty{\tp[1]}
 \\[1mm]
 \TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
      \>\WHERE\HS    \Ftype{\f[1]}{\t[1]}\In\C, \HS  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
@@ -1356,19 +1357,19 @@ argument to \code m has all the methods defined by \code C.
 \\[1mm]
 \TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C,\HS\HS\=\Ftype\f\t\In\App\K\C
 \\[1mm]
-\TRG{\FWrite\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
+\TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
   \>\WHERE\HS
   \TypeCk\K\this\C,
   \> \Ftype\f\t\In\App\K\C, \hspace{.7cm}
   \= \ep = \TAG\e\Env\any
 \\[1mm]
-  \TRG{\Call{\e1[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
+  \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
   \>\WHERE \HS 
   \TypeCk{\K,\Env}{\e[1]}\any, \HS
   \> \ep[1] = \TRG{\e[1]}\Env, 
   \> \ep[2] = \TAG{\e[2]}\Env\any
 \\[1mm]
-\TRG{\Call{\e1[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\t\tp}}
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
    \>\WHERE\HS
    \TypeCk{\K,\Env}{\e[1]}\C,
    \> \Mtype\m\t\tp\In\App\K\C,\HS
@@ -1377,7 +1378,7 @@ argument to \code m has all the methods defined by \code C.
 \\[1mm]
 \TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
 \Ftype{\f[1]}{\t[1]}\In\App\K\C,
-  \>\ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
+  \>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
 \\[1mm]
 \TAG\e\Env\t \>= \src{\SubCast\t\e}
     \>\WHERE\HS \TypeCk{\K,\Env}\e\tp, \> (\t = \any \OR \tp = \any),\HS \> \ep = \TRG\e\Env
@@ -1538,21 +1539,20 @@ the behavioural cast, and the typing and semantic rules are next.
 \\[1mm]
 \TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{1cm}
 \=\WHERE
-\= \TypeCk\K{\e[1]}\C, \HS\HS
+\= \TypeCk\K{\this}\C, \HS\HS
 \= \Ftype\f\t\In\App\K\C, \hspace{1cm}
-\=  \ep[1] = \TRG{\e[1]}\Env,\HS\HS\HS
-\= \ep[2] = \TAG\e\Env\t
+\=  \ep = \TAG\e\Env\t
 \\[1mm]
 \TRG{\Call{\e1[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
 \>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any, \HS
 \> \ep[1] = \TRG{\e[1]}\Env,\HS
-\> \ep[2] = \TAG{\e[2]}\Env\any
+\= \ep[2] = \TAG{\e[2]}\Env\any
 \\
 \TRG{\Call{\e1[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}}
 \>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C, \HS
 \> \Mtype\m{\D[1]}{\D[2]}\In\App\K\C, \HS
 \> \ep[1] = \TRG{\e[1]}\Env,\HS
-\> \ep[2] = \TAG{\e[2]}\Env{\D[1]}
+\= \ep[2] = \TAG{\e[2]}\Env{\D[1]}
 \\[1mm]
 \TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
    \>\WHERE \> \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
@@ -2147,15 +2147,43 @@ method definitions or method typings, and ensures there are no duplicates.
 }
 \end{mathpar}
 
+\subsection{Consistent subtyping}
 
+\opdef{\ConSub\M\K\t\tp}{\t is a consistent subtype of \tp}
+\begin{mathpar}
+\IRule{CSCons}{
+  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
+}{
+ \ConSub\M\K \t \tp
+}
 
-\subsection{Thorn well-formedness}
+\IRule{CSAss}{
+\C \Sub \D \in \M
+}{
+ \ConSub \M\K \C\D
+}
+
+\IRule{CSRec}{
+ \M' = \M~\C\Sub\D\\
+\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ConSub{\M'}\K\mt{\mtp}
+}{
+ \ConSub \M\K \C \D 
+}
+\end{mathpar}
+
+\opdef{\ConSub\M\K\mt\mtp}{$\mt$ is a consistent subtype of $\mtp$}
+\begin{mathpar}
+\IRule{CSMet}{
+  \ConSub \M\K {\t[2]} {\t[1]} \\
+  \ConSub \M\K {\tp[1]} {\tp[2]}
+}{
+ \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+}
+\end{mathpar}
+
+\subsection{Well-formedness for Thorn}
 
 \opdef{~\WFpW{\e}{\K}}{Well-formed programs}
-\opdef{\WFW{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed classes}
-\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
-\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
-\opdef{~\WFtypeW\K\t}{Well-formed types}
 \vspace{-3mm}
 \begin{mathpar}
 \IRule{WP}{
@@ -2164,15 +2192,23 @@ method definitions or method typings, and ensures there are no duplicates.
 }{
   \WFpW\e\K
 }
+\end{mathpar}
 
+\opdef{\WFW{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed classes}
+\vspace{-1mm}
+\begin{mathpar}
 \IRule[width=25em]{WCL}{
- \xt{overloading}_{\emptyset}(\fd[1],\md[1]..) \\
+ \cload{\fd[1],\md[1]..} \\
  \fd\in\fd[1]..\implies \WFW {}\K \fd \\
  \md\in\md[1]..\implies \WFW {\text{this}:\C~}\K \md 
 }{
  \WFW {}\K {\Class \C {\fd[1]..}{\md[1]..}}
 }
+\end{mathpar}
 
+\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
+\vspace{-2.5mm}
+\begin{mathpar}
 \IRule[width=18em]{WT}{
  \EnvTypeW {\Env{~\Ftype\x\C}~}\K\e\D\\
  \WFtypeW\K\C \\
@@ -2189,14 +2225,22 @@ method definitions or method typings, and ensures there are no duplicates.
 }{
  \WFW \Env\K {\Mdef\m\x\t\tp\e}
 }
+\end{mathpar}
 
+\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
+\vspace{-3mm}
+\begin{mathpar}
 \IRule{WF}{
  \WFtypeW\K\t 
 }{
  \WFtypeW\K{\Fdef\f\t}
 }
 
-\\
+\end{mathpar}
+
+\opdef{~\WFtypeW\K\t}{Well-formed types}
+\vspace{-3mm}
+\begin{mathpar}
 
 \IRule{WA}{
 }{
@@ -2216,10 +2260,83 @@ method definitions or method typings, and ensures there are no duplicates.
 }
 \end{mathpar}
 
+
+\subsection{Well-formedness for Typed Racket, TypeScript, Transient}
+
+We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript) or $tr$ (for the Transient semantics). \\
+
+\opdef{~$\WFpx{\e}{\K}$}{Well-formed programs}
+\vspace{-5mm}
+\begin{mathpar}
+\IRule{SWF-PROG}{
+  \k \in \K \implies \WFx{}\cdot\K\k \\
+  \EnvTypex\Env\cdot\K\e\t
+}{
+  \WFpx\e\K
+}
+\end{mathpar}
+
+\opdef{\WFx{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed classes}
+\begin{mathpar}
+\vspace{-3mm}
+\IRule[width=25em]{SWF-CLASS}{
+ \cload{\fd[1]..,\md[1]..} \\
+ \fd\in\fd[1]..\implies \WFx {}{}\K \fd \\
+ \md\in\md[1]..\implies \WFx {\this:\C~}{}\K \md 
+}{
+ \WFx {}{}\K {\Class \C {\fd[1]..}{\md[1]..}}
+}
+\end{mathpar}
+
+\opdef{~\WFx \Env{}\K \md}{Well-formed methods}
+\begin{mathpar}
+\vspace{-4mm}
+\IRule[width=18em]{SWF-TYMETH}{
+ \EnvTypex {\Env{~\Ftype\x\C}~}\K\e\D\\
+ \WFtypex\K\C \\
+ \WFtypex\K\D \\
+}{
+ \WFx \Env{}\K {\Mdef\m\x\C\D\e}
+}
+
+\IRule[width=18em]{SWF-DYMETH}{
+ \EnvTypex {\Env{~\Ftype\x\any}~}\K\e\any\\
+ \WFtypex\K\any \\
+ \WFtypex\K\any
+}{
+ \WFx \Env{}\K {\Mdef\m\x\any\any\e}
+}
+\end{mathpar}
+
+\opdef{~\WFtypex \K {\Fdef\f\t}}{Well-formed fields}
+\begin{mathpar}
+\vspace{-3mm}
+\IRule{SWF-FIELD}{
+ \WFtypex\K\t 
+}{
+ \WFtypex\K{\Fdef\f\t}
+}
+\end{mathpar}
+
+\opdef{~\WFtypex\K\t}{Well-formed types}
+\begin{mathpar}
+\vspace{-3mm}
+\IRule{SWT-ANY}{
+}{
+ \WFtypex\K\any
+}
+
+\IRule{SWT-TYPE}{
+ \C \in \K
+}{
+ \WFtypex\K\C
+} 
+\end{mathpar}
+
 \subsection{Thorn expression typing}
 
 \opdef{\ConvertE\K{th}\t\tp}{type convertibility between \t and \tp.}
-\vspace{-1mm}
+\vspace{-1.5mm}
 \begin{mathpar}
 \IRule{STHC-SUB}{
   \ThorSub\cdot\K\t\tp
@@ -2243,10 +2360,10 @@ method definitions or method typings, and ensures there are no duplicates.
   \ConvertE\K{th}\any\tp
 }
 \end{mathpar}
-\vspace{-4mm}
+\vspace{-2mm}
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
-\vspace{-4mm}
+\vspace{-1mm}
 \begin{mathpar}
 \IRule{STH-VAR}{
    \HasType \Env\x\t
@@ -2279,7 +2396,7 @@ method definitions or method typings, and ensures there are no duplicates.
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
 
-\IRule{STH-DCALL}{
+\IRule[width=25em]{STH-DCALL}{
   \EnvTypeW \Env\K\e\any \\
   \EnvTypeW \Env\K\ep\tpp \\
   \ConvertE\K{th}\tpp\any
@@ -2287,7 +2404,7 @@ method definitions or method typings, and ensures there are no duplicates.
   \EnvTypeW \Env\K{\Call\e\m\ep}\any
 }    
 
-\IRule{STH-NEW}{
+\IRule[width=25em]{STH-NEW}{
   \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\
   \EnvTypeW \Env\K{\e[1]}{\tp[1]}..\\
  \ConvertE\K{th}{\tp[1]}{\t[1]}..
@@ -2296,69 +2413,7 @@ method definitions or method typings, and ensures there are no duplicates.
 }
 \end{mathpar}
 
-\subsection{Non-thorn well-formedness}
 
-We use $x$ as a placeholder to mean either $s$ (for Typed Racket and Typescript) or $tr$ (for the Transient semantics). \\
-
-\opdef{~$\WFpx{\e}{\K}$}{Well-formed programs}
-\opdef{\WFx{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed classes}
-\opdef{~\WFx \Env\s\K \md}{Well-formed methods}
-\opdef{~\WFtypex \K {\Fdef\f\t}}{Well-formed fields}
-\opdef{~\WFtypex\K\t}{Well-formed types}
-
-\vspace{-5mm}
-
-\begin{mathpar}
-\IRule{SWF-PROG}{
-  \k \in \K \implies \WFx{}\cdot\K\k \\
-  \EnvTypex\Env\cdot\K\e\t
-}{
-  \WFpx\e\K
-}
-
-\IRule[width=25em]{SWF-CLASS}{
- \cload{\fd[1]..,\md[1]..} \\
- \fd\in\fd[1]..\implies \WFx {}{}\K \fd \\
- \md\in\md[1]..\implies \WFx {\this:\C~}{}\K \md 
-}{
- \WFx {}{}\K {\Class \C {\fd[1]..}{\md[1]..}}
-}
-
-\IRule[width=18em]{SWF-TYMETH}{
- \EnvTypex {\Env{~\Ftype\x\C}~}\K\e\D\\
- \WFtypex\K\C \\
- \WFtypex\K\D \\
-}{
- \WFx \Env\K {\Mdef\m\x\C\D\e}
-}
-
-\IRule[width=18em]{SWF-DYMETH}{
- \EnvTypex {\Env{~\Ftype\x\any}~}\K\e\any\\
- \WFtypex\K\any \\
- \WFtypex\K\any
-}{
- \WFx \Env\K {\Mdef\m\x\any\any\e}
-}
-
-\IRule{SWF-FIELD}{
- \WFtypex\K\t 
-}{
- \WFtypex\K{\Fdef\f\t}
-}
-
-\\
-
-\IRule{SWT-ANY}{
-}{
- \WFtypex\K\any
-}
-
-\IRule{SWT-TYPE}{
- \C \in \K
-}{
- \WFtypex\K\C
-} 
-\end{mathpar}
 
 % \clearpage 
 
@@ -2438,38 +2493,6 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and Typescript)
 
 \subsection{Transient expression typing}
 
-\opdef{\ConSub\M\K\t\tp}{\t is a consistent subtype of \tp}
-\begin{mathpar}
-\IRule{CSCons}{
-  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
-}{
- \ConSub\M\K \t \tp
-}
-
-\IRule{CSAss}{
-\C \Sub \D \in \M
-}{
- \ConSub \M\K \C\D
-}
-
-\IRule{CSRec}{
- \M' = \M~\C\Sub\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ConSub{\M'}\K\mt{\mtp}
-}{
- \ConSub \M\K \C \D 
-}
-\end{mathpar}
-
-\opdef{\ConSub\M\K\mt\mtp}{$\mt$ is a consistent subtype of $\mtp$}
-\begin{mathpar}
-\IRule{CSMet}{
-  \ConSub \M\K {\t[2]} {\t[1]} \\
-  \ConSub \M\K {\tp[1]} {\tp[2]}
-}{
- \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-\end{mathpar}
-
 \opdef{\ConvertE\K{tr}\t\tp}{type convertibility between \t and \tp.}
 \begin{mathpar}
 
@@ -2544,196 +2567,196 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and Typescript)
 
 \clearpage
 
-\section{Translations}
-\renewcommand{\trulename}[1]{#1}
-
-\subsection{Thorn}
-
-\begin{figure}[!h]
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-\small
-  \hspace{-.5cm}\begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class \C{\fd[1]..}{\md[1] .. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
-\HS \WHERE~\= \fdp[1] = \src{\Ftype\f{\kty\t}} .., \HS\HS\HS\HS\HS \=\fd[1] = \Ftype\f\t ..   \\
-\> \mdp[1] = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .., \HS \> \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..,\HS\HS\> \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..,\\
-\> \mdpp[1] = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\t[1]}\x}{\t[1]}{\t[2]}}}}
-\HS \IF \kty{\t[1]} = \D \OR \kty{\t[2]} = \D\\
-          \>\hspace{1cm} empty \HS  {\bf otherwise}  ..   \\
-\TR{\k .. \e} \>= \TR{\k} .. \TRG{\e}\cdot \\
-\TR{\x:\t~\Env} \>= \x : \kty{\t} ~ \TR\Env
-\end{tabbing}
-\begin{tabbing}
-\trulename{TTH1} \TRG{\x}\Env \hspace{1.4cm}\= = \src \x
-\\[1mm]       
-\trulename{TTH2} \TRG{\FRead\f}\Env \> = \src{\FRead\f} 
-\\[1mm]
-\trulename{TTH3} \TRG{\FWrite\f\e}\Env \> = \src{\FWrite\f\ep} \hspace{.5cm} \=
-\WHERE\HS\= \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\In\App\K\C, \HS \ep = \TAG\e\Env{\kty\t}
-\\[1mm]
-\trulename{TTH4} \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
-\HS  \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t, \HS \kty\t=\any, \HS
- \ep[1]= \TRG{\e[1]}\Env, \HS \ep[2]=\TAG{\e[2]}\Env\any
-\\[1mm]
-\trulename{TTH5} \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
-\>\WHERE\HS   \TypeCk{\K,\Env}{\e[1]}\C, \HS  \ep[1] = \TRG{\e[1]}\Env, \HS
- \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C, \HS  \ep[2] = \TAG{\e[2]}\Env{\t[2]}, \\
- \> \> \> \t[2] = \kty{\t[1]}, \HS \tp[2] = \kty{\tp[1]}
-\\[1mm]
-\trulename{TTH6} \TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
-     \>\WHERE\HS    \Ftype{\f[1]}{\t[1]}\In\C, \HS  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
-\\[1mm]
-\trulename{TTH7} \TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
-\\[1mm]
-\trulename{TTH8} \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
-\>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
-\end{tabbing}
-\end{minipage}
-\end{tabular}
-\caption{Thorn}
-\end{figure}
-
-\subsection{TypeScript}
-
-\begin{figure}[!h]
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-\small
- \hspace{-.5cm}\begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\HS \WHERE\HS
-  \=\fd[1] = \Ftype\f\t ..,\HS\HS\=\fdp[1] = \src{\Ftype\f\any} .., \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
-  \>\mdp[1] = \src{\Mdef\m\x\any\any\ep},\HS\HS \>\>\ep = \TR{\e}
-\end{tabbing}
-\begin{tabbing}
-\trulename{TTS1} \TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
-\\[1mm]
-\trulename{TTS2} \TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
-\\[1mm]
-\trulename{TTS3} \TR\this           \>= \src{\SubCast\any\this}
-\\[1mm]
-\trulename{TTS4} \TR\x \> = \src \x
-\\[1mm]       
-\trulename{TTS5} \TR{\Call{\e[1]}\m{\e[2]}} \> = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} \HS\>\WHERE\HS\ep[1] = \TR{ \e[1]}, \HS \ep[2] = \TR{\e[2]}
-\\[1mm]
-\trulename{TTS6} \TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e[1]} ..
-\end{tabbing}
-\end{minipage}
-\end{tabular}
-\caption{TypeScript}
-\end{figure}
-
-
- \clearpage
-
-\subsection{Typed Racket}
-
-\begin{figure}[!h]
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
- \small
-\begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1] ..}{\mdp[1].. } }\\
-\hspace{.7cm} \WHERE\HS 
-\mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..,\HS\HS
-\md[1] = \Mdef\m\x\t\tp{\e[1]} ..,\HS\HS
-\ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
-\end{tabbing}
-\begin{tabbing}
-\trulename{TTK1} \TRG\x\Env = \src{\x}
-\\[1mm]
-\trulename{TTK2} \TRG{\FRead\f}\Env  = \src{\FRead\f}
-\\[1mm]
-\trulename{TTK3} \TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{.5cm}
-\=\WHERE
-\= \TypeCk\K{\this}\C, \HS\HS
-\= \Ftype\f\t\In\App\K\C, \hspace{1cm}
-\= \ep = \TAG\e\Env\t
-\\[1mm]
-\trulename{TTK4} \TRG{\Call{\e1[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
-\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any, \HS
-\> \ep[1] = \TRG{\e[1]}\Env,\HS \hspace{1cm}
-\= \ep[2] = \TAG{\e[2]}\Env\any
-\\
-\trulename{TTK5} \TRG{\Call{\e1[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}}
-\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C, \HS
-\> \Mtype\m{\D[1]}{\D[2]}\In\App\K\C, \HS
-\> \ep[1] = \TRG{\e[1]}\Env,\HS 
-\= \ep[2] = \TAG{\e[2]}\Env{\D[1]}
-\\[1mm]
-\trulename{TTK6} \TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
-   \>\WHERE \> \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
-   \>       \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
-\\[1mm]
-\trulename{TTK7} \TAG\e\Env\t = \src\ep
-\> \WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
-\> \EM{\K\vdash \t \Sub \tp},
-\>  \ep = \TRG\e\Env
-\\[1mm]
-\trulename{TTK8} \TAG\e\Env\t = \src{\BehCast\t\e}
-\>\WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
-   \> \EM{\K\vdash \t \not \Sub \tp}
-   \>     \ep = \TRG\e\Env
-\end{tabbing}
-\end{minipage}
-\end{tabular}
-\caption{Typed Racket}\end{figure}
-
-
-\subsection{Transient}
-
-\begin{figure}[!h]
-\begin{tabular}{@{}l@{~ ~ ~}ll}
- \small
-\begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
-\hspace{.5cm}  \WHERE\HS \=
-  \fdp[1] = \src{\Ftype\f\any} .., \HS
-  \fd[1] = \Ftype\f\t ..,\HS\HS
-  \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .., \HS
-  \md[1] = \Mdef\m\x\t\tp\e ..,\HS\HS
-   \ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
-\end{tabbing}
-\begin{tabbing}
-\trulename{TTR1} \TRG\this\Env \hspace{1cm} \= = \src\this
-\\[1mm]
-\trulename{TTR2} \TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
-\\[1mm]
-\trulename{TTR3} \TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C,\HS\HS\=\Ftype\f\t\In\App\K\C
-\\[1mm]
-\trulename{TTR4} \TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
-  \>\WHERE\HS
-  \TypeCk\K\this\C,
-  \> \Ftype\f\t\In\App\K\C, \hspace{.7cm}
-  \= \ep = \TAG\e\Env\any
-\\[1mm]
-\trulename{TTR5}   \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
-  \>\WHERE \HS 
-  \TypeCk{\K,\Env}{\e[1]}\any, \HS
-  \> \ep[1] = \TRG{\e[1]}\Env, 
-  \> \ep[2] = \TAG{\e[2]}\Env\any
-\\[1mm]
-\trulename{TTR6} \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
-   \>\WHERE\HS
-   \TypeCk{\K,\Env}{\e[1]}\C,
-   \> \Mtype\m\t\tp\In\App\K\C,\HS
-   \> \ep[1] = \TRG{\e[1]}\Env, \HS\HS
-   \ep[2] = \TAG{\e[2]}\Env\any
-\\[1mm]
-\trulename{TTR7} \TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
-\Ftype{\f[1]}{\t[1]}\In\App\K\C,
-  \>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
-\\[1mm]
-\trulename{TTR8} \TAG\e\Env\t \>= \src{\SubCast\t\e}
-    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp, \> (\t = \any \OR \tp = \any),\HS \> \ep = \TRG\e\Env
-\\[1mm]
-\trulename{TTR9} \TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp, \HS\>(\EM{\ConSub{}\K\t\tp}),\HS \> \ep = \TRG\e\Env
-\end{tabbing}
-\end{minipage}
-\end{tabular}
-\caption{Transient}\end{figure}
-
-\clearpage
+% \section{Translations}
+% \renewcommand{\trulename}[1]{#1}
+% 
+% \subsection{Thorn}
+% 
+% \begin{figure}[!h]
+% \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+% \small
+%   \hspace{-.5cm}\begin{minipage}{8cm}  
+% \begin{tabbing}
+% \TR{\Class \C{\fd[1]..}{\md[1] .. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
+% \HS \WHERE~\= \fdp[1] = \src{\Ftype\f{\kty\t}} .., \HS\HS\HS\HS\HS \=\fd[1] = \Ftype\f\t ..   \\
+% \> \mdp[1] = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .., \HS \> \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..,\HS\HS\> \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..,\\
+% \> \mdpp[1] = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\t[1]}\x}{\t[1]}{\t[2]}}}}
+% \HS \IF \kty{\t[1]} = \D \OR \kty{\t[2]} = \D\\
+%           \>\hspace{1cm} empty \HS  {\bf otherwise}  ..   \\
+% \TR{\k .. \e} \>= \TR{\k} .. \TRG{\e}\cdot \\
+% \TR{\x:\t~\Env} \>= \x : \kty{\t} ~ \TR\Env
+% \end{tabbing}
+% \begin{tabbing}
+% \trulename{TTH1} \TRG{\x}\Env \hspace{1.4cm}\= = \src \x
+% \\[1mm]       
+% \trulename{TTH2} \TRG{\FRead\f}\Env \> = \src{\FRead\f} 
+% \\[1mm]
+% \trulename{TTH3} \TRG{\FWrite\f\e}\Env \> = \src{\FWrite\f\ep} \hspace{.5cm} \=
+% \WHERE\HS\= \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\In\App\K\C, \HS \ep = \TAG\e\Env{\kty\t}
+% \\[1mm]
+% \trulename{TTH4} \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
+% \HS  \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t, \HS \kty\t=\any, \HS
+%  \ep[1]= \TRG{\e[1]}\Env, \HS \ep[2]=\TAG{\e[2]}\Env\any
+% \\[1mm]
+% \trulename{TTH5} \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
+% \>\WHERE\HS   \TypeCk{\K,\Env}{\e[1]}\C, \HS  \ep[1] = \TRG{\e[1]}\Env, \HS
+%  \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C, \HS  \ep[2] = \TAG{\e[2]}\Env{\t[2]}, \\
+%  \> \> \> \t[2] = \kty{\t[1]}, \HS \tp[2] = \kty{\tp[1]}
+% \\[1mm]
+% \trulename{TTH6} \TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
+%      \>\WHERE\HS    \Ftype{\f[1]}{\t[1]}\In\C, \HS  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
+% \\[1mm]
+% \trulename{TTH7} \TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
+% \\[1mm]
+% \trulename{TTH8} \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+% \>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
+% \end{tabbing}
+% \end{minipage}
+% \end{tabular}
+% \caption{Thorn}
+% \end{figure}
+% 
+% \subsection{TypeScript}
+% 
+% \begin{figure}[!h]
+% \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+% \small
+%  \hspace{-.5cm}\begin{minipage}{8cm}  
+% \begin{tabbing}
+% \TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\HS \WHERE\HS
+%   \=\fd[1] = \Ftype\f\t ..,\HS\HS\=\fdp[1] = \src{\Ftype\f\any} .., \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+%   \>\mdp[1] = \src{\Mdef\m\x\any\any\ep},\HS\HS \>\>\ep = \TR{\e}
+% \end{tabbing}
+% \begin{tabbing}
+% \trulename{TTS1} \TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
+% \\[1mm]
+% \trulename{TTS2} \TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
+% \\[1mm]
+% \trulename{TTS3} \TR\this           \>= \src{\SubCast\any\this}
+% \\[1mm]
+% \trulename{TTS4} \TR\x \> = \src \x
+% \\[1mm]       
+% \trulename{TTS5} \TR{\Call{\e[1]}\m{\e[2]}} \> = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} \HS\>\WHERE\HS\ep[1] = \TR{ \e[1]}, \HS \ep[2] = \TR{\e[2]}
+% \\[1mm]
+% \trulename{TTS6} \TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e[1]} ..
+% \end{tabbing}
+% \end{minipage}
+% \end{tabular}
+% \caption{TypeScript}
+% \end{figure}
+% 
+% 
+%  \clearpage
+% 
+% \subsection{Typed Racket}
+% 
+% \begin{figure}[!h]
+% \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+%  \small
+% \begin{minipage}{8cm}  
+% \begin{tabbing}
+% \TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1] ..}{\mdp[1].. } }\\
+% \hspace{.7cm} \WHERE\HS 
+% \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..,\HS\HS
+% \md[1] = \Mdef\m\x\t\tp{\e[1]} ..,\HS\HS
+% \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
+% \end{tabbing}
+% \begin{tabbing}
+% \trulename{TTK1} \TRG\x\Env = \src{\x}
+% \\[1mm]
+% \trulename{TTK2} \TRG{\FRead\f}\Env  = \src{\FRead\f}
+% \\[1mm]
+% \trulename{TTK3} \TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{.8cm}
+% \=\WHERE
+% \= \TypeCk\K{\this}\C, \HS\HS
+% \= \Ftype\f\t\In\App\K\C, \hspace{1cm}
+% \= \ep = \TAG\e\Env\t
+% \\[1mm]
+% \trulename{TTK4} \TRG{\Call{\e1[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}\hspace{.8cm}
+% \>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any, \HS
+% \> \ep[1] = \TRG{\e[1]}\Env,\HS \hspace{1cm}
+% \= \ep[2] = \TAG{\e[2]}\Env\any
+% \\
+% \trulename{TTK5} \TRG{\Call{\e1[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}}\hspace{.8cm}
+% \>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C, \HS
+% \> \Mtype\m{\D[1]}{\D[2]}\In\App\K\C, \HS
+% \> \ep[1] = \TRG{\e[1]}\Env,\HS 
+% \= \ep[2] = \TAG{\e[2]}\Env{\D[1]}
+% \\[1mm]
+% \trulename{TTK6} \TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
+%    \>\WHERE \> \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
+%    \>       \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
+% \\[1mm]
+% \trulename{TTK7} \TAG\e\Env\t = \src\ep
+% \> \WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
+% \> \EM{\K\vdash \t \Sub \tp},
+% \>  \ep = \TRG\e\Env
+% \\[1mm]
+% \trulename{TTK8} \TAG\e\Env\t = \src{\BehCast\t\e}
+% \>\WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
+%    \> \EM{\K\vdash \t \not \Sub \tp}
+%    \>     \ep = \TRG\e\Env
+% \end{tabbing}
+% \end{minipage}
+% \end{tabular}
+% \caption{Typed Racket}\end{figure}
+% 
+% 
+% \subsection{Transient}
+% 
+% \begin{figure}[!h]
+% \begin{tabular}{@{}l@{~ ~ ~}ll}
+%  \small
+% \begin{minipage}{8cm}  
+% \begin{tabbing}
+% \TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
+% \hspace{.5cm}  \WHERE\HS \=
+%   \fdp[1] = \src{\Ftype\f\any} .., \HS
+%   \fd[1] = \Ftype\f\t ..,\HS\HS
+%   \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .., \HS
+%   \md[1] = \Mdef\m\x\t\tp\e ..,\HS\HS
+%    \ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
+% \end{tabbing}
+% \begin{tabbing}
+% \trulename{TTR1} \TRG\this\Env \hspace{1cm} \= = \src\this
+% \\[1mm]
+% \trulename{TTR2} \TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
+% \\[1mm]
+% \trulename{TTR3} \TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C,\HS\HS\=\Ftype\f\t\In\App\K\C
+% \\[1mm]
+% \trulename{TTR4} \TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
+%   \>\WHERE\HS
+%   \TypeCk\K\this\C,
+%   \> \Ftype\f\t\In\App\K\C, \hspace{.7cm}
+%   \= \ep = \TAG\e\Env\any
+% \\[1mm]
+% \trulename{TTR5}   \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
+%   \>\WHERE \HS 
+%   \TypeCk{\K,\Env}{\e[1]}\any, \HS
+%   \> \ep[1] = \TRG{\e[1]}\Env, 
+%   \> \ep[2] = \TAG{\e[2]}\Env\any
+% \\[1mm]
+% \trulename{TTR6} \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
+%    \>\WHERE\HS
+%    \TypeCk{\K,\Env}{\e[1]}\C,
+%    \> \Mtype\m\t\tp\In\App\K\C,\HS
+%    \> \ep[1] = \TRG{\e[1]}\Env, \HS\HS
+%    \ep[2] = \TAG{\e[2]}\Env\any
+% \\[1mm]
+% \trulename{TTR7} \TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
+% \Ftype{\f[1]}{\t[1]}\In\App\K\C,
+%   \>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
+% \\[1mm]
+% \trulename{TTR8} \TAG\e\Env\t \>= \src{\SubCast\t\e}
+%     \>\WHERE\HS \TypeCk{\K,\Env}\e\tp, \> (\t = \any \OR \tp = \any),\HS \> \ep = \TRG\e\Env
+% \\[1mm]
+% \trulename{TTR9} \TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp, \HS\>(\EM{\ConSub{}\K\t\tp}),\HS \> \ep = \TRG\e\Env
+% \end{tabbing}
+% \end{minipage}
+% \end{tabular}
+% \caption{Transient}\end{figure}
+% 
+% \clearpage
 
 \section{Proofs of Related Theorems}
 
