@@ -175,27 +175,31 @@ degrading performance.\footnote{Dart, Typescript and Hack are good examples,
   checks are performed, and thus type errors are not caught.}
 
 This paper explores the design space of gradual type systems for
-object-oriented languages. We aim to expose some of the forces that have
-influenced existing systems and discuss the implication of key design
-decisions. While there are significant challenges that, in the end, may
-prevent adoption of some of the more ambitious type systems, there are are
-also opportunities for improving on existing techniques. 
+object-oriented languages. We aim to expose the forces that influenced
+existing systems and discuss the implication of key design decisions. While
+there are significant practical challenges that, in the end, may prevent
+adoption of some of the more ambitious type systems, there may be workable
+compromises that have not been fully explored yet.  To capture the essence
+of gradual typing for objects and to highlight the design choices at hand,
+we present translations of representative subsets of four gradually typed
+object-oriented languages into a common target language. This target
+language, which we name \kafka, is modeled on the intermediate language of
+the Java Virtual Machine and the Common Language Runtime.
 
-
-To capture the essence of gradual typing for objects and to highlight the
-challenges implementers face, we present translations of representative subsets
-of gradually typed languages into a common target language. Targeting the same
-language lets us reason about the type systems in the same framework and allows
-for comparison. But which language should we target? The language should avoid
-linguistic clutter while expressing key object-oriented features directly rather
-than by encoding. We propose to target a typed object-oriented language
-inspired by modern language runtime such as the Java Virtual Machine and the
-CLR in .Net. They have a static type system with classes and subtyping but they
-also allow for dynamic resolution of method dispatch.\footnote{Both runtime
-support reflective invocation based on method names. Dynamic resolution was
-added to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
-custom method dispatch.} As well as reasonably efficient implementations, and in
-both environments, primitive types can be unboxed.
+implementers face, we present translations of representative subsets of
+gradually typed languages into a common target language. Targeting the same
+language lets us reason about the type systems in the same framework and
+allows for comparison. But which language should we target? The language
+should avoid linguistic clutter while expressing key object-oriented
+features directly rather than by encoding. We propose to target a typed
+object-oriented language inspired by modern language runtime such as the
+Java Virtual Machine and the CLR in .Net. They have a static type system
+with classes and subtyping but they also allow for dynamic resolution of
+method dispatch.\footnote{Both runtime support reflective invocation based
+  on method names. Dynamic resolution was added to C\# in version
+  4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for custom method
+  dispatch.} As well as reasonably efficient implementations, and in both
+environments, primitive types can be unboxed.
 
 A contribution of this work is the design of \kafka, a statically typed object
 calculus.  \kafka is class based (with an explicit class table \K), with mutable
