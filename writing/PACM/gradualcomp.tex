@@ -107,18 +107,19 @@
 
 \begin{abstract}
 The enduring popularity of dynamically typed languages has given rise to a
-cottage industry of static type systems, \emph{gradual type systems}, that
-let developers annotate legacy code piecemeal. Soundness for a program which
-mixes typed and untyped code means that some errors will caught at type
-checking time, while other will be caught as the program executes. After a
-decade of research it is clear that the combination of mutable state, self
-references and subtyping presents serious challenges to implementers.  This
-paper reviews the state of the art in gradual typing for objects. We
-introduce \kafka, a class-based object calculus with a static type system,
-dynamic method dispatch, transparent wrappers and dynamic class
-generation. We model key features of several gradual type systems by
-translation to \kafka and discuss the implications of the respective
-designs.
+cottage industry of static type systems, often called \emph{gradual type
+  systems}, that let developers annotate legacy code piecemeal. Type
+soundness for a program which mixes typed and untyped code does not ensure
+the absence of errors at run-time, rather it means that some errors will
+caught at type checking time, while other will be caught as the program
+executes. After a decade of research it is clear that the combination of
+mutable state, self references and subtyping presents interesting challenges
+to designers of gradual type systems.  This paper reviews the state of the
+art in gradual typing for objects. We introduce \kafka, a class-based object
+calculus with a static type system, dynamic method dispatch, transparent
+wrappers and dynamic class generation. We model key features of several
+gradual type systems by translation to \kafka and discuss the implications
+of the respective designs.
 \end{abstract}
 
 \maketitle
@@ -129,16 +130,17 @@ designs.
 
 \vspace{-5mm}
 
-\noindent A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual type
-system for a variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a dynamic
-type, denoted \any, and a subtype relation that combined structural subtyping
-with a consistency relation between terms that differ in dynamic type
-annotations.  Soundness at the boundaries between typed and untyped code is
-ensured by inserting casts as shown in their previous work for functional
-languages~\cite{SiekTaha06}.  Ten years later, many systems support the gradual
-addition of types to untyped object-oriented programs.\footnote{Languages which
-allow mixing typed and untyped with objects include
+\noindent A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual
+type system for a variant of Abadi and Cardelli's object-based
+calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a
+dynamic type, denoted \any, and a subtype relation that combined structural
+subtyping with a consistency relation between terms that only differ in
+dynamic type annotations.  Soundness at the boundaries between typed and
+untyped code is ensured by inserting casts following in their earlier work
+for functional languages~\cite{SiekTaha06}.  Ten years later, many systems
+support the gradual addition of types to untyped object-oriented
+programs.\footnote{Languages which allow mixing typed and untyped with
+  objects include
 %%
 C\#~\cite{Bierman10},
 Dart~\cite{dart13}, 
@@ -154,29 +156,31 @@ TypeScript~\cite{BAT14}.}
 %%
 
 Despite its age and popularity, faithful realizations of Siek and Taha's
-elegant idea have proved to be surprisingly elusive, one possible reason
-being that the original paper did not consider state. The combination of
-mutable state, aliasing and subtyping complicates enforcement strategies as
-one must consider situations where an object is being accessed at different
-types. While several solutions have been proposed to address this, the
-performance implications of the implementation strategies of these solutions
-seem daunting.\footnote{\emph{Sound} type systems reports order of magnitude
-  pathologies, e.g.~5x for Gradualtalk~\cite{allende13}, 10x Reticulated
-  Python~\cite{siek14}, 22x Safe Typescript~\cite{safe-typescript}, and 121x
-  Typed Racket~\cite{popl16}. These numbers merely indicate the existence of
-  configurations that hurt performance.  Most systems lack rigorous
-  evaluations. } Predictably, developers of industrial languages have chosen
-to compromise on soundness to avoid degrading performance.\footnote{Dart,
-  Typescript and Hack use unchecked modes for production, all type errors
-  will not be reported.}
+elegant idea have proved elusive. One reason for this may be that the
+original paper did not consider state. The combination of mutable state,
+aliasing and subtyping complicates enforcement strategies as one must
+consider situations where an object is being accessed, and mutated, at
+different types. While several solutions have been proposed, the performance
+implications of their implementation strategies appear
+daunting.\footnote{Languages with \emph{sound} gradual type systems
+  experience orders of magnitude pathologies, e.g.~5x for
+  Gradualtalk~\cite{allende13}, 10x Reticulated Python~\cite{siek14}, 22x
+  Safe Typescript~\cite{safe-typescript}, and 121x Typed
+  Racket~\cite{popl16}. These numbers merely indicate the existence of
+  configurations that hurt performance. More study is needed to understand
+  how often these pathologies occur in the wild.} Predictably, developers of
+industrial languages have chosen to compromise on soundness to avoid
+degrading performance.\footnote{Dart, Typescript and Hack are good examples,
+  they all use unchecked modes for production; in that mode no runtime
+  checks are performed, and thus type errors are not caught.}
 
-This paper explores the design space of gradual type systems for object-oriented
-languages. We aim to expose some of the forces that have influenced existing
-systems and discuss the implication of key design decisions. While there are
-significant challenges that, in the end, may prevent adoption of some of the
-more ambitious type systems, there are are also opportunities for improving on
-existing techniques.  This paper also aims to lay the agenda for future
-investigations.
+This paper explores the design space of gradual type systems for
+object-oriented languages. We aim to expose some of the forces that have
+influenced existing systems and discuss the implication of key design
+decisions. While there are significant challenges that, in the end, may
+prevent adoption of some of the more ambitious type systems, there are are
+also opportunities for improving on existing techniques. 
+
 
 To capture the essence of gradual typing for objects and to highlight the
 challenges implementers face, we present translations of representative subsets
@@ -667,7 +671,7 @@ enforce a strict evaluation order.
 \\
 \K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..}
 \\
-\K\HS {\FWriteR\a{\f_i}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a[1]..\ap..}}}
+\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a[1]..\ap..}}}
 \\
 \K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x\t\tp\e\In \App\K\C  \HS  \App\s\a=\obj\C{\a[1]..}
 \\
@@ -3165,8 +3169,8 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 	\step{\ConvertE\K{s}\tpp\t}\lbl{D5}
       \end{steps}
       
-      \slet{\e$[1]$}{\TRG\e\Env}\lbl{D6}
-      \slet{\ep$_{1}$}{\TRG\ep\Env}\lbl{D7}
+      \slet{\e[1]}{\TRG\e\Env}\lbl{D6}
+      \slet{\ep[1]}{\TRG\ep\Env}\lbl{D7}
       \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e[1]}\m{\ep[1]}}{\byjdg{TTS4}{\trf{D6}, \trf{D7}, \trf{D1}}}\lbl{D8}
       \step{\EnvType\Envp\cdot\Kp{\e[1]}\any}{\byjdg{Ind Hyp.}{\trf{D2}, \trf{cond5}, \trf{cond6}}}\lbl{D9}
       \step{\EnvType\Envp\cdot\Kp{\ep[1]}\any}{\byjdg{Ind Hyp.}{\trf{D3}, \trf{cond5}, \trf{cond6}}}\lbl{D10}
@@ -3183,8 +3187,8 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 	\step{\ConvertE\K{s}\tpp\any}\lbl{E4}
       \end{steps}
       
-      \slet{\e$[1]$}{\TRG\e\Env}\lbl{E5}
-      \slet{\ep$_{1}$}{\TRG\ep\Env}\lbl{E6}
+      \slet{\e[1]}{\TRG\e\Env}\lbl{E5}
+      \slet{\ep[1]}{\TRG\ep\Env}\lbl{E6}
       \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e[1]}\m{\ep[1]}}{\byjdg{TTS4}{\trf{E5}, \trf{E6}, \trf{E1}}}\lbl{E7}
       \step{\EnvType\Envp\cdot\Kp{\e[1]}\any}{\byjdg{Ind Hyp.}{\trf{E2}, \trf{cond5}, \trf{cond6}}}\lbl{E8}
       \step{\EnvType\Envp\cdot\Kp{\ep[1]}\any}{\byjdg{Ind Hyp.}{\trf{E3}, \trf{cond5}, \trf{cond6}}}\lbl{E9}
@@ -3202,8 +3206,8 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 	\step{\EnvTypeS\Env\K{\e[1]}\tp$[1]$ ~..}\lbl{F2}
 	\step{\ConvertE\K{s}{\tp[1]}{\t[1]} ~..}\lbl{F3}
       \end{steps}
-       \slet{$\ep_{i}$}{$\TR{\e_{i}} \xt{~for~all~} i$}\lbl{F4}
-       \step{\EnvType\Envp\cdot\Kp{\ep_i}{\any}}{\byjdg{Ind Hyp.}{\trf{F2}}}\lbl{F5}
+       \slet{\ep[i]}{$\TR{\e[i]} \xt{~for~all~} i$}\lbl{F4}
+       \step{\EnvType\Envp\cdot\Kp{\ep[i]}{\any}}{\byjdg{Ind Hyp.}{\trf{F2}}}\lbl{F5}
        \step{\TR{\New\C{\e[1]..}} = \SubCast\any{\New\C{\ep[1]..}}}{\byjdg{TTS6}{\trf{F1A}}}\lbl{F6}
        \step{\EnvType\Envp\cdot\Kp{\New\C{\ep[1]..}}{\C}}{\byjdg{KT-NEW}{\trf{F5}, \trf{F1B}, \trf{F1C}}}\lbl{F7}
        \step{\EnvType\Envp\cdot\Kp{\SubCast\any{\New\C{\ep[1]..}}}{\any}}{\byjdg{KT-SUBCAST}{\trf{F7}}}\lbl{F8}
@@ -3317,13 +3321,13 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
     \end{case}
 
     \begin{case}{STG-NEW} 
-      \step{$\e = \New\C{\e_i..}$}{case}\lbl{NEW-V1}
-      \slet{$\ep_i$}{$\TRG{\epp}\Env$}
-      \slet{$\epp_i$}{$\TAG{\epp}\Env{\t_i}$}
-      \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\tp_i}$}{IH on case}\lbl{NEW-V2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\t_i}$}{lemma \ref{lem:THTS-COMP} on case, \trf{NEW-V2}}\lbl{NEW-V3}
-      \step{$\Fdef{\f_i}{\t_i} \in \App\Kp\C$}{\trf{cond5}}\lbl{NEW-V4}
-      \step{$\EnvType\Envp\cdot\Kp{\New\C{\e_i..}}\C$}{\byjdg{\RuleRef{KT-NEW}}{\trf{NEW-V3}, \trf{NEW-V4}}}\lbl{NEW-V5}
+      \step{$\e = \New\C{\e[i]..}$}{case}\lbl{NEW-V1}
+      \slet{\ep[i]}{$\TRG{\epp}\Env$}
+      \slet{\epp[i]}{$\TAG{\epp}\Env{\t[i]}$}
+      \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\tp[i]}$}{IH on case}\lbl{NEW-V2}
+      \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\t[i]}$}{lemma \ref{lem:THTS-COMP} on case, \trf{NEW-V2}}\lbl{NEW-V3}
+      \step{$\Fdef{\f[i]}{\t[i]} \in \App\Kp\C$}{\trf{cond5}}\lbl{NEW-V4}
+      \step{$\EnvType\Envp\cdot\Kp{\New\C{\e[i]..}}\C$}{\byjdg{\RuleRef{KT-NEW}}{\trf{NEW-V3}, \trf{NEW-V4}}}\lbl{NEW-V5}
       \done{\trf{NEW-V5}}
     \end{case}
   \end{proof}
@@ -3454,10 +3458,10 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
       \step{$\EnvTypeW\Env\K{\New\C{\e[1]..}}\t$}{case}\lbl{THCN1}
       \step{$\EnvTypeW\Env\K{\e[1]}\tp[1] ~..$}{case}\lbl{THCN2}
       \step{$\Convertible\K{\tp[1]}{\t[1]} ~ ..$}{case}\lbl{THCN3}
-      \slet{$\ep_i$}{${\TRG{\e_i}\Env}$ for all $i$}\lbl{TSSN1}
-      \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\kty{\tp_i}}$}{IH on \trf{THCN2}}\lbl{THCN4}
-      \slet{$\epp_i$}{${\TAG{\ep_i}\Env{{\t_i}}}$ for all $i$}\lbl{TSSN2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\kty{\t_i}}$}{lemma \ref{lem:THT-COMP} on \trf{TSSN2}, \trf{THCN2}}\lbl{THCN5}
+      \slet{$\ep[i]$}{${\TRG{\e[i]}\Env}$ for all $i$}\lbl{TSSN1}
+      \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\kty{\tp[i]}}$}{IH on \trf{THCN2}}\lbl{THCN4}
+      \slet{$\epp[i]$}{${\TAG{\ep[i]}\Env{{\t[i]}}}$ for all $i$}\lbl{TSSN2}
+      \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\kty{\t[i]}}$}{lemma \ref{lem:THT-COMP} on \trf{TSSN2}, \trf{THCN2}}\lbl{THCN5}
       \step{$\TRG{\New\C{\e[1]..}}\Env = \New\C{\epp[1]..}$}{TTH6 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCN6}
       \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp[1]..}}{\kty\t}$}{\trf{THCN5},\RuleRef{KT-NEW}}\lbl{THCN7}
     \end{case}
@@ -3575,13 +3579,13 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
     \end{case}
 
     \begin{case}{STT-NEW}
-      \slet{$\e$}{$\TRG{\New\C{\e_i ..}}\Env$}\lbl{STTNew1}
-      \slet{$\ep_i$}{$\TRG{\e_i}\Env$}\lbl{STTNew2}
-      \slet{$\epp_i$}{$\TAG{\e_i}\Env{\t_i}$}\lbl{STTNew3}
-      \step{$\EnvType\Envp\cdot\Kp{\ep_i}{\tp_i}$}{IH on case}\lbl{STTNew4}
-      \step{$\Fdef{\f_i}\any .. \in \App\Kp\C$}{\trf{cond4}}\lbl{STTNew5}
-      \step{$\EnvType\Envp\cdot\Kp{\epp_i}{\t_i}$}{lemma \ref{lem:THTA-COMP} on \trf{STTNew4}, case}\lbl{STTNew6}
-      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp_i..}}{\C}$}{\RuleRef{KT-NEW} on \trf{STTNew6}}
+      \slet{$\e$}{$\TRG{\New\C{\e[i] ..}}\Env$}\lbl{STTNew1}
+      \slet{$\ep[i]$}{$\TRG{\e[i]}\Env$}\lbl{STTNew2}
+      \slet{$\epp[i]$}{$\TAG{\e[i]}\Env{\t[i]}$}\lbl{STTNew3}
+      \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\tp[i]}$}{IH on case}\lbl{STTNew4}
+      \step{$\Fdef{\f[i]}\any .. \in \App\Kp\C$}{\trf{cond4}}\lbl{STTNew5}
+      \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\t[i]}$}{lemma \ref{lem:THTA-COMP} on \trf{STTNew4}, case}\lbl{STTNew6}
+      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp[i]..}}{\C}$}{\RuleRef{KT-NEW} on \trf{STTNew6}}
     \end{case}
   \end{proof}
 \end{lemma}
