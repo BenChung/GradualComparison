@@ -616,7 +616,7 @@ the way their soundness is enforced at run-time is very different.
 \begin{mathpar}
 \Rule{W6}{
   \EnvType \Env\s\K\e\C \\
-  \Mdef\m\x\t\tp\epp \in \App\K\C  \\
+  \Mtype\m\t\tp \in \App\K\C  \\
   \EnvType \Env\s\K\ep\t
 }{
   \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
@@ -1025,7 +1025,7 @@ To avoid unnecessary clutter, we represent the source languages using the common
 }    
 \end{mathpar}\end{minipage}&\begin{minipage}{3cm}\begin{mathpar}  
 \Rule{STG-NEW}{
- \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\\\
+  \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
   \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad
  \ConvertE\K{s}{\tp[1]}{\t[1]}..
 }{
@@ -1236,10 +1236,10 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Optional types a
 }    
 \end{mathpar}\end{minipage}& \begin{minipage}{3.9cm}\begin{mathpar}  
 \Rule[width=20em]{STH-CALL}{
-  \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\\\
-  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\\\
+  \EnvTypeW \Env\K\e\tp \quad  (\tp=\C~~\vee~~\tp=\CW) \\\\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
   \EnvTypeW \Env\K\ep\tpp ~\,~\,~\,~
-  \ConvertE\K{th}\tpp\t
+  \ConvertE\K{th}\tpp{\t[1]}
   }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
