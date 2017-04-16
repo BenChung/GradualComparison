@@ -696,7 +696,7 @@ enforce a strict evaluation order.
 
 
 
-\paragraph{Behavioural Casts}
+\paragraph{Behavioural Casts}\label{p:behcast}
 A cast \BehCast\t\a creates a wrapped object \ap which dynamically checks
 that object \a behaves as if ot was of type \t.  We refer to the type of \a
 as the \emph{source} type, and to the type \t as the \emph{target} type.
@@ -1452,16 +1452,6 @@ feature that Typed Racket supports is first-class classes with mixins, a
 feature that is important for the specific Typed Racket programming model, but
 is orthogonal to our formalization.
 
-The main semantic reality-inspired oddity in Typed Racket is how it deals with
-object types. In Typed Racket, an object must not only be well-typed as
-observed by a typed caller, but must also respect the invariants of its
-callers. This mechanism, which can be disabled by use of direct invocation, is
-needed to  ensure soundness in the presence of inheritance. However, this is
-not needed for \kafka and therefore has been omitted. Our Typed Racket source
-language exihbits some similarities to Vitousek, Kent, and Siek's Guarded
-Reticulated Python~\cite{siek14}, though we differ in not supporting
-consistency.
-
 Our type system of Typed Racket is analogous to the type system of TypeScript,
 presented in~\figref{f:typescriptts}.  Contrary to TypeScript and Transient,
 Typed Racked ``eagerly'' ensures that every value that passes through a
@@ -1568,6 +1558,12 @@ a cast if required.
 \caption{Typed Racket}\label{f:typedrackettothorn}
 \end{figure}
 
+Because of the strong static guarantee provided by the behavioural cast, the
+Typed Racket translation is very straightforward. In Typed Racket, every typed
+value is assumed to behave as specified, delegating the complexity of checking
+for consistency with the type to the wrapper, described in
+section~\ref{kafkacore}.
+
 Typed Racket has many more practical language features in comparison to the other
 source languages we've described so far. Our translation does not take into
 considersation many of these features. The aim of \kafka is to focus on
@@ -1585,11 +1581,11 @@ it is warranted for \kafka, as we believe inheritance to be orthogonal
 to it's purpose. This unique behaviour would be in consideration for 
 possible future work.
 
-Secondly, Typed Racket provides support for first-class classes and allows
-for typed mixins. While mixins are not in \kafka, the 
-behavioral semantics required to add them is comparatively easy. Checking for 
-mixins in \kafka only requires adding additional wrappers, rather than provides otentially having to 
-rewrite code~\cite{Takikawa:2012}.
+Secondly, Typed Racket provides support for first-class classes and allows for
+typed mixins. While mixins are not in \kafka, the  behavioral semantics
+required to add them is comparatively easy. Checking for  mixins in \kafka
+only requires adding additional wrappers, rather than provides otentially
+having to  rewrite code~\cite{Takikawa:2012}.
 
 
 \begin{figure}[!t]
