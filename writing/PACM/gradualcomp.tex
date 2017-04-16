@@ -1484,7 +1484,7 @@ this through \emph{concrete} typing, using the type tag to determine that the
 entire object is well-typed, and Transient, which only guarantees the behavior
 needed to ensure soundness.  
 
-To illustrate the dynamic semantics of Typed Racket, consider the following example:
+To illustrate the dynamic semantics of Typed Racket, consider the  following example:
 
 \smallskip
 \(
@@ -1497,35 +1497,33 @@ To illustrate the dynamic semantics of Typed Racket, consider the following exam
 \)
 \smallskip
 
-\noindent Here, \A's method \m is invoked with an object of type \C, 
-which then invokes class {\xt B}'s method \m with the same object. However, class {\xt B}'s method \m 
-is expecting another instance of {\xt B}. In order to protect class {\xt B} from the object \C 
-potentially not behaving as an object {\xt B}. Our translation for Typed Racket inserts a behavioral 
-cast at the boundary between the invocation of class {\xt B}'s method \m in class \A. 
-The object with type \C is wrapped to make sure that it acts as an object of type {\xt B}, 
-producing the following translated result.
+\noindent Values cross several typed/untyped boundaries.  For instance, \A's method \m does not make any assumption on its argument, but passes it as to the method \n of {\xt B}, which expects a value of type {\xt B}.  Also, class {\xt B} attempts to invoke on its argument a method \m with interface \({\xt B} \to {\xt B}\), but the example passes to {\xt B} a method \m with interface \(\any \to \any\).
+In order to protect class {\xt B} from the object \C 
+potentially not behaving as an object {\xt B}, Typed Racket inserts a wrapper object around the argument of {\xt B}; the wrapper is responsible for ensuring that the actual value respects the constraints of class {\xt B}.
+The \kafka translation for Typed Racket inserts a behavioral 
+cast at the boundary between the invocation of class {\xt B}'s method \m in class \A.  This has the same effect of Typed Racket wrapping: the object with type \C is wrapped to make sure that it acts as an object of type {\xt B}.
+The generated \kafka code for the example is reported below:
 
 \smallskip
 \(
   \begin{array}{l}
   \Class{\xt A}{}{\Mdef\m\x\any\any{\BehCast\any{\KCall{\New{\xt B}{}}\m{\BehCast{\xt B}\x}{\C}\D }}} \\
   \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
-  \Class{\C}{}{\Mdef\m\x{\C}{\C}{\x}} \\
+  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
   \KCall{\New{\xt A}{}}\m{\New{\xt C}{}}\any\any
   \end{array}
 \)
 
 \noindent By enforcing types on the values and not leaving
 the check that the value has the correct types to the user. Typed Racket is able to 
-translate the typed code in class \code B as if the language had no untyped 
+translate the typed code in class {\xt B} as if the language had no untyped 
 code. Any misbehavior will be instantly caught by the value themselves.
 
 The two key features, having wrappers applied at type boundaries and having
 unchanged type code, are key to our translation from Typed Racket to \kafka,
 as shown in~\figref{f:typedrackettothorn}. In our translation, classes, 
-methods, and expressions all retain their types. Boundaries between typed and untyped
-code are statically checked with the auxiliary translation function, inserted as
-a cast if required.
+methods, and expressions all retain their types, and the \kty{t} function maps classes to classes and \any to \any. Boundaries between typed and untyped
+code are statically checked with the auxiliary translation function, which inserts behavioural casts whenever  required.
 
 \begin{figure}[!h]
 \hrulefill
