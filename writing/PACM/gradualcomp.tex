@@ -104,7 +104,7 @@ The enduring popularity of dynamically typed languages has given rise to a
 cottage industry of static type systems, often called \emph{gradual type
   systems}, that let developers annotate legacy code piecemeal. Type
 soundness for a program which mixes typed and untyped code does not ensure
-the absence of errors at run-time, rather it means that some errors will
+the absence of errors at runtime, rather it means that some errors will
 caught at type checking time, while other will be caught as the program
 executes. After a decade of research it is clear that the combination of
 mutable state, self references and subtyping presents interesting challenges
@@ -149,15 +149,17 @@ Typed Racket~\cite{Takikawa:2012},
 TypeScript~\cite{BAT14}.}
 %%
 
-Despite its age and popularity, faithful realizations of Siek and Taha's
-elegant idea have proved elusive. One reason for this may be that the
-original paper did not consider state. The combination of mutable state,
-aliasing and subtyping complicates enforcement strategies as one must
-consider situations where an object is being accessed, and mutated, at
-different types. While several solutions have been proposed, the performance
-implications of their implementation strategies appear
-daunting.\footnote{Languages with \emph{sound} gradual type systems
-  experience orders of magnitude pathologies, e.g.~5x for
+A decade later, faithful practical realizations of Siek and Taha's elegant
+idea have proved elusive. One reason for this may be that the original paper
+did not consider state. The combination of mutable state, aliasing and
+subtyping prevalent in object-oriented languages complicates enforcement
+strategies as one must consider situations where an object is being
+accessed, and mutated, at different types. While several solutions have been
+proposed, the performance implications of their implementation strategies
+appear daunting.\footnote{Languages with \emph{sound} gradual type systems,
+  \emph{i.e.} type systems that ensure to catch all violations of the typing
+  discipline either statically or dynamically, experience orders of
+  magnitude performance pathologies, e.g.~5x for
   Gradualtalk~\cite{allende13}, 10x Reticulated Python~\cite{siek14}, 22x
   Safe Typescript~\cite{safe-typescript}, and 121x Typed
   Racket~\cite{popl16}. These numbers merely indicate the existence of
@@ -165,36 +167,37 @@ daunting.\footnote{Languages with \emph{sound} gradual type systems
   how often these pathologies occur in the wild.} Predictably, developers of
 industrial languages have chosen to compromise on soundness to avoid
 degrading performance.\footnote{Dart, Typescript and Hack are good examples,
-  they all use unchecked modes for production; in that mode no runtime
-  checks are performed, and thus type errors are not caught.}
+  they all offer unchecked modes so that production code is able to run
+  without runtime checks.}
 
 This paper explores the design space of gradual type systems for
 object-oriented languages. We aim to expose the forces that influenced the
 design of existing systems and discuss the implication of key
 decisions. While there are practical challenges that, in the end, may
 prevent adoption of some of the more ambitious type systems, there may be
-workable compromises that have not been fully explored yet.  To capture the
-essence of gradual typing and to highlight the choices at hand, we present
-translations of representative subsets of four gradually typed
-object-oriented languages into a common target language. This target
-language, which we name \kafka, is modeled on the intermediate language of
-the Java Virtual Machine and the Common Language Runtime -- both of which
-have been used as targets for implementations of gradual typing systems.
-The features that we exploit for gradual typing are the presence of static
-type system equipped with dynamic casts that test the run-time type of
-values, the ability to dynamic resolve method targets, and support for
-generating new classes at run-time.\footnote{Both the JVM and the CLR have
-  runtime type tests, reflective invocation based on method names and
-  runtime code generation. Dynamic resolution was added to C\# in version
+workable compromises that have not yet been fully explored.  To capture the
+essence of gradual typing, we present translations of representative subsets
+of four gradually typed languages into a common target. This target
+language, dubbed \kafka, is modeled on the features exposed by intermediate
+language of the Java Virtual Machine and the Common Language Runtime -- both
+of which have been used as targets for implementations of gradual typing
+systems.  The particular features we exploit are a simple static type system
+equipped with dynamic casts that check the runtime type of values, the
+ability to dynamic resolve method targets, and the support for generating
+new classes at runtime.\footnote{Both the JVM and the CLR have runtime type
+  tests, reflective invocation based on method names and runtime code
+  generation. Dynamic resolution was added to C\# in version
   4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for custom method
   dispatch. The languages have similar class loading mechanisms.}
 
 The type systems considered in this work are idealizations of
 TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
 Racket~\cite{tf-popl08}, and the Transient variant of Reticulated
-Python~\cite{siek14}. TypeScript was chosen as a representative of unsound
-systems that work by erasure such as Dart and Hack. Thorn combines dynamic
-and static types in the same way as C\#, the approach was adopted in
+Python~\cite{siek14}. We selected these four points in the design space
+because the languages had open source implementations and the design were
+influential.  TypeScript was chosen as a representative of unsound systems
+that work by erasure such as Dart and Hack. Thorn combines dynamic and
+static types in the same way as C\#, the approach was adopted in
 StrongScript. Typed Racket provides a sound type system that is close in
 spirit to Siek and Taha's original idea. Lastly, Transient was designed to
 decrease the overhead of soundness while retaining some systematic runtime
@@ -212,26 +215,28 @@ by the languages.  The translation to \kafka makes those choices explicit
 and comparable in the same framework.
 
 Translating a gradually typed language into a statically typed language such
-as the JVM's bytecode or \kafka is interesting as it make explicit which of
-the guarantees of the underlying type system can be relied upon and when
-dynamism is required.  Our contribution is thus a translation, which we
-prove to always generated well-typed code, that take a gradually typed
-expression \HT\e\T in the source language is translated to a well-typed
-\kafka term, the translation also entails translation of all the classes
-needed to evaluate the expression. While soundness in \kafka is
-uncontroversial, soundness of the source gradual type systems is more
-interesting.  In \kafka, a well-typed program can only get stuck at a cast
-or a dynamically resolved call.  With gradual types, an expression
-\Call\x\m\e where \x is declared to be of class \C can have significantly
-different behavior depending on choices made while designing the gradual
-type system. TypeScript has \emph{optional types}; a well-typed program can
-get stuck at any method call as \C translates to the dynamic type
-\any. Thorn has \emph{concrete types}; a well-typed program will not get
-stuck at statically resolved method calls. Typed Racket has \emph{promised
-  types}; a well-typed program will not get stuck at a call to \m, because
-\x refers to an object, or wrapper, that implements \m.  Wrappers may fail
-if their target does not behave like a \C. Transient Python will also allow
-the call to go through but may get stuck on the checking the return value.
+as the JVM's bytecode or \kafka makes explicit which of the guarantees of
+the underlying type system can be relied upon and when dynamism is required.
+Our contribution is thus four translations, which we prove to generated
+well-typed code, that take a gradually typed expression \HT\e\T in the
+source language and return the corresponding \kafka term. The translation of
+a term also entails the translation of all the classes needed to evaluate
+it. We also give static type system to the four source languages, but not
+dynamic semantics as these arise from the translation.  While soundness of
+\kafka terms is not really controversial, soundness of the source gradual
+type systems is more interesting.  In \kafka, a well-typed program can only
+get stuck on a cast or at a dynamically resolved call.  With gradual types,
+an expression \Call\x\m\e where \x is declared to be of class \C can have
+significantly different behavior depending on choices made while designing
+the type system. TypeScript has \emph{optional types}; a well-typed
+program can get stuck at any method call as \C translates to the dynamic
+type \any. Thorn has \emph{concrete types}; a well-typed program will not
+get stuck at statically resolved method calls. Typed Racket has
+\emph{promised types}; a well-typed program will not get stuck at a call to
+\m, because \x refers to an object, or wrapper, that implements \m.
+Wrappers may fail if their target does not behave like a \C. Transient
+Python will also allow the call to go through but may get stuck on the
+checking the return value.
 
 The design of \kafka is a contribution of this work.  \kafka is a statically
 typed object calculus.  It is class based (with an explicit class table \K),
@@ -243,26 +248,32 @@ call \KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a dynamic
 call \DynCall\a\m\x. The \kafka type system has two kind of types, classes,
 denoted by \C, which give rise to homonymous types and the dynamic type
 \any. Subtyping is structural, the class table \K is used to resolve
-recursion.  The heart of any gradual type system implementation is the
-explicit casts that are inserted at type boundaries.  A structural cast is
-built-in to \kafka: the subtype cast \SubCast\t\a checks if the object
-references by \a is a subtype of type \t.  To support sound gradual type
-systems, \kafka is extended by \emph{generative} casts which create
-wrappers.  The behavioral cast \BehCast\t\a generates a wrapper object that
-monitors that methods invoked on \a abide by the interface of type
-\t.\footnote{Generative casts are not supported natively by the JVM or CLR,
-  but they can be encoded by a combination of class generation and dynamic
-  loading, we provide a naive implementation of \kafka in the CLR to
-  validate this claim.} This entails runtime generation of a class that
-interposes on calls to the target object. We give \kafka an operational
-semantics and prove soundness of its type system. With the exception of
-generative casts the proof is straightforward.
+recursion.\footnote{One subtle design choice was to privatize fields.  An
+  earlier version of this paper materialized fields in types by adding
+  getter and setters methods. This added much verbosity to the semantics and
+  translations for little benefit. A key feature of the design of \kafka is
+  that it allows the implementation of transparent wrappers. If fields are
+  exposed, the wrappers must be able to interpose on field accesses.} The
+heart of any gradual type system implementation is the explicit casts that
+are inserted at type boundaries.  A structural cast is built-in to \kafka:
+the subtype cast \SubCast\t\a checks if the object references by \a is a
+subtype of type \t.  To support sound gradual type systems, \kafka is
+extended by \emph{generative} casts which create wrappers.  The behavioral
+cast \BehCast\t\a generates a wrapper object that monitors that methods
+invoked on \a abide by the interface of type \t.\footnote{Generative casts
+  are not supported natively by the JVM or CLR, but they can be encoded by a
+  combination of class generation and dynamic loading, we provide a naive
+  implementation of \kafka in the CLR to validate this claim.} This entails
+runtime generation of a class that interposes on calls to the target
+object. We give \kafka an operational semantics and prove soundness of its
+type system. With the exception of generative casts the proof is
+straightforward.
 
 
 \paragraph{Threats to validity.} Our study has limitations but we believe
 that these do not affect our conclusions. The source languages were
 simplified down to their essence and some features were excluded to allow
-comparison. For example, papers on Thorn and C\# claim unboxed access to
+comparison.  For example, papers on Thorn and C\# claim unboxed access to
 primitives and direct field reads are crucial for performance. \kafka does
 not model primitives and fields are always accessed directly from the
 current object. Typed Racket supports class composition with first-class
@@ -279,11 +290,16 @@ feature supported in commercial virtual machines. An earlier version of this
 paper proposed a translation that used an additional level of indirection to
 model Monotonic, but that was neither intellectually satisfactory nor
 elegant.  This points to the fact that Monotonic does require some virtual
-machine support. Lastly, while we prove that type soundness of \kafka and
-that our translations generated well-typed code, we do not establish a
-correspondance with the semantics of the source languages. We gained
-confidence in our results by testing the implementations of the respective
-languages and validating that they agree with our translation.
+machine support.  Some gradual type system support powerful error reporting
+features that can assign blame to the particular type/untyped boundary
+crossing that led to an error. We do not study blame here as it is not
+uniformly supported by all the languages under scrutiny and, we believe, it
+is somewhat orthogonal to matters at hand.  Lastly, while we prove that type
+soundness of \kafka and that our translations generated well-typed code, we
+do not establish a correspondance with the semantics of the source
+languages. We gained confidence in our results by testing the
+implementations of the respective languages and validating that they agree
+with our translation.
 
 
 \section{Background}
@@ -449,7 +465,7 @@ evidence suggests that the context provided by blame helps developers
 pinpoint the provenance of the ill-typed values. A fitting analogy are the
 stack traces printed by Java when a program terminates abruptly. Developers
 working in, e.g, C++ must run their program in a debugger to obtain the same
-information. Stack traces have little run-time cost because they piggyback
+information. Stack traces have little runtime cost because they piggyback
 on another feature, namely precise exceptions, which does come at a price as
 it inhibits some compiler optimizations. It is likely that recording blame
 is costly, but there is no data on how much implementations pay for it.
@@ -547,7 +563,7 @@ wrapper classes.  Providing two different cast mechanisms is a key feature
 of the calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\),
 denotes the usual subtype cast that dynamically type-checks its argument.
 The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that
-type-checking the argument at run-time, builds a wrapper around it.  The
+type-checking the argument at runtime, builds a wrapper around it.  The
 wrapper then ensures that all the successive requests to the object will be
 understood (or raise an error). The design of the behavioural cast is
 intricate, and deserves its own section below.
@@ -573,7 +589,7 @@ untyped methods. The dynamically resolved call places no requirements on the
 receiver or argument, and returns type \any.  The statically resolved call
 has the usual type requirements on arguments. Statically, the two subtype
 cast rules are similar; they ensure the value has the cast-to type. However,
-the way their soundness is enforced at run-time is very different.
+the way their soundness is enforced at runtime is very different.
 %References can be typed both as dynamic, or with the type of the object the
 %point to in the current heap \(\sigma\). 
 
@@ -923,7 +939,7 @@ in \kafka.
 
 \noindent
 We are now ready to give semantics to the four gradual type systems of interest, by translating them into \kafka. 
-Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the run-time of each language, highlighting the similarities and differences among them.   
+Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the runtime of each language, highlighting the similarities and differences among them.   
 
 To avoid unnecessary clutter, we represent the source languages using the common syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without method overloading and, most importantly, cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
 
@@ -1040,7 +1056,7 @@ To avoid unnecessary clutter, we represent the source languages using the common
 \end{figure}
 
 
-Typescript~\cite{BAT14} is a backward compatible extension of JavaScript
+Typescript is a backward compatible extension of JavaScript
 with classes and type annotations. Type equivalence is structural and
 subtyping of recursive types is supported (as in \kafka types arise from class
 declarations). Missing annotations are treated as \any. The role of types is
@@ -1146,7 +1162,7 @@ Observe that the TypeScript translations does insert some structural casts to \a
 
 \subsection{Thorn}
 
-Thorn~\cite{oopsla09} is an object-oriented language with multiple inheritance,
+Thorn is an object-oriented language with multiple inheritance,
 nominal type equivalence, and a combination of \emph{dynamic}, \emph{optional} (aka.~\emph{like}), and \emph{concrete} types.  Concrete types (written \C) behave as one would expect: a variable {\x:\C} is
 guaranteed to refer to an instance of \C or a subtype thereof.  Optional types are analogous of TypeScript type annotations: occurrences of optionally typed variables, denoted {\x:\dt\C}, are checked statically within their scope but may be bound to dynamic values and their usage is checked dynamically.  Optional types thus provide some of the benefits of static typing without decreasing the expressiveness and flexibility of the language.  Subtyping on optional types is inherited from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D} whenever \C \Sub \D; also, it always hold that \C \Sub  \dt\C. To get a glimpse of Thorn in action, consider a class definition with two methods, one optionally and one concretely typed:
 
@@ -1271,11 +1287,11 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Optional types a
 \caption{Thorn type system}\label{f:thornts}
 \end{figure}
 
-\noindent The first call is rejected by the static semantics because the concretely typed method \n expects a value of type \C, while a value of type \D has been passed.  Formally, the Thorn type system (reported in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\) convertibilty test required by the static method invocation (\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C annotation for the argument of \m suggests that the intention of the programmer is to invoke this  method only with instances of \C; even if this is not strictly enforced, expressions as this one, that are likely to fail at run-time, are identified as errors.
-In the third call, a \C value that is passed while a \dt\C is expected: this is allowed as subtyping implies convertibility.  The last expression invokes \n and passes an argument of type \dt\C where a \C is expected; although potentially unsound, this is allowed by Thorn to foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\) rule; at run-time Thorn protects the call and ensures soundness by inserting a dynamic type cast to \C around the argument.
+\noindent The first call is rejected by the static semantics because the concretely typed method \n expects a value of type \C, while a value of type \D has been passed.  Formally, the Thorn type system (reported in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\) convertibilty test required by the static method invocation (\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C annotation for the argument of \m suggests that the intention of the programmer is to invoke this  method only with instances of \C; even if this is not strictly enforced, expressions as this one, that are likely to fail at runtime, are identified as errors.
+In the third call, a \C value that is passed while a \dt\C is expected: this is allowed as subtyping implies convertibility.  The last expression invokes \n and passes an argument of type \dt\C where a \C is expected; although potentially unsound, this is allowed by Thorn to foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\) rule; at runtime Thorn protects the call and ensures soundness by inserting a dynamic type cast to \C around the argument.
 
 If the receiver object has an optional type,  method invocation is statically checked as in the concrete case above:
- optional types behave as contracts between variables and contexts, and whenever an object has type \dt\C a well-typed context is expected to use it only as a variable pointing to an instance of the class \C.  Since the run-time does not guarantee that  \dt\C variables points to instances of the class \C, the conformance of the value actually accessed is checked individually at each method invocation, as if the callee had type \any.  
+ optional types behave as contracts between variables and contexts, and whenever an object has type \dt\C a well-typed context is expected to use it only as a variable pointing to an instance of the class \C.  Since the runtime does not guarantee that  \dt\C variables points to instances of the class \C, the conformance of the value actually accessed is checked individually at each method invocation, as if the callee had type \any.  
  
  
 \begin{figure}[!h]
@@ -1402,7 +1418,7 @@ As an example, translating the class \A and the last expression above results in
 
 \subsection{Transient Python}
 
-The Transient variant of Reticulated Python~\cite{siek14} aims for soundness
+The Transient variant of Reticulated Python aims for soundness
 with a predictable cost model. The declared types of arguments are defensively
 checked in every method, such as in method \m. Method \m expects an instance of
 class \C, but it can be called with a value of type \any at any point, forcing
@@ -1549,7 +1565,7 @@ callee to check.
 
 \subsection{Typed Racket}
 
-Typed Racket~\cite{Takikawa:2012} is an extension of the Racket programming
+Typed Racket is an extension of the Racket programming
 language, supporting Racket's key functionality 
 through a system of contracts and dynamically enforcing type
 guarantees.  Our translation from Typed Racket to \kafka captures the core
