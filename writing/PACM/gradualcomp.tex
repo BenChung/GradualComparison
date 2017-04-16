@@ -2793,66 +2793,7 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 
 \section{Proofs of Related Theorems}
 
-\subsection{Accessory Lemmas}
-
-\paragraph{Evaluation Extends Class Tables}
-
-If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
-
-\paragraph{Weakening of Expression Typing}
-
-If $\EnvType\Env\s\K\e\t$ then $\EnvType{\Env~\Envp}\s\K\e\t$. \\ 
-If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env{\s~\s'}\K\e\t$. \\ 
-If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env\s{\K~\Kp}\e\t$. \\ 
-
-\paragraph{Weakening of Well-formedness}
-
-If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$. \\
-If $\WF\Env\s\K\md$ then $\WF{\Env~\Envp}\s\K\md$.\\
-If $\WF\Env\s\K\md$ then $\WF\Env{\s~\s'}\K\md$.\\
-If $\WF\Env\s\K\md$ then $\WF\Env\s{\K~\Kp}\md$.\\
-If $\WFtype\K{\Fdef\f\t}$ then $\WFtype{\K~\Kp}{\Fdef\f\t}$.\\
-If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$.\\
-
-\paragraph{Weakening of Subtyping}
-
-If $\StrSub\M{\K}\t\tp$ then $\StrSub\M{\K~\Kp}\t\tp$. \\
-If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
-
-\paragraph{Weakening of $\xt{mtypes}$}
-
-If $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.
-
-\paragraph{Substitution}
-
-If $\EnvType{\b{\HT\x\tp}}\s\K\e\t$ and $\b{\EnvType\cdot\s\K\a\tp}$, then $\EnvType\cdot\s\K{[\a/\x]\e}\t$
-
-\paragraph{Correctness of \classoff{\C}{\K}}
-
-If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. 
-
-\paragraph{Canonical forms}
-
-If $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\a\C$, then $\s[\a\mapsto{\obj\C{\b\a}}]$.
-
-\paragraph{Evaluation retains typing} \label{lem:ert}
-
-If $\EnvType\cdot\s\K\e\t$, $\EnvType\cdot\s\K\ep\tp$, and $\WFp\K{\ep~\s}$, then if $\Reduce\K\ep\s\Kp\epp\sp$, it follows that $\EnvType\cdot\sp\Kp\e\t$ and $\Kp = \K~\Kpp$.
-
-\subsection{Reduction preserves Well-formedness}
-
-If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$. 
-
-\subsection{Consistent Class Table}
-
-If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\fd[1]..}{\md[1]..}~.~\WFtype\K{\fd[1]..}~\wedge~\WF\cdot\s\K{\md[1]..}$
-
-\subsection{Correctness of $\xt{wrap}$}
-
-If $\WFp \K$ (TODO), if $\C \in \K$, $\Cp \in \K$, $\D$ free, $\md[1].. \In\App\K\C$, $\mt[1].. = \classoff\C\K$, $\mtp[1].. = \classoff\Cp\K$, and $\k = \wrap\C{\mt[1].. }{\mtp[1]..}\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
-
-\subsection{Type Soundness of Core \kafka Typing}
+\subsection*{Type Soundness of Core \kafka Typing}
 
 Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ and $\Kpp$ (with $\Kp = \K~\Kpp$) 
 such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
@@ -2864,171 +2805,171 @@ or $\e$ is stuck in one of the following forms:
 \item $\EE[\BehCast\tp\a]$
 \end{itemize}
 
-We proceed with rule induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
-Note that we refer to rule preconditions from left to right.
+We proceed with structural induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
+% Note that we refer to rule preconditions from left to right.
 
-\begin{itemize}
-  \item \RuleRef{KT-VAR}
-        Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
-  \item \RuleRef{KT-SUB}
-        We apply the IH to the first precondition. If we get stuck in the IH, then the entire
-        expression gets stuck or terminates, trivially. Therefore, the interesting case is when
-        $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. Since, by the
-        second precondition, we know that $\StrSub \M\K \tp \t$, it follows by weakening of subtyping $\StrSub\M\Kp\tp\t$.
-        We can then apply \RuleRef{W2} to find that $\EnvType\cdot\sp\Kp\ep\t$, and therefore $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\t$, and the theorem holds.
-  \item \RuleRef{KT-READ}
-        Since $\Gamma = \cdot$ by assumption, \RuleRef{KT-READ} cannot have applied.
-  \item \RuleRef{KT-REFREAD}
-        By inversion of $\RuleRef{KT-REFREAD}$, we know that the expression is of form $\FReadR\a\f$. It follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd[i].. \Fdef\f\t ~ \fd[j] ..}{\md..}$ and from well-formedness of heaps that $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a[i].. ~\ap~ \a[j]..}}}$ that $\EnvType\cdot\s\K\ap\t$. Therefore, $\Reduce\K{\FReadR\a\f}\s\K\ap\s$ and $\WFp\K{\ap~\s}$, so the theorem holds.
-  \item \RuleRef{KT-WRITE}
-        Since $\Gamma = \cdot$ by assumption, \RuleRef{KT-WRITE} cannot have applied.
-  \item \RuleRef{KT-REFWRITE}
-        By inversion of $\RuleRef{KT-REFWRITE}$, we know that the expression is of form $\FWriteR\a\f\e$. Applying the IH to the third precondition, we find that either $\e$ is a value $\ap$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
+% \begin{itemize}
+%   \item \RuleRef{KT-VAR}
+%         Not applicable, since $\Gamma = \cdot$ and therefore contains no variables.
+%   \item \RuleRef{KT-SUB}
+%         We apply the IH to the first precondition. If we get stuck in the IH, then the entire
+%         expression gets stuck or terminates, trivially. Therefore, the interesting case is when
+%         $\Reduce \K\e\s \Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\tp$. Since, by the
+%         second precondition, we know that $\StrSub \M\K \tp \t$, it follows by weakening of subtyping $\StrSub\M\Kp\tp\t$.
+%         We can then apply \RuleRef{W2} to find that $\EnvType\cdot\sp\Kp\ep\t$, and therefore $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\t$, and the theorem holds.
+%   \item \RuleRef{KT-READ}
+%         Since $\Gamma = \cdot$ by assumption, \RuleRef{KT-READ} cannot have applied.
+%   \item \RuleRef{KT-REFREAD}
+%         By inversion of $\RuleRef{KT-REFREAD}$, we know that the expression is of form $\FReadR\a\f$. It follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd[i].. \Fdef\f\t ~ \fd[j] ..}{\md..}$ and from well-formedness of heaps that $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a[i].. ~\ap~ \a[j]..}}}$ that $\EnvType\cdot\s\K\ap\t$. Therefore, $\Reduce\K{\FReadR\a\f}\s\K\ap\s$ and $\WFp\K{\ap~\s}$, so the theorem holds.
+%   \item \RuleRef{KT-WRITE}
+%         Since $\Gamma = \cdot$ by assumption, \RuleRef{KT-WRITE} cannot have applied.
+%   \item \RuleRef{KT-REFWRITE}
+%         By inversion of $\RuleRef{KT-REFWRITE}$, we know that the expression is of form $\FWriteR\a\f\e$. Applying the IH to the third precondition, we find that either $\e$ is a value $\ap$, $\e$ is stuck, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$. 
+% 
+%         If $\e$ steps to some $\ep$, we can trivially apply $\RuleRef{KT-REFWRITE}$ again, with weakening of typing over class tables and heaps, to conclude that $\EnvType\cdot\sp\Kp{\FWriteR\a\f\ep}\t$.
+% 
+%         If $\e$ is a value $\ap$, then it follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd[i] ..~\Fdef\f\t ~ \fd[j]..}{\md..}$ and from well-formedness of heaps that
+%         $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a[i]..~\app~ \a[j]..}}}$. Therefore, we can apply the definition of $\xt{write}$ implicitly, which we then define as $\sp$. 
+%         Since we know that $\EnvType\cdot\s\K\ap\t$, and we know that $\forall \a \in 
+%         \sigma, \Map\s{\Bind{\a}{\obj\C{..}}} \implies \Map\sp{\Bind\a{\obj\C{..}}}$, it follows that $\EnvType\cdot\sp\K\ap\t$, and from there that $\WFp\K{\ap~\sp}$ and 
+%         $\EnvType\cdot\sp\K\ap\t$, so the theorem holds.
+% 
+%         If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
+% 
+%   \item \RuleRef{KT-CALL}
+% 
+%       We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
+%       \begin{itemize}
+%         \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{KT-CALL} to find that $\EnvType\cdot\sp\Kp{\KCall\epp\m\ep\t\tp}\tp$.
+%         \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
+%         \begin{itemize}
+%           \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{KT-CALL} to conclude that $\EnvType\cdot\sp\Kp{\KCall\a\m\epp\t\tp}\tp$.
+%           \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\KCall\a\m\ap\t\tp}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
+%           \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall\a\m{\EE[\epp]}\t\tp$, which is stuck.
+%         \end{itemize}
+%         \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall{\EE[\epp]}\m{\ep}\t\tp$, which is stuck.
+%       \end{itemize}
+%   
+%   \item \RuleRef{KT-DYNCALL}
+%   
+%       We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$, then case analyze.
+%       \begin{itemize}
+%         \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\any$, and apply \RuleRef{KT-DYNCALL} to find that $\EnvType\cdot\sp\Kp{\DynCall\epp\m\ep}\any$.
+%         \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. 
+%         \begin{itemize}
+%           \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\any$, then use \RuleRef{KT-DYNCALL} to conclude that $\EnvType\cdot\sp\Kp{\DynCall\a\m\epp}\any$.
+%           \item $\e' = \ap$. If $\sigma(a) = \obj\C{\app[1]..}$, and if $\Mdef\m\x\any\any\e \in \K(\C)$, then $\Reduce\K{\DynCall\a\m\ap}\s\K{[\a/\this ~ \ap/\x]\e}\any$, by the definition of evaluation. Then, since $\WFp\K{\e~\s}$, it follows that $\WFq\C$, and then that $\EnvType{\HT{\this}{\C}~\HT{\x}{\any}}\s\K\e\any$. Then, since we have that $\EnvType\cdot\s\K\a\C$ (by application of \RuleRef{KT-REFTYPE}), and that $\EnvType\cdot\s\K\ep\any$, we can use the substitution lemma to find that $\EnvType\cdot\s\K{[\a/\this ~ \ap/\x]\e}\any$, and the theorem holds.
+% 
+% 
+%           If the precondition does not apply, and $\C$ does not contain $\m$ under type $\any$, then the expression gets stuck, and the theorem holds.
+%           \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall\a\m{\EE[\epp]}$, which is stuck.
+%         \end{itemize}
+%         \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall{\EE[\epp]}\m{\ep}$, which is stuck.
+%       \end{itemize}
+%       
+%   \item \RuleRef{KT-NEW}
+%   
+%   We apply the IH to the preconditions $\e[1]..$, finding that either $\e[i]$ is a value $\a$, $\e[i]$ is a stuck state, 
+%   or $\Reduce\K{\e[i]}\s\Kp{\ep[i]}\sp$, $\WFp\Kp{\ep[i]~\sp}$, and $\EnvType\cdot\sp\Kp{\ep[i]}\C[i]$, then case analyze.
+%     
+%   \begin{enumerate}
+%    \item $\EnvType\cdot\s\K{\New\C{\e[1]..}}\C$ 
+%    \item $\WFp\K{\e~\s}$  by case  
+%    \item $\Class \C {\fd[1]..}{\md[1]..} \in \K$  
+%    \item $\EnvType \cdot\s\K{\e[1]}{\t[1]}..$
+%    \item $\fd[1].. =\Fdef{\f[1]}{\t[1]}..$ by inversion lemma on (1)
+%    \item $\EnvType \cdot\s\K{\a[1]}{\t[1]}..$ by Inductive hypo on (2)
+%    \item $\Kp~{\New\C{\a[1]..}~\s}$ by Inductive hypo and (6)
+%    \item $\Kp=\K$
+%    \item $\sp=\Map\s{\Bind\ap{\obj\C{\a[1]..}}}$
+%    \item $\ap$ fresh
+%    \item $\ep=\ap$ by semantics on (7)
+%    \item $\EnvType \cdot\sp\Kp{\ap}{\C}$ by W10 on (8) and (9)
+%    \item $\k \in \K \implies \WF{}\cdot\K\k$ by (2)
+%    \item $\WFtype{\K}\s$ by premise of WF (2)
+%    \item $\WFtype{\K}\sp$ by (14), (2), (4)
+%    \item $\WFtype{\Kp}\sp$ by (15), (8)
+%    \item $\WFp\Kp{\ap~\sp}$ by (13), (8), (16), (12)
+%    \item done by (17) and (12)
+%   \end{enumerate}
+% 
+%   \item \RuleRef{KT-SUBCAST}
+%   
+%       Apply the IH to the precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$. If it gets stuck at one of the three stuck states, or steps to a new expression, then the case is trivial.
+% 
+%       Consider the $\a$ case. Case analyze on $\t$:
+%       \begin{itemize}
+%         \item $\t = \any$. Trivially, $\Reduce\K{\SubCast\t\a}\s \K\a\s$.
+%         \item $\t = \C$. Define $\D$ such that $\sigma(\a) = \obj\D{\ap[1]..}$. Case analyze on if $\StrSub \M\K \D \C$.
+%         \begin{itemize}
+%           \item If $\StrSub \M\K \D \C$, then $\Reduce\K{\SubCast\t\a}\s \K\a\s$. Moreover, $\HasType\cdot\K\s\a\t$, via \RuleRef{W2} and \RuleRef{W10}.
+%           \item Otherwise, $\SubCast\t\a$ is stuck, and the theorem holds.
+%         \end{itemize}
+%       \end{itemize}
+%       
+%   \item \RuleRef{KT-BEHCAST}
+% \begin{proofy}
+% \stepp[base] $\EnvType\cdot\s\K\e\tp$ \basis By assumption.
+% \stepp[progform] $\WFp \K{\e~\s}$ \basis By assumption
+% \stepp[inpswf] $\WFq \s$ \basis By inversion of \refby{progform}
+% \stepp Apply IH to \refby{base} and case analyze.
+% \begin{casel}
+%   \caseof{ \begin{iknown}
+%     \stepp[kred] $\Reduce\K\e\s\Kp\ep\sp$
+%     \stepp[kbase] $\WFp\Kp{\ep~\sp}$
+%     \stepp $\EnvType\cdot\sp\Kp\ep\tp$
+%     \end{iknown}} 
+%   \begin{proofy}
+%   \stepp $\Reduce\K{\BehCast{\t}{\e}}\s\Kp{\BehCast{\t}{\ep}}\sp$ \basis By defn. of evaluation environments on \refby{kred}
+%   \stepp[ktype] $\EnvType\cdot\sp\Kp{\BehCast\t\ep}\t$ \basis By \RuleRef{KT-BEHCAST}
+%   \stepp $\WFp\Kp{\ep~\sp}$ \basis By \refby{kbase, ktype}
+%   \end{proofy}
+%   \caseof{$\e$ is stuck in one of the allowed stuck states $\EE[\ep]$}
+%   \begin{proofy}
+%     \stepp $\BehCast\t\e = \EE'[\ep]$ \basis By case analysis and defn. of $\EE$.
+%     \stepp $\EE'[\ep]$ stuck \basis As $\ep$ stuck.
+%   \end{proofy}
+%   \caseof{$\e = \a$}
+%   \begin{proofy}
+%     \stepp Let $\C$ and $\ap[1]..$ be such that $\App\s\a = \obj\C{\ap[1]..}$
+%     \stepp Case analyze on $\t$.
+%     \begin{casel}
+%       \caseof{$\t = \Cp$}
+%       \begin{proofy}
+%         \stepp Let $\D$ be fresh.
+%         \stepp Let $\ap$ be fresh.
+%         \stepp[wcorr] Let $\k$ be $\k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that$.
+%         \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
+%         \stepp[b2] $\EnvType\cdot{\K\k}\sp\ap\D$ \basis \RuleRef{W9}
+%         \stepp[b1] $\StrSub\cdot{\K\k}\D\Cp$ \basis correctness of $\xt{wrap}$ on \refby{wcorr}
+%         \stepp[wth] $\EnvType\cdot{\K\k}\sp\ap\Cp$ \basis \RuleRef{W2} on \refby{b1,b2}
+%         \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{wth, inpswf}
+%       \end{proofy}
+%       \caseof{$\t = \any$}
+%       \begin{proofy}
+%         \stepp Let $\D$ be fresh.
+%         \stepp Let $\ap$ be fresh.
+%         \stepp[wcorr2] Let $\k$ be $\k = \wrapAny\C{\classoff\C\K}\D\that$.
+%         \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
+%         \stepp[b21] $\EnvType\cdot{\K\k}\sp\ap\any$ \basis \RuleRef{W10}
+%         \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{b21,wcorr2}
+%       \end{proofy}
+%     \end{casel}
+%   \end{proofy}
+% \end{casel}
+% \end{proofy}
+%   
+%   \item \RuleRef{KT-REFTYPE}
+%   
+%       Trivial, as $\e=\a$.
+%   
+%   \item \RuleRef{KT-REFANY}
+%   
+%       Trivial, as $\e=\a$.
+% \end{itemize}
 
-        If $\e$ steps to some $\ep$, we can trivially apply $\RuleRef{KT-REFWRITE}$ again, with weakening of typing over class tables and heaps, to conclude that $\EnvType\cdot\sp\Kp{\FWriteR\a\f\ep}\t$.
 
-        If $\e$ is a value $\ap$, then it follows from $\Fdef\f\t \in \App\K\C$ that $\Class\C{\fd[i] ..~\Fdef\f\t ~ \fd[j]..}{\md..}$ and from well-formedness of heaps that
-        $\App\sigma\a = \Map\s{\Bind{\a}{\obj\C{\a[i]..~\app~ \a[j]..}}}$. Therefore, we can apply the definition of $\xt{write}$ implicitly, which we then define as $\sp$. 
-        Since we know that $\EnvType\cdot\s\K\ap\t$, and we know that $\forall \a \in 
-        \sigma, \Map\s{\Bind{\a}{\obj\C{..}}} \implies \Map\sp{\Bind\a{\obj\C{..}}}$, it follows that $\EnvType\cdot\sp\K\ap\t$, and from there that $\WFp\K{\ap~\sp}$ and 
-        $\EnvType\cdot\sp\K\ap\t$, so the theorem holds.
-
-        If $\e$ is a stuck state of the form $\EE[\ep]$, define $\EE' = \Call{\EE[\ep]}\f{}$, and then the theorem holds.
-
-  \item \RuleRef{KT-CALL}
-
-      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\C$, then case analyze.
-      \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\t$, and apply \RuleRef{KT-CALL} to find that $\EnvType\cdot\sp\Kp{\KCall\epp\m\ep\t\tp}\tp$.
-        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\t$. 
-        \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\C$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\C$, then use \RuleRef{KT-CALL} to conclude that $\EnvType\cdot\sp\Kp{\KCall\a\m\epp\t\tp}\tp$.
-          \item $\e' = \ap$. In this case, apply correctness of $\xt{mtypes}$ to find that $\Reduce\K{\KCall\a\m\ap\t\tp}\s\K\epp\s$, where $\EnvType\cdot\s\K\epp\tp$.
-          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall\a\m{\EE[\epp]}\t\tp$, which is stuck.
-        \end{itemize}
-        \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \KCall{\EE[\epp]}\m{\ep}\t\tp$, which is stuck.
-      \end{itemize}
-  
-  \item \RuleRef{KT-DYNCALL}
-  
-      We apply the IH to the first precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$, then case analyze.
-      \begin{itemize}
-        \item $\Reduce\K\e\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Apply \ref{lem:ert} to the second precondition to find that $\EnvType\Kp\sp\ep\any$, and apply \RuleRef{KT-DYNCALL} to find that $\EnvType\cdot\sp\Kp{\DynCall\epp\m\ep}\any$.
-        \item $\e$ is $\a$: Apply the IH to $\e'$. Then, either $\e'$ is a value $\ap$, $\e'$ is stuck, or $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. 
-        \begin{itemize}
-          \item $\Reduce\K\ep\s\Kp\epp\sp$, $\WFp\Kp{\epp~\sp}$, and $\EnvType\cdot\sp\Kp\epp\any$. Then, $\Reduce\K{\KCall\a\m\ep\t\tp}\s\Kp{\KCall\a\m\epp\t\tp}\sp$ by the definition of evaluation contexts. Apply \ref{lem:ert} to the first precondition to find that $\EnvType\cdot\sp\Kp\a\any$, then use \RuleRef{KT-DYNCALL} to conclude that $\EnvType\cdot\sp\Kp{\DynCall\a\m\epp}\any$.
-          \item $\e' = \ap$. If $\sigma(a) = \obj\C{\app[1]..}$, and if $\Mdef\m\x\any\any\e \in \K(\C)$, then $\Reduce\K{\DynCall\a\m\ap}\s\K{[\a/\this ~ \ap/\x]\e}\any$, by the definition of evaluation. Then, since $\WFp\K{\e~\s}$, it follows that $\WFq\C$, and then that $\EnvType{\HT{\this}{\C}~\HT{\x}{\any}}\s\K\e\any$. Then, since we have that $\EnvType\cdot\s\K\a\C$ (by application of \RuleRef{KT-REFTYPE}), and that $\EnvType\cdot\s\K\ep\any$, we can use the substitution lemma to find that $\EnvType\cdot\s\K{[\a/\this ~ \ap/\x]\e}\any$, and the theorem holds.
-
-
-          If the precondition does not apply, and $\C$ does not contain $\m$ under type $\any$, then the expression gets stuck, and the theorem holds.
-          \item $\e'$ is stuck at one of the three stuck states, of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall\a\m{\EE[\epp]}$, which is stuck.
-        \end{itemize}
-        \item If $\e$ is stuck at one of the three stuck states of the form $\EE[\epp]$, then we can construct $\EE'[\epp] = \DynCall{\EE[\epp]}\m{\ep}$, which is stuck.
-      \end{itemize}
-      
-  \item \RuleRef{KT-NEW}
-  
-  We apply the IH to the preconditions $\e[1]..$, finding that either $\e[i]$ is a value $\a$, $\e[i]$ is a stuck state, 
-  or $\Reduce\K{\e[i]}\s\Kp{\ep[i]}\sp$, $\WFp\Kp{\ep[i]~\sp}$, and $\EnvType\cdot\sp\Kp{\ep[i]}\C[i]$, then case analyze.
-    
-  \begin{enumerate}
-   \item $\EnvType\cdot\s\K{\New\C{\e[1]..}}\C$ 
-   \item $\WFp\K{\e~\s}$  by case  
-   \item $\Class \C {\fd[1]..}{\md[1]..} \in \K$  
-   \item $\EnvType \cdot\s\K{\e[1]}{\t[1]}..$
-   \item $\fd[1].. =\Fdef{\f[1]}{\t[1]}..$ by inversion lemma on (1)
-   \item $\EnvType \cdot\s\K{\a[1]}{\t[1]}..$ by Inductive hypo on (2)
-   \item $\Kp~{\New\C{\a[1]..}~\s}$ by Inductive hypo and (6)
-   \item $\Kp=\K$
-   \item $\sp=\Map\s{\Bind\ap{\obj\C{\a[1]..}}}$
-   \item $\ap$ fresh
-   \item $\ep=\ap$ by semantics on (7)
-   \item $\EnvType \cdot\sp\Kp{\ap}{\C}$ by W10 on (8) and (9)
-   \item $\k \in \K \implies \WF{}\cdot\K\k$ by (2)
-   \item $\WFtype{\K}\s$ by premise of WF (2)
-   \item $\WFtype{\K}\sp$ by (14), (2), (4)
-   \item $\WFtype{\Kp}\sp$ by (15), (8)
-   \item $\WFp\Kp{\ap~\sp}$ by (13), (8), (16), (12)
-   \item done by (17) and (12)
-  \end{enumerate}
-
-  \item \RuleRef{KT-SUBCAST}
-  
-      Apply the IH to the precondition, finding that either $\e$ is a value $\a$, $\e$ is a stuck state, or $\Reduce\K\e\s\Kp\ep\sp$, $\WFp\Kp{\ep~\sp}$, and $\EnvType\cdot\sp\Kp\ep\any$. If it gets stuck at one of the three stuck states, or steps to a new expression, then the case is trivial.
-
-      Consider the $\a$ case. Case analyze on $\t$:
-      \begin{itemize}
-        \item $\t = \any$. Trivially, $\Reduce\K{\SubCast\t\a}\s \K\a\s$.
-        \item $\t = \C$. Define $\D$ such that $\sigma(\a) = \obj\D{\ap[1]..}$. Case analyze on if $\StrSub \M\K \D \C$.
-        \begin{itemize}
-          \item If $\StrSub \M\K \D \C$, then $\Reduce\K{\SubCast\t\a}\s \K\a\s$. Moreover, $\HasType\cdot\K\s\a\t$, via \RuleRef{W2} and \RuleRef{W10}.
-          \item Otherwise, $\SubCast\t\a$ is stuck, and the theorem holds.
-        \end{itemize}
-      \end{itemize}
-      
-  \item \RuleRef{KT-BEHCAST}
-\begin{proofy}
-\stepp[base] $\EnvType\cdot\s\K\e\tp$ \basis By assumption.
-\stepp[progform] $\WFp \K{\e~\s}$ \basis By assumption
-\stepp[inpswf] $\WFq \s$ \basis By inversion of \refby{progform}
-\stepp Apply IH to \refby{base} and case analyze.
-\begin{casel}
-  \caseof{ \begin{iknown}
-    \stepp[kred] $\Reduce\K\e\s\Kp\ep\sp$
-    \stepp[kbase] $\WFp\Kp{\ep~\sp}$
-    \stepp $\EnvType\cdot\sp\Kp\ep\tp$
-    \end{iknown}} 
-  \begin{proofy}
-  \stepp $\Reduce\K{\BehCast{\t}{\e}}\s\Kp{\BehCast{\t}{\ep}}\sp$ \basis By defn. of evaluation environments on \refby{kred}
-  \stepp[ktype] $\EnvType\cdot\sp\Kp{\BehCast\t\ep}\t$ \basis By \RuleRef{KT-BEHCAST}
-  \stepp $\WFp\Kp{\ep~\sp}$ \basis By \refby{kbase, ktype}
-  \end{proofy}
-  \caseof{$\e$ is stuck in one of the allowed stuck states $\EE[\ep]$}
-  \begin{proofy}
-    \stepp $\BehCast\t\e = \EE'[\ep]$ \basis By case analysis and defn. of $\EE$.
-    \stepp $\EE'[\ep]$ stuck \basis As $\ep$ stuck.
-  \end{proofy}
-  \caseof{$\e = \a$}
-  \begin{proofy}
-    \stepp Let $\C$ and $\ap[1]..$ be such that $\App\s\a = \obj\C{\ap[1]..}$
-    \stepp Case analyze on $\t$.
-    \begin{casel}
-      \caseof{$\t = \Cp$}
-      \begin{proofy}
-        \stepp Let $\D$ be fresh.
-        \stepp Let $\ap$ be fresh.
-        \stepp[wcorr] Let $\k$ be $\k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that$.
-        \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
-        \stepp[b2] $\EnvType\cdot{\K\k}\sp\ap\D$ \basis \RuleRef{W9}
-        \stepp[b1] $\StrSub\cdot{\K\k}\D\Cp$ \basis correctness of $\xt{wrap}$ on \refby{wcorr}
-        \stepp[wth] $\EnvType\cdot{\K\k}\sp\ap\Cp$ \basis \RuleRef{W2} on \refby{b1,b2}
-        \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{wth, inpswf}
-      \end{proofy}
-      \caseof{$\t = \any$}
-      \begin{proofy}
-        \stepp Let $\D$ be fresh.
-        \stepp Let $\ap$ be fresh.
-        \stepp[wcorr2] Let $\k$ be $\k = \wrapAny\C{\classoff\C\K}\D\that$.
-        \stepp Let $\sp = \s[\ap \mapsto \D\{\a\}]$.
-        \stepp[b21] $\EnvType\cdot{\K\k}\sp\ap\any$ \basis \RuleRef{W10}
-        \stepp $\WFp{\K ~ \k}{\ap~\sp}$ \basis \RuleRef{WP} on \refby{b21,wcorr2}
-      \end{proofy}
-    \end{casel}
-  \end{proofy}
-\end{casel}
-\end{proofy}
-  
-  \item \RuleRef{KT-REFTYPE}
-  
-      Trivial, as $\e=\a$.
-  
-  \item \RuleRef{KT-REFANY}
-  
-      Trivial, as $\e=\a$.
-\end{itemize}
-
-
-\subsection{Type Soundness of \kafka Behavioral Cast}
+\subsection*{Type Soundness of \kafka Behavioral Cast}
 
 Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
 such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
@@ -3044,7 +2985,7 @@ Note that the majority of the proof is identical to that seen in the above proof
 for soundness of the \kafka core, and is therefore elided. We will only cover
 the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
-\subsection{Wrap function creates well-formed classes}
+\subsection*{Wrap function creates well-formed classes}
 
   \begin{theorem}{Wrap function creates well-formed classes}{WFun-WFC}
   
@@ -3062,72 +3003,72 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \then\axiom{\WF{}\sp{\K~\k}{\k}}
   
     \begin{proof} \innatE{on the definition of the \xt{wrap} function}
-     \step{\WFtype{\K~\k}{\Fdef\that\C}}{\byjdg{WF}\trf{cond5},~\trf{cond1}}\lbl{1}
-
-     \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\m\tpp\tppp $\not\in$ \mtp[1].. \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\FRead\that()}\m{\x}\t\tp~}}\lbl{E}
-       \step{\Mtype\m\Cpp\Cppp $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{E1}
-      \step{\Cpp $\in$ \Kk}{\trf{E1}}\lbl{E2}
-      \step{\Cppp $\in$ \Kk}{\trf{E1}}\lbl{E3}
-      \step{\WFtype\Kk\Cpp}{\byjdg{WC}{\trf{E2}}}\lbl{E4}
-      \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{E3}}}\lbl{E5}
-      \slet{\Envp}{\Env, ~\namet{\x}{\Cpp}}\lbl{E7}
-      \step{\EnvType \Env\sp\Kk{\FRead\that}\C }{\byjdg{W3}{\trf{1},  \this variable, definition of \textbf{mtypes}}}\lbl{E6}     
-      \step{\EnvType {\Envp}\sp\Kk{\x}\Cpp}{\byjdg{W1}{\trf{E7}}}\lbl{E8}  
-      \step{\EnvType {\Envp}\sp\Kk{\KCall{\this.\that}\m{\x}\Cpp\Cppp}\Cppp}{\byjdg{W5}{\trf{E6}, \trf{E8}, \trf{E1}}}\lbl{E9}
-      \step{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x{\Cpp}{\Cppp}{~\KCall{\this.\that}\m{\x}\Cpp\Cppp~}}}{\byjdg{WT2}{\trf{E9},~\trf{E4}, ~\trf{E5}}} \lbl{E10}                 
-      \end{case}
-
-     \begin{case}{\t = \any, \tp = \any, \Mtype\m\tpp\tppp $\not\in$ \mtp[1].. \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that}\m{\x}\t\tp~}}\lbl{F}
-      \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WT1 and WA instead of WT2 and WC 
-      respectively.}\lbl{F1}      
-     \end{case}
-
-     \begin{case}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}\lbl{K}
-      \step{\Mtype\m\Dp\Dpp $\in$ \mtp[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{K1}
-      \step{\WFtype\Kk\Dp}{\byjdg{WC}{\trf{K1}}}\lbl{K1a}      
-      \step{\WFtype\Kk\Dpp}{\byjdg{WC}{\trf{K1}}}\lbl{K1b}      
-      \step{\Mtype\m\Cp\Cpp $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{K2}
-      \slet{\Envp}{\Env,~\namet{\x}{\Dp}}\lbl{K3}
-      \step{\EnvType\Envp\sp\Kk{\x}{\Dp}}{\byjdg{W1}{\trf{K3}}}\lbl{K4}
-      \step{\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}{\byjdg{WB}{\trf{K4}}}\lbl{K5}
-      \step{\EnvType \Envp\sp\Kk{\FRead\that}\C}{\byjdg{W3}{\trf{1}, $\this$ variable, definition of $\textbf{mtypes}$}}\lbl{K6}
-      \step{\EnvType \Envp\sp\Kk{\KCall{\FRead\that} \m {\bscast{\Cp}\x}\Cp\Cpp }\Cpp }{\byjdg{W4}{\trf{K6},~\trf{K2},~\trf{K5},~\trf{cond3a}}}\lbl{K7}
-      \step{\EnvType \Envp\sp\Kk{\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}}{\Dpp}}{\byjdg{WB}{\trf{K7}}}\lbl{K8}
-      \longstepB{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT2}{\trf{K8},~\trf{K1a},~\trf{K1b}}}\lbl{K9}
-      
-     \end{case}
-
-     \begin{case}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\any\x}\any\any}~}}\lbl{L}
-      \step{\Mtype\m\Dp\Dpp $\in$ \mtp[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{L1}
-      \step{\WFtype\Kk\Dp}{\byjdg{WC}{\trf{L1}}}\lbl{L2}      
-      \step{\WFtype\Kk\Dpp}{\byjdg{WC}{\trf{L1}}}\lbl{L3}      
-      \step{\Mtype\m\any\any $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{L4}
-      \slet{\Envp}{\Env, ~\namet{\x}{\Dp}}\lbl{L5}
-      \step{\EnvType\Envp\sp\Kk{\x}{\Dp}}{\byjdg{W1}{\trf{L5}}}\lbl{L6}
-      \step{\EnvType\Envp\sp\Kk{\bscast\any\x}{\any}}{\byjdg{WB}{\trf{L6}}}\lbl{L7}
-      \step{\EnvType \Envp\sp\Kk{\FRead\that}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable}, definition of \textbf{mtypes}}\lbl{L8}      
-      \step{\EnvType \Envp\sp\Kk{\KCall{\FRead\that} \m {\bscast{\any}\x}\any\any }\any }{\byjdg{W4}{\trf{L8},~\trf{L4},~\trf{L7},~\trf{cond3a}}}\lbl{L9}
-      \step{\EnvType \Envp\sp\Kk{\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\any\x}\any\any}}{\Dpp}}{\byjdg{WB}{\trf{L9}}}\lbl{L10}
-      \longstepB{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\any\x}\any\any}~}}}{\byjdg{WT2}{\trf{L10},~\trf{L2},~\trf{L3}}}\lbl{L11}
-     \end{case}
-
-     \begin{case}{\Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}\lbl{M}
-      \step{\Mtype\m\any\any $\in$ \mtp[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{M1}
-      \step{\Mtype\m\Cp\Cpp $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{M2}
-      \step{\WFtype\Kk\any}{\byjdg{WA}{\any}}\lbl{M3}      
-      \slet{\Envp}{\Env, ~\namet{\x}{\any}}\lbl{M4}
-      \step{\EnvType\Envp\sp\Kk{\x}{\any}}{\byjdg{W1}{\trf{M4}}}\lbl{M5}
-      \step{\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}{\byjdg{WB}{\trf{M5}}}\lbl{M6}
-      \step{\EnvType \Envp\sp\Kk{\FRead\that}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable}, definition of \textbf{mtypes}}\lbl{M7}
-      \step{\EnvType \Envp\sp\Kk{\KCall{\FRead\that} \m {\bscast{\Cp}\x}\Cp\Cpp }\Cpp }{\byjdg{W4}{\trf{M7},~\trf{M6},~\trf{M2},~\trf{cond3a}}}\lbl{M8}
-      \step{\EnvType \Envp\sp\Kk{\bscast\any{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}}{\any}}{\byjdg{WB}{\trf{M8}}}\lbl{M9}
-      \longstepC{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT1}{\trf{M9},~\trf{M3}}}\lbl{M10}
-     \end{case}
-    
-     \step{$\Class \D {\fd[1]..}{\md[1]..} \in \K~\k$}{\trf{cond7}}\lbl{N2}
-     \step{\cload{\classoff\D{\K~\k}}}{\trf{cond8}, \bylemm{\ref{lem:DM-WR}}{DupMeth over wrappers}{\trf{cond7}, \trf{cond4}}}\lbl{N1}
-     \step{\xt{overloading}$_{\cmd}$(\md[1]..~\fd[1]..) \textbf{for} \k}{\bylemm{\ref{lem:DM-OL}}{DupMeth gives overloading}{\trf{cond7}}, \trf{N2}, \trf{N1}}\lbl{N3}   
-     \done{\trf{1}, \trf{N3}, and \textbf{Case}}
+%      \step{\WFtype{\K~\k}{\Fdef\that\C}}{\byjdg{WF}\trf{cond5},~\trf{cond1}}\lbl{1}
+% 
+%      \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\m\tpp\tppp $\not\in$ \mtp[1].. \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\FRead\that()}\m{\x}\t\tp~}}\lbl{E}
+%        \step{\Mtype\m\Cpp\Cppp $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{E1}
+%       \step{\Cpp $\in$ \Kk}{\trf{E1}}\lbl{E2}
+%       \step{\Cppp $\in$ \Kk}{\trf{E1}}\lbl{E3}
+%       \step{\WFtype\Kk\Cpp}{\byjdg{WC}{\trf{E2}}}\lbl{E4}
+%       \step{\WFtype\Kk\Cppp}{\byjdg{WC}{\trf{E3}}}\lbl{E5}
+%       \slet{\Envp}{\Env, ~\namet{\x}{\Cpp}}\lbl{E7}
+%       \step{\EnvType \Env\sp\Kk{\FRead\that}\C }{\byjdg{W3}{\trf{1},  \this variable, definition of \textbf{mtypes}}}\lbl{E6}     
+%       \step{\EnvType {\Envp}\sp\Kk{\x}\Cpp}{\byjdg{W1}{\trf{E7}}}\lbl{E8}  
+%       \step{\EnvType {\Envp}\sp\Kk{\KCall{\this.\that}\m{\x}\Cpp\Cppp}\Cppp}{\byjdg{W5}{\trf{E6}, \trf{E8}, \trf{E1}}}\lbl{E9}
+%       \step{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x{\Cpp}{\Cppp}{~\KCall{\this.\that}\m{\x}\Cpp\Cppp~}}}{\byjdg{WT2}{\trf{E9},~\trf{E4}, ~\trf{E5}}} \lbl{E10}                 
+%       \end{case}
+% 
+%      \begin{case}{\t = \any, \tp = \any, \Mtype\m\tpp\tppp $\not\in$ \mtp[1].. \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\this.\that}\m{\x}\t\tp~}}\lbl{F}
+%       \statem{Same as $\t$ = \Cpp, $\t$ = \Cppp by defintion of case, \trf{cond1}, \trf{cond4}, and with WT1 and WA instead of WT2 and WC 
+%       respectively.}\lbl{F1}      
+%      \end{case}
+% 
+%      \begin{case}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}\lbl{K}
+%       \step{\Mtype\m\Dp\Dpp $\in$ \mtp[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{K1}
+%       \step{\WFtype\Kk\Dp}{\byjdg{WC}{\trf{K1}}}\lbl{K1a}      
+%       \step{\WFtype\Kk\Dpp}{\byjdg{WC}{\trf{K1}}}\lbl{K1b}      
+%       \step{\Mtype\m\Cp\Cpp $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{K2}
+%       \slet{\Envp}{\Env,~\namet{\x}{\Dp}}\lbl{K3}
+%       \step{\EnvType\Envp\sp\Kk{\x}{\Dp}}{\byjdg{W1}{\trf{K3}}}\lbl{K4}
+%       \step{\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}{\byjdg{WB}{\trf{K4}}}\lbl{K5}
+%       \step{\EnvType \Envp\sp\Kk{\FRead\that}\C}{\byjdg{W3}{\trf{1}, $\this$ variable, definition of $\textbf{mtypes}$}}\lbl{K6}
+%       \step{\EnvType \Envp\sp\Kk{\KCall{\FRead\that} \m {\bscast{\Cp}\x}\Cp\Cpp }\Cpp }{\byjdg{W4}{\trf{K6},~\trf{K2},~\trf{K5},~\trf{cond3a}}}\lbl{K7}
+%       \step{\EnvType \Envp\sp\Kk{\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}}{\Dpp}}{\byjdg{WB}{\trf{K7}}}\lbl{K8}
+%       \longstepB{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT2}{\trf{K8},~\trf{K1a},~\trf{K1b}}}\lbl{K9}
+%       
+%      \end{case}
+% 
+%      \begin{case}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\any\x}\any\any}~}}\lbl{L}
+%       \step{\Mtype\m\Dp\Dpp $\in$ \mtp[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{L1}
+%       \step{\WFtype\Kk\Dp}{\byjdg{WC}{\trf{L1}}}\lbl{L2}      
+%       \step{\WFtype\Kk\Dpp}{\byjdg{WC}{\trf{L1}}}\lbl{L3}      
+%       \step{\Mtype\m\any\any $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{L4}
+%       \slet{\Envp}{\Env, ~\namet{\x}{\Dp}}\lbl{L5}
+%       \step{\EnvType\Envp\sp\Kk{\x}{\Dp}}{\byjdg{W1}{\trf{L5}}}\lbl{L6}
+%       \step{\EnvType\Envp\sp\Kk{\bscast\any\x}{\any}}{\byjdg{WB}{\trf{L6}}}\lbl{L7}
+%       \step{\EnvType \Envp\sp\Kk{\FRead\that}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable}, definition of \textbf{mtypes}}\lbl{L8}      
+%       \step{\EnvType \Envp\sp\Kk{\KCall{\FRead\that} \m {\bscast{\any}\x}\any\any }\any }{\byjdg{W4}{\trf{L8},~\trf{L4},~\trf{L7},~\trf{cond3a}}}\lbl{L9}
+%       \step{\EnvType \Envp\sp\Kk{\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\any\x}\any\any}}{\Dpp}}{\byjdg{WB}{\trf{L9}}}\lbl{L10}
+%       \longstepB{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\Dp\Dpp {~\bscast\Dpp{\KCall{\FRead\that}\m{\bscast\any\x}\any\any}~}}}{\byjdg{WT2}{\trf{L10},~\trf{L2},~\trf{L3}}}\lbl{L11}
+%      \end{case}
+% 
+%      \begin{case}{\Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}\lbl{M}
+%       \step{\Mtype\m\any\any $\in$ \mtp[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{M1}
+%       \step{\Mtype\m\Cp\Cpp $\in$ \mt[1].. }{\trf{cond1}, \trf{cond4}, defintion of case}\lbl{M2}
+%       \step{\WFtype\Kk\any}{\byjdg{WA}{\any}}\lbl{M3}      
+%       \slet{\Envp}{\Env, ~\namet{\x}{\any}}\lbl{M4}
+%       \step{\EnvType\Envp\sp\Kk{\x}{\any}}{\byjdg{W1}{\trf{M4}}}\lbl{M5}
+%       \step{\EnvType\Envp\sp\Kk{\bscast\Cp\x}{\Cp}}{\byjdg{WB}{\trf{M5}}}\lbl{M6}
+%       \step{\EnvType \Envp\sp\Kk{\FRead\that}\C }{\byjdg{W3}{\trf{1}, \textbf{this} variable}, definition of \textbf{mtypes}}\lbl{M7}
+%       \step{\EnvType \Envp\sp\Kk{\KCall{\FRead\that} \m {\bscast{\Cp}\x}\Cp\Cpp }\Cpp }{\byjdg{W4}{\trf{M7},~\trf{M6},~\trf{M2},~\trf{cond3a}}}\lbl{M8}
+%       \step{\EnvType \Envp\sp\Kk{\bscast\any{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}}{\any}}{\byjdg{WB}{\trf{M8}}}\lbl{M9}
+%       \longstepC{\WF{\Envp}{\sp}{\Kk}{\Mdef\m\x\any\any {~\bscast\any{\KCall{\FRead\that}\m{\bscast\Cp\x}\Cp\Cpp}~}}}{\byjdg{WT1}{\trf{M9},~\trf{M3}}}\lbl{M10}
+%      \end{case}
+%     
+%      \step{$\Class \D {\fd[1]..}{\md[1]..} \in \K~\k$}{\trf{cond7}}\lbl{N2}
+%      \step{\cload{\classoff\D{\K~\k}}}{\trf{cond8}, \bylemm{\ref{lem:DM-WR}}{DupMeth over wrappers}{\trf{cond7}, \trf{cond4}}}\lbl{N1}
+%      \step{\xt{overloading}$_{\cmd}$(\md[1]..~\fd[1]..) \textbf{for} \k}{\bylemm{\ref{lem:DM-OL}}{DupMeth gives overloading}{\trf{cond7}}, \trf{N2}, \trf{N1}}\lbl{N3}   
+%      \done{\trf{1}, \trf{N3}, and \textbf{Case}}
     \end{proof}
    \end{theorem}
 
@@ -3141,9 +3082,9 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \then\axiom{\cload{\classoff\D{\K~\k}}}
 
    \begin{proof} \innatE{on the construction of \k}
-    \step{\names{\classoff\D{\K~\k}} $\subseteq$ \names{\classoff\C{\K}}.}{\trf{cond4}, \textbf{wrap} function (ensures all methods in \D must be in \C).}\lbl{1}
-    \step{\cload{\classoff\D{\K~\k}}}{\trf{1}, \trf{cond1}, \textbf{dupMeth} function}\lbl{2}
-    \done{\trf{2}}
+%     \step{\names{\classoff\D{\K~\k}} $\subseteq$ \names{\classoff\C{\K}}.}{\trf{cond4}, \textbf{wrap} function (ensures all methods in \D must be in \C).}\lbl{1}
+%     \step{\cload{\classoff\D{\K~\k}}}{\trf{1}, \trf{cond1}, \textbf{dupMeth} function}\lbl{2}
+%     \done{\trf{2}}
    \end{proof}
 \end{lemma}
  
@@ -3161,37 +3102,40 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \then\axiom{\xt{overloading}$_{\emptyset}$(\md[1]..~\fd[1]..)}
 
    \begin{proof} \indana{\trf{cond4}}
-     \begin{case}{FO1}\lbl{A}
-      \step{\xt{overloading}$_{\cmd}$(\namet{\that}{\C})}{\trf{cond5}, \trf{cond1}}\lbl{A1}
-      \done{\trf{A1}}
-     \end{case}
-     
-     \begin{case}{MO1}\lbl{B}
-      \statem{Trivial, axiom.}\lbl{B1}
-      \done{\trf{B1}}
-     \end{case}
-
-     \begin{case}{MO2}\lbl{C}
-      \step{\xt{overloading}$_{\cmd}$(\Mdef\m\x\any\any\e ~ \mdp[1].. ~\fd[1]..)}{def of \textbf{case}}\lbl{C1}
-      \step{\m $\not\in$ \names{\mtp[1]..}}{\trf{cond4} on \textbf{case}}\lbl{C2}
-      \step{\Mdef\m\x\any\any\e $\not\in$ \mdp[1]..}{\trf{C1}, \trf{C2}}\lbl{C3}
-      \slet{\cmdp}{\cmd,~\Mdef\m\x\any\any\e}\lbl{C4}
-      \step{\xt{overloading}$_{\cmdp}$(\mdp[1]..~\fd[1]..)}{Ind Hyp on \textbf{case}, \trf{C1}, \trf{C3}, \trf{C4}}\lbl{C5}
-      \done{\trf{C3}, \trf{C4}, \trf{C5}}
-     \end{case}
-
-     \begin{case}{MO3}\lbl{D}
-      \step{\xt{overloading}$_{\cmd}$(\Mdef\m\x\C\Cp\e ~ \mdp[1].. ~\fd[1]..)}{def of \textbf{case}}\lbl{D1}
-      \step{\m $\not\in$ \names{\mtp[1]..}}{\trf{cond4} on \textbf{case}}\lbl{D2}
-      \step{\Mdef\m\x\C\Cp\e $\not\in$ \mdp}{\trf{D1}, \trf{D2}}\lbl{D3}
-      \slet{\cmdp}{\cmd, ~\Mdef\m\x\C\Cp\e}\lbl{D4}
-      \step{\xt{overloading}$_{\cmdp}$(\mdp[1]..~\fd[1]..)}{Ind Hyp on \textbf{case}, \trf{D1}, \trf{D3}, \trf{D4}}\lbl{D5}
-      \done{\trf{D3}, \trf{D4}, \trf{D5}}      
-     \end{case}
+%      \begin{case}{FO1}\lbl{A}
+%       \step{\xt{overloading}$_{\cmd}$(\namet{\that}{\C})}{\trf{cond5}, \trf{cond1}}\lbl{A1}
+%       \done{\trf{A1}}
+%      \end{case}
+%      
+%      \begin{case}{MO1}\lbl{B}
+%       \statem{Trivial, axiom.}\lbl{B1}
+%       \done{\trf{B1}}
+%      \end{case}
+% 
+%      \begin{case}{MO2}\lbl{C}
+%       \step{\xt{overloading}$_{\cmd}$(\Mdef\m\x\any\any\e ~ \mdp[1].. ~\fd[1]..)}{def of \textbf{case}}\lbl{C1}
+%       \step{\m $\not\in$ \names{\mtp[1]..}}{\trf{cond4} on \textbf{case}}\lbl{C2}
+%       \step{\Mdef\m\x\any\any\e $\not\in$ \mdp[1]..}{\trf{C1}, \trf{C2}}\lbl{C3}
+%       \slet{\cmdp}{\cmd,~\Mdef\m\x\any\any\e}\lbl{C4}
+%       \step{\xt{overloading}$_{\cmdp}$(\mdp[1]..~\fd[1]..)}{Ind Hyp on \textbf{case}, \trf{C1}, \trf{C3}, \trf{C4}}\lbl{C5}
+%       \done{\trf{C3}, \trf{C4}, \trf{C5}}
+%      \end{case}
+% 
+%      \begin{case}{MO3}\lbl{D}
+%       \step{\xt{overloading}$_{\cmd}$(\Mdef\m\x\C\Cp\e ~ \mdp[1].. ~\fd[1]..)}{def of \textbf{case}}\lbl{D1}
+%       \step{\m $\not\in$ \names{\mtp[1]..}}{\trf{cond4} on \textbf{case}}\lbl{D2}
+%       \step{\Mdef\m\x\C\Cp\e $\not\in$ \mdp}{\trf{D1}, \trf{D2}}\lbl{D3}
+%       \slet{\cmdp}{\cmd, ~\Mdef\m\x\C\Cp\e}\lbl{D4}
+%       \step{\xt{overloading}$_{\cmdp}$(\mdp[1]..~\fd[1]..)}{Ind Hyp on \textbf{case}, \trf{D1}, \trf{D3}, \trf{D4}}\lbl{D5}
+%       \done{\trf{D3}, \trf{D4}, \trf{D5}}      
+%      \end{case}
    \end{proof}
 \end{lemma}
 
-\subsection{Type Soundness of TypeScript and Typed Racket Translation}
+
+% \subsection{Type Soundness for the source languages}
+
+\subsection*{Type Soundness of TypeScript and Typed Racket Translation}
 
 \begin{lemma}{Type correctness of TypeScript/Typed Racket translation}{THTS-TRANS}
   \begin{conds}
@@ -3206,96 +3150,96 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \then\axiom{$\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\any}$}
 
   \begin{proof} \indmsg{\EnvTypeE\Env\K{s}\e\t}
-
-    \begin{case}{STG-VAR}\lbl{A}
-      \begin{case}{\x $\neq$ \this}\lbl{AA}
-	\step{$\TR{\x} = \x$}{\byjdg{TTS4}{case, \trf{cond4}}}\lbl{AA1}
-	\step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond4}, \trf{cond5}, \trf{cond6}, \RuleRef{KT-VAR}}\lbl{AA2}
-	\done{\trf{AA2}}
-      \end{case}
-      
-      \begin{case}{\x = \this}\lbl{AB}
-	\step{\EnvTypeS\Env\K\this\t}{case}\lbl{AB1}
-	\step{\HasType\Env\this\t}{\byjdg{Inversion}{\trf{AB1}}}\lbl{AB2}
-	\step{\TR\this = \SubCast\any\this}{\byjdg{TTS3}{case, \trf{cond4}}}\lbl{AB3}
-	\step{\EnvType\Envp\cdot\Kp\this{\t}}{\byjdg{KT-VAR}{\trf{AB2}}}\lbl{AB4}
-	\step{\EnvType\Envp\cdot\Kp{\SubCast\any\this}{\any}}{\byjdg{KT-SBUCAST}{\trf{AB4}}}\lbl{AB5}
-	\done{\trf{AB5}}
-      \end{case}
-    \end{case}
-    
-    \begin{case}{STG-GET}\lbl{B}
-      \step{$\TR{\FRead\f} = \FRead\f$}{\byjdg{TTS1}{\trf{cond4}}}\lbl{B1}
-      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\byjdg{KT-READ}{\trf{cond4}, \trf{cond5}, \trf{cond6}}}\lbl{B2}
-      \done{\trf{B2}}
-    \end{case}
-
-    \begin{case}{STG-SET}\lbl{C}
-      \step{$\EnvTypeS\Env\K{\FWrite\f\e}\t$}{case}\lbl{C1}
-      \step{$\ConvertE\K{s}\tp\t$}{case}\lbl{C2}
-      \step{$\EnvTypeS\Env\K\e\tp$}{inversion on \trf{C1}}\lbl{C3}
-      \slet{\ep}{\TRG\e\Env}\lbl{C4}
-      \step{$\EnvType\Envp\cdot\Kp\ep{\any}$}{\byjdg{Ind Hyp.}{\trf{C3}, \trf{C4}}}\lbl{C5}
-      \step{$\TR{\FWrite\f\e} = \FWrite\f\ep$}{\byjdg{TTS2}{\trf{C1}, \trf{C4}, \trf{cond5}}}\lbl{C6}
-      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\ep}{\any}$}{\byjdg{KT-WRITE}{\trf{C6}, \trf{C5}, \trf{cond5}}}\lbl{C7}    
-      \done{\trf{C7}}
-    \end{case}
-    
-    \begin{case}{STG-CALL}\lbl{D}
-      \step{\EnvTypeS\Env\K{\Call{\e}\m{\ep}}\tp}{case}\lbl{D1}
-      
-      \begin{steps}{\byjdg{Inversion lemma}{\trf{D1}}}
-	\step{\EnvTypeS\Env\K{\e}{\C}}\lbl{D2}
-	\step{\EnvTypeS\Env\K{\ep}{\tpp}}\lbl{D3}
-	\step{\Mtype\m\t\tp $\in$ \classoff\C\K}\lbl{D4}
-	\step{\ConvertE\K{s}\tpp\t}\lbl{D5}
-      \end{steps}
-      
-      \slet{\e[1]}{\TRG\e\Env}\lbl{D6}
-      \slet{\ep[1]}{\TRG\ep\Env}\lbl{D7}
-      \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e[1]}\m{\ep[1]}}{\byjdg{TTS4}{\trf{D6}, \trf{D7}, \trf{D1}}}\lbl{D8}
-      \step{\EnvType\Envp\cdot\Kp{\e[1]}\any}{\byjdg{Ind Hyp.}{\trf{D2}, \trf{cond5}, \trf{cond6}}}\lbl{D9}
-      \step{\EnvType\Envp\cdot\Kp{\ep[1]}\any}{\byjdg{Ind Hyp.}{\trf{D3}, \trf{cond5}, \trf{cond6}}}\lbl{D10}
-      \step{\EnvType\Envp\cdot\Kp{\DynCall{\e[1]}\m{\ep[1]}}{\any}}{\byjdg{KT-DYNCALL}{\trf{D9}, \trf{D10}}}\lbl{D11}
-      \done{\trf{D11}}
-    \end{case}
-    
-    \begin{case}{STG-DCALL}\lbl{E}
-      \step{\EnvTypeS\Env\K{\Call{\e}\m{\ep}}\any}{case}\lbl{E1}
-      
-      \begin{steps}{\byjdg{Inversion lemma}{\trf{E1}}}
-	\step{\EnvTypeS\Env\K{\e}{\any}}\lbl{E2}
-	\step{\EnvTypeS\Env\K{\ep}{\tpp}}\lbl{E3}
-	\step{\ConvertE\K{s}\tpp\any}\lbl{E4}
-      \end{steps}
-      
-      \slet{\e[1]}{\TRG\e\Env}\lbl{E5}
-      \slet{\ep[1]}{\TRG\ep\Env}\lbl{E6}
-      \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e[1]}\m{\ep[1]}}{\byjdg{TTS4}{\trf{E5}, \trf{E6}, \trf{E1}}}\lbl{E7}
-      \step{\EnvType\Envp\cdot\Kp{\e[1]}\any}{\byjdg{Ind Hyp.}{\trf{E2}, \trf{cond5}, \trf{cond6}}}\lbl{E8}
-      \step{\EnvType\Envp\cdot\Kp{\ep[1]}\any}{\byjdg{Ind Hyp.}{\trf{E3}, \trf{cond5}, \trf{cond6}}}\lbl{E9}
-      \step{\EnvType\Envp\cdot\Kp{\DynCall{\e[1]}\m{\ep[1]}}{\any}}{\byjdg{KT-DYNCALL}{\trf{E8}, \trf{E9}}}\lbl{E10}
-      \done{\trf{E10}}
-    \end{case}
-
-    \begin{case}{STG-NEW}\lbl{F}
-      \begin{steps}{case}
-	\step{\EnvTypeS\Env\K{\New\C{\e[1]..}}\t}\lbl{F1A}
-	\step{\fd[1]..=\Fdef{\f[1]}{\t[1]}..}\lbl{F1B}
-	\step{\Class \C {\fd[1]..}{\md[1]..} $\in$ \K}\lbl{F1C}
-      \end{steps}
-      \begin{steps}{\byjdg{Inversion}{\trf{F1A}}}
-	\step{\EnvTypeS\Env\K{\e[1]}\tp$[1]$ ~..}\lbl{F2}
-	\step{\ConvertE\K{s}{\tp[1]}{\t[1]} ~..}\lbl{F3}
-      \end{steps}
-       \slet{\ep[i]}{$\TR{\e[i]} \xt{~for~all~} i$}\lbl{F4}
-       \step{\EnvType\Envp\cdot\Kp{\ep[i]}{\any}}{\byjdg{Ind Hyp.}{\trf{F2}}}\lbl{F5}
-       \step{\TR{\New\C{\e[1]..}} = \SubCast\any{\New\C{\ep[1]..}}}{\byjdg{TTS6}{\trf{F1A}}}\lbl{F6}
-       \step{\EnvType\Envp\cdot\Kp{\New\C{\ep[1]..}}{\C}}{\byjdg{KT-NEW}{\trf{F5}, \trf{F1B}, \trf{F1C}}}\lbl{F7}
-       \step{\EnvType\Envp\cdot\Kp{\SubCast\any{\New\C{\ep[1]..}}}{\any}}{\byjdg{KT-SUBCAST}{\trf{F7}}}\lbl{F8}
-       \done{F8}
-    \end{case}
-  
+% 
+%     \begin{case}{STG-VAR}\lbl{A}
+%       \begin{case}{\x $\neq$ \this}\lbl{AA}
+% 	\step{$\TR{\x} = \x$}{\byjdg{TTS4}{case, \trf{cond4}}}\lbl{AA1}
+% 	\step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond4}, \trf{cond5}, \trf{cond6}, \RuleRef{KT-VAR}}\lbl{AA2}
+% 	\done{\trf{AA2}}
+%       \end{case}
+%       
+%       \begin{case}{\x = \this}\lbl{AB}
+% 	\step{\EnvTypeS\Env\K\this\t}{case}\lbl{AB1}
+% 	\step{\HasType\Env\this\t}{\byjdg{Inversion}{\trf{AB1}}}\lbl{AB2}
+% 	\step{\TR\this = \SubCast\any\this}{\byjdg{TTS3}{case, \trf{cond4}}}\lbl{AB3}
+% 	\step{\EnvType\Envp\cdot\Kp\this{\t}}{\byjdg{KT-VAR}{\trf{AB2}}}\lbl{AB4}
+% 	\step{\EnvType\Envp\cdot\Kp{\SubCast\any\this}{\any}}{\byjdg{KT-SBUCAST}{\trf{AB4}}}\lbl{AB5}
+% 	\done{\trf{AB5}}
+%       \end{case}
+%     \end{case}
+%     
+%     \begin{case}{STG-GET}\lbl{B}
+%       \step{$\TR{\FRead\f} = \FRead\f$}{\byjdg{TTS1}{\trf{cond4}}}\lbl{B1}
+%       \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\byjdg{KT-READ}{\trf{cond4}, \trf{cond5}, \trf{cond6}}}\lbl{B2}
+%       \done{\trf{B2}}
+%     \end{case}
+% 
+%     \begin{case}{STG-SET}\lbl{C}
+%       \step{$\EnvTypeS\Env\K{\FWrite\f\e}\t$}{case}\lbl{C1}
+%       \step{$\ConvertE\K{s}\tp\t$}{case}\lbl{C2}
+%       \step{$\EnvTypeS\Env\K\e\tp$}{inversion on \trf{C1}}\lbl{C3}
+%       \slet{\ep}{\TRG\e\Env}\lbl{C4}
+%       \step{$\EnvType\Envp\cdot\Kp\ep{\any}$}{\byjdg{Ind Hyp.}{\trf{C3}, \trf{C4}}}\lbl{C5}
+%       \step{$\TR{\FWrite\f\e} = \FWrite\f\ep$}{\byjdg{TTS2}{\trf{C1}, \trf{C4}, \trf{cond5}}}\lbl{C6}
+%       \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\ep}{\any}$}{\byjdg{KT-WRITE}{\trf{C6}, \trf{C5}, \trf{cond5}}}\lbl{C7}    
+%       \done{\trf{C7}}
+%     \end{case}
+%     
+%     \begin{case}{STG-CALL}\lbl{D}
+%       \step{\EnvTypeS\Env\K{\Call{\e}\m{\ep}}\tp}{case}\lbl{D1}
+%       
+%       \begin{steps}{\byjdg{Inversion lemma}{\trf{D1}}}
+% 	\step{\EnvTypeS\Env\K{\e}{\C}}\lbl{D2}
+% 	\step{\EnvTypeS\Env\K{\ep}{\tpp}}\lbl{D3}
+% 	\step{\Mtype\m\t\tp $\in$ \classoff\C\K}\lbl{D4}
+% 	\step{\ConvertE\K{s}\tpp\t}\lbl{D5}
+%       \end{steps}
+%       
+%       \slet{\e[1]}{\TRG\e\Env}\lbl{D6}
+%       \slet{\ep[1]}{\TRG\ep\Env}\lbl{D7}
+%       \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e[1]}\m{\ep[1]}}{\byjdg{TTS4}{\trf{D6}, \trf{D7}, \trf{D1}}}\lbl{D8}
+%       \step{\EnvType\Envp\cdot\Kp{\e[1]}\any}{\byjdg{Ind Hyp.}{\trf{D2}, \trf{cond5}, \trf{cond6}}}\lbl{D9}
+%       \step{\EnvType\Envp\cdot\Kp{\ep[1]}\any}{\byjdg{Ind Hyp.}{\trf{D3}, \trf{cond5}, \trf{cond6}}}\lbl{D10}
+%       \step{\EnvType\Envp\cdot\Kp{\DynCall{\e[1]}\m{\ep[1]}}{\any}}{\byjdg{KT-DYNCALL}{\trf{D9}, \trf{D10}}}\lbl{D11}
+%       \done{\trf{D11}}
+%     \end{case}
+%     
+%     \begin{case}{STG-DCALL}\lbl{E}
+%       \step{\EnvTypeS\Env\K{\Call{\e}\m{\ep}}\any}{case}\lbl{E1}
+%       
+%       \begin{steps}{\byjdg{Inversion lemma}{\trf{E1}}}
+% 	\step{\EnvTypeS\Env\K{\e}{\any}}\lbl{E2}
+% 	\step{\EnvTypeS\Env\K{\ep}{\tpp}}\lbl{E3}
+% 	\step{\ConvertE\K{s}\tpp\any}\lbl{E4}
+%       \end{steps}
+%       
+%       \slet{\e[1]}{\TRG\e\Env}\lbl{E5}
+%       \slet{\ep[1]}{\TRG\ep\Env}\lbl{E6}
+%       \step{\TR{\Call{\e}\m{\ep}} = \DynCall{\e[1]}\m{\ep[1]}}{\byjdg{TTS4}{\trf{E5}, \trf{E6}, \trf{E1}}}\lbl{E7}
+%       \step{\EnvType\Envp\cdot\Kp{\e[1]}\any}{\byjdg{Ind Hyp.}{\trf{E2}, \trf{cond5}, \trf{cond6}}}\lbl{E8}
+%       \step{\EnvType\Envp\cdot\Kp{\ep[1]}\any}{\byjdg{Ind Hyp.}{\trf{E3}, \trf{cond5}, \trf{cond6}}}\lbl{E9}
+%       \step{\EnvType\Envp\cdot\Kp{\DynCall{\e[1]}\m{\ep[1]}}{\any}}{\byjdg{KT-DYNCALL}{\trf{E8}, \trf{E9}}}\lbl{E10}
+%       \done{\trf{E10}}
+%     \end{case}
+% 
+%     \begin{case}{STG-NEW}\lbl{F}
+%       \begin{steps}{case}
+% 	\step{\EnvTypeS\Env\K{\New\C{\e[1]..}}\t}\lbl{F1A}
+% 	\step{\fd[1]..=\Fdef{\f[1]}{\t[1]}..}\lbl{F1B}
+% 	\step{\Class \C {\fd[1]..}{\md[1]..} $\in$ \K}\lbl{F1C}
+%       \end{steps}
+%       \begin{steps}{\byjdg{Inversion}{\trf{F1A}}}
+% 	\step{\EnvTypeS\Env\K{\e[1]}\tp$[1]$ ~..}\lbl{F2}
+% 	\step{\ConvertE\K{s}{\tp[1]}{\t[1]} ~..}\lbl{F3}
+%       \end{steps}
+%        \slet{\ep[i]}{$\TR{\e[i]} \xt{~for~all~} i$}\lbl{F4}
+%        \step{\EnvType\Envp\cdot\Kp{\ep[i]}{\any}}{\byjdg{Ind Hyp.}{\trf{F2}}}\lbl{F5}
+%        \step{\TR{\New\C{\e[1]..}} = \SubCast\any{\New\C{\ep[1]..}}}{\byjdg{TTS6}{\trf{F1A}}}\lbl{F6}
+%        \step{\EnvType\Envp\cdot\Kp{\New\C{\ep[1]..}}{\C}}{\byjdg{KT-NEW}{\trf{F5}, \trf{F1B}, \trf{F1C}}}\lbl{F7}
+%        \step{\EnvType\Envp\cdot\Kp{\SubCast\any{\New\C{\ep[1]..}}}{\any}}{\byjdg{KT-SUBCAST}{\trf{F7}}}\lbl{F8}
+%        \done{F8}
+%     \end{case}
+%   
   \end{proof}
 \end{lemma}
 
@@ -3311,26 +3255,26 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\tp}$}
 
   \begin{proof}{ \indmsg{$\ConvertE\K{s}\t\tp$}}
-
-  \begin{case}{STGC-SUB}
-      \step{$\StrSub\cdot\Kp\t\tp$}{\trf{cond4}, case}\lbl{SUB-V1}
-      \step{$\e = \TAG\e\Env{\tp}$}{TTK7 on \trf{SUB-V1}}
-      \step{$\EnvType\Envp\cdot\Kp{\e}\tp$}{\RuleRef{KT-SUB} on \trf{cond6}, \trf{SUB-V1}}\lbl{SUB-V2}
-      \done{\trf{SUB-V2}}
-  \end{case}
-
-  \begin{case}{STGC-TOANY}
-      \step{$\e = \TAG\e\Env{\any}$}{TTK8 on \trf{TOANY-V1}}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast\any\e}\any$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}\lbl{TOANY-V2}
-      \done{\trf{TOANY-V2}}
-  \end{case}
-
-  \begin{case}{STGC-ANYCONC}
-      \step{$\e = \TAG\e\Env{\t}$}{TTK8 on \trf{ANYCONC-V1}}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t\e}\t$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}\lbl{ANYCONC-V2}
-      \done{\trf{ANYCONC-V2}}
-  \end{case}
-
+% 
+%   \begin{case}{STGC-SUB}
+%       \step{$\StrSub\cdot\Kp\t\tp$}{\trf{cond4}, case}\lbl{SUB-V1}
+%       \step{$\e = \TAG\e\Env{\tp}$}{TTK7 on \trf{SUB-V1}}
+%       \step{$\EnvType\Envp\cdot\Kp{\e}\tp$}{\RuleRef{KT-SUB} on \trf{cond6}, \trf{SUB-V1}}\lbl{SUB-V2}
+%       \done{\trf{SUB-V2}}
+%   \end{case}
+% 
+%   \begin{case}{STGC-TOANY}
+%       \step{$\e = \TAG\e\Env{\any}$}{TTK8 on \trf{TOANY-V1}}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast\any\e}\any$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}\lbl{TOANY-V2}
+%       \done{\trf{TOANY-V2}}
+%   \end{case}
+% 
+%   \begin{case}{STGC-ANYCONC}
+%       \step{$\e = \TAG\e\Env{\t}$}{TTK8 on \trf{ANYCONC-V1}}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast\t\e}\t$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}\lbl{ANYCONC-V2}
+%       \done{\trf{ANYCONC-V2}}
+%   \end{case}
+% 
   \end{proof}
 \end{lemma}
 
@@ -3348,74 +3292,74 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
   \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
 
-    \begin{case}{STG-VAR}    
-      \step{$\e = \x$}{case}\lbl{VAR-V1}
-      \step{${\TRG{\e}\Env} = \x$}{TTK1}\lbl{VAR-V2}
-      \step{$\EnvType\Envp\cdot\Kp\x\t$}{\RuleRef{KT-VAR}, \trf{cond6}}\lbl{VAR-V3}
-      \done{\trf{VAR-V3}}
-    \end{case}
-
-    \begin{case}{STG-GET} 
-      \step{$\e = \FRead\f$}{case}\lbl{GET-V1}
-      \step{${\TRG{\e}\Env} = \FRead\f$}{TTK2}\lbl{GET-V2}
-      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{GET-V3}
-      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{GET-V4}
-      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}\t$}{\RuleRef{KT-READ} on \trf{GET-V3}, \trf{GET-V4}}\lbl{GET-V5}
-      \done{\trf{GET-V5}}
-    \end{case}
-
-    \begin{case}{STG-SET} 
-      \step{$\e = \FWrite\f{\e[1]}$}{case}\lbl{SET-V1}
-      \slet{$\ep[1]$}{$\TRG{\e[1]}\Env$}\lbl{SET-V2}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[1]}\tp$}{IH on case}\lbl{SET-V3}
-      \slet{$\epp[1]$}{$\TAG{\e[1]}\Env\t$}\lbl{SET-V4}
-      \slet{$\e$}{$\FWrite\f{\epp[1]}$}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[1]}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{SET-V4}}\lbl{SET-V5}
-      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{SET-V6}
-      \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{SET-V7}
-      \step{$\EnvType\Envp\cdot\Kp{\e}\t$}{\byjdg{\RuleRef{KT-WRITE}}{\trf{SET-V5}, \trf{SET-V6}, \trf{SET-V7}}}\lbl{SET-V8}
-      \done{\trf{SET-V8}}
-    \end{case}
-
-    \begin{case}{STG-CALL} 
-      \step{$\e = \Call\ep\m\epp$}{case}\lbl{CALL-V1}
-      \slet{$\ep[1]$}{$\TRG{\ep}\Env$}
-      \slet{$\epp[1]$}{$\TRG{\epp}\Env$}
-      \slet{$\epp[2]$}{$\TAG{\epp}\Env\t$}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[1]}\C$}{IH on case}\lbl{CALL-V2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[1]}\tpp$}{IH on case}\lbl{CALL-V3}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{CALL-V3}}\lbl{CALL-V4}
-      \step{$\Mtype\m\t\tp \in \App\Kp\C$}{\trf{cond5}}\lbl{CALL-V5}
-      \step{$\EnvType\Envp\cdot\Kp{\Call{\ep[1]}\m{\epp[2]}}\tp$}{\byjdg{\RuleRef{KT-CALL}}{\trf{CALL-V2}, \trf{CALL-V4}, \trf{CALL-V5}}}\lbl{CALL-V6}
-      \done{\trf{CALL-V6}}
-    \end{case}
-
-    \begin{case}{STG-DCALL} 
-      \step{$\e = \Call\ep\m\epp$}{case}\lbl{DCALL-V1}
-      \slet{$\ep[1]$}{$\TRG{\ep}\Env$}
-      \slet{$\epp[1]$}{$\TRG{\epp}\Env$}
-      \slet{$\epp[2]$}{$\TAG{\epp}\Env\t$}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[1]}\any$}{IH on case}\lbl{DCALL-V2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[1]}\tpp$}{IH on case}\lbl{DCALL-V3}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\any$}{lemma \ref{lem:THTS-COMP} on case, \trf{DCALL-V3}}\lbl{DCALL-V4}
-      \step{$\EnvType\Envp\cdot\Kp{\Call{\ep[1]}\m{\epp[2]}}\tp$}{\byjdg{\RuleRef{KT-DYNCALL}}{\trf{DCALL-V2}, \trf{DCALL-V4}}}\lbl{DCALL-V5}
-      \done{\trf{DCALL-V5}}
-    \end{case}
-
-    \begin{case}{STG-NEW} 
-      \step{$\e = \New\C{\e[i]..}$}{case}\lbl{NEW-V1}
-      \slet{\ep[i]}{$\TRG{\epp}\Env$}
-      \slet{\epp[i]}{$\TAG{\epp}\Env{\t[i]}$}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\tp[i]}$}{IH on case}\lbl{NEW-V2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\t[i]}$}{lemma \ref{lem:THTS-COMP} on case, \trf{NEW-V2}}\lbl{NEW-V3}
-      \step{$\Fdef{\f[i]}{\t[i]} \in \App\Kp\C$}{\trf{cond5}}\lbl{NEW-V4}
-      \step{$\EnvType\Envp\cdot\Kp{\New\C{\e[i]..}}\C$}{\byjdg{\RuleRef{KT-NEW}}{\trf{NEW-V3}, \trf{NEW-V4}}}\lbl{NEW-V5}
-      \done{\trf{NEW-V5}}
-    \end{case}
+%     \begin{case}{STG-VAR}    
+%       \step{$\e = \x$}{case}\lbl{VAR-V1}
+%       \step{${\TRG{\e}\Env} = \x$}{TTK1}\lbl{VAR-V2}
+%       \step{$\EnvType\Envp\cdot\Kp\x\t$}{\RuleRef{KT-VAR}, \trf{cond6}}\lbl{VAR-V3}
+%       \done{\trf{VAR-V3}}
+%     \end{case}
+% 
+%     \begin{case}{STG-GET} 
+%       \step{$\e = \FRead\f$}{case}\lbl{GET-V1}
+%       \step{${\TRG{\e}\Env} = \FRead\f$}{TTK2}\lbl{GET-V2}
+%       \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{GET-V3}
+%       \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{GET-V4}
+%       \step{$\EnvType\Envp\cdot\Kp{\FRead\f}\t$}{\RuleRef{KT-READ} on \trf{GET-V3}, \trf{GET-V4}}\lbl{GET-V5}
+%       \done{\trf{GET-V5}}
+%     \end{case}
+% 
+%     \begin{case}{STG-SET} 
+%       \step{$\e = \FWrite\f{\e[1]}$}{case}\lbl{SET-V1}
+%       \slet{$\ep[1]$}{$\TRG{\e[1]}\Env$}\lbl{SET-V2}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[1]}\tp$}{IH on case}\lbl{SET-V3}
+%       \slet{$\epp[1]$}{$\TAG{\e[1]}\Env\t$}\lbl{SET-V4}
+%       \slet{$\e$}{$\FWrite\f{\epp[1]}$}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[1]}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{SET-V4}}\lbl{SET-V5}
+%       \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond6}}\lbl{SET-V6}
+%       \step{$\Fdef\f\t \in \App\Kp\C$}{\trf{cond5}}\lbl{SET-V7}
+%       \step{$\EnvType\Envp\cdot\Kp{\e}\t$}{\byjdg{\RuleRef{KT-WRITE}}{\trf{SET-V5}, \trf{SET-V6}, \trf{SET-V7}}}\lbl{SET-V8}
+%       \done{\trf{SET-V8}}
+%     \end{case}
+% 
+%     \begin{case}{STG-CALL} 
+%       \step{$\e = \Call\ep\m\epp$}{case}\lbl{CALL-V1}
+%       \slet{$\ep[1]$}{$\TRG{\ep}\Env$}
+%       \slet{$\epp[1]$}{$\TRG{\epp}\Env$}
+%       \slet{$\epp[2]$}{$\TAG{\epp}\Env\t$}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[1]}\C$}{IH on case}\lbl{CALL-V2}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[1]}\tpp$}{IH on case}\lbl{CALL-V3}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\t$}{lemma \ref{lem:THTS-COMP} on case, \trf{CALL-V3}}\lbl{CALL-V4}
+%       \step{$\Mtype\m\t\tp \in \App\Kp\C$}{\trf{cond5}}\lbl{CALL-V5}
+%       \step{$\EnvType\Envp\cdot\Kp{\Call{\ep[1]}\m{\epp[2]}}\tp$}{\byjdg{\RuleRef{KT-CALL}}{\trf{CALL-V2}, \trf{CALL-V4}, \trf{CALL-V5}}}\lbl{CALL-V6}
+%       \done{\trf{CALL-V6}}
+%     \end{case}
+% 
+%     \begin{case}{STG-DCALL} 
+%       \step{$\e = \Call\ep\m\epp$}{case}\lbl{DCALL-V1}
+%       \slet{$\ep[1]$}{$\TRG{\ep}\Env$}
+%       \slet{$\epp[1]$}{$\TRG{\epp}\Env$}
+%       \slet{$\epp[2]$}{$\TAG{\epp}\Env\t$}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[1]}\any$}{IH on case}\lbl{DCALL-V2}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[1]}\tpp$}{IH on case}\lbl{DCALL-V3}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\any$}{lemma \ref{lem:THTS-COMP} on case, \trf{DCALL-V3}}\lbl{DCALL-V4}
+%       \step{$\EnvType\Envp\cdot\Kp{\Call{\ep[1]}\m{\epp[2]}}\tp$}{\byjdg{\RuleRef{KT-DYNCALL}}{\trf{DCALL-V2}, \trf{DCALL-V4}}}\lbl{DCALL-V5}
+%       \done{\trf{DCALL-V5}}
+%     \end{case}
+% 
+%     \begin{case}{STG-NEW} 
+%       \step{$\e = \New\C{\e[i]..}$}{case}\lbl{NEW-V1}
+%       \slet{\ep[i]}{$\TRG{\epp}\Env$}
+%       \slet{\epp[i]}{$\TAG{\epp}\Env{\t[i]}$}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\tp[i]}$}{IH on case}\lbl{NEW-V2}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\t[i]}$}{lemma \ref{lem:THTS-COMP} on case, \trf{NEW-V2}}\lbl{NEW-V3}
+%       \step{$\Fdef{\f[i]}{\t[i]} \in \App\Kp\C$}{\trf{cond5}}\lbl{NEW-V4}
+%       \step{$\EnvType\Envp\cdot\Kp{\New\C{\e[i]..}}\C$}{\byjdg{\RuleRef{KT-NEW}}{\trf{NEW-V3}, \trf{NEW-V4}}}\lbl{NEW-V5}
+%       \done{\trf{NEW-V5}}
+%     \end{case}
   \end{proof}
 \end{lemma}
 
-\subsection{Type Soundness of Thorn Translation}
+\subsection*{Type Soundness of Thorn Translation}
 
 \begin{lemma}{Soundness of convertibility}{THT-COMP}
   \begin{conds}
@@ -3429,35 +3373,35 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \then\axiom{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}
 
   \begin{proof}{ \indmsg{$\Convertible\K\t\tp$}}
-
-  \begin{case}{STHC-SUB}
-    \begin{case}{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}
-      \step{$\TAG\e\Env\tp = \ep$}{TTH7 on \trf{cond6}, case}\lbl{CS2}
-      \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on case, \trf{CS2}, \trf{cond6}}
-    \end{case}
-
-    \begin{case}{$\StrNotSub\cdot\Kp{\kty\t}{\kty\tp}$}
-      \step{$\TAG\e\Env\tp = \SubCast{\kty\tp}\ep$}{TTH8 on \trf{cond6}, case}\lbl{CS2}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\tp}\ep}{\kty\tp}$}{\RuleRef{KT-SUBCAST} on case, \trf{CS2}, \trf{cond6}}
-    \end{case}
-  \end{case}
-
-  % WTS: \EnvType\Envp\cdot\Kp{\ep}{\any}
-  \begin{case}{STHC-TOANY}
-    \step{$\TAG\e\Env\any = \SubCast\any\ep$}{TTH8 on case}
-    \step{$\EnvType\Envp\cdot\Kp{\SubCast\any\ep}{\any}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
-  \end{case}
-
-  % WTS: \EnvType\Envp\cdot\Kp{\ep}{\C}
-  \begin{case}{STHC-OPTCONC}
-    \step{$\TAG\e\Env\C = \SubCast\C\ep$}{TTH8 on case}
-    \step{$\EnvType\Envp\cdot\Kp{\SubCast\C\ep}{\C}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
-  \end{case}
-
-  \begin{case}{STHC-ANYCONC}
-    \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTH8 on case}
-    \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
-  \end{case}
+% 
+%   \begin{case}{STHC-SUB}
+%     \begin{case}{$\StrSub\cdot\Kp{\kty\t}{\kty\tp}$}
+%       \step{$\TAG\e\Env\tp = \ep$}{TTH7 on \trf{cond6}, case}\lbl{CS2}
+%       \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on case, \trf{CS2}, \trf{cond6}}
+%     \end{case}
+% 
+%     \begin{case}{$\StrNotSub\cdot\Kp{\kty\t}{\kty\tp}$}
+%       \step{$\TAG\e\Env\tp = \SubCast{\kty\tp}\ep$}{TTH8 on \trf{cond6}, case}\lbl{CS2}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\tp}\ep}{\kty\tp}$}{\RuleRef{KT-SUBCAST} on case, \trf{CS2}, \trf{cond6}}
+%     \end{case}
+%   \end{case}
+% 
+%   % WTS: \EnvType\Envp\cdot\Kp{\ep}{\any}
+%   \begin{case}{STHC-TOANY}
+%     \step{$\TAG\e\Env\any = \SubCast\any\ep$}{TTH8 on case}
+%     \step{$\EnvType\Envp\cdot\Kp{\SubCast\any\ep}{\any}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
+%   \end{case}
+% 
+%   % WTS: \EnvType\Envp\cdot\Kp{\ep}{\C}
+%   \begin{case}{STHC-OPTCONC}
+%     \step{$\TAG\e\Env\C = \SubCast\C\ep$}{TTH8 on case}
+%     \step{$\EnvType\Envp\cdot\Kp{\SubCast\C\ep}{\C}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
+%   \end{case}
+% 
+%   \begin{case}{STHC-ANYCONC}
+%     \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTH8 on case}
+%     \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
+%   \end{case}
 
   \end{proof}
 \end{lemma}
@@ -3476,82 +3420,82 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
   \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
 
-    \begin{case}{STH-VAR}
-      \step{$\TRG{\x}\Env = \x$}{TTH1}\lbl{TSSL1}
-      \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond6}, \RuleRef{KT-VAR}}\lbl{TSSL2}
-      \done{\trf{TSSL2}}      
-    \end{case}
-
-    \begin{case}{STH-GET}
-      \step{$\TRG{\FRead\f}\Env = \FRead\f$}{TTH2}\lbl{TSSL3}
-      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL4}
-    \end{case}
-
-    \begin{case}{STH-SET}
-      \step{$\EnvTypeW\Env\K{\FWrite\f\e}\t$}{case}\lbl{TSSL5}
-      \step{$\Convertible\K\tp\t$}{case}\lbl{TSSLC}
-      \step{$\EnvTypeW\Env\K\e\tp$}{inversion on \trf{TSSL5}}\lbl{TSSL6}
-      \slet{\ep}{\TRG\e\Env}\lbl{TSSA1}
-      \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{TSSL6}}\lbl{TSSL7}
-      \slet{\epp}{{\TAG\e\Env{\t}}}\lbl{TSSA2}
-      \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{TSSL7}}\lbl{TSSL8}
-      \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{TTH3 on \trf{TSSA2},\trf{TSSL5},\trf{cond5}}\lbl{TSSL8}
-      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{TSSL8},\trf{TSSL5},\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL9}
-    \end{case}
-
-    \begin{case}{STH-CALL}
-      \step{$\EnvTypeW\Env\K{\Call{\e[1]}\m{\ep[1]}}\t$}{case}\lbl{THCA1}
-      \step{$\EnvTypeW\Env\K{\e[1]}{\t[a]}$}{case}\lbl{THCA2}
-      \step{$\t[a] = \C \vee \t[a] = \CW$}{case}\lbl{TSSA5}
-      \step{$\Mtype\m\tp\t \in \classoff\C\K$}{case}\lbl{THCA3}
-      \step{$\EnvTypeW\Env\K{\ep[1]}\tpp$}{case}\lbl{THCA4}
-      \step{$\Convertible\K\tpp\tp$}{case}\lbl{THCA5}
-      \slet{$\e[2]$}{${\TRG{\e[1]}\Env}$}\lbl{TSSA1}
-      \slet{$\ep[2]$}{${\TRG{\ep[1]}\Env}$}\lbl{TSSA2}
-      \step{$\EnvType\Envp\cdot\Kp{\e[2]}{\kty{\t[a]}}$}{IH on \trf{THCA2}, \trf{TSSA1}}\lbl{THCA6}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[2]}{\kty\tpp}$}{IH on \trf{THCA4}, \trf{TSSA2}}\lbl{THCA7}
-      \slet{$\epp[2]$}{${\TAG{\ep[1]}\Env{\t[a]}}$}\lbl{TSSA3}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[2]}{\kty\tp}$}{lemma \ref{lem:THT-COMP} on \trf{THCA5}, \trf{THCA7}}\lbl{THCA8}
-
-      \begin{case}{$\t[a] = \C$}
-        \step{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env = \KCall{\e[2]}\m{\epp[2]}{\kty\tp}{\kty\t}$}{TTH5 on \trf{THCA2},\trf{THCA8},\trf{THCA3}}
-        \step{$\EnvType\Envp\cdot\Kp{\KCall{\e[2]}\m{\epp[2]}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA6},\trf{THCA8},\trf{cond5},\RuleRef{KT-CALL}}\lbl{TSSL9}
-      \end{case}
-
-      \begin{case}{$\t[a] = \CW$}
-        \step{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env = \DynCall{\e[2]}\m{\epp[2]}$}{TTH4 on \trf{THCA2},\trf{THCA8}}
-        \step{$\EnvType\Envp\cdot\Kp{\KCall{\e[2]}\m{\epp[2]}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA2},\trf{THCA8},\RuleRef{KT-DYNCALL}}\lbl{TSSL10}
-      \end{case}
-    \end{case}
-
-    \begin{case}{STH-DCALL}
-      \step{$\EnvTypeW\Env\K{\Call{\e[1]}\m{\ep[1]}}\t$}{case}\lbl{THCD1}
-      \step{$\EnvTypeW\Env\K{\e[1]}\any$}{case}\lbl{THCD2}
-      \step{$\EnvTypeW\Env\K{\ep[1]}\any$}{case}\lbl{THCD3}
-      \slet{$\e[2]$}{${\TRG{\e[1]}\Env}$}\lbl{TSSD1}
-      \slet{$\ep[2]$}{${\TRG{\ep[1]}\Env}$}\lbl{TSSD2}
-      \step{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env = \DynCall{\e[2]}\m{\ep[2]}$}{TTH4 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCD4}
-      \step{$\EnvType\Envp\cdot\Kp{\e[2]}\any$}{IH on \trf{THCD2}}\lbl{THCD5}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\any$}{IH on \trf{THCD3}}\lbl{THCD6}
-      \step{$\EnvType\Envp\cdot\Kp{\DynCall{\e[2]}\m{\ep[2]}}{\kty\t}$}{\trf{THCD5},\trf{THCD6},\RuleRef{KT-DYNCALL}}\lbl{THCD9}
-    \end{case}
-
-    \begin{case}{STH-NEW}
-      \step{$\EnvTypeW\Env\K{\New\C{\e[1]..}}\t$}{case}\lbl{THCN1}
-      \step{$\EnvTypeW\Env\K{\e[1]}\tp[1] ~..$}{case}\lbl{THCN2}
-      \step{$\Convertible\K{\tp[1]}{\t[1]} ~ ..$}{case}\lbl{THCN3}
-      \slet{$\ep[i]$}{${\TRG{\e[i]}\Env}$ for all $i$}\lbl{TSSN1}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\kty{\tp[i]}}$}{IH on \trf{THCN2}}\lbl{THCN4}
-      \slet{$\epp[i]$}{${\TAG{\ep[i]}\Env{{\t[i]}}}$ for all $i$}\lbl{TSSN2}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\kty{\t[i]}}$}{lemma \ref{lem:THT-COMP} on \trf{TSSN2}, \trf{THCN2}}\lbl{THCN5}
-      \step{$\TRG{\New\C{\e[1]..}}\Env = \New\C{\epp[1]..}$}{TTH6 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCN6}
-      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp[1]..}}{\kty\t}$}{\trf{THCN5},\RuleRef{KT-NEW}}\lbl{THCN7}
-    \end{case}
+%     \begin{case}{STH-VAR}
+%       \step{$\TRG{\x}\Env = \x$}{TTH1}\lbl{TSSL1}
+%       \step{$\EnvType\Envp\cdot\Kp\x{\kty\t}$}{\trf{cond6}, \RuleRef{KT-VAR}}\lbl{TSSL2}
+%       \done{\trf{TSSL2}}      
+%     \end{case}
+% 
+%     \begin{case}{STH-GET}
+%       \step{$\TRG{\FRead\f}\Env = \FRead\f$}{TTH2}\lbl{TSSL3}
+%       \step{$\EnvType\Envp\cdot\Kp{\FRead\f}{\kty\t}$}{\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL4}
+%     \end{case}
+% 
+%     \begin{case}{STH-SET}
+%       \step{$\EnvTypeW\Env\K{\FWrite\f\e}\t$}{case}\lbl{TSSL5}
+%       \step{$\Convertible\K\tp\t$}{case}\lbl{TSSLC}
+%       \step{$\EnvTypeW\Env\K\e\tp$}{inversion on \trf{TSSL5}}\lbl{TSSL6}
+%       \slet{\ep}{\TRG\e\Env}\lbl{TSSA1}
+%       \step{$\EnvType\Envp\cdot\Kp\ep{\kty\tp}$}{IH on \trf{TSSL6}}\lbl{TSSL7}
+%       \slet{\epp}{{\TAG\e\Env{\t}}}\lbl{TSSA2}
+%       \step{$\EnvType\Envp\cdot\Kp\epp{\kty\t}$}{lemma \ref{lem:THT-COMP} on \trf{TSSL7}}\lbl{TSSL8}
+%       \step{$\TRG{\FWrite\f\e}\Env = \FWrite\f\epp$}{TTH3 on \trf{TSSA2},\trf{TSSL5},\trf{cond5}}\lbl{TSSL8}
+%       \step{$\EnvType\Envp\cdot\Kp{\FWrite\f\epp}{\kty\t}$}{\trf{TSSL8},\trf{TSSL5},\trf{cond5}, \RuleRef{KT-READ}}\lbl{TSSL9}
+%     \end{case}
+% 
+%     \begin{case}{STH-CALL}
+%       \step{$\EnvTypeW\Env\K{\Call{\e[1]}\m{\ep[1]}}\t$}{case}\lbl{THCA1}
+%       \step{$\EnvTypeW\Env\K{\e[1]}{\t[a]}$}{case}\lbl{THCA2}
+%       \step{$\t[a] = \C \vee \t[a] = \CW$}{case}\lbl{TSSA5}
+%       \step{$\Mtype\m\tp\t \in \classoff\C\K$}{case}\lbl{THCA3}
+%       \step{$\EnvTypeW\Env\K{\ep[1]}\tpp$}{case}\lbl{THCA4}
+%       \step{$\Convertible\K\tpp\tp$}{case}\lbl{THCA5}
+%       \slet{$\e[2]$}{${\TRG{\e[1]}\Env}$}\lbl{TSSA1}
+%       \slet{$\ep[2]$}{${\TRG{\ep[1]}\Env}$}\lbl{TSSA2}
+%       \step{$\EnvType\Envp\cdot\Kp{\e[2]}{\kty{\t[a]}}$}{IH on \trf{THCA2}, \trf{TSSA1}}\lbl{THCA6}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[2]}{\kty\tpp}$}{IH on \trf{THCA4}, \trf{TSSA2}}\lbl{THCA7}
+%       \slet{$\epp[2]$}{${\TAG{\ep[1]}\Env{\t[a]}}$}\lbl{TSSA3}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[2]}{\kty\tp}$}{lemma \ref{lem:THT-COMP} on \trf{THCA5}, \trf{THCA7}}\lbl{THCA8}
+% 
+%       \begin{case}{$\t[a] = \C$}
+%         \step{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env = \KCall{\e[2]}\m{\epp[2]}{\kty\tp}{\kty\t}$}{TTH5 on \trf{THCA2},\trf{THCA8},\trf{THCA3}}
+%         \step{$\EnvType\Envp\cdot\Kp{\KCall{\e[2]}\m{\epp[2]}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA6},\trf{THCA8},\trf{cond5},\RuleRef{KT-CALL}}\lbl{TSSL9}
+%       \end{case}
+% 
+%       \begin{case}{$\t[a] = \CW$}
+%         \step{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env = \DynCall{\e[2]}\m{\epp[2]}$}{TTH4 on \trf{THCA2},\trf{THCA8}}
+%         \step{$\EnvType\Envp\cdot\Kp{\KCall{\e[2]}\m{\epp[2]}{\kty\tp}{\kty\t}}{\kty\t}$}{\trf{THCA2},\trf{THCA8},\RuleRef{KT-DYNCALL}}\lbl{TSSL10}
+%       \end{case}
+%     \end{case}
+% 
+%     \begin{case}{STH-DCALL}
+%       \step{$\EnvTypeW\Env\K{\Call{\e[1]}\m{\ep[1]}}\t$}{case}\lbl{THCD1}
+%       \step{$\EnvTypeW\Env\K{\e[1]}\any$}{case}\lbl{THCD2}
+%       \step{$\EnvTypeW\Env\K{\ep[1]}\any$}{case}\lbl{THCD3}
+%       \slet{$\e[2]$}{${\TRG{\e[1]}\Env}$}\lbl{TSSD1}
+%       \slet{$\ep[2]$}{${\TRG{\ep[1]}\Env}$}\lbl{TSSD2}
+%       \step{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env = \DynCall{\e[2]}\m{\ep[2]}$}{TTH4 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCD4}
+%       \step{$\EnvType\Envp\cdot\Kp{\e[2]}\any$}{IH on \trf{THCD2}}\lbl{THCD5}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\any$}{IH on \trf{THCD3}}\lbl{THCD6}
+%       \step{$\EnvType\Envp\cdot\Kp{\DynCall{\e[2]}\m{\ep[2]}}{\kty\t}$}{\trf{THCD5},\trf{THCD6},\RuleRef{KT-DYNCALL}}\lbl{THCD9}
+%     \end{case}
+% 
+%     \begin{case}{STH-NEW}
+%       \step{$\EnvTypeW\Env\K{\New\C{\e[1]..}}\t$}{case}\lbl{THCN1}
+%       \step{$\EnvTypeW\Env\K{\e[1]}\tp[1] ~..$}{case}\lbl{THCN2}
+%       \step{$\Convertible\K{\tp[1]}{\t[1]} ~ ..$}{case}\lbl{THCN3}
+%       \slet{$\ep[i]$}{${\TRG{\e[i]}\Env}$ for all $i$}\lbl{TSSN1}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\kty{\tp[i]}}$}{IH on \trf{THCN2}}\lbl{THCN4}
+%       \slet{$\epp[i]$}{${\TAG{\ep[i]}\Env{{\t[i]}}}$ for all $i$}\lbl{TSSN2}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\kty{\t[i]}}$}{lemma \ref{lem:THT-COMP} on \trf{TSSN2}, \trf{THCN2}}\lbl{THCN5}
+%       \step{$\TRG{\New\C{\e[1]..}}\Env = \New\C{\epp[1]..}$}{TTH6 on \trf{TSSD1},\trf{THCD2},\trf{TSSD2}}\lbl{THCN6}
+%       \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp[1]..}}{\kty\t}$}{\trf{THCN5},\RuleRef{KT-NEW}}\lbl{THCN7}
+%     \end{case}
   \end{proof}
 \end{lemma}
 
 
-\subsection{Type Soundness of Transient Translation}
+\subsection*{Type Soundness of Transient Translation}
 
 \begin{lemma}{Soundness of Transient convertibility}{THTA-COMP}
   \begin{conds}
@@ -3566,27 +3510,27 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
   \begin{proof}{ \indmsg{$\Convertible\K\t\tp$}}
 
-  \begin{case}{STC-SUB}
-    \begin{case}{$\StrSub\cdot\Kp{\t}{\tp}$}
-      \step{$\TAG\e\Env\tp = \ep$}{TTH7 on \trf{cond6}, case}\lbl{CS2}
-      \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on case, \trf{CS2}, \trf{cond6}}
-    \end{case}
-
-    \begin{case}{$\StrNotSub\cdot\Kp{\t}{\tp}$}
-      \step{$\TAG\e\Env\tp = \SubCast{\kty\tp}\ep$}{TTH8 on \trf{cond6}, case}\lbl{CS2}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\tp}\ep}{\kty\tp}$}{\RuleRef{KT-SUBCAST} on case, \trf{CS2}, \trf{cond6}}
-    \end{case}
-  \end{case}
-
-  \begin{case}{STC-TOANY}
-    \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTH8 on case}
-    \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
-  \end{case}
-
-  \begin{case}{STC-OPTCONC}
-    \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTH8 on case}
-    \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
-  \end{case}
+%   \begin{case}{STC-SUB}
+%     \begin{case}{$\StrSub\cdot\Kp{\t}{\tp}$}
+%       \step{$\TAG\e\Env\tp = \ep$}{TTH7 on \trf{cond6}, case}\lbl{CS2}
+%       \step{$\EnvType\Envp\cdot\Kp{\TAG\e\Env{\tp}}{\kty\tp}$}{\RuleRef{KT-SUB} on case, \trf{CS2}, \trf{cond6}}
+%     \end{case}
+% 
+%     \begin{case}{$\StrNotSub\cdot\Kp{\t}{\tp}$}
+%       \step{$\TAG\e\Env\tp = \SubCast{\kty\tp}\ep$}{TTH8 on \trf{cond6}, case}\lbl{CS2}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\tp}\ep}{\kty\tp}$}{\RuleRef{KT-SUBCAST} on case, \trf{CS2}, \trf{cond6}}
+%     \end{case}
+%   \end{case}
+% 
+%   \begin{case}{STC-TOANY}
+%     \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTH8 on case}
+%     \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
+%   \end{case}
+% 
+%   \begin{case}{STC-OPTCONC}
+%     \step{$\TAG\e\Env{\t} = \SubCast{\kty\t}\ep$}{TTH8 on case}
+%     \step{$\EnvType\Envp\cdot\Kp{\SubCast{\kty\t}\ep}{\kty\t}$}{\RuleRef{KT-SUBCAST} on \trf{cond6}}
+%   \end{case}
 
   \end{proof}
 \end{lemma}
@@ -3605,70 +3549,120 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
   \begin{proof} \indmsg{\EnvTypeW\Env\K\e\t}
 
-    \begin{case}{STT-VAR}    
-      \slet{$\ep$}{$\TRG{\x}\Env$}\lbl{STTVar1}
-      \step{$\ep = \SubCast\t\x$}{TTR2 on \trf{cond4}, \trf{STTVar1}}
-      \step{$\EnvType\Envp\cdot\Kp\x\any$}{\trf{cond5}, case}\lbl{STTVar2}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t\x}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTVar2}}
-    \end{case}
-
-    \begin{case}{STT-GET}
-      \slet{$\ep$}{$\TRG{\FRead\f}\Env$}\lbl{STTGet1}
-      \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond5} on case}\lbl{STTGet2}
-      \step{$\Fdef\f\any \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTGet3}
-      \step{$\ep = \SubCast\t{\FRead\f}$}{TTR3 on case}
-      \step{$\EnvType\Envp\cdot\Kp{\FRead\f}\any$}{\RuleRef{KT-
-      READ} on \trf{STTGet2}, \trf{STTGet3}}\lbl{STTGet4}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FRead\f}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTGet4}}
-    \end{case}
-
-    \begin{case}{STT-SET}
-      \slet{$\e[1]$}{$\TRG{\FWrite\f\e}\Env$}\lbl{STTSet1}
-      \slet{$\e[2]$}{$\TRG{\e}\Env$}\lbl{STTSet2}
-      \step{$\EnvType\Envp\cdot\Kp{\e[2]}\t$}{IH on \trf{STTSet2}}\lbl{STTSet3}
-      \slet{$\ep[2]$}{$\TAG{\e[2]}\Env\any$}\lbl{STTSet4}
-      \step{$\e[1] = \SubCast\t{\FWrite\f{\ep[2]}}$}{TTR4 on case, \trf{STTSet4}}
-      \step{$\Fdef\f\any \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTSet6}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTSet4} and case}\lbl{STTSet7}
-      \step{$\EnvType\Envp\cdot\Kp{\FWrite\f{\ep[2]}}\any$}{\RuleRef{KT-WRITE} on \trf{cond5},\trf{STTSet6},\trf{STTSet7}}\lbl{STTSet8}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FWrite\f{\ep[2]}}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTSet8}}\lbl{STTSet9}
-    \end{case}
-
-    \begin{case}{STT-CALL}
-      \slet{$\e$}{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env$}\lbl{STTCall1}
-      \slet{$\e[2]$}{$\TRG{\e[1]}\Env$}\lbl{STTCall2}
-      \slet{$\ep[2]$}{$\TRG{\ep[1]}\Env$}\lbl{STTCall3}
-      \slet{$\epp[2]$}{$\TAG{\ep[1]}\Env\any$}\lbl{STTCall4}
-      \step{$\e = \SubCast\t{\KCall{\e[2]}\m{\epp[2]}\any\any}$}{TTR6 on case}
-      \step{$\EnvType\Envp\cdot\Kp{\e[2]}\C$}{IH on case}\lbl{STTCall5}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\tpp$}{IH on case}\lbl{STTCall6}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTCall6}}\lbl{STTCall7}
-      \step{$\Mtype\m\any\any \in \classoff\C\Kp$}{\trf{cond5}}\lbl{STTCall8}
-      \step{$\EnvType\Envp\cdot\Kp{\KCall{\e[2]}\m{\epp[2]}\any\any}\any$}{\RuleRef{KT-CALL} on \trf{STTCall5},\trf{STTCall8},\trf{STTCall7}}\lbl{STTCall9}
-      \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\KCall{\e[2]}\m{\epp[2]}\any\any}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTCall9}}
-    \end{case}
-
-    \begin{case}{STT-DCALL}
-      \slet{$\e$}{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env$}\lbl{STTDCall1}
-      \slet{$\e[2]$}{$\TRG{\e[1]}\Env$}\lbl{STTDCall2}
-      \slet{$\ep[2]$}{$\TRG{\ep[1]}\Env$}\lbl{STTDCall3}
-      \slet{$\epp[2]$}{$\TAG{\ep[1]}\Env\any$}\lbl{STTDCall4}
-      \step{$\EnvType\Envp\cdot\Kp{\e[2]}\any$}{IH on case}\lbl{STTDCall5}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\tpp$}{IH on case}\lbl{STTDCall6}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTDCall3},\trf{STTDCall6}, case}\lbl{STTDCall7}
-      \step{$\e = {\DynCall{\e[2]}\m{\epp[2]}}$}{TTR5 on case}
-      \step{$\EnvType\Envp\cdot\Kp{\DynCall{\e[2]}\m{\epp[2]}}\any$}{\RuleRef{KT-DYNCALL} on \trf{STTDCall5}, \trf{STTDCall7}}\lbl{STTCall8}
-    \end{case}
-
-    \begin{case}{STT-NEW}
-      \slet{$\e$}{$\TRG{\New\C{\e[i] ..}}\Env$}\lbl{STTNew1}
-      \slet{$\ep[i]$}{$\TRG{\e[i]}\Env$}\lbl{STTNew2}
-      \slet{$\epp[i]$}{$\TAG{\e[i]}\Env{\t[i]}$}\lbl{STTNew3}
-      \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\tp[i]}$}{IH on case}\lbl{STTNew4}
-      \step{$\Fdef{\f[i]}\any .. \in \App\Kp\C$}{\trf{cond4}}\lbl{STTNew5}
-      \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\t[i]}$}{lemma \ref{lem:THTA-COMP} on \trf{STTNew4}, case}\lbl{STTNew6}
-      \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp[i]..}}{\C}$}{\RuleRef{KT-NEW} on \trf{STTNew6}}
-    \end{case}
+%     \begin{case}{STT-VAR}    
+%       \slet{$\ep$}{$\TRG{\x}\Env$}\lbl{STTVar1}
+%       \step{$\ep = \SubCast\t\x$}{TTR2 on \trf{cond4}, \trf{STTVar1}}
+%       \step{$\EnvType\Envp\cdot\Kp\x\any$}{\trf{cond5}, case}\lbl{STTVar2}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast\t\x}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTVar2}}
+%     \end{case}
+% 
+%     \begin{case}{STT-GET}
+%       \slet{$\ep$}{$\TRG{\FRead\f}\Env$}\lbl{STTGet1}
+%       \step{$\EnvType\Envp\cdot\Kp\this\C$}{\trf{cond5} on case}\lbl{STTGet2}
+%       \step{$\Fdef\f\any \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTGet3}
+%       \step{$\ep = \SubCast\t{\FRead\f}$}{TTR3 on case}
+%       \step{$\EnvType\Envp\cdot\Kp{\FRead\f}\any$}{\RuleRef{KT-
+%       READ} on \trf{STTGet2}, \trf{STTGet3}}\lbl{STTGet4}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FRead\f}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTGet4}}
+%     \end{case}
+% 
+%     \begin{case}{STT-SET}
+%       \slet{$\e[1]$}{$\TRG{\FWrite\f\e}\Env$}\lbl{STTSet1}
+%       \slet{$\e[2]$}{$\TRG{\e}\Env$}\lbl{STTSet2}
+%       \step{$\EnvType\Envp\cdot\Kp{\e[2]}\t$}{IH on \trf{STTSet2}}\lbl{STTSet3}
+%       \slet{$\ep[2]$}{$\TAG{\e[2]}\Env\any$}\lbl{STTSet4}
+%       \step{$\e[1] = \SubCast\t{\FWrite\f{\ep[2]}}$}{TTR4 on case, \trf{STTSet4}}
+%       \step{$\Fdef\f\any \in \App\Kp\C$}{\trf{cond6} on case}\lbl{STTSet6}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTSet4} and case}\lbl{STTSet7}
+%       \step{$\EnvType\Envp\cdot\Kp{\FWrite\f{\ep[2]}}\any$}{\RuleRef{KT-WRITE} on \trf{cond5},\trf{STTSet6},\trf{STTSet7}}\lbl{STTSet8}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\FWrite\f{\ep[2]}}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTSet8}}\lbl{STTSet9}
+%     \end{case}
+% 
+%     \begin{case}{STT-CALL}
+%       \slet{$\e$}{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env$}\lbl{STTCall1}
+%       \slet{$\e[2]$}{$\TRG{\e[1]}\Env$}\lbl{STTCall2}
+%       \slet{$\ep[2]$}{$\TRG{\ep[1]}\Env$}\lbl{STTCall3}
+%       \slet{$\epp[2]$}{$\TAG{\ep[1]}\Env\any$}\lbl{STTCall4}
+%       \step{$\e = \SubCast\t{\KCall{\e[2]}\m{\epp[2]}\any\any}$}{TTR6 on case}
+%       \step{$\EnvType\Envp\cdot\Kp{\e[2]}\C$}{IH on case}\lbl{STTCall5}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\tpp$}{IH on case}\lbl{STTCall6}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTCall6}}\lbl{STTCall7}
+%       \step{$\Mtype\m\any\any \in \classoff\C\Kp$}{\trf{cond5}}\lbl{STTCall8}
+%       \step{$\EnvType\Envp\cdot\Kp{\KCall{\e[2]}\m{\epp[2]}\any\any}\any$}{\RuleRef{KT-CALL} on \trf{STTCall5},\trf{STTCall8},\trf{STTCall7}}\lbl{STTCall9}
+%       \step{$\EnvType\Envp\cdot\Kp{\SubCast\t{\KCall{\e[2]}\m{\epp[2]}\any\any}}\t$}{\RuleRef{KT-SUBCAST} on \trf{STTCall9}}
+%     \end{case}
+% 
+%     \begin{case}{STT-DCALL}
+%       \slet{$\e$}{$\TRG{\Call{\e[1]}\m{\ep[1]}}\Env$}\lbl{STTDCall1}
+%       \slet{$\e[2]$}{$\TRG{\e[1]}\Env$}\lbl{STTDCall2}
+%       \slet{$\ep[2]$}{$\TRG{\ep[1]}\Env$}\lbl{STTDCall3}
+%       \slet{$\epp[2]$}{$\TAG{\ep[1]}\Env\any$}\lbl{STTDCall4}
+%       \step{$\EnvType\Envp\cdot\Kp{\e[2]}\any$}{IH on case}\lbl{STTDCall5}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[2]}\tpp$}{IH on case}\lbl{STTDCall6}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[2]}\any$}{lemma \ref{lem:THTA-COMP} on \trf{STTDCall3},\trf{STTDCall6}, case}\lbl{STTDCall7}
+%       \step{$\e = {\DynCall{\e[2]}\m{\epp[2]}}$}{TTR5 on case}
+%       \step{$\EnvType\Envp\cdot\Kp{\DynCall{\e[2]}\m{\epp[2]}}\any$}{\RuleRef{KT-DYNCALL} on \trf{STTDCall5}, \trf{STTDCall7}}\lbl{STTCall8}
+%     \end{case}
+% 
+%     \begin{case}{STT-NEW}
+%       \slet{$\e$}{$\TRG{\New\C{\e[i] ..}}\Env$}\lbl{STTNew1}
+%       \slet{$\ep[i]$}{$\TRG{\e[i]}\Env$}\lbl{STTNew2}
+%       \slet{$\epp[i]$}{$\TAG{\e[i]}\Env{\t[i]}$}\lbl{STTNew3}
+%       \step{$\EnvType\Envp\cdot\Kp{\ep[i]}{\tp[i]}$}{IH on case}\lbl{STTNew4}
+%       \step{$\Fdef{\f[i]}\any .. \in \App\Kp\C$}{\trf{cond4}}\lbl{STTNew5}
+%       \step{$\EnvType\Envp\cdot\Kp{\epp[i]}{\t[i]}$}{lemma \ref{lem:THTA-COMP} on \trf{STTNew4}, case}\lbl{STTNew6}
+%       \step{$\EnvType\Envp\cdot\Kp{\New\C{\epp[i]..}}{\C}$}{\RuleRef{KT-NEW} on \trf{STTNew6}}
+%     \end{case}
   \end{proof}
 \end{lemma}
+
+
+\subsection*{Accessory Lemmas}
+
+\paragraph{Evaluation Extends Class Tables} $~$\\
+If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
+
+\paragraph{Weakening of Expression Typing}$~$\\
+If $\EnvType\Env\s\K\e\t$ then $\EnvType{\Env~\Envp}\s\K\e\t$. \\ 
+If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env{\s~\s'}\K\e\t$. \\ 
+If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env\s{\K~\Kp}\e\t$. 
+
+\paragraph{Weakening of Well-formedness}$~$\\
+If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$. \\
+If $\WF\Env\s\K\md$ then $\WF{\Env~\Envp}\s\K\md$.\\
+If $\WF\Env\s\K\md$ then $\WF\Env{\s~\s'}\K\md$.\\
+If $\WF\Env\s\K\md$ then $\WF\Env\s{\K~\Kp}\md$.\\
+If $\WFtype\K{\Fdef\f\t}$ then $\WFtype{\K~\Kp}{\Fdef\f\t}$.\\
+If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$.
+
+\paragraph{Weakening of Subtyping}$~$\\
+If $\StrSub\M{\K}\t\tp$ then $\StrSub\M{\K~\Kp}\t\tp$. \\
+If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
+
+\paragraph{Weakening of $\xt{mtypes}$}$~$\\
+If $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.
+
+\paragraph{Substitution}$~$\\
+If $\EnvType{\b{\HT\x\tp}}\s\K\e\t$ and $\b{\EnvType\cdot\s\K\a\tp}$, then $\EnvType\cdot\s\K{[\a/\x]\e}\t$
+
+\paragraph{Correctness of \classoff{\C}{\K}}$~$\\
+If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
+$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. 
+
+\paragraph{Canonical forms}$~$\\
+If $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\a\C$, then $\s[\a\mapsto{\obj\C{\b\a}}]$.
+
+\paragraph{Evaluation retains typing}$~$\\ \label{lem:ert}
+If $\EnvType\cdot\s\K\e\t$, $\EnvType\cdot\s\K\ep\tp$, and $\WFp\K{\ep~\s}$, then if $\Reduce\K\ep\s\Kp\epp\sp$, it follows that $\EnvType\cdot\sp\Kp\e\t$ and $\Kp = \K~\Kpp$.
+
+\paragraph{Reduction preserves Well-formedness}$~$\\
+If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$. 
+
+\paragraph{Consistent Class Table}$~$\\
+If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\fd[1]..}{\md[1]..}~.~\WFtype\K{\fd[1]..}~\wedge~\WF\cdot\s\K{\md[1]..}$
+
+\paragraph{Correctness of $\xt{wrap}$}$~$\\
+If $\WFp \K$, $\C \in \K$, $\Cp \in \K$, $\D$ free, $\md[1].. \In\App\K\C$, $\mt[1].. = \classoff\C\K$, $\mtp[1].. = \classoff\Cp\K$, and $\k = \wrap\C{\mt[1].. }{\mtp[1]..}\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
+
+
 \end{document}
