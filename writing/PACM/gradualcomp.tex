@@ -1442,29 +1442,35 @@ guarantees.  Our translation from Typed Racket to \kafka encapsulates the core
 functionality Typed Racket, highlighting the key issues of type identity
 raised in Typed Racket. Certain implementation details and features 
 important to the operation of Typed Racket, but are not relevant for the goal 
-of \kafka have been omitted. For instance, the ``macro'' model of gradual 
-typing has been omitted. In Typed Racket, types must be added one module at a
-time, whereas in our system individual methods can be typed.  
-Omitting this feature does not affect the fundamental semantics of our Typed Racket
-type system. We have also omitted first-class classes. Supporting first-class
-class on a common compilation target as the JVM or .NET CLR requires
-substantial complexity without offering any significant benefits to our system.  
-Interestingly, Typed Racket ensures objects must always respect the type invariants 
-of their callers. This mechanism, which can be disabled, is needed to  ensure
-soundness in the presence of inheritance. However, this is not needed for \kafka and
-therefore has been omitted. Our Typed Racket source language exihbits some similarities to
-Vitousek, Kent, and Siek's Guarded Reticulated Python~\cite{siek14}. Although we do not support
-their consistent subtyping.
+of \kafka have been omitted. 
 
-Our type system of Typed Racket is analogous to the type system of TypeScript, presented
-in~\figref{f:typescriptts}.  Contrarily to TypeScript, Typed
-Racked does ensure every value that passes through a typed/untyped boundary are consistent
-with their types. This enforcement mechanism constitutes the core of
-any gradual typing system. Thorn handles this through \emph{concrete} typing. 
-The type tag of the value is statically required be a subtype of the required type. 
-Transient tasks the users to ensure the operations they require are safe. Finally, Typed
-Racket ensures type correctness of untyped code through the insertion of
-wrapper contracts, interposed between typed and untyped code.
+One of Typed Racket's key cosmetic differences is the ``macro'' model of
+gradual typing, where types are added to entire modules at a time, whereas our
+model allows individual functions to be typed. We omit this in our translation
+to \kafka as it does not impact the basic semantics of the language. Another
+feature that Typed Racket supports is first-class classes with mixins, a
+feature that is important for the specific Typed Racket programming model, but
+is orthogonal to our formalization.
+
+The main semantic reality-inspired oddity in Typed Racket is how it deals with
+object types. In Typed Racket, an object must not only be well-typed as
+observed by a typed caller, but must also respect the invariants of its
+callers. This mechanism, which can be disabled by use of direct invocation, is
+needed to  ensure soundness in the presence of inheritance. However, this is
+not needed for \kafka and therefore has been omitted. Our Typed Racket source
+language exihbits some similarities to Vitousek, Kent, and Siek's Guarded
+Reticulated Python~\cite{siek14}, though we differ in not supporting
+consistency.
+
+Our type system of Typed Racket is analogous to the type system of TypeScript,
+presented in~\figref{f:typescriptts}.  Contrary to TypeScript and Transient,
+Typed Racked ``eagerly'' ensures that every value that passes through a
+typed/untyped boundary is consistent with the declared types.  Thorn handles
+this through \emph{concrete} typing, using the type tag to determine that the
+entire object is well-typed, while Transient only guarantees the behavior
+needed to ensure soundness. In Typed Racket, every value is implicitly assumed
+to be of the correct type by the caller, and is checked against the type by
+a wrapper.
 
 \FZ{... UNTIL HERE}
 
@@ -1582,7 +1588,7 @@ possible future work.
 Secondly, Typed Racket provides support for first-class classes and allows
 for typed mixins. While mixins are not in \kafka, the 
 behavioral semantics required to add them is comparatively easy. Checking for 
-mixins in \kafka only requires adding additional wrappers, rather than potentially having to 
+mixins in \kafka only requires adding additional wrappers, rather than provides otentially having to 
 rewrite code~\cite{Takikawa:2012}.
 
 
