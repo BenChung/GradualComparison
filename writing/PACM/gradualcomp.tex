@@ -196,11 +196,21 @@ generating new classes at run-time.\footnote{Both the JVM and the CLR have
   dispatch. The languages have similar class loading mechanisms.}
 
 The type systems considered in this work are idealizations of
-TypeScript~cite{}, Thorn~\cite{}, Typed Racket~\cite{}, and the Transient
-variant of Reticulated Python~\cite{}.  We focus on the core features of
-these four systems, namely the typing of objects, and explain what errors
-are caught statically and which errors are caught dynamically. We
-demonstrate that these system have different notions of ``soundness''.
+TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
+Racket~\cite{tf-popl08}, and the Transient variant of Reticulated
+Python~\cite{siek14}. TypeScript is representative of unsound systems that
+work by erasure such as Dart and Hack. Thorn's approach for combining
+dynamic and static types is similar to that of C\# and was also adopted in
+StrongScript. Typed Racket provides a sound type system close in spirit to
+Siek and Taha's idea. Lastly, Transient was design to decrease the overhead
+of soundness while retaining some runtime checking.  We focus on core
+features of each type system, namely their treatment of objects, and explain
+which errors are caught statically and which errors are caught
+dynamically. One, perhaps surprising, observation is that there is no
+agreement on what constitutes a ``correct`` program.  We illustrates with
+litmus tests that allow us to differentiate between the type systems based
+on which runtime errors will be generated (Section~\ref{litm}).
+
 
 
 
@@ -1737,7 +1747,7 @@ TypeScript           & \V & \V & \V & \V \\\hline
 \end{figure}
 
 
-\subsection{Trace preservation}
+\section{Trace preservation  -find a better title}\label{litm}
 
 One outcome of our work is showing how \emph{all} of the gradual type systems
 are observationally distinct.  \figref{litmus} presents four litmus tests that
