@@ -1113,8 +1113,8 @@ definition and the last expression above as:
  \begin{minipage}{8cm}  
 \begin{tabbing}
 \TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\HS \WHERE\HS
-  \=\fd[1] = \Ftype\f\t ..,\HS\HS\=\fdp[1] = \src{\Ftype\f\any} .., \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
-  \>\md[1] = \src{\Mdef\m\x\any\any\ep},\HS\HS \>\>\ep = \TR{\e}
+  \=\src{\fdp[1]} = \src{\Ftype\f\any}..,\HS\HS\=\fd[1] = \Ftype\f\t .., \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+  \>\src{\mdp[1]} = \src{\Mdef\m\x\any\any\ep}..,\HS\HS \>\>\ep = \TR{\e}
 \end{tabbing}
 \begin{tabbing}
 \TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
@@ -1286,10 +1286,10 @@ If the receiver object has an optional type,  method invocation is statically ch
   \hspace{-.5cm}\begin{minipage}{8cm}  
 \begin{tabbing}
 \TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
-\HS \WHERE~\= \fdp[1] = \src{\Ftype\f{\kty\t}} .., \HS\HS\HS\HS\HS \=\fd[1] = \Ftype\f\t ..   \\
-\> \mdp[1] = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .., \HS \> \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..,\HS\HS\> \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..,\\
-\> \mdpp[1] = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
-\HS \IF \kty{\t[1]} = \D \OR \kty{\t[2]} = \D\\
+\HS \WHERE \\ \> \src{\fdp[1]} = \src{\Ftype\f{\kty\t}} .., \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
+\> \src{\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .., \HS\HS \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..,\HS\HS\= \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..,\\
+\> \src{\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
+\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
           \>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
 \end{tabbing}
 \begin{tabbing}
@@ -1458,16 +1458,18 @@ argument to \code m has all the methods defined by \code C.
 ...removed broken
 
 \begin{figure}[!h]
+
 \hrulefill
+\vspace{1mm}
 \begin{tabular}{@{}l@{~ ~ ~}ll}
  \small
 \begin{minipage}{8cm}  
 \begin{tabbing}
 \TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
 \hspace{.5cm}  \WHERE\HS \=
-  \fdp[1] = \src{\Ftype\f\any} .., \HS
+  \src{\fdp[1]} = \src{\Ftype\f\any} .., \HS
   \fd[1] = \Ftype\f\t ..,\HS\HS
-  \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .., \HS
+  \src{\mdp[1]} = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .., \HS
   \md[1] = \Mdef\m\x\t\tp\e ..,\HS\HS
    \ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
 \end{tabbing}
@@ -1508,7 +1510,9 @@ argument to \code m has all the methods defined by \code C.
 \end{tabbing}
 \end{minipage}
 \end{tabular}
+
 \hrulefill
+
 \caption{Transient}
 \end{figure}
 
@@ -1608,15 +1612,17 @@ methods, and expressions all retain their types, and the \kty{t} function maps c
 code are statically checked with the auxiliary translation function, which inserts behavioural casts whenever  required.
 
 \begin{figure}[!h]
+
 \hrulefill
 
+\vspace{1mm}
 %\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
  \small
 \begin{minipage}{12cm}  
 \begin{tabbing}
 \TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
 \hspace{.7cm} \WHERE\HS 
-\mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..,\HS\HS
+\src{\mdp[1]} = \src{\Mdef\m\x\t\tp{\ep[1]}} ..,\HS\HS
 \md[1] = \Mdef\m\x\t\tp{\e[1]} ..,\HS\HS
 \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
 \end{tabbing}
