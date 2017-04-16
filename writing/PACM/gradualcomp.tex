@@ -1199,68 +1199,67 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Optional types a
 }{
   \ConvertE\K{th}\any\tp
 }
-
 \end{mathpar}
-\vspace{-5mm}
+% \vspace{-5mm}
+\hrulefill
+\caption{Thorn type convertibility}\label{f:thornts}
 
-\hrulefill\caption{Thorn type convertibility}\label{f:thornts}
-
-\hrulefill  \small
-\vspace{-0.5mm}
-\hspace{1.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllll}  
-\begin{minipage}{1.5cm}\begin{mathpar}  
+\hrulefill  \footnotesize
+\hrulefill  
+\vspace{0.5mm}
+% \hspace{-0.5cm}
+\begin{minipage}{\textwidth}\begin{tabular}{llllll}  
+\begin{minipage}{1.3cm}\begin{mathpar}  
 \Rule{STH-VAR}{
+   ~ \\\\
    ~ \\\\
    ~ \\\\
    \HasType \Env\x\t
  }{
    \EnvTypeW \Env\K\x\t
 }
-\end{mathpar}\end{minipage}& \begin{minipage}{2.2cm}\begin{mathpar}  
+\end{mathpar}\end{minipage}& \begin{minipage}{1.8cm}\begin{mathpar}  
 \Rule{STH-GET}{
+  ~ \\\\
   ~ \\\\
   \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeW \Env\K{\FRead\f}\t
 }    
-\end{mathpar}\end{minipage}& \begin{minipage}{3.8cm}\begin{mathpar}  
-\Rule[width=20em]{STH-SET}{
-  ~ \\\\
-  \HasType \Env\this\C ~\,~\,~\,~
+\end{mathpar}\end{minipage}& \begin{minipage}{2.2cm}\begin{mathpar}  
+\Rule{STH-SET}{
+  \HasType \Env\this\C   \\\\
   \Fdef\f\t \in \App\K\C \\\\
-  \EnvTypeW \Env\K\e\tp ~\,~\,~\,~
+  \EnvTypeW \Env\K\e\tp  \\\\
   \ConvertE\K{th}\tp\t
 }{
   \EnvTypeW \Env\K{\FWrite\f\e}\t
 }    
-\end{mathpar}\end{minipage}& \begin{minipage}{3.9cm}\begin{mathpar}  
-\Rule[width=20em]{STH-CALL}{
-  \EnvTypeW \Env\K\e\tp \quad  (\tp=\C~~\vee~~\tp=\CW) \\\\
+\end{mathpar}\end{minipage}& \begin{minipage}{3.4cm}\begin{mathpar}  
+\Rule{STH-CALL}{
+  \EnvTypeW \Env\K\e\tp \\\\  (\tp=\C~~\vee~~\tp=\CW) \\\\
   \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
   \EnvTypeW \Env\K\ep\tpp ~\,~\,~\,~
   \ConvertE\K{th}\tpp{\t[1]}
   }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
-\end{mathpar}\end{minipage}& \begin{minipage}{3cm}\begin{mathpar}  
-\Rule[width=20em]{STH-DCALL}{
+\end{mathpar}\end{minipage}& \begin{minipage}{2.2cm}\begin{mathpar}  
+\Rule{STH-DCALL}{
+   ~ \\\\
   \EnvTypeW \Env\K\e\any \\\\
   \EnvTypeW \Env\K\ep\tpp \\\\
   \ConvertE\K{th}\tpp\any
 }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\any
 }    
-\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
-
-\vspace{3mm}
-
-\hspace{1.5cm}\begin{minipage}{\textwidth}\begin{tabular}{l}
-\begin{minipage}{1.5cm}\begin{mathpar}  
+\end{mathpar}\end{minipage}& \begin{minipage}{3cm}\begin{mathpar}  
 \Rule{STH-NEW}{
-  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\\\
-  \EnvTypeW \Env\K{\e[1]}{\tp[1]}..~\,~\,~\,~
- \ConvertE\K{th}{\tp[1]}{\t[1]}..
+ ~ \\\\
+ \EnvTypeW \Env\K{\e[1]}{\tp[1]}..\\\\
+ \ConvertE\K{th}{\tp[1]}{\t[1]}..\\\\
+ \Class \C {\Fdef{\f[1]}{\t[1]}..}{..} \in \K
 }{
   \EnvTypeW \Env\K{\New\C{\e[1]..}}\C
 }
@@ -1459,6 +1458,7 @@ argument to \code m has all the methods defined by \code C.
 ...removed broken
 
 \begin{figure}[!h]
+\hrulefill
 \begin{tabular}{@{}l@{~ ~ ~}ll}
  \small
 \begin{minipage}{8cm}  
@@ -1508,7 +1508,9 @@ argument to \code m has all the methods defined by \code C.
 \end{tabbing}
 \end{minipage}
 \end{tabular}
-\caption{Transient}\end{figure}
+\hrulefill
+\caption{Transient}
+\end{figure}
 
 ...Say: sequencing
 
