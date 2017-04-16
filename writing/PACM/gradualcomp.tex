@@ -203,19 +203,26 @@ treatment of objects, and explain which errors are caught statically and
 which ones are caught dynamically. One, perhaps surprising, observation is
 that there is no agreement on what constitutes a ``correct`` program.  We
 illustrate this in Section~\ref{litm} with litmus tests that differentiate
-between the type systems based on which runtime errors are generated.
+between the type systems based on which runtime errors are generated. It is
+worth emphasizing that the litmus are well-typed in all the respective
+source languages and that they do not actually contain any operation that
+would cause an error in an untyped implementation. The errors that are
+reported vary due to variation in the runtime checking strategies employed
+by the languages.  The translation to \kafka makes those choices explicit
+and comparable in the same framework.
 
 
-A contribution of this work is the design of \kafka, a statically typed object
-calculus.  \kafka is class based (with an explicit class table \K), with mutable
-state (a heap address \a refers to an object, each field \f is reified into a
-pair of getter and setter methods), and allows the dynamic generation of wrapper
-classes (by update of the class table \K and allocation of new objects \a).
-Methods can be statically resolved, denoted by a simple call \Call\a\m\x, or can
-be dynamically resolved, denoted by a dynamic call \DynCall\a\m\x. The \kafka
-type system has two types, a structural type \C, allow for recursive typing 
-and stored in a class table \K, and the dynamic
-type \any. Types in general are referred to as \t.
+
+A contribution of this work is the design of \kafka, a statically typed
+object calculus.  \kafka is class based (with an explicit class table \K),
+with mutable state (a heap address \a refers to an object, each field \f is
+reified into a pair of getter and setter methods), and allows the dynamic
+generation of wrapper classes (by update of the class table \K and
+allocation of new objects \a).  Methods can be statically resolved, denoted
+by a simple call \Call\a\m\x, or can be dynamically resolved, denoted by a
+dynamic call \DynCall\a\m\x. The \kafka type system has two types, a
+structural type \C, allow for recursive typing and stored in a class table
+\K, and the dynamic type \any. Types in general are referred to as \t.
 
 The heart of any gradual type system implementation is the explicit casts
 that are inserted at type boundaries.  Two different \emph{structural} casts
@@ -229,24 +236,50 @@ interface of type \t.
 
 Another contribution is the translation of five type systems representative
 of the main strains of gradual typing for objects. Each gradually typed
-expression \HT{\u\e}{\u\T} in the source is translated to a well-typed
-\kafka term, \HT\e\T, each type \u\T has a corresponding \kafka type \T,
-and, similarly, each expression \u\e has an equivalent \e. While soundness
-in \kafka is straightforward (except for generative casts), soundness of the
+expression \HT{\e}{\T} in the source is translated to a well-typed \kafka
+term, \HT\e\T, each type \T has a corresponding \kafka type \T, and,
+similarly, each expression \e has an equivalent \e. While soundness in
+\kafka is straightforward (except for generative casts), soundness of the
 source gradual type systems is more interesting.  In \kafka, a well-typed
 program can only get stuck at a cast or a dynamically resolved call.  With
-gradual types, an expression \Call{\u\x}\m{\u{\x'}} where \u\x is declared
-to be of class \u\C can have significantly different behavior depending on
-choices made while designing the gradual type system. TypeScript has
-\emph{optional types}; a well-typed program can get stuck at any method call
-as \u\C translates to \any. Thorn has \emph{concrete types}; a well-typed
-program will not get stuck at statically resolved method calls, and \u\C
-maps to itself \C. Typed Racket has \emph{promised types}; a well-typed
-program will not get stuck at a call to \m, because \u\x refers to an
-object, or wrapper, that implements \m.  Wrappers may fail if their target
-does not behave like a \u\C. Finally we describe the 
-transient variant of Reticulated Python which has somewhat surprising
-semantic properties. 
+gradual types, an expression \Call{\x}\m{{\x'}} where \x is declared to be
+of class \C can have significantly different behavior depending on choices
+made while designing the gradual type system. TypeScript has \emph{optional
+  types}; a well-typed program can get stuck at any method call as \C
+translates to \any. Thorn has \emph{concrete types}; a well-typed program
+will not get stuck at statically resolved method calls, and \C maps to
+itself \C. Typed Racket has \emph{promised types}; a well-typed program will
+not get stuck at a call to \m, because \x refers to an object, or wrapper,
+that implements \m.  Wrappers may fail if their target does not behave like
+a \C. Finally we describe the transient variant of Reticulated Python which
+has somewhat surprising semantic properties.
+
+\paragraph{Threats to validity.} Our study has limitations but we believe
+that these do not affect our conclusions. The source languages were
+simplified down to their essence and some features were excluded to allow
+comparison. For example, papers on Thorn and C\# claim unboxed access to
+primitives and direct field reads are crucial for performance. \kafka does
+not model primitives and fields are always accessed directly from the
+current object. Typed Racket supports class composition with first-class
+classes, while \kafka does not even have inheritance. TypeScript has
+generics; we have chosen to leave those out of the source language for
+simplicity of exposition. Subtyping in Thorn and C\# is nominal, whereas in
+\kafka it is structural as required for the consistent subtyping of
+Transient.  We believe these features could be accomodated at the cost of
+some complexity, and that their addition would not substantially change the
+outcome of our comparison. We leave one interesting system out of this
+study, namely the Monotonic variant of Reticulated Python~\cite{siek14},
+because it requires inplace update of the class of objects and this is not a
+feature supported in commercial virtual machines. An earlier version of this
+paper proposed a translation that used an additional level of indirection to
+model Monotonic, but that was neither intellectually satisfactory nor
+elegant.  This points to the fact that Monotonic does require some virtual
+machine support. Lastly, while we prove that type soundness of \kafka and
+that our translations generated well-typed code, we do not establish a
+correspondance with the semantics of the source languages. We gained
+confidence in our results by testing the implementations of the respective
+languages and validating that they agree with our translation.
+
 
 \section{Background}
 
@@ -1834,14 +1867,14 @@ war between soundness and performance is being played out in multiple
 language designs.  It is the responsibility of language researchers to
 present a clear understanding of each viable gradual typing idiom available.
 We have introduced \kafka, a formal language that serves as the foundation
-for deconstructing five existing gradual typing systems: Typescript, Thorn,
+for deconstructing xxx existing gradual typing systems: Typescript, Thorn,
 Transient Python, and Typed Racket.
-%, and Monotonic Python. 
 \kafka offers the
 opportunity for comparing and contrasting these gradual typing systems
 within an unified framework. The translations to \kafka for each gradual
 typing system highlights the essences which makes each system unique.
 
+...future work ... more casts
 
 \bibliographystyle{unsrturl}
 \bibliography{../../bib/jv,../../bib/all}
