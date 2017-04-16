@@ -211,13 +211,36 @@ reported vary due to variation in the runtime checking strategies employed
 by the languages.  The translation to \kafka makes those choices explicit
 and comparable in the same framework.
 
+Translating a gradually typed language into a statically typed language such
+as the JVM's bytecode or \kafka is interesting as it make explicit which of
+the guarantees of the underlying type system can be relied upon and when
+dynamism is required.  Our contribution is thus a translation, which we
+prove to always generated well-typed code, that take a gradually typed
+expression \HT\e\T in the source language is translated to a well-typed
+\kafka term, the translation also entails translation of all the classes
+needed to evaluate the expression. While soundness in \kafka is
+uncontroversial, soundness of the source gradual type systems is more
+interesting.  In \kafka, a well-typed program can only get stuck at a cast
+or a dynamically resolved call.  With gradual types, an expression
+\Call\x\m\e where \x is declared to be of class \C can have significantly
+different behavior depending on choices made while designing the gradual
+type system. TypeScript has \emph{optional types}; a well-typed program can
+get stuck at any method call as \C translates to the dynamic type
+\any. Thorn has \emph{concrete types}; a well-typed program will not get
+stuck at statically resolved method calls. Typed Racket has \emph{promised
+  types}; a well-typed program will not get stuck at a call to \m, because
+\x refers to an object, or wrapper, that implements \m.  Wrappers may fail
+if their target does not behave like a \C. Transient Python will also allow
+the call to go through but may get stuck on the checking the return value.
+
+The design of \kafka is a contribution of this work.  \kafka is a statically
+typed object calculus.  It is class based (with an explicit class table
+\K), with mutable state (a heap address \a refers to an object with a set of
+private fields denoted by \f).
 
 
-A contribution of this work is the design of \kafka, a statically typed
-object calculus.  \kafka is class based (with an explicit class table \K),
-with mutable state (a heap address \a refers to an object, each field \f is
-reified into a pair of getter and setter methods), and allows the dynamic
-generation of wrapper classes (by update of the class table \K and
+, and allows the
+dynamic generation of wrapper classes (by update of the class table \K and
 allocation of new objects \a).  Methods can be statically resolved, denoted
 by a simple call \Call\a\m\x, or can be dynamically resolved, denoted by a
 dynamic call \DynCall\a\m\x. The \kafka type system has two types, a
@@ -234,25 +257,6 @@ create new wrapper classes.  The behavioral cast \BehCast\t\a generates a
 wrapper object that monitors that methods invoked on \a abide by the
 interface of type \t.
 
-Another contribution is the translation of five type systems representative
-of the main strains of gradual typing for objects. Each gradually typed
-expression \HT{\e}{\T} in the source is translated to a well-typed \kafka
-term, \HT\e\T, each type \T has a corresponding \kafka type \T, and,
-similarly, each expression \e has an equivalent \e. While soundness in
-\kafka is straightforward (except for generative casts), soundness of the
-source gradual type systems is more interesting.  In \kafka, a well-typed
-program can only get stuck at a cast or a dynamically resolved call.  With
-gradual types, an expression \Call{\x}\m{{\x'}} where \x is declared to be
-of class \C can have significantly different behavior depending on choices
-made while designing the gradual type system. TypeScript has \emph{optional
-  types}; a well-typed program can get stuck at any method call as \C
-translates to \any. Thorn has \emph{concrete types}; a well-typed program
-will not get stuck at statically resolved method calls, and \C maps to
-itself \C. Typed Racket has \emph{promised types}; a well-typed program will
-not get stuck at a call to \m, because \x refers to an object, or wrapper,
-that implements \m.  Wrappers may fail if their target does not behave like
-a \C. Finally we describe the transient variant of Reticulated Python which
-has somewhat surprising semantic properties.
 
 \paragraph{Threats to validity.} Our study has limitations but we believe
 that these do not affect our conclusions. The source languages were
@@ -1856,7 +1860,7 @@ including having none of the commonly-cited performance optimizations, such as
 threesomes~\cite{siek10}, combined with the severe inherent restrictions on
 what programs can be reasonably written in \kafka. As a result, any
 performance evaluation based on our \kafka implementation would not be
-representative of the performance of a real implementation. %\clearpage
+representative of the performance of a real implementation. 
 
 
 \section{Conclusion}
