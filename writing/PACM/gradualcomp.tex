@@ -1086,83 +1086,106 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Optional types a
 \medskip
 
 
-\begin{figure}
-\hrulefill
+\begin{figure}[!h] \hrulefill  \small
+  \vspace{-3mm}
+  
 \begin{mathpar}
 
-\IRule{STHC-SUB}{
+\Rule{STHC-SUB}{
   \ThorSub\cdot\K\t\tp
 }{
   \ConvertE\K{th}\t\tp
 }
 
-\IRule{STHC-TOANY}{
+\Rule{STHC-TOANY}{
 }{
   \ConvertE\K{th}\t\any
 }
 
-\IRule{STHC-OPTCONC}{
+\Rule{STHC-OPTCONC}{
   \ThorSub\cdot\K\C\D
 }{
   \ConvertE\K{th}\CW\D
 }
 
-\IRule{STHC-ANYCONC}{
+\Rule{STHC-ANYCONC}{
 }{
   \ConvertE\K{th}\any\tp
 }
 
-\\
-\IRule{STH-VAR}{
+\end{mathpar}
+\vspace{-5mm}
+
+\hrulefill\caption{Thorn type convertibility}\label{f:thornts}
+
+\hrulefill  \small
+
+\hspace{1.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllll}  
+\begin{minipage}{1.5cm}\begin{mathpar}  
+\Rule{STH-VAR}{
+   ~ \\\\
+   ~ \\\\
    \HasType \Env\x\t
  }{
    \EnvTypeW \Env\K\x\t
 }
-
-\IRule{STH-GET}{
-  \HasType \Env\this\C \\
+\end{mathpar}\end{minipage}& \begin{minipage}{2.2cm}\begin{mathpar}  
+\Rule{STH-GET}{
+  ~ \\\\
+  \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeW \Env\K{\FRead\f}\t
 }    
-
-\IRule[width=20em]{STH-SET}{
-  \HasType \Env\this\C \\
-  \Fdef\f\t \in \App\K\C \\
-  \EnvTypeW \Env\K\e\tp \\
+\end{mathpar}\end{minipage}& \begin{minipage}{3.8cm}\begin{mathpar}  
+\Rule[width=20em]{STH-SET}{
+  ~ \\\\
+  \HasType \Env\this\C ~\,~\,~\,~
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvTypeW \Env\K\e\tp ~\,~\,~\,~
   \ConvertE\K{th}\tp\t
 }{
   \EnvTypeW \Env\K{\FWrite\f\e}\t
 }    
-
-\IRule[width=20em]{STH-CALL}{
-  \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\
-  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\
-  \EnvTypeW \Env\K\ep\tpp \\
+\end{mathpar}\end{minipage}& \begin{minipage}{3.9cm}\begin{mathpar}  
+\Rule[width=20em]{STH-CALL}{
+  \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\\\
+  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\\\
+  \EnvTypeW \Env\K\ep\tpp ~\,~\,~\,~
   \ConvertE\K{th}\tpp\t
-}{
+  }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
-
-\IRule[width=20em]{STH-DCALL}{
-  \EnvTypeW \Env\K\e\any \\
-  \EnvTypeW \Env\K\ep\tpp \\
+\end{mathpar}\end{minipage}& \begin{minipage}{3cm}\begin{mathpar}  
+\Rule[width=20em]{STH-DCALL}{
+  \EnvTypeW \Env\K\e\any \\\\
+  \EnvTypeW \Env\K\ep\tpp \\\\
   \ConvertE\K{th}\tpp\any
 }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\any
 }    
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
 
-\IRule{STH-NEW}{
-  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\
-  \EnvTypeW \Env\K{\e[1]}{\tp[1]}..\\
+\vspace{3mm}
+
+\hspace{1.5cm}\begin{minipage}{\textwidth}\begin{tabular}{l}
+\begin{minipage}{1.5cm}\begin{mathpar}  
+\Rule{STH-NEW}{
+  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\\\
+  \EnvTypeW \Env\K{\e[1]}{\tp[1]}..~\,~\,~\,~
  \ConvertE\K{th}{\tp[1]}{\t[1]}..
 }{
   \EnvTypeW \Env\K{\New\C{\e[1]..}}\C
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\vspace{1mm}
+
+\hrulefill
 \hrulefill
 \caption{Thorn type system}\label{f:thornts}
 \end{figure}
+
+\vspace{-4mm}
 
 \noindent The first call is rejected by the static semantics because the concretely typed method \n expects a value of type \C, while a value of type \D has been passed.  Formally, the Thorn type system (reported in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\) convertibilty test required by the static method invocation (\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C annotation for the argument of \m suggests that the intention of the programmer is to invoke this  method only with instances of \C; even if this is not strictly enforced, expressions as this one, that are likely to fail at run-time, are identified as errors.
 In the third call, a \C value that is passed while a \dt\C is expected: this is allowed as subtyping implies convertibility.  The last expression invokes \n and passes an argument of type \dt\C where a \C is expected; although potentially unsound, this is allowed by Thorn to foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\) rule; at run-time Thorn protects the call and ensures soundness by inserting a dynamic type cast to \C around the argument.
@@ -1321,18 +1344,18 @@ are inserted on method entry and prior to returning.
 \hrulefill
 \begin{mathpar}
 
-\IRule{STTC-SUB}{
+\Rule{STTC-SUB}{
   \ConSub\cdot\K\t\tp
 }{
   \ConvertE\K{tr}\t\tp
 }
 
-\IRule{STTC-TOANY}{
+\Rule{STTC-TOANY}{
 }{
   \ConvertE\K{tr}\t\any
 }
 
-\IRule{STTC-ANYCONC}{
+\Rule{STTC-ANYCONC}{
 }{
   \ConvertE\K{tr}\any\tp
 }
