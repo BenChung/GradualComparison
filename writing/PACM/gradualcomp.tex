@@ -234,28 +234,29 @@ if their target does not behave like a \C. Transient Python will also allow
 the call to go through but may get stuck on the checking the return value.
 
 The design of \kafka is a contribution of this work.  \kafka is a statically
-typed object calculus.  It is class based (with an explicit class table
-\K), with mutable state (a heap address \a refers to an object with a set of
-private fields denoted by \f).
-
-
-, and allows the
-dynamic generation of wrapper classes (by update of the class table \K and
-allocation of new objects \a).  Methods can be statically resolved, denoted
-by a simple call \Call\a\m\x, or can be dynamically resolved, denoted by a
-dynamic call \DynCall\a\m\x. The \kafka type system has two types, a
-structural type \C, allow for recursive typing and stored in a class table
-\K, and the dynamic type \any. Types in general are referred to as \t.
-
-The heart of any gradual type system implementation is the explicit casts
-that are inserted at type boundaries.  Two different \emph{structural} casts
-are built-in to \kafka; they only inspect the structure of objects.  The
-subtype cast \SubCast\t\a is a structural cast that checks if the object
-references by \a is a subtype of type \t.  To support some of the more
-complex type systems, \kafka is extended by \emph{generative} casts which
-create new wrapper classes.  The behavioral cast \BehCast\t\a generates a
-wrapper object that monitors that methods invoked on \a abide by the
-interface of type \t.
+typed object calculus.  It is class based (with an explicit class table \K),
+with mutable state (a heap address \a refers to an object with a set of
+private fields denoted by \f). It allows the dynamic generation of wrapper
+classes (by addition of new classes to the class table \K and allocation of
+objects \a).  Methods can be statically resolved, this is denoted by a typed
+call \KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a dynamic
+call \DynCall\a\m\x. The \kafka type system has two kind of types, classes,
+denoted by \C, which give rise to homonymous types and the dynamic type
+\any. Subtyping is structural, the class table \K is used to resolve
+recursion.  The heart of any gradual type system implementation is the
+explicit casts that are inserted at type boundaries.  A structural cast is
+built-in to \kafka: the subtype cast \SubCast\t\a checks if the object
+references by \a is a subtype of type \t.  To support sound gradual type
+systems, \kafka is extended by \emph{generative} casts which create
+wrappers.  The behavioral cast \BehCast\t\a generates a wrapper object that
+monitors that methods invoked on \a abide by the interface of type
+\t.\footnote{Generative casts are not supported natively by the JVM or CLR,
+  but they can be encoded by a combination of class generation and dynamic
+  loading, we provide a naive implementation of \kafka in the CLR to
+  validate this claim.} This entails runtime generation of a class that
+interposes on calls to the target object. We give \kafka an operational
+semantics and prove soundness of its type system. With the exception of
+generative casts the proof is straightforward.
 
 
 \paragraph{Threats to validity.} Our study has limitations but we believe
