@@ -1457,34 +1457,29 @@ callee to check.
 \subsection{Typed Racket}
 
 Typed Racket~\cite{Takikawa:2012} is an extension of the Racket programming
-language, supporting Racket's key functionality %, including first class
-classes,  through a system of contracts, dynamically enforcing type
-guarantees.  Our translation from Typed Racket to \kafka encapsulates the core
-functionality Typed Racket, highlighting the key issues of type identity
-raised in Typed Racket. Certain implementation details and features 
-important to the operation of Typed Racket, but are not relevant for the goal 
-of \kafka have been omitted. 
+language, supporting Racket's key functionality 
+through a system of contracts and dynamically enforcing type
+guarantees.  Our translation from Typed Racket to \kafka captures the core
+functionalities of Typed Racket, highlighting the key issues of type identity
+raised in Typed Racket.   At the same time we choose to omit some features of Typed Racket.  
+For instance in Typed Racket types are added to entire modules at a time, whereas our
+model allows individual functions to be typed independently.  We omit this in our study as it does not impact the basic semantics of the language.   More interestingly, Typed Racket also supports first-class classes with mixins, and inheritance:  we discuss these at the end of this section.
 
-One of Typed Racket's key cosmetic differences is the ``macro'' model of
-gradual typing, where types are added to entire modules at a time, whereas our
-model allows individual functions to be typed. We omit this in our translation
-to \kafka as it does not impact the basic semantics of the language. Another
-feature that Typed Racket supports is first-class classes with mixins, a
-feature that is important for the specific Typed Racket programming model, but
-is orthogonal to our formalization.
+% a feature that is important for the specific Typed Racket programming model, but is orthogonal to our formalization.
 
-Our type system of Typed Racket is analogous to the type system of TypeScript,
-presented in~\figref{f:typescriptts}.  Contrary to TypeScript and Transient,
+Our formalisation of the type system of Typed Racket is analogous to the type system of TypeScript
+already presented in~\figref{f:typescriptts}.  However, contrarily to TypeScript, 
 Typed Racked ``eagerly'' ensures that every value that passes through a
-typed/untyped boundary is consistent with the declared types.  Thorn handles
+typed/untyped boundary is consistent with the declared types.  More precisely, every value is implicitly assumed
+to be of the correct type by the caller, and all accesses are checked against the correct type by
+a wrapper built around the object.  This differs from the approaches implemented by Thorn, which handles
 this through \emph{concrete} typing, using the type tag to determine that the
-entire object is well-typed, while Transient only guarantees the behavior
-needed to ensure soundness. In Typed Racket, every value is implicitly assumed
-to be of the correct type by the caller, and is checked against the type by
-a wrapper.
+entire object is well-typed, and Transient, which only guarantees the behavior
+needed to ensure soundness.  
 
-\FZ{... UNTIL HERE}
+To illustrate the dynamic semantics of Typed Racket, consider the following example:
 
+\smallskip
 \(
   \begin{array}{l}
   \Class{\xt A}{}{\Mdef\m\x\any\any{{\Call{\New{\xt B}{}}\m{\x} }}} \\
@@ -1493,21 +1488,23 @@ a wrapper.
   \Call{\New{\xt A}{}}\m{\New{\C}{}}
   \end{array}
 \)
+\smallskip
 
-In the example above, we show class \code A's method \m being invoked with an object of type \code C, 
-which then invokes class \code B's method \m with the same object. However, class \code B's method \m 
-is expecting another instance of \code B. In order to protect class \code B from the object \code C 
-potentially not behaving as an object \code B. Our translation for Typed Racket inserts a behavioral 
-cast at the boundary between the invocation of class \code B's method \m in class A. 
-The object with type \C is wrapped to make sure that it acts as an object of type \B, 
+\noindent Here, \A's method \m is invoked with an object of type \C, 
+which then invokes class {\xt B}'s method \m with the same object. However, class {\xt B}'s method \m 
+is expecting another instance of {\xt B}. In order to protect class {\xt B} from the object \C 
+potentially not behaving as an object {\xt B}. Our translation for Typed Racket inserts a behavioral 
+cast at the boundary between the invocation of class {\xt B}'s method \m in class \A. 
+The object with type \C is wrapped to make sure that it acts as an object of type {\xt B}, 
 producing the following translated result.
 
+\smallskip
 \(
   \begin{array}{l}
   \Class{\xt A}{}{\Mdef\m\x\any\any{\BehCast\any{\KCall{\New{\xt B}{}}\m{\BehCast{\xt B}\x}{\C}\D }}} \\
   \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
   \Class{\C}{}{\Mdef\m\x{\C}{\C}{\x}} \\
-  \KCall{\New{\xt A}{}}\m{\New{\xt B}{}}\any\any
+  \KCall{\New{\xt A}{}}\m{\New{\xt C}{}}\any\any
   \end{array}
 \)
 
@@ -1518,7 +1515,7 @@ code. Any misbehavior will be instantly caught by the value themselves.
 
 The two key features, having wrappers applied at type boundaries and having
 unchanged type code, are key to our translation from Typed Racket to \kafka,
-as shown in figure~\ref{f:typedrackettothorn}. In our translation, classes, 
+as shown in~\figref{f:typedrackettothorn}. In our translation, classes, 
 methods, and expressions all retain their types. Boundaries between typed and untyped
 code are statically checked with the auxiliary translation function, inserted as
 a cast if required.
@@ -1579,34 +1576,31 @@ a cast if required.
 \caption{Typed Racket}\label{f:typedrackettothorn}
 \end{figure}
 
-Because of the strong static guarantee provided by the behavioural cast, the
-Typed Racket translation is very straightforward. In Typed Racket, every typed
+\noindent Because of the strong static guarantee provided by the behavioural cast, the
+Typed Racket translation is  straightforward. In Typed Racket, every typed
 value is assumed to behave as specified, delegating the complexity of checking
-for consistency with the type to the wrapper, described in
-section~\ref{kafkacore}.
+for consistency with the type to the wrapper introduced by the behavioural cast (described in Section~\ref{kafkacore}).
 
-Typed Racket has many more practical language features in comparison to the other
-source languages we've described so far. Our translation does not take into
-considersation many of these features. The aim of \kafka is to focus on
-the core object system and how it interacts with gradual typing. Type Racket does 
-have two features that are of special importance for gradual typing.
-
-Like many practical object oriented languages Typed Racket supports inheritance. 
+As we hinted, our formalisation does not take into account some of the Typed Racket language features.  Two of them are of particular interest for gradual typing.  The first one is inheritance.
 Inheritance creates a large array of difficulties for gradual typing.
-For example, if an untyped class inherits from a typed one, then the self-
-reference may be accessed from both typed and untyped contexts without
+In particular, if an untyped class inherits from a typed one, then the self-reference may be accessed from both typed and untyped contexts without
 necessarily passing through a typed/untyped boundary. As a result, inheritance
-in a gradually typed setting requires the protection of all self-references.
-As extraordinary and surprising as this behaviour is, we do not believe
-it is warranted for \kafka, as we believe inheritance to be orthogonal
-to it's purpose. This unique behaviour would be in consideration for 
-possible future work.
+in a gradually typed setting requires the protection of all self-references; Typed Racket implements this by default, even if it can be disabled with a switch.  Typed Racket provides support for first-class classes and allows for
+typed mixins.  We have omitted both inheritance and first-class classes from  \kafka, as we believe they are orthogonal to its purpose, and supporting them would add unnecessary complexity.
+% This unique behaviour would be in consideration for  possible future work.
+%Secondly, 
+% While mixins are not  part of \kafka, supporting  the  behavioral semantics
+%required to add them is comparatively easy. Checking for  mixins in \kafka
+%only requires adding additional wrappers, rather than provides potentially
+%having to  rewrite code~\cite{Takikawa:2012}.
 
-Secondly, Typed Racket provides support for first-class classes and allows for
-typed mixins. While mixins are not in \kafka, the  behavioral semantics
-required to add them is comparatively easy. Checking for  mixins in \kafka
-only requires adding additional wrappers, rather than provides otentially
-having to  rewrite code~\cite{Takikawa:2012}.
+%Typed Racket has many more practical language features in comparison to the other
+%source languages we've described so far. Our translation does not take into
+%considersation many of these features. 
+%The aim of \kafka is to focus on
+%the core object system and how it interacts with gradual typing. Type Racket does 
+%have two features that are of special importance for gradual typing.
+
 
 
 \begin{figure}[!t]
