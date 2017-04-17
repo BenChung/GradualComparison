@@ -328,22 +328,24 @@ TypeScript~\cite{BAT14} and Dart~\cite{dart13}.
 
 On the functional side, the ancestry is dominated by the work of Felleisen
 and his students.  The Typed Scheme~\cite{tf-popl08} design that later
-became Typed Racket is strongly influenced by earlier work on higher-order
-contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a vehicle for
-teaching programming, thus being able to explain the source of errors was an
-important design constraint, another constraint was to prevent surprises --
-a variable annotated as a \C should behave as a \C. Any change in behavior must be
-reported at the first discrepancy. The Typed Racket approach to gradual
-typing is thus quite different from optional types. Whenever a value crosses
-a boundary between typed and untyped code, it is wrapped in a contract that
-monitors its behavior. This ensures that the type of mutable values remains
-consistent with their declared type and that functions respect their
-declared interface. When a value misbehaves, blame can be assigned to the
-boundary the value crossed. The granularity of typing is the module, thus a
-module is either entirely typed or entirely untyped. This means that a
-compilation unit only deals with uniform code (typed or untyped) and that
-closely coupled functions co-located in a module will not incur
-boundary crossing costs.
+became Typed Racket is influenced by the authors' earlier work on
+higher-order contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a
+vehicle for teaching programming, thus being able to explain the source of
+errors was an important design consideration. Another consideration was to
+prevent surprises for beginning users, thus the value held in a variable
+annotated as a \C should always behave as a \C. To aid debugging, any
+departure from the expected behavior of an object, as defined by its
+promised type, must be reported at the first discrepancy. The Typed Racket
+approach to gradual typing is thus quite different from optional
+types. Whenever a value crosses a boundary between typed and untyped code,
+it is wrapped in a contract that monitors its behavior. This ensures that
+the type of mutable values remains consistent with their declared type and
+that functions respect their declared interface. When a value misbehaves,
+blame can be assigned to the boundary the value crossed. The granularity of
+typing is the module, thus a module is either entirely typed or entirely
+untyped. This means that a compilation unit only deals with uniform code
+(typed or untyped) and that closely coupled functions co-located in a module
+will not incur boundary crossing costs.
 
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
@@ -351,16 +353,21 @@ for a program by choosing to annotate function parameters with types, or
 not.'' Their contribution was a formalization of the idea in a lambda
 calculus with references and a proof of soundness. They defined the type
 consistency relation $\t \sim \tp$ which states that types that agree on
-non-\any position are compatible.  In~\cite{SiekTaha07} they extended their
-result to a stateless object calculus and combined consistency with
+non-\any position are compatible.  In~\cite{SiekTaha07} the authors extended
+their result to a stateless object calculus and combined consistency with
 structural subtyping. Extending the approach to mutable objects proved
 challenging. Reticulated Python~\cite{siek14} attempts to find a compromise
-between soundness and efficiency.  The language has three modes:
-\emph{guarded} mode behaves as Racket with contracts applied to values,
-\emph{transient} mode performs first order checks before each call, and
-\emph{monotonic} mode is similar to the guarded mode except in there are no
-wrapper chains and casts only remove occurrences of \any from an object's
-type.
+between soundness and efficiency.  The language has three modes: the
+\emph{guarded} mode behaves as Racket with contracts applied to values but
+without the module granularity of Racket, the \emph{transient} mode performs
+shallow checks on reads and returns, these checks only validate if the value
+obtained has matching method names, it ignore argument types, and the
+\emph{monotonic} mode is fundamentally different from the other modes. In
+monotonic, a cast updates in place the type of an object by replacing some
+of the occurrence of \any with classes. A single cast can propagate through
+the heap as it implies casts on the object reachable from the field of the
+target of the cast. In the case of cyclic structures this may even entail
+a fix point computation.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09},
@@ -369,8 +376,8 @@ Felleisen-style contracts and mostly nominal type equivalence (structural
 equivalence can be specified on demand, but it is, in practice, rarely
 used). C\# 4.0 adds the type {\sf dynamic} (i.e.~\any) to the C\# language
 and adds dynamically resolved method invocation when the receiver of method
-call is with type \any.  This means C\# has a dynamic sublanguage that allows
-developer to write unchecked code, but it also has a strongly type
+call is with type \any.  This means C\# has a dynamic sublanguage that
+allows developer to write unchecked code, but it also has a strongly type
 sublanguage in which values are guaranteed to be of their declared type.
 The implementation of C\# in the~.Net framework replaces \any by the type
 {\sf object} and adds casts where needed. A dynamically resolved method call
@@ -379,11 +386,10 @@ and StrongScript extend the C\# approach with the addition of optional types
 (called {\em like types} in Thorn).  Thorn is implemented by translation to
 the JVM.\footnote{The translation strategy is surprisingly close to what we
   present later in the paper. The main difference is that the JVM does not
-  have a type \any so, like in C\#, \code{Object} is used.} The presence of
-concrete types means that the compiler can optimize code (unbox data and
-in-line methods) and programmers are guaranteed that type errors will not
-occur within concretely typed code. 
-
+  have a type \any so, like in C\#, \code{Object} is used instead.} The
+presence of concrete types means that the compiler can optimize code (unbox
+data and in-line methods) and programmers are guaranteed that type errors
+will not occur within concretely typed code.
 
 \newcommand{\rot}[1]{\rotatebox{80}{#1}}
 \newcommand{\X}{\EM{\bullet}}
@@ -430,9 +436,9 @@ Reticulated Python    \\
 \it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  27x\\
 \it Guarded  &&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  21x\\
 \end{tabular}}
-  \caption{Overview of implemented systems. (1) Gradualtalk has optional
-    structural constraints. (2) Concretely typed expressions are sound in
-    C\#, Thorn and StrongScript.}\label{over}
+  \caption{Overview of implemented gradual type systems. (1) Gradualtalk has
+    optional structural constraints. (2) Concretely typed expressions are
+    sound in C\#, Thorn and StrongScript.}\label{over}
 \end{figure}
 
 %\noindent
