@@ -1304,44 +1304,44 @@ whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
 The formalization of the Thorn type system is built on top of the rules
 presented for TypeScript in \figref{tsts} and \figref{convts}. The
-convertibility rule must be extended by one case, as shown in
-\figref{convth}, this extra rule states that an optional type is convertible
-to a concrete parent type. Type rule for method calls, shown in
-\figref{thts} must be extended to handle receivers of optional types, they
-are treated as if they were concrete types.
+definition of subtyping is extended to account for optional types, this is
+appears in \figref{subth}. Optional types are subtypes if the corresponding
+concrete types are subtypes. Concrete types are subtypes of optional types,
+if the relation holds on concrete types. The convertibility rule must be
+extended by one case, as shown in \figref{convth}, this extra rule states
+that an optional type is convertible to a concrete parent type. Type rule
+for method calls, shown in \figref{thts} must be extended to handle
+receivers of optional types, they are treated as if they were concrete
+types.
 
 
-To get a
-glimpse of Thorn in action, consider a class definition with two methods,
-one optionally and one concretely typed:
 
-\medskip
-\(
- \Class \A {
-    \Mdef \m\x{\dt\C} {\dt\C}  \x  ; \ 
-    \Mdef \n\x\C\C  \x 
-    }
-\)
-\medskip
-
-\noindent Assume that \D is not a subtype of \C.  The following expressions
-illustrate the interesting cases of the interaction between the types of the
-arguments and the declared type of the method parameter, assuming that the
-callee has a concrete type:
-
-\medskip
-\( \Call {\New \A{}}\n {\New \D{} } \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// ERR -- D !|=> C} \)
-
-\( \Call {\New \A{}}\m {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // ERR -- D !|=> ?C }\)
-
-\( \Call {\New \A{}} \m { \Call {\New \A {}} \n {\New \C{}} } \ \ \ \ \ \texttt{ // OK }\)
-
-\( \Call {\New \A{}} \n { \Call {\New \A{}} \m {\New \C{}}} \ \ \ \ \ \texttt{ // OK \   -- Cast inserted} \)
-
-\medskip
+\begin{figure}[!t]
 
 
-\begin{figure}[!b] \hrulefill  \small
+\hrulefill  \small
+\vspace{-3mm}
+  
+\begin{mathpar}
+\Rule{TSWeak}{
+  \SSub \M\K\C\D
+}{
+  \SSub \M\K{\dt\C}{\dt\D}
+}
+
+\Rule{TSLow}{
+  \SSub \M\K\C\D
+}{
+  \SSub \M\K{\C}{\dt\D}
+}
+\end{mathpar}
+
+\hrulefill
+\caption{Thorn subtyping}\label{subth}
+
+
+
+\hrulefill  \small
 \vspace{-3mm}
   
 \begin{mathpar}
@@ -1353,7 +1353,7 @@ callee has a concrete type:
 \end{mathpar}
 
 \hrulefill
-\caption{Thorn type convertibility}\label{thts}
+\caption{Thorn type convertibility}\label{convth}
 
 
 \hrulefill  
@@ -1371,7 +1371,7 @@ callee has a concrete type:
 \end{mathpar}
 
 \hrulefill
-\caption{Thorn type system}\label{convth}
+\caption{Thorn type system}\label{thts}
  
 
 \hrulefill
@@ -1419,38 +1419,65 @@ callee has a concrete type:
 \medskip
 
 \hrulefill
-\caption{Thorn translation.  \kty\t = \any if  \t=?\C or \t=\any, \t otherwise. }\label{thtr}
+\caption{Thorn translation.  \kty\t = \any if  \t=\dt\C or \t=\any, \t otherwise. }\label{thtr}
 \end{figure}
 
+The following expressions illustrate the difference between Thorn and
+TypeScript.  The class table \K has three classes, class \A defines methods
+\m and \n which both return their argument. The only difference between them
+is that \m uses optional types for its argument and return value, in both
+cases \CW.  Classes \C and \D are defined such that they are unrelated by
+subtyping. We will study the four expressions, the first two are ill-typed,
+the remaining two are deemed well-typed, but the last one will require
+dynamic checks.
 
-\noindent The first call is rejected by the static semantics because the
-concretely typed method \n expects a value of type \C, while a value of type
-\D has been passed.  Formally, the Thorn type system (reported
-in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\)
-convertibilty test required by the static method invocation
-(\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected
-because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C
-annotation for the argument of \m suggests that the intention of the
-programmer is to invoke this method only with instances of \C; even if this
-is not strictly enforced, expressions as this one, that are likely to fail
-at runtime, are identified as errors.  In the third call, a \C value that is
-passed while a \dt\C is expected: this is allowed as subtyping implies
+\medskip
+
+\begin{tabbing}
+\HS\HS\HS\=  
+\Call{\New\A{}}\n{\New\D{}}\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=\class\= \A \{
+% ERR -- D !|=> C} 
+\\\>
+\Call{\New\A{}}\m{\New\D{}}
+  \>    \>  \Mdef \n\x\C\C{~\x~}
+% ERR -- D !|=> ?C 
+\\\>
+\Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
+  \>    \> \Mdef \m\x{\dt\C} {\dt\C}{~\x~}
+\\\>
+\Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
+%  -- Cast inserted} 
+  \> \}
+  \\\>   \> \Class\C{}{\Mdef\mp\x\any\any\x}
+  \\\>   \> \Class\D{}{\Mdef\m\x\any\any\x}
+
+
+\end{tabbing}
+\medskip
+
+\noindent
+The first expression is ill-typed because method \n expects a \dt\C but it
+is passed a value of type \D and \D is not convertible to \C. The second
+expression is ill-typed because we are trying to convert a \D into a \dt\C.
+Typing the argument of \m as a \dt\C suggests that the intention of the
+programmer is to invoke this method only with instances that behave as \C;
+even if this is not enforced, expressions such as this one, that are likely
+to fail at runtime, are flagged as erroneous. The third expression passes \C
+where \dt\C is expected; this is allowed as subtyping implies
 convertibility.  The last expression invokes \n and passes an argument of
 type \dt\C where a \C is expected; although potentially unsound, this is
 allowed by Thorn to foster program evolution.  Convertibility thus includes
 a \(\dt\C\Mapsto\C\) rule; at runtime Thorn protects the call and ensures
-soundness by inserting a dynamic type cast to \C around the argument.
+soundness by inserting a dynamic type cast to \C around the argument.  If
+the receiver object has an optional type, method invocation is statically
+checked: optional types behave as contracts between variables and contexts,
+and whenever an object has type \dt\C a well-typed context is expected to
+use it only as a variable pointing to an instance of the class \C.  Since
+the runtime does not guarantee that \dt\C variables points to instances of
+the class \C, the conformance of the value actually accessed is checked
+individually at each method invocation, as if the callee had type \any.
 
-If the receiver object has an optional type, method invocation is statically
-checked as in the concrete case above: optional types behave as contracts
-between variables and contexts, and whenever an object has type \dt\C a
-well-typed context is expected to use it only as a variable pointing to an
-instance of the class \C.  Since the runtime does not guarantee that \dt\C
-variables points to instances of the class \C, the conformance of the value
-actually accessed is checked individually at each method invocation, as if
-the callee had type \any.
-
-The translation of Thorn into \kafka is given in~\figref{f:thorntokafka}.
+The translation of Thorn into \kafka is given in~\figref{thtr}.
 Contrarily to TypeScript, the compilation of method invocation performs
 different operations depending on the source type of the receiver
 object. For this, the translation function \TRG{...}\Env takes in input a
@@ -1600,8 +1627,8 @@ Since arbitrary values can always flow in Transient, in the \kafka translation a
 
 \IRule{CSRec}{
  \M' = \M~\C\Sub\D \\\\
-\mt \in \classoff\D\K \implies \\\\
-\mtp \in \classoff\C\K ~~~\wedge~~~   \ConSub{\M'}\K\mt{\mtp}
+\mt \in \App\K\D \implies \\\\
+\mtp \in \App\K\C ~~~\wedge~~~   \ConSub{\M'}\K\mt{\mtp}
 }{
  \ConSub \M\K \C \D 
 }
@@ -2164,9 +2191,6 @@ The expression typing judgments for \kafka includes in ascending order as listed
 variable, untyped address, subsumption, field assignment, field read, static method invocation, dynamic method invocation, object creation,
 subtype cast, typed address.
 
-% \begin{figure}[!h]
-% \begin{minipage}{\textwidth}\begin{tabular}{lll}  
-% \begin{minipage}{4cm}\begin{mathpar}  
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 \vspace{-6mm}
@@ -2222,7 +2246,7 @@ subtype cast, typed address.
 \IRule[width=16em]{KT-CALL}{
   \EnvType \Env\s\K\e\C \\\\
   \EnvType \Env\s\K\ep\t \\\
-  \Mtype\m\t\tp \in \classoff\C\K 
+  \Mtype\m\t\tp \in \App\K\C 
 }{
   \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
 }    
@@ -2266,23 +2290,6 @@ subtype cast, typed address.
    \EnvType \Env\s\K\a\any
 }
 \end{mathpar}
-
-\subsection{Mtype function}
-
-The \texttt{mtypes} function takes a class name $\C$ and the class table
-$\K$, and outputs a list of typing signatures $\mt[1]..$ for every method in
-class $\C$. \\
-
-
-\begin{equation*}
-\classoff\C\K = \mt[1].. ~~\mathit{if}~~ \begin{cases}
-
- \Class \C {{\Fdef{\f[1]}{\t[1]}..}}{\md[1]..} \in \K\\
-\mt[1].. = \sign{\md[1]..} 
-
-\end{cases}
-\end{equation*}
-
 
 \subsection{Dynamic function}
 
@@ -2331,49 +2338,6 @@ The \xt{nodups} function (\cload{\mt[1]..}, \cload{\md[1]..}) takes either
 method definitions or method typings, and ensures there are no duplicates.
 
 \section{Source language syntax and semantics}
-
-\subsection*{Thorn subtyping}
-
-\opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
-\begin{mathpar} \small
-\IRule{TSRef}{
-}{
- \ThorSub\M\K \t \t
-}
-
-\IRule{TSWeak}{
-  \ThorSub \M\K\C\D
-}{
-  \ThorSub \M\K{\dt\C}{\dt\D}
-}
-
-\IRule{TSLow}{
-  \ThorSub \M\K\C\D
-}{
-  \ThorSub \M\K{\C}{\dt\D}
-}
-
-\IRule{TSAss}{
-\C \Sub_t \D \in \M
-}{
- \ThorSub\M\K \C \D
-}
-
-\IRule[width=18em]{TSMet}{
-  \ThorSub \M\K {\t[1]} {\t[2]} \\
-  \ThorSub \M\K {\tp[2]} {\tp[1]}
-}{
- \ThorSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-
-\IRule{TSRec}{
- \M' = \M~\C\Sub_t\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ThorSub{\M'}\K\mt{\mtp}
-}{
- \ThorSub\M\K \C \D 
-}
-
-\end{mathpar}
 
 
 \subsection*{Well-formedness for Thorn}
@@ -2613,7 +2577,7 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 }    
 
 \IRule{STH-CALL}{
-  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\\\
+  \Mtype \m{\t}\tp\in \App\K\C  \\\\
   \EnvTypeW \Env\K\ep\tpp \\\\
   \ConvertE\K{th}\tpp\t \\\\
   \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW 
@@ -2699,7 +2663,7 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
   \EnvTypeS \Env\K\e\C \\\\
   \EnvTypeS \Env\K\ep\tpp \\\\
   \ConvertE\K{s}\tpp\t \\\\
-  \Mtype \m\t\tp\in \classoff\C\K    
+  \Mtype \m\t\tp\in \App\K\C    
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}\tp
 }    
@@ -2779,7 +2743,7 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
   \EnvTypeT \Env\K\e\C \\\\
   \EnvTypeT \Env\K\ep\tpp \\\\
   \ConvertE\K{tr}\tpp\any \\\\
-  \Mtype \m\t\tp\in \classoff\C\K    
+  \Mtype \m\t\tp\in \App\K\C
 }{
   \EnvTypeT \Env\K{\Call\e\m\ep}\tp
 }    
@@ -3218,8 +3182,8 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
   
   \begin{conds}
    \cond{\WFq{\K~\e~\s}}\lbl{cond1}
-   \cond{\mt[1].. = \classoff\C\K}\lbl{cond3a}
-   \cond{\mtp[1].. = \classoff\Cp\K}\lbl{cond3b}
+   \cond{\mt[1].. = \App\K\C}\lbl{cond3a}
+   \cond{\mtp[1].. = \App\K\Cp}\lbl{cond3b}
    \cond{k = \wrap\C{\mt[1]..}{\mtp[1]..}\D\that}\lbl{cond4}
    \cond{\App\s\a = \obj\C{\a[1]..}}\lbl{cond5}
    \cond{\sp = \Map \s{\Bind\ap{\obj\D\a}}}\lbl{cond6}
@@ -3971,10 +3935,10 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 
 \begin{lemma}{Weakening of $\xt{mtypes}$}{}
   \begin{conds}
-    \cond{$\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K}$}\lbl{cond1}
+    \cond{$\Mtype\m{\HT\x\t}\tp \in \App\K\C$}\lbl{cond1}
   \end{conds}
 
-  \then\axiom{$\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$}
+  \then\axiom{$\Mtype\m{\HT\x\t}\tp \in \App{\K~\Kp}\C$ for some $\Kp$}
 
   \begin{proof} \innat
   \end{proof}
@@ -3992,9 +3956,9 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
   \end{proof}
 \end{lemma}
 
-\begin{lemma}{Correctness of \classoff{\C}{\K}}{}
+\begin{lemma}{Correctness of \App\K\C}{}
   \begin{conds}
-    \cond{$\Mtype\m{\t}\tp \in \classoff{\C}{\K}$}\lbl{cond1}    
+    \cond{$\Mtype\m{\t}\tp \in \App\K\C$}\lbl{cond1}    
     \cond{$\EnvType\cdot\s\K\a\C$}\lbl{cond2}
     \cond{$\EnvType\cdot\s\K\ap\t$}\lbl{cond3}
     \cond{$\EnvType\cdot\s\K\epp\tp$}\lbl{cond4}
@@ -4054,10 +4018,5 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
   \begin{proof} \indanaa{\trf{cond1}}
   \end{proof}
 \end{lemma}
-
-
-% \paragraph{Correctness of $\xt{wrap}$}$~$\\
-% If $\WFp \K$, $\C \in \K$, $\Cp \in \K$, $\D$ free, $\md[1].. \In\App\K\C$, $\mt[1].. = \classoff\C\K$, $\mtp[1].. = \classoff\Cp\K$, and $\k = \wrap\C{\mt[1].. }{\mtp[1]..}\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
-
 
 \end{document}
