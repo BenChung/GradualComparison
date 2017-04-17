@@ -594,16 +594,13 @@ in the subtype relation, it is neither a super or a sub-type of any other
 type.  The notation \md\In\App\K\C denotes the method definition \md
 occurring in class \C and class table \K.  Recall fields are hidden from the
 class type signature, so subtyping is limited to method definitions.  Key
-type rules are in \figref{f:staticsem}.  Method calls use \emph{syntactic}
-disambiguation to select between typed and untyped methods. The dynamically
-resolved call places no requirements on the receiver or argument, and
-returns type \any.  The statically resolved call has the usual type
-requirements on arguments. Statically, the two subtype cast rules are
-similar; they ensure the value has the cast-to type. However, the way their
-soundness is enforced at runtime is very different.
-%References can be typed both as dynamic, or with the type of the object the
-%point to in the current heap \(\sigma\). 
-
+type rules are in \figref{f:staticsem}.  Method calls use syntactic
+disambiguation to select between typed and untyped methods (dynamic method
+resolution uses @). A dynamically resolved call places no requirements on
+the receiver or argument, and returns a value of type \any.  A statically
+resolved call has the usual type requirements on arguments. The two subtype
+cast rules are similar; they ensure the value has the cast-to type. However,
+the way their soundness is enforced at runtime is very different.  
 
 \begin{figure}[!t] \hrulefill\small
 
@@ -688,16 +685,16 @@ soundness is enforced at runtime is very different.
 
 
 \paragraph{Dynamic Semantics}
-The small step operational semantics for \kafka is reported in
+The small step operational semantics for \kafka appears in
 \figref{fig:semantics}.  To resolve the \this reference in field accesses,
 the syntax of expressions is extended at runtime with forms
 %
 \[ \e  ::= \dots \B \a \B \FReadR\a\f \B \FWriteR\a\f\e \]
 %
 where \a is a reference.  The static typing of references
-(\figref{f:staticsem}) can be either the class of the object they map to
-in the heap \s or the dynamic type \any.
-We also use evaluation contexts, \EE, defined as follows
+(\figref{f:staticsem}) can be either the class of the object they map to in
+the heap \s or the dynamic type \any.  We also use evaluation contexts, \EE,
+defined as follows
 \[
 \begin{tabular}{llllllllllllllllll}
 \EE &::=& ~ \FWriteR\a\f\EE   &\B  
@@ -712,17 +709,17 @@ We also use evaluation contexts, \EE, defined as follows
 \end{tabular}
 \]
 \noindent
-The dynamic semantics is thus defined over \emph{configurations}: triples
-\K\e\s, where \K is a class table, \e is an expression and \s is a heap.  A
+The dynamic semantics is defined over \emph{configurations}: triples \K\e\s,
+where \K is a class table, \e is an expression and \s is a heap.  A
 configuration evaluates in one step to a new configuration, \Reduce
 \K\e\s\Kp\ep\sp; the new configuration may include a new class table built
-by extending the previous table with new classes.
-Calling forms specify the typing of the method to resolve overloading; this
-is always \(\any \to \any\) for dynamic calls, but can be either \(\C \to
-\D\) or \(\any \to \any\) for static calls.  Structural casts to \any always
-succeed while structural casts to \C check that the runtime object is an
-instance of a subtype of \C.  Evaluation contexts are deterministic and
-enforce a strict evaluation order.
+by extending the previous table with new classes.  Calling forms specify the
+typing of the method to resolve overloading; this is always \(\any \to
+\any\) for dynamic calls, but can be either \(\C \to \D\) or \(\any \to
+\any\) for static calls.  Structural casts to \any always succeed while
+structural casts to \C check that the runtime object is an instance of a
+subtype of \C.  Evaluation contexts are deterministic and enforce a strict
+evaluation order.
 
 
 
@@ -770,22 +767,39 @@ enforce a strict evaluation order.
 
 \paragraph{Behavioural Casts}\label{p:behcast}
 A cast \BehCast\t\a creates a wrapped object \ap which dynamically checks
-that object \a behaves as if ot was of type \t.  We refer to the type of \a
+that object \a behaves as if it was of type \t.  We refer to the type of \a
 as the \emph{source} type, and to the type \t as the \emph{target} type.
 This cast is generative as it creates both a new class (for the wrapper
 object) and a new instance of that class (the wrapper itself). Its dynamic
 semantics is reported in \figref{behavetext} and \figref{w}.  When the
 target type is a class, say \Cp, the bcast function wraps a reference \a
-with an instance of a freshly generated wrapper class \D that obides by the
-interface of \Cp. The function allocates the wrapper in the heap and updates
-the class table.  The cast performs a semantic check that the source type
-has at least all the method names requested by the target type.  Also the
-cast is not define for classes with overloaded methods (\textsf{nodups}
-checks that).  This prevents ambiguity when in method resolution in wrapped
-objects. Similarly, when the target type is \any, the cast allows \a to
-act like an instance of \any.
+with an instance of a freshly generated wrapper class \D that abides by the
+interface of \Cp or gets stuck. The function allocates the wrapper in the
+heap and updates the class table.  The cast performs a check that the source
+type has at least all the method names requested by the target type.  Also
+the cast is not defined for classes with overloaded methods (\textsf{nodups}
+checks that).  This prevents ambiguity in method resolution for wrapped
+objects. When the target type is \any, the cast allows \a to act like an
+instance of \any.
 
-\newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
+One way to understand wrappers is that they play two roles, they check that
+object being wrapped has the method expected by the target type, and they
+are adapters that ensure \kafka code is well-typed. Consider for example
+a \EM{\BehCast\D\New\C{}} where \C and \D are defined as follows.
+
+\begin{tabbing}
+\hspace{1cm}\= \class\= \C \{    \hspace{3cm}\=  \class\=  \D \{\\
+   \>  \> \Mdef\m\x\any\any\x   \>        \>  \Mdef\m\x\D\D\x\\
+   \>  \}  \> \>                         \}
+\end{tabbing}
+
+\noindent
+The cast will check that the instance of \C has the method expected by \D,
+in this case this is the sole method \m.  Importantly, it does not check
+whether argument and return types match (they don't). The second role of the
+cast is for soundness of \kafka, the value returned by the cast must be a
+subtype of the target type \D. This is achieved by generating a new class
+with the right method signatures.
 
 \begin{figure}[!b]
 \hrulefill
@@ -815,7 +829,9 @@ act like an instance of \any.
 
 \hrulefill
 \vspace{-2mm}\caption{Behavioural casts}\label{behavetext}
+\end{figure}
 
+\begin{figure}[!t]
 \hrulefill
 \small
 
@@ -841,29 +857,31 @@ act like an instance of \any.
 
 
 Wrapper class generation is implemented by the \xt{W} and \xt{W\!\any}
-functions. Their first three arguments \(\C\), \(\md[1]..\), \(\mdp[1]..\) are
-the source type and its methods definitions, and the method definitions of
-the target type. The fourth argument, \(\D\), is the class name of the
+functions. Their first three arguments \(\C\), \(\md[1]..\), \(\mdp[1]..\)
+are the source type and its methods definitions, and the method definitions
+of the target type. The fourth argument, \(\D\), is the class name of the
 wrapper class being built; this is always a fresh name. The last argument is
 the \that field name, which is also fresh.  The function builds a new
 wrapper class \(\D\).  The field \that stores a reference to the target
 object and has thus type \(\C\).  The invocation of a method that appears in
-\(\mdp[1]..\) is forwarded to the corresponding method invocation in \(\md[1]\), except that the arguments are protected by behavioural wrappers
+\(\mdp[1]..\) is forwarded to the corresponding method invocation in
+\(\md[1]\), except that the arguments are protected by behavioural casts
 following the interface in \(\md[1]..\) and the return type following the
 interface in \(\mdp[1]..\).  Methods defined in the source type but missing
 from \(\mdp[1]..\) are added to the wrapper class and simply redirected to
 corresponding method in the wrapped object.  Wrapping an object so that it
 behaves as \any is simpler, as the wrapper systematically protects the input
-type and casts back the return type to \any.  The behavioural cast reduction
-rule satisfies a property instrumental to our design: a wrapper class
-generated for a target type \D, is always a subtype of \D.  This will allow
-us to refer to both unwrapped and wrapped objects via the original, source
-language, types. The wrapper generation function will always produce a
-well-formed class for a target type $\D$. The reason being that the wrapper
-class only contain methods from either the source or the target type. The
-wrapper class will also never contain any duplicates as it can only contain
-methods that exists in the source type.  Furthermore, at most the wrapper
-class will contain every method of the source type.
+type and casts back the return type to \any. Only method existing in the
+source type are wrapped. The behavioural cast reduction rule satisfies a
+property instrumental to our design: a wrapper class generated for a target
+type \D, is always a subtype of \D.  This will allow us to refer to both
+unwrapped and wrapped objects via the original, source language, types. The
+wrapper generation function will always produce a well-formed class for a
+target type $\D$. The reason being that the wrapper class only contain
+methods from either the source or the target type. The wrapper class will
+also never contain any duplicates as it can only contain methods that exists
+in the source type.  Furthermore, at most the wrapper class will contain
+every method of the source type.
 
 \paragraph{Type soundness} 
 Well-typed \kafka configurations satisfy a type-preservation theorem, and
