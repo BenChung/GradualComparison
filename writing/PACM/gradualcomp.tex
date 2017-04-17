@@ -1541,6 +1541,162 @@ structural casts, are instrumental to give semantics to the Thorn language.
 %%   should be rewritten there so that it only concerns classes (and in that
 %%   case I believe it holds }
 
+
+\subsection{Typed Racket}
+
+Typed Racket is an extension of the Racket programming language, supporting
+Racket's key functionality through a system of contracts and dynamically
+enforcing type guarantees.  The type system of idealization of Type Racket
+is identical to that of TypeScript.
+
+However, contrarily to TypeScript, Typed Racked ``eagerly'' ensures that
+every value that passes through a typed/untyped boundary is consistent with
+the declared types.  More precisely, every value is implicitly assumed to be
+of the correct type by the caller, and all accesses are checked against the
+correct type by a wrapper built around the object.  This differs from the
+approaches implemented by Thorn, which handles this through \emph{concrete}
+typing, using the type tag to determine that the entire object is
+well-typed, and Transient, which only guarantees the behavior needed to
+ensure soundness.
+
+\begin{figure}[!b]
+
+\hrulefill
+
+\medskip
+
+ \small
+\begin{minipage}{12cm}  
+\begin{tabbing}
+\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
+\hspace{4.6cm}\= \WHERE\HS 
+  \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS
+  \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS
+  \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
+\\
+\TRG\x\Env = \src{\x}
+\\
+\TRG{\FRead\f}\Env  = \src{\FRead\f}
+\\
+\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
+\>\WHERE\HS
+\= \TypeCk\K{\this}\C \HS\HS
+\=  \ep = \TAG\e\Env\t \HS\HS
+\= \Ftype\f\t\In\App\K\C
+\\
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
+\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
+\> \ep[1] = \TRG{\e[1]}\Env \HS
+\> \ep[2] = \TAG{\e[2]}\Env\any
+\\
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
+\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
+\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
+\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS
+\=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
+\\
+\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
+\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
+\> \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
+\\
+\TAG\e\Env\t = \src\ep
+\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
+\> \EM{\K\vdash \t \Sub \tp}
+\>  \ep = \TRG\e\Env
+\\
+\TAG\e\Env\t = \src{\BehCast\t\e}
+\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS
+   \> \EM{\K\vdash \t \not \Sub \tp}
+  \>     \ep = \TRG\e\Env
+\end{tabbing}
+\end{minipage}
+
+\hrulefill
+\caption{Typed Racket}\label{trtr}
+\end{figure}
+
+
+To illustrate the dynamic semantics of Typed Racket, consider the  following example:
+
+\vspace{2mm}
+\(
+  \begin{array}{l}
+  \Class{\xt A}{}{\Mdef\m\x\any\any{{\Call{\New{\xt B}{}}\m{\x} }}} \\
+  \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
+  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
+  \Call{\New{\xt A}{}}\m{\New{\C}{}}
+  \end{array}
+\)
+\vspace{2mm}
+
+\noindent Values cross several typed/untyped boundaries.  For instance, \A's
+method \m does not make any assumption on its argument, but passes it as to
+the method \n of {\xt B}, which expects a value of type {\xt B}.  Also,
+class {\xt B} attempts to invoke on its argument a method \m with interface
+\({\xt B} \to {\xt B}\), but the example passes to {\xt B} a method \m with
+interface \(\any \to \any\).  In order to protect class {\xt B} from the
+object \C potentially not behaving as an object {\xt B}, Typed Racket
+inserts a wrapper object around the argument of {\xt B}; the wrapper is
+responsible for ensuring that the actual value respects the constraints of
+class {\xt B}.  The \kafka translation for Typed Racket inserts a behavioral
+cast at the boundary between the invocation of class {\xt B}'s method \m in
+class \A.  This has the same effect of Typed Racket wrapping: the object
+with type \C is wrapped to make sure that it acts as an object of type {\xt
+  B}.  The generated \kafka code for the example is reported below:
+
+\vspace{2mm}
+\(
+  \begin{array}{l}
+  \Class{\xt A}{}{\Mdef\m\x\any\any{\BehCast\any{\KCall{\New{\xt B}{}}\m{\BehCast{\xt B}\x}{\C}\D }}} \\
+  \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
+  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
+  \KCall{\New{\xt A}{}}\m{\New{\xt C}{}}\any\any
+  \end{array}
+\)
+\vspace{2mm}
+
+
+\noindent By enforcing types on the values and not leaving the check that
+the value has the correct types to the user. Typed Racket is able to
+translate the typed code in class {\xt B} as if the language had no untyped
+code. Any misbehavior will be instantly caught by the value themselves.
+
+The two key features, having wrappers applied at type boundaries and having
+unchanged type code, are key to our translation from Typed Racket to \kafka,
+as shown in~\figref{f:typedrackettothorn}. In our translation, classes,
+methods, and expressions all retain their types, and the \kty{t} function
+maps classes to classes and \any to \any. Boundaries between typed and
+untyped code are statically checked with the auxiliary translation function,
+which inserts behavioural casts whenever required. Because of the strong
+static guarantee provided by the behavioural cast, the Typed Racket
+translation is straightforward. In Typed Racket, every typed value is
+assumed to behave as specified, delegating the complexity of checking for
+consistency with the type to the wrapper introduced by the behavioural cast.
+
+
+
+As we hinted, our formalisation does not take into account some of the Typed
+Racket language features.  Two of them are of particular interest for
+gradual typing.  The first one is inheritance.  Inheritance creates a large
+array of difficulties for gradual typing.  In particular, if an untyped
+class inherits from a typed one, then the self-reference may be accessed
+from both typed and untyped contexts without necessarily passing through a
+typed/untyped boundary. As a result, inheritance in a gradually typed
+setting requires the protection of all self-references; Typed Racket
+implements this by default, even if it can be disabled with a switch.  Typed
+Racket provides support for first-class classes and allows for typed mixins.
+We have omitted both inheritance and first-class classes from \kafka, as we
+believe they are orthogonal to its purpose, and supporting them would add
+unnecessary complexity.
+
+At the same time we choose to omit some features of Typed Racket.  For
+instance in Typed Racket types are added to entire modules at a time,
+whereas our model allows individual functions to be typed independently.  We
+omit this in our study as it does not impact the basic semantics of the
+language.  More interestingly, Typed Racket also supports first-class
+classes with mixins, and inheritance: we discuss these at the end of this
+section.
+
 \subsection{Transient Python}
 
 The Transient variant of Reticulated Python aims for soundness
@@ -1742,155 +1898,6 @@ callee to check.
 
 
 
-\subsection{Typed Racket}
-
-Typed Racket is an extension of the Racket programming
-language, supporting Racket's key functionality 
-through a system of contracts and dynamically enforcing type
-guarantees.  Our translation from Typed Racket to \kafka captures the core
-functionalities of Typed Racket, highlighting the key issues of type identity
-raised in Typed Racket.   At the same time we choose to omit some features of Typed Racket.  
-For instance in Typed Racket types are added to entire modules at a time, whereas our
-model allows individual functions to be typed independently.  We omit this in our study as it does not impact the basic semantics of the language.   More interestingly, Typed Racket also supports first-class classes with mixins, and inheritance:  we discuss these at the end of this section.
-
-% a feature that is important for the specific Typed Racket programming model, but is orthogonal to our formalization.
-
-Our formalisation of the type system of Typed Racket is analogous to the type system of TypeScript
-already presented in~\figref{f:typescriptts}.  However, contrarily to TypeScript, 
-Typed Racked ``eagerly'' ensures that every value that passes through a
-typed/untyped boundary is consistent with the declared types.  More precisely, every value is implicitly assumed
-to be of the correct type by the caller, and all accesses are checked against the correct type by
-a wrapper built around the object.  This differs from the approaches implemented by Thorn, which handles
-this through \emph{concrete} typing, using the type tag to determine that the
-entire object is well-typed, and Transient, which only guarantees the behavior
-needed to ensure soundness.  
-
-To illustrate the dynamic semantics of Typed Racket, consider the  following example:
-
-\vspace{2mm}
-\(
-  \begin{array}{l}
-  \Class{\xt A}{}{\Mdef\m\x\any\any{{\Call{\New{\xt B}{}}\m{\x} }}} \\
-  \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
-  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
-  \Call{\New{\xt A}{}}\m{\New{\C}{}}
-  \end{array}
-\)
-\vspace{2mm}
-
-\noindent Values cross several typed/untyped boundaries.  For instance, \A's method \m does not make any assumption on its argument, but passes it as to the method \n of {\xt B}, which expects a value of type {\xt B}.  Also, class {\xt B} attempts to invoke on its argument a method \m with interface \({\xt B} \to {\xt B}\), but the example passes to {\xt B} a method \m with interface \(\any \to \any\).
-In order to protect class {\xt B} from the object \C 
-potentially not behaving as an object {\xt B}, Typed Racket inserts a wrapper object around the argument of {\xt B}; the wrapper is responsible for ensuring that the actual value respects the constraints of class {\xt B}.
-The \kafka translation for Typed Racket inserts a behavioral 
-cast at the boundary between the invocation of class {\xt B}'s method \m in class \A.  This has the same effect of Typed Racket wrapping: the object with type \C is wrapped to make sure that it acts as an object of type {\xt B}.
-The generated \kafka code for the example is reported below:
-
-\vspace{2mm}
-\(
-  \begin{array}{l}
-  \Class{\xt A}{}{\Mdef\m\x\any\any{\BehCast\any{\KCall{\New{\xt B}{}}\m{\BehCast{\xt B}\x}{\C}\D }}} \\
-  \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
-  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
-  \KCall{\New{\xt A}{}}\m{\New{\xt C}{}}\any\any
-  \end{array}
-\)
-\vspace{2mm}
-
-
-\noindent By enforcing types on the values and not leaving
-the check that the value has the correct types to the user. Typed Racket is able to 
-translate the typed code in class {\xt B} as if the language had no untyped 
-code. Any misbehavior will be instantly caught by the value themselves.
-
-
-\begin{figure}[!h]
-
-\hrulefill
-
-\vspace{1mm}
-%\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
- \small
-\begin{minipage}{12cm}  
-\begin{tabbing}
-\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
-\hspace{.7cm} \WHERE\HS 
-\src{\mdp[1]} = \src{\Mdef\m\x\t\tp{\ep[1]}} ..,\HS\HS
-\md[1] = \Mdef\m\x\t\tp{\e[1]} ..,\HS\HS
-\ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
-\end{tabbing}
-\begin{tabbing}
-\TRG\x\Env = \src{\x}
-\\[1mm]
-\TRG{\FRead\f}\Env  = \src{\FRead\f}
-\\[1mm]
-\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} \hspace{1cm}
-\=\WHERE
-\= \TypeCk\K{\this}\C, \HS\HS
-\= \Ftype\f\t\In\App\K\C, \hspace{1cm}
-\=  \ep = \TAG\e\Env\t
-\\[1mm]
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
-\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any, \HS
-\> \ep[1] = \TRG{\e[1]}\Env,\HS
-\= \ep[2] = \TAG{\e[2]}\Env\any
-\\
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}}
-\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C, \HS
-\> \Mtype\m{\D[1]}{\D[2]}\In\App\K\C, \HS 
-\= \ep[1] = \TRG{\e[1]}\Env,\HS\HS
-\= \ep[2] = \TAG{\e[2]}\Env{\D[1]}
-\\[1mm]
-\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
-\>\WHERE \> \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
-\>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
-\\[1mm]
-\TAG\e\Env\t = \src\ep
-\> \WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
-\> \EM{\K\vdash \t \Sub \tp},
-\>  \ep = \TRG\e\Env
-\\[1mm]
-\TAG\e\Env\t = \src{\BehCast\t\e}
-\>\WHERE\> \TypeCk{\K,\Env}\e\tp, \HS
-   \> \EM{\K\vdash \t \not \Sub \tp}
-   \>     \ep = \TRG\e\Env
-\end{tabbing}
-\end{minipage}
-%\end{tabular}
-
-\hrulefill
-\caption{Typed Racket}\label{f:typedrackettothorn}
-\end{figure}
-
-The two key features, having wrappers applied at type boundaries and having
-unchanged type code, are key to our translation from Typed Racket to \kafka,
-as shown in~\figref{f:typedrackettothorn}. In our translation, classes, 
-methods, and expressions all retain their types, and the \kty{t} function maps classes to classes and \any to \any. Boundaries between typed and untyped
-code are statically checked with the auxiliary translation function, which inserts behavioural casts whenever  required. Because of the strong static guarantee provided by the behavioural cast, the
-Typed Racket translation is  straightforward. In Typed Racket, every typed
-value is assumed to behave as specified, delegating the complexity of checking
-for consistency with the type to the wrapper introduced by the behavioural cast (described in Section~\ref{kafkacore}).
-
-As we hinted, our formalisation does not take into account some of the Typed Racket language features.  Two of them are of particular interest for gradual typing.  The first one is inheritance.
-Inheritance creates a large array of difficulties for gradual typing.
-In particular, if an untyped class inherits from a typed one, then the self-reference may be accessed from both typed and untyped contexts without
-necessarily passing through a typed/untyped boundary. As a result, inheritance
-in a gradually typed setting requires the protection of all self-references; Typed Racket implements this by default, even if it can be disabled with a switch.  Typed Racket provides support for first-class classes and allows for
-typed mixins.  We have omitted both inheritance and first-class classes from  \kafka, as we believe they are orthogonal to its purpose, and supporting them would add unnecessary complexity.
-% This unique behaviour would be in consideration for  possible future work.
-%Secondly, 
-% While mixins are not  part of \kafka, supporting  the  behavioral semantics
-%required to add them is comparatively easy. Checking for  mixins in \kafka
-%only requires adding additional wrappers, rather than provides potentially
-%having to  rewrite code~\cite{Takikawa:2012}.
-
-%Typed Racket has many more practical language features in comparison to the other
-%source languages we've described so far. Our translation does not take into
-%considersation many of these features. 
-%The aim of \kafka is to focus on
-%the core object system and how it interacts with gradual typing. Type Racket does 
-%have two features that are of special importance for gradual typing.
-
-
 
 \begin{figure}[!t]
 \small
@@ -2020,6 +2027,8 @@ TypeScript           & \V & \V & \V & \V \\\hline
 
 
 \section{Trace preservation  -find a better title}\label{litm}
+
+% There is no perfection only life.
 
 One outcome of our work is showing how \emph{all} of the gradual type systems
 are observationally distinct.  \figref{litmus} presents four litmus tests that
