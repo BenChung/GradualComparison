@@ -1023,6 +1023,24 @@ are identical.
 \end{figure}
 
 
+The common source language does not have explicit casts but it allows to
+write programs such as
+
+\begin{tabbing}
+\hspace{1cm}\K\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
+  \K\HS =\HS \= \class\= \C \{\\
+       \>  \>\Mdef\m\x\any\C{\HS\x\HS}\\
+       \> \}  \\
+       \>\class \D \{ \}
+\end{tabbing}         
+
+\noindent
+Here, the method \m takes an argument of type \any and returns the same
+value under type \C.  If the top-level expression passes an instance of \D
+into \m, the result is going to be of the wrong type. All the source
+language would allow this program but they differ in whether it is should
+give rise to an error. 
+
 \subsection{TypeScript}
 
 \begin{figure}[!h] \hrulefill  \small
