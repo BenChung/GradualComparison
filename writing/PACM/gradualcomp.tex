@@ -888,7 +888,7 @@ Well-typed \kafka configurations satisfy a type-preservation theorem, and
 either reduce to values or are stuck on a dynamic method invocation or on
 one of the two casts provided by the language.
 
-\medskip\noindent{\bf Theorem 1: Type Soundness.} ~  
+\medskip\noindent{\bf Theorem: Type Soundness.} ~  
 Given \WFp\K{\e~\s} and
       \EnvType\cdot\s\K\e\t,
 then either one of the following holds:
@@ -904,7 +904,7 @@ or \e is stuck on one of the three following error contexts
 The wrapper class generated from behavioural cast will not contain
 any duplicate methods or fields.
 
-\medskip\noindent{\bf Lemma 1: No duplicates.} ~ Given source methods
+\medskip\noindent{\bf Lemma: No duplicates.} ~ Given source methods
 $\md[1].. \In \App\K\C$ whereby $\cload{\md[1]..}$, the wrapper class
 returned by $\wrapE{\C,\md[1], \mdp[1],\D,\that}$ does not contain any
 duplicate methods and fields.\\
@@ -913,7 +913,7 @@ duplicate methods and fields.\\
 The wrapper class generated from behavioural cast is always a subtype
 of the target type, otherwise known as type that is being casted with.
 
-\medskip\noindent{\bf Lemma 2: Subtype presevation.} ~ Given the source
+\medskip\noindent{\bf Lemma: Subtype presevation.} ~ Given the source
 methods $\md[1].. \In \App\K\C$, the target methods $\mdp[1].. \In
 \App\K\Cp$, and the wrapper $\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, then
 $\StrSub\emptyset\K\D\Cp$.
@@ -1581,7 +1581,7 @@ Since arbitrary values can always flow in Transient, in the \kafka translation a
 
 \vspace{-2.8cm}
 
-\opdef{\ConSub\M\K\mt\mtp}{\m~ \text{is a consistent subtype of} ~\mtp}
+\opdef{\ConSub\M\K\mt\mtp}{\m~ \text{is a consistent subtype of} ~~\mtp}
 \IRule{CSMet}{
   \ConSub \M\K {\t[2]} {\t[1]} \\\\
   \ConSub \M\K {\tp[1]} {\tp[2]}
@@ -2968,19 +2968,40 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 
 \section{Proofs of Related Theorems}
 
-\subsection*{Type Soundness of Core \kafka Typing}
+% \subsection*{}
+% 
+% Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ and $\Kpp$ (with $\Kp = \K~\Kpp$) 
+% such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
+% or $\e$ is stuck in one of the following forms:
+% \begin{itemize} 
+% \item $\a$
+% \item $\EE[\DynCall\a\m{\ap}]$
+% \item $\EE[\SubCast\tp\a]$
+% \item $\EE[\BehCast\tp\a]$
+% \end{itemize}
 
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ and $\Kpp$ (with $\Kp = \K~\Kpp$) 
-such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
-or $\e$ is stuck in one of the following forms:
-\begin{itemize} 
-\item $\a$
-\item $\EE[\DynCall\a\m{\ap}]$
-\item $\EE[\SubCast\tp\a]$
-\item $\EE[\BehCast\tp\a]$
-\end{itemize}
 
-We proceed with structural induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
+\begin{theorem}{Type Soundness of Core \kafka Typing}{}
+  
+  \begin{conds}
+   \cond{\WFq{\K~\e~\s}}\lbl{cond1}
+   \cond{$\EnvType\cdot\s\K\e\t$}\lbl{cond3a}
+  \end{conds}
+  
+  \then\axiom{$\Reduce \K\e\s \Kp\ep\sp$}
+  \axiom{$\WFp\Kp{\ep~\sp}$}
+  \axiom{$\EnvType\cdot\sp\Kp\ep\t$}
+  \tor\axiom{$\e$ = $\a$}
+  \tor\axiom{$\e$ = $\EE[\DynCall\a\m{\ap}]$}
+  \tor\axiom{$\e$ = $\EE[\SubCast\tp\a]$}
+  \tor\axiom{$\e$ = $\EE[\BehCast\tp\a]$}  
+
+  \begin{proof} \indana{\trf{cond1}}
+
+  \end{proof}
+\end{theorem}
+
+% We proceed with structural induction on the judgement used to conclude $\EnvType\Env\s\K\e\t$. 
 % Note that we refer to rule preconditions from left to right.
 
 % \begin{itemize}
@@ -3144,23 +3165,25 @@ We proceed with structural induction on the judgement used to conclude $\EnvType
 % \end{itemize}
 
 
-\subsection*{Type Soundness of \kafka Behavioral Cast}
-
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$, then either there is some $\ep$ 
-such that $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, 
-or $\e$ is stuck in one of the following forms:
-\begin{itemize} 
-\item $\a$
-\item $\EE[\DynCall\a\m{\ap}]$
-\item $\EE[\SubCast\tp\a]$
-\item $\EE[\BehCast\tp\a]$
-\end{itemize}
-
-Note that the majority of the proof is identical to that seen in the above proof
-for soundness of the \kafka core, and is therefore elided. We will only cover
-the case for the \kafka behavioural cast, \RuleRef{WB1}.
-
-\subsection*{Wrap function creates well-formed classes}
+% \begin{theorem}{Type Soundness of \kafka Behavioral Cast}{}
+%   
+%   \begin{conds}
+%    \cond{\WFq{\K~\e~\s}}\lbl{cond1}
+%    \cond{$\EnvType\cdot\s\K\e\t$}\lbl{cond3a}
+%   \end{conds}
+%   
+%   \then\axiom{$\Reduce \K\e\s \Kp\ep\sp$}
+%   \axiom{$\WFp\Kp{\ep~\sp}$}
+%   \axiom{$\EnvType\cdot\sp\Kp\ep\t$ }
+%   \tor\axiom{$\e$ = $\a$}
+%   \tor\axiom{$\e$ = $\EE[\DynCall\a\m{\ap}]$}
+%   \tor\axiom{$\e$ = $\EE[\SubCast\tp\a]$}
+%   \tor\axiom{$\e$ = $\EE[\BehCast\tp\a]$}  
+% 
+%   \begin{proof} \indana{\trf{cond1}}
+% 
+%   \end{proof}
+% \end{theorem}
 
   \begin{theorem}{Wrap function creates well-formed classes}{WFun-WFC}
   
@@ -3176,8 +3199,10 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
   \end{conds}
   
   \then\axiom{\WF{}\sp{\K~\k}{\k}}
-  
     \begin{proof} \innatE{on the definition of the \xt{wrap} function}
+
+
+   
 %      \step{\WFtype{\K~\k}{\Fdef\that\C}}{\byjdg{WF}\trf{cond5},~\trf{cond1}}\lbl{1}
 % 
 %      \begin{case}{\t = \Cpp, \tp = \Cppp, \Mtype\m\tpp\tppp $\not\in$ \mtp[1].. \textbf{for} \Mdef\m\x{\t}{\tp}{~\KCall{\FRead\that()}\m{\x}\t\tp~}}\lbl{E}
@@ -3794,50 +3819,216 @@ the case for the \kafka behavioural cast, \RuleRef{WB1}.
 
 \subsection*{Accessory Lemmas}
 
-\paragraph{Evaluation Extends Class Tables} $~$\\
-If $\Reduce \K\e\s \Kp\ep\sp$ then $\Kp = \K~\Kpp$ for some $\Kpp$.
+\begin{lemma}{Evaluation Extends Class Tables}{}
+  \begin{conds}
+    \cond{$\Reduce \K\e\s \Kp\ep\sp$}\lbl{cond1}
+  \end{conds}
 
-\paragraph{Weakening of Expression Typing}$~$\\
-If $\EnvType\Env\s\K\e\t$ then $\EnvType{\Env~\Envp}\s\K\e\t$. \\ 
-If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env{\s~\s'}\K\e\t$. \\ 
-If $\EnvType\Env\s\K\e\t$ then $\EnvType\Env\s{\K~\Kp}\e\t$. 
+  \then\axiom{$\Kp = \K~\Kpp$ for some $\Kpp$}
 
-\paragraph{Weakening of Well-formedness}$~$\\
-If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$. \\
-If $\WF\Env\s\K\md$ then $\WF{\Env~\Envp}\s\K\md$.\\
-If $\WF\Env\s\K\md$ then $\WF\Env{\s~\s'}\K\md$.\\
-If $\WF\Env\s\K\md$ then $\WF\Env\s{\K~\Kp}\md$.\\
-If $\WFtype\K{\Fdef\f\t}$ then $\WFtype{\K~\Kp}{\Fdef\f\t}$.\\
-If $\WFtype\K\t$ then $\WFtype{\K~\Kp}\t$.
+  \begin{proof} \innat
+  \end{proof}
+\end{lemma}
 
-\paragraph{Weakening of Subtyping}$~$\\
-If $\StrSub\M{\K}\t\tp$ then $\StrSub\M{\K~\Kp}\t\tp$. \\
-If $\StrSub{\M}{\K}\t\tp$ then $\StrSub{\M~\M'}{\K}\t\tp$.
+\begin{lemma}{Weakening of Expression Typing over gamma}{}
+  \begin{conds}
+    \cond{$\EnvType\Env\s\K\e\t$}\lbl{cond1}
+  \end{conds}
 
-\paragraph{Weakening of $\xt{mtypes}$}$~$\\
-If $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K}$, then $\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$.
+  \then\axiom{$\EnvType{\Env~\Envp}\s\K\e\t$}
 
-\paragraph{Substitution}$~$\\
-If $\EnvType{\b{\HT\x\tp}}\s\K\e\t$ and $\b{\EnvType\cdot\s\K\a\tp}$, then $\EnvType\cdot\s\K{[\a/\x]\e}\t$
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
 
-\paragraph{Correctness of \classoff{\C}{\K}}$~$\\
-If $\Mtype\m{\t}\tp \in \classoff{\C}{\K}$, $\EnvType\cdot\s\K\a\C$ and 
-$\EnvType\cdot\s\K\ap\t$, then $\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$ where $\EnvType\cdot\s\K\epp\tp$. 
+\begin{lemma}{Weakening of Expression Typing over sigma}{}
+  \begin{conds}
+    \cond{$\EnvType\Env\s\K\e\t$}\lbl{cond1}
+  \end{conds}
 
-\paragraph{Canonical forms}$~$\\
-If $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\a\C$, then $\s[\a\mapsto{\obj\C{\b\a}}]$.
+  \then\axiom{$\EnvType\Env{\s~\s'}\K\e\t$}
 
-\paragraph{Evaluation retains typing}$~$\\ \label{lem:ert}
-If $\EnvType\cdot\s\K\e\t$, $\EnvType\cdot\s\K\ep\tp$, and $\WFp\K{\ep~\s}$, then if $\Reduce\K\ep\s\Kp\epp\sp$, it follows that $\EnvType\cdot\sp\Kp\e\t$ and $\Kp = \K~\Kpp$.
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
 
-\paragraph{Reduction preserves Well-formedness}$~$\\
-If $\Reduce \K\e\s \Kp\ep\sp$ and $\WFp\K{\e~\s}$, then $\WFp\Kp{\ep~\sp}$. 
+\begin{lemma}{Weakening of Expression Typing over class table}{}
+  \begin{conds}
+    \cond{$\EnvType\Env\s\K\e\t$}\lbl{cond1}
+  \end{conds}
 
-\paragraph{Consistent Class Table}$~$\\
-If $\WFp\K{\e~\s}$, then $\forall~\Class\C{\fd[1]..}{\md[1]..}~.~\WFtype\K{\fd[1]..}~\wedge~\WF\cdot\s\K{\md[1]..}$
+  \then\axiom{$\EnvType\Env\s{\K~\Kp}\e\t$}
 
-\paragraph{Correctness of $\xt{wrap}$}$~$\\
-If $\WFp \K$, $\C \in \K$, $\Cp \in \K$, $\D$ free, $\md[1].. \In\App\K\C$, $\mt[1].. = \classoff\C\K$, $\mtp[1].. = \classoff\Cp\K$, and $\k = \wrap\C{\mt[1].. }{\mtp[1]..}\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of Well-formedness for types over class table}{}
+  \begin{conds}
+    \cond{$\WFtype\K\t$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\WFtype{\K~\Kp}\t$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of Well-formedness for methods over gamma}{}
+  \begin{conds}
+    \cond{$\WF\Env\s\K\md$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\WF{\Env~\Envp}\s\K\md$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of Well-formedness for methods over sigma}{}
+  \begin{conds}
+    \cond{$\WF\Env\s\K\md$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\WF\Env{\s~\s'}\K\md$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of Well-formedness for methods over class table}{}
+  \begin{conds}
+    \cond{$\WF\Env\s\K\md$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\WF\Env\s{\K~\Kp}\md$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of Well-formedness for fields over class table}{}
+  \begin{conds}
+    \cond{$\WFtype\K{\Fdef\f\t}$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\WFtype{\K~\Kp}{\Fdef\f\t}$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of Subtyping over class table}{}
+  \begin{conds}
+    \cond{$\StrSub\M{\K}\t\tp$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\StrSub\M{\K~\Kp}\t\tp$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of Subtyping over methods}{}
+  \begin{conds}
+    \cond{$\StrSub\M{\K}\t\tp$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\StrSub{\M~\M'}{\K}\t\tp$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Weakening of $\xt{mtypes}$}{}
+  \begin{conds}
+    \cond{$\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K}$}\lbl{cond1}
+  \end{conds}
+
+  \then\axiom{$\Mtype\m{\HT\x\t}\tp \in \classoff{\C}{\K~\Kp}$ for some $\Kp$}
+
+  \begin{proof} \innat
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Substitution}{}
+  \begin{conds}
+    \cond{$\EnvType{\b{\HT\x\tp}}\s\K\e\t$}\lbl{cond1}    
+    \cond{$\b{\EnvType\cdot\s\K\a\tp}$}\lbl{cond2}
+  \end{conds}
+
+  \then\axiom{$\EnvType\cdot\s\K{[\a/\x]\e}\t$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Correctness of \classoff{\C}{\K}}{}
+  \begin{conds}
+    \cond{$\Mtype\m{\t}\tp \in \classoff{\C}{\K}$}\lbl{cond1}    
+    \cond{$\EnvType\cdot\s\K\a\C$}\lbl{cond2}
+    \cond{$\EnvType\cdot\s\K\ap\t$}\lbl{cond3}
+    \cond{$\EnvType\cdot\s\K\epp\tp$}\lbl{cond4}
+  \end{conds}
+
+  \then\axiom{$\Reduce \K{\KCall\a\m{\ap}{\t}{\tp}}\s \K\epp\s$}
+
+  \begin{proof} \innat
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Canonical forms}{}
+  \begin{conds}
+    \cond{$\WFp\K{\e~\s}$}\lbl{cond1}    
+    \cond{$\EnvType\cdot\s\K\a\C$}\lbl{cond2}
+  \end{conds}
+
+  \then\axiom{$\s[\a\mapsto{\obj\C{\b\a}}]$}
+
+  \begin{proof} \innat
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Evaluation retains typing}{}
+  \begin{conds}
+    \cond{$\EnvType\cdot\s\K\e\t$}\lbl{cond1}    
+    \cond{$\EnvType\cdot\s\K\ep\tp$}\lbl{cond2}
+    \cond{$\WFp\K{\ep~\s}$}\lbl{cond3}
+    \cond{$\Reduce\K\ep\s\Kp\epp\sp$}\lbl{cond4}
+  \end{conds}
+
+  \then\axiom{$\EnvType\cdot\sp\Kp\e\t$, where $\Kp = \K~\Kpp$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Reduction preserves Well-formedness}{}
+  \begin{conds}
+    \cond{$\Reduce \K\e\s \Kp\ep\sp$}\lbl{cond1}    
+    \cond{$\WFp\K{\e~\s}$}\lbl{cond2}
+  \end{conds}
+
+  \then\axiom{$\WFp\Kp{\ep~\sp}$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}{Consistent Class Table}{}
+  \begin{conds}
+    \cond{$\WFp\K{\e~\s}$}\lbl{cond1}    
+  \end{conds}
+
+  \then\axiom{$\forall~\Class\C{\fd[1]..}{\md[1]..}~.~\WFtype\K{\fd[1]..}~\wedge~\WF\cdot\s\K{\md[1]..}$}
+
+  \begin{proof} \indanaa{\trf{cond1}}
+  \end{proof}
+\end{lemma}
+
+
+% \paragraph{Correctness of $\xt{wrap}$}$~$\\
+% If $\WFp \K$, $\C \in \K$, $\Cp \in \K$, $\D$ free, $\md[1].. \In\App\K\C$, $\mt[1].. = \classoff\C\K$, $\mtp[1].. = \classoff\Cp\K$, and $\k = \wrap\C{\mt[1].. }{\mtp[1]..}\D\that$, then $\StrSub\cdot{\K~\k}\D\Cp$ and $\WFp \k$.
 
 
 \end{document}
