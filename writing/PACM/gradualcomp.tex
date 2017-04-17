@@ -1727,69 +1727,64 @@ Since arbitrary values can always flow in Transient, in the \kafka translation a
 
 \begin{figure}
 \hrulefill
-\begin{mathpar}
+\vspace{-4mm}
 
+\begin{mathpar}
 \Rule{STTC-SUB}{
   \ConSub\cdot\K\t\tp
 }{
   \ConvertE\K{tr}\t\tp
 }
-
-\Rule{STTC-TOANY}{
-}{
-  \ConvertE\K{tr}\t\any
-}
-
-\Rule{STTC-ANYCONC}{
-}{
-  \ConvertE\K{tr}\any\tp
-}
-
 \end{mathpar}
-\hrulefill
-\caption{Transient convertibility rules}\label{f:transientts}
-\end{figure}
+\vspace{-6mm}
 
-\begin{figure} \small
 \hrulefill
+\caption{Transient convertibility}\label{f:transientts}
 
-\begin{minipage}{\textwidth}\begin{tabular}{ll}  
-\begin{minipage}{8cm}\begin{mathpar} 
-\opdef{\ConSub\M\K\t\tp}{\t~ \text{is a consistent subtype of} ~\tp}
- 
-\IRule{CSCons}{
-  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
+
+\hrulefill
+\small\vspace{-4mm}
+
+\begin{mathpar} 
+\Rule{CSCons}{
+ ~
 }{
- \ConSub\M\K \t \tp
+ \ConSub\M\K \any \C
 }
 
-\IRule{CSAss}{
+\Rule{CSCons}{
+  ~
+}{
+ \ConSub\M\K \C \any
+}
+
+\Rule{CSCons}{
+  ~
+}{
+ \ConSub\M\K \t \t
+}
+
+\Rule{CSAss}{
 \C \Sub \D \in \M
 }{
  \ConSub \M\K \C\D
 }
 
-\IRule{CSRec}{
+\Rule{CSRec}{
  \M' = \M~\C\Sub\D \\\\
-\mt \in \App\K\D \implies \\\\
+\mt \in \App\K\D \implies 
 \mtp \in \App\K\C ~~~\wedge~~~   \ConSub{\M'}\K\mt{\mtp}
 }{
  \ConSub \M\K \C \D 
 }
-\end{mathpar}\end{minipage}
-& \begin{minipage}{6cm}\begin{mathpar}  
 
-\vspace{-2.8cm}
-
-\opdef{\ConSub\M\K\mt\mtp}{\m~ \text{is a consistent subtype of} ~~\mtp}
-\IRule{CSMet}{
-  \ConSub \M\K {\t[2]} {\t[1]} \\\\
+\Rule{CSMet}{
+  \ConSub \M\K {\t[2]} {\t[1]} \\
   \ConSub \M\K {\tp[1]} {\tp[2]}
 }{
  \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
 }
-\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
-\vspace{-2mm}
+\end{mathpar}
 
 \hrulefill
 \caption{Consistent subtyping}\label{f:consubtype}
@@ -1807,55 +1802,59 @@ Since arbitrary values can always flow in Transient, in the \kafka translation a
 
 \hrulefill
 \vspace{1mm}
+
 \begin{tabular}{@{}l@{~ ~ ~}ll}
  \small
 \begin{minipage}{8cm}  
 \begin{tabbing}
 \TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
 \hspace{.5cm}  \WHERE\HS \=
-  \src{\fdp[1]} = \src{\Ftype\f\any} .., \HS
-  \fd[1] = \Ftype\f\t ..,\HS\HS
-  \src{\mdp[1]} = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .., \HS
-  \md[1] = \Mdef\m\x\t\tp\e ..,\HS\HS
+  \fdp[1] = \src{\Ftype\f\any} .. \HS
+  \fd[1] = \Ftype\f\t ..\HS\HS
+  \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \HS
+  \md[1] = \Mdef\m\x\t\tp\e ..\HS\HS
    \ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
 \end{tabbing}
 \begin{tabbing}
 \TRG\this\Env \hspace{1cm} \= = \src\this
-\\[1mm]
+\\
 \TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
-\\[1mm]
-\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C,\HS\HS\=\Ftype\f\t\In\App\K\C
-\\[1mm]
+\\
+\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C\HS\HS\=\Ftype\f\t\In\App\K\C
+\\
 \TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
   \>\WHERE\HS
-  \TypeCk\K\this\C,
-  \> \Ftype\f\t\In\App\K\C, \hspace{.7cm}
+  \TypeCk\K\this\C
+  \> \Ftype\f\t\In\App\K\C \hspace{.7cm}
   \= \ep = \TAG\e\Env\any
-\\[1mm]
+\\
   \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
   \>\WHERE \HS 
-  \TypeCk{\K,\Env}{\e[1]}\any, \HS
-  \> \ep[1] = \TRG{\e[1]}\Env, 
+  \TypeCk{\K,\Env}{\e[1]}\any \HS
+  \> \ep[1] = \TRG{\e[1]}\Env 
   \> \ep[2] = \TAG{\e[2]}\Env\any
-\\[1mm]
+\\
 \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
    \>\WHERE\HS
-   \TypeCk{\K,\Env}{\e[1]}\C,
-   \> \Mtype\m\t\tp\In\App\K\C,\HS
-   \> \ep[1] = \TRG{\e[1]}\Env, \HS\HS
+   \TypeCk{\K,\Env}{\e[1]}\C
+   \> \Mtype\m\t\tp\In\App\K\C\HS
+   \> \ep[1] = \TRG{\e[1]}\Env \HS\HS
    \ep[2] = \TAG{\e[2]}\Env\any
-\\[1mm]
+\\
 \TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
-\Ftype{\f[1]}{\t[1]}\In\App\K\C,
+\Ftype{\f[1]}{\t[1]}\In\App\K\C
   \>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
-\\[1mm]
+\\
 \TAG\e\Env\t \>= \src{\SubCast\t\e}
-    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp, \> (\t = \any \OR \tp = \any),\HS \> \ep = \TRG\e\Env
-\\[1mm]
-\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp, \HS\>(\EM{\ConSub{}\K\t\tp}),\HS \> \ep = \TRG\e\Env
+    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp \> (\t = \any \OR \tp = \any) \> \ep = \TRG\e\Env
+\\
+\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp
+     \>\EM{\ConSub{}\K\t\tp} \HS \> \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
 \end{tabular}
+
+\medskip
 
 \hrulefill
 
