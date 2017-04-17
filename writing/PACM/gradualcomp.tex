@@ -1425,14 +1425,23 @@ checked in every method, such as in method \m. Method \m expects an instance of
 class \C, but it can be called with a value of type \any at any point, forcing
 \m to check its arguments at every invocation.
 
-\begin{lstlisting}
- class A {
-    m(x: C): D { x.n(new C()) }
-    n(x: *): * { x } }
+\(\Class \A  { \Mdef \m\x\C \D  {\Call \x\n{\New{\C}{}}}  ; \  \Mdef \n\x\any \any  \x} \)
 
- new A().m( new A().n( new C() ) ) // OK
- new A().m( new A().n( new D() ) ) // Runtime ERR
-\end{lstlisting}
+\smallskip
+\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \C{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// OK}\)
+
+\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \D{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// Runtime ERR}\)
+\smallskip
+%
+%
+%\begin{lstlisting}
+% class A {
+%    m(x: C): D { x.n(new C()) }
+%    n(x: *): * { x } }
+%
+% new A().m( new A().n( new C() ) ) // OK
+% new A().m( new A().n( new D() ) ) // Runtime ERR
+%\end{lstlisting}
 
 \noindent Transient Python deems both expressions well-typed. However, the
 second is going to end up with a type error as a \code D is passed to a method
