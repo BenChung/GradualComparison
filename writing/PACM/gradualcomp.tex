@@ -883,7 +883,7 @@ also never contain any duplicates as it can only contain methods that exists
 in the source type.  Furthermore, at most the wrapper class will contain
 every method of the source type.
 
-\paragraph{Type soundness} 
+\subsection{Type soundness} 
 Well-typed \kafka configurations satisfy a type-preservation theorem, and
 either reduce to values or are stuck on a dynamic method invocation or on
 one of the two casts provided by the language.
@@ -924,43 +924,42 @@ We designed \kafka to have a close correspondence to the intermediate
 languages used by common VMs. To validate this aspect of our design, we
 implemented a small compiler from \kafka to C\# and the CLR, alongside a
 runtime that provides the behavioral cast operation. The implementation is
-available from our website [anon-link].
+available from our website \emph{[link omitted for blind review]}.
 
 The only challenge in the development relates to one of our earliest design
 choices: the use of a structural type system. As previously mentioned,
-structural typing is common in gradually typed languages, but few virtual
-machines have support for it. Thus our implementation converts \kafka's
-structural types to C\# nominal types, maintaining semantic equivalence.  We
-do this by whole program type analysis, consider a class table \K, and
-assume that $\StrSub{}\K\t\tp$ for some $\t$ and $\tp$. C\# already handles
-the case where $\t$ or $\tp$ is $\any$, via its \xt{dynamic} type, which has
-the same semantics, but if $\t$ and $\tp$ are classes $\C$ and $\D$, then we
-have to be more careful. The approach works by introducing the interface
-\xt{ID}, which the translated version of $\C$ implements. \xt{ID} has all of
-the same methods as $\D$ did, allowing the same operations to be performed
-on its instances. We then refer to $\D$ by \xt{ID} in the generated C\# type
-signatures and casts, which then allows our translation of the class $\C$ to
-be used wherever a $\D$ is expected, satisfying subtyping. If we apply this
-to every pair of types $\C$ and $\D$ where the subtyping relation holds, the
-C\# subtyping relation mirrors the \kafka one exactly.  C\# has another
-quirk in its type system, namely it does not allow for covariance or
-contravariance in interface implementation, whereas \kafka's subtyping
-allows both. However, C\# does allow for \emph{explicit implementations},
-which we use to implement covariant and contravariant interface
-implementation, by explicitly calling out the interface method to implement
-and forwarding to the actual implementation.
+structural typing is key for the consistent subtyping used in Reticulated
+Python, but few virtual machines have built-in support for it. Thus our
+implementation converts structural types to nominal types, maintaining
+semantic equivalence.  We do this by whole program analysis. Consider a
+class table \K, and assume that \StrSub{}\K\t\tp for some \t and \tp. C\#
+already handles the case where \t or \tp is \any, via its \xt{dynamic} type,
+which has the same semantics as \any in \kafka. If $\t=\C$ and $\tp=\D$,
+then we generate the interface \xt{ID}, which the translated version of \C
+implements. \xt{ID} has the same methods as \D, allowing the same operations
+to be performed on its instances. We then refer to \D by \xt{ID} in the
+generated C\# type signatures and casts, which then allows our translation
+of \C to be used wherever a \D is expected, satisfying subtyping. If we
+apply this to every pair of types \C and \D where the subtyping relation
+holds, the C\# subtyping relation ends up mirroring the \kafka one exactly.
+C\# has another quirk in its type system, namely it does not allow for
+covariance or contravariance in interface implementation, whereas \kafka's
+subtyping allows both. However, C\# does allow for \emph{explicit
+  implementations}, which we use to implement covariant and contravariant
+interface implementation, by explicitly calling out the interface method to
+implement and forwarding to the actual implementation.
 
 The goal of our implementation was to validate the choice of features to
-include in \kafka by showing that they are similar to those provided in
-modern, high performance VMs, and for most of \kafka's functionality, the
-implementation was trivial. What our implementation does not do is provide
-an accurate picture of the performance of the gradual typing systems in
-question, rather focusing on semantic differences. This limitation is due to
-a wide range of factors, including having none of the commonly-cited
-performance optimizations, such as threesomes~\cite{siek10}, combined with
-the severe inherent restrictions on what programs can be reasonably written
-in \kafka. 
+include in \kafka by showing that match to those provided in modern, high
+performance VMs, and for most of \kafka's functionality, the implementation
+was trivial. What our implementation does not do is provide a picture of the
+performance of the gradual typing systems. This limitation is due to a wide
+range of factors, including having none of the commonly-cited performance
+optimizations, such as threesomes~\cite{siek10}, combined with the inherent
+restrictions on what programs can be reasonably written in \kafka.
 
+
+\medskip
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
@@ -973,10 +972,25 @@ in \kafka.
 
 
 \noindent
-We are now ready to give semantics to the four gradual type systems of interest, by translating them into \kafka. 
-Four each source language, compilation into \kafka is realised by a translation function that maps well-typed source programs into well-typed \kafka terms, respecting a uniform mapping of source types to \kafka types.  The compilation makes explicit which type casts (and, in turn, \emph{dynamic type-checks}) are implicitly inserted and performed by the runtime of each language, highlighting the similarities and differences among them.   
+We are now ready to give semantics to the four gradual type systems of
+interest by translating them into \kafka.  Four each source language,
+compilation into \kafka is realised by a translation function that maps
+well-typed source programs into well-typed \kafka terms, respecting a
+uniform mapping of source types to \kafka types.  The compilation makes
+explicit which type casts (and, in turn, \emph{dynamic type-checks}) are
+implicitly inserted and performed by the runtime of each language,
+highlighting the similarities and differences among them.
 
-To avoid unnecessary clutter, we represent the source languages using the common syntax reported in \figref{f:sourcesyntax}.  This defines a simple object calculus similar to \kafka, but without method overloading and, most importantly, cast operations.  When modelling the Thorn type system, the additional type \CW is added to the type grammar to denote Thorn like types. 
+To avoid unnecessary clutter, we represent the source languages using the
+common syntax reported in \figref{f:sourcesyntax}.  This defines a simple
+object calculus similar to \kafka, but without method overloading and, most
+importantly, cast operations.  When modelling the Thorn type system, the
+additional type \CW is added to the type grammar to denote Thorn \emph{like
+  types}.  For each language will we also give a source-level type system;
+we write $\vdash_{\!s}$ to emphasize that this is the source level typing (and
+not the \kafka level typing).  As the various type system are mostly similar
+we will only present their differences assuming that all the omitted rules
+are identical.
 
 
 
