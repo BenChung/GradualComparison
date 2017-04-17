@@ -1167,7 +1167,7 @@ give rise to an error.
 \end{mathpar}
 \vspace{-5mm}
 
-\hrulefill\caption{TypeScript type convertibility}\label{f:typescriptts}
+\hrulefill\caption{TypeScript type convertibility}\label{tsts}
 
 \hrulefill
 
@@ -1228,7 +1228,7 @@ that expression will evaluate successfully.
 
 \noindent
 Our formalization of TypeScript's type system is in
-\figref{f:typescriptts}. The type system relies on the \emph{convertibility}
+\figref{tsts}. The type system relies on the \emph{convertibility}
 relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
 type conversions allowed by TypeScript.  The relation appears in
 \figref{convts} and states that a type is convertible to a super type and
@@ -1302,6 +1302,15 @@ expressiveness or flexibility.  Subtyping on optional types is inherited
 from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
 whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
+The formalization of the Thorn type system is built on top of the rules
+presented for TypeScript in \figref{tsts} and \figref{convts}. The
+convertibility rule must be extended by one case, as shown in
+\figref{convth}, this extra rule states that an optional type is convertible
+to a concrete parent type. Type rule for method calls, shown in
+\figref{thts} must be extended to handle receivers of optional types, they
+are treated as if they were concrete types.
+
+
 To get a
 glimpse of Thorn in action, consider a class definition with two methods,
 one optionally and one concretely typed:
@@ -1333,34 +1342,18 @@ callee has a concrete type:
 
 
 \begin{figure}[!b] \hrulefill  \small
-  \vspace{-3mm}
+\vspace{-3mm}
   
 \begin{mathpar}
-
-\Rule{STHC-SUB}{
-  \ThorSub\cdot\K\t\tp
-}{
-  \ConvertE\K{th}\t\tp
-}
-
-\Rule{STHC-TOANY}{
-}{
-  \ConvertE\K{th}\t\any
-}
-
 \Rule{STHC-OPTCONC}{
-  \ThorSub\cdot\K\C\D
+  \SSub\cdot\K\C\D
 }{
   \ConvertE\K{th}\CW\D
 }
-
-\Rule{STHC-ANYCONC}{
-}{
-  \ConvertE\K{th}\any\tp
-}
 \end{mathpar}
+
 \hrulefill
-\caption{Thorn type convertibility}\label{f:thornts}
+\caption{Thorn type convertibility}\label{thts}
 
 
 \hrulefill  
@@ -1378,7 +1371,7 @@ callee has a concrete type:
 \end{mathpar}
 
 \hrulefill
-\caption{Thorn type system}\label{f:thornts}
+\caption{Thorn type system}\label{convth}
  
 
 \hrulefill
@@ -1426,24 +1419,70 @@ callee has a concrete type:
 \medskip
 
 \hrulefill
-\caption{Thorn translation.  \kty\t = \any if  \t=?\C or \t=\any, \t otherwise. }\label{f:thorntokafka}
+\caption{Thorn translation.  \kty\t = \any if  \t=?\C or \t=\any, \t otherwise. }\label{thtr}
 \end{figure}
 
 
-\noindent The first call is rejected by the static semantics because the concretely typed method \n expects a value of type \C, while a value of type \D has been passed.  Formally, the Thorn type system (reported in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\) convertibilty test required by the static method invocation (\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C annotation for the argument of \m suggests that the intention of the programmer is to invoke this  method only with instances of \C; even if this is not strictly enforced, expressions as this one, that are likely to fail at runtime, are identified as errors.
-In the third call, a \C value that is passed while a \dt\C is expected: this is allowed as subtyping implies convertibility.  The last expression invokes \n and passes an argument of type \dt\C where a \C is expected; although potentially unsound, this is allowed by Thorn to foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\) rule; at runtime Thorn protects the call and ensures soundness by inserting a dynamic type cast to \C around the argument.
+\noindent The first call is rejected by the static semantics because the
+concretely typed method \n expects a value of type \C, while a value of type
+\D has been passed.  Formally, the Thorn type system (reported
+in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\)
+convertibilty test required by the static method invocation
+(\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected
+because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C
+annotation for the argument of \m suggests that the intention of the
+programmer is to invoke this method only with instances of \C; even if this
+is not strictly enforced, expressions as this one, that are likely to fail
+at runtime, are identified as errors.  In the third call, a \C value that is
+passed while a \dt\C is expected: this is allowed as subtyping implies
+convertibility.  The last expression invokes \n and passes an argument of
+type \dt\C where a \C is expected; although potentially unsound, this is
+allowed by Thorn to foster program evolution.  Convertibility thus includes
+a \(\dt\C\Mapsto\C\) rule; at runtime Thorn protects the call and ensures
+soundness by inserting a dynamic type cast to \C around the argument.
 
-If the receiver object has an optional type,  method invocation is statically checked as in the concrete case above:
- optional types behave as contracts between variables and contexts, and whenever an object has type \dt\C a well-typed context is expected to use it only as a variable pointing to an instance of the class \C.  Since the runtime does not guarantee that  \dt\C variables points to instances of the class \C, the conformance of the value actually accessed is checked individually at each method invocation, as if the callee had type \any.  
- 
+If the receiver object has an optional type, method invocation is statically
+checked as in the concrete case above: optional types behave as contracts
+between variables and contexts, and whenever an object has type \dt\C a
+well-typed context is expected to use it only as a variable pointing to an
+instance of the class \C.  Since the runtime does not guarantee that \dt\C
+variables points to instances of the class \C, the conformance of the value
+actually accessed is checked individually at each method invocation, as if
+the callee had type \any.
 
+The translation of Thorn into \kafka is given in~\figref{f:thorntokafka}.
+Contrarily to TypeScript, the compilation of method invocation performs
+different operations depending on the source type of the receiver
+object. For this, the translation function \TRG{...}\Env takes in input a
+typing environment \Env, typechecks the callee, and distinguishes two cases.
+If the callee has a concrete type then method invocation is mapped to static
+method invocation; if instead it has optional or dynamic type, then method
+invocation is mapped to the dynamically checked method invocation.
+Translating the argument is more subtle, because a dynamic type check (that
+is, the appropriate structural cast) might be needed to satisfy the type
+constraints imposed by the called method.  This is realised by the auxiliary
+translation function, \TAG{..}\Env\t.  This function translates its
+argument, checks if its type is a subtype of the expected type \t, and if
+not it inserts the appropriate structural type cast.  This subtype test must
+be performed in the \kafka type system, and not in the source type system,
+and must respect the mapping from Thorn types to \kafka types.  This one is
+defined by the \kty\t function: Thorn optional and dynamic types are mapped
+to the \any type of \kafka, while Thorn concrete types are mapped to the
+equivalent Thorn concrete types.
 
-
- The translation of Thorn into \kafka is given in~\figref{f:thorntokafka}.  Contrarily to TypeScript, the compilation of method invocation performs different operations depending on the source type of the receiver object. For this, the translation function \TRG{...}\Env takes in input a typing environment \Env, typechecks the callee, and distinguishes two cases.  If the callee has a concrete type then method invocation is mapped to static method invocation; if instead it has optional or dynamic type, then method invocation is mapped to the dynamically checked method invocation.  Translating the argument is more subtle, because a dynamic type check (that is, the appropriate structural cast) might be needed to satisfy the type constraints imposed by the called method.
-  This is realised by the auxiliary translation function, \TAG{..}\Env\t.  This function translates its argument, checks if its type is a subtype of the expected type \t, and if not it inserts the appropriate structural type cast.  This subtype test must be performed in the \kafka type system, and not in the source type system, and must respect the mapping from Thorn types to \kafka types.  This one is defined by the \kty\t function: Thorn optional and dynamic types are mapped to the \any type of \kafka, while Thorn concrete types are mapped to the equivalent Thorn concrete types.
- 
-
-We have seen that the method invocation mechanism depends on the type of the receiver object. Translation of classes thus relies on overloading to provide two implementations of each method: one to be called if the object is referred to as a concretely type object, and one if it is referred to as an optionally typed (or dynamic) object.  More precisely, given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\) (protecting the the return value with appropriate cast to \kty{\t[2]} if necessary), to be used in a concretely typed context.  The \kafka translation also generates a second method \mdpp, that wraps \mdp so that it is safe to invoke it with type \(\any \to \any\), that is from an optionally typed or dynamic context.  Finally, each field \f:\t is mapped to the corresponding \f:\kty\t field.
+We have seen that the method invocation mechanism depends on the type of the
+receiver object. Translation of classes thus relies on overloading to
+provide two implementations of each method: one to be called if the object
+is referred to as a concretely type object, and one if it is referred to as
+an optionally typed (or dynamic) object.  More precisely, given a Thorn
+method \(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
+generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
+(protecting the the return value with appropriate cast to \kty{\t[2]} if
+necessary), to be used in a concretely typed context.  The \kafka
+translation also generates a second method \mdpp, that wraps \mdp so that it
+is safe to invoke it with type \(\any \to \any\), that is from an optionally
+typed or dynamic context.  Finally, each field \f:\t is mapped to the
+corresponding \f:\kty\t field.
 
 %how does the translation work:
 %- types: * and ?C are mapped to * ; C are mapped to C
