@@ -1199,7 +1199,7 @@ give rise to an error.
 
 \smallskip
 \hrulefill
-\caption{TypeScript to \kafka translation}\label{f:typescriptkafka}
+\caption{TypeScript to \kafka translation}\label{tst}
 
 \end{figure}
 
@@ -1235,31 +1235,28 @@ type conversions allowed by TypeScript.  The relation appears in
 that \any is convertible to anything and conversely. We illustrate the type
 system by focusing on the example above. For the first expression, the
 receiver has type \C, but the class does have method \n. The second
-expression is 
+expression is ill-typed because the argument to method \m is of type \C and
+\C is not convertible to \D. The third expression is correct because the
+argument to \mp is of type \C and \C is convertible to \any, the expected
+type of \mp.
 
-Since the receiver has type \C, the first expression is simply ruled out by
-the check that the called method must be part of the class signature.  The
-second is more interesting: the method exists but expects a \D argument
-while we are passing a \C.  The \emph{convertibility} relation, denoted
-\ConvertE\K{s}\t\tp, captures precisely the allowed implicit type
-conversion.  For TypeScript, values can flow freely to and from \any, and it
-is also allowed to pass a subtype when a supertype is expected.  Since in
-our second example, the types \C and \D are incompatible, the convertibility
-check fails.
+The TypeScript compiler translates code to JavaScript with all types erased.
+Since convertibility allows arbitrary values can be passed whenever a \any
+value is expected, method calls may fail because the receiver need not have
+the requested method. The designers of TypeScript saw this unsoundness as a
+way to ensure that types do not get in the way of running correct programs,
+e.g. when importing a new library with type annotations inconsistent with
+existing client code; and an insurance for backwards compatibility, as
+ignoring types means all browsers can run TypeScript code -- with no
+additional overhead.
 
-The TypeScript compiler then translates well-typed code to plain JavaScript, with all types erased and methods resolved dynamically. Of course, since convertibility allows arbitrary values can be passed whenever a \any value is expected, dynamically resolved calls may fail because the receiver need not have the requested method. The designers of TypeScript saw this unsoundness as a way to
-ensure, ({\em a}) that types do not get in the way of running correct
-programs, e.g. when importing a new library with type annotations
-inconsistent with existing client code; and ({\em b}) an insurance for
-backwards compatibility, as ignoring types means all browsers can run
-TypeScript code -- with no additional overhead.
+The translation to \kafka appears in \figref{tst} and is  straightforward.
 
 
-
-The TypeScript dynamic semantics can be modelled in \kafka with a very simple translation mechanism, where every
-type becomes \any  (including in method signatures) and every call becomes a dynamic call.  
-For instance one would translate the class
-definition and the last expression above as:
+The TypeScript dynamic semantics can be modelled in \kafka with a very
+simple translation mechanism, where every type becomes \any (including in
+method signatures) and every call becomes a dynamic call.  For instance one
+would translate the class definition and the last expression above as:
 
 \medskip
 \(
@@ -1272,16 +1269,26 @@ definition and the last expression above as:
 
 
 \medskip
-\noindent This  scheme can be implemented by the simple top-down algorithm in \figref{f:typescriptkafka}.  The translation function \(\TR{\dots}\) is applied to both class definitions and expression; to avoid confusion, the grey background is used to identify translated terms (that is \kafka terms).  
+\noindent This scheme can be implemented by the simple top-down algorithm in
+\figref{f:typescriptkafka}.  The translation function \(\TR{\dots}\) is
+applied to both class definitions and expression; to avoid confusion, the
+grey background is used to identify translated terms (that is \kafka terms).
 
+All TypeScript types are represented with the dynamic \kafka type, \any, and
+all translated expressions have type \any.  This is a simple instance of a
+general property that all our translations into \kafka satisfy.  Let
+\(\kty\t\) be a mapping from source types to \kafka types -- for TypeScript
+the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
+holds that if \e is a well-typed source expression with type \t, then
+\TR{\e} is a well-typed \kafka expression with type \kty{\t}.  The precise
+statement and proof are reported in the Appendix.
 
-\begin{figure}[!h]
-\end{figure}
-
-
-\noindent  All TypeScript types are represented with the dynamic \kafka type, \any, and all translated expressions have type \any.  This is a simple instance of a general property that all our translations into \kafka satisfy.  Let \(\kty\t\) be a mapping from source types to \kafka types -- for TypeScript the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then holds that if \e is a well-typed source expression with type \t, then \TR{\e} is a well-typed \kafka expression with type \kty{\t}.  The precise statement and proof are reported in the Appendix.
-
-Observe that the TypeScript translations does insert some structural casts to \any, but these have no operational effect (a structural cast to \any always succeed at runtime) and are only needed to satisfy the constraints of the \kafka type system.  The unsoundness comes from discarding the type of the callee and systematically relying on  dynamic method invocation for method calls.
+Observe that the TypeScript translations does insert some structural casts
+to \any, but these have no operational effect (a structural cast to \any
+always succeed at runtime) and are only needed to satisfy the constraints of
+the \kafka type system.  The unsoundness comes from discarding the type of
+the callee and systematically relying on dynamic method invocation for
+method calls.
 
 % \clearpage
 
