@@ -1217,7 +1217,7 @@ that expression will evaluate successfully.
 {\small
 \begin{tabbing}
   \hspace{.5cm}
-   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
    \> \Call{\New\C{}}\m{\New\C{}}                                  \>  \>  \Mdef\m\x\D\C{~\this~} \\
    \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\C{}}}              \>  \>  \Mdef\mp\x\any\D{~\x~}\\
    \>                                                              \>  \}   \\
@@ -1231,7 +1231,7 @@ Our formalization of TypeScript's type system is in
 \figref{f:typescriptts}. The type system relies on the \emph{convertibility}
 relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
 type conversions allowed by TypeScript.  The relation appears in
-\figref{confts} and states that a type is convertible to a super type and
+\figref{convts} and states that a type is convertible to a super type and
 that \any is convertible to anything and conversely. We illustrate the type
 system by focusing on the example above. For the first expression, the
 receiver has type \C, but the class does have method \n. The second
@@ -1258,7 +1258,6 @@ is exceedingly simple, all type annotations become \any and all source
 method calls are translated to dynamic \kafka calls.  For instance one would
 translate the class definition and the last expression of the example above as:
 
-
 \medskip
 {\small
 \begin{tabbing}
@@ -1268,7 +1267,6 @@ translate the class definition and the last expression of the example above as:
    \>              \>  \>  \Mdef\mp\x\any\any{~\x~}\\
    \>                                                              \>  \}   
 \end{tabbing}}
-
 \medskip
 
 \noindent
@@ -1291,13 +1289,22 @@ holds that if \e is a well-typed source expression with type \t, then
 statement and proof are in Appendix.
 
 
-% \clearpage
-
 \subsection{Thorn}
 
-Thorn is an object-oriented language with multiple inheritance,
-nominal type equivalence, and a combination of \emph{dynamic}, \emph{optional} (aka.~\emph{like}), and \emph{concrete} types.  Concrete types (written \C) behave as one would expect: a variable {\x:\C} is
-guaranteed to refer to an instance of \C or a subtype thereof.  Optional types are analogous of TypeScript type annotations: occurrences of optionally typed variables, denoted {\x:\dt\C}, are checked statically within their scope but may be bound to dynamic values and their usage is checked dynamically.  Optional types thus provide some of the benefits of static typing without decreasing the expressiveness and flexibility of the language.  Subtyping on optional types is inherited from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D} whenever \C \Sub \D; also, it always hold that \C \Sub  \dt\C. To get a glimpse of Thorn in action, consider a class definition with two methods, one optionally and one concretely typed:
+Thorn is an object-oriented language with multiple inheritance, nominal type
+equivalence, and a combination of \emph{dynamic}, \emph{optional}
+(aka.~\emph{like}), and \emph{concrete} types.  Concrete types (written \C)
+behave as one would expect: a variable {\x:\C} is guaranteed to refer to an
+instance of \C or a subtype thereof.  Optional types are analogous of
+TypeScript type annotations: occurrences of optionally typed variables,
+denoted {\x:\dt\C}, are checked statically within their scope but may be
+bound to dynamic values and their usage is checked dynamically.  Optional
+types thus provide some of the benefits of static typing without decreasing
+the expressiveness and flexibility of the language.  Subtyping on optional
+types is inherited from the subtyping relation on concrete types, that is
+{\dt\C} \Sub {\dt\D} whenever \C \Sub \D; also, it always hold that \C \Sub
+\dt\C. To get a glimpse of Thorn in action, consider a class definition with
+two methods, one optionally and one concretely typed:
 
 \medskip
 \(
@@ -1322,7 +1329,7 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Optional types a
 \medskip
 
 
-\begin{figure}[!h] \hrulefill  \small
+\begin{figure}[!b] \hrulefill  \small
   \vspace{-3mm}
   
 \begin{mathpar}
@@ -1353,81 +1360,25 @@ guaranteed to refer to an instance of \C or a subtype thereof.  Optional types a
 \hrulefill
 \caption{Thorn type convertibility}\label{f:thornts}
 
-\hrulefill  \footnotesize
+
 \hrulefill  
 \vspace{0.5mm}
-% \hspace{-0.5cm}
-\begin{minipage}{\textwidth}\begin{tabular}{llllll}  
-\begin{minipage}{1.3cm}\begin{mathpar}  
-\Rule{STH-VAR}{
-   ~ \\\\
-   ~ \\\\
-   ~ \\\\
-   \HasType \Env\x\t
- }{
-   \EnvTypeW \Env\K\x\t
-}
-\end{mathpar}\end{minipage}& \begin{minipage}{1.8cm}\begin{mathpar}  
-\Rule{STH-GET}{
-  ~ \\\\
-  ~ \\\\
-  \HasType \Env\this\C \\\\
-  \Fdef\f\t \in \App\K\C
-}{
-  \EnvTypeW \Env\K{\FRead\f}\t
-}    
-\end{mathpar}\end{minipage}& \begin{minipage}{2.2cm}\begin{mathpar}  
-\Rule{STH-SET}{
-  \HasType \Env\this\C   \\\\
-  \Fdef\f\t \in \App\K\C \\\\
-  \EnvTypeW \Env\K\e\tp  \\\\
-  \ConvertE\K{th}\tp\t
-}{
-  \EnvTypeW \Env\K{\FWrite\f\e}\t
-}    
-\end{mathpar}\end{minipage}& \begin{minipage}{3.4cm}\begin{mathpar}  
+
+\begin{mathpar}  
 \Rule{STH-CALL}{
-  \EnvTypeW \Env\K\e\tp \\\\  (\tp=\C~~\vee~~\tp=\CW) \\\\
-  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
-  \EnvTypeW \Env\K\ep\tpp ~\,~\,~\,~
+  \EnvTypeW \Env\K\e\tp \\  (\tp=\C~~\vee~~\tp=\CW) \\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\
+  \EnvTypeW \Env\K\ep\tpp  \\
   \ConvertE\K{th}\tpp{\t[1]}
   }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
-\end{mathpar}\end{minipage}& \begin{minipage}{2.2cm}\begin{mathpar}  
-\Rule{STH-DCALL}{
-   ~ \\\\
-  \EnvTypeW \Env\K\e\any \\\\
-  \EnvTypeW \Env\K\ep\tpp \\\\
-  \ConvertE\K{th}\tpp\any
-}{
-  \EnvTypeW \Env\K{\Call\e\m\ep}\any
-}    
-\end{mathpar}\end{minipage}& \begin{minipage}{3cm}\begin{mathpar}  
-\Rule{STH-NEW}{
- ~ \\\\
- \EnvTypeW \Env\K{\e[1]}{\tp[1]}..\\\\
- \ConvertE\K{th}{\tp[1]}{\t[1]}..\\\\
- \Class \C {\Fdef{\f[1]}{\t[1]}..}{..} \in \K
-}{
-  \EnvTypeW \Env\K{\New\C{\e[1]..}}\C
-}
-\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
-\vspace{-2mm}
+\end{mathpar}
 
-\hrulefill
 \hrulefill
 \caption{Thorn type system}\label{f:thornts}
-\end{figure}
-
-\noindent The first call is rejected by the static semantics because the concretely typed method \n expects a value of type \C, while a value of type \D has been passed.  Formally, the Thorn type system (reported in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\) convertibilty test required by the static method invocation (\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C annotation for the argument of \m suggests that the intention of the programmer is to invoke this  method only with instances of \C; even if this is not strictly enforced, expressions as this one, that are likely to fail at runtime, are identified as errors.
-In the third call, a \C value that is passed while a \dt\C is expected: this is allowed as subtyping implies convertibility.  The last expression invokes \n and passes an argument of type \dt\C where a \C is expected; although potentially unsound, this is allowed by Thorn to foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\) rule; at runtime Thorn protects the call and ensures soundness by inserting a dynamic type cast to \C around the argument.
-
-If the receiver object has an optional type,  method invocation is statically checked as in the concrete case above:
- optional types behave as contracts between variables and contexts, and whenever an object has type \dt\C a well-typed context is expected to use it only as a variable pointing to an instance of the class \C.  Since the runtime does not guarantee that  \dt\C variables points to instances of the class \C, the conformance of the value actually accessed is checked individually at each method invocation, as if the callee had type \any.  
  
- 
-\begin{figure}[!h]
+
 \hrulefill
 
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
@@ -1435,36 +1386,35 @@ If the receiver object has an optional type,  method invocation is statically ch
   \hspace{-.5cm}\begin{minipage}{8cm}  
 \begin{tabbing}
 \TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
-\HS \WHERE \\ \> \src{\fdp[1]} = \src{\Ftype\f{\kty\t}} .., \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
-\> \src{\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .., \HS\HS \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..,\HS\HS\= \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..,\\
-\> \src{\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
+\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
+\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \HS\HS \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..\\
+\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
 \HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
           \>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
 \end{tabbing}
 \begin{tabbing}
-\TRG{\x}\Env \hspace{1.4cm}\= = \src \x
-\\[1mm]       
-\TRG{\FRead\f}\Env \> = \src{\FRead\f} 
-\\[1mm]
-\TRG{\FWrite\f\e}\Env \> = \src{\FWrite\f\ep} \hspace{.5cm} \=
-\WHERE\HS\= \TypeCk{\K, \Env}\this\C, \HS  \Ftype\f\t\In\App\K\C, \HS \ep = \TAG\e\Env{\kty\t}
-\\[1mm]
+\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
+\\
+\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
+\\
+\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
+   \=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
+\\
 \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
-\HS  \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t, \HS \kty\t=\any, \HS
- \ep[1]= \TRG{\e[1]}\Env, \HS \ep[2]=\TAG{\e[2]}\Env\any
-\\[1mm]
+   \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \HS\HS\= \ep[2]=\TAG{\e[2]}\Env\any
+\\
 \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
-\>\WHERE\HS   \TypeCk{\K,\Env}{\e[1]}\C, \HS  \ep[1] = \TRG{\e[1]}\Env, \HS
- \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C, \HS  \ep[2] = \TAG{\e[2]}\Env{\t[2]}, \\
- \> \> \> \t[2] = \kty{\t[1]}, \HS \tp[2] = \kty{\tp[1]}
-\\[1mm]
+\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \>  \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \\
+\> \> \> \t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
+\\
 \TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
-     \>\WHERE\HS    \Ftype{\f[1]}{\t[1]}\In\C, \HS  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
-\\[1mm]
-\TAG\e\Env\t\> = \src\ep \> \WHERE\HS  \EM{\K\vdash\kty\tp \Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
-\\[1mm]
+     \>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
+\\
+\TAG\e\Env\t\> = \src\ep 
+     \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \Sub \kty\t}
+\\
  \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
-\>\WHERE\HS  \EM{\K\vdash\kty\tp \not\Sub \kty\t}, \TypeCk{\K,\Env}\e\tp, \ep = \TRG\e\Env
+     \>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
 \end{tabbing}
 \end{minipage}
 \end{tabular}
@@ -1472,6 +1422,14 @@ If the receiver object has an optional type,  method invocation is statically ch
 \hrulefill
 \caption{Thorn translation.  \kty\t = \any if  \t=?\C or \t=\any, \t otherwise. }\label{f:thorntokafka}
 \end{figure}
+
+
+\noindent The first call is rejected by the static semantics because the concretely typed method \n expects a value of type \C, while a value of type \D has been passed.  Formally, the Thorn type system (reported in~\figref{f:thornts}), rejects this because the \(\D\Mapsto\C\) convertibilty test required by the static method invocation (\RuleRef{STH-CALL}) rule fails.  Similarly, the second call is rejected because the \(\D\Mapsto\dt\C\) convertibilty check fails as well.  The \dt\C annotation for the argument of \m suggests that the intention of the programmer is to invoke this  method only with instances of \C; even if this is not strictly enforced, expressions as this one, that are likely to fail at runtime, are identified as errors.
+In the third call, a \C value that is passed while a \dt\C is expected: this is allowed as subtyping implies convertibility.  The last expression invokes \n and passes an argument of type \dt\C where a \C is expected; although potentially unsound, this is allowed by Thorn to foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\) rule; at runtime Thorn protects the call and ensures soundness by inserting a dynamic type cast to \C around the argument.
+
+If the receiver object has an optional type,  method invocation is statically checked as in the concrete case above:
+ optional types behave as contracts between variables and contexts, and whenever an object has type \dt\C a well-typed context is expected to use it only as a variable pointing to an instance of the class \C.  Since the runtime does not guarantee that  \dt\C variables points to instances of the class \C, the conformance of the value actually accessed is checked individually at each method invocation, as if the callee had type \any.  
+ 
 
 
 
