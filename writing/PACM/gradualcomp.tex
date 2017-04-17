@@ -885,32 +885,38 @@ every method of the source type.
 
 \paragraph{Type soundness} 
 Well-typed \kafka configurations satisfy a type-preservation theorem, and
-either reduce to values or are stuck on a dynamic method invocation or on a
-cast.  
+either reduce to values or are stuck on a dynamic method invocation or on
+one of the two casts provided by the language.
 
-\medskip\noindent{\bf Theorem 1: Type Soundness.} ~
-Given that $\WFp\K{\e~\s}$ and $\EnvType\cdot\s\K\e\t$,
-then either there is some $\ep$ such that $\Reduce \K\e\s \Kp\ep\sp$ and
-$\WFp\Kp{\ep~\sp}$ and $\EnvType\cdot\sp\Kp\ep\t$ hold, or $\e$ is in one of
-the following forms: $\a$, $\EE[\DynCall\a\m{\ap}]$, $\EE[\SubCast\tp\a]$,
-or $\EE[\BehCast\tp\a]$.\\
+\medskip\noindent{\bf Theorem 1: Type Soundness.} ~  
+Given \WFp\K{\e~\s} and
+      \EnvType\cdot\s\K\e\t,
+then either one of the following holds:
+    \e is already evaluated to value \a,      
+    there is some \ep such that \Reduce \K\e\s \Kp\ep\sp and
+       \WFp\Kp{\ep~\sp} and \EnvType\cdot\sp\Kp\ep\t,
+or \e is stuck on one of the three following error contexts
+    $\EE[\DynCall\a\m{\ap}]$,
+    $\EE[\SubCast\tp\a]$,
+   or $\EE[\BehCast\tp\a]$.\\
 
+\noindent
 The wrapper class generated from behavioural cast will not contain
 any duplicate methods or fields.
 
-\medskip\noindent{\bf Lemma 1: Wrapper preserves no duplication.} ~
-Given the source methods $\md[1].. \In \App\K\C$ whereby $\cload{\md[1]..}$, 
-then the wrapper class $\wrapE{\C, ..}$ does not contain 
-any duplicate methods and fields.\\
+\medskip\noindent{\bf Lemma 1: No duplicates.} ~ Given source methods
+$\md[1].. \In \App\K\C$ whereby $\cload{\md[1]..}$, the wrapper class
+returned by $\wrapE{\C,\md[1], \mdp[1],\D,\that}$ does not contain any
+duplicate methods and fields.\\
 
+\noindent
 The wrapper class generated from behavioural cast is always a subtype
 of the target type, otherwise known as type that is being casted with.
 
-\medskip\noindent{\bf Lemma 2: Wrapper preserves subtype over target type.} ~
-Given the source methods $\md[1].. \In \App\K\C$, the target methods $\mdp[1].. \In \App\K\Cp$, 
-and the wrapper $\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, then $\StrSub\emptyset\K\D\Cp$.
-
-
+\medskip\noindent{\bf Lemma 2: Subtype presevation.} ~ Given the source
+methods $\md[1].. \In \App\K\C$, the target methods $\mdp[1].. \In
+\App\K\Cp$, and the wrapper $\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, then
+$\StrSub\emptyset\K\D\Cp$.
 
 \subsection{Implementation}
 
