@@ -492,15 +492,12 @@ every call. Finally, languages with generative casts tend to suffer prohibitive
 slow downs in pathological cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- \newpage
+\newpage
 \section{KafKa: A Core Calculus}\label{kafkacore}
-
-
-%\vspace{-2mm}
 
 \epigraph{\hspace{-1cm}\small ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}
 
-\vspace{-3mm}
+\vspace{-2mm}
 
 \noindent
 The basis of our formal approach \kafka, a class-based, statically typed
@@ -559,25 +556,28 @@ class name and (possibly empty) sequences of field and method definitions,
 type, \Fdef\f\t. Method definitions have (for simplicity) a single argument
 and an expression, denoted \Mdef\m\x\t\t\e.  \kafka supports a limited form
 of overloading, allowing both a typed implementation and an untyped
-(dynamically checked) implementation for each method.  Fields are private to
-objects, and can be accessed only from the object scope; reading a field is
-denoted \(\FRead\f\) and writing a field is denoted \(\FWrite\f\e \).  The
-calculus supports both statically and dynamically resolved method invocation
-(denoted \KCall\e\m\e\t\t and \DynCall\e\m\e).  The static dispatch resolves
-overloading via the type tag on the method call.  We let meta-variables \x
-ranges over variable names, \m and \f range over methods and fields
+implementation for each method.  Fields are private to objects, and can be
+accessed only from the object's scope; reading a field is denoted
+\(\FRead\f\) and writing a field is denoted \(\FWrite\f\e \).  The calculus
+supports both statically and dynamically resolved method invocation.  A
+statically resolved call, denoted \KCall\e\m\ep\t\tp, is guaranteed to
+succeed as the type system ensures that the expression \e will evaluate to
+an object of a class which has a method \Mtype\m\t\tp. A dynamically
+resolved call, \DynCall\e\m\ep, can get stuck if the object that \e
+evaluates to does not have a method \Mtype\m\any\any.  We let meta-variables
+\x ranges over variable names, \m and \f range over methods and fields
 respectively; \this is a distinguished identifier representing a method
 receiver, while \that is a distinguished field name that will be used in
 wrapper classes.  Providing two different cast mechanisms is a key feature
 of the calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\),
 denotes the usual subtype cast that dynamically type-checks its argument.
-The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather that
+The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather than
 type-checking the argument at runtime, builds a wrapper around it.  The
 wrapper then ensures that all the successive requests to the object will be
 understood (or raise an error). The design of the behavioural cast is
-intricate, and deserves its own section below.
-State is represented via a heap \s mapping addresses ranged over by \a
-to objects denoted \hspace{-1mm}\obj\C{\a[1]..}.
+intricate, and deserves its own section below.  State is represented via a
+heap \s mapping addresses ranged over by \a to objects
+denoted \hspace{-1mm}\obj\C{\a[1]..}.
 
 
 \paragraph{Static semantics}
@@ -589,16 +589,18 @@ well-typed and it has at most two definitions for any method \m, one typed
 of \kafka is mostly standard; the complete set of rules is in Appendix.  The
 subtype relation, \StrSub\M\K\t\tp, shown in \figref{sub}, allows for
 recursive structural subtyping: for this the environment \M keeps track of
-the set of subtype relations assumed.  The notation \md\In\App\K\C denotes
-the method definition \md occurring in class \C and class table \K.  Recall
-fields are hidden from the class type signature, so subtyping is limited to
-method definitions.  Key type rules are in \figref{f:staticsem}.  Method
-calls use \emph{syntactic} disambiguation to select between typed and
-untyped methods. The dynamically resolved call places no requirements on the
-receiver or argument, and returns type \any.  The statically resolved call
-has the usual type requirements on arguments. Statically, the two subtype
-cast rules are similar; they ensure the value has the cast-to type. However,
-the way their soundness is enforced at runtime is very different.
+the set of subtype relations assumed.  The dynamic type \any is a singleton
+in the subtype relation, it is neither a super or a sub-type of any other
+type.  The notation \md\In\App\K\C denotes the method definition \md
+occurring in class \C and class table \K.  Recall fields are hidden from the
+class type signature, so subtyping is limited to method definitions.  Key
+type rules are in \figref{f:staticsem}.  Method calls use \emph{syntactic}
+disambiguation to select between typed and untyped methods. The dynamically
+resolved call places no requirements on the receiver or argument, and
+returns type \any.  The statically resolved call has the usual type
+requirements on arguments. Statically, the two subtype cast rules are
+similar; they ensure the value has the cast-to type. However, the way their
+soundness is enforced at runtime is very different.
 %References can be typed both as dynamic, or with the type of the object the
 %point to in the current heap \(\sigma\). 
 
