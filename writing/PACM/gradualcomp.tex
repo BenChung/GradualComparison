@@ -2094,21 +2094,42 @@ For the other languages the situation is as follows:
 
 \section{Conclusion}
 
-Gradual typing is no longer simply a popular research topic in academia.
-Real-world applications are being written with gradual types and the tug of
-war between soundness and performance is being played out in multiple
-language designs.  It is the responsibility of language researchers to
-present a clear understanding of each viable gradual typing idiom available.
-We have introduced \kafka, a formal language that serves as the foundation
-for deconstructing xxx existing gradual typing systems: Typescript, Thorn,
-Transient Python, and Typed Racket.
-\kafka offers the
-opportunity for comparing and contrasting these gradual typing systems
-within an unified framework. The translations to \kafka for each gradual
-typing system highlights the essences which makes each system unique.
+In general gradual typing has matured beyond being an experimental language 
+feature in the petri dish of language research in academia.
+Real-world applications are now written with languages incorporating 
+gradual types, further propelling the tug of war between soundness and performance
+in yet another aspect of language design principles. To gain a clear picture
+of the feasibility of gradual typing. It is the responsibility of language researchers to
+present a clear explanation of each available gradual typing idiom.
 
-...future work 
-...more casts
+We introduced \kafka, a formal language that serves as the foundation
+for deconstructing several existing gradual typing systems: Typescript, Thorn,
+Transient Python, and Typed Racket.
+\kafka offers an opportunity to compare and contrast each gradual typing systems
+within an unified framework. the essences of each system are highlighted in the 
+translation from each gradual typing system to \kafka.
+
+A big takeaway from constructing \kafka is understanding that gradual typing systems
+are not monomorphic in their design or principles. Instead they vary, and
+differentiate in what they can write, express, and even in what can and cannot 
+be evaluated dynamically. There does not seem to be any right answer or 
+the one true answer for gradual typing. Based on need and different use cases.
+
+From Typed Racket, we extracted the principle that every value
+is inherited of it's declared type. In \kafka this manifested itself as the types
+of values are enforced before any call can be performed. Conversely, in Transient 
+the method being called is tasked with ensuring the arguments have the correct types.
+TypeScript with no dynamic behaviour, providing an excellent entry point for understanding
+the migration of concrete types to optional types in a Thorn program.
+
+The strength of \kafka lies in the simplicity and flexibility in it's used of casts and
+wrapper generation. New gradual typing systems can be introduced via a new cast semantics.
+
+Future work involves simply creating new casts and develop semantics for the
+interactions between casts.
+
+
+
 
 \bibliographystyle{unsrturl}
 \bibliography{../../bib/jv,../../bib/all}
