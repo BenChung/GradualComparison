@@ -900,62 +900,23 @@ or \e is stuck on one of the three following error contexts
     $\EE[\SubCast\tp\a]$,
    or $\EE[\BehCast\tp\a]$.\\
 
-% \begin{quote}{\bf Theorem:} Type Soundness.
-% 
-% For some $~\K$, $~\Kp$, $~\e$, $~\ep$, $~\s$, $~\sp$, and $\C$, 
-% {\bf if} $\WFp\K{\e~\s}~$ $ $and$~$ $\EnvType\cdot\s\K\e\t$ 
-% {\bf then} $~\e \Red \a$, 
-% {\bf or} $~\Reduce \K\e\s \Kp\ep\sp~$ and $~\WFp\Kp{\ep~\sp}$, and $~\EnvType\cdot\sp\Kp\ep\t$,
-% {\bf or} $\EE[\DynCall\a\m{\ap}]$,
-% {\bf or} $\EE[\SubCast\tp\a]$,
-% {\bf or} $\EE[\BehCast\tp\a]$.
-% 
-% \end{quote}   
-   
 \noindent
 The wrapper class generated from behavioural cast will not contain
 any duplicate methods or fields. The \xt{nodups} function takes a 
 list of method definitions, and will return false if there exists 
 any duplicate method names.
 
-% \medskip\noindent{\bf Lemma: No duplicates.} ~ Given the methods
-% $~\md[1].. \In \App\K\C$, and $\cload{\md[1]..}$ holds, and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
-% and $\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, then $\cload{\mdpp[1]..}$
-% where $\mdpp[1].. \In \k$.\\
-
 \medskip\noindent{\bf Lemma: No duplicates.} Given $~\md[1].. \In \App\K\C~$ $ $and$~$ $\cload{\md[1]..}~$ 
 and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
 and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, then $~\cload{\mdpp[1]..}$, where $~\mdpp[1].. \In \k$. \\
-
-% \begin{quote}{\bf Lemma:} No duplicates.
-% 
-% For some $~\K$, $~\C$, $~\D$, $~\that$, and $~\mdp[1]..~$, 
-% {\bf if} $~\md[1].. \In \App\K\C~$ $ $and$~$ $\cload{\md[1]..}~$ and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
-% and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, {\bf then} $~\cload{\mdpp[1]..}$, where $~\mdpp[1].. \In \k$. 
-% \end{quote}
 
 \noindent
 The wrapper class generated from behavioural cast is always a subtype
 of the target type, otherwise known as type that is being casted with.
 
-% \medskip\noindent{\bf Lemma: Subtype presevation.} ~ Given the methods $\md[1].. \In \App\K\C$ and 
-% $\mdp[1].. \In \App\K\Cp$, and the wrapper $\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, then
-% $\StrSub\emptyset\K\D\Cp$.
-
 \medskip\noindent{\bf Lemma: Subtype presevation.} ~ Given $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
 $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
 then $\StrSub\emptyset\K\D\Cp$..\\
-
-% \begin{quote}{\bf Lemma:} Subtype presevation.
-% 
-% For some $~\K$, $~\C$, $~\Cp$, $~\D$, $~\that$, and $\mdp[1]..~$, 
-% {\bf if} $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
-% $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
-% {\bf then} $\StrSub\emptyset\K\D\Cp$.. 
-% \end{quote}
-
-\noindent
-The complete proof is available in the appendix.
 
 \subsection{Implementation}
 
@@ -1854,33 +1815,10 @@ and the semi colon is syntactic sugar for sequencing.\footnote{This can be
   where \A is class with a single field of type \any and an identity method
   \m. The type of \e is \tp. All of the cast expect the one to \t are only
   there to please the type system and can be optimized away as they will
-  always succeed. }
+  always succeed. } Likewise, in order to ensure that field assignment will
+not get stuck, Transient gives all fields type \any, then checks the field
+value on reads based on the static typing.
 
-Likewise, in order to ensure that field assignment will not get stuck,
-Transient gives all fields type \any, then checks the field value on
-dereference, based on the static typing.
-
-BEN TODO: Make an example for this.
-
-In the following example, if we assume that the types \C and \D are incompatible,
-we see a program that Transient will reject at runtime, like Typed Racket and 
-Thorn would. When \A.\m is passed an instance of \C, no types are violated, but
-when passed an instance of \D (through the dynamic intermediary \n), Transient
-produces a dynamic error.
-
-\smallskip
-\(\Class \A  { \Mdef \m\x\C \D  {\Call \x\n{\New{\C}{}}}  ; \  \Mdef \n\x\any \any  \x} \)
-
-\smallskip
-\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \C{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// OK}\)
-
-\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \D{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// Runtime ERR}\)
-\smallskip
-
-The Transient guarantee is not identical to that of Typed Racket or Thorn,
-however. In Typed Racket, wrappers stack, causing intermediate type assertions
-to be retained if the wrapped value is passed into another context, even if
-the new context has a different type, illustrated in the following example.
 
 \newcommand{\sspce}{;~}
 \newcommand{\idbody}[1]{\SubCast{#1}\x\sspce \SubCast{#1}\x}
@@ -1909,11 +1847,11 @@ the new context has a different type, illustrated in the following example.
 \end{tabular} \\[1em]
 
 In this example, we have two mutually incompatible classes \C and \D,
-alongside potential consumers for \C and \D, \C itself and \code E, alongside a
-conversion helper \code F. Here, we use \code F to acquire a reference to \C
-as an \code E, which would imply that \C's \m has type \D to \D, despite it
-actually having type \C to \C, then call (again, using untyped code) it with
-a \C.
+alongside potential consumers for \C and \D, \C itself and \code E,
+alongside a conversion helper \code F. Here, we use \code F to acquire a
+reference to \C as an \code E, which would imply that \C's \m has type \D to
+\D, despite it actually having type \C to \C, then call (again, using
+untyped code) it with a \C.
 
 In Typed Racket, when we take the trip through the conversion helper \code F,
 we pick up a wrapper that ensures that the argument to \m is always a \D and
