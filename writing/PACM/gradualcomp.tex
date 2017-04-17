@@ -1075,8 +1075,8 @@ give rise to an error.
 
 \hrulefill  \small
 
-\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllll}  
-\begin{minipage}{1.5cm}\begin{mathpar}  
+\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllllll}  
+\begin{minipage}{1.25cm}\begin{mathpar}  
  \Rule{STG-VAR}{
     ~\\\\  ~\\\\
    \HasType \Env\x\t
@@ -1085,7 +1085,7 @@ give rise to an error.
 }
 \end{mathpar}\end{minipage}
 &
- \begin{minipage}{2.2cm}\begin{mathpar}
+ \begin{minipage}{1.7cm}\begin{mathpar}
   \Rule{STG-GET}{ ~\\\\
    \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
@@ -1094,7 +1094,7 @@ give rise to an error.
 }    
 \end{mathpar}
 \end{minipage} &
-  \begin{minipage}{3.4cm}\begin{mathpar}  
+  \begin{minipage}{3.05cm}\begin{mathpar}  
 \Rule{STG-SET}{
   \HasType \Env\this\C \quad
   {\Fdef\f\t \in \App\K\C} \\\\
@@ -1103,7 +1103,15 @@ give rise to an error.
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
 }    
-\end{mathpar}\end{minipage}& \begin{minipage}{4.1cm}\begin{mathpar}  
+\end{mathpar}\end{minipage}& \begin{minipage}{2.15cm}\begin{mathpar}  
+  \Rule[width=15em]{STG-CALL}{
+   ~\\\\       
+  \EnvTypeS \Env\K\e\any \\\\
+  \EnvTypeS \Env\K\ep\t 
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+}    
+\end{mathpar}\end{minipage}& \begin{minipage}{3.21cm}\begin{mathpar}  
 \Rule[width=15em]{STG-CALL}{
   \EnvTypeS \Env\K\e\C \quad
   \EnvTypeS \Env\K\ep\t \\\\
@@ -1213,20 +1221,20 @@ Our formalization of TypeScript's type system is in
 relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
 type conversions allowed by TypeScript.  The relation appears in
 \figref{confts} and states that a type is convertible to a super type and
-that \any is convertible to anything and conversely.
+that \any is convertible to anything and conversely. We illustrate the type
+system by focusing on the example above. For the first expression, the
+receiver has type \C, but the class does have method \n. The second
+expression is 
 
-
-We illustrate its design by focusing on the
-examples above and study how the \RuleRef{STG-CALL} rule enforces the
-expected outcome.  Since the receiver has type \C, the first expression is
-simply ruled out by the check that the called method must be part of the
-class signature.  The second is more interesting: the method exists but
-expects a \D argument while we are passing a \C.  The \emph{convertibility}
-relation, denoted \ConvertE\K{s}\t\tp, captures precisely the allowed
-implicit type conversion.  For TypeScript, values can flow freely to and
-from \any, and it is also allowed to pass a subtype when a supertype is
-expected.  Since in our second example, the types \C and \D are
-incompatible, the convertibility check fails.
+Since the receiver has type \C, the first expression is simply ruled out by
+the check that the called method must be part of the class signature.  The
+second is more interesting: the method exists but expects a \D argument
+while we are passing a \C.  The \emph{convertibility} relation, denoted
+\ConvertE\K{s}\t\tp, captures precisely the allowed implicit type
+conversion.  For TypeScript, values can flow freely to and from \any, and it
+is also allowed to pass a subtype when a supertype is expected.  Since in
+our second example, the types \C and \D are incompatible, the convertibility
+check fails.
 
 The TypeScript compiler then translates well-typed code to plain JavaScript, with all types erased and methods resolved dynamically. Of course, since convertibility allows arbitrary values can be passed whenever a \any value is expected, dynamically resolved calls may fail because the receiver need not have the requested method. The designers of TypeScript saw this unsoundness as a way to
 ensure, ({\em a}) that types do not get in the way of running correct
