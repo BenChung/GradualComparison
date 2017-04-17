@@ -1503,6 +1503,52 @@ are inserted on method entry and prior to returning.
 \caption{Transient convertibility rules}\label{f:transientts}
 \end{figure}
 
+\begin{figure} \small
+\hrulefill
+
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{8cm}\begin{mathpar} 
+\opdef{\ConSub\M\K\t\tp}{\t~ \text{is a consistent subtype of} ~\tp}
+ 
+\IRule{CSCons}{
+  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
+}{
+ \ConSub\M\K \t \tp
+}
+
+\IRule{CSAss}{
+\C \Sub \D \in \M
+}{
+ \ConSub \M\K \C\D
+}
+
+\IRule{CSRec}{
+ \M' = \M~\C\Sub\D \\\\
+\mt \in \classoff\D\K \implies \\\\
+\mtp \in \classoff\C\K ~~~\wedge~~~   \ConSub{\M'}\K\mt{\mtp}
+}{
+ \ConSub \M\K \C \D 
+}
+\end{mathpar}\end{minipage}
+& \begin{minipage}{6cm}\begin{mathpar}  
+
+\vspace{-2.8cm}
+
+\opdef{\ConSub\M\K\mt\mtp}{\m~ \text{is a consistent subtype of} ~\mtp}
+\IRule{CSMet}{
+  \ConSub \M\K {\t[2]} {\t[1]} \\\\
+  \ConSub \M\K {\tp[1]} {\tp[2]}
+}{
+ \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\vspace{-2mm}
+
+\hrulefill
+\caption{Consistent subtyping}\label{f:consubtype}
+\end{figure}
+
+
 The expression typing rules for our Transient Racket source is identical to the 
 typing rules, presented in figure \ref{f:typescriptts}, for our TypeScript source.
 
@@ -1941,37 +1987,40 @@ typing system highlights the essences which makes each system unique.
 
 The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
 
-~\\
+\vspace{-1cm}
 
-\opdef{~\WFq{\K~\e~\s}}{Well-formed program}
+\begin{figure}[!h]
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{8cm}\begin{mathpar}  
+\opdef{~\WFq{\K~\e~\s}}{\text{Well-formed program}}
 \vspace{-3mm}
-\begin{mathpar}
 \IRule{WP}{
-  \k \in \K \implies \WF{}\cdot\K\k \\
-  \EnvType\Env\s\K\e\t \\
-  \WFtype\K\s
+  \EnvType\Env\s\K\e\t \\\\
+  \WFtype\K\s \\\\
+  \k \in \K \implies \WF{}\cdot\K\k
 }{
   \WFq{\K~\e~\s}
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}& \begin{minipage}{6.0cm}\begin{mathpar} 
 
-\opdef{\WF{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed class}
+\opdef{\WF{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed class}}
 \vspace{-2.5mm}
-\begin{mathpar}
 \IRule{WC}{
- \cload{\md[1]..~\fd[1]..} \\
- \WF {}{}\K {\fd[1]..} \\
- \WF {\this:\C~}\s\K {\md[1]..}
+ \WF {}{}\K {\fd[1]..} \\\\
+ \WF {\this:\C~}\s\K {\md[1]..} \\\\
+  \cload{\md[1]..~\fd[1]..}
 }{
  \WF {}\s\K {\Class \C {\fd[1]..}{\md[1]..}}
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}\end{figure}
+
+% \vspace{-1cm}
 
 The \xt{nodups} function states that there are no overloaded 
 field or method names within the given field and method definitions. \\
 
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
-\vspace{-3mm}
+\vspace{-1mm}
 \begin{mathpar}
 \IRule[width=18em]{WT1}{
  \Envp = \Env{~\Ftype\x\any} \\
@@ -1992,40 +2041,45 @@ field or method names within the given field and method definitions. \\
 }
 \end{mathpar}
 
-\opdef{~\WFtype \K {\fd}}{Well-formed fields}
-\vspace{-3mm}
-\begin{mathpar}
+\begin{figure}[!h]
+\begin{minipage}{\textwidth}\begin{tabular}{lll}  
+\begin{minipage}{4cm}\begin{mathpar}  
+\vspace{4mm}
+\opdef{~\WFtype \K {\fd}}{\text{Well-formed fields}}
+% \vspace{-3mm}
 \IRule{WF}{
+%  ~\\\\
  \WFtype\K\t 
 }{
  \WFtype\K{\Fdef\f\t}
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}& \begin{minipage}{5cm}\begin{mathpar} 
  
-\opdef{~\WFtype\K\t}{Well-formed types}
-\vspace{-3mm}
-\begin{mathpar}
+\opdef{~\WFtype\K\t}{\text{Well-formed types}}
+% \vspace{-3mm}
 \IRule{WA}{
+  ~\\\\
 }{
  \WFtype\K\any
 }
 
 \IRule{WC}{
+ ~\\\\
  \C \in \K
 }{
  \WFtype\K\C
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}& \begin{minipage}{6cm}\begin{mathpar} 
 
-\opdef{~\WFtype\K\s}{Well-formed heaps}
-\begin{mathpar}
+\opdef{~\WFtype\K\s}{\text{Well-formed heaps}}
 \IRule{WH}{
-\Bind\ap{\obj\C{\a[1] ..}}~\in~\s \implies \Class\C{\fd[1]..}{\md[1]..}\in\K ~~~\wedge~~~  
+\Bind\ap{\obj\C{\a[1] ..}}~\in~\s \implies \\\\
+\Class\C{\fd[1]..}{\md[1]..}\in\K ~~~\wedge~~~  
 \EnvType\cdot\s\K{\a[1]}{\t[1]} ~..
 }{
  \WFtype\K\s
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}\end{figure}
 
 \subsection{Expression typing}
 
@@ -2033,73 +2087,81 @@ The expression typing judgments for \kafka includes in ascending order as listed
 variable, untyped address, subsumption, field assignment, field read, static method invocation, dynamic method invocation, object creation,
 subtype cast, typed address.
 
-~\\
+% \begin{figure}[!h]
+% \begin{minipage}{\textwidth}\begin{tabular}{lll}  
+% \begin{minipage}{4cm}\begin{mathpar}  
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 \vspace{-6mm}
 \begin{mathpar}
 \IRule{KT-VAR}{
+   ~\\\\
+   ~\\\\
    \HasType \Env\x\t
  }{
    \EnvType \Env\s\K\x\t
 }
 
-\IRule{KT-SUB}{ 
-  \EnvType \Env\s\K\e\tp \\
+\IRule{KT-SUB}{
+  ~\\\\
+  \EnvType \Env\s\K\e\tp \\\\
  \StrSub \cdot\K \tp \t
  }{
   \EnvType \Env\s\K\e\t 
 }   
 
-\IRule[width=12em]{KT-READ}{
-  \HasType\Env\this\C\\
+\IRule{KT-READ}{
+  ~\\\\
+  \HasType\Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvType \Env\s\K{\FRead\f}\t
 }  
 
-\IRule[width=12em]{KT-REFREAD}{
-  \EnvType \Env\s\K\a\C \\
-  \Fdef\f\t \in \App\K\C \\
+\IRule{KT-REFREAD}{
+  \EnvType \Env\s\K\a\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
   \EnvType \Env\s\K\e\t
 }{
   \EnvType \Env\s\K{\FReadR\a\f}\t
 }  
 
-\IRule[width=12em]{KT-WRITE}{
-  \HasType\Env\this\C\\
-  \Fdef\f\t \in \App\K\C \\
+\IRule{KT-WRITE}{
+  \HasType\Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
   \EnvType \Env\s\K\e\t
 }{
   \EnvType \Env\s\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=12em]{KT-REFWRITE}{
-  \EnvType \Env\s\K\a\C \\
-  \Fdef\f\t \in \App\K\C \\
+  \EnvType \Env\s\K\a\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
   \EnvType \Env\s\K\e\t
 }{
   \EnvType \Env\s\K{\FWriteR\a\f\e}\t
 }  
 
 \IRule[width=16em]{KT-CALL}{
-  \EnvType \Env\s\K\e\C \\
-  \Mtype\m\t\tp \in \classoff\C\K \\
-  \EnvType \Env\s\K\ep\t
+  \EnvType \Env\s\K\e\C \\\\
+  \EnvType \Env\s\K\ep\t \\\
+  \Mtype\m\t\tp \in \classoff\C\K 
 }{
   \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
 }    
 
 \IRule{KT-DYNCALL}{
-  \EnvType \Env\s\K\e\any \\
+  ~\\\\
+  \EnvType \Env\s\K\e\any \\\\
   \EnvType \Env\s\K\ep\any
 }{
   \EnvType \Env\s\K{\DynCall\e\m\ep}\any
 }    
 
 \IRule[width=20em]{KT-NEW}{
-  \Class \C {\Fdef{\f[1]}{\t[1]}}{\md[1]..} \in \K\\
-  \EnvType \Env\s\K{\e[1]}{\t[1]}..\\
+  ~\\\\
+  \EnvType \Env\s\K{\e[1]}{\t[1]}..\\\\
+  \Class \C {\Fdef{\f[1]}{\t[1]}}{\md[1]..} \in \K
 }{
   \EnvType\Env\s\K{\New\C{\e[1]..}}\C
 }
@@ -2193,10 +2255,15 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \section{Source language syntax and semantics}
 
-\subsection{Thorn subtyping}
+\subsection*{Thorn subtyping}
 
+\opdef{\ThorSub\M\K\t\tp}{\t is a subtype of \tp}
+\begin{mathpar} \small
+\IRule{TSRef}{
+}{
+ \ThorSub\M\K \t \t
+}
 
-\begin{mathpar}
 \IRule{TSWeak}{
   \ThorSub \M\K\C\D
 }{
@@ -2209,15 +2276,17 @@ method definitions or method typings, and ensures there are no duplicates.
   \ThorSub \M\K{\C}{\dt\D}
 }
 
-\IRule{TSRef}{
-}{
- \ThorSub\M\K \t \t
-}
-
 \IRule{TSAss}{
 \C \Sub_t \D \in \M
 }{
  \ThorSub\M\K \C \D
+}
+
+\IRule[width=18em]{TSMet}{
+  \ThorSub \M\K {\t[1]} {\t[2]} \\
+  \ThorSub \M\K {\tp[2]} {\tp[1]}
+}{
+ \ThorSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
 }
 
 \IRule{TSRec}{
@@ -2227,64 +2296,29 @@ method definitions or method typings, and ensures there are no duplicates.
  \ThorSub\M\K \C \D 
 }
 
-\IRule{TSMet}{
-  \ThorSub \M\K {\t[1]} {\t[2]} \\
-  \ThorSub \M\K {\tp[2]} {\tp[1]}
-}{
- \ThorSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
 \end{mathpar}
 
-\subsection{Consistent subtyping}
 
-\opdef{\ConSub\M\K\t\tp}{\t is a consistent subtype of \tp}
-\begin{mathpar}
-\IRule{CSCons}{
-  \t = \any ~\vee~ \tp = \any ~\vee~ \t = \tp
-}{
- \ConSub\M\K \t \tp
-}
+\subsection*{Well-formedness for Thorn}
 
-\IRule{CSAss}{
-\C \Sub \D \in \M
-}{
- \ConSub \M\K \C\D
-}
-
-\IRule{CSRec}{
- \M' = \M~\C\Sub\D\\
-\mt \in \classoff\D\K \implies \mtp \in \classoff\C\K ~.~ \ConSub{\M'}\K\mt{\mtp}
-}{
- \ConSub \M\K \C \D 
-}
-\end{mathpar}
-
-\opdef{\ConSub\M\K\mt\mtp}{$\mt$ is a consistent subtype of $\mtp$}
-\begin{mathpar}
-\IRule{CSMet}{
-  \ConSub \M\K {\t[2]} {\t[1]} \\
-  \ConSub \M\K {\tp[1]} {\tp[2]}
-}{
- \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-\end{mathpar}
-
-\subsection{Well-formedness for Thorn}
-
-\opdef{~\WFpW{\e}{\K}}{Well-formed programs}
+\begin{figure}[!h]
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{8cm}\begin{mathpar}  
+\hspace{-1cm}
+\opdef{~\WFpW{\e}{\K}}{\text{Well-formed programs}}
 \vspace{-3mm}
-\begin{mathpar}
 \IRule{WP}{
+  ~\\\\
   \k \in \K \implies \WFW{}\K\k \\
   \EnvTypeW\Env\K\e\t
 }{
   \WFpW\e\K
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}& \begin{minipage}{8.0cm}\begin{mathpar}
+\vspace{-6mm}
 
-\opdef{\WFW{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed classes}
+\opdef{\WFW{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed classes}}
 \vspace{-1mm}
-\begin{mathpar}
 \IRule[width=25em]{WCL}{
  \cload{\fd[1],\md[1]..} \\
  \fd\in\fd[1]..\implies \WFW {}\K \fd \\
@@ -2292,11 +2326,17 @@ method definitions or method typings, and ensures there are no duplicates.
 }{
  \WFW {}\K {\Class \C {\fd[1]..}{\md[1]..}}
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
 
-\opdef{~\WFW \Env\s\K \md}{Well-formed methods}
-\vspace{-2.5mm}
-\begin{mathpar}
+\vspace{6mm}
+
+\begin{minipage}{\textwidth}\begin{tabular}{l}  
+\begin{mathpar}  
+\hspace{-7.5cm}                             
+\opdef{~\WFW \Env\s\K \md}{\text{Well-formed methods}}
+
+\vspace{-3mm}
+
 \IRule[width=18em]{WT}{
  \EnvTypeW {\Env{~\Ftype\x\C}~}\K\e\D\\
  \WFtypeW\K\C \\
@@ -2313,22 +2353,25 @@ method definitions or method typings, and ensures there are no duplicates.
 }{
  \WFW \Env\K {\Mdef\m\x\t\tp\e}
 }
-\end{mathpar}
+\end{mathpar}\end{tabular}\end{minipage}
 
-\opdef{~\WFtypeW \K {\Fdef\f\t}}{Well-formed fields}
+\vspace{4mm}
+
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{8cm}\begin{mathpar}  
+% \hspace{-1cm}
+\opdef{~\WFtypeW \K {\Fdef\f\t}}{\text{Well-formed fields}}
 \vspace{-3mm}
-\begin{mathpar}
 \IRule{WF}{
  \WFtypeW\K\t 
 }{
  \WFtypeW\K{\Fdef\f\t}
 }
 
-\end{mathpar}
-
-\opdef{~\WFtypeW\K\t}{Well-formed types}
+\end{mathpar}\end{minipage}& \begin{minipage}{8.0cm}\begin{mathpar} 
+\hspace{-2cm}
+\opdef{~\WFtypeW\K\t}{\text{Well-formed types}}
 \vspace{-3mm}
-\begin{mathpar}
 
 \IRule{WA}{
 }{
@@ -2346,26 +2389,30 @@ method definitions or method typings, and ensures there are no duplicates.
 }{
  \WFtypeW\K{\CW}
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\end{figure}
 
+% \clearpage
 
-\subsection{Well-formedness for Typed Racket, TypeScript, Transient}
+\subsection*{Well-formedness for Typed Racket, TypeScript, Transient}
 
-We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript) or $tr$ (for the Transient semantics). \\
+We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript) or $tr$ (for the Transient semantics).
 
-\opdef{~$\WFpx{\e}{\K}$}{Well-formed programs}
-\vspace{-5mm}
-\begin{mathpar}
+\begin{figure}[!h]
+% \vspace{-8mm}
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{4cm}\begin{mathpar} 
+\opdef{~$\WFpx{\e}{\K}$}{\text{Well-formed programs}}
+\vspace{-2mm}
 \IRule{SWF-PROG}{
-  \k \in \K \implies \WFx{}\cdot\K\k \\
-  \EnvTypex\Env\cdot\K\e\t
+  \EnvTypex\Env\cdot\K\e\t \\\\
+  \k \in \K \implies \WFx{}\cdot\K\k
 }{
   \WFpx\e\K
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}& \begin{minipage}{12.0cm}\begin{mathpar} 
 
-\opdef{\WFx{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{Well-formed classes}
-\begin{mathpar}
+\opdef{\WFx{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed classes}}
 \vspace{-3mm}
 \IRule[width=25em]{SWF-CLASS}{
  \cload{\fd[1]..,\md[1]..} \\
@@ -2374,11 +2421,13 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 }{
  \WFx {}{}\K {\Class \C {\fd[1]..}{\md[1]..}}
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\end{figure}
 
 \opdef{~\WFx \Env{}\K \md}{Well-formed methods}
 \begin{mathpar}
-\vspace{-4mm}
+\hspace{-8mm}
+
 \IRule[width=18em]{SWF-TYMETH}{
  \EnvTypex {\Env{~\Ftype\x\C}~}\K\e\D\\
  \WFtypex\K\C \\
@@ -2396,19 +2445,24 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 }
 \end{mathpar}
 
-\opdef{~\WFtypex \K {\Fdef\f\t}}{Well-formed fields}
-\begin{mathpar}
-\vspace{-3mm}
+
+\begin{figure}[!h]
+% \vspace{-8mm}
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{4cm}\begin{mathpar} 
+\opdef{~\WFtypex \K {\Fdef\f\t}}{\text{Well-formed fields}}
+% \vspace{-3mm}
 \IRule{SWF-FIELD}{
  \WFtypex\K\t 
 }{
  \WFtypex\K{\Fdef\f\t}
 }
-\end{mathpar}
+\end{mathpar}\end{minipage}& \begin{minipage}{10.0cm}\begin{mathpar} 
 
-\opdef{~\WFtypex\K\t}{Well-formed types}
-\begin{mathpar}
-\vspace{-3mm}
+\hspace{-5cm}
+
+\opdef{~\WFtypex\K\t}{\text{Well-formed types}}
+% \vspace{-3mm}
 \IRule{SWT-ANY}{
 }{
  \WFtypex\K\any
@@ -2419,12 +2473,13 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 }{
  \WFtypex\K\C
 } 
-\end{mathpar}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\end{figure}
 
-\subsection{Thorn expression typing}
+\subsection*{Thorn expression typing}
 
 \opdef{\ConvertE\K{th}\t\tp}{type convertibility between \t and \tp.}
-\vspace{-1.5mm}
+% \vspace{-1.5mm}
 \begin{mathpar}
 \IRule{STHC-SUB}{
   \ThorSub\cdot\K\t\tp
@@ -2448,53 +2503,58 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
   \ConvertE\K{th}\any\tp
 }
 \end{mathpar}
-\vspace{-2mm}
+% \vspace{-2mm}
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
-\vspace{-1mm}
+% \vspace{-1mm}
 \begin{mathpar}
 \IRule{STH-VAR}{
+   ~\\\\
+   ~\\\\
+   ~\\\\
    \HasType \Env\x\t
  }{
    \EnvTypeW \Env\K\x\t
 }
 
 \IRule{STH-GET}{
-  \HasType \Env\this\C \\
+~\\\\
+~\\\\
+  \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeW \Env\K{\FRead\f}\t
 }    
 
 \IRule{STH-SET}{
-  \HasType \Env\this\C \\
-  \Fdef\f\t \in \App\K\C \\
-  \EnvTypeW \Env\K\e\tp \\
+  \HasType \Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvTypeW \Env\K\e\tp \\\\
   \ConvertE\K{th}\tp\t
 }{
   \EnvTypeW \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule{STH-CALL}{
-  \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW \\
-  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\
-  \EnvTypeW \Env\K\ep\tpp \\
-  \ConvertE\K{th}\tpp\t
+  \Mtype \m{\t}\tp\in \classoff{\C}\K  \\\\
+  \EnvTypeW \Env\K\ep\tpp \\\\
+  \ConvertE\K{th}\tpp\t \\\\
+  \EnvTypeW \Env\K\e\C ~~\vee~~ \EnvTypeW \Env\K\e\CW 
 }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\tp
 }    
 
 \IRule[width=25em]{STH-DCALL}{
-  \EnvTypeW \Env\K\e\any \\
-  \EnvTypeW \Env\K\ep\tpp \\
+  \EnvTypeW \Env\K\e\any \\\\
+  \EnvTypeW \Env\K\ep\tpp \\\\
   \ConvertE\K{th}\tpp\any
 }{
   \EnvTypeW \Env\K{\Call\e\m\ep}\any
 }    
 
 \IRule[width=25em]{STH-NEW}{
-  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\
-  \EnvTypeW \Env\K{\e[1]}{\tp[1]}..\\
+  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K\\\\
+  \EnvTypeW \Env\K{\e[1]}{\tp[1]}..\\\\
  \ConvertE\K{th}{\tp[1]}{\t[1]}..
 }{
   \EnvTypeW \Env\K{\New\C{\e[1]..}}\C
@@ -2505,7 +2565,7 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 
 % \clearpage 
 
-\subsection{Typescript and Typed Racket expression typing}
+\subsection*{Typescript and Typed Racket expression typing}
 
 \opdef{\ConvertE\K{s}\t\tp}{type convertibility between \t and \tp.}
 \begin{mathpar}
@@ -2532,54 +2592,60 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 \opdef{\EnvTypeS\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
 \begin{mathpar}
 \IRule{STG-VAR}{
+   ~\\\\
+   ~\\\\
+   ~\\\\
    \HasType \Env\x\t
  }{
    \EnvTypeS \Env\K\x\t
 } 
 
 \IRule{STG-GET}{
-   \HasType \Env\this\C \\
+   ~\\\\
+   ~\\\\   
+   \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeS \Env\K{\FRead\f}\t
 }    
 
 \IRule[width=20em]{STG-SET}{
-  \HasType \Env\this\C \\
-  \Fdef\f\t \in \App\K\C \\
-  \EnvTypeS \Env\K\e\tp \\
+  \HasType \Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvTypeS \Env\K\e\tp \\\\
   \ConvertE\K{s}\tp\t
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STG-CALL}{
-  \EnvTypeS \Env\K\e\C \\
-  \Mtype \m\t\tp\in \classoff\C\K  \\
-  \EnvTypeS \Env\K\ep\tpp \\
-  \ConvertE\K{s}\tpp\t
+  \EnvTypeS \Env\K\e\C \\\\
+  \EnvTypeS \Env\K\ep\tpp \\\\
+  \ConvertE\K{s}\tpp\t \\\\
+  \Mtype \m\t\tp\in \classoff\C\K    
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}\tp
 }    
 
 \IRule[width=20em]{STG-DCALL}{
-  \EnvTypeS \Env\K\e\any \\
-  \EnvTypeS \Env\K\ep\tpp \\
+   ~\\\\
+  \EnvTypeS \Env\K\e\any \\\\
+  \EnvTypeS \Env\K\ep\tpp \\\\
   \ConvertE\K{s}\tpp\any
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}\any
 }    
 
 \IRule{STG-NEW}{
-  \Class \C {\fd[1]..}{\md[1]..} \in \K\\
-  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\
- \ConvertE\K{s}{\tp[1]}{\t[1]}..\\
+ \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
+ \ConvertE\K{s}{\tp[1]}{\t[1]}..\\\\
+ \Class \C {\fd[1]..}{\md[1]..} \in \K
 }{
   \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
 }
 \end{mathpar}
 
-\subsection{Transient expression typing}
+\subsection*{Transient expression typing}
 
 \opdef{\ConvertE\K{tr}\t\tp}{type convertibility between \t and \tp.}
 \begin{mathpar}
@@ -2606,52 +2672,58 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 \begin{mathpar}
 
 \IRule{STT-VAR}{
+   ~\\\\
+   ~\\\\
+   ~\\\\
    \HasType \Env\x\t
  }{
    \EnvTypeT \Env\K\x\t
 }
 
 \IRule{STT-GET}{
-   \HasType \Env\this\C \\
+   ~\\\\
+   ~\\\\   
+   \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
   \EnvTypeT \Env\K{\FRead\f}\t
 }    
 
 \IRule[width=20em]{STT-SET}{
-  \HasType \Env\this\C \\
-  \Fdef\f\t \in \App\K\C \\
-  \EnvTypeT \Env\K\e\tp \\
+  \HasType \Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvTypeT \Env\K\e\tp \\\\
   \ConvertE\K{tr}\tp\t
 }{
   \EnvTypeT \Env\K{\FWrite\f\e}\t
 }    
 
 \IRule[width=20em]{STT-CALL}{
-  \EnvTypeT \Env\K\e\C \\
-  \Mtype \m\t\tp\in \classoff\C\K  \\
-  \EnvTypeT \Env\K\ep\tpp \\
-  \ConvertE\K{tr}\tpp\any
+  \EnvTypeT \Env\K\e\C \\\\
+  \EnvTypeT \Env\K\ep\tpp \\\\
+  \ConvertE\K{tr}\tpp\any \\\\
+  \Mtype \m\t\tp\in \classoff\C\K    
 }{
   \EnvTypeT \Env\K{\Call\e\m\ep}\tp
 }    
 
 \IRule[width=20em]{STT-DCALL}{
-  \EnvTypeT \Env\K\e\any \\
-  \EnvTypeT \Env\K\ep\tpp \\
+  \EnvTypeT \Env\K\e\any \\\\
+  \EnvTypeT \Env\K\ep\tpp \\\\
   \ConvertE\K{tr}\tpp\any
 }{
   \EnvTypeT \Env\K{\Call\e\m\ep}\any
 }    
 
 \IRule{STT-NEW}{
-  \Class \C {\fd[1]..}{\md[1]..} \in \K\\
-  \EnvTypeT \Env\K{\e[1]}{\tp[1]}..\\
- \ConvertE\K{tr}{\tp[1]}{\t[1]}..\\
+  \Class \C {\fd[1]..}{\md[1]..} \in \K\\\\
+  \EnvTypeT \Env\K{\e[1]}{\tp[1]}..\\\\
+ \ConvertE\K{tr}{\tp[1]}{\t[1]}..
 }{
   \EnvTypeT \Env\K{\New\C{\e[1]..}}\C
 }
 \end{mathpar}
+
 
 \clearpage
 
