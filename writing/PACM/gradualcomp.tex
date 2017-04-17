@@ -1419,7 +1419,7 @@ types.
 \medskip
 
 \hrulefill
-\caption{Thorn translation.  \kty\t = \any if  \t=\dt\C or \t=\any, \t otherwise. }\label{thtr}
+\caption{Thorn translation}\label{thtr}
 \end{figure}
 
 The following expressions illustrate the difference between Thorn and
@@ -1477,64 +1477,57 @@ the runtime does not guarantee that \dt\C variables points to instances of
 the class \C, the conformance of the value actually accessed is checked
 individually at each method invocation, as if the callee had type \any.
 
-The translation of Thorn into \kafka is given in~\figref{thtr}.
-Contrarily to TypeScript, the compilation of method invocation performs
-different operations depending on the source type of the receiver
-object. For this, the translation function \TRG{...}\Env takes in input a
-typing environment \Env, typechecks the callee, and distinguishes two cases.
-If the callee has a concrete type then method invocation is mapped to static
-method invocation; if instead it has optional or dynamic type, then method
-invocation is mapped to the dynamically checked method invocation.
-Translating the argument is more subtle, because a dynamic type check (that
-is, the appropriate structural cast) might be needed to satisfy the type
-constraints imposed by the called method.  This is realised by the auxiliary
-translation function, \TAG{..}\Env\t.  This function translates its
-argument, checks if its type is a subtype of the expected type \t, and if
-not it inserts the appropriate structural type cast.  This subtype test must
-be performed in the \kafka type system, and not in the source type system,
-and must respect the mapping from Thorn types to \kafka types.  This one is
-defined by the \kty\t function: Thorn optional and dynamic types are mapped
-to the \any type of \kafka, while Thorn concrete types are mapped to the
-equivalent Thorn concrete types.
+The translation of Thorn into \kafka is given in~\figref{thtr}. As with
+TypeScript translation proceeds top-down. The differences are that the
+translation function for expressions, \TRG{\e}\Env, takes a source-level
+typing environment as input. This is used to record the expect type of \this
+and arguments \x to methods. Furthermore, the translation can also request
+the insertion of casts, this is done with the function \TAG{\e}\Env\t which
+translates an expression and ensures that the result is of type \t. The most
+interesting case in the translation is the handling of method invocation
+\Call\e\m\ep. If the type of \e is a concrete \C, then a statically resolved
+invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
+or an optional type, then a dynamically resolved call of the form
+\DynCall\e\m\ep is emitted.  The argument of statically resolved method
+invocation, as well as constructors and field assignment are all translated
+using the auxiliary function as their expected type is known.  This function
+translates its argument, checks if its type is a subtype of the expected
+type \t, and if not it inserts the appropriate cast.  The cast is performed
+in the \kafka type system, and not in the source type system, and must
+respect the mapping from Thorn types to \kafka types.  This mapping is
+defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
+otherwise.  Thorn optional and dynamic types are mapped to the \any type,
+while concrete types are unchanged.
 
-We have seen that the method invocation mechanism depends on the type of the
-receiver object. Translation of classes thus relies on overloading to
-provide two implementations of each method: one to be called if the object
-is referred to as a concretely type object, and one if it is referred to as
-an optionally typed (or dynamic) object.  More precisely, given a Thorn
-method \(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
-generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
-(protecting the the return value with appropriate cast to \kty{\t[2]} if
-necessary), to be used in a concretely typed context.  The \kafka
-translation also generates a second method \mdpp, that wraps \mdp so that it
-is safe to invoke it with type \(\any \to \any\), that is from an optionally
-typed or dynamic context.  Finally, each field \f:\t is mapped to the
-corresponding \f:\kty\t field.
-
-%how does the translation work:
-%- types: * and ?C are mapped to * ; C are mapped to C
-%- we use two functions [[ ]] and (( )):
-%  -- [[ ]] translates terms (since we need to typecheck we carry an environment of free variables).  The interesting case is when we translate method invocation.  If, by typechecking, the callee has a dynamic or optional type (eg. kty( t ) = *, the we map it to dynamic method invocation.  Otherwise we compile to the static method invocation. 
-%- The type of the method imposes a type for the methods.  This might / might not require casts to be inserted to satisfy this constraint.   the arguments are more interesting...  we know the type we must translate them to.  so we use a second function (()) to translate them, possibly inserting casts.  this second function translates the argument t with the usual [[]] function, but then checks the ktys types expected and obtained, and if needed inserts a structural cast to preserve the integrity of the method invocation (eg. if that was expecting a C).
-%- translation of classes (interesting because for the first time we see why we need overloading in kafka): 
-%  -- we generate a method from kty(t1) to kty(t2), inserting a cast around the return value if needed. 
-%  --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
-%  
- 
+We have seen that any method can be called statically and dynamically. For
+this to work out it is necessary to generate a dynamic version of all Thorn
+methods (or at least of methods that not \any to \any as these are already
+callable from a dynamic context).  Translation of classes thus relies on
+overloading to provide two implementations of each method: one to be called
+if the object is referred to as a concretely type object, and one if it is
+referred to as an optionally typed (or dynamic) object.  More precisely,
+given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the \kafka
+translation first generates a method \(\mdp\) with type \(\kty{\t[1]} \to
+\kty{\t[2]}\) (protecting the the return value with appropriate cast to
+\kty{\t[2]} if necessary), to be used in a concretely typed context.  The
+\kafka translation also generates a second method \mdpp, that wraps \mdp so
+that it is safe to invoke it with type \(\any \to \any\), that is from an
+optionally typed or dynamic context.  Finally, each field \f:\t is mapped to
+the corresponding \f:\kty\t field.
 As an example, translating the class \A and the last expression above results in:
 
-\medskip
-\(
- \Class \A {
-    \Mdef \m\x\any \any  \x  ; \ 
-    \Mdef \n\x\C\C  \x ; \  \Mdef \n\x\any\any {\SubCast \any {\KCall \this \n {\SubCast \C \x}  \C \C }}   %{\SubCast \C \x}}}
-    }
-\)
+\begin{tabbing}
+\HS\HS\KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
+\HS\HS\WHERE\HS=\HS\=
+ \class\= \A \{\\
+\>\>    \Mdef \m\x\any \any{~\x~}\\
+\>\>    \Mdef \n\x\C\C{~\x~}\\
+\>\>    \Mdef \n\x\any\any {\SubCast\any{\KCall\this\n{\SubCast\C\x}\C\C }} \\
+\>\}
+ \end{tabbing}
 \medskip
 
-\( \KCall {\New \A{}} \n {\SubCast \C {( \KCall {\New \A{}} \m {\SubCast \any {\New \C{}}} \any \any)}} \C \C \)
 
-\medskip
 
 \noindent As expected, the outer invocation to \n has been protected by a
 structural cast to \C.  Remark that \kafka overloading and the combination
