@@ -1639,30 +1639,34 @@ illustrate the semantics of Typed Racket, consider the following example:
 \end{tabbing}
 \medskip
 
-\noindent Values cross several typed/untyped boundaries.  For instance, \A's
-method \m expects a value of type \any and the method \n of \D, which
-expects a value of type \D.  Also, class \D attempts to invoke on its
-argument a method \m with interface \(\D \to \D\), but the example passes to
-\D a method \m with interface \(\any \to \any\).  In order to protect class
-\D from the object \C potentially not behaving as an object \D, Typed Racket
-inserts a wrapper object around the argument of \D; the wrapper is
-responsible for ensuring that the actual value respects the constraints of
-class \D.  The \kafka translation for Typed Racket inserts a behavioral cast
-at the boundary between the invocation of class \D's method \m in class \A.
-This has the same effect of Typed Racket wrapping: the object with type \C
-is wrapped to make sure that it acts as an object of type {\xt B}.  The
-generated \kafka code for the example is reported below:
+\noindent Values cross several typed/untyped boundaries in this example.
+For instance, \A's method \m expects a value of type \any and passes that
+value down to the method \m of \D which expects a value of type \D.  The
+translation will insert a behavioral cast from \any to \D at the call of
+\D's \m.  Within the body of \D's \m, there is a call to \m, in our example
+the value being passed is an instance of class \C which has a method \m with
+interface \(\any \to \any\).  In order to protect class \D from the object
+\C potentially not behaving as an object \D, Typed Racket inserts a wrapper
+object around the argument of \D; the wrapper is responsible for ensuring
+that the actual value respects the constraints of class \D.  The \kafka
+translation for Typed Racket inserts a behavioral cast at the boundary
+between the invocation of class \D's method \m in class \A.  This has the
+same effect of Typed Racket wrapping: the object with type \C is wrapped to
+make sure that it acts as an object of type {\xt B}.  The generated \kafka
+code for the example is:
 
-\vspace{2mm}
-\(
-  \begin{array}{l}
-  \Class{\xt A}{}{\Mdef\m\x\any\any{\BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\C}\D }}} \\
-  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
-  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
-  \KCall{\New{\xt A}{}}\m{\New{\xt C}{}}\any\any
-  \end{array}
-\)
-\vspace{2mm}
+{ \bf JAN: I don't really like the above text. }
+
+\medskip
+\begin{tabbing}
+\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \HS\WHERE\HS\K\HS=\HS\=
+\class\= \A \{\\
+\>\> \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\C}\D~}} \\
+\>\}\\
+ \>  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
+ \>  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
+\end{tabbing}
+\medskip
 
 
 \noindent By enforcing types on the values and not leaving the check that
@@ -1670,36 +1674,28 @@ the value has the correct types to the user. Typed Racket is able to
 translate the typed code in class \D as if the language had no untyped
 code. Any misbehavior will be instantly caught by the value themselves.
 
+As mentionned earlier, we depart from Typed Racket in several ways. In Type
+Racket the granularity of boundaries is the module, all classes in the same
+module are either typed or untyped.  The finer granularity adopted here does
+not lose expressiveness and matches the approach adopted in the Guarded
+variant of Reticulated Python. Another feature of Typed Racket, that can be
+switched on or off is protection of the \this reference. When that feature
+is on, accesses to the \this reference are protected. This is needed to
+support inheritance -- if an untyped class inherits from a typed one, then
+the self-reference may be accessed from both typed and untyped contexts
+without necessarily passing through a typed/untyped boundary. As a result,
+inheritance in a gradually typed setting requires the protection of all
+self-references.
 
-
-As we hinted, our formalisation does not take into account some of the Typed
-Racket language features.  Two of them are of particular interest for
-gradual typing.  The first one is inheritance.  Inheritance creates a large
-array of difficulties for gradual typing.  In particular, if an untyped
-class inherits from a typed one, then the self-reference may be accessed
-from both typed and untyped contexts without necessarily passing through a
-typed/untyped boundary. As a result, inheritance in a gradually typed
-setting requires the protection of all self-references; Typed Racket
-implements this by default, even if it can be disabled with a switch.  Typed
-Racket provides support for first-class classes and allows for typed mixins.
-We have omitted both inheritance and first-class classes from \kafka, as we
-believe they are orthogonal to its purpose, and supporting them would add
-unnecessary complexity.
-
-At the same time we choose to omit some features of Typed Racket.  For
-instance in Typed Racket types are added to entire modules at a time,
-whereas our model allows individual functions to be typed independently.  We
-omit this in our study as it does not impact the basic semantics of the
-language.  More interestingly, Typed Racket also supports first-class
-classes with mixins, and inheritance: we discuss these at the end of this
-section.
 
 \subsection{Transient Python}
 
-The Transient variant of Reticulated Python aims for soundness
-with a predictable cost model, by defensively checking the declared types of the arguments in every method.  For instance, in the code below Transient Python deems both expressions well-typed;  however, the
-second is raises a type error when the instance of class \D is passed to the method \m
-expecting a value of type \C.  
+The Transient variant of Reticulated Python aims for soundness with a
+predictable cost model, by defensively checking the declared types of the
+arguments in every method.  For instance, in the code below Transient Python
+deems both expressions well-typed; however, the second is raises a type
+error when the instance of class \D is passed to the method \m expecting a
+value of type \C.
 
 \smallskip
 \(\Class \A  { \Mdef \m\x\C \D  {\Call \x\n{\New{\C}{}}}  ; \  \Mdef \n\x\any \any  \x} \)
@@ -1715,11 +1711,28 @@ The Transient design allows method \m, which expects an instance of
 class \C as argument, to be called with a value of type \any at any point; this forces
 \m to check its arguments at every method invocation.   
 
-The expression typing rules for our Transient Racket source is identical to the typing rules of TypeScript presented in~\figref{f:typescriptts}, except that the convertibility rules, defined in~\figref{f:transientts}, now builds on an auxiliary \emph{consistency}  relation, defined in~\figref{f:consubtype} to relate types \t and \tp.
+The expression typing rules for our Transient Racket source is identical to
+the typing rules of TypeScript presented in~\figref{f:typescriptts}, except
+that the convertibility rules, defined in~\figref{f:transientts}, now builds
+on an auxiliary \emph{consistency} relation, defined
+in~\figref{f:consubtype} to relate types \t and \tp.
  
 \FZ{TODO: Explain here the role of the consistent subtyping}
 
-Since arbitrary values can always flow in Transient, in the \kafka translation all types are erased and mapped to \any, and all methods are mapped to methods with interface \(\any \to \any\).   \FZ{TODO: describe translation of classes and the t x syntax sugar: it casts the argument x to type t before evaluating the expression e; <t>x ;  e  could be rewritten  new Foo( <*><t>x ).id( e )  where Foo has a field of type any and an identity method } To translate method invocation, \kafka differentiates whether the source type of the callee is a class type \C on \any.  In the latter case, dynamic method invocation is chosen, and the argument is translated and, if needed, casted to \any.  In the former, static method invocation is used.  In both cases, the argument is structurally casted to the expected type by the auxiliary translation function; in the latter a cast is inserted also to check the return type (this is not necessary in the former case).
+Since arbitrary values can always flow in Transient, in the \kafka
+translation all types are erased and mapped to \any, and all methods are
+mapped to methods with interface \(\any \to \any\).  \FZ{TODO: describe
+  translation of classes and the t x syntax sugar: it casts the argument x
+  to type t before evaluating the expression e; <t>x ; e could be rewritten
+  new Foo( <*><t>x ).id( e ) where Foo has a field of type any and an
+  identity method } To translate method invocation, \kafka differentiates
+whether the source type of the callee is a class type \C on \any.  In the
+latter case, dynamic method invocation is chosen, and the argument is
+translated and, if needed, casted to \any.  In the former, static method
+invocation is used.  In both cases, the argument is structurally casted to
+the expected type by the auxiliary translation function; in the latter a
+cast is inserted also to check the return type (this is not necessary in the
+former case).
 
 \FZ{TODO: Ideally, explain the logic behind these casts}
 
@@ -1793,10 +1806,6 @@ Since arbitrary values can always flow in Transient, in the \kafka translation a
 
 
 \FZ{TODO: add translated code for the example above}
-
-%\noindent The translated class \A has a check to validate that the
-%argument to \m has all the methods defined by \C.
-
 
 \begin{figure}[!h]
 
@@ -1882,14 +1891,15 @@ Since arbitrary values can always flow in Transient, in the \kafka translation a
 %field accessor methods.  
 
 \FZ{Below old text: explain how consistency interacts with the kafka translation}.
- In gradual type systems with consistency, consistency is used to
-conclude an analytic judgment, as consistency allows the system to break
-type guarantees, adding and removing types from sub-parts of  a
-program. Consistency within \kafka is is used in the transient system to allow typed and untyped code to
-interact. When consistency is used, a check is inserted to ensure that all
-the methods that are required are declared on the provided type, but the
-types of the methods are ignored, as they are the responsibility of the
-callee to check.
+
+In gradual type systems with consistency, consistency is used to conclude an
+analytic judgment, as consistency allows the system to break type
+guarantees, adding and removing types from sub-parts of a
+program. Consistency within \kafka is is used in the transient system to
+allow typed and untyped code to interact. When consistency is used, a check
+is inserted to ensure that all the methods that are required are declared on
+the provided type, but the types of the methods are ignored, as they are the
+responsibility of the callee to check.
 
 
 
