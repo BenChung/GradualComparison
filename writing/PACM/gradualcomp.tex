@@ -441,31 +441,33 @@ Reticulated Python    \\
     sound in C\#, Thorn and StrongScript.}\label{over}
 \end{figure}
 
-%\noindent
 \figref{over} reviews gradual type systems with publicly available
 implementations. All languages here are class-based, except TypeScript which
 has both classes and plain JavaScript objects. Most languages base subtyping
 on explicit name-based subtype declarations, rather than on structural
 similarities.  TypeScript uses structural subtyping, but does not implement
-a runtime check; this is likely due to the JavaScript roots of the language,
-anecdotal evidence suggests that structural subtyping is rarely
+a runtime check; this is likely due to the JavaScript roots of that
+language.  Anecdotal evidence suggests that structural subtyping is rarely
 needed~\cite{ecoop15}. StongScript extends TypeScript but changes subtyping
 back to nominal.  The consistency relation used in Reticulated Python is
-fundamentally structural.  For Racket, the heavy use of first-class classes
-and class generation naturally leads to structural subtyping as many of the
-classes being manipulated have no names.  Optional types are the default
-execution mode for Dart, Hack and TypeScript.  Transient Python is, in some
-senses, optionally typed as any value can flow into a variable regardless of
-its type annotation, leading to its ``open world'' soundness
-guarantee~\cite{siek14}.  In Thorn and C\#, primitives are concretely
-typed they can be unboxed without tagging.  The choice of casts follows from
-other design decisions. Languages with concrete types naturally tend to use
+fundamentally structural, it would be nonsensical to use it in a nominal
+system.\footnote{Consistency relates classes that differ in the number of
+  occurences of \any in their type signature and not whether they are
+  declared to extend one another.}  For Racket, the heavy use of first-class
+classes and class generation naturally leads to structural subtyping as many
+of the classes being manipulated have no names.  Optional types are the
+default execution mode for Dart, Hack and TypeScript.  Transient Python is,
+in some senses, optionally typed as any value can flow into a variable
+regardless of its type annotation, leading to its ``open world'' soundness
+guarantee~\cite{siek14}.  In Thorn and C\#, primitives are concretely typed;
+they can be unboxed without tagging.  The choice of casts follows from other
+design decisions. Languages with concrete types naturally tend to use
 subtype casts to establish the type of values. For nominal systems there are
 highly optimized algorithms. Shallow casts are casts that only check the
-presence of methods, but not their signature. These are used by Racket and Python
-to ensure some basic form of type conformance. Generative casts are used
-when information such as a type or a blame label must be associated with a
-reference or an object.
+presence of methods, but not their signature. These are used by Racket and
+Python to ensure some basic form of type conformance. Generative casts are
+used when information such as a type or a blame label must be associated
+with a reference or an object.
 
 Blame assignment is a topic of investigation in its own right. Anecdotal
 evidence suggests that the context provided by blame helps developers
@@ -585,12 +587,12 @@ respect to \K.  A class is well-formed if all its fields and methods are
 well-typed and it has at most two definitions for any method \m, one typed
 \Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The static semantics
 of \kafka is mostly standard; the complete set of rules is in Appendix.  The
-subtype relation, \StrSub\M\K\t\tp, shown in Fig.~\ref{sub}, allows for
+subtype relation, \StrSub\M\K\t\tp, shown in \figref{sub}, allows for
 recursive structural subtyping: for this the environment \M keeps track of
 the set of subtype relations assumed.  The notation \md\In\App\K\C denotes
 the method definition \md occurring in class \C and class table \K.  Recall
 fields are hidden from the class type signature, so subtyping is limited to
-method definitions.  Key type rules are in Fig.~\ref{f:staticsem}.  Method
+method definitions.  Key type rules are in \figref{f:staticsem}.  Method
 calls use \emph{syntactic} disambiguation to select between typed and
 untyped methods. The dynamically resolved call places no requirements on the
 receiver or argument, and returns type \any.  The statically resolved call
@@ -691,7 +693,7 @@ the syntax of expressions is extended at runtime with forms
 \[ \e  ::= \dots \B \a \B \FReadR\a\f \B \FWriteR\a\f\e \]
 %
 where \a is a reference.  The static typing of references
-(Fig.~\ref{f:staticsem}) can be either the class of the object they map to
+(\figref{f:staticsem}) can be either the class of the object they map to
 in the heap \s or the dynamic type \any.
 We also use evaluation contexts, \EE, defined as follows
 \[
