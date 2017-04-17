@@ -1674,7 +1674,7 @@ the value has the correct types to the user. Typed Racket is able to
 translate the typed code in class \D as if the language had no untyped
 code. Any misbehavior will be instantly caught by the value themselves.
 
-As mentionned earlier, we depart from Typed Racket in several ways. In Type
+As mentioned earlier, we depart from Typed Racket in several ways. In Type
 Racket the granularity of boundaries is the module, all classes in the same
 module are either typed or untyped.  The finer granularity adopted here does
 not lose expressiveness and matches the approach adopted in the Guarded
@@ -1844,7 +1844,7 @@ Transient guarantee.  A method call \Call\e\m\ep is translated to
 with the soundness of \kafka entails that the method call will not get
 stuck.  Of course of \e is of type \any, the call will be translated to
 \DynCall\e\m\ep which can get stuck.  To achieve that guarantee the
-translation must insert stuctural casts at every expression read. Transient
+translation must insert structural casts at every expression read. Transient
 also checks arguments of methods, since the expression may not use the
 argument (but Transient checks it anyway) our translation generates method
 bodies of the form \SubCast\t\x; \e where \e is the body of the expression
@@ -1856,14 +1856,17 @@ and the semi colon is syntactic sugar for sequencing.\footnote{This can be
   there to please the type system and can be optimized away as they will
   always succeed. }
 
+Likewise, in order to ensure that field assignment will not get stuck,
+Transient gives all fields type \any, then checks the field value on
+dereference, based on the static typing.
 
-{\bf Explain with an example why fields are translated to \any}
+BEN TODO: Make an example for this.
 
-by defensively checking the declared types of the
-arguments in every method.  For instance, in the code below Transient Python
-deems both expressions well-typed; however, the second is raises a type
-error when the instance of class \D is passed to the method \m expecting a
-value of type \C.
+In the following example, if we assume that the types \C and \D are incompatible,
+we see a program that Transient will reject at runtime, like Typed Racket and 
+Thorn would. When \A.\m is passed an instance of \C, no types are violated, but
+when passed an instance of \D (through the dynamic intermediary \n), Transient
+produces a dynamic error.
 
 \smallskip
 \(\Class \A  { \Mdef \m\x\C \D  {\Call \x\n{\New{\C}{}}}  ; \  \Mdef \n\x\any \any  \x} \)
@@ -1873,6 +1876,51 @@ value of type \C.
 
 \(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \D{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// Runtime ERR}\)
 \smallskip
+
+The Transient guarantee is not identical to that of Typed Racket or Thorn,
+however. In Typed Racket, wrappers stack, causing intermediate type assertions
+to be retained if the wrapped value is passed into another context, even if
+the new context has a different type, illustrated in the following example.
+
+\newcommand{\sspce}{;~}
+\newcommand{\idbody}[1]{\SubCast{#1}\x\sspce \SubCast{#1}\x}
+\begin{tabular}{lk}
+\multicolumn{1}{c}{\textbf{Source}} & \multicolumn{1}{c}{\textsf{\textbf{KafKa}}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class\C{}{&\Mdef\m\x\C\C\x} \\
+\Class\D{}{&\Mdef{\xt n}\x\D\D\x} \\
+\Class{\xt E}{}{&\Mdef\m\x\D\D\x} \\
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
+                &\Mdef\n\x\any\any{\Call\this\m\x}} \\
+\multicolumn{2}{l}{\Call{\Call{\New{\xt F}{}}\n{\New\C{}}}\m{\New\D{}}}
+\end{array}
+\) &
+\(
+\begin{array}{l@{\,}l}
+\Class\C{}{&\Mdef\m\x\any\any{\idbody\C}} \\
+\Class\D{}{&\Mdef{\xt n}\x\any\any{\idbody\D}} \\
+\Class{\xt E}{}{&\Mdef\m\x\any\any{\idbody\D}} \\
+\Class{\xt F}{}{&\Mdef\m\x\any\any{\idbody{\xt E}} \\
+                &\Mdef\n\x\any\any{\SubCast\any\x\sspce \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
+\multicolumn{2}{l}{\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\D{}}}
+\end{array}
+\)
+\end{tabular} \\[1em]
+
+In this example, we have two mutually incompatible classes \C and \D,
+alongside potential consumers for \C and \D, \C itself and \code E, alongside a
+conversion helper \code F. Here, we use \code F to acquire a reference to \C
+as an \code E, which would imply that \C's \m has type \D to \D, despite it
+actually having type \C to \C, then call (again, using untyped code) it with
+a \D.
+
+In Typed Racket, when we take the trip through the conversion helper \code F,
+we would pick up a wrapper that ensures that the argument to \m is always a \D
+and that it always returns a \D. As a result, when we finally call \m with a
+\C, the program would get stuck at a cast to \D. However, in Transient, only
+the actual final method's type matters, which, in this example is \C, so
+Transient will allow the program.
 
 \noindent 
 The Transient design allows method \m, which expects an instance of class \C
