@@ -1893,7 +1893,7 @@ the new context has a different type, illustrated in the following example.
 \Class{\xt E}{}{&\Mdef\m\x\D\D\x} \\
 \Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
                 &\Mdef\n\x\any\any{\Call\this\m\x}} \\
-\multicolumn{2}{l}{\Call{\Call{\New{\xt F}{}}\n{\New\C{}}}\m{\New\D{}}}
+\multicolumn{2}{l}{\Call{\Call{\New{\xt F}{}}\n{\New\C{}}}\m{\New\C{}}}
 \end{array}
 \) &
 \(
@@ -1903,7 +1903,7 @@ the new context has a different type, illustrated in the following example.
 \Class{\xt E}{}{&\Mdef\m\x\any\any{\idbody\D}} \\
 \Class{\xt F}{}{&\Mdef\m\x\any\any{\idbody{\xt E}} \\
                 &\Mdef\n\x\any\any{\SubCast\any\x\sspce \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
-\multicolumn{2}{l}{\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\D{}}}
+\multicolumn{2}{l}{\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}}
 \end{array}
 \)
 \end{tabular} \\[1em]
@@ -1913,14 +1913,14 @@ alongside potential consumers for \C and \D, \C itself and \code E, alongside a
 conversion helper \code F. Here, we use \code F to acquire a reference to \C
 as an \code E, which would imply that \C's \m has type \D to \D, despite it
 actually having type \C to \C, then call (again, using untyped code) it with
-a \D.
+a \C.
 
 In Typed Racket, when we take the trip through the conversion helper \code F,
-we would pick up a wrapper that ensures that the argument to \m is always a \D
-and that it always returns a \D. As a result, when we finally call \m with a
-\C, the program would get stuck at a cast to \D. However, in Transient, only
-the actual final method's type matters, which, in this example is \C, so
-Transient will allow the program.
+we pick up a wrapper that ensures that the argument to \m is always a \D and
+that it always returns a \D. As a result, when we finally call \m with a \C,
+the program would get stuck at a cast to \D. In Transient, however, the cast
+to \code E is a no-op, so when we call \m with \C, no extra cast to \D is
+encountered, and the
 
 \noindent 
 The Transient design allows method \m, which expects an instance of class \C
