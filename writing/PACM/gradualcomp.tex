@@ -1043,8 +1043,63 @@ give rise to an error.
 
 \subsection{TypeScript}
 
-\begin{figure}[!h] \hrulefill  \small
-  \vspace{-3mm}
+\begin{figure}[!b]
+
+\hrulefill  \small
+
+\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllll}  
+\begin{minipage}{1.5cm}\begin{mathpar}  
+ \Rule{STG-VAR}{
+    ~\\\\  ~\\\\
+   \HasType \Env\x\t
+ }{
+   \EnvTypeS \Env\K\x\t
+}
+\end{mathpar}\end{minipage}
+&
+ \begin{minipage}{2.2cm}\begin{mathpar}
+  \Rule{STG-GET}{ ~\\\\
+   \HasType \Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeS \Env\K{\FRead\f}\t
+}    
+\end{mathpar}
+\end{minipage} &
+  \begin{minipage}{3.4cm}\begin{mathpar}  
+\Rule{STG-SET}{
+  \HasType \Env\this\C \quad
+  {\Fdef\f\t \in \App\K\C} \\\\
+  \EnvTypeS \Env\K\e\tp \\\\
+  \ConvertE\K{s}\tp\t
+}{
+  \EnvTypeS \Env\K{\FWrite\f\e}\t
+}    
+\end{mathpar}\end{minipage}& \begin{minipage}{4.1cm}\begin{mathpar}  
+\Rule[width=15em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\C \quad
+  \EnvTypeS \Env\K\ep\t \\\\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
+  \ConvertE\K{s}\t{\t[1]}
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+}    
+\end{mathpar}\end{minipage}&\begin{minipage}{3cm}\begin{mathpar}  
+\Rule{STG-NEW}{
+  \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
+ \ConvertE\K{s}{\tp[1]}{\t[1]}..
+}{
+  \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+
+\vspace{2mm}
+
+\hrulefill
+\caption{TypeScript type system}\label{convts}
+
+\hrulefill  \small  \vspace{-3mm}
   
 \begin{mathpar}
 \Rule{STGC-SUB}{
@@ -1067,92 +1122,83 @@ give rise to an error.
 
 \hrulefill\caption{TypeScript type convertibility}\label{f:typescriptts}
 
-\hrulefill  \small
-
-\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllll}  
-\begin{minipage}{1.3cm}\begin{mathpar}  
- \Rule{STG-VAR}{
-      ~\\\\
-   \HasType \Env\x\t
- }{
-   \EnvTypeS \Env\K\x\t
-}
-\end{mathpar}\end{minipage}
-&
- \begin{minipage}{2cm}\begin{mathpar}
-  \Rule{STG-GET}{
-   \HasType \Env\this\C \\\\
-  \Fdef\f\t \in \App\K\C
-}{
-  \EnvTypeS \Env\K{\FRead\f}\t
-}    
-\end{mathpar}
-\end{minipage} &
-  \begin{minipage}{3.3cm}\begin{mathpar}  
-\Rule{STG-SET}{
-  \HasType \Env\this\C \quad
-  {\Fdef\f\t \in \App\K\C} \\\\
-  \EnvTypeS \Env\K\e\tp \quad
-  \ConvertE\K{s}\tp\t
-}{
-  \EnvTypeS \Env\K{\FWrite\f\e}\t
-}    
-\end{mathpar}\end{minipage}& \begin{minipage}{3.9cm}\begin{mathpar}  
-\Rule[width=15em]{STG-CALL}{
-  \EnvTypeS \Env\K\e\C \quad
-  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
-  \EnvTypeS \Env\K\ep\t \quad
-  \ConvertE\K{s}\t{\t[1]}
-}{
-  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
-}    
-\end{mathpar}\end{minipage}&\begin{minipage}{3cm}\begin{mathpar}  
-\Rule{STG-NEW}{
-  \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
-  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad
- \ConvertE\K{s}{\tp[1]}{\t[1]}..
-}{
-  \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
-}
-\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
-
-\vspace{2mm}
-
 \hrulefill
-\caption{TypeScript type system}\label{f:typescriptts}
+
+\smallskip
+
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\small
+ \begin{minipage}{8cm}  
+\begin{tabbing}
+\TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\HS \WHERE\HS
+  \=\src{\fdp[1]} = \src{\Ftype\f\any}..\HS\HS\=\fd[1] = \Ftype\f\t .. \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+  \>\src{\mdp[1]} = \src{\Mdef\m\x\any\any\ep}..\HS\HS \>\>\ep = \TR{\e}
+\end{tabbing}
+\begin{tabbing}
+\TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
+\\
+\TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
+\\
+\TR\this           \>= \src{\SubCast\any\this}
+\\
+\TR\x \> = \src \x
+\\
+\TR{\Call{\e[1]}\m{\e[2]}} \> = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} \HS\>\WHERE\HS\ep[1] = \TR{ \e[1]} \HS \ep[2] = \TR{\e[2]}
+\\
+\TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e[1]} ..
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+
+\smallskip
+\hrulefill
+\caption{TypeScript to \kafka translation}\label{f:typescriptkafka}
+
 \end{figure}
 
-
-Typescript is a backward compatible extension of JavaScript
-with classes and type annotations. Type equivalence is structural and
-subtyping of recursive types is supported (as in \kafka types arise from class
-declarations). Missing annotations are treated as \any. The role of types is
-to catch simple errors, such as misspelt method names, as well as assisting
-IDEs.  A typical example is shown here. The first expression is ill-typed
-because method \(o\) does not exist in class \C, while the second is erroneous as it
-provides an instance of \C where \D is expected. The third
-expression is statically correct as the instance of \C is cast to a
-\D by the \n method.
+Typescript is a backward compatible extension of JavaScript with classes and
+type annotations. Type equivalence is structural and subtyping of recursive
+types is supported. The following three expressions illustrate the language.
+The first expression is ill-typed because method the receiver of the
+invocation to \n is of type \C and \C does not have a method by that name.
+The second expression will also be flagged as erroneous as the argument to
+\m is \C rather than a \D as expected. The last expression is statically
+correct as the instance of \C is cast to a \D by the \mp method. At runtime
+that expression will evaluate successfully.
 
 \medskip
-\(
-\Class \C {   \Mdef\m\x\D\C \this  ; \   \Mdef\n\x\any\D \x }
-\)
+{\small
+\begin{tabbing}
+  \hspace{.5cm}
+   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \> \Call{\New\C{}}\m{\New\C{}}                                  \>  \>  \Mdef\m\x\D\C{~\this~} \\
+   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\C{}}}              \>  \>  \Mdef\mp\x\any\D{~\x~}\\
+   \>                                                              \>  \}   \\
+   \>                                                              \> \Class\D{}{}
+\end{tabbing}}
 
 \medskip
-\( \Call {\New \C{}} o {\New \D{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{    // ERR wrong method } \)
-
-\(\Call {\New \C{}} \m {\New \C{}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{ // ERR wrong type } \)
-
-\(\Call {\New \C{}} \m {\Call {\New \C{}} \n {\New \C{}}} \ \ \ \texttt{ // OK } \)
-
-
-\medskip
-
-%\FZ{fix typesetting of method name o}
 
 \noindent
-Our formalisation of the TypeScript type system is reported in \figref{f:typescriptts}.  We illustrate its design by focussing on the examples above and study how the \RuleRef{STG-CALL} rule enforces the expected outcome.  Since the receiver has type \C, the first expression is simply ruled out by the check that the called method must be part of the class signature.  The second is more interesting: the method exists but expects a \D argument while we are passing a \C.  The \emph{convertibility} relation, denoted   \ConvertE\K{s}\t\tp, captures precisely the allowed implicit type conversion.  For TypeScript, values can flow freely to and from \any, and it is also allowed to pass a subtype when a supertype is expected.  Since in our second example, the types \C and \D are incompatible, the convertibility check fails.
+Our formalization of TypeScript's type system is in
+\figref{f:typescriptts}. The type system relies on the \emph{convertibility}
+relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
+type conversions allowed by TypeScript.  The relation appears in
+\figref{confts} and states that a type is convertible to a super type and
+that \any is convertible to anything and conversely.
+
+
+We illustrate its design by focusing on the
+examples above and study how the \RuleRef{STG-CALL} rule enforces the
+expected outcome.  Since the receiver has type \C, the first expression is
+simply ruled out by the check that the called method must be part of the
+class signature.  The second is more interesting: the method exists but
+expects a \D argument while we are passing a \C.  The \emph{convertibility}
+relation, denoted \ConvertE\K{s}\t\tp, captures precisely the allowed
+implicit type conversion.  For TypeScript, values can flow freely to and
+from \any, and it is also allowed to pass a subtype when a supertype is
+expected.  Since in our second example, the types \C and \D are
+incompatible, the convertibility check fails.
 
 The TypeScript compiler then translates well-typed code to plain JavaScript, with all types erased and methods resolved dynamically. Of course, since convertibility allows arbitrary values can be passed whenever a \any value is expected, dynamically resolved calls may fail because the receiver need not have the requested method. The designers of TypeScript saw this unsoundness as a way to
 ensure, ({\em a}) that types do not get in the way of running correct
@@ -1162,11 +1208,6 @@ backwards compatibility, as ignoring types means all browsers can run
 TypeScript code -- with no additional overhead.
 
 
-\newcommand{\TR}[1]{\EM{\llbracket    #1 \rrbracket}}
-\newcommand{\TA}[1]{\EM{\llparenthesis 2 \rrparenthesis}}
-
-\newcommand{\TRG}[2]{\EM{\llbracket    #1 \rrbracket_{#2}}}
-\newcommand{\TAG}[3]{\EM{\llparenthesis #1 \rrparenthesis_{#2}^{#3}}}
 
 The TypeScript dynamic semantics can be modelled in \kafka with a very simple translation mechanism, where every
 type becomes \any  (including in method signatures) and every call becomes a dynamic call.  
@@ -1188,36 +1229,6 @@ definition and the last expression above as:
 
 
 \begin{figure}[!h]
-\hrulefill
-
-\smallskip
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-\small
- \begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\HS \WHERE\HS
-  \=\src{\fdp[1]} = \src{\Ftype\f\any}..,\HS\HS\=\fd[1] = \Ftype\f\t .., \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
-  \>\src{\mdp[1]} = \src{\Mdef\m\x\any\any\ep}..,\HS\HS \>\>\ep = \TR{\e}
-\end{tabbing}
-\begin{tabbing}
-\TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
-\\[1mm]
-\TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
-\\[1mm]
-\TR\this           \>= \src{\SubCast\any\this}
-\\[1mm]
-\TR\x \> = \src \x
-\\[1mm]       
-\TR{\Call{\e[1]}\m{\e[2]}} \> = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} \HS\>\WHERE\HS\ep[1] = \TR{ \e[1]}, \HS \ep[2] = \TR{\e[2]}
-\\[1mm]
-\TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e[1]} ..
-\end{tabbing}
-\end{minipage}
-\end{tabular}
-
-\smallskip
-\hrulefill
-\caption{TypeScript to \kafka translation}\label{f:typescriptkafka}
 \end{figure}
 
 
