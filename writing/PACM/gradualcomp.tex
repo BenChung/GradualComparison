@@ -2059,7 +2059,8 @@ opportunity for comparing and contrasting these gradual typing systems
 within an unified framework. The translations to \kafka for each gradual
 typing system highlights the essences which makes each system unique.
 
-...future work ... more casts
+...future work 
+...more casts
 
 \bibliographystyle{unsrturl}
 \bibliography{../../bib/jv,../../bib/all}
@@ -2324,6 +2325,8 @@ method typings, and returns the name of the respective fields or methods.
 The \xt{nodups} function (\cload{\mt[1]..}, \cload{\md[1]..}) takes either
 method definitions or method typings, and ensures there are no duplicates.
 
+\clearpage
+
 \section{Source language syntax and semantics}
 
 
@@ -2424,7 +2427,7 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \subsection*{Well-formedness for Typed Racket, TypeScript, Transient}
 
-We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript) or $tr$ (for the Transient semantics).
+% We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript) or $tr$ (for the Transient semantics).
 
 \begin{figure}[!h]
 % \vspace{-8mm}
@@ -2504,84 +2507,86 @@ We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript)
 \end{mathpar}\end{minipage}\end{tabular}\end{minipage}
 \end{figure}
 
-\subsection*{Transient expression typing}
-
-\opdef{\ConvertE\K{tr}\t\tp}{type convertibility between \t and \tp.}
-\begin{mathpar}
-\IRule{STTC-SUB}{
-  \ConSub\cdot\K\t\tp
-}{
-  \ConvertE\K{tr}\t\tp
-}
-
-\IRule{STTC-TOANY}{
-}{
-  \ConvertE\K{tr}\t\any
-}
-
-\IRule{STTC-ANYCONC}{
-}{
-  \ConvertE\K{tr}\any\tp
-}
-\end{mathpar} \\
-
-\opdef{\EnvTypeT\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
-\begin{mathpar}
-\IRule{STT-VAR}{
-   ~\\\\
-   ~\\\\
-   ~\\\\
-   \HasType \Env\x\t
- }{
-   \EnvTypeT \Env\K\x\t
-}
-
-\IRule{STT-GET}{
-   ~\\\\
-   ~\\\\   
-   \HasType \Env\this\C \\\\
-  \Fdef\f\t \in \App\K\C
-}{
-  \EnvTypeT \Env\K{\FRead\f}\t
-}    
-
-\IRule[width=20em]{STT-SET}{
-  \HasType \Env\this\C \\\\
-  \Fdef\f\t \in \App\K\C \\\\
-  \EnvTypeT \Env\K\e\tp \\\\
-  \ConvertE\K{tr}\tp\t
-}{
-  \EnvTypeT \Env\K{\FWrite\f\e}\t
-}    
-
-\IRule[width=20em]{STT-CALL}{
-  \EnvTypeT \Env\K\e\C \\\\
-  \EnvTypeT \Env\K\ep\tpp \\\\
-  \ConvertE\K{tr}\tpp\any \\\\
-  \Mtype \m\t\tp\in \App\K\C
-}{
-  \EnvTypeT \Env\K{\Call\e\m\ep}\tp
-}    
-
-\IRule[width=20em]{STT-DCALL}{
-  \EnvTypeT \Env\K\e\any \\\\
-  \EnvTypeT \Env\K\ep\tpp \\\\
-  \ConvertE\K{tr}\tpp\any
-}{
-  \EnvTypeT \Env\K{\Call\e\m\ep}\any
-}    
-
-\IRule{STT-NEW}{
- \EnvTypeT \Env\K{\e[1]}{\tp[1]}..\\\\
- \ConvertE\K{tr}{\tp[1]}{\t[1]}.. \\\\
- \Class \C {\fd[1]..}{\md[1]..} \in \K
-}{
-  \EnvTypeT \Env\K{\New\C{\e[1]..}}\C
-}
-\end{mathpar}
-
-
 \clearpage
+
+% \subsection*{Transient expression typing}
+% 
+% \opdef{\ConvertE\K{tr}\t\tp}{type convertibility between \t and \tp.}
+% \begin{mathpar}
+% \IRule{STTC-SUB}{
+%   \ConSub\cdot\K\t\tp
+% }{
+%   \ConvertE\K{tr}\t\tp
+% }
+% 
+% \IRule{STTC-TOANY}{
+% }{
+%   \ConvertE\K{tr}\t\any
+% }
+% 
+% \IRule{STTC-ANYCONC}{
+% }{
+%   \ConvertE\K{tr}\any\tp
+% }
+% \end{mathpar} \\
+% 
+% \opdef{\EnvTypeT\Env\K\e\t}{\e has type \t in environment \Env against heap  and class table \K}
+% \begin{mathpar}
+% \IRule{STT-VAR}{
+%    ~\\\\
+%    ~\\\\
+%    ~\\\\
+%    \HasType \Env\x\t
+%  }{
+%    \EnvTypeT \Env\K\x\t
+% }
+% 
+% \IRule{STT-GET}{
+%    ~\\\\
+%    ~\\\\   
+%    \HasType \Env\this\C \\\\
+%   \Fdef\f\t \in \App\K\C
+% }{
+%   \EnvTypeT \Env\K{\FRead\f}\t
+% }    
+% 
+% \IRule[width=20em]{STT-SET}{
+%   \HasType \Env\this\C \\\\
+%   \Fdef\f\t \in \App\K\C \\\\
+%   \EnvTypeT \Env\K\e\tp \\\\
+%   \ConvertE\K{tr}\tp\t
+% }{
+%   \EnvTypeT \Env\K{\FWrite\f\e}\t
+% }    
+% 
+% \IRule[width=20em]{STT-CALL}{
+%   \EnvTypeT \Env\K\e\C \\\\
+%   \EnvTypeT \Env\K\ep\tpp \\\\
+%   \ConvertE\K{tr}\tpp\any \\\\
+%   \Mtype \m\t\tp\in \App\K\C
+% }{
+%   \EnvTypeT \Env\K{\Call\e\m\ep}\tp
+% }    
+% 
+% \IRule[width=20em]{STT-DCALL}{
+%   \EnvTypeT \Env\K\e\any \\\\
+%   \EnvTypeT \Env\K\ep\tpp \\\\
+%   \ConvertE\K{tr}\tpp\any
+% }{
+%   \EnvTypeT \Env\K{\Call\e\m\ep}\any
+% }    
+% 
+% \IRule{STT-NEW}{
+%  \EnvTypeT \Env\K{\e[1]}{\tp[1]}..\\\\
+%  \ConvertE\K{tr}{\tp[1]}{\t[1]}.. \\\\
+%  \Class \C {\fd[1]..}{\md[1]..} \in \K
+% }{
+%   \EnvTypeT \Env\K{\New\C{\e[1]..}}\C
+% }
+% \end{mathpar}
+
+
+% \clearpage
 
 % \section{Translations}
 % \renewcommand{\trulename}[1]{#1}
