@@ -888,29 +888,29 @@ Well-typed \kafka configurations satisfy a type-preservation theorem, and
 either reduce to values or are stuck on a dynamic method invocation or on
 one of the two casts provided by the language.
 
-% \medskip\noindent{\bf Theorem: Type Soundness.} ~  
-% Given \WFp\K{\e~\s} and
-%       \EnvType\cdot\s\K\e\t,
-% then either one of the following holds:
-%     \e is already evaluated to value \a,      
-%     there is some \ep such that \Reduce \K\e\s \Kp\ep\sp and
-%        \WFp\Kp{\ep~\sp} and \EnvType\cdot\sp\Kp\ep\t,
-% or \e is stuck on one of the three following error contexts
-%     $\EE[\DynCall\a\m{\ap}]$,
-%     $\EE[\SubCast\tp\a]$,
-%    or $\EE[\BehCast\tp\a]$.\\
+\medskip\noindent{\bf Theorem: Type Soundness.} ~  
+Given \WFp\K{\e~\s} and
+      \EnvType\cdot\s\K\e\t,
+then either one of the following holds:
+    \e is already evaluated to value \a,      
+    there is some \ep such that \Reduce \K\e\s \Kp\ep\sp and
+       \WFp\Kp{\ep~\sp} and \EnvType\cdot\sp\Kp\ep\t,
+or \e is stuck on one of the three following error contexts
+    $\EE[\DynCall\a\m{\ap}]$,
+    $\EE[\SubCast\tp\a]$,
+   or $\EE[\BehCast\tp\a]$.\\
 
-\begin{quote}{\bf Theorem:} Type Soundness.
-
-For some $~\K$, $~\Kp$, $~\e$, $~\ep$, $~\s$, $~\sp$, and $\C$, 
-{\bf if} $\WFp\K{\e~\s}~$ $ $and$~$ $\EnvType\cdot\s\K\e\t$ 
-{\bf then} $~\e \Red \a$, 
-{\bf or} $~\Reduce \K\e\s \Kp\ep\sp~$ and $~\WFp\Kp{\ep~\sp}$, and $~\EnvType\cdot\sp\Kp\ep\t$,
-{\bf or} $\EE[\DynCall\a\m{\ap}]$,
-{\bf or} $\EE[\SubCast\tp\a]$,
-{\bf or} $\EE[\BehCast\tp\a]$.
-
-\end{quote}   
+% \begin{quote}{\bf Theorem:} Type Soundness.
+% 
+% For some $~\K$, $~\Kp$, $~\e$, $~\ep$, $~\s$, $~\sp$, and $\C$, 
+% {\bf if} $\WFp\K{\e~\s}~$ $ $and$~$ $\EnvType\cdot\s\K\e\t$ 
+% {\bf then} $~\e \Red \a$, 
+% {\bf or} $~\Reduce \K\e\s \Kp\ep\sp~$ and $~\WFp\Kp{\ep~\sp}$, and $~\EnvType\cdot\sp\Kp\ep\t$,
+% {\bf or} $\EE[\DynCall\a\m{\ap}]$,
+% {\bf or} $\EE[\SubCast\tp\a]$,
+% {\bf or} $\EE[\BehCast\tp\a]$.
+% 
+% \end{quote}   
    
 \noindent
 The wrapper class generated from behavioural cast will not contain
@@ -923,12 +923,16 @@ any duplicate method names.
 % and $\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, then $\cload{\mdpp[1]..}$
 % where $\mdpp[1].. \In \k$.\\
 
-\begin{quote}{\bf Lemma:} No duplicates.
+\medskip\noindent{\bf Lemma: No duplicates.} Given $~\md[1].. \In \App\K\C~$ $ $and$~$ $\cload{\md[1]..}~$ 
+and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
+and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, then $~\cload{\mdpp[1]..}$, where $~\mdpp[1].. \In \k$. \\
 
-For some $~\K$, $~\C$, $~\D$, $~\that$, and $~\mdp[1]..~$, 
-{\bf if} $~\md[1].. \In \App\K\C~$ $ $and$~$ $\cload{\md[1]..}~$ and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
-and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, {\bf then} $~\cload{\mdpp[1]..}$, where $~\mdpp[1].. \In \k$. 
-\end{quote}
+% \begin{quote}{\bf Lemma:} No duplicates.
+% 
+% For some $~\K$, $~\C$, $~\D$, $~\that$, and $~\mdp[1]..~$, 
+% {\bf if} $~\md[1].. \In \App\K\C~$ $ $and$~$ $\cload{\md[1]..}~$ and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
+% and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, {\bf then} $~\cload{\mdpp[1]..}$, where $~\mdpp[1].. \In \k$. 
+% \end{quote}
 
 \noindent
 The wrapper class generated from behavioural cast is always a subtype
@@ -938,13 +942,20 @@ of the target type, otherwise known as type that is being casted with.
 % $\mdp[1].. \In \App\K\Cp$, and the wrapper $\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, then
 % $\StrSub\emptyset\K\D\Cp$.
 
-\begin{quote}{\bf Lemma:} Subtype presevation.
-
-For some $~\K$, $~\C$, $~\Cp$, $~\D$, $~\that$, and $\mdp[1]..~$, 
-{\bf if} $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
+\medskip\noindent{\bf Lemma: Subtype presevation.} ~ Given $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
 $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
-{\bf then} $\StrSub\emptyset\K\D\Cp$.. 
-\end{quote}
+then $\StrSub\emptyset\K\D\Cp$..\\
+
+% \begin{quote}{\bf Lemma:} Subtype presevation.
+% 
+% For some $~\K$, $~\C$, $~\Cp$, $~\D$, $~\that$, and $\mdp[1]..~$, 
+% {\bf if} $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
+% $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
+% {\bf then} $\StrSub\emptyset\K\D\Cp$.. 
+% \end{quote}
+
+\noindent
+The complete proof is available in the appendix.
 
 \subsection{Implementation}
 
