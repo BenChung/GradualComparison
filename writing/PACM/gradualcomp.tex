@@ -1497,11 +1497,11 @@ As an example, translating the class \A and the last expression above results in
 \subsection{Transient Python}
 
 The Transient variant of Reticulated Python aims for soundness
-with a predictable cost model. The declared types of arguments are defensively
-checked in every method, such as in method \m. Method \m expects an instance of
-class \C, but it can be called with a value of type \any at any point, forcing
-\m to check its arguments at every invocation.
+with a predictable cost model, by defensively checking the declared types of the arguments in every method.  For instance, in the code below Transient Python deems both expressions well-typed;  however, the
+second is raises a type error when the instance of class \D is passed to the method \m
+expecting a value of type \C.  
 
+\smallskip
 \(\Class \A  { \Mdef \m\x\C \D  {\Call \x\n{\New{\C}{}}}  ; \  \Mdef \n\x\any \any  \x} \)
 
 \smallskip
@@ -1510,12 +1510,20 @@ class \C, but it can be called with a value of type \any at any point, forcing
 \(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \D{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// Runtime ERR}\)
 \smallskip
 
-\noindent Transient Python deems both expressions well-typed. However, the
-second is going to end up with a type error as a \code D is passed to a method
-expecting a \code C.  When translating to \kafka, all types are erased and casts
-are inserted on method entry and prior to returning.
+\noindent 
+The Transient design allows method \m, which expects an instance of
+class \C as argument, to be called with a value of type \any at any point; this forces
+\m to check its arguments at every method invocation.   
 
-...removed broken translation 
+The expression typing rules for our Transient Racket source is identical to the typing rules of TypeScript presented in~\figref{f:typescriptts}, except that the convertibility rules, defined in~\figref{f:transientts}, now builds on an auxiliary \emph{consistency}  relation, defined in~\figref{f:consubtype} to relate types \t and \tp.
+ 
+\FZ{TODO: Explain here the role of the consistent subtyping}
+
+Since arbitrary values can always flow in Transient, in the \kafka translation all types are erased and mapped to \any, and all methods are mapped to methods with interface \(\any \to \any\).   \FZ{TODO: describe translation of classes and the t x syntax sugar: it casts the argument x to type t before evaluating the expression e; <t>x ;  e  could be rewritten  new Foo( <*><t>x ).id( e )  where Foo has a field of type any and an identity method } To translate method invocation, \kafka differentiates whether the source type of the callee is a class type \C on \any.  In the latter case, dynamic method invocation is chosen, and the argument is translated and, if needed, casted to \any.  In the former, static method invocation is used.  In both cases, the argument is structurally casted to the expected type by the auxiliary translation function; in the latter a cast is inserted also to check the return type (this is not necessary in the former case).
+
+\FZ{TODO: Ideally, explain the logic behind these casts}
+
+
 
 \begin{figure}
 \hrulefill
@@ -1588,13 +1596,12 @@ are inserted on method entry and prior to returning.
 \end{figure}
 
 
-The expression typing rules for our Transient Racket source is identical to the 
-typing rules, presented in figure \ref{f:typescriptts}, for our TypeScript source.
 
-\noindent The translated class \code A has a check to validate that the
-argument to \code m has all the methods defined by \code C.
+\FZ{TODO: add translated code for the example above}
 
-...removed broken
+%\noindent The translated class \A has a check to validate that the
+%argument to \m has all the methods defined by \C.
+
 
 \begin{figure}[!h]
 
@@ -1655,29 +1662,31 @@ argument to \code m has all the methods defined by \code C.
 \caption{Transient}
 \end{figure}
 
+\FZ{TODO: explain why the structural cast boils down to a simpler existence of method checking}
+
 ...Say: sequencing
 
+%
+%... All type
+%annotations are erased and replaced by \any.  Every call, typed or untyped,
+%in Transient becomes untyped.  Every typed method call must be guarded with
+%a cast to ensure that the return type of the method is correct, as shown in
+%\RuleRef{TPG2}. 
+%
+% The lack of statically typable calls in the Transient
+%semantics means that a pure implementation of transient would entail no
+%fields ever being accessed using the setter or getter methods, as \kafka
+%forbids accessing fields through dynamic call sites. To overcome this, rule
+%\RuleRef{TPG4} is added, which allows the definition of self-referential
+%field access. In a transient system, the only type that is known is the type
+%of \this.  As a result, accesses to fields have to go through user-defined
+%field accessor methods.  
 
-... All type
-annotations are erased and replaced by \any.  Every call, typed or untyped,
-in Transient becomes untyped.  Every typed method call must be guarded with
-a cast to ensure that the return type of the method is correct, as shown in
-\RuleRef{TPG2}.  The lack of statically typable calls in the Transient
-semantics means that a pure implementation of transient would entail no
-fields ever being accessed using the setter or getter methods, as \kafka
-forbids accessing fields through dynamic call sites. To overcome this, rule
-\RuleRef{TPG4} is added, which allows the definition of self-referential
-field access. In a transient system, the only type that is known is the type
-of \this.  As a result, accesses to fields have to go through user-defined
-field accessor methods.  Rule \RuleRef{TPR2} provides consistency for
-Transient. In gradual type systems with consistency, consistency is used to
+\FZ{Below old text: explain how consistency interacts with the kafka translation}.
+ In gradual type systems with consistency, consistency is used to
 conclude an analytic judgment, as consistency allows the system to break
 type guarantees, adding and removing types from sub-parts of  a
-program. 
-
-... Consistency within \kafka is...
-
-...it is used in the transient system to allow typed and untyped code to
+program. Consistency within \kafka is is used in the transient system to allow typed and untyped code to
 interact. When consistency is used, a check is inserted to ensure that all
 the methods that are required are declared on the provided type, but the
 types of the methods are ignored, as they are the responsibility of the
