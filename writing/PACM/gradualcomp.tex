@@ -1792,11 +1792,11 @@ it merely validates that all required method names are present.
 \\
 \TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
 \\
-\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C\HS\HS\=\Ftype\f\t\In\App\K\C
+\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C \HS\HS\= \Ftype\f\t\In\App\K\C
 \\
 \TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
   \>\WHERE\HS
-  \TypeCk\K\this\C
+  \TypeCk{\K,\Env}\this\C
   \> \Ftype\f\t\In\App\K\C \hspace{.7cm}
   \= \ep = \TAG\e\Env\any
 \\
@@ -2003,32 +2003,34 @@ new T()@t(
                      & L1 & L2 & L3 & L4\\\hline\rowcolor{Gray}
 Thorn                &    &    &    &   \\
 Typed Racket         &    & \V & \V &  \\\rowcolor{Gray}
-Monotonic  RetPy     &    & \V &    &   \\
-Transient RetPy      &    & \V & \V & \V \\\rowcolor{Gray}
+% Monotonic  RetPy     &    & \V &    &   \\
+Transient RetPy      &    & \V & \V & \V \\
 TypeScript           & \V & \V & \V & \V \\\hline
 \end{tabular}  
   \caption{Semantic litmus tests.}\label{litmus}
 \end{figure}
 
 
-\section{Trace preservation  -find a better title}\label{litm}
+\section{Trace preservation/ Lay of the land  -find a better title}\label{litm}
 
 % There is no perfection only life.
 
 One outcome of our work is showing how \emph{all} of the gradual type systems
 are observationally distinct.  \figref{litmus} presents four litmus tests that
-are sufficient to distinguish the five type systems being studied in this
+are sufficient to distinguish the four type systems being studied in this
 paper.  Each litmus test is a program composed of a class table and a main
 expression. The programs are written in \kafka syntax but equivalent
 programs can be expressed in each of the target languages. All programs are
 well-typed in each of the respective type systems and give raise to
 different runtime errors. Under TypeScript semantics, all programs run to
-completion without getting stuck. With Thorn, all litmus programs fail at a structural cast from \code A to \code I.  For the other languages the situation is
-as follows:
+completion without getting stuck. With Thorn, all litmus programs fail at a structural cast from \code A to \code I.  
+For the other languages the situation is as follows:
 \begin{itemize}
 \item {\bf L1:} Fails because \code A is not a subtype of \code I, the
-  failure is at a shallow cast because \code A does not have all the methods of
-  \code I.   \FZ{CHECK, we do not have shallow casts, is this still relevant?}
+  failure is at a subtype cast because \code A does not have all the methods of
+  \code I.   
+  \FZ{CHECK, we do not have shallow casts, is this still relevant?} yes, 
+  this is still relevant.
 \item{\bf L2:} Succeeds in Monotonic/Transient/Racket because shallow casts
   of \code A to \code I go through. \FZ{CHECK, we do not have shallow casts, is this still relevant?  Cite monotonic here?}
 \item{\bf L3:} Fails in Monotonic because the same object is being cast to
