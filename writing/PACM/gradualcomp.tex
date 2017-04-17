@@ -1291,20 +1291,20 @@ statement and proof are in Appendix.
 
 \subsection{Thorn}
 
-Thorn is an object-oriented language with multiple inheritance, nominal type
-equivalence, and a combination of \emph{dynamic}, \emph{optional}
-(aka.~\emph{like}), and \emph{concrete} types.  Concrete types (written \C)
-behave as one would expect: a variable {\x:\C} is guaranteed to refer to an
-instance of \C or a subtype thereof.  Optional types are analogous of
-TypeScript type annotations: occurrences of optionally typed variables,
-denoted {\x:\dt\C}, are checked statically within their scope but may be
-bound to dynamic values and their usage is checked dynamically.  Optional
-types thus provide some of the benefits of static typing without decreasing
-the expressiveness and flexibility of the language.  Subtyping on optional
-types is inherited from the subtyping relation on concrete types, that is
-{\dt\C} \Sub {\dt\D} whenever \C \Sub \D; also, it always hold that \C \Sub
-\dt\C. To get a glimpse of Thorn in action, consider a class definition with
-two methods, one optionally and one concretely typed:
+Thorn has a combination of dynamic, optional, and concrete types.  Concrete
+types, written \C, behave as one would expect: a variable {\x:\C} is
+guaranteed to refer to an instance of \C or a subtype thereof.  Optional
+types are analogous of TypeScript type annotations: occurrences of
+optionally typed variables, denoted {\x:\dt\C}, are checked statically
+within their scope but may be bound to dynamic values.  Optional types thus
+provide some of the benefits of static typing without any loss of
+expressiveness or flexibility.  Subtyping on optional types is inherited
+from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
+whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
+
+To get a
+glimpse of Thorn in action, consider a class definition with two methods,
+one optionally and one concretely typed:
 
 \medskip
 \(
@@ -1315,7 +1315,10 @@ two methods, one optionally and one concretely typed:
 \)
 \medskip
 
-\noindent Assume that \D is not a subtype of \C.  The following expressions illustrate the interesting cases of the interaction between the types of the arguments and the declared type of the method parameter, assuming that the callee has a concrete type:
+\noindent Assume that \D is not a subtype of \C.  The following expressions
+illustrate the interesting cases of the interaction between the types of the
+arguments and the declared type of the method parameter, assuming that the
+callee has a concrete type:
 
 \medskip
 \( \Call {\New \A{}}\n {\New \D{} } \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// ERR -- D !|=> C} \)
@@ -1356,7 +1359,6 @@ two methods, one optionally and one concretely typed:
   \ConvertE\K{th}\any\tp
 }
 \end{mathpar}
-% \vspace{-5mm}
 \hrulefill
 \caption{Thorn type convertibility}\label{f:thornts}
 
@@ -1371,7 +1373,7 @@ two methods, one optionally and one concretely typed:
   \EnvTypeW \Env\K\ep\tpp  \\
   \ConvertE\K{th}\tpp{\t[1]}
   }{
-  \EnvTypeW \Env\K{\Call\e\m\ep}\tp
+  \EnvTypeW \Env\K{\Call\e\m\ep}{\t[2]}
 }    
 \end{mathpar}
 
@@ -1381,9 +1383,11 @@ two methods, one optionally and one concretely typed:
 
 \hrulefill
 
+\medskip
+
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-\small
-  \hspace{-.5cm}\begin{minipage}{8cm}  
+  \small
+ \begin{minipage}{8cm}  
 \begin{tabbing}
 \TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
 \HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
@@ -1419,6 +1423,8 @@ two methods, one optionally and one concretely typed:
 \end{minipage}
 \end{tabular}
 
+\medskip
+
 \hrulefill
 \caption{Thorn translation.  \kty\t = \any if  \t=?\C or \t=\any, \t otherwise. }\label{f:thorntokafka}
 \end{figure}
@@ -1439,47 +1445,16 @@ If the receiver object has an optional type,  method invocation is statically ch
 
 We have seen that the method invocation mechanism depends on the type of the receiver object. Translation of classes thus relies on overloading to provide two implementations of each method: one to be called if the object is referred to as a concretely type object, and one if it is referred to as an optionally typed (or dynamic) object.  More precisely, given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\) (protecting the the return value with appropriate cast to \kty{\t[2]} if necessary), to be used in a concretely typed context.  The \kafka translation also generates a second method \mdpp, that wraps \mdp so that it is safe to invoke it with type \(\any \to \any\), that is from an optionally typed or dynamic context.  Finally, each field \f:\t is mapped to the corresponding \f:\kty\t field.
 
-%
-%
-%  -- we generate a method from kty(t1) to kty(t2), inserting a cast around the return value if needed. 
-%
-% --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
-
-
-
- 
- 
-
- 
-
-
- 
-
-
-%
-%The starting point for translating Thorn is fix a mapping for source to \kafka types.  Since variables with a concrete type \C are guaranteed to always point to an instance of the class \C, we can use statically checked method invocation on those, and we can map concrete types to \kafka classes.  On the other hand,  dynamic and the optional types must be are mapped to the \kafka dynamic type: invocation on methods on objects of these types must be resolved dynamically.  
-%
-%At runtime, in Thorn design there is a clear dichotomy between dynamic and optional types on the one side, and concrete types on the other.    We can mimick this by defining kty so that it maps \any and and the 
-%
-
-
-%
 %how does the translation work:
-%
 %- types: * and ?C are mapped to * ; C are mapped to C
-%
 %- we use two functions [[ ]] and (( )):
-%
 %  -- [[ ]] translates terms (since we need to typecheck we carry an environment of free variables).  The interesting case is when we translate method invocation.  If, by typechecking, the callee has a dynamic or optional type (eg. kty( t ) = *, the we map it to dynamic method invocation.  Otherwise we compile to the static method invocation. 
-%
 %- The type of the method imposes a type for the methods.  This might / might not require casts to be inserted to satisfy this constraint.   the arguments are more interesting...  we know the type we must translate them to.  so we use a second function (()) to translate them, possibly inserting casts.  this second function translates the argument t with the usual [[]] function, but then checks the ktys types expected and obtained, and if needed inserts a structural cast to preserve the integrity of the method invocation (eg. if that was expecting a C).
-%
 %- translation of classes (interesting because for the first time we see why we need overloading in kafka): 
 %  -- we generate a method from kty(t1) to kty(t2), inserting a cast around the return value if needed. 
 %  --  but imagine the object is referred to as * or ?C...  we must ensure that it can be called via dynamic method invocation...   to ensure that the method is callable also if the object is in a * or ?C context,  an overloaded method is added, with *\(\to\)* signature, and argument and return protected by the relevant casts
 %  
  
-
 As an example, translating the class \A and the last expression above results in:
 
 \medskip
@@ -1491,21 +1466,23 @@ As an example, translating the class \A and the last expression above results in
 \)
 \medskip
 
-%\( \Call {\New \A{}} \n { \Call {\New \A{}} \m {\New \C{}}} \ \ \ \ \ \texttt{ // OK \   -- Cast inserted} \)
-
 \( \KCall {\New \A{}} \n {\SubCast \C {( \KCall {\New \A{}} \m {\SubCast \any {\New \C{}}} \any \any)}} \C \C \)
 
 \medskip
 
-\noindent As expected, the outer invocation to \n has been protected by a structural cast to \C.  Remark that \kafka overloading and the combination of concretely typed and dynamically typed method invocation, together with structural casts, are instrumental to give semantics to the Thorn language.
+\noindent As expected, the outer invocation to \n has been protected by a
+structural cast to \C.  Remark that \kafka overloading and the combination
+of concretely typed and dynamically typed method invocation, together with
+structural casts, are instrumental to give semantics to the Thorn language.
 
 
-\medskip
- \FZ{TODO 4.2: I believe ANYCONC should go to be in synch with Fig.2 of the Thorn paper}.
+%%  \FZ{TODO 4.2: I believe ANYCONC should go to be in synch with Fig.2 of the
+%%    Thorn paper}.
  
-\FZ{TODO: 4.1: The property on the typing of translated EXPRESSIONS at the end of 4.1 does not hold for Thorn - pointed this to Jan earlier -- it should be rewritten there so that it only concerns classes (and in that case I believe it holds }
-
-\FZ{TODO IN SEC 3: DONT FORGET to explain that * is isolated wrt SUBTYPING IN SEC 3}
+%% \FZ{TODO: 4.1: The property on the typing of translated EXPRESSIONS at the
+%%   end of 4.1 does not hold for Thorn - pointed this to Jan earlier -- it
+%%   should be rewritten there so that it only concerns classes (and in that
+%%   case I believe it holds }
 
 \subsection{Transient Python}
 
