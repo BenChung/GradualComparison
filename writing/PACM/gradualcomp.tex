@@ -1199,7 +1199,7 @@ give rise to an error.
 
 \smallskip
 \hrulefill
-\caption{TypeScript to \kafka translation}\label{tst}
+\caption{TypeScript translation}\label{tst}
 
 \end{figure}
 
@@ -1601,7 +1601,7 @@ structural casts, are instrumental to give semantics to the Thorn language.
 \medskip
 
 \hrulefill
-\caption{Typed Racket}\label{trtr}
+\caption{Typed Racket translation}\label{trtr}
 \end{figure}
 
 Typed Racket is an extension of the Racket programming language, supporting
@@ -1690,55 +1690,22 @@ self-references.
 
 \subsection{Transient Python}
 
-The Transient variant of Reticulated Python aims for soundness with a
-predictable cost model, by defensively checking the declared types of the
-arguments in every method.  For instance, in the code below Transient Python
-deems both expressions well-typed; however, the second is raises a type
-error when the instance of class \D is passed to the method \m expecting a
-value of type \C.
+The Transient variant of Reticulated Python aims for a form soundness with a
+predictable cost model. The intuition for the Transient guarantee is that,
+in a call such as\Call\e\m\ep, if the type of \e is some class \C, then that
+method invocation is guaranteed to succeed. If \e evaluates to a value \a,
+the object denoted \a has a method \m. Of coure, if the type of \e is \any,
+then the call can get stuck on a method not found. Transient obtains that
+guarantee by checking that every expression evaluates to a value that is
+\emph{consistent} where consistency entails structural subtyping up to \any.
 
-\smallskip
-\(\Class \A  { \Mdef \m\x\C \D  {\Call \x\n{\New{\C}{}}}  ; \  \Mdef \n\x\any \any  \x} \)
-
-\smallskip
-\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \C{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// OK}\)
-
-\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \D{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// Runtime ERR}\)
-\smallskip
-
-\noindent 
-The Transient design allows method \m, which expects an instance of
-class \C as argument, to be called with a value of type \any at any point; this forces
-\m to check its arguments at every method invocation.   
-
-The expression typing rules for our Transient Racket source is identical to
-the typing rules of TypeScript presented in~\figref{f:typescriptts}, except
-that the convertibility rules, defined in~\figref{f:transientts}, now builds
-on an auxiliary \emph{consistency} relation, defined
-in~\figref{f:consubtype} to relate types \t and \tp.
- 
-\FZ{TODO: Explain here the role of the consistent subtyping}
-
-Since arbitrary values can always flow in Transient, in the \kafka
-translation all types are erased and mapped to \any, and all methods are
-mapped to methods with interface \(\any \to \any\).  \FZ{TODO: describe
-  translation of classes and the t x syntax sugar: it casts the argument x
-  to type t before evaluating the expression e; <t>x ; e could be rewritten
-  new Foo( <*><t>x ).id( e ) where Foo has a field of type any and an
-  identity method } To translate method invocation, \kafka differentiates
-whether the source type of the callee is a class type \C on \any.  In the
-latter case, dynamic method invocation is chosen, and the argument is
-translated and, if needed, casted to \any.  In the former, static method
-invocation is used.  In both cases, the argument is structurally casted to
-the expected type by the auxiliary translation function; in the latter a
-cast is inserted also to check the return type (this is not necessary in the
-former case).
-
-\FZ{TODO: Ideally, explain the logic behind these casts}
+The Transient type system is based on the TypeScript rules except that the
+convertibility rules now builds on an auxiliary \emph{consistency} relation,
+defined in~\figref{f:consubtype} to relate types \t and \tp. The modified
+convertibility rule appears in \figref{convtp}.
 
 
-
-\begin{figure}
+\begin{figure}[!t]
 \hrulefill
 \vspace{-4mm}
 
@@ -1752,7 +1719,7 @@ former case).
 \vspace{-6mm}
 
 \hrulefill
-\caption{Transient convertibility}\label{f:transientts}
+\caption{Transient convertibility}\label{convtp}
 
 
 \hrulefill
@@ -1800,14 +1767,7 @@ former case).
 \end{mathpar}
 
 \hrulefill
-\caption{Consistent subtyping}\label{f:consubtype}
-\end{figure}
-
-
-
-\FZ{TODO: add translated code for the example above}
-
-\begin{figure}[!h]
+\caption{Transient consistent subtyping}\label{subtp}
 
 \hrulefill
 \vspace{1mm}
@@ -1867,8 +1827,55 @@ former case).
 
 \hrulefill
 
-\caption{Transient}
+\caption{Transient translation}\label{tptr}
 \end{figure}
+
+
+
+This is achieved by inserting subtype casts whereever a value is returned
+from an expression.
+
+
+
+by defensively checking the declared types of the
+arguments in every method.  For instance, in the code below Transient Python
+deems both expressions well-typed; however, the second is raises a type
+error when the instance of class \D is passed to the method \m expecting a
+value of type \C.
+
+\smallskip
+\(\Class \A  { \Mdef \m\x\C \D  {\Call \x\n{\New{\C}{}}}  ; \  \Mdef \n\x\any \any  \x} \)
+
+\smallskip
+\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \C{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// OK}\)
+
+\(\Call {\New\A{}} \m{\Call {\New \A{}} \n {\New \D{}}} \ \ \ \ \ \ \ \ \ \ \ \ \ \ \texttt{// Runtime ERR}\)
+\smallskip
+
+\noindent 
+The Transient design allows method \m, which expects an instance of class \C
+as argument, to be called with a value of type \any at any point; this
+forces \m to check its arguments at every method invocation.
+
+ 
+\FZ{TODO: Explain here the role of the consistent subtyping}
+
+Since arbitrary values can always flow in Transient, in the \kafka
+translation all types are erased and mapped to \any, and all methods are
+mapped to methods with interface \(\any \to \any\).  \FZ{TODO: describe
+  translation of classes and the t x syntax sugar: it casts the argument x
+  to type t before evaluating the expression e; <t>x ; e could be rewritten
+  new Foo( <*><t>x ).id( e ) where Foo has a field of type any and an
+  identity method } To translate method invocation, \kafka differentiates
+whether the source type of the callee is a class type \C on \any.  In the
+latter case, dynamic method invocation is chosen, and the argument is
+translated and, if needed, casted to \any.  In the former, static method
+invocation is used.  In both cases, the argument is structurally casted to
+the expected type by the auxiliary translation function; in the latter a
+cast is inserted also to check the return type (this is not necessary in the
+former case).
+
+\FZ{TODO: Ideally, explain the logic behind these casts}
 
 \FZ{TODO: explain why the structural cast boils down to a simpler existence of method checking}
 
