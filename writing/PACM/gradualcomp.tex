@@ -1517,8 +1517,9 @@ the corresponding \f:\kty\t field.
 As an example, translating the class \A and the last expression above results in:
 
 \begin{tabbing}
-\HS\HS\KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
-\HS\HS\WHERE\HS=\HS\=
+  \HS
+  \KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
+\HS\WHERE\HS=\HS\=
  \class\= \A \{\\
 \>\>    \Mdef \m\x\any \any{~\x~}\\
 \>\>    \Mdef \n\x\C\C{~\x~}\\
@@ -1544,20 +1545,6 @@ structural casts, are instrumental to give semantics to the Thorn language.
 
 \subsection{Typed Racket}
 
-Typed Racket is an extension of the Racket programming language, supporting
-Racket's key functionality through a system of contracts and dynamically
-enforcing type guarantees.  The type system of idealization of Type Racket
-is identical to that of TypeScript.
-
-However, contrarily to TypeScript, Typed Racked ``eagerly'' ensures that
-every value that passes through a typed/untyped boundary is consistent with
-the declared types.  More precisely, every value is implicitly assumed to be
-of the correct type by the caller, and all accesses are checked against the
-correct type by a wrapper built around the object.  This differs from the
-approaches implemented by Thorn, which handles this through \emph{concrete}
-typing, using the type tag to determine that the entire object is
-well-typed, and Transient, which only guarantees the behavior needed to
-ensure soundness.
 
 \begin{figure}[!b]
 
@@ -1611,44 +1598,66 @@ ensure soundness.
 \end{tabbing}
 \end{minipage}
 
+\medskip
+
 \hrulefill
 \caption{Typed Racket}\label{trtr}
 \end{figure}
 
+Typed Racket is an extension of the Racket programming language, supporting
+Racket's key functionality through a system of contracts that dynamically
+enforcing type guarantees.  At first brush the formalization may appear
+exceedingly simple.  The Typed Racket static type system is identical to
+that of TypeScript. The translation, shown in \figref{trtr} maps classes to
+homonymous classes and types to types of the same name. The \kty{t} function
+is the identity.  Calls with a receiver of type \any are translated to
+\kafka dynamic calls, and calls with a receiver of some type \C are
+translated to statically typed calls. The auxilliary type-directed
+translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
+appropriately. Thus casts can appear are at typed/untyped boundaries in
+assignment, argument of calls or constructors. Because of the strong
+guarantee provided by the behavioural cast, the Typed Racket translation is
+straightforward. In Typed Racket, every typed value is assumed to behave as
+specified, delegating the complexity of checking for consistency with the
+type to the wrapper introduced by the behavioural cast.  So the difference
+with the TypeScript translation is that typed code is able to used typed
+accesses. The difference with Thorn is essentially the presence of wrappers
+and the fact that each wrapper application only check the presence of
+methods names rather than complete signatures for concrete types.  To
+illustrate the semantics of Typed Racket, consider the following example:
 
-To illustrate the dynamic semantics of Typed Racket, consider the  following example:
-
-\vspace{2mm}
-\(
-  \begin{array}{l}
-  \Class{\xt A}{}{\Mdef\m\x\any\any{{\Call{\New{\xt B}{}}\m{\x} }}} \\
-  \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
-  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
-  \Call{\New{\xt A}{}}\m{\New{\C}{}}
-  \end{array}
-\)
-\vspace{2mm}
+\medskip
+\begin{tabbing}
+ \HS\HS\HS
+  \Call{\New\A{}}\m{\New\C{}}
+  \HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=
+  \class\=  \A \{ \\
+  \>\> \Mdef\m\x\any\any{ ~ \Call{\New\D{}}\m\x ~} \\
+  \> \}\\
+ \> \Class \C{}{\Mdef\m\x\any\any{~\x~}} \\
+ \> \Class \D{}{\Mdef\m\x\D\D{~\Call\x\m\x~}} \\
+\end{tabbing}
+\medskip
 
 \noindent Values cross several typed/untyped boundaries.  For instance, \A's
-method \m does not make any assumption on its argument, but passes it as to
-the method \n of {\xt B}, which expects a value of type {\xt B}.  Also,
-class {\xt B} attempts to invoke on its argument a method \m with interface
-\({\xt B} \to {\xt B}\), but the example passes to {\xt B} a method \m with
-interface \(\any \to \any\).  In order to protect class {\xt B} from the
-object \C potentially not behaving as an object {\xt B}, Typed Racket
-inserts a wrapper object around the argument of {\xt B}; the wrapper is
+method \m expects a value of type \any and the method \n of \D, which
+expects a value of type \D.  Also, class \D attempts to invoke on its
+argument a method \m with interface \(\D \to \D\), but the example passes to
+\D a method \m with interface \(\any \to \any\).  In order to protect class
+\D from the object \C potentially not behaving as an object \D, Typed Racket
+inserts a wrapper object around the argument of \D; the wrapper is
 responsible for ensuring that the actual value respects the constraints of
-class {\xt B}.  The \kafka translation for Typed Racket inserts a behavioral
-cast at the boundary between the invocation of class {\xt B}'s method \m in
-class \A.  This has the same effect of Typed Racket wrapping: the object
-with type \C is wrapped to make sure that it acts as an object of type {\xt
-  B}.  The generated \kafka code for the example is reported below:
+class \D.  The \kafka translation for Typed Racket inserts a behavioral cast
+at the boundary between the invocation of class \D's method \m in class \A.
+This has the same effect of Typed Racket wrapping: the object with type \C
+is wrapped to make sure that it acts as an object of type {\xt B}.  The
+generated \kafka code for the example is reported below:
 
 \vspace{2mm}
 \(
   \begin{array}{l}
-  \Class{\xt A}{}{\Mdef\m\x\any\any{\BehCast\any{\KCall{\New{\xt B}{}}\m{\BehCast{\xt B}\x}{\C}\D }}} \\
-  \Class{\xt B}{}{\Mdef\m\x{\xt B}{\xt B}{\KCall\x\m\x{\xt B}{\xt B}}} \\
+  \Class{\xt A}{}{\Mdef\m\x\any\any{\BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\C}\D }}} \\
+  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
   \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
   \KCall{\New{\xt A}{}}\m{\New{\xt C}{}}\any\any
   \end{array}
@@ -1658,20 +1667,8 @@ with type \C is wrapped to make sure that it acts as an object of type {\xt
 
 \noindent By enforcing types on the values and not leaving the check that
 the value has the correct types to the user. Typed Racket is able to
-translate the typed code in class {\xt B} as if the language had no untyped
+translate the typed code in class \D as if the language had no untyped
 code. Any misbehavior will be instantly caught by the value themselves.
-
-The two key features, having wrappers applied at type boundaries and having
-unchanged type code, are key to our translation from Typed Racket to \kafka,
-as shown in~\figref{f:typedrackettothorn}. In our translation, classes,
-methods, and expressions all retain their types, and the \kty{t} function
-maps classes to classes and \any to \any. Boundaries between typed and
-untyped code are statically checked with the auxiliary translation function,
-which inserts behavioural casts whenever required. Because of the strong
-static guarantee provided by the behavioural cast, the Typed Racket
-translation is straightforward. In Typed Racket, every typed value is
-assumed to behave as specified, delegating the complexity of checking for
-consistency with the type to the wrapper introduced by the behavioural cast.
 
 
 
