@@ -1120,7 +1120,7 @@ give rise to an error.
   \EnvTypeS \Env\K\e\any \\\\
   \EnvTypeS \Env\K\ep\t 
 }{
-  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
 }    
 \end{mathpar}\end{minipage}& \begin{minipage}{3.21cm}\begin{mathpar}  
 \Rule[width=15em]{STG-CALL}{
@@ -1250,29 +1250,36 @@ existing client code; and an insurance for backwards compatibility, as
 ignoring types means all browsers can run TypeScript code -- with no
 additional overhead.
 
-The translation to \kafka appears in \figref{tst} and is  straightforward.
-
-
-The TypeScript dynamic semantics can be modelled in \kafka with a very
-simple translation mechanism, where every type becomes \any (including in
-method signatures) and every call becomes a dynamic call.  For instance one
-would translate the class definition and the last expression above as:
-
-\medskip
-\(
-\Class \C {   \Mdef\m\x\any\any \this  ; \   \Mdef\n\x\any\any \x }
-\)
-
-\medskip
-
-\(\DynCall {\New \C{}} \m {\DynCall {\New \C{}} \n {\New \C{}}} \)
+The translation to \kafka appears in \figref{tst} and is straightforward.
+The translation function \(\TR{\dots}\) is applied to class definitions and
+expression, it takes TypeScript and returns the corresponding \kafka
+code. Grey background is used to identify translated terms. The translation
+is exceedingly simple, all type annotations become \any and all source
+method calls are translated to dynamic \kafka calls.  For instance one would
+translate the class definition and the last expression of the example above as:
 
 
 \medskip
-\noindent This scheme can be implemented by the simple top-down algorithm in
-\figref{f:typescriptkafka}.  The translation function \(\TR{\dots}\) is
-applied to both class definitions and expression; to avoid confusion, the
-grey background is used to identify translated terms (that is \kafka terms).
+{\small
+\begin{tabbing}
+  \hspace{.2cm}
+   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \>                                   \>  \>  \Mdef\m\x\any\any{~\SubCast\any\this~} \\
+   \>              \>  \>  \Mdef\mp\x\any\any{~\x~}\\
+   \>                                                              \>  \}   
+\end{tabbing}}
+
+\medskip
+
+\noindent
+Observe that the TypeScript translations does insert some structural casts
+to \any, they are needed for the result to be well-typed, but these have no
+operational effect (a structural cast to \any always succeed at runtime).
+The unsoundness of the TypeScript type system is evidence in the
+translation, by discarding the type of the callee and systematically relying
+on dynamic method invocation for method calls it clear that TypeScript
+programs can get stuck at any point of their execution.
+
 
 All TypeScript types are represented with the dynamic \kafka type, \any, and
 all translated expressions have type \any.  This is a simple instance of a
@@ -1281,14 +1288,8 @@ general property that all our translations into \kafka satisfy.  Let
 the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
 holds that if \e is a well-typed source expression with type \t, then
 \TR{\e} is a well-typed \kafka expression with type \kty{\t}.  The precise
-statement and proof are reported in the Appendix.
+statement and proof are in Appendix.
 
-Observe that the TypeScript translations does insert some structural casts
-to \any, but these have no operational effect (a structural cast to \any
-always succeed at runtime) and are only needed to satisfy the constraints of
-the \kafka type system.  The unsoundness comes from discarding the type of
-the callee and systematically relying on dynamic method invocation for
-method calls.
 
 % \clearpage
 
