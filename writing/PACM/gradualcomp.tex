@@ -910,8 +910,8 @@ and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
 and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, then $~\cload{\mdpp[1]..}$, where $~\mdpp[1].. \In \k$. \\
 
 \noindent
-The wrapper class generated from behavioural cast is always a subtype
-of the target type, otherwise known as type that is being casted with.
+The wrapper class generated from behavioural cast is always a subtype of the
+target type.
 
 \medskip\noindent{\bf Lemma: Subtype preservation.} ~ Given $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
 $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
@@ -1252,10 +1252,10 @@ statement in Appendix.
 \subsection{Thorn}
 
 Thorn has a combination of dynamic, optional, and concrete types.  Concrete
-types, written \C, behave as one would expect: a variable {\x:\C} is
+types, written \C, behave as one would expect: a variable \HT\x\C is
 guaranteed to refer to an instance of \C or a subtype thereof.  Optional
 types are analogous of TypeScript type annotations: occurrences of
-optionally typed variables, denoted {\x:\dt\C}, are checked statically
+optionally typed variables, denoted \HT\x{\dt\C}, are checked statically
 within their scope but may be bound to dynamic values.  Optional types thus
 provide some of the benefits of static typing without any loss of
 expressiveness or flexibility.  Subtyping on optional types is inherited
@@ -1344,7 +1344,7 @@ types.
 \begin{tabbing}
 \TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
 \HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
-\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \HS\HS \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\this:\C\,\x:{\t[1]}}{\t[2]} ..\\
+\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \HS\HS \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
 \> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
 \HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
           \>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
