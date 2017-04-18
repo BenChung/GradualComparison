@@ -357,8 +357,8 @@ calculus with references and a proof of soundness. They defined the type
 consistency relation $\t \sim \tp$ which states that types that agree on
 non-\any positions are compatible.  In~\cite{SiekTaha07} the authors extended
 their result to a stateless object calculus and combined consistency with
-structural subtyping. Extending the approach to mutable objects proved
-challenging. Reticulated Python~\cite{siek14} attempts to find a compromise
+structural subtyping, but extending this approach to mutable objects proved challenging.
+ Reticulated Python~\cite{siek14} attempts to find a compromise
 between soundness and efficiency.  The language has three modes: the
 \emph{guarded} mode behaves as Racket with contracts applied to values, but
 without the module granularity of Racket. The \emph{transient} mode performs
@@ -366,10 +366,8 @@ shallow checks on reads and returns, only validating if the value
 obtained has matching method names, while ignoring argument types. Lastly, the
 \emph{monotonic} mode is fundamentally different from the other modes. Under the
 monotonic semantics, a cast updates the type of an object in place by replacing some
-of the occurrences of \any with more specific types. A single cast can propagate through
-the heap as it implies casts on the objects reachable from the fields of the
-target of the cast. In the case of cyclic structures this may even entail
-a fix point computation.
+of the occurrences of \any with more specific types, which can then propagate recursively
+through the heap until a fixed point is reached.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, and
@@ -478,8 +476,8 @@ stack traces printed by Java when a program terminates abruptly. Developers
 working in, e.g, C++ must run their program in a debugger to obtain the same
 information. Stack traces have little runtime cost because they piggyback
 on another feature, namely precise exceptions, which does come at a price as
-it inhibits some compiler optimizations. It is likely that recording blame
-is costly, but there is no data on how much implementations pay for it.
+it inhibits some compiler optimizations. Recording blame is likely costly, 
+but no data exists on its real performance impact.
 
 The last column of \figref{over} lists self-reported performance pathologies.
 These numbers are not comparable as they refer to different programs and
@@ -767,7 +765,7 @@ evaluation order.
 
 
 
-\paragraph{Behavioural Casts}\label{p:behcast}
+\paragraph{Behavioral Casts}\label{p:behcast}
 A cast \BehCast\t\a creates a wrapped object \ap which dynamically checks
 that object \a behaves as if it was of type \t.  We refer to the type of \a
 as the \emph{source} type, and to the type \t as the \emph{target} type.
