@@ -1908,11 +1908,8 @@ class T {
 class C {
  m(x:C):C {x}}
 
-class D {
- n(x:D):D {x}}
-
 class E {
- m(x:D):D {x}}
+ m(x:P):P {x}}
 
 class F {
  m(x:E):E {x}
@@ -1968,7 +1965,8 @@ new T()@t(new A())
 \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
   \begin{minipage}{4cm}
     \begin{lstlisting}
-new F().n(new C())@m(new C())
+new F().n(new C())
+       @m(new C())
     \end{lstlisting}    
   \end{minipage}
   \\
@@ -2637,6 +2635,7 @@ class Q() {
 
 \subsection*{Typed Racket}
 
+\noindent
 \textbf{Litmus Test 1}:
 
 \begin{lstlisting}
@@ -2667,6 +2666,7 @@ class Q() {
 (send (new T%) t (new A%))
 \end{lstlisting}
 
+\noindent
 \textbf{Litmus Test 2}:
 
 \begin{lstlisting}
@@ -2696,6 +2696,36 @@ class Q() {
 
 (require 't)
 (send (new T%) t (new A%))
+\end{lstlisting}
+
+\noindent\textbf{Litmus Test 3}:
+
+\begin{lstlisting}
+#lang racket
+
+(module u racket
+  (define Fp% (class object%
+                (super-new)
+                (define/public (n x) (send this m x))))
+  (provide Fp%))
+
+(module t typed/racket
+  (require/typed (submod ".." u) [Fp% (Class [n (-> Any Any)])])
+  (define-type C (Instance (Class (n (-> C C)))))
+  (define-type E (Instance (Class (m (-> P P)))))
+  (define-type P (Instance (Class (o (-> P P)))))
+  (define F% (class Fp%
+               (super-new)
+               (: m (-> E E))
+               (define/public (m x) x)))
+  (define C% (class object%
+               (super-new)
+               (: m (-> C C))
+               (define/public (m x) x)))
+  (provide F% C%))
+
+(require 't)
+(send (send (new F%) n (new C%)) m (new C%))
 \end{lstlisting}
 
 
