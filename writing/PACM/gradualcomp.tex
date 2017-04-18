@@ -208,7 +208,7 @@ program.  We illustrate this in Section~\ref{litm} with litmus tests that
 differentiate between the type systems based on which runtime errors are
 generated. It is worth emphasizing that the litmus tests are well-typed in all
 of the respective source languages and that, in an untyped implementation,
-they all run without error.  Dynamic errors encounted in them when running
+they all run without error.  Dynamic errors encountered in them when running
 under the typed implementations vary due  to differences in the runtime
 checking strategies employed by the languages, rather than a fundamental bug
 in the tests.  The translation to \kafka makes those  differences explicit and
@@ -454,7 +454,7 @@ needed~\cite{ecoop15}. StongScript extends TypeScript but changes subtyping
 back to nominal.  The consistency relation used in Reticulated Python is
 fundamentally structural, it would be nonsensical to use it in a nominal
 system.\footnote{Consistency relates classes that differ in the number of
-  occurences of \any in their type signature and not whether they are
+  occurrences of \any in their type signature and not whether they are
   declared to extend one another.}  For Racket, the heavy use of first-class
 classes and class generation naturally leads to structural subtyping as many
 of the classes being manipulated have no names.  Optional types are the
@@ -916,7 +916,7 @@ and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, then $~\cload{\mdpp[1]..}$,
 The wrapper class generated from behavioural cast is always a subtype
 of the target type, otherwise known as type that is being casted with.
 
-\medskip\noindent{\bf Lemma: Subtype presevation.} ~ Given $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
+\medskip\noindent{\bf Lemma: Subtype preservation.} ~ Given $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
 $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
 then $\StrSub\emptyset\K\D\Cp$..\\
 
@@ -976,7 +976,7 @@ restrictions on what programs can be reasonably written in \kafka.
 \noindent
 We are now ready to give semantics to the four gradual type systems of
 interest by translating them into \kafka.  Four each source language,
-compilation into \kafka is realised by a translation function that maps
+compilation into \kafka is realized by a translation function that maps
 well-typed source programs into well-typed \kafka terms, respecting a
 uniform mapping of source types to \kafka types.  The compilation makes
 explicit which type casts (and, in turn, \emph{dynamic type-checks}) are
@@ -986,7 +986,7 @@ highlighting the similarities and differences among them.
 To avoid unnecessary clutter, we represent the source languages using the
 common syntax reported in \figref{f:sourcesyntax}.  This defines a simple
 object calculus similar to \kafka, but without method overloading and, most
-importantly, cast operations.  When modelling the Thorn type system, the
+importantly, cast operations.  When modeling the Thorn type system, the
 additional type \CW is added to the type grammar to denote Thorn \emph{like
   types}.  For each language will we also give a source-level type system;
 we write $\vdash_{\!s}$ to emphasize that this is the source level typing (and
@@ -1575,7 +1575,7 @@ that of TypeScript. The translation, shown in \figref{trtr} maps classes to
 homonymous classes and types to types of the same name. The \kty{t} function
 is the identity.  Calls with a receiver of type \any are translated to
 \kafka dynamic calls, and calls with a receiver of some type \C are
-translated to statically typed calls. The auxilliary type-directed
+translated to statically typed calls. The auxiliary type-directed
 translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
 appropriately. Thus casts can appear are at typed/untyped boundaries in
 assignment, argument of calls or constructors. Because of the strong
@@ -1656,7 +1656,7 @@ The Transient variant of Reticulated Python aims for a form soundness with a
 predictable cost model. The intuition for the Transient guarantee is that,
 in a call such as\Call\e\m\ep, if the type of \e is some class \C, then that
 method invocation will succeed. More precisely, if \e evaluates to a value
-\a, the object denoted by \a has a method \m. Of coure, if the type of \e is
+\a, the object denoted by \a has a method \m. Of course, if the type of \e is
 \any, then the call can get stuck on a method not found. Transient obtains
 that guarantee by statically checking that every expression is consistent to
 the expected type and dynamically checking that expressions evaluates to a
@@ -1811,7 +1811,7 @@ also checks arguments of methods, since the expression may not use the
 argument (but Transient checks it anyway) our translation generates method
 bodies of the form \SubCast\t\x; \e where \e is the body of the expression
 and the semi colon is syntactic sugar for sequencing.\footnote{This can be
-  desugared to
+  sugared to
   \SubCast\tp{\KCall{\New\A{\SubCast\any{\SubCast\t\x}}}\m{\SubCast\any\e}\any\any}
   where \A is class with a single field of type \any and an identity method
   \m. The type of \e is \tp. All of the cast expect the one to \t are only
@@ -3720,7 +3720,7 @@ class F:
 %     \end{proof}
    \end{theorem}
 
-\begin{lemma}{Extending dupMeth with wrappers}{DM-WR}
+\begin{lemma}{Extending Nodup with wrappers}{DM-WR}
 
   \begin{conds}
    \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that}\lbl{cond4}
@@ -3737,7 +3737,7 @@ class F:
 \end{lemma}
  
     
-\begin{lemma}{dupMeth of wrapper class gives overloading}{DM-OL}
+\begin{lemma}{Nodup of wrapper class gives overloading}{DM-OL}
 
   \begin{conds}
    \cond{k = \wrap\C{\classoff\C\K}{\classoff\Cp\K}\D\that}\lbl{cond1}
