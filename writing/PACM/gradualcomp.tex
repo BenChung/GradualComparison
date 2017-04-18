@@ -2456,6 +2456,9 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \subsection*{Well-formedness for Thorn}
 
+The well-formedness judgments for Thorn is similar to the well-formedness judgments of \kafka with the addition
+of well-formed optional types ($\CW$). The turnstile ($\vdash_{\!s}$) of all source language judgment is characterized with s.
+
 \begin{figure}[!h]
 \begin{minipage}{\textwidth}\begin{tabular}{ll}  
 \begin{minipage}{8cm}\begin{mathpar}  
@@ -2551,7 +2554,7 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \subsection*{Well-formedness for Typed Racket, TypeScript, Transient}
 
-% We use $x$ as a placeholder to mean either $s$ (for Typed Racket and TypeScript) or $tr$ (for the Transient semantics).
+The well-formedness judgments for Typed Racket, TypeScript, and Transient is a subset of the well-formedness judgment for \kafka.
 
 \begin{figure}[!h]
 % \vspace{-8mm}
@@ -2563,7 +2566,7 @@ method definitions or method typings, and ensures there are no duplicates.
   \EnvTypex\Env\cdot\K\e\t \\\\
   \k \in \K \implies \WFx{}\cdot\K\k
 }{
-  \WFpx\e\K
+  \WFpW\e\K
 }
 \end{mathpar}\end{minipage}& \begin{minipage}{12.0cm}\begin{mathpar} 
 
@@ -2633,9 +2636,11 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \clearpage
 
-\section{Litmus tests in original language}
+\section{Litmus tests in source language}
 
 \subsection*{Thorn}
+
+Below we present the three litmus tests, presented in \figref{litmus}, in Thorn syntax. \\
 
 \noindent
 \textbf{Litmus Test 1}:
@@ -2789,6 +2794,8 @@ class F() {
 
 \subsection*{TypeScript}
 
+Below we present the three litmus tests, presented in \figref{litmus}, in TypeScript syntax. \\
+
 \noindent
 \textbf{Litmus Test 1}:
 \begin{lstlisting}
@@ -2859,6 +2866,8 @@ new F().n(new C()).m(new C())
 
 
 \subsection*{Typed Racket}
+
+Below we present the three litmus tests, presented in \figref{litmus}, in Typed Racket syntax. \\
 
 \noindent
 \textbf{Litmus Test 1}:
@@ -2955,6 +2964,8 @@ new F().n(new C()).m(new C())
 
 
 \subsection*{Transient}
+
+Below we present the three litmus tests, presented in \figref{litmus}, in Reticulated Python (transient) syntax. \\
 
 \noindent
 \textbf{Litmus Test 1}:
@@ -3411,6 +3422,9 @@ class F:
 % \clearpage
 
 \section{Proofs of Related Theorems}
+
+In this section, we present the proof of type soundness for the type system of \kafka. The \kafka language includes the behavioural cast
+semantics shown in \figref{behavetext}. \\
 
 % \subsection*{}
 % 
