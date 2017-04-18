@@ -570,10 +570,10 @@ receiver, while \that is a distinguished field name that will be used in
 wrapper classes.  Providing two different cast mechanisms is a key feature
 of the calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\),
 denotes the usual subtype cast that dynamically type-checks its argument.
-The latter, the \emph{behavioural cast}, \(\BehCast\t\e\), rather than
+The latter, the \emph{behavioral cast}, \(\BehCast\t\e\), rather than
 type-checking the argument at runtime, builds a wrapper around it.  The
 wrapper then ensures that all the successive requests to the object will be
-understood (or raise an error). The design of the behavioural cast is
+understood (or raise an error). The design of the behavioral cast is
 intricate, and deserves its own section below.  State is represented via a
 heap \s mapping addresses ranged over by \a to objects
 denoted \hspace{-1mm}\obj\C{\a[1]..}.
@@ -827,7 +827,7 @@ achieved by generating a new class with the right method signatures.
 
 
 \hrulefill
-\vspace{-2mm}\caption{Behavioural casts}\label{behavetext}
+\vspace{-2mm}\caption{Behavioral casts}\label{behavetext}
 \end{figure}
 
 \begin{figure}[!t]
@@ -864,14 +864,14 @@ the \that field name, which is also fresh.  The function builds a new
 wrapper class \(\D\).  The field \that stores a reference to the target
 object and has thus type \(\C\).  The invocation of a method that appears in
 \(\mdp[1]..\) is forwarded to the corresponding method invocation in
-\(\md[1]\), except that the arguments are protected by behavioural casts
+\(\md[1]\), except that the arguments are protected by behavioral casts
 following the interface in \(\md[1]..\) and the return type following the
 interface in \(\mdp[1]..\).  Methods defined in the source type but missing
 from \(\mdp[1]..\) are added to the wrapper class and simply redirected to
 corresponding method in the wrapped object.  Wrapping an object so that it
 behaves as \any is simpler, as the wrapper systematically protects the input
 type and casts back the return type to \any. Only method existing in the
-source type are wrapped. The behavioural cast reduction rule satisfies a
+source type are wrapped. The behavioral cast reduction rule satisfies a
 property instrumental to our design: a wrapper class generated for a target
 type \D, is always a subtype of \D.  This will allow us to refer to both
 unwrapped and wrapped objects via the original, source language, types. The
@@ -900,7 +900,7 @@ one of the two casts provided by the language.
    or $\EE[\BehCast\tp\a]$.\\
 
 \noindent
-The wrapper class generated from behavioural cast will not contain
+The wrapper class generated from behavioral cast will not contain
 any duplicate methods or fields. The \xt{nodups} function takes a 
 list of method definitions, and will return false if there exists 
 any duplicate method names.
@@ -910,7 +910,7 @@ and $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$,
 and $~\k = \wrapE{\C,\md[1].., \mdp[1]..,\D,\that}$, {\bf then} $~\cload{\mdpp[1]..}$, where $~\mdpp[1].. \In \k$. \\
 
 \noindent
-The wrapper class generated from behavioural cast is always a subtype of the
+The wrapper class generated from behavioral cast is always a subtype of the
 target type.
 
 \medskip\noindent{\bf Lemma: Subtype preservation.} ~ {\bf Given} $~\md[1]..\In\App\K\C~$ $ $and$ $ $~\mdp[1].. \In \App\K\Cp$ and 
@@ -1420,7 +1420,7 @@ dynamic checks.
 The first expression is ill-typed because method \n expects a \dt\C, it gets
 a \D which is not convertible to \C. The second expression is ill-typed
 because it attempts to convert a \D into a \dt\C.  Typing the argument of \m
-as a \dt\C suggests that the intention of the programmerp is to invoke this
+as a \dt\C suggests that the intention of the programmer is to invoke this
 method only with instances that behave as \C; since \D does not convert to
 \C the expression is flagged as erroneous. The third expression passes \C
 where \dt\C is expected; this is allowed as subtyping implies
@@ -1574,10 +1574,10 @@ translated to statically typed calls. The auxiliary type-directed
 translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
 appropriately. Thus casts can appear are at typed/untyped boundaries in
 assignment, argument of calls or constructors. Because of the strong
-guarantee provided by the behavioural cast, the Typed Racket translation is
+guarantee provided by the behavioral cast, the Typed Racket translation is
 straightforward. In Typed Racket, every typed value is assumed to behave as
 specified, delegating the complexity of checking for consistency with the
-type to the wrapper introduced by the behavioural cast.  So the difference
+type to the wrapper introduced by the behavioral cast.  So the difference
 with the TypeScript translation is that typed code is able to used typed
 accesses. The difference with Thorn is essentially the presence of wrappers
 and the fact that each wrapper application only check the presence of
