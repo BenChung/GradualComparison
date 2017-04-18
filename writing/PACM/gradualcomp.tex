@@ -2151,12 +2151,8 @@ depending on the gradual semantics chosen.
   \code A is not a subtype of \code I.
  
 \item{\bf L3:} The Typed Racket semantics reject this case, because the call
-  to \code F.\code m   causes the instance of \C to acquire a wrapper, forcing
-  it to only take and return instances of   \D. When we pass it another \C -
-  from untyped code - this wrapper rejects the \C. In both Thorn and Transient,
-  the program is accepted as neither retains the cast inside of \code F.\code m,
-  as the Typed Racket semantics does. Only the receiver's type, in this case \C,
-  matters to the final invocation. 
+to \code F.\code m forces \C to only work on values of type \D. Thorn and
+Transient do not retain this cast, and encounter no runtime errors.
 \end{itemize}
 
 
