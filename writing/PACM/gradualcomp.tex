@@ -1953,9 +1953,10 @@ to check its arguments at every method invocation.
 \noindent
 Gradual typing has matured beyond being an experimental language feature in
 the petri dish of academia. Applications are now being written that
-incorporate gradual types.  However the proposed designs have subtle
-semantics and differ in dark corners. It is the responsibility of language
-researchers to paint a clear picture of each approach to gradual typing.
+incorporate gradual types.  However the proposed language designs have
+subtle semantics and differ in their dark corners. It is the responsibility
+of language researchers to paint a clear picture of each approach to gradual
+typing.
 
 \begin{wrapfigure}{r}{.7\columnwidth}
  \vspace{-.4cm}
@@ -1963,25 +1964,25 @@ researchers to paint a clear picture of each approach to gradual typing.
    \caption{Gradual typing semantic litmus tests.}\label{litmus}
 \end{wrapfigure}
 
+\noindent
 In this paper we have compared the essence of four gradual type system
 designs, namely Typescript, Thorn, Typed Racket, and Transient Python.  Our
-formalization have shown that they differ in what programs are viewed as
-statically correct. The Thorn type system makes a difference between
-concrete and like types, whereas as Transient uses the notion of consistency
-to determine if values may be compatible. A perhaps more surprising result
-is that even at runtime these languages do not agree on what consistutes a
-valid program. Consider \figref{litmus} which shows three small programs
-that are well-typed in all four languages. These are synthetic examples
-consisting of a class table and a top-level expression. All three will
-execute under TypeScript's permissive semantics and will not get stuck.
-{\bf L1} fails in all other semantics because \A is not a subtype of \xt I
-(Thorn) and \A and \xt I have different sets of methods (Racket and Python).
-{\bf L2} fails in Thorn, again because the concrete type checks require
-subtyping of \A and \xt I to hold. {\bf L3} fails in Racket as the \xt{F.m}
-casts the instance of \C to \code E, in turn requiring \C.\m to only take
-and return values of type \D. We then pass \C.\m a value of type \C, which
+formalization have shown that they differ in which programs are viewed as
+statically correct. Thorn distinguishes between concrete and like types,
+whereas Transient uses the notion of consistency to determine if values may
+be compatible. A perhaps more surprising result is that even at runtime
+these languages do not agree on what constitutes a valid program. Consider
+\figref{litmus} which shows three small programs -- well-typed in all four
+languages. These synthetic examples consist of a class table and a top-level
+expression. All three will execute without getting stuck under TypeScript's
+permissive semantics.  {\bf L1} fails in all other semantics because \A is
+not a subtype of \xt I (Thorn) and \A and \xt I have different sets of
+methods (Racket and Python).  {\bf L2} fails in Thorn because the concrete
+type checks require subtyping of \A and \xt I to hold. {\bf L3} fails in
+Racket as the \xt{F.m} casts an instance of \C to \xt E, in turn requiring
+\C.\m to only take and return values of type \D yet it receives a \C which
 is then caught by the wrapper. Thorn and Transient do not persist the cast
-to \code E, and do not induce an error as a result. Thus given these three
+to \xt E, and accept the program as a result. Thus given these three
 programs and the ability to observe errors, one can divine which semantics a
 language implements.
 
@@ -1992,15 +1993,15 @@ efficient code.  On the other hand, without soundness guarantees this
 information cannot be relied upon and becomes, at best, hints that can be
 used in heuristic-driven code generation.  The different languages do make
 some guarantees which become apparent in our translations -- when the
-translation generate dynamically resolved method invocations, for Thorn,
-Racket and Python, these invocations can be optimized by a compiler. The
-price for these guarantees comes in the form of casts and wrappers which
-would not be needed in a fully dynamic program. The nature of the casts and
-their dynamic frequency will make a significant difference to end users.
-Thorn inserts them at boundaries of concrete types. Racket inserts them at
-typed/untyped boundaries. Transient Python inserts casts after variable
-reads. The casts themselves are different, Thorn and Python merely check for
-subtyping whereas Racket's cast require allocation.
+translation generate static method invocations, for Thorn, Racket and
+Python, these invocations can be optimized. The price for these guarantees
+comes in the form of casts and wrappers which are not be needed in a fully
+dynamic program. The nature of these casts and their dynamic frequency will
+make a significant difference to end users.  Thorn inserts them at
+boundaries of concrete types only. Racket inserts them whenever a value
+crosses either a typed or untyped boundary. Lastly, Transient Python inserts
+casts after variable reads. The casts themselves are different, Thorn and
+Python merely check for subtyping whereas Racket's casts require allocation.
 
 This paper has introduced \kafka, a framework for comparing the designs of
 gradual type systems for object-oriented languages. We have proven \kafka's
