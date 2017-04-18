@@ -199,7 +199,7 @@ representative of unsound systems that work by erasure, such as Dart and Hack.
 Thorn combines dynamic and static types in the same way as C\#, an approach
 further developed in StrongScript. Typed Racket provides a sound type system
 that is close in spirit to Siek and Taha's original idea. Lastly, Transient
-was designed to decrease the overhead of soundness while retaining some
+was designed to decrease the overhead of soundness, while retaining some
 systematic runtime checks.  We focus on core features of each type system,
 namely their treatment of objects, and explain which errors are caught
 statically and which ones are caught dynamically. One, perhaps surprising,
@@ -243,59 +243,61 @@ typed object calculus.  It is class based (with an explicit class table \K),
 with mutable state (a heap address \a refers to an object with a set of
 private fields denoted by \f). It allows the dynamic generation of wrapper
 classes (by addition of new classes to the class table \K and allocation of
-objects \a).  Methods can be statically resolved, this is denoted by a typed
+objects \a).  Methods can be statically resolved, denoted by a typed
 call \KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a dynamic
-call \DynCall\a\m\x. The \kafka type system has two kind of types, classes,
-denoted by \C, which give rise to homonymous types and the dynamic type
-\any. Subtyping is structural, the class table \K is used to resolve
-recursion.\footnote{One subtle design choice was to privatize fields.  An
+call \DynCall\a\m\x. The \kafka type system has two kinds of types; classes (
+denoted \C), which give rise to homonymous types, and the dynamic type \any.
+
+\kafka subtyping is structural with recursion, using the class table \K to
+resolve cycles.\footnote{One subtle design choice was to privatize fields.  An
   earlier version of this paper materialized fields in types by adding
-  getter and setters methods. This added much verbosity to the semantics and
-  translations for little benefit. A key feature of the design of \kafka is
-  that it allows the implementation of transparent wrappers. If fields are
-  exposed, the wrappers must be able to interpose on field accesses.} The
+  getter and setter methods, adding substantial verbosity for little benefit. 
+  This arose from \kafka's support for transparent wrappers, since, if fields are
+  exposed, the wrappers must be able to interpose on field accesses. This feature 
+  contributed substantial complexity to \kafka.} The
 heart of any gradual type system implementation is the explicit casts that
 are inserted at type boundaries.  A structural cast is built-in to \kafka:
-the subtype cast \SubCast\t\a checks if the object references by \a is a
-subtype of type \t.  To support sound gradual type systems, \kafka is
-extended by \emph{generative} casts which create wrappers.  The behavioral
-cast \BehCast\t\a generates a wrapper object that monitors that methods
-invoked on \a abide by the interface of type \t.\footnote{Generative casts
-  are not supported natively by the JVM or CLR, but they can be encoded by a
-  combination of class generation and dynamic loading, we provide a naive
-  implementation of \kafka in the CLR to validate this claim.} This entails
-runtime generation of a class that interposes on calls to the target
+the subtype cast \SubCast\t\a checks if the object referenced by \a is a
+subtype of type \t.  To support the Typed Racket translation, \kafka is
+extended with a \emph{behavioral} cast operation, which creates wrappers that
+enforce a specific type. This behavioral cast, \BehCast\t\a, ensures that
+every method \m invoked on \a respects the type \t.\footnote{Neither the JVM or the
+ CLR support behavioral casts natively, but the casts can be encoded by a
+  combination of class generation and dynamic loading. To validate this claim,
+  our implementation of \kafka in the CLR provides runtime support for behavioral 
+  generation.} Protecting \a entails
+runtime generation of a new class, interposing on calls to the target
 object. We give \kafka an operational semantics and prove soundness of its
-type system. With the exception of generative casts the proof is
+type system. With the exception of behavioral casts the proof is
 straightforward.
 
 
-\paragraph{Threats to validity.} Our study has limitations but we believe
+\paragraph{Threats to validity.} Our study has limitations, but we believe
 that these do not invalidate our conclusions. The source languages were
 simplified down to their essence and some features were excluded to allow
 comparison.  For example, papers on Thorn and C\# claim unboxed access to
 primitives and direct field reads are crucial for performance. \kafka does
-not model primitives and fields are always accessed directly from the
+not model primitives, and fields are always accessed directly from the
 current object. Typed Racket supports class composition with first-class
 classes, while \kafka does not even have inheritance. TypeScript has
-generics; we have chosen to leave those out of the source language for
+generics; we have chosen to leave these out of the source language for
 simplicity of exposition. Subtyping in Thorn and C\# is nominal, whereas in
-\kafka it is structural as required for the consistent subtyping of
-Transient.  We believe these features could be accomodated at the cost of
+\kafka it is structural, as required for consistent subtyping in
+Transient.  We believe these features could be accommodated at the cost of
 some complexity, and that their addition would not substantially change the
 outcome of our comparison. We leave one interesting system out of this
-study, namely the Monotonic variant of Reticulated Python~\cite{siek14},
-because it requires inplace update of the class of objects and this is not a
-feature supported in commercial virtual machines. An earlier version of this
+study, namely, the Monotonic variant of Reticulated Python~\cite{siek14},
+because it requires in-place update of the class of objects, a
+feature not supported in commercial virtual machines. An earlier version of this
 paper proposed a translation that used an additional level of indirection to
 model Monotonic, but that was neither intellectually satisfactory nor
 elegant.  This points to the fact that Monotonic does require some virtual
-machine support.  Some gradual type system support powerful error reporting
-features that can assign blame to the particular type/untyped boundary
-crossing that led to an error. We do not study blame here as it is not
+machine support.  Some gradual type systems support powerful error reporting
+features that can assign blame to the particular typed/untyped boundary
+crossing that led to an error. We do not study blame here, as it is not
 uniformly supported by all the languages under scrutiny and, we believe, it
-is somewhat orthogonal to matters at hand.  Lastly, while we prove that type
-soundness of \kafka and that our translations generated well-typed code, we
+is somewhat orthogonal to matters at hand.  Lastly, while we prove the type
+soundness of \kafka and that our translations generate well-typed code, we
 do not establish a formal correspondence with the semantics of the source
 languages. We gained confidence in our results by testing the
 implementations of the respective languages and validating that they agree
@@ -313,9 +315,9 @@ with our translation.
 
 \noindent The intellectual lineage of gradual types can be traced back to
 attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
-side is the Strongtalk optional type system~\cite{Bracha93} which led to
-Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types are
-solely to catch errors at compile-time, they should never affect the
+side is the Strongtalk optional type system~\cite{Bracha93}, which led to
+Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types exist
+solely to catch errors at compile-time, never affecting the
 runtime behavior of programs. The rationale for this is that types are
 viewed as an add-on that can be turned off without affecting semantics.  In
 the words of Richards~\emph{et al.}~\cite{ecoop15}, an optional type system
@@ -353,31 +355,31 @@ for a program by choosing to annotate function parameters with types, or
 not.'' Their contribution was a formalization of the idea in a lambda
 calculus with references and a proof of soundness. They defined the type
 consistency relation $\t \sim \tp$ which states that types that agree on
-non-\any position are compatible.  In~\cite{SiekTaha07} the authors extended
+non-\any positions are compatible.  In~\cite{SiekTaha07} the authors extended
 their result to a stateless object calculus and combined consistency with
 structural subtyping. Extending the approach to mutable objects proved
 challenging. Reticulated Python~\cite{siek14} attempts to find a compromise
 between soundness and efficiency.  The language has three modes: the
-\emph{guarded} mode behaves as Racket with contracts applied to values but
-without the module granularity of Racket, the \emph{transient} mode performs
-shallow checks on reads and returns, these checks only validate if the value
-obtained has matching method names, it ignore argument types, and the
-\emph{monotonic} mode is fundamentally different from the other modes. In
-monotonic, a cast updates in place the type of an object by replacing some
-of the occurrence of \any with classes. A single cast can propagate through
-the heap as it implies casts on the object reachable from the field of the
+\emph{guarded} mode behaves as Racket with contracts applied to values, but
+without the module granularity of Racket. The \emph{transient} mode performs
+shallow checks on reads and returns, only validating if the value
+obtained has matching method names, while ignoring argument types. Lastly, the
+\emph{monotonic} mode is fundamentally different from the other modes. Under the
+monotonic semantics, a cast updates the type of an object in place by replacing some
+of the occurrences of \any with more specific types. A single cast can propagate through
+the heap as it implies casts on the objects reachable from the fields of the
 target of the cast. In the case of cyclic structures this may even entail
 a fix point computation.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
-4.0~\cite{Bierman10}, Thorn~\cite{oopsla09},
+4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, and
 StrongScript~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
 Felleisen-style contracts and mostly nominal type equivalence (structural
 equivalence can be specified on demand, but it is, in practice, rarely
 used). C\# 4.0 adds the type {\sf dynamic} (i.e.~\any) to the C\# language
 and adds dynamically resolved method invocation when the receiver of method
-call is with type \any.  This means C\# has a dynamic sublanguage that
-allows developer to write unchecked code, but it also has a strongly type
+call is of type \any.  This means that C\# has a dynamic sublanguage that
+allows developers to write unchecked code, working alongside a strongly typed
 sublanguage in which values are guaranteed to be of their declared type.
 The implementation of C\# in the~.Net framework replaces \any by the type
 {\sf object} and adds casts where needed. A dynamically resolved method call
