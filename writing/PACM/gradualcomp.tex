@@ -2005,10 +2005,12 @@ forces \m to check its arguments at every method invocation.
 
 \begin{figure}[!t]
 \small
-\begin{tabular}{@{}cc}
-  \begin{tabular}{|@{}cc@{\hspace{1mm}}|}\hline
+ \begin{tabular}{|lll|}\hline
   \begin{minipage}{4.6cm}
     \begin{lstlisting}
+   
+    
+    
 class A {
  m(x:A):A {this}}
 
@@ -2018,6 +2020,8 @@ class I {
 class T {
  s(x:I):T {this}
  t(x:*):* {this.s(x)}}
+ 
+new T().t(new A()) 
       \end{lstlisting}    
   \end{minipage}
 &
@@ -2035,12 +2039,14 @@ class I {
 class T {
  s(x:I):T {this}
  t(x:*):* {this.s(x)}}
+ 
+new T().t(new A()) 
       \end{lstlisting}    
   \end{minipage}
-\\[2mm]
-(Litmus test 1) & (Litmus test 2)\\[3mm]
+&  
   \begin{minipage}{4.3cm}
     \begin{lstlisting}
+    
 class C {
  m(x:C):C {x}}
 
@@ -2053,53 +2059,58 @@ class E {
 class F {
  m(x:E):E {x}
  n(x:*):* {this.m(x)}}
+ 
+new F().n(new C())
+          .m(new C()) 
       \end{lstlisting}    
-  \end{minipage}
-&
-  \begin{minipage}{4.6cm}
-\begin{minipage}{4cm}
+  \end{minipage}  
+\\[2mm]
+(Litmus test 1) & (Litmus test 2) & (Litmus test 3) 
+\\[3mm]
+
+% &
+%   \begin{minipage}{4.6cm}
+% \begin{minipage}{4cm}
+% % \begin{tabular}{@{}c@{\hspace{1mm}}}
+% %   \begin{minipage}{4cm}
+% %     \begin{lstlisting}
+% % class Q { 
+% %   n(x:Q):Q {this}}
+% %     \end{lstlisting}    
+% %   \end{minipage}
+% %  \\
+% %   (Auxiliary classes)\\
+% % \end{tabular}
+% % \\ \\ \\  
 % \begin{tabular}{@{}c@{\hspace{1mm}}}
 %   \begin{minipage}{4cm}
 %     \begin{lstlisting}
-% class Q { 
-%   n(x:Q):Q {this}}
+% new T().t(new A())
 %     \end{lstlisting}    
 %   \end{minipage}
-%  \\
-%   (Auxiliary classes)\\
+%   \\
+%   (Program 1-2)\\
 % \end{tabular}
 % \\ \\ \\  
-\begin{tabular}{@{}c@{\hspace{1mm}}}
-  \begin{minipage}{4cm}
-    \begin{lstlisting}
-new T().t(new A())
-    \end{lstlisting}    
-  \end{minipage}
-  \\
-  (Program 1-2)\\
-\end{tabular}
-\\ \\ \\  
-\begin{tabular}{@{}c@{\hspace{1mm}}}
-  \begin{minipage}{4cm}
-    \begin{lstlisting}
-new F().n(new C())
-          .m(new C())
-    \end{lstlisting}    
-  \end{minipage}
-  \\
-  (Program 3)\\
-\end{tabular}
-
-\end{minipage}  
-  \end{minipage}
-\\[2mm]
-(Litmus test 3) &  
+% \begin{tabular}{@{}c@{\hspace{1mm}}}
+%   \begin{minipage}{4cm}
+%     \begin{lstlisting}
+% new F().n(new C())
+%           .m(new C())
+%     \end{lstlisting}    
+%   \end{minipage}
+%   \\
+%   (Program 3)\\
+% \end{tabular}
+% 
+% \end{minipage}  
+%   \end{minipage}
+% \\[2mm]
+% (Litmus test 3) &  
 
 \\\hline
-  \end{tabular}
-  &
-
 \end{tabular}
+
 
 
 \center
