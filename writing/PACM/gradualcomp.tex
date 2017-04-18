@@ -1966,7 +1966,7 @@ new T()@t(new A())
   \begin{minipage}{4cm}
     \begin{lstlisting}
 new F().n(new C())
-       @m(new C())
+       .m(new C())
     \end{lstlisting}    
   \end{minipage}
   \\
@@ -2630,6 +2630,59 @@ class Q() {
 
 
 \subsection*{TypeScript}
+
+\noindent
+\textbf{Litmus Test 1}:
+\begin{lstlisting}
+class A {
+    m(x: A): A { return this }
+}
+class I {
+    n(x:I):I { return this }
+}
+class T {
+    s(x: I): T { return this }
+    t(x: any): any { return this.s(x) }
+}
+new T().t(new A())
+\end{lstlisting}
+
+\noindent
+\textbf{Litmus Test 2}:
+\begin{lstlisting}
+class Q {
+    n(x: Q): Q { return this }
+}
+class A {
+    m(x: A): A { return this }
+}
+class I {
+    n(x:Q):I { return this }
+}
+class T {
+    s(x: I): T { return this }
+    t(x: any): any { return this.s(x) }
+}
+new T().t(new A())
+\end{lstlisting}
+
+
+\noindent
+\textbf{Litmus Test 3}:
+\begin{lstlisting}
+class C {
+    m(x: C): C { return x }
+}
+class E {
+    m(x: P): P { return x }
+}
+class F {
+    m(x: E): E { return x }
+    n(x: any): any { return this.m(x) }
+}
+new F().n(new C()).m(new C())
+\end{lstlisting}
+
 
 
 
