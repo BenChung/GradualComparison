@@ -150,11 +150,11 @@ TypeScript~\cite{BAT14}.}
 %%
 
 A decade later, faithful practical realizations of Siek and Taha's elegant
-idea have proved elusive. One reason for this may be that the original paper
+idea have proved elusive. One potential reason may be that the original paper
 did not consider state. The combination of mutable state, aliasing and
 subtyping prevalent in object-oriented languages complicates enforcement
-strategies as one must consider situations where an object is being
-accessed, and mutated, at different types. While several solutions have been
+strategies, as one must consider situations where an object is being
+accessed and mutated at different types. While several solutions have been
 proposed, the performance implications of their implementation strategies
 appear daunting.\footnote{Languages with \emph{sound} gradual type systems,
   \emph{i.e.} type systems that ensure to catch all violations of the typing
@@ -172,18 +172,18 @@ degrading performance.\footnote{Dart, Typescript and Hack are good examples,
 
 This paper explores the design space of gradual type systems for
 object-oriented languages. We aim to expose the forces that influenced the
-design of existing systems and discuss the implication of key
+design of existing systems and discuss the implications of key
 decisions. While there are practical challenges that, in the end, may
 prevent adoption of some of the more ambitious type systems, there may be
 workable compromises that have not yet been fully explored.  To capture the
 essence of gradual typing, we present translations of representative subsets
 of four gradually typed languages into a common target. This target
-language, dubbed \kafka, is modeled on the features exposed by intermediate
-language of the Java Virtual Machine and the Common Language Runtime -- both
+language, dubbed \kafka, is modeled on the features exposed by the intermediate
+languages of the Java Virtual Machine and the Common Language Runtime -- both
 of which have been used as targets for implementations of gradual typing
 systems.  The particular features we exploit are a simple static type system
 equipped with dynamic casts that check the runtime type of values, the
-ability to dynamic resolve method targets, and the support for generating
+ability to dynamically resolve method targets, and support for generating
 new classes at runtime.\footnote{Both the JVM and the CLR have runtime type
   tests, reflective invocation based on method names and runtime code
   generation. Dynamic resolution was added to C\# in version
@@ -191,28 +191,28 @@ new classes at runtime.\footnote{Both the JVM and the CLR have runtime type
   dispatch. The languages have similar class loading mechanisms.}
 
 The type systems considered in this work are idealizations of
-TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
-Racket~\cite{tf-popl08}, and the Transient variant of Reticulated
-Python~\cite{siek14}. We selected these four points in the design space
-because the languages had open source implementations and the design were
-influential.  TypeScript was chosen as a representative of unsound systems
-that work by erasure such as Dart and Hack. Thorn combines dynamic and
-static types in the same way as C\#, the approach was adopted in
-StrongScript. Typed Racket provides a sound type system that is close in
-spirit to Siek and Taha's original idea. Lastly, Transient was designed to
-decrease the overhead of soundness while retaining some systematic runtime
-checks.  We focus on core features of each type system, namely their
-treatment of objects, and explain which errors are caught statically and
-which ones are caught dynamically. One, perhaps surprising, observation is
-that there is no agreement on what constitutes a ``correct`` program.  We
-illustrate this in Section~\ref{litm} with litmus tests that differentiate
-between the type systems based on which runtime errors are generated. It is
-worth emphasizing that the litmus are well-typed in all the respective
-source languages and that they do not actually contain any operation that
-would cause an error in an untyped implementation. The errors that are
-reported vary due to variation in the runtime checking strategies employed
-by the languages.  The translation to \kafka makes those choices explicit
-and comparable in the same framework.
+TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed Racket~\cite{tf-popl08},
+and the Transient variant of Reticulated Python~\cite{siek14}. We selected
+these four points in the design space because the languages had open source
+implementations and the designs were influential.  TypeScript was chosen as a
+representative of unsound systems that work by erasure, such as Dart and Hack.
+Thorn combines dynamic and static types in the same way as C\#, an approach
+further developed in StrongScript. Typed Racket provides a sound type system
+that is close in spirit to Siek and Taha's original idea. Lastly, Transient
+was designed to decrease the overhead of soundness while retaining some
+systematic runtime checks.  We focus on core features of each type system,
+namely their treatment of objects, and explain which errors are caught
+statically and which ones are caught dynamically. One, perhaps surprising,
+observation is that there is no agreement on what constitutes a ``correct``
+program.  We illustrate this in Section~\ref{litm} with litmus tests that
+differentiate between the type systems based on which runtime errors are
+generated. It is worth emphasizing that the litmus tests are well-typed in all
+of the respective source languages and that, in an untyped implementation,
+they all run without error.  Dynamic errors encounted in them when running
+under the typed implementations vary due  to differences in the runtime
+checking strategies employed by the languages, rather than a fundamental bug
+in the tests.  The translation to \kafka makes those  differences explicit and
+comparable in the same framework.
 
 Translating a gradually typed language into a statically typed language such
 as the JVM's bytecode or \kafka makes explicit which of the guarantees of
