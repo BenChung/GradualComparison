@@ -963,12 +963,9 @@ restrictions on what programs can be reasonably written in \kafka.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
 
-%\vspace{-2mm}
-
 \epigraph{\small ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
 
 \vspace{-5mm}
-
 
 \noindent
 We are now ready to give semantics to the four gradual type systems of
@@ -986,16 +983,14 @@ object calculus similar to \kafka, but without method overloading and, most
 importantly, cast operations.  When modeling the Thorn type system, the
 additional type \CW is added to the type grammar to denote Thorn \emph{like
   types}.  For each language will we also give a source-level type system;
-we write $\vdash_{\!s}$ to emphasize that this is the source level typing (and
-not the \kafka level typing).  As the various type system are mostly similar
-we will only present their differences assuming that all the omitted rules
-are identical.
-
-
+we write $\vdash_{\!s}$ to emphasize that this is the source level typing
+(and not the \kafka level typing).  As the various type system are mostly
+similar we will only present their differences assuming that all the omitted
+rules are identical. Given well-type source level code, each of the four
+translation produces well-typed \kafka code.
 
 \begin{figure}[!h]\hrulefill
 \vspace{2mm}  \small
-
 
 \begin{tabular}{lll}
 \begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
@@ -1173,7 +1168,7 @@ The second expression will also be flagged as erroneous as the argument to
 correct as the instance of \C is cast to a \D by the \mp method. At runtime
 that expression will evaluate successfully.
 
-\medskip
+
 {\small
 \begin{tabbing}
   \hspace{.5cm}
@@ -1184,7 +1179,6 @@ that expression will evaluate successfully.
    \>                                                              \> \Class\D{}{}
 \end{tabbing}}
 
-\medskip
 
 \noindent
 Our formalization of TypeScript's type system is in
@@ -1250,14 +1244,14 @@ statement in Appendix. \\
 
 % \noindent\paragraph*{Type Correctness} \\
 
-\medskip\noindent{\bf Lemma: Type correctness of TypeScript translation.}
-{\bf Given} $~\WFpX\K\e{s}~$,
-and $~\WFtypeX \K{s}\t$,
-and $\HT\x\tp \in \Env \implies \WFtypeX\K{s}\tp$,
-and $~\EnvTypeE\Env\K{s}\e\t$,
-and $~\TR\K = \Kp$,
-and $~\TR\Env = \Envp$,
-{\bf then} $~\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$. \\
+%% \medskip\noindent{\bf Lemma: Type correctness of TypeScript translation.}
+%% {\bf Given} $~\WFpX\K\e{s}~$,
+%% and $~\WFtypeX \K{s}\t$,
+%% and $\HT\x\tp \in \Env \implies \WFtypeX\K{s}\tp$,
+%% and $~\EnvTypeE\Env\K{s}\e\t$,
+%% and $~\TR\K = \Kp$,
+%% and $~\TR\Env = \Envp$,
+%% {\bf then} $~\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$. \\
 
 \subsection{Thorn}
 
@@ -1274,7 +1268,7 @@ whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
 The formalization of the Thorn type system is built on top of the rules
 presented for TypeScript in \figref{tsts} and \figref{convts}. The
-definition of subtyping is extended to account for optional types, this is
+definition of subtyping is extended to account for optional types, this 
 appears in \figref{subth}. Optional types are subtypes if the corresponding
 concrete types are subtypes. Concrete types are subtypes of optional types,
 if the relation holds on concrete types. The convertibility rule must be
@@ -1284,10 +1278,7 @@ for method calls, shown in \figref{thts} must be extended to handle
 receivers of optional types, they are treated as if they were concrete
 types.
 
-
-
 \begin{figure}[!t]
-
 
 \hrulefill  \small
 \vspace{-3mm}
@@ -1308,8 +1299,6 @@ types.
 
 \hrulefill
 \caption{Thorn subtyping}\label{subth}
-
-
 
 \hrulefill  \small
 \vspace{-3mm}
@@ -1426,26 +1415,25 @@ dynamic checks.
 \medskip
 
 \noindent
-The first expression is ill-typed because method \n expects a \dt\C but it
-is passed a value of type \D and \D is not convertible to \C. The second
-expression is ill-typed because we are trying to convert a \D into a \dt\C.
-Typing the argument of \m as a \dt\C suggests that the intention of the
-programmer is to invoke this method only with instances that behave as \C;
-even if this is not enforced, expressions such as this one, that are likely
-to fail at runtime, are flagged as erroneous. The third expression passes \C
+The first expression is ill-typed because method \n expects a \dt\C, it gets
+a \D which is not convertible to \C. The second expression is ill-typed
+because it attempts to convert a \D into a \dt\C.  Typing the argument of \m
+as a \dt\C suggests that the intention of the programmerp is to invoke this
+method only with instances that behave as \C; since \D does not convert to
+\C the expression is flagged as erroneous. The third expression passes \C
 where \dt\C is expected; this is allowed as subtyping implies
-convertibility.  The last expression invokes \n and passes an argument of
-type \dt\C where a \C is expected; although potentially unsound, this is
-allowed by Thorn to foster program evolution.  Convertibility thus includes
-a \(\dt\C\Mapsto\C\) rule; at runtime Thorn protects the call and ensures
-soundness by inserting a dynamic type cast to \C around the argument.  If
-the receiver object has an optional type, method invocation is statically
-checked: optional types behave as contracts between variables and contexts,
-and whenever an object has type \dt\C a well-typed context is expected to
-use it only as a variable pointing to an instance of the class \C.  Since
-the runtime does not guarantee that \dt\C variables points to instances of
-the class \C, the conformance of the value actually accessed is checked
-individually at each method invocation, as if the callee had type \any.
+convertibility.  The last expression invokes \n and passes a \dt\C where a
+\C is expected; although potentially unsound, this is allowed by Thorn to
+foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\)
+rule; at runtime Thorn protects the call and ensures soundness by inserting
+a dynamic type cast to \C around the argument.  If the receiver object has
+an optional type, method invocation is statically checked: optional types
+behave as contracts between variables and contexts, and whenever an object
+has type \dt\C a well-typed context is expected to use it only as a variable
+pointing to an instance of the class \C.  Since the runtime does not
+guarantee that \dt\C variables points to instances of the class \C, the
+conformance of the value actually accessed is checked individually at each
+method invocation, as if the callee had type \any.
 
 The translation of Thorn into \kafka is given in~\figref{thtr}. As with
 TypeScript translation proceeds top-down. The differences are that the
@@ -1471,20 +1459,18 @@ while concrete types are unchanged.
 
 We have seen that any method can be called statically and dynamically. For
 this to work out it is necessary to generate a dynamic version of all Thorn
-methods (or at least of methods that not \any to \any as these are already
-callable from a dynamic context).  Translation of classes thus relies on
-overloading to provide two implementations of each method: one to be called
-if the object is referred to as a concretely type object, and one if it is
-referred to as an optionally typed (or dynamic) object.  More precisely,
-given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the \kafka
-translation first generates a method \(\mdp\) with type \(\kty{\t[1]} \to
-\kty{\t[2]}\) (protecting the the return value with appropriate cast to
-\kty{\t[2]} if necessary), to be used in a concretely typed context.  The
-\kafka translation also generates a second method \mdpp, that wraps \mdp so
-that it is safe to invoke it with type \(\any \to \any\), that is from an
-optionally typed or dynamic context.  Finally, each field \f:\t is mapped to
-the corresponding \f:\kty\t field.
-As an example, translating the class \A and the last expression above results in:
+methods.  Class translation relies on overloading to provide two
+implementations of each method: one is used with concrete receiver
+and the other is
+optionally typed (or dynamic) object.  More precisely, given a Thorn method
+\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
+generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
+(protecting the the return value with appropriate cast to \kty{\t[2]} if
+necessary), to be used in a concretely typed context.  The \kafka
+translation also generates a second method \mdpp, that wraps \mdp so that it
+is safe to invoke it with type \(\any \to \any\), that is from an optionally
+typed or dynamic context.  Finally, each field \f:\t is mapped to the
+corresponding \f:\kty\t field.  As an example, the above translates to:
 
 \begin{tabbing}
   \HS
@@ -1516,7 +1502,7 @@ structural casts, are instrumental to give semantics to the Thorn language.
 \subsection{Typed Racket}
 
 
-\begin{figure}[!h]
+\begin{figure}[!b]
 
 \hrulefill
 
@@ -2033,6 +2019,8 @@ Python. For these we would need a somewhat more powerful cast operation.
 Rather than building each new cast into the calculus itself, it would be
 interesting to axiomatize the correctness requirements for a cast and let
 users define their own cast semantics.
+
+\newpage
 
 \bibliographystyle{unsrturl}
 \bibliography{../../bib/jv,../../bib/all}
