@@ -214,29 +214,29 @@ checking strategies employed by the languages, rather than a fundamental bug
 in the tests.  The translation to \kafka makes those  differences explicit and
 comparable in the same framework.
 
-Translating a gradually typed language into a statically typed language such
-as the JVM's bytecode or \kafka makes explicit which of the guarantees of
-the underlying type system can be relied upon and when dynamism is required.
-Our contribution is thus four translations, which we prove to generated
-well-typed code, that take a gradually typed expression \HT\e\T in the
-source language and return the corresponding \kafka term. The translation of
+Translating a gradually typed language into a statically typed language,l such
+as the JVM's bytecode or \kafka makes explicit which of the underlying type system's 
+guarantees can be relied upon, and when dynamism is required.
+Our contribution is thus four translations, which we prove generate
+well-typed code, each taking a gradually typed expression \HT\e\T in the
+source language and returning the corresponding \kafka term. The translation of
 a term also entails the translation of all the classes needed to evaluate
-it. We also give static type system to the four source languages, but not
-dynamic semantics as these arise from the translation.  While soundness of
+it. Additionally, we provide a static type system to the four source languages, 
+and define their dynamic semantics via translation.  While soundness of
 \kafka terms is not really controversial, soundness of the source gradual
 type systems is more interesting.  In \kafka, a well-typed program can only
 get stuck on a cast or at a dynamically resolved call.  With gradual types,
-an expression \Call\x\m\e where \x is declared to be of class \C can have
+an expression \Call\x\m\e, where \x is declared to be of class \C, can have
 significantly different behavior depending on choices made while designing
-the type system. TypeScript has \emph{optional types}; a well-typed
-program can get stuck at any method call as \C translates to the dynamic
-type \any. Thorn has \emph{concrete types}; a well-typed program will not
-get stuck at statically resolved method calls. Typed Racket has
-\emph{promised types}; a well-typed program will not get stuck at a call to
-\m, because \x refers to an object, or wrapper, that implements \m.
-Wrappers may fail if their target does not behave like a \C. Transient
-Python will also allow the call to go through but may get stuck on the
-checking the return value.
+the type system. TypeScript has \emph{optional types}; any well-typed
+method call can get stuck, as every type is effectively \any. Thorn 
+has \emph{concrete types}; a well-typed program will not get stuck at 
+statically typed method calls. Typed Racket has \emph{promised types}; 
+a well-typed program will not get stuck at a call to \m, because \x 
+refers to an object, or wrapper, that implements \m. Wrappers may fail if 
+their target does not behave like the type that they enforce. Transient
+Python will also allow the call to go through, but may get stuck if the
+called function returns a value of the wrong type.
 
 The design of \kafka is a contribution of this work.  \kafka is a statically
 typed object calculus.  It is class based (with an explicit class table \K),
@@ -2765,16 +2765,16 @@ new F().n(new C()).m(new C())
 (module t typed/racket
   (require/typed (submod ".." u) [Fp% (Class [n (-> Any Any)])])
   (define-type C (Instance (Class (n (-> C C)))))
-  (define-type E (Instance (Class (n (-> D D)))))
-  (define-type D (Instance (Class (m (-> D D)))))
+  (define-type E (Instance (Class (m (-> D D)))))
+  (define-type D (Instance (Class (n (-> D D)))))
   (define F% (class Fp%
                (super-new)
                (: m (-> E E))
                (define/public (m x) x)))
   (define C% (class object%
                (super-new)
-               (: m (-> C C))
-               (define/public (m x) x)))
+               (: n (-> C C))
+               (define/public (n x) x)))
   (provide F% C%))
 
 (require 't)
