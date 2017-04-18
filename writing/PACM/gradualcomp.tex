@@ -2150,9 +2150,11 @@ depending on the gradual semantics chosen.
   equivalent to \code I. However, Thorn rejects this case because, in the source language,
   \code A is not a subtype of \code I.
  
-\item{\bf L3:} The Typed Racket semantics reject this case, because the call
-to \code F.\code m forces \C to only work on values of type \D. Thorn and
-Transient do not retain this cast, and encounter no runtime errors.
+\item{\bf L3:} Typed Racket has an error on this case, as the call
+to \code F.\m casts the instance of \C to \code E, in turn requiring \C.\m
+to only take and return values of type \D. We then pass \C.\m a value of
+type \C, which is then caught by the wrapper. Thorn and Transient do not
+persist the cast to \code E, and do not induce an error as a result.
 \end{itemize}
 
 
