@@ -1605,22 +1605,19 @@ illustrate the semantics of Typed Racket, consider the following example:
 \medskip
 
 \noindent Values cross several typed/untyped boundaries in this example.
-For instance, \A's method \m expects a value of type \any and passes that
-value down to the method \m of \D which expects a value of type \D.  The
-translation will insert a behavioral cast from \any to \D at the call of
-\D's \m.  Within the body of \D's \m, there is a call to \m, in our example
-the value being passed is an instance of class \C which has a method \m with
-interface \(\any \to \any\).  In order to protect class \D from the object
-\C potentially not behaving as an object \D, Typed Racket inserts a wrapper
+For instance, \A's method \m expects a value of type \any when the method 
+\m of \D which expects a value of type \D.  The resulting
+translation will insert a behavioral cast from \any to \D at the call site.  
+In order to protect class \D from misbehaving objects, Typed Racket inserts a wrapper
 object around the argument of \D; the wrapper is responsible for ensuring
 that the actual value respects the constraints of class \D.  The \kafka
 translation for Typed Racket inserts a behavioral cast at the boundary
 between the invocation of class \D's method \m in class \A.  This has the
 same effect of Typed Racket wrapping: the object with type \C is wrapped to
-make sure that it acts as an object of type {\xt B}.  The generated \kafka
+make sure that it acts as an object of type {\xt D}.  The generated \kafka
 code for the example is:
 
-{ \bf JAN: I don't really like the above text. }
+%TODO: Jan is this better? { \bf JAN: I don't really like the above text. }
 
 \medskip
 \begin{tabbing}
@@ -1850,28 +1847,24 @@ value on reads based on the static typing.
 \)
 \end{tabular} \\[1em]
 
-In this example, we have two mutually incompatible classes \C and \D,
-alongside potential consumers for \C and \D, \C itself and \code E,
-alongside a conversion helper \code F. Here, we use \code F to acquire a
-reference to \C as an \code E, which would imply that \C's \m has type \D to
-\D, despite it actually having type \C to \C, then call (again, using
-untyped code) it with a \C.
+The example presents two mutually incompatible classes \C and \D,
+along two potential consumers for \C and \D, \C itself and \code E,
+and a conversion class \code F. \code F is used to acquire a
+reference to \C as an \code E, which implies that the method \m of \C has type \D to
+\D, despite it actually having type \C to \C, even with the possibility to call
+method \m through untyped code.
 
-In Typed Racket, when we take the trip through the conversion helper \code F,
-we pick up a wrapper that ensures that the argument to \m is always a \D and
-that it always returns a \D. As a result, when we finally call \m with a \C,
-the program would get stuck at a cast to \D. In Transient, however, the cast
+In Typed Racket, any call to method \m of class \code F, encounters a wrapper that ensures 
+that the argument and return type of \m is always a \D. Therefore, if the method \m is called with a \C,
+the program would get stuck at the cast to \D. In Transient, the cast
 to \code E is a no-op, so when we call \m with \C, no extra cast to \D is
-encountered, and the
-
-\noindent 
-The Transient design allows method \m, which expects an instance of class \C
-as argument, to be called with a value of type \any at any point; this
+encountered. The Transient design allows method \m, which expects an instance of class \C
+as argument, to be called with a value of type \any at any point. However, this
 forces \m to check its arguments at every method invocation.
  
+% \FZ{TODO: explain why the structural cast boils down to a simpler existence of method checking}
 
-\FZ{TODO: explain why the structural cast boils down to a simpler existence of method checking}
-% 
+
 % \begin{figure}[!t]
 % \small
 % \begin{tabular}{@{}cc}
@@ -2174,7 +2167,9 @@ Transient Python, and Typed Racket.
 within an unified framework. The strength of \kafka lies in its simplicity and in the flexibility provided by its casts and
 wrapper generation.
 
-\FZ{I would remove this last sentence.} A big takeaway from constructing \kafka is understanding that gradual typing systems
+%TODO What should we do about the conclusion? I'm trying to touch on each language design principle
+% and show why each system is special in their own way \FZ{I would remove this last sentence.} 
+Another takeaway from \kafka is understanding that gradual typing systems
 are not monomorphic in their design or principles. Instead they vary, and
 differentiate in what they can write, express, and even in what can and cannot 
 be evaluated dynamically. 
