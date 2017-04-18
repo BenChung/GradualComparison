@@ -1985,7 +1985,22 @@ to \code E, and do not induce an error as a result. Thus given these three
 programs and the ability to observe errors, one can divine which semantics a
 language implements.
 
-
+Another open question for gradual type system designers is performance of
+the resulting implementation. On the one hand, type annotations are a source
+of information about programmer intent that could be used to generate
+efficient code.  On the other hand, without soundness guarantees this
+information cannot be relied upon and becomes, at best, hints that can be
+used in heuristic-driven code generation.  The different languages do make
+some guarantees which become apparent in our translations -- when the
+translation generate dynamically resolved method invocations, for Thorn,
+Racket and Python, these invocations can be optimized by a compiler. The
+price for these guarantees comes in the form of casts and wrappers which
+would not be needed in a fully dynamic program. The nature of the casts and
+their dynamic frequency will make a significant difference to end users.
+Thorn inserts them at boundaries of concrete types. Racket inserts them at
+typed/untyped boundaries. Transient Python inserts casts after variable
+reads. The casts themselves are different, Thorn and Python merely check for
+subtyping whereas Racket's cast require allocation.
 
 
 
