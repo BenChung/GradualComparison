@@ -2650,100 +2650,154 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \subsection*{Thorn}
 
-
-\begin{figure}[!t]
-\small
-\begin{tabular}{@{}cc}
-  \begin{tabular}{|@{}cc@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4.6cm}
-    \begin{lstlisting}
+\noindent
+\textbf{Litmus Test 1}:
+\begin{lstlisting}
 class A() {
- def m(x:A):A = this;}
+   def m(x:A):A = this;}
 
 class I() {
- def n(x:I):I = this;}
+   def n(x:I):I = this;}
 
 class T() {
- def s(x:I):T = this;
- def t(x:dyn):dyn = 
-             this.s(x);}
-      \end{lstlisting}    
-  \end{minipage}
-&
-  \begin{minipage}{4.6cm}
-    \begin{lstlisting}
+   def s(x:I):T = this;
+   def t(x:dyn):dyn = this.s(x);}
+
+ T().t(A())
+\end{lstlisting}
+
+\noindent
+\textbf{Litmus Test 2}:
+\begin{lstlisting}
+class Q() {
+   def n(x: Q): Q = this;}
+
 class A() {
- def m(x:A): A = this;}
+   def m(x:A): A = this;}
 
 class I() {
- def m(x:Q):I = this;}
+   def m(x:Q):I = this;}
 
 class T() {
- def s(x:I):T = this; 
- def t(x:dyn):dyn = 
-             this.s(x);}
-      \end{lstlisting}    
-  \end{minipage}
-\\[2mm]
-(Litmus test 1) & (Litmus test 2)\\[3mm]
-  \begin{minipage}{4.3cm}
-    \begin{lstlisting}
+   def s(x:I):T = this; 
+   def t(x:dyn):dyn = this.s(x);}
+   
+ T().t(A())   
+\end{lstlisting}
+
+
+\noindent
+\textbf{Litmus Test 3}:
+\begin{lstlisting}
 class C() { 
-  def m(x:C):C = x;}
+   def m(x:C):C = x;}
 
 class D() {
-  def n(x:D):D = x;}
+   def n(x:D):D = x;}
       
 class E() {
-  def m(x:D):D = x;}      
+   def m(x:D):D = x;}      
 
 class F() {
-  def m(x:E):E = x;
-  def n(x:dyn):dyn =
-	     this.m(x);}       
-      \end{lstlisting}    
-  \end{minipage}
-&
-\begin{minipage}{4cm}
-\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4cm}
-    \begin{lstlisting}
-class Q() { 
-  def n(x:C):C = 
-	             this;}
-    \end{lstlisting}    
-  \end{minipage}
- \\
-  (Auxiliary classes)\\\hline
-\end{tabular}
-\\ \\ \\  
-\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4cm}
-    \begin{lstlisting}
-  T().t(A());
-    \end{lstlisting}    
-  \end{minipage}
-  \\
-  (Program 1-2)\\\hline
-\end{tabular}
-\\ \\ \\  
-\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4cm}
-    \begin{lstlisting}
-   F().n(C()).m(C());
-    \end{lstlisting}    
-  \end{minipage}
-  \\
-  (Program 3)\\\hline
-\end{tabular}
-\end{minipage}
-\\[2mm]
-(Litmus test 3) &
-\\\hline
-  \end{tabular}
-
-\end{tabular}
-\end{figure}
+   def m(x:E):E = x;
+   def n(x:dyn):dyn = this.m(x);} 
+	     
+  F().n(C()).m(C())
+\end{lstlisting}
+% 
+% \begin{figure}[!t]
+% \small
+% \begin{tabular}{@{}cc}
+%   \begin{tabular}{|@{}cc@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4.6cm}
+%     \begin{lstlisting}
+% class A() {
+%  def m(x:A):A = this;}
+% 
+% class I() {
+%  def n(x:I):I = this;}
+% 
+% class T() {
+%  def s(x:I):T = this;
+%  def t(x:dyn):dyn = 
+%              this.s(x);}
+%       \end{lstlisting}    
+%   \end{minipage}
+% &
+%   \begin{minipage}{4.6cm}
+%     \begin{lstlisting}
+% class A() {
+%  def m(x:A): A = this;}
+% 
+% class I() {
+%  def m(x:Q):I = this;}
+% 
+% class T() {
+%  def s(x:I):T = this; 
+%  def t(x:dyn):dyn = 
+%              this.s(x);}
+%       \end{lstlisting}    
+%   \end{minipage}
+% \\[2mm]
+% (Litmus test 1) & (Litmus test 2)\\[3mm]
+%   \begin{minipage}{4.3cm}
+%     \begin{lstlisting}
+% class C() { 
+%   def m(x:C):C = x;}
+% 
+% class D() {
+%   def n(x:D):D = x;}
+%       
+% class E() {
+%   def m(x:D):D = x;}      
+% 
+% class F() {
+%   def m(x:E):E = x;
+%   def n(x:dyn):dyn =
+% 	     this.m(x);}       
+%       \end{lstlisting}    
+%   \end{minipage}
+% &
+% \begin{minipage}{4cm}
+% \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4cm}
+%     \begin{lstlisting}
+% class Q() { 
+%   def n(x:C):C = 
+% 	             this;}
+%     \end{lstlisting}    
+%   \end{minipage}
+%  \\
+%   (Auxiliary classes)\\\hline
+% \end{tabular}
+% \\ \\ \\  
+% \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4cm}
+%     \begin{lstlisting}
+%   T().t(A());
+%     \end{lstlisting}    
+%   \end{minipage}
+%   \\
+%   (Program 1-2)\\\hline
+% \end{tabular}
+% \\ \\ \\  
+% \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4cm}
+%     \begin{lstlisting}
+%    F().n(C()).m(C());
+%     \end{lstlisting}    
+%   \end{minipage}
+%   \\
+%   (Program 3)\\\hline
+% \end{tabular}
+% \end{minipage}
+% \\[2mm]
+% (Litmus test 3) &
+% \\\hline
+%   \end{tabular}
+% 
+% \end{tabular}
+% \end{figure}
 
 
 \subsection*{TypeScript}
@@ -2754,13 +2808,16 @@ class Q() {
 class A {
     m(x: A): A { return this }
 }
+
 class I {
     n(x:I):I { return this }
 }
+
 class T {
     s(x: I): T { return this }
     t(x: any): any { return this.s(x) }
 }
+
 new T().t(new A())
 \end{lstlisting}
 
@@ -2770,16 +2827,20 @@ new T().t(new A())
 class Q {
     n(x: Q): Q { return this }
 }
+
 class A {
     m(x: A): A { return this }
 }
+
 class I {
     n(x:Q):I { return this }
 }
+
 class T {
     s(x: I): T { return this }
     t(x: any): any { return this.s(x) }
 }
+
 new T().t(new A())
 \end{lstlisting}
 
@@ -2790,13 +2851,20 @@ new T().t(new A())
 class C {
     m(x: C): C { return x }
 }
-class E {
-    m(x: P): P { return x }
+
+class D {
+    m(x: D): D { return x }
 }
+
+class E {
+    m(x: D): D { return x }
+}
+
 class F {
     m(x: E): E { return x }
     n(x: any): any { return this.m(x) }
 }
+
 new F().n(new C()).m(new C())
 \end{lstlisting}
 
@@ -2901,113 +2969,187 @@ new F().n(new C()).m(new C())
 
 \subsection*{Transient}
 
-\begin{figure}[!t]
-\small
-\begin{tabular}{@{}cc}
-  \begin{tabular}{|@{}cc@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4.6cm}
-    \begin{lstlisting}
-class A :
-  def m(self, x:A) -> A:
-   return self
+\noindent
+\textbf{Litmus Test 1}:
+\begin{lstlisting}
 class A:
-  def m(self, x:A) -> A:
+   def m(self, x:A) -> A:
     return self
+    
 class I:
-  def n(self, x:I) -> I:
-    return self
+   def n(self, x:I) -> I:
+     return self
 
 class T:
-  def s(self, x:I) -> T:
-    return self
-  def t(self, x:Dyn) -> Dyn:
-    return self.s(x)
-\end{lstlisting}    
-  \end{minipage}
-&
-  \begin{minipage}{4.6cm}
-    \begin{lstlisting}
-class C:
-  def n(self, x:C) -> C:
-    return self
-class A:
-  def m(self, x:A) -> A:
-    return self
-class I:
-  def m(self, x:Q) -> I:
-    return self
-class T:
-  def s(self, x:I) -> T:
-    return self
-  def t(self, x:Dyn) -> Dyn:
-    return self.s(x)
-      \end{lstlisting}    
-  \end{minipage}
-\\[2mm]
-(Litmus test 1) & (Litmus test 2)\\[3mm]
-  \begin{minipage}{4.6cm}
-    \begin{lstlisting}
-class C:
- def m(self, x:C) -> C:
-    return x
-class D:
- def n(self, x:D) -> D:
-    return x   
-class E:
- def m(self, x:D) -> D:
-    return x    
-class F:
- def __init__(self, f):
-    self.f = f
- def m(self, x:E) -> E:
-    return x   
- def n(self, x:Dyn) -> Dyn:
-    return self.m(x)
-   \end{lstlisting}    
-  \end{minipage}
-&
-  \begin{minipage}{4.6cm}
-\begin{minipage}{4.4cm}
-\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4cm}
-    \begin{lstlisting}
-class Q:
- def n(self, x:Q) -> Q:
-   return self
-    \end{lstlisting}    
-  \end{minipage}
- \\
-  (Auxiliary classes)\\\hline
-\end{tabular}
-\\ \\ \\  
-\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4.4cm}
-    \begin{lstlisting}
+   def s(self, x:I) -> T:
+     return self
+   def t(self, x:Dyn) -> Dyn:
+     return self.s(x)
+
  T().t(A())
-   \end{lstlisting}    
-  \end{minipage}
-  \\
-  (Program 1-2)\\\hline
-\end{tabular}
-\\ \\ \\  
-\begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4.4cm}
-    \begin{lstlisting}
-   F().n(C()).m(C());
-    \end{lstlisting}    
-  \end{minipage}
-  \\
-  (Program 3)\\\hline
-\end{tabular}
-\end{minipage} 
-  \end{minipage}
-\\[2mm]
- (Litmus test 3) &  \\\hline
-  \end{tabular}
-  &
+\end{lstlisting}
 
-\end{tabular}
-\end{figure}
+\noindent
+\textbf{Litmus Test 2}:
+\begin{lstlisting}
+class C:
+   def n(self, x:C) -> C:
+     return self
+
+class Q:
+   def m(self, x:Q) -> Q:
+     return self     
+     
+class A:
+   def m(self, x:A) -> A:
+     return self
+
+class I:
+   def m(self, x:Q) -> I:
+     return self
+
+class T:
+   def s(self, x:I) -> T:
+     return self
+   def t(self, x:Dyn) -> Dyn:
+     return self.s(x)
+
+ T().t(A())
+\end{lstlisting}
+
+
+\noindent
+\textbf{Litmus Test 3}:
+\begin{lstlisting}
+class C:
+  def m(self, x:C) -> C:
+     return x
+     
+class D:
+  def n(self, x:D) -> D:
+     return x
+     
+class E:
+  def m(self, x:D) -> D:
+     return x
+     
+class F:
+  def __init__(self, f):
+     self.f = f
+  def m(self, x:E) -> E:
+     return x   
+  def n(self, x:Dyn) -> Dyn:
+     return self.m(x)
+
+ F().n(C()).m(C());
+\end{lstlisting}
+
+% 
+% \begin{figure}[!t]
+% \small
+% \begin{tabular}{@{}cc}
+%   \begin{tabular}{|@{}cc@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4.6cm}
+%     \begin{lstlisting}
+% class A:
+%   def m(self, x:A) -> A:
+%     return self
+%     
+% class I:
+%   def n(self, x:I) -> I:
+%     return self
+% 
+% class T:
+%   def s(self, x:I) -> T:
+%     return self
+%   def t(self, x:Dyn) -> Dyn:
+%     return self.s(x)
+% \end{lstlisting}    
+%   \end{minipage}
+% &
+%   \begin{minipage}{4.6cm}
+%     \begin{lstlisting}
+% class C:
+%   def n(self, x:C) -> C:
+%     return self
+% class A:
+%   def m(self, x:A) -> A:
+%     return self
+% class I:
+%   def m(self, x:Q) -> I:
+%     return self
+% class T:
+%   def s(self, x:I) -> T:
+%     return self
+%   def t(self, x:Dyn) -> Dyn:
+%     return self.s(x)
+%       \end{lstlisting}    
+%   \end{minipage}
+% \\[2mm]
+% (Litmus test 1) & (Litmus test 2)\\[3mm]
+%   \begin{minipage}{4.6cm}
+%     \begin{lstlisting}
+% class C:
+%  def m(self, x:C) -> C:
+%     return x
+% class D:
+%  def n(self, x:D) -> D:
+%     return x   
+% class E:
+%  def m(self, x:D) -> D:
+%     return x    
+% class F:
+%  def __init__(self, f):
+%     self.f = f
+%  def m(self, x:E) -> E:
+%     return x   
+%  def n(self, x:Dyn) -> Dyn:
+%     return self.m(x)
+%    \end{lstlisting}    
+%   \end{minipage}
+% &
+%   \begin{minipage}{4.6cm}
+% \begin{minipage}{4.4cm}
+% \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4cm}
+%     \begin{lstlisting}
+% class Q:
+%  def n(self, x:Q) -> Q:
+%    return self
+%     \end{lstlisting}    
+%   \end{minipage}
+%  \\
+%   (Auxiliary classes)\\\hline
+% \end{tabular}
+% \\ \\ \\  
+% \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4.4cm}
+%     \begin{lstlisting}
+%  T().t(A())
+%    \end{lstlisting}    
+%   \end{minipage}
+%   \\
+%   (Program 1-2)\\\hline
+% \end{tabular}
+% \\ \\ \\  
+% \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
+%   \begin{minipage}{4.4cm}
+%     \begin{lstlisting}
+%    F().n(C()).m(C());
+%     \end{lstlisting}    
+%   \end{minipage}
+%   \\
+%   (Program 3)\\\hline
+% \end{tabular}
+% \end{minipage} 
+%   \end{minipage}
+% \\[2mm]
+%  (Litmus test 3) &  \\\hline
+%   \end{tabular}
+%   &
+% 
+% \end{tabular}
+% \end{figure}
 
 \clearpage
 
