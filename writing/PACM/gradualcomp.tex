@@ -2555,7 +2555,7 @@ class A() {
  def m(x:A): A = this;}
 
 class I() {
- def m(x:C):I = this;}
+ def m(x:Q):I = this;}
 
 class T() {
  def s(x:I):T = this; 
@@ -2566,57 +2566,30 @@ class T() {
 \\[2mm]
 (Litmus test 1) & (Litmus test 2)\\[3mm]
   \begin{minipage}{4.3cm}
-%     \begin{lstlisting}
-% % class A() {
-% %  def m(x:dyn):dyn = this;}
-% % 
-% % class I() {
-% %  def m(x:C):C = x;}
-% % 
-% % class J() {
-% %  def m(x:D):D = x;}
-% % 
-% % class E(var f: I, 
-% %         var g: J){}
-% % 
-% % class T() {
-% %  def t(x:dyn):dyn =
-% %           E(x,x);}
-%       \end{lstlisting}    
-  \end{minipage}
-&
-  \begin{minipage}{4.6cm}
     \begin{lstlisting}
-class A(var f: dyn) {
- def m(x:A):A =
-    this.f(A(C()));}
+class C() { 
+  def m(x:C):C = x;}
 
-class I(var f: D) {
- def m(x:I):I = this;}
+class D() {
+  def n(x:D):D = x;}
+      
+class E() {
+  def m(x:D):D = x;}      
 
-class T() {
- def s(x:I):I = x.m(x);
- def t(x:dyn):dyn =
-	           this.s(x);}
+class F() {
+  def m(x:E):E = x;
+  def n(x:dyn):dyn =
+	     this.m(x);}       
       \end{lstlisting}    
   \end{minipage}
-\\[2mm]
- &  
-(Litmus test 4)
-\\\hline
-  \end{tabular}
-  &
+&
 \begin{minipage}{4cm}
 \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
   \begin{minipage}{4cm}
     \begin{lstlisting}
-class C() { 
+class Q() { 
   def n(x:C):C = 
-	      this;}
-
-class D {
-  def o(x:D):D = 
-	      this;}
+	             this;}
     \end{lstlisting}    
   \end{minipage}
  \\
@@ -2630,19 +2603,24 @@ class D {
     \end{lstlisting}    
   \end{minipage}
   \\
-  (Program 1-3)\\\hline
+  (Program 1-2)\\\hline
 \end{tabular}
 \\ \\ \\  
 \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
   \begin{minipage}{4cm}
     \begin{lstlisting}
-   T().t(A(D()));
+   F().n(C()).m(C());
     \end{lstlisting}    
   \end{minipage}
   \\
-  (Program 4)\\\hline
+  (Program 3)\\\hline
 \end{tabular}
 \end{minipage}
+\\[2mm]
+(Litmus test 3) &
+\\\hline
+  \end{tabular}
+
 \end{tabular}
 \end{figure}
 
@@ -2724,100 +2702,71 @@ class D {
   \begin{minipage}{4.6cm}
     \begin{lstlisting}
 class A :
- def m(self, x:A) -> A:
-      return self
-
+def m(self, x:A) -> A:
+   return self
 class A:
- def m(self, x:A) -> A:
-      return self
+def m(self, x:A) -> A:
+   return self
 class I:
- def n(self, x:I) -> I:
-      return self
+def n(self, x:I) -> I:
+   return self
 
 class T:
- def s(self, x:I) -> T:
-      return self
- def t(self, x:Dyn) -> Dyn:
-      return self.s(x)
+def s(self, x:I) -> T:
+   return self
+def t(self, x:Dyn) -> Dyn:
+   return self.s(x)
       \end{lstlisting}    
   \end{minipage}
 &
   \begin{minipage}{4.6cm}
     \begin{lstlisting}
 class C:
- def n(self, x:C) -> C:
-      return self
-
+def n(self, x:C) -> C:
+   return self
 class A:
- def m(self, x:A) -> A:
-      return self
+def m(self, x:A) -> A:
+   return self
 class I:
- def m(self, x:C) -> I:
-      return self
+def m(self, x:Q) -> I:
+   return self
 class T:
- def s(self, x:I) -> T:
-      return self
- def t(self, x:Dyn) -> Dyn:
-      return self.s(x)
+def s(self, x:I) -> T:
+   return self
+def t(self, x:Dyn) -> Dyn:
+   return self.s(x)
       \end{lstlisting}    
   \end{minipage}
 \\[2mm]
 (Litmus test 1) & (Litmus test 2)\\[3mm]
   \begin{minipage}{4.3cm}
-%     \begin{lstlisting}
-% class A {
-%  m(x:*):* {this}}
-% 
-% class I {
-%  m(x:C):C {x}}
-% 
-% class J {
-%  m(x:D):D {x}}
-% 
-% class E {f:I g:J}
-% 
-% class T {
-%  t(x:*):* {
-%    new E(x,x)}}
-%       \end{lstlisting}    
+    \begin{lstlisting}
+class C:
+def m(self, x:C) -> C:
+   return x
+class D:
+def n(self, x:D) -> D:
+   return x   
+class E:
+def m(self, x:D) -> D:
+   return x    
+class F:
+def __init__(self, f):
+    self.f = f
+def m(self, x:E) -> E:
+   return x   
+def n(self, x:Dyn) -> Dyn:
+   return self.m(x)
+   \end{lstlisting}    
   \end{minipage}
 &
   \begin{minipage}{4.6cm}
-    \begin{lstlisting}
-class A:
- def __init__(self, f):
-    self.f = f
- def m(self, x:A) -> A:
-    res = A(C())
-    self.f = res
-    return res
-
-class I:
- def __init__(self, f):
-    self.f = f
- def m(self, x:I) -> I:
-    return self
-
-class T:
- def s(self, x:I) -> I:
-   return x.m(x)
- def t(self, x:Dyn) -> Dyn:
-   return self.s(x)
-      \end{lstlisting}    
-  \end{minipage}
-\\[2mm]
- &  (Litmus test 4)\\\hline
-  \end{tabular}
-  &
-\begin{minipage}{4cm}
+\begin{minipage}{4.4cm}
 \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
   \begin{minipage}{4cm}
     \begin{lstlisting}
-class C:
- def n(self, x:C) -> C:
-   return self
-class D:
- def o(self, x:D) -> D:
+class Q:
+ def n(self, x:Q) -> Q:
    return self
     \end{lstlisting}    
   \end{minipage}
@@ -2826,26 +2775,31 @@ class D:
 \end{tabular}
 \\ \\ \\  
 \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4cm}
+  \begin{minipage}{4.4cm}
     \begin{lstlisting}
  T().t(A())
    \end{lstlisting}    
   \end{minipage}
   \\
-  (Program 1-3)\\\hline
+  (Program 1-2)\\\hline
 \end{tabular}
 \\ \\ \\  
 \begin{tabular}{|@{}c@{\hspace{1mm}}|}\hline
-  \begin{minipage}{4cm}
+  \begin{minipage}{4.4cm}
     \begin{lstlisting}
-new T()@t(
-    new A(new D()))
+   F().n(C()).m(C());
     \end{lstlisting}    
   \end{minipage}
   \\
-  (Program 4)\\\hline
+  (Program 3)\\\hline
 \end{tabular}
-\end{minipage}
+\end{minipage} 
+  \end{minipage}
+\\[2mm]
+ (Litmus test 3) &  \\\hline
+  \end{tabular}
+  &
+
 \end{tabular}
 \end{figure}
 
