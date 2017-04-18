@@ -1996,12 +1996,19 @@ TypeScript           & \V & \V & \V & \V \\\hline
   \caption{Semantic litmus tests.}\label{litmus}
 \end{figure}
 
-
 \section{Gradual Type System Shootout}\label{litm}
 
 \epigraph{\small ``There is no perfection only life.''}
 
 \vspace{-5mm}
+
+One takeaway from our work is that there is no single approach to gradual
+typing, and that the different choices have distinctive observable semantics.
+To illustrate this, \figref{litmus} presents three small programs that can
+easily differentiate between the four gradual typing approaches that we
+describe. Each of the litmus tests consists of a class table and a main
+expression, as is typical of \kafka programs, and behaves differently
+depending on the gradual semantics chosen.
 
 One outcome of our work is showing how \emph{all} of the gradual type systems
 are observationally distinct.  \figref{litmus} presents four litmus tests that
@@ -2646,8 +2653,66 @@ class D {
 
 \subsection*{Typed Racket}
 
+\textbf{Litmus Test 1}:
 
+\begin{lstlisting}
+#lang racket
 
+(module u racket
+  (define Tp% (class object%
+                (super-new)
+                (define/public (t x) (send this s x))))
+  (provide Tp%))
+
+(module t typed/racket
+  (require/typed (submod ".." u) [Tp% (Class [t (-> Any Any)])])
+  (define-type A (Instance (Class (m (-> A A)))))
+  (define-type I (Instance (Class (n (-> I I)))))
+  (define-type T (Instance (Class (s (-> I T)))))
+  (define T% (class Tp%
+               (super-new)
+               (: s (-> I T))
+               (define/public (s x) this)))
+  (define A% (class object%
+               (super-new)
+               (: m (-> A A))
+               (define/public (m x) this)))
+  (provide T% A%))
+
+(require 't)
+(send (new T%) t (new A%))
+\end{lstlisting}
+
+\textbf{Litmus Test 2}:
+
+\begin{lstlisting}
+#lang racket
+
+(module u racket
+  (define Tp% (class object%
+                (super-new)
+                (define/public (t x) (send this s x))))
+  (provide Tp%))
+
+(module t typed/racket
+  (require/typed (submod ".." u) [Tp% (Class [t (-> Any Any)])])
+  (define-type C (Instance (Class (n (-> C C)))))
+  (define-type A (Instance (Class (m (-> A A)))))
+  (define-type I (Instance (Class (m (-> C I)))))
+  (define-type T (Instance (Class (s (-> I T)))))
+  (define T% (class Tp%
+               (super-new)
+               (: s (-> I T))
+               (define/public (s x) this)))
+  (define A% (class object%
+               (super-new)
+               (: m (-> A A))
+               (define/public (m x) this)))
+  (provide T% A%))
+
+(require 't)
+(send (new T%) t (new A%))
+\end{lstlisting}
 
 
 \subsection*{Transient}
