@@ -1851,16 +1851,17 @@ reference to \C as an \code E, which implies that the method \m of \C has type \
 \D, despite it actually having type \C to \C, even with the possibility to call
 method \m through untyped code.
 
-In Typed Racket, any call to method \m of class \code F, encounters a wrapper that ensures 
-that the argument and return type of \m is always a \D. Therefore, if the method \m is called with a \C,
-the program would get stuck at the cast to \D. In Transient, the cast
-to \code E is a no-op, so when we call \m with \C, no extra cast to \D is
-encountered. The Transient design allows method \m, which expects an instance of class \C
-as argument, to be called with a value of type \any at any point. However, this
-forces \m to check its arguments at every method invocation.
+In Typed Racket, any call to method \m of class \code F, encounters a
+wrapper that ensures that the argument and return type of \m is always a
+\D. Therefore, if the method \m is called with a \C, the program would get
+stuck at the cast to \D. In Transient, the cast to \code E is a no-op, so
+when we call \m with \C, no extra cast to \D is encountered. The Transient
+design allows method \m, which expects an instance of class \C as argument,
+to be called with a value of type \any at any point. However, this forces \m
+to check its arguments at every method invocation.
  
 
-\begin{figure}[!t]
+%\begin{figure}[!t]
 %% \small
 %%  \begin{tabular}{|lll|}\hline
 %%   \begin{minipage}{4.6cm}
@@ -1928,7 +1929,6 @@ forces \m to check its arguments at every method invocation.
 %% \\\hline
 %% \end{tabular}
 
-
 %% \center
 
 %% \begin{tabular}{|r|l@{~}l@{~}l|}\hline
@@ -1938,55 +1938,60 @@ forces \m to check its arguments at every method invocation.
 %% Transient RetPy      &    & \V & \V \\
 %% TypeScript           & \V & \V & \V \\\hline
 %% \end{tabular}  
+%  \caption{Semantic litmus tests.}\label{litmus}
+%\end{figure}
 
-\includegraphics{../figures/litm}
-  \caption{Semantic litmus tests.}\label{litmus}
-\end{figure}
 
-\section{Gradual Type System Shootout}\label{litm}
+
+
+\section{Gradual Type System Shootout \& Conclusions}\label{litm}
 
 \epigraph{\small ``There is no perfection only life.''}
 
 \vspace{-5mm}
 
-One takeaway from our work is that there is no single approach to gradual
-typing, and that the different choices are observationally distinct.
-To illustrate this, \figref{litmus} presents three small programs that can
-easily differentiate between the four gradual typing approaches that we
-describe. Each of the litmus tests consists of a class table and a main
-expression, as is typical of \kafka programs, and behaves differently
-depending on the gradual semantics chosen.
-
-\begin{itemize}
-\item {\bf L1:} Fails every non-TypeScript language because \code A is not a
-  subtype of \code I, caused by \code A and \code I having different sets of
-  methods.
-  
-\item{\bf L2:} Succeeds in Transient and Typed Racket as, now, \code A is
-  behaviorally equivalent to \code I. However, Thorn rejects this case
-  because, in the source language, \code A is not a subtype of \code I.
- 
-\item{\bf L3:} Typed Racket has an error on this case, as the call to \code
-  F.\m casts the instance of \C to \code E, in turn requiring \C.\m to only
-  take and return values of type \D. We then pass \C.\m a value of type \C,
-  which is then caught by the wrapper. Thorn and Transient do not persist
-  the cast to \code E, and do not induce an error as a result.
-\end{itemize}
-
-
-
-\section{Conclusion}
-
+\noindent
 Gradual typing has matured beyond being an experimental language feature in
-the petri dish of language research in academia, and applications are now
-written with languages incorporating gradual types.  However the proposed
-designs are subtle and differ in corner behaviours: it is the responsibility
-of language researchers to gain a clear picture of each approach to gradual
-typing.
+the petri dish of academia. Applications are now being written that
+incorporate gradual types.  However the proposed designs have subtle
+semantics and differ in dark corners. It is the responsibility of language
+researchers to paint a clear picture of each approach to gradual typing.
+
+\begin{wrapfigure}{r}{.7\columnwidth}
+ \vspace{-.4cm}
+  \includegraphics[width=.7\columnwidth]{../figures/litm}
+   \caption{Gradual typing semantic litmus tests.}\label{litmus}
+\end{wrapfigure}
+
+In this paper we have compared the essence of four gradual type system
+designs, namely Typescript, Thorn, Typed Racket, and Transient Python.  Our
+formalization have shown that they differ in what programs are viewed as
+statically correct. The Thorn type system makes a difference between
+concrete and like types, whereas as Transient uses the notion of consistency
+to determine if values may be compatible. A perhaps more surprising result
+is that even at runtime these languages do not agree on what consistutes a
+valid program. Consider \figref{litmus} which shows three small programs
+that are well-typed in all four languages. These are synthetic examples
+consisting of a class table and a top-level expression. All three will
+execute under TypeScript's permissive semantics and will not get stuck.
+{\bf L1} fails in all other semantics because \A is not a subtype of \xt I
+(Thorn) and \A and \xt I have different sets of methods (Racket and Python).
+{\bf L2} fails in Thorn, again because the concrete type checks require
+subtyping of \A and \xt I to hold. {\bf L3} fails in Racket as the \xt{F.m}
+casts the instance of \C to \code E, in turn requiring \C.\m to only take
+and return values of type \D. We then pass \C.\m a value of type \C, which
+is then caught by the wrapper. Thorn and Transient do not persist the cast
+to \code E, and do not induce an error as a result. Thus given these three
+programs and the ability to observe errors, one can divine which semantics a
+language implements.
+
+
+
+
 
 In this paper we introduced \kafka, a formal language that serves as the
 foundation for deconstructing several existing gradual typing systems:
-Typescript, Thorn, Transient Python, and Typed Racket.  \kafka offers an
+  \kafka offers an
 opportunity to compare and contrast each gradual typing system within an
 unified framework. The strength of \kafka lies in its simplicity and in the
 flexibility provided by its casts and wrapper generation.
