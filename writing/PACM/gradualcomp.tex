@@ -2063,7 +2063,7 @@ class F {
  n(x:*):* {this.m(x)}}
  
 new F().n(new C())
-          .m(new C()) 
+       .m(new C()) 
       \end{lstlisting}    
   \end{minipage}  
 \\[2mm]
@@ -2135,49 +2135,29 @@ TypeScript           & \V & \V & \V \\\hline
 \vspace{-5mm}
 
 One takeaway from our work is that there is no single approach to gradual
-typing, and that the different choices have distinctive observable semantics.
+typing, and that the different choices are observationally distinct.
 To illustrate this, \figref{litmus} presents three small programs that can
 easily differentiate between the four gradual typing approaches that we
 describe. Each of the litmus tests consists of a class table and a main
 expression, as is typical of \kafka programs, and behaves differently
 depending on the gradual semantics chosen.
 
-One outcome of our work is showing how \emph{all} of the gradual type systems
-are observationally distinct.  \figref{litmus} presents four litmus tests that
-are sufficient to distinguish the four type systems being studied in this
-paper.  Each litmus test is a program composed of a class table and a main
-expression. The programs are written in \kafka syntax but equivalent
-programs can be expressed in each of the target languages. All programs are
-well-typed in each of the respective type systems and give raise to
-different runtime errors. Under TypeScript semantics, all programs run to
-completion without getting stuck. With Thorn, litmus tests 1 and 2 fail 
-at a structural cast from \code A to \code I.  
-For the other languages the situation is as follows:
-
 \begin{itemize}
-\item {\bf L1:} Fails every non-TypeScript language because \code A is not a subtype of \code I, the
-  failure is at a subtype cast because \code A does not have all the methods of
-  \code I.   
-  \FZ{CHECK, we do not have shallow casts, is this still relevant?} yes, 
-  this is still relevant.
+\item {\bf L1:} Fails every non-TypeScript language because \code A is not a subtype of \code I,
+  caused by \code A and \code I having different sets of methods.
   
-\item{\bf L2:} Succeeds in Transient and Typed Racket because subtype casts
-  of \code A to \code I go through. \FZ{CHECK, we do not have shallow casts, is this still relevant?  Cite monotonic here?}
-  I'm not sure this is a good place to talk about monotonic, or talk about monotonic at all.
+\item{\bf L2:} Succeeds in Transient and Typed Racket as, now, \code A is behaviorally
+  equivalent to \code I. However, Thorn rejects this case because, in the source language,
+  \code A is not a subtype of \code I.
  
-\item{\bf L3:} Typed Racket fails because type $\C$ cannot be casted to 
-a type $\D$ in the call of method $\m$ shown in program 3. While the call of method $\n$ eases 
-the type $\C$ to the type $\any$, allowing for the call to method $\m$.
-
-  
- \item{\bf L4:} 
-%  Fails in Monotonic because the object refereed to by \code x
-%   in method \code s is cast to \code I. This updates the effective type of field
-%   \code f to \code D. However, the assignment in method \code m tries to give it
-%   an \code A. This fails in Racket because the \this field is wrapped with an
-%   \code I type, and the assignment to \code f does not respect that type.
-{\bf Typed Racket does not fail this test. Consideration for removing this test.}
-  \end{itemize}
+\item{\bf L3:} The Typed Racket semantics reject this case, because the call
+  to \code F.\code m   causes the instance of \C to acquire a wrapper, forcing
+  it to only take and return instances of   \D. When we pass it another \C -
+  from untyped code - this wrapper rejects the \C. In both Thorn and Transient,
+  the program is accepted as neither retains the cast inside of \code F.\code m,
+  as the Typed Racket semantics does. Only the receiver's type, in this case \C,
+  matters to the final invocation. 
+\end{itemize}
 
 
 
