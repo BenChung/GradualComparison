@@ -2002,25 +2002,26 @@ typed/untyped boundaries. Transient Python inserts casts after variable
 reads. The casts themselves are different, Thorn and Python merely check for
 subtyping whereas Racket's cast require allocation.
 
+This paper has introduced \kafka, a framework for comparing the designs of
+gradual type systems for object-oriented languages. We have proven \kafka's
+type system to be sound in the presence of the dynamic generation of wrapper
+classes. Then we have introduced four translations from idealized fragments
+of real programming language into \kafka. These translations are shown to
+generate well-typed \kafka code. The features that are required to support
+gradual types include subtype casts, the ability to generate new classes and
+for classes to transparently interpose on target objects. \kafka has proven
+to be a versatile vehicle for deconstructing the designs of gradual type
+systems.
 
-
-In this paper we introduced \kafka, a formal language that serves as the
-foundation for deconstructing several existing gradual typing systems:
-  \kafka offers an
-opportunity to compare and contrast each gradual typing system within an
-unified framework. The strength of \kafka lies in its simplicity and in the
-flexibility provided by its casts and wrapper generation.
-
-Another takeaway from \kafka is understanding that gradual typing systems
-are not monomorphic in their design or principles. Instead they vary, and
-differentiate in what they can write, express, and even in what can and
-cannot be evaluated dynamically.  From Typed Racket, we extracted the
-principle that every value is inherited of its declared type. In \kafka this
-manifested itself as the types of values are enforced before any call can be
-performed. Conversely, in Transient the method being called is tasked with
-ensuring the arguments have the correct types.  TypeScript with no dynamic
-behaviour, providing an excellent entry point for understanding the
-migration of concrete types to optional types in a Thorn program.
+Going forward there are some issues we wish to investigate further.  We do
+not envision that supporting nominal subtyping within \kafka will pose
+problems, it would only take adding a nominal cast and changing the
+definition of classes. Then nominal and structural could coexist. A more
+challenging question is to handle the intricate semantics of Monotonic
+Python. For these we would need a somewhat more powerful cast operation.
+Rather than building each new cast into the calculus itself, it would be
+interesting to axiomatize the correctness requirements for a cast and let
+users define their own cast semantics.
 
 \bibliographystyle{unsrturl}
 \bibliography{../../bib/jv,../../bib/all}
