@@ -464,7 +464,7 @@ regardless of its type annotation, leading to its ``open world'' soundness
 guarantee~\cite{siek14}.  In Thorn and C\#, primitives are concretely typed;
 they can be unboxed without tagging.  The choice of casts follows from other
 design decisions. Languages with concrete types naturally tend to use
-subtype casts to establish the type of values. For nominal systems there are
+subtype casts to establish the type of values. For nominal systems, there are
 highly optimized algorithms. Shallow casts are casts that only check the
 presence of methods, but not their signature. These are used by Racket and
 Python to ensure some basic form of type conformance. Generative casts are
@@ -798,10 +798,10 @@ a \EM{\BehCast\D\New\C{}} where \C and \D are defined as follows.
 \noindent
 The cast will check that the instance of \C has the method expected by \D,
 in this case this is the sole method \m.  Importantly, it does not check
-whether argument and return types match (they don't). The second role of the
-cast is for soundness of \kafka, the value returned by the cast must be a
-subtype of the target type \D. This is achieved by generating a new class
-with the right method signatures.
+whether argument and return types match (in this example, they do not). 
+The second role of the cast is for soundness of \kafka, the value 
+returned by the cast must be a subtype of the target type \D. This is 
+achieved by generating a new class with the right method signatures.
 
 \begin{figure}[!b]
 \hrulefill
@@ -928,7 +928,7 @@ implemented a small compiler from \kafka to C\# and the CLR, alongside a
 runtime that provides the behavioral cast operation. The implementation is
 available from our website \emph{[link omitted for blind review]}.
 
-The only challenge in the development relates to one of our earliest design
+The only substantial challenge in the development relates to one of our earliest design
 choices: the use of a structural type system. As previously mentioned,
 structural typing is key for the consistent subtyping used in Reticulated
 Python, but few virtual machines have built-in support for it. Thus our
@@ -1509,7 +1509,7 @@ structural casts, are instrumental to give semantics to the Thorn language.
 \subsection{Typed Racket}
 
 
-\begin{figure}[!b]
+\begin{figure}[!h]
 
 \hrulefill
 
@@ -1590,6 +1590,7 @@ methods names rather than complete signatures for concrete types.  To
 illustrate the semantics of Typed Racket, consider the following example:
 
 \medskip
+\begin{minipage}{\textwidth}
 \begin{tabbing}
  \HS\HS\HS
   \Call{\New\A{}}\m{\New\C{}}
@@ -1600,6 +1601,7 @@ illustrate the semantics of Typed Racket, consider the following example:
  \> \Class \C{}{\Mdef\m\x\any\any{~\x~}} \\
  \> \Class \D{}{\Mdef\m\x\D\D{~\Call\x\m\x~}} \\
 \end{tabbing}
+\end{minipage}
 \medskip
 
 \noindent Values cross several typed/untyped boundaries in this example.
