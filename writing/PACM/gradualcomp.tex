@@ -2170,9 +2170,8 @@ subtype cast, typed address.
 }  
 
 \IRule{KT-REFREAD}{
-  \EnvType \Env\s\K\a\C \\\\
-  \Fdef\f\t \in \App\K\C \\\\
-  \EnvType \Env\s\K\e\t
+  \s(\a) = \C\{..\} \\\\
+  \Fdef\f\t \in \App\K\C
 }{
   \EnvType \Env\s\K{\FReadR\a\f}\t
 }  
@@ -2186,7 +2185,7 @@ subtype cast, typed address.
 }    
 
 \IRule[width=12em]{KT-REFWRITE}{
-  \EnvType \Env\s\K\a\C \\\\
+  \s(\a) = \C\{..\} \\\\
   \Fdef\f\t \in \App\K\C \\\\
   \EnvType \Env\s\K\e\t
 }{
@@ -4248,11 +4247,12 @@ semantics shown in \figref{behavetext}. \\
 
 \begin{lemma}{Substitution}{}
   \begin{conds}
-    \cond{$\EnvType{\b{\HT\x\tp}}\s\K\e\t$}\lbl{cond1}    
-    \cond{$\b{\EnvType\cdot\s\K\a\tp}$}\lbl{cond2}
+    \cond{$\EnvType{{\HT\this\C}~{\HT\x\tp}}\s\K\e\t$}\lbl{cond1}       
+    \cond{${\s(\a) = \C\{..\}}$}\lbl{cond2}
+    \cond{${\EnvType\cdot\s\K\ap\tp}$}\lbl{cond3}
   \end{conds}
 
-  \then\axiom{$\EnvType\cdot\s\K{[\a/\x]\e}\t$}
+  \then\axiom{$\EnvType\cdot\s\K{[\a/\this ~ \a/\x]\e}\t$}
 
 %   \begin{proof} \indanaa{\trf{cond1}}
 %   \end{proof}
