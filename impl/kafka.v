@@ -6,8 +6,10 @@ Require Import Coq.Classes.EquivDec.
 Definition id := nat.
 Definition this:id := 0.
 Definition ref := nat.
+(* Cell = id [class] * [list of fields]  *)
 Inductive Cell :=
 | HCell : nat * list nat -> Cell.
+(* pointer to an object *)
 Definition heap := list (id * Cell).
 
 Inductive type :=
@@ -17,25 +19,27 @@ Definition env := list (id * type).
 
 Inductive expr :=
 | Var : id -> expr
-| Ref : ref -> expr
+| Ref : ref -> expr (* location of object *)
 | GetF : expr -> id -> expr
 | SetF : expr -> id -> expr -> expr
 | Call : expr -> id -> type -> type -> expr -> expr
 | DynCall : expr -> id -> expr -> expr
-| SubCast : type -> expr -> expr
-| BehCast : type -> expr -> expr
+| SubCast : type -> expr -> expr (* <t> *)
+| BehCast : type -> expr -> expr (* << t >>*)
 | New : id -> list expr -> expr.
 
 Inductive fd :=
 | Field : id -> type -> fd.
-Inductive md :=
+Inductive md := (* M X t t e *)
 | Method : id -> id -> type -> type -> expr -> md.
 Inductive k :=
 | ClassDef : id -> list fd -> list md -> k.
 Definition ct := list k.
 
+(*
 Inductive mt :=
 | MType : id -> type -> type -> mt.
+*)
 
 Fixpoint fields (C:id)(k:ct) :=
   match k with
@@ -176,6 +180,7 @@ Lemma subtype_transitive : forall mu k t1 t2 t3,
   Subtype mu k t1 t2 -> Subtype mu k t2 t3 -> Subtype mu k t1 t3. 
 Admitted. 
 
+(* [thisref/this][varref/var](exp) *)
 Fixpoint subst(thisref : ref)(varref : ref)(var : id)(exp : expr) :=
   match exp with
   | Var x => match Nat.eqb x this, Nat.eqb x var with
@@ -205,9 +210,12 @@ Qed.
 
 
 Require Import Coq.Program.Equality.
+(* s -- heap *)
 Lemma substituion_typing : forall C x t t' s k e a al a',
     x <> this -> 
-    HasType ((this, (class C)) :: (x, t') :: nil) s k e t ->
+    (* method body is ok*)
+    HasType ((this, (class C)) :: (x, t') :: nil) s k e t -> 
+    (*  *)
     In (a,HCell(C,al)) s ->
     HasType nil s k (Ref a') t' ->
     HasType nil s k (subst a a' x e) t.
@@ -232,11 +240,14 @@ Proof.
   - destruct (x0 =? this) eqn:Hxthis.
     + apply Nat.eqb_eq in Hxthis. subst. inversion H3. subst. eauto.
     + destruct (x0 =? x) eqn:Hxx0.
-      * apply Nat.eqb_eq in Hxx0. subst. inversion H3. subst. contradiction.
-      * inversion H3. subst. apply Nat.eqb_neq in Hxthis. contradiction.
+      * apply Nat.eqb_eq in Hxx0. subst. inversion H3. subst. 
+        assert (Heq : this = this) by reflexivity. contradiction.
+      * inversion H3. subst. apply Nat.eqb_neq in Hxthis. 
+        assert (Heq : this = this) by reflexivity. contradiction.
   - destruct (x0 =? this) eqn:Hxthis.
     + apply Nat.eqb_eq in Hxthis. subst. inversion H3. 
-      * inversion H4. subst. contradiction.
+      * inversion H4. subst. 
+        assert (Heq : this = this) by reflexivity. contradiction.
       * inversion H4.
     + apply Nat.eqb_neq in Hxthis. inversion H3.
       * inversion H4. subst. destruct (x0 =? x0) eqn:Hxx.
@@ -244,15 +255,17 @@ Proof.
            inversion H6; subst. 
            **** eapply KTREFTYPE with (C:=C0); eauto. apply subtype_transitive with (t2 := t'); eauto.
            **** inversion H5. subst. apply KTREFANY. 
-        ** apply Nat.eqb_neq in Hxx. inversion H3; contradiction.
+        ** apply Nat.eqb_neq in Hxx. inversion H3; 
+           assert (Heq : x0 = x0) by reflexivity; contradiction.
       * inversion H4.
   - inversion H3. subst. eapply KTREFREAD; eauto.
   - inversion H3.
-    + inversion H4. subst. contradiction.
+    + inversion H4. subst. 
+      assert (Heq : this = this) by reflexivity. contradiction.
     + inversion H4.
   - inversion H4. subst. eapply KTREFWRITE; eauto.
   - inversion H4.
-    + inversion H5. contradiction.
+    + inversion H5. assert (Heq : this = this) by reflexivity. contradiction.
     + inversion H5.
 Qed.
 
@@ -314,6 +327,7 @@ Inductive WellFormedState : ct -> expr -> heap -> Prop :=
           WellFormedClassTable s k k ->
           WellFormedState k e s.
 
+(* all exprs are refs in a list *)
 Inductive Deref : list expr -> list ref -> Prop :=
 | DREF_Cons : forall a es ais, Deref es ais -> Deref ((Ref a)::es) (a::ais)
 | DREF_Nil : Deref nil nil.
@@ -328,10 +342,10 @@ Lemma FieldsWFImpliesFieldIn : forall k s fds aps f t a,
 Proof.
   intros k s fds aps f t a H1 H2. induction H1.
   - destruct (Nat.eqb f f0) eqn:Hf.
-    + apply Nat.eqb_eq in Hf. subst. inversion H2; subst; try contradiction.
-      apply H.
-    + apply Nat.eqb_neq in Hf. inversion H2; subst; try contradiction.
-      apply IHFieldRefWellFormed in H11. apply H11.
+    + apply Nat.eqb_eq in Hf. subst. inversion H2; subst;
+      try tauto; apply H.
+    + apply Nat.eqb_neq in Hf. inversion H2; subst; try tauto.
+      (*apply IHFieldRefWellFormed in H11. apply H11. assumption.*)
   - inversion H2.
 Qed.
 
@@ -344,7 +358,8 @@ Proof.
   - eapply WFWTC. apply H.
 Qed.
 
-Lemma fields_gets_fields : forall C s k k' fds, WellFormedType k (class C) -> WellFormedClassTable s k' k ->
+Lemma fields_gets_fields : forall C s k k' fds, 
+    WellFormedType k (class C) -> WellFormedClassTable s k' k ->
     fields C k = fds <-> exists mds, In (ClassDef C fds mds) k.
 Proof.
   intros C s k k' fds H H0. split; intros H1. 
@@ -385,7 +400,7 @@ Proof.
         eapply FieldsWFImpliesFieldIn with (fds:=fds) (aps:=aps) (f:=f); eauto.
       * apply IHWellFormedHeap; eauto. 
     + apply Nat.eqb_neq in Haa. inversion H2.
-      * inversion H5. subst. contradiction.
+      * inversion H5. subst. tauto. 
       * apply IHWellFormedHeap; eauto.
   - inversion H2.
 Qed.
@@ -409,7 +424,9 @@ Proof.
   intros s k k' C fds mds H H0 H1. induction k.
   - inversion H0.
   - inversion H0.
-    + inversion H. subst. inversion H9. subst. inversion H2. subst. rewrite <- H4. unfold fields.
+    + inversion H. subst fds. subst.
+      inversion H9. subst.  
+      inversion H2.  rewrite <- H4. unfold fields.
       rewrite Nat.eqb_refl. apply H12.
     + apply IHk; eauto.
       * inversion H. subst. apply H10.
@@ -454,11 +471,11 @@ Proof.
         ** apply H2 in H5. contradiction. 
       * apply H2 in H. contradiction.
     + apply Nat.eqb_neq in HCC. inversion H0.
-      * inversion H. subst. contradiction.
+      * inversion H. subst. tauto.
       * apply IHWellFormedClassTable in H.
         ** apply H.
         ** inversion H1.
-           *** inversion H5. subst. contradiction.
+           *** inversion H5. subst. tauto. 
            *** apply H5.
   - inversion H0. 
 Qed.
@@ -468,7 +485,7 @@ Lemma heap_write_still_in : forall a s s' a' aps' hc,
 Proof.
   intros. induction H1.
   - inversion H.
-    + inversion H1. subst. contradiction.
+    + inversion H1. subst. tauto. 
     + apply in_cons. apply H1. 
   - inversion H.
     + inversion H3. subst. apply in_eq. 
@@ -484,12 +501,12 @@ Proof.
   - destruct (Nat.eqb C C0) eqn:HCC.
     + apply Nat.eqb_eq in HCC. subst. apply in_eq.
     + apply Nat.eqb_neq in HCC. inversion H0.
-      * inversion H1. subst. contradiction.
+      * inversion H1. subst. tauto. 
       * inversion H. subst. apply H9 in H1. contradiction.
   - apply in_cons. apply IHHeapWrite.
     + inversion H. subst. apply H8.
     + inversion H0.
-      * inversion H3. subst. contradiction.
+      * inversion H3. subst. tauto. 
       * apply H3.
 Qed.
 
@@ -507,7 +524,8 @@ Proof.
   intros Hwfh Hin Hfields Hfieldswf Hwrite.
   generalize dependent sp. 
   induction Hwrite.
-  - intros. remember
+  - intros. 
+Abort.
     
 Lemma write_field : forall s s' sp k a a' aps aps' t C f,
     WellFormedHeap k (sp ++ s) s ->
@@ -522,8 +540,10 @@ Proof.
   intros s s' sp k a a' aps aps' t C f.
   intros Hwfh Hwfct Hht Hfin Hobj Hwrite Hhwrite. generalize dependent sp. induction Hhwrite.
   - intros. apply WFH_Cons.
-    + inversion Hwfh. apply H4. 
-      
+    + inversion Hwfh. (* apply H4. *)
+Abort.      
+
+(*
 Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
 | SNew : forall a' s s' C k ais ais', (forall hc, ~ (In (a',hc) s)) ->
                                       Deref ais ais' ->
@@ -534,4 +554,4 @@ Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
     FieldIn f a' (fields C k) aps ->
     Steps k (GetF (Ref a) f) s k (Ref a') s
 | SWrite : forall a C aps s k f a',
-. 
+. *)
