@@ -70,7 +70,7 @@ Inductive Subtype : list (id * id) -> ct -> type -> type -> Prop :=
 with Md_Subtypes : list (id * id) -> ct -> list md -> list md -> Prop :=
      | MDCons : forall m x x' t1 t1' t2 t2' e e' mu k r mds,
          (In (Method m x' t1' t2' e') mds) ->
-         (Subtype mu k t1' t1) -> (Subtype mu k t2 t2') ->
+         (Subtype mu k t1' t1) -> (Subtype mu k t2 t2') -> (Md_Subtypes mu k mds r) -> 
          (Md_Subtypes mu k mds ((Method m x t1 t2 e)::r))
      | MDNil : forall mu k mds, (Md_Subtypes mu k mds nil).
 Scheme subtyping_ind := Induction for Subtype Sort Prop
@@ -317,13 +317,15 @@ Inductive FieldRefWellFormed : ct -> heap -> list fd -> list ref -> Prop :=
                                        FieldRefWellFormed k s ((Field f t)::fds) (a::a')
 | FRWF_Nil : forall k s, FieldRefWellFormed k s nil nil.
 
-Inductive WellFormedHeap : ct -> heap -> heap -> Prop :=
-| WFH_Cons : forall a s s' k aps C, WellFormedHeap k s s' -> (forall hc, ~In(a, hc) s') ->
-             FieldRefWellFormed k s (fields C k) aps -> WellFormedHeap k s ((a, HCell(C, aps))::s')
-| WFH_Nil : forall k s, WellFormedHeap k s nil.
-                   
+Inductive NoDupsHeap : heap -> Prop :=
+| NDH_Cons : forall s a hc', (forall hc, ~(In(a,hc) s)) -> NoDupsHeap s -> NoDupsHeap ((a,hc')::s)
+| NDH_Nil : NoDupsHeap nil.
+
+Inductive WellFormedHeap : ct -> heap -> Prop :=
+| WFH : forall k s, NoDupsHeap s -> (forall a C aps, In (a,HCell(C, aps)) s -> FieldRefWellFormed k s (fields C k) aps) -> WellFormedHeap k s.       
+
 Inductive WellFormedState : ct -> expr -> heap -> Prop :=
-| WFSWP : forall k e s t, HasType nil s k e t -> WellFormedHeap k s s ->
+| WFSWP : forall k e s t, HasType nil s k e t -> WellFormedHeap k s ->
           WellFormedClassTable s k k ->
           WellFormedState k e s.
 
@@ -386,13 +388,14 @@ Proof.
            *** exists x. eauto. 
 Qed.
 
-Lemma heap_wf_field_access : forall k s s' a C aps f t a',
-    WellFormedHeap k s' s ->
-    WellFormedClassTable s' k k ->
+Lemma heap_wf_field_access : forall k s a C aps f t a',
+    WellFormedHeap k s ->
+    WellFormedClassTable s k k ->
     In (a, HCell(C, aps)) s -> FieldIn f t a' (fields C k) aps ->
-  HasType nil s' k (Ref a') t.
+  HasType nil s k (Ref a') t.
 Proof.
-  intros k s s' a C aps f t a' H0 H1 H2 H3.
+  intros k s a C aps f t a' H0 H1 H2 H3. inversion H0. subst. apply H4 in H2.
+  remember (fields C k) as 
   induction H0.
   - destruct (Nat.eqb a a0) eqn:Haa.
     + apply Nat.eqb_eq in Haa. subst. inversion H2.
