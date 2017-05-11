@@ -322,7 +322,9 @@ Inductive NoDupsHeap : heap -> Prop :=
 | NDH_Nil : NoDupsHeap nil.
 
 Inductive WellFormedHeap : ct -> heap -> Prop :=
-| WFH : forall k s, NoDupsHeap s -> (forall a C aps, In (a,HCell(C, aps)) s -> FieldRefWellFormed k s (fields C k) aps) -> WellFormedHeap k s.       
+| WFH : forall k s, NoDupsHeap s ->
+                    (forall a C aps, In (a,HCell(C, aps)) s -> WellFormedType k (class C) /\ FieldRefWellFormed k s (fields C k) aps) ->
+                    WellFormedHeap k s.       
 
 Inductive WellFormedState : ct -> expr -> heap -> Prop :=
 | WFSWP : forall k e s t, HasType nil s k e t -> WellFormedHeap k s ->
@@ -394,18 +396,15 @@ Lemma heap_wf_field_access : forall k s a C aps f t a',
     In (a, HCell(C, aps)) s -> FieldIn f t a' (fields C k) aps ->
   HasType nil s k (Ref a') t.
 Proof.
-  intros k s a C aps f t a' H0 H1 H2 H3. inversion H0. subst. apply H4 in H2.
-  remember (fields C k) as 
-  induction H0.
-  - destruct (Nat.eqb a a0) eqn:Haa.
-    + apply Nat.eqb_eq in Haa. subst. inversion H2.
-      * inversion H5. subst. remember (fields C k0) as fds.
-        eapply FieldsWFImpliesFieldIn with (fds:=fds) (aps:=aps) (f:=f); eauto.
-      * apply IHWellFormedHeap; eauto. 
-    + apply Nat.eqb_neq in Haa. inversion H2.
-      * inversion H5. subst. tauto. 
-      * apply IHWellFormedHeap; eauto.
-  - inversion H2.
+  intros k s a C aps f t a' H0 H1 H2 H3. inversion H0. subst. apply H4 in H2. destruct H2 as [_ H2]. induction H2. 
+  - destruct (Nat.eqb a0 a') eqn:Heq.
+    + apply Nat.eqb_eq in Heq. subst. inversion H3.
+      * subst. apply IHFieldRefWellFormed; eauto.
+      * subst. apply H2.
+    + apply Nat.eqb_neq in Heq. inversion H3.
+      * subst. apply IHFieldRefWellFormed; eauto.
+      * subst. tauto.
+  - inversion H3. 
 Qed.
 
 Inductive HeapWrite : id -> list ref -> heap -> heap -> Prop :=
@@ -497,55 +496,257 @@ Proof.
       * apply H0.
 Qed.
 
-Lemma heap_write_now_in : forall a k s s' s'' aps aps' C,
-    WellFormedHeap k s'' s -> In (a, HCell(C, aps)) s -> HeapWrite a aps' s s' -> In (a, HCell(C, aps')) s'.
+Lemma nodupsheap_weakening : forall a hc s, NoDupsHeap ((a, hc)::s) -> NoDupsHeap s.
 Proof.
-  intros. induction H1.
+  intros. inversion H. subst. apply H4.
+Qed.
+
+Lemma heap_write_now_in : forall a k s s' aps aps' C,
+    WellFormedHeap k s -> In (a, HCell(C, aps)) s -> HeapWrite a aps' s s' -> In (a, HCell(C, aps')) s'.
+Proof.
+  intros. inversion H. subst. clear H3. clear H. induction H1.
   - destruct (Nat.eqb C C0) eqn:HCC.
     + apply Nat.eqb_eq in HCC. subst. apply in_eq.
     + apply Nat.eqb_neq in HCC. inversion H0.
-      * inversion H1. subst. tauto. 
-      * inversion H. subst. apply H9 in H1. contradiction.
+      * inversion H. subst. tauto. 
+      * inversion H2. subst. apply H4 in H. contradiction.
   - apply in_cons. apply IHHeapWrite.
-    + inversion H. subst. apply H8.
-    + inversion H0.
-      * inversion H3. subst. tauto. 
-      * apply H3.
+    + inversion H0; eauto. inversion H3. subst. tauto.
+    + apply nodupsheap_weakening in H2. apply H2.
 Qed.
 
-(* does not work after this point *)
+Lemma heap_weakening_2 : forall g s s' k e t, HasType g s k e t -> HasType g (s' ++ s) k e t.
+Proof.
+  intros g s s' k e t H.
+  apply typing_ind with (P := fun g s k e t ih => HasType g (s' ++ s) k e t)
+                          (P0 := fun g s k e t ih => HasTypeExpr g (s' ++ s) k e t)
+                          (P1 := fun g s k es ts ih => HasTypes g (s' ++ s) k es ts); eauto.
+  - intros. apply KTREFREAD with (a' := a') (C:=C).
+    + apply in_or_app. right. eauto.
+    + apply i0.
+  - intros. apply KTREFWRITE with (a' := a') (C:=C); eauto.
+    + apply in_or_app. eauto.
+  - intros. apply KTREFTYPE with (a' := a') (C := C); eauto.
+    apply in_or_app. eauto.
+Qed.
 
-Lemma fieldwf_implies_heapwf : forall k s sp s' a' C aps aps' fds,
-  WellFormedHeap k (sp++s) s ->
+Lemma subtype_only_classes : forall mu k C t, Subtype mu k (class C) t -> exists D, t = (class D).
+Proof.
+  intros. inversion H.
+  - exists C. reflexivity. 
+  - subst. exists t2. reflexivity.
+  - subst. exists d. reflexivity.
+Qed.
+   
+Lemma hastype_ignores_heapv : forall (k:ct) (s s':heap) a a' aps' t,
+    WellFormedHeap k s ->
+    HasType nil s k (Ref a) t ->
+    HeapWrite a' aps' s s' -> 
+    HasType nil s' k (Ref a) t.
+Proof.
+  intros.
+  assert (Hduh: s' = s').
+  { reflexivity. }
+  assert (Hduh2: (Ref a) = (Ref a)).
+  { reflexivity. }
+  generalize dependent Hduh. generalize dependent Hduh2.
+   (* pose proof typing_ind (fun g s k e t (ih : HasType g s k e t) => e = (Ref a) -> s = s' -> HasType nil s' k (Ref a) t). eapply H2. *)
+  eapply typing_ind with (P := fun g s k e t (ih : HasType g s k e t) => e = (Ref a) -> s = s' -> HasType nil s' k (Ref a) t)
+                           (P0 := fun g s k e t ih => e = (Ref a) -> s = s' -> HasTypeExpr nil s' k (Ref a) t)
+                           (P1 := fun g s k es ts ih => True) (e:= nil); try (intros; subst; discriminate); eauto.
+  - intros. subst. inversion H2. subst. eauto.
+  - apply eventually_concrete in H0. destruct H0 as [tp [H2 H3]]. inversion H3.
+    + subst. inversion H. subst. clear H H5. induction H1.
+      * destruct (Nat.eqb a0 a) eqn:Heq.
+        ** apply Nat.eqb_eq in Heq. subst. inversion H4.
+           *** inversion H. subst. apply KTEXPR. eapply KTREFTYPE; eauto.
+               **** apply in_eq.
+               **** pose proof subtype_transitive (nil) k0 (class C) tp t H8 H2. apply H1. 
+           *** inversion H0. apply H6 in H. tauto.
+        ** apply Nat.eqb_neq in Heq. inversion H4.
+           *** inversion H. subst. tauto.
+           *** apply KTEXPR. eapply KTREFTYPE; eauto.
+               **** apply in_cons. apply H.
+               **** eapply subtype_transitive; eauto. 
+      * destruct (Nat.eqb a' a) eqn:Heq.
+        ** apply Nat.eqb_eq in Heq. subst. inversion H4.
+           *** inversion H5. subst. apply KTEXPR. apply KTREFTYPE with (C:=C) (a' := a'0). 
+               **** apply in_eq.
+               **** eapply subtype_transitive; eauto.
+           *** inversion H0. apply H9 in H5. tauto.
+        ** apply Nat.eqb_neq in Heq. inversion H4.
+           *** inversion H5. subst. tauto.
+           *** apply heap_weakening_2 with (s' := (a',HCell(C0,aps')) :: nil). apply IHHeapWrite; eauto.
+               **** apply nodupsheap_weakening in H0. apply H0.
+    + subst. inversion H2. subst. apply KTEXPR. apply KTREFANY.
+Qed.
+
+Lemma fieldwf_still_good : forall k s a' s' fds aps' aps, 
+  WellFormedHeap k s ->
+  FieldRefWellFormed k s fds aps' ->
+  HeapWrite a' aps s s' ->
+  FieldRefWellFormed k s' fds aps'.
+Proof.
+  intros k s a s' fds aps' aps.
+  intros Hwfh Hfrwf Hwrite.  
+  induction Hfrwf.
+  - apply FRWF_Cons.
+    + eapply hastype_ignores_heapv; eauto.
+    + apply IHHfrwf; eauto.
+  - apply FRWF_Nil.
+Qed.
+
+Lemma writing_keeps_refs : forall a a' s s' aps' hc,
+    In(a,hc) s -> HeapWrite a' aps' s s' -> exists hc', In(a,hc') s'.
+Proof.
+  intros. induction H0.
+  - inversion H.
+    + inversion H0. subst.  exists (HCell(C,aps)). apply in_eq.
+    + exists hc. apply in_cons. apply H0.
+  - inversion H.
+    + inversion H2. subst. exists (HCell(C,aps')). apply in_eq.
+    + apply IHHeapWrite in H2. inversion H2 as [hc' H3]. exists hc'.
+      apply in_cons. apply H3.
+Qed.
+
+Lemma refs_still_not_in : forall a s a' aps' s',
+  (forall hc, ~ (In(a,hc) s)) -> HeapWrite a' aps' s s' -> (forall hc', ~(In(a,hc') s')).
+Proof.
+  intros. destruct (Nat.eqb a a') eqn:Heq.
+  + apply Nat.eqb_eq in Heq. subst. induction H0.
+    * subst. exfalso. unfold not in H. eapply H.
+      apply in_eq.
+    * subst. unfold not. intros. inversion H2.
+      ** inversion H3. subst. eapply H. apply in_eq.
+      ** apply IHHeapWrite in H3; eauto. unfold not.
+         intros. unfold not in H. eapply H. apply in_cons. apply H4.
+  + apply Nat.eqb_neq in Heq. induction H0.
+    * unfold not. intros. eapply H. inversion H0.
+      ** inversion H1. subst. tauto. 
+      ** apply in_cons. apply H1.
+    * unfold not. intros. inversion H2.
+      ** inversion H3. subst. eapply H. apply in_eq.
+      ** apply IHHeapWrite.
+         *** unfold not. intros. eapply H. apply in_cons. apply H4.
+         *** apply Heq.
+         *** apply H3.
+Qed.
+
+Lemma in_goes_backwards : forall a a' aps' s s' hc,
+    (In(a,hc) s') -> HeapWrite a' aps' s s' -> a <> a' -> In(a,hc) s.
+Proof.
+  intros. induction H0.
+  - destruct (Nat.eqb a a0) eqn:Heq.
+    + apply Nat.eqb_eq in Heq. subst. tauto.
+    + apply Nat.eqb_neq in Heq. inversion H; eauto.
+      * inversion H0. subst. tauto.
+      * apply in_cons. apply H0.
+  - inversion H; eauto.
+    + inversion H3. subst. apply in_eq.
+    + apply in_cons. apply IHHeapWrite; eauto.
+Qed.
+
+Theorem nodupsheap_still_good: forall s a' aps' s',
+  NoDupsHeap s -> HeapWrite a' aps' s s' -> NoDupsHeap s'.
+Proof.
+  intros. generalize dependent s'.
+  induction H.
+  - intros. destruct (Nat.eqb a' a) eqn:Heq.
+    + apply Nat.eqb_eq in Heq. subst. inversion H1.
+      * subst. apply NDH_Cons; eauto.
+      * subst. apply IHNoDupsHeap in H9. apply NDH_Cons; eauto.
+    + apply Nat.eqb_neq in Heq. inversion H1.
+      * subst. tauto.
+      * subst. apply IHNoDupsHeap in H9. apply NDH_Cons; eauto.
+        inversion H1; subst; try tauto. eapply refs_still_not_in; eauto.
+  - intros. inversion H0.
+Qed.
+
+Lemma nodups_first : forall a hc s, NoDupsHeap ((a,hc)::s) -> (forall hc', In (a,hc') ((a,hc)::s) -> hc = hc').
+Proof.
+  intros. inversion H. subst. inversion H0.
+  - inversion H1. tauto.
+  - apply H3 in H1. tauto.
+Qed.
+
+Lemma nodups_collapses_refs : forall s a hc hc',
+    NoDupsHeap s -> In (a,hc) s -> In (a,hc') s -> hc = hc'.
+Proof.
+  intros.
+  induction (H).
+  - pose proof (Nat.eq_dec a a0). destruct H3; subst.
+    + pose proof (nodups_first a0 hc'0 s H).
+      apply H3 in H0. apply H3 in H1. subst. tauto.
+    + inversion H0 as [H3|]; inversion H1 as [H4|]; try (inversion H3; inversion H4; subst).
+      * tauto.
+      * inversion H3. subst. tauto.
+      * inversion H4. subst. tauto.
+      * apply IHn; eauto.
+  - inversion H0.
+Qed.
+
+Lemma fieldwf_implies_heapwf : forall k s s' a' C aps aps' fds,
+  WellFormedHeap k s ->
   In (a', HCell(C,aps)) s ->
   fds = fields C k ->
-  FieldRefWellFormed k (sp ++ s) fds aps' ->
+  FieldRefWellFormed k s fds aps' ->
   HeapWrite a' aps' s s' ->
-  WellFormedHeap k (sp ++ s') s'.
+  WellFormedHeap k s'.
 Proof.
-  intros k s sp s' a C aps aps' fds.
-  intros Hwfh Hin Hfields Hfieldswf Hwrite.
-  generalize dependent sp. 
-  induction Hwrite.
-  - intros. 
-Abort.
-    
-Lemma write_field : forall s s' sp k a a' aps aps' t C f,
-    WellFormedHeap k (sp ++ s) s ->
-    WellFormedClassTable (sp ++ s) k k ->
-    HasType nil (sp ++ s) k (Ref a) t ->
+  intros k s s' a C aps aps' fds.
+  intros Hwfh Hin Hfields Hfieldswf Hwrite. inversion Hwfh. subst.
+  apply WFH.
+  - eapply nodupsheap_still_good; eauto.
+  - intros. destruct (Nat.eqb a0 a) eqn:Heq.
+    + apply Nat.eqb_eq in Heq. subst. pose proof (heap_write_now_in _ _ _ _ _ _ _ Hwfh Hin Hwrite).
+      assert (Hnds' : NoDupsHeap s').
+      { eapply nodupsheap_still_good; eauto. }
+      pose proof (nodups_collapses_refs s' a (HCell (C0, aps0)) (HCell (C, aps')) Hnds' H1 H2). inversion H3. subst. 
+      split.
+      { apply H0 in Hin. destruct Hin. eauto. }
+      {
+        eapply fieldwf_still_good.
+        * apply Hwfh.
+        * inversion H3. subst. apply Hfieldswf.
+        * apply Hwrite.
+      }
+    + apply Nat.eqb_neq in Heq. eapply in_goes_backwards in H1; eauto. split.
+      {
+        apply H0 in H1. destruct H1. eauto.
+      }
+      {
+        eapply fieldwf_still_good.
+        * apply Hwfh.
+        * eapply H0. eauto.
+        * apply Hwrite.
+      }
+Qed.
+
+Lemma write_field : forall s s' k a a' aps aps' t C f,
+    WellFormedHeap k s ->
+    WellFormedClassTable s k k ->
+    HasType nil s k (Ref a) t ->
     In (Field f t) (fields C k) ->
     In (a', HCell(C, aps)) s ->
     FieldWrite f a aps (fields C k) aps' ->
     HeapWrite a' aps' s s' ->
-    WellFormedHeap k (sp ++ s') s'.
+    WellFormedHeap k s'.
 Proof.
-  intros s s' sp k a a' aps aps' t C f.
-  intros Hwfh Hwfct Hht Hfin Hobj Hwrite Hhwrite. generalize dependent sp. induction Hhwrite.
-  - intros. apply WFH_Cons.
-    + inversion Hwfh. (* apply H4. *)
-Abort.      
+  intros s s' k a a' aps aps' t C f.
+  intros Hwfh Hwfct Hht Hfin Hobj Hwrite Hhwrite.
 
+  inversion Hwfh.
+  subst. pose proof Hobj. apply H0 in H1. destruct H1. remember (fields C k) as fds.
+  pose proof (fields_gets_fields C s k k fds H1 Hwfct). symmetry in Heqfds. pose proof Heqfds.
+  apply H3 in Heqfds.
+  destruct Heqfds as [mds H5]. 
+    
+  eapply fieldwf_implies_heapwf; eauto. eapply FieldWriteWellFormed; eauto.
+  - inversion Hwfh. subst. eapply H0. apply Hobj.
+  - rewrite-> H4. apply Hfin.
+  - eapply FieldsNoDupsFds; eauto. subst. apply H5.
+  - subst. apply Hwrite.
+Qed.
 (*
 Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
 | SNew : forall a' s s' C k ais ais', (forall hc, ~ (In (a',hc) s)) ->
