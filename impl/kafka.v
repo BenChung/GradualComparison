@@ -747,15 +747,52 @@ Proof.
   - eapply FieldsNoDupsFds; eauto. subst. apply H5.
   - subst. apply Hwrite.
 Qed.
-(*
+
+Inductive EvalCtx :=
+| EAssign : ref -> id -> EvalCtx -> EvalCtx
+| ECall1 : EvalCtx -> id -> type -> type -> expr -> EvalCtx
+| ECall2 : ref -> id -> type -> type -> EvalCtx -> EvalCtx
+| EDCall1 : EvalCtx -> id -> expr -> EvalCtx
+| EDCall2 : ref -> id -> EvalCtx -> EvalCtx
+| ESubCast : type -> EvalCtx -> EvalCtx
+| ENew : id -> list ref -> EvalCtx -> list expr -> EvalCtx
+| EHole : EvalCtx.
+
+Fixpoint equivExpr(ei:expr)(E:EvalCtx) :=
+  match E with
+  | EAssign a f E => SetF (Ref a) f (equivExpr ei E)
+  | ECall1 E m t t' e => Call (equivExpr ei E) m t t' e
+  | ECall2 a m t t' E => Call (Ref a) m t t' (equivExpr ei E)
+  | EDCall1 E m e => DynCall (equivExpr ei E) m e
+  | EDCall2 a m E => DynCall (Ref a) m (equivExpr ei E)
+  | ESubCast t E => SubCast t (equivExpr ei E)
+  | ENew C aps E ers => New C ((map Ref aps) ++ (equivExpr ei E)::ers)
+  | EHole => ei
+  end.
+
 Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
 | SNew : forall a' s s' C k ais ais', (forall hc, ~ (In (a',hc) s)) ->
                                       Deref ais ais' ->
                                       s' = (a', HCell(C, ais'))::s ->
                                       Steps k (New C ais) s k (Ref a') s'
-| SRead : forall a C aps s k f a', 
+| SRead : forall a C t aps s k f a', 
     In (a, HCell(C, aps)) s ->
-    FieldIn f a' (fields C k) aps ->
+    FieldIn f t a' (fields C k) aps ->
     Steps k (GetF (Ref a) f) s k (Ref a') s
-| SWrite : forall a C aps s k f a',
-. *)
+| SWrite : forall a C aps aps' s k f a' s',
+    In (a, HCell(C,aps)) s ->
+    FieldWrite f a' aps (fields C k) aps' ->
+    HeapWrite a aps' s s' ->
+    Steps k (SetF (Ref a) f (Ref a')) s k (Ref a') s'
+| SCall : forall a C aps s m x t t' e k a',
+    In (a, HCell(C,aps)) s ->
+    In (Method m x t t' e) (methods C k) ->
+    Steps k (Call (Ref a) m t t' (Ref a')) s k (subst a a' x e) s
+| SDynCast : forall k a s, Steps k (SubCast Any (Ref a)) s k (Ref a) s
+| SSubCast : forall a aps C D s k,
+    In (a, HCell(C,aps)) s ->
+    Subtype nil k (class C) (class D) ->
+    Steps k (SubCast (class D) (Ref a)) s k (Ref a) s
+| SCtx : forall k e s e' s' E,
+    Steps k e s k e' s' -> Steps k (equivExpr e E) s k (equivExpr e' E) s'.
+    
