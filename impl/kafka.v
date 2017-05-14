@@ -969,6 +969,66 @@ Proof.
   - eauto.
 Qed.
 
+Lemma deref_map : forall e1s a1s, 
+    Deref e1s a1s -> e1s = map Ref a1s.
+Proof.
+  intros. induction H.
+  - simpl. subst. reflexivity.
+  - reflexivity.
+Qed.
+
+Fixpoint fresh_ref (s:heap)(i:nat) :=
+  match s with
+  | (a,hc)::r => match Nat.ltb a i with
+                 | true => fresh_ref r i
+                 | false => fresh_ref r (S a)
+                 end
+  | nil => i
+  end.
+
+Require Import Coq.omega.Omega.
+
+Theorem fresh_not_in :
+  forall s a a', a = fresh_ref s a' -> a' <= a /\ forall a'' hc, In(a'',hc) s -> a'' < a.
+Proof.
+  intros. generalize dependent a'. induction s.
+  - intros. split.
+    + unfold fresh_ref in H. omega.
+    + intros. inversion H0.
+  - intros.
+    destruct a0 as [a'' hc]. unfold fresh_ref in H.
+    destruct (Nat.ltb a'' a') eqn:Haa.
+    + apply Nat.ltb_lt in Haa. apply IHs in H. destruct H. split.
+      * omega.
+      * intros. inversion H1.
+        ** inject H2. omega.
+        ** apply H0 in H2. omega.
+    + apply Nat.ltb_ge in Haa. apply IHs in H. destruct H. split.
+      * omega.
+      * intros. inversion H1.
+        ** inject H2. omega.
+        ** apply H0 in H2.  omega.
+Qed.
+
+Theorem weakening_retains_refs: forall s s', retains_references s (s' ++ s).
+Proof.
+  intros. induction s.
+  - unfold retains_references. intros. inversion H.
+  - unfold retains_references. intros. inversion H.
+    + exists aps. subst. apply in_or_app. right. apply in_eq.
+    + exists aps. apply in_or_app. right. apply H.
+Qed.
+
+Lemma frwf_weakening : forall k s fts aps s',
+    FieldRefWellFormed k s fts aps -> FieldRefWellFormed k (s' ++ s) fts aps.
+Proof.
+  intros. induction H.
+  - apply FRWF_Cons.
+    + apply heap_weakening_2. apply H.
+    + apply IHFieldRefWellFormed. 
+  - apply FRWF_Nil.
+Qed.
+
 Definition is_sound(k:ct)(s:heap)(e:expr)(t:type) :=
   (exists a : ref, e = Ref a) \/
   (exists (e' : expr) (s' : heap), Steps k e s k e' s' /\
@@ -995,7 +1055,14 @@ Proof.
   (P0 := fun g' s' k' e t ih =>
            g' = nil -> k' = k -> s' = s -> is_sound k s e t)
   (P1 := fun g' s' k' es ts (ih : HasTypes g' s' k' es ts) => (* TODO: state IH for list of exprs *)
-           g' = nil -> k' = k -> s' = s -> @Forall2 expr type (is_sound k s) es (typesof ts));
+           g' = nil -> k' = k -> s' = s ->
+           exists e1s (a1s : list ref) t1s e2s t2s,
+             es = e1s ++ e2s /\
+             ts = t1s ++ t2s /\
+             FieldRefWellFormed k s t1s a1s /\
+             Deref e1s a1s /\
+             (forall e2, In e2 e2s -> forall a, e2 <> Ref a) /\
+             @Forall2 expr type (is_sound k s) e2s (typesof t2s));
     try (intros; subst; inversion i; fail); try (intros; subst; unfold is_sound; eauto; fail). 
   - intros. subst. destruct H; eauto.
     + unfold is_sound. eauto.
@@ -1197,5 +1264,78 @@ Proof.
         ** left. inversion H0 as [a' [m' [a'' He]]]. exists a'. exists m'. exists a''.
            subst. auto.
         ** right. inversion H0 as [t'' [a' He]]. exists t''. exists a'. subst. simpl. auto.
-  - intros. subst. induction es.
+  - intros. subst. destruct H as [e1s H]; eauto. destruct H as [a1s [t1s [e2s [t2s [H [H0 [H1 H2]]]]]]]. 
+    induction e2s.
+    + rewrite app_nil_r in H. subst. inversion H2. destruct t2s; eauto.
+      * clear H2. unfold is_sound. right. left.
+        remember (fresh_ref s 0) as a.
+        remember (HCell(C,a1s)) as hc.
+        remember ((a,hc)::s) as s'.
+        exists (Ref a). exists s'. repeat split; eauto. 
+        ** eapply SNew.
+           *** unfold not. intros. apply fresh_not_in in Heqa. destruct Heqa.
+               apply H4 in H2. omega.
+           *** apply H.
+           *** rewrite Heqs'. rewrite Heqhc. reflexivity.
+        ** assert (Hndh: NoDupsHeap s').
+           {
+             rewrite Heqs'. apply NDH_Cons.
+             ***** unfold not. intros.
+             apply fresh_not_in in Heqa. destruct Heqa.
+             apply H4 in H2. omega.
+             ***** destruct Hwfh. apply H2.
+           }
+          eapply WFSWP; eauto.
+           *** eapply KTEXPR. eapply KTREFTYPE.
+               **** rewrite Heqs'. rewrite Heqhc. apply in_eq.
+               **** apply STRefl.
+           *** apply WFH.
+               **** apply Hndh. 
+               **** intros. destruct (Nat.eq_dec a0 a).
+                    { pose proof (in_eq (a,hc) s). rewrite<- Heqs' in H3. rewrite e0 in H2.
+                      pose proof (nodups_collapses_refs s' a hc (HCell(C0,aps)) Hndh H3 H2).
+                      rewrite H4 in Heqhc. inversion Heqhc. 
+                      split.
+                      - eapply WFWTC; eauto. 
+                      - rewrite app_nil_r in i.
+                        pose proof (fields_gets_fields C s k t1s (WFWTC k C t1s mds i) Hwfct).
+                        destruct H5.
+                        assert (HFields: fields C k = t1s).
+                        {
+                          apply H8. exists mds. apply i.
+                        }
+                        rewrite HFields. rewrite Heqs'. apply frwf_weakening with (s':=(a,hc)::nil)(s:=s).
+                        apply H1. 
+                    }
+                    {
+                      rewrite Heqs' in H2. inversion H2.
+                      - inversion H3. symmetry in H5. tauto. 
+                      - clear H2. split.
+                        + destruct Hwfh. apply H4 in H3. destruct H3 as [H3 H5].
+                          eauto.
+                        + destruct Hwfh. apply H4 in H3. destruct H3 as [H3 H5].
+                          rewrite Heqs'. apply frwf_weakening with (s':=(a,hc)::nil). eauto. 
+                    }
+           *** eapply wfct_doesnt_care; eauto. rewrite Heqs'.
+               apply weakening_retains_refs with (s' := (a,hc)::nil).
+        ** apply KTEXPR. apply KTREFTYPE with (C:=C)(a':=a1s).
+           *** rewrite Heqhc in Heqs'. rewrite Heqs'. apply in_eq.
+           *** apply STRefl.
+        ** rewrite Heqs'. apply weakening_retains_refs with (s':=(a,hc)::nil).
+      * destruct H0. inversion H3. destruct f. discriminate.
+    + destruct H2. destruct H3. clear IHe2s. unfold is_sound. right.
+      inversion H4 as [|e' t' eps tps]. subst. inversion H5.
+      * destruct H. unfold not in H3. rewrite H in H3. exfalso. eapply H3.
+        ** apply in_eq.
+        ** eauto.
+      * destruct H.
+        ** left. destruct H as [e' [s' [Hi1 [Hi2 [Hi3 Hi4]]]]].
+           remember (ENew C a1s EHole e2s) as E.
+           assert (Hleft: equivExpr a E = (New C (e1s ++ a :: e2s))).
+           { subst. simpl. rewrite deref_map with (e1s:=e1s)(a1s:=a1s); eauto. }
+           assert (Hright: equivExpr e' E = (New C (e1s ++ e' :: e2s))).
+           { subst. simpl. rewrite deref_map with (e1s:=e1s)(a1s:=a1s); eauto. }
+           assert (Htyped: HasType nil s' k (equivExpr e' E) (class C)).
+           { subst. simpl. rewrite<- deref_map with (e1s:=e1s)(a1s:=a1s); eauto.
+             eapply KTEXPR. eapply KTNEW; eauto.
 Abort.
