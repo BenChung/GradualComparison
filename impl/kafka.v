@@ -274,7 +274,7 @@ Proof.
   - inversion H4.
     + inversion H5. assert (Heq : this = this) by reflexivity. contradiction.
     + inversion H5.
-Qed.
+Qed. 
 
 Inductive WellFormedType : ct -> type -> Prop :=
 | WFWA : forall k, WellFormedType k Any
@@ -1019,6 +1019,18 @@ Proof.
     + exists aps. apply in_or_app. right. apply H.
 Qed.
 
+Lemma HasTypes_split : forall g s k e1 e2 fs1 fs2, 
+  HasTypes g s k e1 fs1 ->
+  HasTypes g s k e2 fs2 ->
+  HasTypes g s k (e1 ++ e2) (fs1 ++ fs2).
+Proof.
+  intros. generalize dependent fs1. induction e1.
+  - simpl. intros. inject H. rewrite app_nil_l. eauto.
+  - simpl. intros. inject H. apply IHe1 in H8. eapply HTSCONS.
+    + apply H6.
+    + apply H8. 
+Qed.
+      
 Lemma frwf_weakening : forall k s fts aps s',
     FieldRefWellFormed k s fts aps -> FieldRefWellFormed k (s' ++ s) fts aps.
 Proof.
@@ -1026,6 +1038,36 @@ Proof.
   - apply FRWF_Cons.
     + apply heap_weakening_2. apply H.
     + apply IHFieldRefWellFormed. 
+  - apply FRWF_Nil.
+Qed.
+
+Lemma typesof_cons : forall fds t1 ts, 
+    typesof fds = t1::ts -> exists f fds', fds = (Field f t1)::fds'.
+Proof.
+  intros. generalize dependent ts. induction fds.
+  - intros. inversion H.
+  - intros. destruct a. exists i. exists fds. simpl in H. inject H. reflexivity.
+Qed.
+
+Lemma hastypes_split : forall s k e1s a1s t1s,
+  FieldRefWellFormed k s t1s a1s -> 
+  Deref e1s a1s ->
+  HasTypes nil s k e1s t1s.
+Proof.
+  intros. generalize dependent a1s. generalize dependent t1s. induction e1s.
+  - intros. inject H0. inject H. apply HTSNIL.
+  - intros. inject H0. inject H. apply HTSCONS.
+    + apply H6.
+    + eapply IHe1s; eauto.
+Qed.
+
+Lemma fieldwf_still_good' : forall k fds aps s s', 
+  FieldRefWellFormed k s fds aps ->
+  retains_references s s' ->
+  FieldRefWellFormed k s' fds aps.
+Proof.
+  intros. induction H.
+  - apply FRWF_Cons; eauto. 
   - apply FRWF_Nil.
 Qed.
 
@@ -1337,5 +1379,10 @@ Proof.
            { subst. simpl. rewrite deref_map with (e1s:=e1s)(a1s:=a1s); eauto. }
            assert (Htyped: HasType nil s' k (equivExpr e' E) (class C)).
            { subst. simpl. rewrite<- deref_map with (e1s:=e1s)(a1s:=a1s); eauto.
-             eapply KTEXPR. eapply KTNEW; eauto.
+             eapply KTEXPR. eapply KTNEW; eauto. apply HasTypes_split.
+             + eapply hastypes_split; eauto. 
+               * eapply fieldwf_still_good'; eauto.
+             + symmetry in H9. pose proof (typesof_cons t2s t' tps H9).
+               destruct H as [f [fds' Heq]]. rewrite Heq. eapply HTSCONS; eauto. 
+               * 
 Abort.
