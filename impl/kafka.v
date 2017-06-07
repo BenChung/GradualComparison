@@ -1019,6 +1019,7 @@ Proof.
     + exists aps. apply in_or_app. right. apply H.
 Qed.
 
+
 Lemma HasTypes_split : forall g s k e1 e2 fs1 fs2, 
   HasTypes g s k e1 fs1 ->
   HasTypes g s k e2 fs2 ->
@@ -1061,6 +1062,16 @@ Proof.
     + eapply IHe1s; eauto.
 Qed.
 
+Lemma hastypes_app : forall s k e1s e2s fd1s fd2s,
+    HasTypes nil s k (e1s ++ e2s) (fd1s ++ fd2s) -> 
+    HasTypes nil s k e1s fd1s ->
+    HasTypes nil s k e2s fd2s.
+Proof.
+  intros. induction H0.
+  - apply IHHasTypes. simpl in H. inversion H. subst. auto.
+  - simpl in H. apply H.
+Qed. 
+
 Lemma fieldwf_still_good' : forall k fds aps s s', 
   FieldRefWellFormed k s fds aps ->
   retains_references s s' ->
@@ -1071,6 +1082,60 @@ Proof.
   - apply FRWF_Nil.
 Qed.
 
+Lemma cons_app_app_app : forall V x1 x y,
+    x1 ++ x::y = @app V (x1 ++ (x::nil)) y.
+Proof.
+  intros. induction x1.
+  - simpl. reflexivity.
+  - simpl. rewrite IHx1. reflexivity.
+Qed.
+
+Lemma hastypes_ignores_heapv : forall g s k es fts s',
+    HasTypes g s k es fts -> retains_references s s' -> HasTypes g s' k es fts.
+Proof. 
+  intros. induction H.
+  - apply HTSCONS.
+    + eauto.
+    + apply IHHasTypes; eauto.
+  - apply HTSNIL.
+Qed.
+
+Lemma app_cons_assoc: forall T a b c d,
+    @cons T a b ++ @cons T c d = a::(b ++ c::d).
+Proof.
+  intros. simpl. reflexivity.
+Qed.
+
+Lemma frwf_deref_implies_eq_length : forall k s t1s a1s e1s,
+    FieldRefWellFormed k s t1s a1s ->
+    Deref e1s a1s -> length t1s = length e1s.
+Proof.
+  intros. generalize dependent a1s. generalize dependent t1s. 
+  induction e1s. 
+  - intros. inversion H0. simpl. inversion t1s.
+    + intros. subst. inversion H. subst. reflexivity.
+    + intros. subst. inversion H. subst. reflexivity.
+  - intros. inversion H0. subst. inject H. simpl.
+    assert (He:forall a b, a = b -> S a = S b).
+    { intros. eauto. }
+    apply He. eapply IHe1s; eauto.
+Qed.
+
+
+Lemma hastypes_shortening : forall s k a e1s e2s fds' t1s t' f,  
+    HasTypes nil s k (e1s ++ a :: e2s) (t1s ++ Field f t' :: fds') ->
+    length e1s = length t1s ->
+    HasTypes nil s k (e1s ++ a :: nil) (t1s ++ Field f t' :: nil).
+Proof.
+  intros. generalize dependent t1s. induction e1s.
+  - intros. inversion H0. destruct t1s.
+    + simpl. simpl in H. inject H. eapply HTSCONS; eauto.
+    + inversion H2.
+  - intros. inversion H0. destruct t1s.
+    + inversion H2.
+    + simpl. simpl in H. inject H. eapply HTSCONS; eauto.
+Qed.
+  
 Definition is_sound(k:ct)(s:heap)(e:expr)(t:type) :=
   (exists a : ref, e = Ref a) \/
   (exists (e' : expr) (s' : heap), Steps k e s k e' s' /\
@@ -1086,7 +1151,7 @@ Definition is_sound(k:ct)(s:heap)(e:expr)(t:type) :=
 
 Theorem soundness: forall k e s t,
   WellFormedState k e s -> HasType nil s k e t -> is_sound k s e t.
-Proof.
+Proof. 
   intros k e s t Hwfs Hht. destruct Hwfs as [k e s _ _ Hwfh Hwfct].
   pose proof (eq_refl (@nil (id*type))) as Hduh0.
   pose proof (eq_refl k) as Hduh1. pose proof (eq_refl s) as Hduh2.    
@@ -1103,7 +1168,7 @@ Proof.
              ts = t1s ++ t2s /\
              FieldRefWellFormed k s t1s a1s /\
              Deref e1s a1s /\
-             (forall e2, In e2 e2s -> forall a, e2 <> Ref a) /\
+             (forall ei eir, ei::eir = e2s -> forall a, ei <> Ref a) /\
              @Forall2 expr type (is_sound k s) e2s (typesof t2s));
     try (intros; subst; inversion i; fail); try (intros; subst; unfold is_sound; eauto; fail). 
   - intros. subst. destruct H; eauto.
@@ -1368,7 +1433,7 @@ Proof.
     + destruct H2. destruct H3. clear IHe2s. unfold is_sound. right.
       inversion H4 as [|e' t' eps tps]. subst. inversion H5.
       * destruct H. unfold not in H3. rewrite H in H3. exfalso. eapply H3.
-        ** apply in_eq.
+        ** reflexivity.
         ** eauto.
       * destruct H.
         ** left. destruct H as [e' [s' [Hi1 [Hi2 [Hi3 Hi4]]]]].
@@ -1384,5 +1449,22 @@ Proof.
                * eapply fieldwf_still_good'; eauto.
              + symmetry in H9. pose proof (typesof_cons t2s t' tps H9).
                destruct H as [f [fds' Heq]]. rewrite Heq. eapply HTSCONS; eauto. 
-               * 
+               * eapply hastypes_app.
+                 ** rewrite Heq in h. rewrite cons_app_app_app in h.
+                    pose proof (cons_app_app_app fd t1s). rewrite H in h.
+                    eapply hastypes_ignores_heapv; eauto.
+                 ** rewrite Heq in h. eapply hastypes_shortening.
+                    *** eapply hastypes_ignores_heapv; eauto.
+                    *** symmetry. eapply frwf_deref_implies_eq_length; eauto. }
+           exists (equivExpr e' E). exists s'. repeat split; eauto. 
+           *** rewrite <- Hleft. eapply SCtx. apply Hi1.
+           *** inject Hi2. eapply WFSWP; eauto.
+        ** right. inversion H as [E]. exists (ENew C a1s E e2s). destruct H0.
+           *** left. inversion H0 as [a0 [m [a0']]].
+               exists a0. exists m. exists a0'. simpl. rewrite<- H7.
+               apply deref_map in H2. rewrite <- H2. reflexivity.
+           *** right. inversion H0 as [t'' [a0]]. exists t''. exists a0.
+               simpl. rewrite <- H7. rewrite (deref_map _ _ H2). reflexivity.
+  - intros. subst. destruct H; try tauto.
+    + inject H. unfold is_sound. right. 
 Abort.
