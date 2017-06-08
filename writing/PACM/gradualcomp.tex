@@ -499,7 +499,7 @@ slow downs in pathological cases.
 \vspace{-2mm}
 
 \noindent
-The basis of our formal approach \kafka, a class-based, statically typed
+The basis of our formal approach is \kafka, a class-based, statically typed
 object-oriented language. The distinctive features of the calculus are its
 support for both typed and untyped method innovation, as well as that
 dynamic class generation by explicit class tables.  The features of \kafka
@@ -817,8 +817,8 @@ achieved by generating a new class with the right method signatures.
 
 \begin{equation*}
   \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
-  \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. = \App\K\C \HS\HS
-  \fresh{\D,\ap,\that} \HS\HS \cload{\mdp[1]..} \\\HS
+  \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. \In \App\K\C \HS\HS
+  \fresh{\D,\ap,\that} \HS\HS \cload{\md[1]..} \\\HS
   \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \HS\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
 \end{cases}\end{equation*}
@@ -868,7 +868,7 @@ interface in \(\mdp[1]..\).  Methods defined in the source type but missing
 from \(\mdp[1]..\) are added to the wrapper class and simply redirected to
 corresponding method in the wrapped object.  Wrapping an object so that it
 behaves as \any is simpler, as the wrapper systematically protects the input
-type and casts back the return type to \any. Only method existing in the
+type and casts back the return type to \any. Only methods existing in the
 source type are wrapped. The behavioral cast reduction rule satisfies a
 property instrumental to our design: a wrapper class generated for a target
 type \D, is always a subtype of \D.  This will allow us to refer to both
@@ -967,7 +967,7 @@ restrictions on what programs can be reasonably written in \kafka.
 
 \noindent
 We are now ready to give semantics to the four gradual type systems of
-interest by translating them into \kafka.  Four each source language,
+interest by translating them into \kafka.  For each source language,
 compilation into \kafka is realized by a translation function that maps
 well-typed source programs into well-typed \kafka terms, respecting a
 uniform mapping of source types to \kafka types.  The compilation makes
@@ -1163,7 +1163,7 @@ The first expression is ill-typed because method the receiver of the
 invocation to \n is of type \C and \C does not have a method by that name.
 The second expression will also be flagged as erroneous as the argument to
 \m is \C rather than a \D as expected. The last expression is statically
-correct as the instance of \C is cast to a \D by the \mp method. At runtime
+correct as the instance of \C is cast to a \D via method \mp. At runtime
 that expression will evaluate successfully.
 
 
@@ -1180,13 +1180,13 @@ that expression will evaluate successfully.
 
 \noindent
 Our formalization of TypeScript's type system is in
-\figref{tsts}. The type system relies on the \emph{convertibility}
+\figref{convts}. The type system relies on the \emph{convertibility}
 relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
 type conversions allowed by TypeScript.  The relation appears in
-\figref{convts} and states that a type is convertible to a super type and
+\figref{tsts} and states that a type is convertible to a super type and
 that \any is convertible to anything and conversely. We illustrate the type
 system by focusing on the example above. For the first expression, the
-receiver has type \C, but the class does have method \n. The second
+receiver has type \C, but the class does not have method \n. The second
 expression is ill-typed because the argument to method \m is of type \C and
 \C is not convertible to \D. The third expression is correct because the
 argument to \mp is of type \C and \C is convertible to \any, the expected
@@ -1237,7 +1237,7 @@ general property that all our translations into \kafka satisfy.  Let
 \(\kty\t\) be a mapping from source types to \kafka types -- for TypeScript
 the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
 holds that if \e is a well-typed source expression with type \t, then
-\TR{\e} is a well-typed \kafka expression with type \kty{\t}. The precise
+\TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
 
 % \subsection*{Type Correctness}
 % 
@@ -1415,7 +1415,7 @@ dynamic checks.
 \medskip
 
 \noindent
-The first expression is ill-typed because method \n expects a \dt\C, it gets
+The first expression is ill-typed because method \n expects a \C, it gets
 a \D which is not convertible to \C. The second expression is ill-typed
 because it attempts to convert a \D into a \dt\C.  Typing the argument of \m
 as a \dt\C suggests that the intention of the programmer is to invoke this
@@ -1562,7 +1562,7 @@ structural casts, are instrumental to give semantics to the Thorn language.
 
 Typed Racket is an extension of the Racket programming language, supporting
 Racket's key functionality through a system of contracts that dynamically
-enforcing type guarantees.  At first brush the formalization may appear
+enforces type guarantees.  At first brush the formalization may appear
 exceedingly simple.  The Typed Racket static type system is identical to
 that of TypeScript. The translation, shown in \figref{trtr} maps classes to
 homonymous classes and types to types of the same name. The \kty{t} function
@@ -1576,7 +1576,7 @@ guarantee provided by the behavioral cast, the Typed Racket translation is
 straightforward. In Typed Racket, every typed value is assumed to behave as
 specified, delegating the complexity of checking for consistency with the
 type to the wrapper introduced by the behavioral cast.  So the difference
-with the TypeScript translation is that typed code is able to used typed
+with the TypeScript translation is that typed code is able to use typed
 accesses. The difference with Thorn is essentially the presence of wrappers
 and the fact that each wrapper application only check the presence of
 methods names rather than complete signatures for concrete types.  To
@@ -1598,8 +1598,8 @@ illustrate the semantics of Typed Racket, consider the following example:
 \medskip
 
 \noindent Values cross several typed/untyped boundaries in this example.
-For instance, \A's method \m expects a value of type \any when the method 
-\m of \D which expects a value of type \D.  The resulting
+For instance, \A's method \m expects a value of type \any while the method 
+\m of \D expects a value of type \D.  The resulting
 translation will insert a behavioral cast from \any to \D at the call site.  
 In order to protect class \D from misbehaving objects, Typed Racket inserts a wrapper
 object around the argument of \D; the wrapper is responsible for ensuring
@@ -1616,7 +1616,7 @@ code for the example is:
 \begin{tabbing}
 \HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \HS\WHERE\HS\K\HS=\HS\=
 \class\= \A \{\\
-\>\> \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\C}\D~}} \\
+\>\> \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\D}\D~}} \\
 \>\}\\
  \>  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
  \>  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
@@ -1625,7 +1625,7 @@ code for the example is:
 
 
 \noindent By enforcing types on the values and not leaving the check that
-the value has the correct types to the user. Typed Racket is able to
+the value has the correct types to the user, Typed Racket is able to
 translate the typed code in class \D as if the language had no untyped
 code. Any misbehavior will be instantly caught by the value themselves.
 
@@ -1647,7 +1647,7 @@ self-references.
 
 The Transient variant of Reticulated Python aims for a form soundness with a
 predictable cost model. The intuition for the Transient guarantee is that,
-in a call such as\Call\e\m\ep, if the type of \e is some class \C, then that
+in a call such as \Call\e\m\ep, if the type of \e is some class \C, then that
 method invocation will succeed. More precisely, if \e evaluates to a value
 \a, the object denoted by \a has a method \m. Of course, if the type of \e is
 \any, then the call can get stuck on a method not found. Transient obtains
@@ -2048,7 +2048,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 \opdef{~\WFq{\K~\e~\s}}{\text{Well-formed program}}
 \vspace{-3mm}
 \IRule{WP}{
-  \EnvType\Env\s\K\e\t \\\\
+  \EnvType\emptyset\s\K\e\t \\\\
   \WFtype\K\s \\\\
   \k \in \K \implies \WF{}\cdot\K\k
 }{
