@@ -1765,7 +1765,7 @@ it merely validates that all required method names are present.
    \>\WHERE\HS
    \TypeCk{\K,\Env}{\e[1]}\C
    \> \Mtype\m\t\tp\In\App\K\C\HS
-   \> \ep[1] = \TRG{\e[1]}\Env \HS\HS
+   \> \ep[1] = \TRG{\e[1]}\Env \HS\HS\=
    \ep[2] = \TAG{\e[2]}\Env\any
 \\
 \TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
@@ -1773,10 +1773,13 @@ it merely validates that all required method names are present.
   \>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
 \\
 \TAG\e\Env\t \>= \src{\SubCast\t\ep}
-    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp \> (\t = \any \OR \tp = \any) \> \ep = \TRG\e\Env
+    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp 
+    \> \EM{\ConSub{}\K\t\tp} 
+    \> \EM{\K\vdash\t\not{<:}\tp} 
+    \> \EM{\ep = \TRG\e\Env}
 \\
 \TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp
-     \>\EM{\ConSub{}\K\t\tp} \HS \> \ep = \TRG\e\Env
+     \>\EM{\K\vdash\t\Sub\tp} \HS \> \ep = \TRG\e\Env
 \end{tabbing}
 \end{minipage}
 \end{tabular}

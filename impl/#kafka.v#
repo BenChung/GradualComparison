@@ -1260,11 +1260,181 @@ Proof.
   - apply H.
 Qed.
 
-Program Fixpoint compute_subtype (k : ct) (m : list (id*id)) (a b : type) {measure n} : bool :=
-  match a, b with
-  |
-  end
+Theorem pair_int_dec : EqDec (id*id).
+Proof.
+  hnf. decide equality; eauto using Nat.eq_dec. 
+Qed.
 
+Fixpoint pairs (k:ct) : list (id*id) :=
+  match k with
+  | (ClassDef C _ _)::r =>
+    (C,C) :: (map (fun c => match c with (ClassDef D _ _) => (C,D) end) r)
+      ++ (map (fun c => match c with (ClassDef D _ _) => (D,C) end) r) ++ (pairs r)
+  | nil => nil
+  end.
+
+Lemma negb_existsb_forallb : forall T f l, negb (existsb f l) = true -> @forallb T (fun x => negb (f x)) l = true.
+Proof.
+  intros. induction l.
+  - auto.
+  - simpl. simpl in H. rewrite Bool.negb_orb in H. rewrite Bool.andb_true_iff in H. destruct H.
+    rewrite IHl; eauto.
+    + rewrite H. eauto. 
+Qed.
+
+Lemma wf2_is_in_pairs : forall k i j,
+    WellFormedType k (class i) -> WellFormedType k (class j) -> In (i,j) (pairs k).
+Proof.
+  intros. inject H. inject H0. induction k0.
+  - inversion H3.
+  - simpl. inversion H2; inversion H3.
+    + subst. inject H0. apply in_eq.
+    + subst. apply in_cons. apply in_or_app. right. apply in_or_app. left.
+      apply in_map_iff. exists (ClassDef i fds mds). eauto.
+    + subst. apply in_cons. apply in_or_app. left. apply in_map_iff.
+      exists (ClassDef j fds0 mds0). eauto.
+    + destruct a. apply in_cons. apply in_or_app. right. apply in_or_app.
+      right. apply IHk0; eauto.
+Qed. 
+
+Require Import Coq.Lists.ListSet.  
+ 
+Program Fixpoint compute_subtype
+        (k : { k : ct | WellFormedClassTable nil k })
+        (m : { m :list (id*id) | forall e, In e m -> In e (pairs k)})
+        (a b : { t : type | WellFormedType k t})
+        {measure (length (set_diff pair_int_dec (pairs k) m))} : bool :=
+  match a, b with
+  | (class i), (class j) =>
+    match Nat.eqb i j,
+          existsb (fun l => if pair_int_dec (i,j) l then true else false) m with
+    | true,_ => true
+    | _,true => true
+    | false,false =>
+      let mu' := ((i,j) :: m) in 
+      (fix mdsub (mds1 mds2 : list md) (p1 : exists fds1, In (ClassDef i fds1 mds1) k)
+           (p2 : exists fds2, In (ClassDef j fds2 mds2) k):=
+         match mds2 with
+         | (Method m x t1 t2 e)::r =>
+           let isubt := fun m' x' t1' t2' e' (p : (In (Method m' x' t1' t2' e') mds1)) =>
+                          (andb (compute_subtype k mu' t1 t1')
+                                    (compute_subtype k mu' t2' t2)) in 
+           andb (existsb (fun m =>
+                            match m with
+                            | (Method m' x' t1' t2' e') =>
+                              isubt m' x' t1' t2' e' _
+                            end) mds1) (mdsub mds1 r _ _)
+         | nil => true
+         end) (methods i k) (methods j k) _ _
+    end
+  | Any, Any => true
+  | _, _ => false
+  end.
+Next Obligation.
+  inject H.
+  + inject H6. apply wf2_is_in_pairs; eauto.
+  + eauto.
+Qed.
+Next Obligation.
+  inject H4. apply H5 in H. inject H. specialize (H12 (Method m x t1 t2 e)).
+  specialize (H12 (in_eq _ _)). inject H12.
+  - apply WFWA.
+  - eauto.
+Qed.
+Next Obligation.
+  inject H4. apply H5 in H0. inject H0. specialize (H12 (Method m' x' t1' t2' e')).
+  specialize (H12 p). inject H12. 
+  - apply WFWA.
+  - eauto.
+Qed.
+Next Obligation.
+  symmetry in Heq_anonymous0. rewrite<- Bool.negb_true_iff in Heq_anonymous0.
+  apply negb_existsb_forallb in Heq_anonymous0. rewrite forallb_forall in Heq_anonymous0.
+  Lemma set_add_bigger : forall T dec a s, ~ (@In T a s) -> length s < length (set_add dec a s).
+  Proof.
+    intros. induction s.
+    - simpl. omega.
+    - simpl. destruct (dec a a0).
+      + subst. contradict H. apply in_eq.
+      + simpl. apply lt_n_S. apply IHs. contradict H. apply in_cons; eauto.
+  Qed.
+  Lemma set_add_not_in : forall T dec a l, ~ @In T a l -> length (set_add dec a l) = S (length l).
+  Proof.
+    intros.
+    induction l.
+    - simpl. reflexivity.
+    - simpl. destruct (dec a a0).
+      + subst. contradict H. apply in_eq.
+      + simpl. rewrite IHl; eauto. contradict H. apply in_cons; eauto.
+  Qed.
+  Lemma set_add_monotonic : forall T n l2 dec a,
+      n < length l2 -> n < @length T (set_add dec a l2).
+  Proof.
+    intros. generalize dependent n. induction l2.
+    - intros. simpl. simpl in H. inversion H.
+    - simpl. destruct (dec a a0).
+      + simpl. intros. apply H.
+      + intros. destruct n0.
+        * simpl. omega.
+        * apply lt_S_n in H. simpl.  apply IHl2 in H. omega.
+  Qed.
+  Lemma set_add_no_change : forall T x l dec, @In T x l -> set_add dec x l = l.
+  Proof.
+    intros. induction l.
+    - inversion H.
+    - simpl. destruct (dec x a).
+      + reflexivity.
+      + inversion H.
+        * subst; tauto.
+        * apply IHl in H0. rewrite H0. reflexivity.
+  Qed.
+  Lemma set_add_iff : forall T a l1 l2 dec,
+      (@In T a l1 <-> In a l2) -> length l1 < length l2 ->
+      length (set_add dec a l1) < length (set_add dec a l2).
+  Proof.
+    intros. destruct (in_dec dec a l1).
+    - generalize dependent l2. induction l1.
+      + inversion i.
+      + intros. simpl. destruct (dec a a0).
+        * subst. rewrite H in i. rewrite set_add_no_change; eauto.
+        * simpl. 
+  Lemma set_diff_smaller : forall T x a b dec, (@In T x a) -> NoDup (x :: b) ->
+                                               NoDup a ->length (set_diff dec a (x::b)) < length (set_diff dec a b).
+  Proof.
+    intros. induction a. 
+    - inject H. 
+    - simpl. destruct (dec a x).
+      + subst. destruct (set_mem dec x b) eqn:Hsm.
+        * exfalso. clear H IHa. induction b.
+          ** inversion Hsm.
+          ** apply IHb.
+             *** inject H0. inject H4. apply NoDup_cons; eauto. contradict H3. apply in_cons. eauto. 
+             *** inject H0. inject H4. simpl in Hsm. destruct (dec x a) in Hsm.
+                 **** subst. contradict H3. apply in_eq.
+                 **** apply Hsm.
+        * inject H1. assert (Hs: set_diff dec a0 (x::b) = set_diff dec a0 b).
+          {
+            clear H IHa. induction a0.
+            - auto.
+            - simpl. destruct (dec a x).
+              + subst. contradict H4. apply in_eq.
+              + destruct (set_mem dec a b).
+                * apply IHa0.
+                  ** inject H0. contradict H4. apply in_cons; eauto.
+                  ** inject H5; eauto. 
+                * rewrite IHa0.
+                  ** reflexivity.
+                  ** contradict H4. apply in_cons; eauto.
+                  ** inject H5; eauto.
+          } rewrite Hs. apply set_add_bigger. unfold not. intros.
+          rewrite set_diff_iff in H1. destruct H1.  tauto.
+      + destruct (set_mem dec a b) eqn:Hsm.
+        * apply IHa; eauto.
+          ** inject H; eauto. tauto.
+          ** inject H1. apply H5.
+        * apply set_mem_complete1 in Hsm. unfold set_In in Hsm. pose proof (in_dec dec a a0).
+          destruct H2.
+          ** 
 Ltac unfolde name :=
   match goal with
   | [ H : (exists a:?t, _) |- (exists b:?t, _) ] => let v' := a in
