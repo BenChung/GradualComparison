@@ -3,6 +3,13 @@ Require Import Coq.Arith.PeanoNat.
 Require Import Coq.Lists.List.
 Require Import Coq.Classes.EquivDec.
 Require Import Coq.Program.Tactics.
+Require Import Coq.MSets.MSets.
+Require Import Coq.MSets.MSetList.
+Require Import Coq.Structures.OrderedType.
+Require Import Coq.Structures.OrdersEx.
+Module Nat_Pair_OT := PairOrderedType(Nat_as_OT)(Nat_as_OT).
+Module PairNatList := MSetList.Make(Nat_Pair_OT).
+
 
 Definition id := nat.
 Definition this:id := 0.
@@ -157,26 +164,37 @@ Fixpoint methods (C:id)(k:ct) :=
   | nil => nil
   end.
 
-Inductive Subtype : list (id * id) -> ct -> type -> type -> Prop :=
+Inductive Subtype : PairNatList.t -> ct -> type -> type -> Prop :=
 | STRefl : forall m k t, Subtype m k t t
-| STSeen : forall m k t1 t2, In (t1, t2) m ->
+| STSeen : forall m k t1 t2, PairNatList.In (t1, t2) m ->
                              Subtype m k (class t1) (class t2)
-| STClass : forall m m' k c d, m' = (c,d)::m -> Md_Subtypes m k (methods c k) (methods d k) ->
+| STClass : forall m m' k c d, m' = PairNatList.add (c,d) m ->
+                               Md_Subtypes m' k (methods c k) (methods d k) ->
                                Subtype m k (class c) (class d)
-with Md_Subtypes : list (id * id) -> ct -> list md -> list md -> Prop :=
-     | MDCons : forall m x x' t1 t1' t2 t2' e e' mu k r mds,
-         (In (Method m x' t1' t2' e') mds) ->
-         (Subtype mu k t1 t1') -> (Subtype mu k t2' t2) -> (Md_Subtypes mu k mds r) -> 
-         (Md_Subtypes mu k mds ((Method m x t1 t2 e)::r))
-     | MDNil : forall mu k mds, (Md_Subtypes mu k mds nil).
+with Md_Subtypes : PairNatList.t -> ct -> list md -> list md -> Prop :=
+     | MDCons : forall md1 md2 mu k r mds,
+         (In md1 mds) ->
+         (Md_Subtype mu k md1 md2)-> (Md_Subtypes mu k mds r) -> 
+         (Md_Subtypes mu k mds (md2::r))
+     | MDNil : forall mu k mds, (Md_Subtypes mu k mds nil)
+with Md_Subtype : PairNatList.t -> ct -> md -> md -> Prop :=
+     | MDSub : forall mu k t1 t1' t2 t2' x x' e e' m, (Subtype mu k t1 t1') -> (Subtype mu k t2' t2) ->
+                      Md_Subtype mu k (Method m x' t1' t2' e') (Method m x t1 t2 e).
 Scheme subtyping_ind := Induction for Subtype Sort Prop
-with md_subtypings_ind := Induction for Md_Subtypes Sort Prop.
+                        with md_subtypings_ind := Induction for Md_Subtypes Sort Prop
+                                                  with md_subtype_ind := Induction for Md_Subtype Sort Prop.
+
+Definition empty_mu := PairNatList.empty.
 
 Hint Constructors Subtype.
 Hint Constructors Md_Subtypes.
 
+Inductive WellFormedType : ct -> type -> Prop :=
+| WFWA : forall k, WellFormedType k Any
+| WFWTC : forall k C fds mds, In (ClassDef C fds mds) k -> WellFormedType k (class C).
+
 Inductive HasType : env -> heap -> ct -> expr -> type -> Prop :=
-| KTSUB : forall g s k e t tp, HasType g s k e tp -> Subtype nil k tp t -> HasType g s k e t
+| KTSUB : forall g s k e t tp, HasType g s k e tp -> Subtype PairNatList.empty k tp t -> HasType g s k e t
 | KTEXPR : forall g s k e t, HasTypeExpr g s k e t -> HasType g s k e t
 with HasTypeExpr : env -> heap -> ct -> expr -> type -> Prop :=
 | KTVAR : forall g s k x t, In (x,t) g -> HasTypeExpr g s k (Var x) t
@@ -212,14 +230,16 @@ with HasTypeExpr : env -> heap -> ct -> expr -> type -> Prop :=
     In (ClassDef C fds mds) k ->
     HasTypeExpr g s k (New C es) (class C)
 | KTSUBCAST : forall g s k e t tp,
+    WellFormedType k t -> 
     HasType g s k e tp ->
     HasTypeExpr g s k (SubCast t e) t
 | KTBEHCAST : forall g s k e t tp,
+    WellFormedType k t -> 
     HasType g s k e tp ->
     HasTypeExpr g s k (BehCast t e) t
 | KTREFTYPE : forall g s k a C t a',
     In (a,(HCell(C,a'))) s ->
-    Subtype nil k (class C) t ->
+    Subtype empty_mu k (class C) t ->
     HasTypeExpr g s k (Ref a) t
 | KTREFANY : forall g s k a hc,
     In (a,hc) s -> 
@@ -265,22 +285,36 @@ Proof.
   - intros. eapply KTREFANY; eauto. apply in_app_iff. eauto.
 Qed.
 
+(*
 Lemma mu_weakening : forall mu mu' k t1 t2,
   Subtype mu k t1 t2 -> Subtype (mu ++ mu') k t1 t2.
 Proof. 
   intros. apply subtyping_ind with
           (P := fun mu => fun k => fun t1 => fun t2 => fun ih => Subtype (mu ++ mu') k t1 t2)
-            (P0 := fun mu => fun k => fun mds1 => fun mds2 => fun ih => Md_Subtypes (mu ++ mu') k mds1 mds2); try eauto.
-  intros. apply STSeen. apply in_app_iff. eauto.
+            (P0 := fun mu => fun k => fun mds1 => fun mds2 => fun ih => Md_Subtypes (mu ++ mu') k mds1 mds2)
+            (P1 := fun mu k md1 md2 ih => Md_Subtype (mu ++ mu') k md1 md2); try eauto.
+  - intros. apply STSeen. apply in_app_iff. eauto.
+  - intros. eapply STClass.
+    + intros.
+      assert (Hin: In tp (m' ++ mu')).
+      { apply in_or_app. apply in_app_or in H1. inject H1.
+        - left. apply i. apply H2.
+        - right. apply H2.
+      }
+      apply Hin.
+    + apply in_or_app. left. eauto.
+    + eauto.
+  - intros. apply MDSub; eauto. 
 Qed.
+*)
 
 Lemma subtype_transitive : forall mu k t1 t2 t3,
   Subtype mu k t1 t2 -> Subtype mu k t2 t3 -> Subtype mu k t1 t3. 
 Admitted.
 
 Lemma subtype_method_containment : forall k C D md,
-    Subtype nil k (class C) (class D) -> In md (methods D k) ->
-    exists md', In md' (methods C k) /\ Md_Subtypes nil k (md'::nil) (md::nil).
+    Subtype empty_mu k (class C) (class D) -> In md (methods D k) ->
+    exists md', In md' (methods C k) /\ Md_Subtypes empty_mu k (md'::nil) (md::nil).
 Admitted.
 
 (* [thisref/this][varref/var](exp) *)
@@ -302,7 +336,7 @@ Fixpoint subst(thisref : ref)(varref : ref)(var : id)(exp : expr) :=
   end.
 
 Lemma eventually_concrete : forall g s k e t,
-  HasType g s k e t -> exists tp, Subtype nil k tp t /\ HasTypeExpr g s k e tp.
+  HasType g s k e t -> exists tp, Subtype empty_mu k tp t /\ HasTypeExpr g s k e tp.
 Proof.
   intros. induction H.
   - inversion IHHasType as [t' (H1, H2)]. exists t'. split.
@@ -371,10 +405,6 @@ Proof.
     + inversion H5. assert (Heq : this = this) by reflexivity. contradiction.
     + inversion H5.
 Qed. 
-
-Inductive WellFormedType : ct -> type -> Prop :=
-| WFWA : forall k, WellFormedType k Any
-| WFWTC : forall k C fds mds, In (ClassDef C fds mds) k -> WellFormedType k (class C).
 
 Inductive WellFormedField : ct -> fd -> Prop :=
 | WFFWF : forall f k t, WellFormedType k t -> WellFormedField k (Field f t).
@@ -897,8 +927,8 @@ Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
 | SCall : forall a C aps s m x t1 t1' t2 t2' e k a',
     In (a, HCell(C,aps)) s ->
     In (Method m x t1 t2 e) (methods C k) ->
-    Subtype nil k t1' t1 ->
-    Subtype nil k t2 t2' ->
+    Subtype empty_mu k t1' t1 ->
+    Subtype empty_mu k t2 t2' ->
     Steps k (Call (Ref a) m t1' t2' (Ref a')) s k (subst a a' x e) s
 | SDynCall : forall a C aps s m x e k a',
     In (a, HCell(C,aps)) s ->
@@ -907,7 +937,7 @@ Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
 | SDynCast : forall k a s, Steps k (SubCast Any (Ref a)) s k (Ref a) s
 | SSubCast : forall a aps C D s k,
     In (a, HCell(C,aps)) s ->
-    Subtype nil k (class C) (class D) ->
+    Subtype empty_mu k (class C) (class D) ->
     Steps k (SubCast (class D) (Ref a)) s k (Ref a) s
 | SCtx : forall k e s e' s' E,
     Steps k e s k e' s' -> Steps k (equivExpr e E) s k (equivExpr e' E) s'.
@@ -1249,7 +1279,7 @@ Definition is_sound(k:ct)(s:heap)(e:expr)(t:type) :=
       (exists (t' : type) (a : ref) (C : id) (aps:list ref),
           (e = equivExpr (SubCast t' (Ref a)) E) /\
           In (a, HCell(C,aps)) s /\
-          ((Subtype nil k (class C) t') -> False))).
+          ((Subtype empty_mu k (class C) t') -> False))).
 
 Lemma ht_any_expr : forall s k e, HasType nil s k e Any -> HasTypeExpr nil s k e Any.
 Proof.
@@ -1260,10 +1290,339 @@ Proof.
   - apply H.
 Qed.
 
-Program Fixpoint compute_subtype (k : ct) (m : list (id*id)) (a b : type) {measure n} : bool :=
+Fixpoint succ_type_pairs (C:id) (k:ct) : list (id*id) :=
+  match k with
+    | (ClassDef D _ _)::r => (C,D) :: (D,C) :: (succ_type_pairs C r)
+    | nil => nil
+  end. 
+
+Lemma stp_in : forall C D E k, In (C,D) (succ_type_pairs E k) ->
+                                 (E = C \/ (D = E /\ exists fds mds, In (ClassDef C fds mds) k)) /\
+                                 (E = D \/ (C = E /\ exists fds mds, In (ClassDef D fds mds) k)).
+Proof.
+  intros C D E k0 H0. induction k0.
+  - simpl in H0. tauto.
+  - simpl in H0. destruct a as [E' fds mds]. destruct H0.
+    + inject H. split.
+      *  left. auto.
+      * right. split; auto. exists fds. exists mds. apply in_eq. 
+    + inject H.
+      * inject H0. split.
+        ** right. split; auto. exists fds. exists mds. apply in_eq.
+        ** left. auto.
+      * apply IHk0 in H0. inject H0. destruct H; destruct H1.
+        ** tauto.
+        ** subst. split; [left;auto|]. right. destruct H0. destruct H0. destruct H0. split; auto. exists x. exists x0.
+           apply in_cons; eauto.
+        ** subst. split; [|left;auto]. right. destruct H. destruct H0. destruct H0. split; auto. exists x. exists x0.
+           apply in_cons; eauto.
+        ** destruct H as [Ceq [Cfds [Cmds HC]]]. destruct H0 as [Deq [Dfds [Dmds HD]]]. split; right. 
+           *** split; auto. exists Cfds. exists Cmds. apply in_cons; eauto.
+           *** split; auto. exists Dfds. exists Dmds. apply in_cons; eauto.    
+Qed. 
+
+Lemma stp_corr : forall C D k fds' mds',
+    C <> D ->
+    In (ClassDef D fds' mds') k ->
+    In (C,D) (succ_type_pairs C k) /\ In (D,C) (succ_type_pairs C k).
+Proof.
+  intros. split.
+  - induction k0.
+    + inject H0.
+    + simpl. destruct a as [E fds'' mds'']. destruct H0.
+      * inject H0. apply in_eq.
+      * apply in_cons. apply in_cons. apply IHk0. apply H0.
+  - induction k0.
+    + inject H0.
+    + simpl. destruct a as [E fds'' mds'']. destruct H0.
+      * inject H0. apply in_cons. apply in_eq. 
+      * apply in_cons. apply in_cons. apply IHk0. apply H0.
+Qed.
+
+Lemma nodups_stp : forall C k,
+    (forall fds mds, ~ In(ClassDef C fds mds) k) ->
+    (NoDupsClasses k) ->
+    NoDup (succ_type_pairs C k).
+Proof.
+  intros.  induction k0.
+  - simpl. apply NoDup_nil.
+  - simpl. destruct a as [D fds mds].
+    apply NoDup_cons.
+    + unfold not. intros. destruct H1.
+      * inject H1. contradict H. unfold not. intros. 
+        eapply H. apply in_eq.
+      * apply stp_in in H1. destruct H1. destruct H2.
+        ** subst. unfold not in H. eapply H. apply in_eq.
+        ** inject H2. inject H4. inject H2. inversion H0. apply H9 in H4. tauto. 
+    + apply NoDup_cons.
+      * unfold not. intros. apply stp_in in H1. inject H1. destruct H2; destruct H3.
+        ** subst. eapply H. apply in_eq.
+        ** destruct H2. destruct H3. destruct H3. eapply H. apply in_cons. apply H3.
+        ** inject H0. inject H1. inject H3. inject H0. apply H8 in H1. tauto.
+        ** destruct H2 as [Ceq [Cfds [Cmds HC]]]. destruct H1 as [Deq [Dfds [Dmds HD]]].
+            inject H0. eapply H6. apply HD. 
+      * apply IHk0.
+        ** intros. specialize H with (fds0:=fds0)(mds0:=mds0). apply not_in_cons in H.
+           destruct H. apply H1.
+        ** inject H0. apply H3.
+Qed.
+
+Fixpoint type_pair_universe (k:ct) : list (id*id) :=
+  match k with
+  | (ClassDef C _ _)::r => succ_type_pairs C r ++ type_pair_universe r
+  | nil => nil
+  end.
+
+ 
+Lemma nodups_split : forall T a b, NoDup a -> NoDup b -> (forall x, In x a -> ~In x b) -> @NoDup T (a ++ b).
+Proof.
+  intros. induction H.
+  - simpl. eauto.
+  - simpl. apply NoDup_cons.
+    + unfold not. intros. apply in_app_or in H3. destruct H3.
+      * tauto.
+      * specialize H1 with (x0:= x). apply H1 in H3; eauto. apply in_eq.
+    + apply IHNoDup. intros. specialize H1 with (x0 := x0). apply H1. apply in_cons.
+      apply H3.
+Qed.
+
+Lemma tpu_correct_1 : forall C D k, In (C, D) (type_pair_universe k) -> exists fds mds, In (ClassDef C fds mds) k.
+Proof.
+  intros. induction k0.
+  - simpl in H. inject H.
+  - destruct a as [E fds mds]. simpl in H. apply in_app_or in H. destruct H.
+    + destruct (Nat.eq_dec C E).
+      * subst. exists fds. exists mds. apply in_eq.
+      * apply stp_in in H. destruct H. inject H.
+        ** tauto.
+        ** inject H1. inject H2. inject H. exists x. exists x0. apply in_cons. apply H1.
+    + apply IHk0 in H. inject H. inject H0. exists x. exists x0. apply in_cons. eauto.
+Qed.
+
+
+Lemma tpu_correct_2 : forall C D k, In (C, D) (type_pair_universe k) -> exists fds mds, In (ClassDef D fds mds) k.
+Proof.
+  intros. induction k0.
+  - simpl in H. inject H.
+  - destruct a as [E fds mds]. simpl in H. apply in_app_or in H. destruct H.
+    + destruct (Nat.eq_dec D E).
+      * subst. exists fds. exists mds. apply in_eq.
+      * apply stp_in in H. destruct H. inject H0.
+        ** tauto.
+        ** inject H1. inject H2. inject H0. exists x. exists x0. apply in_cons. apply H1.
+    + apply IHk0 in H. inject H. inject H0. exists x. exists x0. apply in_cons. eauto.
+Qed.
+
+Lemma nodup_tpu : forall k, NoDupsClasses k -> NoDup (type_pair_universe k).
+Proof.
+  intros. induction k0.
+  - simpl. apply NoDup_nil. 
+  - simpl. destruct a as [C fds mds]. apply nodups_split.
+    + apply nodups_stp.
+      ** inject H. apply H5.
+      ** inject H. apply H2.
+    + apply IHk0. inject H. apply H2.
+    + intros. destruct x as [C' D']. apply stp_in in H0. destruct H0. destruct H0; destruct H1.
+      * subst. unfold not. intros. apply tpu_correct_1 in H0. inject H. inject H0. inject H. apply H6 in H0. tauto.
+      * subst. unfold not. intros. apply tpu_correct_1 in H0. inject H. inject H0. inject H. apply H7 in H0. tauto.
+      * subst. unfold not. intros. apply tpu_correct_2 in H1. inject H1. inject H2. inject H. apply H7 in H1. tauto.
+      * unfold not. intros. destruct H0. destruct H1. subst. inject H. destruct H3 as [Hfds [Hmds H3]].
+        apply H8 in H3. tauto.
+Qed.
+
+Fixpoint equivalent_set(x: list (id*id)) : PairNatList.t :=
+  match x with
+  | e :: r => PairNatList.add e (equivalent_set r)
+  | nil => PairNatList.empty
+  end.
+
+Lemma equiv_set_corr : forall e x, In e x <-> PairNatList.In e (equivalent_set x).
+Proof.
+  intros. induction x.
+  - simpl; split; try tauto. intros. inversion H. 
+  - simpl. split.
+    + destruct (PairNatList.E.eq_dec a e).
+      * destruct a. destruct e. destruct r. inversion H. simpl in H1. subst. inversion H0. simpl in H1.
+        subst. intros. apply PairNatList.add_spec. left. eauto.
+      * intros. inject H.
+        ** unfold not in n. contradict n. eauto.
+        ** apply IHx in H0. apply PairNatList.add_spec. right. apply H0.
+    + intros. apply PairNatList.add_spec in H. inject H.
+      * destruct a. destruct e.  inversion H0. inversion H. inversion H1. simpl in *. subst. left. auto.
+      * right. rewrite IHx. apply H0.
+Qed.
+
+Require Import Coq.MSets.MSetProperties.
+Require Import Coq.MSets.MSetDecide.
+Module MProps := WPropertiesOn(Nat_Pair_OT)(PairNatList).
+Module MDec := Decide(PairNatList). 
+
+Lemma add_diff_subset : forall e x y,
+   PairNatList.Subset (PairNatList.diff x (PairNatList.add e y)) (PairNatList.diff x y).
+Proof.
+  intros. MDec.fsetdec. 
+Qed.
+
+Lemma tpu_correct : forall k C D, C <> D ->
+                                  WellFormedType k (class C) -> WellFormedType k (class D) ->
+                                  In (C,D) (type_pair_universe k).
+Proof.
+  intros. inject H0. inject H1. induction k0. 
+  - inject H3. 
+  - destruct a as [E fds' mds']. simpl. inject H3.
+    + inject H0. inversion H4.
+      * inject H0. tauto.
+      * apply in_or_app. left. 
+        assert (Hneq: D <> C). {
+          contradict H0. auto.
+        }
+        pose proof (stp_corr D C k0 fds mds Hneq H0). inject H1. apply H3.
+    + inject H4.
+      * inject H1. apply in_or_app. left.
+        pose proof (stp_corr C D k0 fds0 mds0 H H0). inject H1. apply H2.
+      * apply in_or_app. right. apply IHk0; eauto.
+Qed.
+
+          
+Lemma md_sub_lengthen : forall mu k md1 md2 md, Md_Subtypes mu k md1 md2 -> Md_Subtypes mu k (md::md1) md2.
+  intros. induction H.
+  - econstructor; eauto. apply in_cons. apply H.
+  - constructor.
+Qed.
+
+Lemma wfm_implies_wft : forall ga s k m x t1 t2 e, WellFormedMethod ga s k (Method m x t1 t2 e) ->
+                                                   (WellFormedType k t1) /\ (WellFormedType k t2).
+Proof.
+  intros. inject H.
+  - split; try apply WFWA. 
+  - repeat split; eauto.
+Qed.
+
+Lemma compute_md_subtype(k:ct)(m:PairNatList.t)(md1 md2 : md) ga ga'
+      (wfmd1 : WellFormedMethod ga nil k md1)
+      (wfmd2 : WellFormedMethod ga' nil k md2)
+      (subtype : forall a b : type,
+          WellFormedType k a -> WellFormedType k b ->
+          {Subtype m k a b} + {~(Subtype m k a b)}) :
+  {Md_Subtype m k md1 md2} + {~Md_Subtype m k md1 md2}.
+Proof.
+  destruct md1 as [mn ? t1' t2'], md2 as [mn' ? t1 t2].
+  destruct (Nat.eq_dec mn mn'); revgoals. 
+  - right. contradict n. inject n. auto.
+  - apply wfm_implies_wft in wfmd1. apply wfm_implies_wft in wfmd2.
+    inject wfmd1. inject wfmd2.
+    pose proof (subtype t1 t1' H1 H). pose proof (subtype t2' t2 H0 H2).
+    destruct H3; destruct H4.
+    + left. constructor; eauto.
+    + right. contradict n. inject n. apply H15.
+    + right. contradict n. inject n. apply H7.
+    + right. contradict n. inject n. apply H7.
+Qed.
+
+Lemma find_md_subtype(k:ct)(m:PairNatList.t)(md1 : md)(mds : list md) ga ga'
+      s (wfmd1 : WellFormedMethod ga s k md1)(wfmd2 : forall md, In md mds -> WellFormedMethod ga' s k md)
+      (subtype : forall a b : type, WellFormedType k a -> WellFormedType k b ->
+          {Subtype m k a b} + {~(Subtype m k a b)}) :
+  { exists md':md, In md' mds /\ Md_Subtype m k md' md1 } +
+  {forall md', In md' mds -> ~Md_Subtype m k md' md1 }.
+Proof.
+  induction mds.
+  - right. intros. inject H.
+  - assert (Hih: forall md0 : md, In md0 mds -> WellFormedMethod ga' s k md0).
+    { intros. pose proof (in_cons a md0 mds H). apply wfmd2 in H0. auto. }
+    apply IHmds in Hih. clear IHmds. destruct Hih.
+    + left. inject e. exists x. inject H. split; eauto. apply in_cons. apply H0.
+    + destruct md1 as [mn ? t1' t2'], a as [mn' ? t1 t2]. apply wfm_implies_wft in wfmd1.
+      specialize wfmd2 with (md0:=Method mn' i0 t1 t2 e0). pose proof (wfmd2 (in_eq _ _)).
+      apply wfm_implies_wft in H. inject wfmd1. inject H. clear wfmd2.
+      destruct (Nat.eq_dec mn mn'); destruct (subtype t1' t1 H0 H2); destruct (subtype t2 t2' H3 H1);
+        try (right; intros; inject H; [contradict n0; inject n0; auto|apply n; apply H4]; fail).
+      * subst. left. exists (Method mn' i0 t1 t2 e0). split.
+        ** apply in_eq.
+        ** constructor; eauto.           
+Qed. 
+
+Lemma compute_md_subtypes(k:ct)(m:PairNatList.t)(md1 md2 : list md) ga ga' 
+      (s:heap)(wfmd1 : forall md, In md md1 -> WellFormedMethod ga s k md)
+      (wfmd2 : forall md, In md md2 -> WellFormedMethod ga' s k md)
+      (subtype : forall a b : type, WellFormedType k a -> WellFormedType k b ->
+          {Subtype m k a b} + {~(Subtype m k a b)}) :
+  {Md_Subtypes m k md1 md2} + {~(Md_Subtypes m k md1 md2)}.
+  revert wfmd1. revert wfmd2. revert md1. induction md2.
+  - left. constructor.
+  - intros. specialize IHmd2 with (md1:=md1). destruct IHmd2; eauto.
+    + intros.  apply wfmd2. apply in_cons. apply H.
+    + destruct (find_md_subtype k m a md1 ga' ga s); eauto. 
+      * apply wfmd2. apply in_eq.
+      * left. inject e. inject H. econstructor; eauto.
+      * right. intros H. inject H. apply n in H2. tauto.
+    + right. contradict n. inject n. auto.
+Qed.
+
+Program Fixpoint compute_subtype (m : PairNatList.t)(s:heap)(k : ct)(kwf:WellFormedClassTable s k)
+        (a b : type)(awf:WellFormedType k a)(bwf:WellFormedType k b)
+        {measure (PairNatList.cardinal (PairNatList.diff (equivalent_set (type_pair_universe k)) m))}
+  : {Subtype m k a b} + {~ (Subtype m k a b)} :=
   match a, b with
-  |
-  end
+  | Any, Any => _
+  | (class C), (class D) =>
+    match (Nat.eqb C D) with
+    | true => _
+    | false =>
+      match PairNatList.mem (C,D) m with
+        true => _
+      | false =>
+        let mu' := PairNatList.add (C,D) m in
+        let mc := (methods C k) in
+        let mD := (methods D k) in
+        _
+      end
+    end
+  | Any, (class C) => _
+  | (class C), Any => _
+  end.
+Next Obligation.
+  left. eauto.
+Qed.
+Next Obligation.
+  left. symmetry in Heq_anonymous. rewrite Nat.eqb_eq in Heq_anonymous. subst. auto.
+Qed.
+Next Obligation.
+  left. symmetry in Heq_anonymous. apply MProps.Dec.F.mem_2 in Heq_anonymous. apply STSeen. eauto.
+Qed.
+Next Obligation.
+  remember (methods C k0) as mc.
+  remember (methods D k0) as mD.
+  remember (PairNatList.add (C,D) m) as mu'.
+  destruct (compute_md_subtypes k0 mu' mc mD ((this, (class C))::nil) ((this, (class D))::nil) s).
+  - subst. apply methods_are_wf; eauto. 
+  - subst. apply methods_are_wf; eauto.
+  - refine (fun (a b:type)(wfa:WellFormedType k0 a)(wfb:WellFormedType k0 b) =>
+              compute_subtype mu' s k0 kwf a b wfa wfb _).
+    eapply MProps.subset_cardinal_lt.
+    + MDec.fsetdec.
+    + assert (Hin: PairNatList.In (C,D) (PairNatList.diff (equivalent_set (type_pair_universe k0)) m)).
+      {
+        subst. apply MProps.FM.diff_3.
+        - rewrite<- equiv_set_corr. apply tpu_correct; eauto. symmetry in Heq_anonymous0.
+          rewrite Nat.eqb_neq in Heq_anonymous0. eauto.
+        - symmetry in Heq_anonymous. rewrite<- MProps.Dec.F.not_mem_iff in Heq_anonymous. eauto. 
+      } apply Hin.
+    + rewrite PairNatList.diff_spec. unfold not. intros. inject H. apply H1.
+      rewrite PairNatList.add_spec. left. auto.
+  - left. subst. eapply STClass; eauto.
+  - right. contradict n. inject n.
+    + symmetry in Heq_anonymous0. rewrite Nat.eqb_neq in Heq_anonymous0. tauto.
+    + symmetry in Heq_anonymous. rewrite<- MProps.Dec.F.not_mem_iff in Heq_anonymous. tauto.
+    + apply H4.
+Qed.
+Next Obligation.
+  right. intros H. inject H.
+Qed.
+Next Obligation.
+  right. intros H. inject H.
+Qed.
+
 
 Ltac unfolde name :=
   match goal with
@@ -1353,21 +1712,20 @@ Proof.
       destruct h as [tp [H1 H2]]. inversion H2; eauto.
       * subst. pose proof (subtype_transitive _ _ _ _ _ H6 H1).
         apply subtype_method_containment with (md0 := (Method m x t0 t' eb)) in H; eauto.
-        inversion H as [[m' x' t0' t'' e'] [H3 H4]]. inversion H4. subst. inversion H13; eauto.
-        ** inject H5. clear H18.
-           remember (subst a1 a2 x'0 e'0) as ebody. exists ebody. exists s.
-           assert (Hbody: HasType nil s k ebody t2').
-           {
-             pose proof H0 as Hback. inversion Hwfh. subst. apply H7 in H0. destruct H0.
-             pose proof H0. inversion H0. subst. remember (methods C0 k) as mds'.
-             pose proof (methods_are_wf s k C0 mds' Hwfct H9 Heqmds'). subst. apply H10 in H3.
-             inversion H3.
-             **** subst. simpl in H24. eapply substituion_typing; eauto. 
-             **** subst. simpl in H26. eapply substituion_typing; eauto. 
-           }
-           repeat split; eauto.
-           *** rewrite Heqebody. eapply SCall with (C:=C0)(aps := a'); eauto. 
-        ** inversion H5.
+        inversion H as [[m' x' t0' t'' e'] [H3 H4]]. inversion H4. subst. inject H8; [|inversion H5].
+        remember (subst a1 a2 x' e') as ebody. exists ebody. exists s.
+        assert (Hbody: HasType nil s k ebody t').
+        {
+          inject H12. 
+          pose proof H0 as Hback. inversion Hwfh. subst. apply H7 in H0. destruct H0.
+          pose proof H0. inversion H0. subst. remember (methods C0 k) as mds'.
+          pose proof (methods_are_wf s k C0 mds' Hwfct H9 Heqmds'). subst. apply H11 in H3.
+          inversion H3.
+          **** subst. simpl in H24. eapply substituion_typing; eauto.
+          **** subst. simpl in H26. eapply substituion_typing; eauto. 
+        }
+        repeat split; eauto.
+        *** inject H12. eapply SCall with (C:=C0)(aps := a'); eauto.
       * subst. inversion H1.
     + destruct H as [a H]. subst. destruct H0.
       * unfold is_sound. right. left. inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]].
@@ -1603,7 +1961,11 @@ Proof.
            *** right. sync_destruct_exists H0. destruct H0. subst. destruct H7.
                simpl. rewrite (deref_map _ _ H2). repeat split; eauto.
   - intros. subst. destruct H; try tauto.
-    + destruct H as [a H]. subst. unfold is_sound. apply eventually_concrete in h.
-      destruct h as [t' [Hsub Hexpr]]. inject Hexpr.
-      * 
+    + destruct H as [a H]. subst. unfold is_sound.
+      apply eventually_concrete in h. inject h. inject H. inject H1.
+      * inject Hwfh. pose proof (H2). apply H1 in H2. inject H2.
+        destruct (compute_subtype empty_mu s k Hwfct (class C) t0 H4 w).
+        ** right. left. exists (Ref a). exists s. repeat split; eauto.
+           *** pose proof s0. apply subtype_only_classes in s0. inject s0. eapply SSubCast; eauto. 
+           ***
 Abort.
