@@ -1623,12 +1623,90 @@ Next Obligation.
   right. intros H. inject H.
 Qed.
 
+Lemma ref_has_cell' : forall g s k a t, HasTypeExpr g s k (Ref a) t -> exists hc, In (a, hc) s.
+Proof.
+  intros. inject H.  
+  - exists (HCell(C,a')). auto. 
+  - exists hc. auto. 
+Qed.
+
+Lemma ref_has_cell : forall g s k a t, HasType g s k (Ref a) t -> exists hc, In (a, hc) s.
+Proof.
+  intros. apply eventually_concrete in H. inject H. inject H0. eapply ref_has_cell'; eauto.
+Qed.
+
+
+Lemma forall_same_size : forall T T' a b P, @Forall2 T T' P a b -> length a = length b.
+Proof.
+  intros. induction H.
+  - auto.
+  - simpl. auto.
+Qed.
+Lemma hastypes_same_length : forall s k a b, HasTypes nil s k a b -> length a = length b.
+Proof.
+  intros. induction H.
+  - simpl. omega.
+  - simpl. auto.
+Qed.
+Lemma same_size_prefix_hts : forall s k a b a' b' P,
+    HasTypes nil s k (a ++ b) (a' ++ b') ->
+    Forall2 P b b' ->
+    length a = length a'.
+Proof.
+  intros. induction H0.
+  - repeat rewrite app_nil_r in H. induction H.
+    + simpl. omega.
+    + auto.
+  - apply hastypes_same_length in H. repeat rewrite app_length in H.
+    apply forall_same_size in H1. simpl in H. rewrite H1 in H. omega.
+Qed.
+Lemma sound_destr : forall k s e2s t2s,
+    Forall2 (is_sound k s) e2s (typesof t2s) ->
+    Forall2 (fun e fd => match fd with (Field f t) => is_sound k s e t end) e2s t2s.
+Proof.
+  intros. dependent induction H.
+  - destruct t2s.
+    + constructor.
+    + simpl in x. destruct f. inject x.
+  - destruct t2s.
+    + inject x.
+    + constructor.
+      * destruct f. simpl in x. inject x. auto.
+      * apply IHForall2. simpl in x. destruct f. inject x. auto.
+Qed.
+
 
 Ltac unfolde name :=
   match goal with
   | [ H : (exists a:?t, _) |- (exists b:?t, _) ] => let v' := a in
                                                     destruct H as [name H];
                                                     exists name end.
+Lemma ref_is_finished : forall k e s k' e' s' a, Steps k e s k' e' s' -> e <> Ref a.
+Proof.
+  intros. contradict H. intros H'. subst. dependent induction H'.
+  - destruct E;
+      try (match goal with [ H: (equivExpr ?E ?c) = Ref ?a |- _] => simpl in H; inversion H; fail end).
+    simpl in x. apply IHH' in x. tauto.
+Qed.
+
+Ltac eval_ctx E :=
+  match goal with
+  | [ H: Steps _ ?e1 _ _ ?e2 ?s |- _ ] =>
+    exists (equivExpr e2 E); exists s;
+    match goal with
+    | [ H' : (WellFormedState _ _ ?s') |- context[(Steps _ ?e3 _ _ ?e4 ?s')]] =>
+      let Htype := fresh "H" in
+      let Hleft := fresh "H" in
+      match goal with
+      | [|- context[(HasType nil s' ?k e4 ?t)]] => assert (Htype:HasType nil s' k e4 t)
+      end;
+      [|assert (Hleft: e3 = (equivExpr e1 E));
+        [try (subst; eauto;fail)| rewrite Hleft; clear Hleft; repeat split;
+                                  [eauto| subst; simpl; try (inject H'; eapply WFSWP;eauto)
+                                   | apply Htype | eauto ]]]
+    end
+  end.
+
 
 Ltac sync_destruct_exists H :=
   repeat (let x := fresh "x" in destruct H as [x H]; exists x).
@@ -1690,16 +1768,7 @@ Proof.
       ** eapply heapwrite_retains_refs'; eauto. 
     * unfold is_sound. right. inject H.
       ** left. destruct H0 as [e' [s' [HS [Hwfs [Hht' Hret]]]]].
-         remember (EAssign a f (EHole)) as E.
-         assert (Hleft: equivExpr e0 E = SetF (Ref a) f e0).
-         { subst. reflexivity. }
-         assert (Hright: equivExpr e' E = SetF (Ref a) f e').
-         { subst. tauto. }
-         rewrite <- Hleft.  exists (equivExpr e' E). exists s'. apply Hret in i. inversion i.
-         repeat split; try eauto. 
-         *** destruct Hwfs. eapply WFSWP; eauto.
-             **** rewrite -> Hright. eapply KTEXPR. eapply KTREFWRITE; eauto.
-         *** rewrite -> Hright. eapply KTEXPR. eapply KTREFWRITE; eauto.
+         eval_ctx (EAssign a f (EHole)). simpl. constructor. apply Hret in i. inject i. eauto.  
       ** right. destruct H0 as [E H1]. remember (EAssign a f E) as E'.
          exists E'. subst. simpl. inversion H1.
          *** left. unfolde a0. unfolde m'. unfolde a''. unfolde C'. unfolde aps. destruct H.
@@ -1729,20 +1798,7 @@ Proof.
       * subst. inversion H1.
     + destruct H as [a H]. subst. destruct H0.
       * unfold is_sound. right. left. inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]].
-        remember (ECall2 a m t0 t' EHole) as E.
-        assert (Hleft: equivExpr e' E = Call (Ref a) m t0 t' e').
-        { subst. tauto. }
-        assert (Hright: equivExpr e0' E = Call (Ref a) m t0 t' e0').
-        { subst. tauto. }
-        assert (Htyped: HasType nil s' k (equivExpr e0' E) t').
-        {
-          rewrite Hright. apply KTEXPR. eapply KTCALL; eauto.
-        }
-         exists (equivExpr e0' E). exists s'.  repeat split; eauto.
-        ** rewrite <- Hleft. eauto.
-        ** eapply WFSWP; eauto.
-           *** inversion H2. apply H5.
-           *** eapply wfct_doesnt_care; eauto.
+        eval_ctx (ECall2 a m t0 t' EHole). simpl. constructor. econstructor; eauto. 
       * unfold is_sound. right. right. destruct H as [E H].
         remember (ECall2 a m t0 t' E) as E'. exists E'. inject H.
         ** left. unfolde a0. unfolde m0. unfolde a'. unfolde C'. unfolde aps. destruct H0 as [H0 [H1 H2]]; subst. 
@@ -1752,18 +1808,7 @@ Proof.
     + destruct H.
       * inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]]. unfold is_sound.
         right. left.
-        remember (ECall1 EHole m t0 t' e') as E.
-        assert (Hleft: equivExpr e0 E = (Call e0 m t0 t' e')).
-        { subst. tauto. }
-        assert (Hright: equivExpr e0' E = Call e0' m t0 t' e').
-        { subst. tauto. }
-        assert (Htyped: HasType nil s' k (equivExpr e0' E) t').
-        { rewrite Hright. apply KTEXPR. eapply KTCALL; eauto. }
-        exists (equivExpr e0' E). exists s'. repeat split; eauto.
-        ** rewrite<- Hleft. eapply SCtx. apply H1.
-        ** eapply WFSWP; eauto.
-           *** inversion H2. auto.
-           ***  eapply wfct_doesnt_care; eauto.
+        eval_ctx (ECall1 EHole m t0 t' e'). constructor. econstructor; eauto. 
       * destruct H as [E H]. remember (ECall1 E m t0 t' e') as E'.
         unfold is_sound. right. right. exists E'. clear H0. inject H.
         ** left. unfolde a0. unfolde m0. unfolde a'. unfolde C'. unfolde aps. destruct H0 as [H0 [H1 H2]]. subst.
@@ -1773,18 +1818,7 @@ Proof.
     + destruct H.
       * inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]]. unfold is_sound.
         right. left.
-        remember (ECall1 EHole m t0 t' e') as E.
-        assert (Hleft: equivExpr e0 E = (Call e0 m t0 t' e')).
-        { subst. tauto. }
-        assert (Hright: equivExpr e0' E = Call e0' m t0 t' e').
-        { subst. tauto. }
-        assert (Htyped: HasType nil s' k (equivExpr e0' E) t').
-        { rewrite Hright. apply KTEXPR. eapply KTCALL; eauto. }
-        exists (equivExpr e0' E). exists s'. repeat split; eauto.
-        ** rewrite<- Hleft. eapply SCtx. apply H1.
-        ** eapply WFSWP; eauto.
-           *** inversion H2. auto.
-           ***  eapply wfct_doesnt_care; eauto.
+        eval_ctx (ECall1 EHole m t0 t' e'). constructor. econstructor; eauto. 
       * destruct H as [E H]. remember (ECall1 E m t0 t' e') as E'.
         unfold is_sound. right. right. exists E'. clear H0. inject H.
         ** left. sync_destruct_exists H0. intuition idtac. subst. eauto.
@@ -1812,18 +1846,8 @@ Proof.
            *** intros. contradict n. apply in_map_iff. exists (Method m x Any Any e0). split; eauto.
     + destruct H0.
       * inversion H0 as [e0' [s' [H1 [H2 [H3 H4]]]]]. unfold is_sound.
-        right. left. inversion H as [a]. subst. remember (EDCall2 a m EHole) as E.
-        assert (Hleft: equivExpr e' E = (DynCall (Ref a) m e')).
-        { subst. tauto. }
-        assert (Hright: equivExpr e0' E = (DynCall (Ref a) m e0')).
-        { subst. tauto. }
-        assert (Htyped: HasType nil s' k (equivExpr e0' E) Any).
-        { subst. simpl. eapply KTEXPR. eapply KTDYNCALL; eauto. }
-        exists (equivExpr e0' E). exists s'. repeat split; eauto.
-        ** rewrite <- Hleft. eapply SCtx; eauto.
-        ** eapply WFSWP; eauto.
-           *** inversion H2; auto.
-           *** eapply wfct_doesnt_care; eauto.
+        right. left. inversion H as [a]. subst.
+        eval_ctx (EDCall2 a m EHole). constructor. econstructor; eauto. 
       * destruct H as [a H]. subst. destruct H0 as [E H0]. remember (EDCall2 a m E) as E'.
         unfold is_sound. right. right. exists E'. inject H0.
         ** left. sync_destruct_exists H. intuition idtac. subst. eauto.
@@ -1931,14 +1955,10 @@ Proof.
       * destruct H. unfold not in H3. rewrite H in H3. exfalso. eapply H3.
         ** reflexivity.
         ** eauto.
-      * destruct H.
+      * destruct H. 
         ** left. destruct H as [e' [s' [Hi1 [Hi2 [Hi3 Hi4]]]]].
-           remember (ENew C a1s EHole e2s) as E.
-           assert (Hleft: equivExpr a E = (New C (e1s ++ a :: e2s))).
+           eval_ctx (ENew C a1s EHole e2s); revgoals.
            { subst. simpl. rewrite deref_map with (e1s:=e1s)(a1s:=a1s); eauto. }
-           assert (Hright: equivExpr e' E = (New C (e1s ++ e' :: e2s))).
-           { subst. simpl. rewrite deref_map with (e1s:=e1s)(a1s:=a1s); eauto. }
-           assert (Htyped: HasType nil s' k (equivExpr e' E) (class C)).
            { subst. simpl. rewrite<- deref_map with (e1s:=e1s)(a1s:=a1s); eauto.
              eapply KTEXPR. eapply KTNEW; eauto. apply HasTypes_split.
              + eapply hastypes_split; eauto. 
@@ -1952,20 +1972,58 @@ Proof.
                  ** rewrite Heq in h. eapply hastypes_shortening.
                     *** eapply hastypes_ignores_heapv; eauto.
                     *** symmetry. eapply frwf_deref_implies_eq_length; eauto. }
-           exists (equivExpr e' E). exists s'. repeat split; eauto. 
-           *** rewrite <- Hleft. eapply SCtx. apply Hi1.
-           *** inject Hi2. eapply WFSWP; eauto.
         ** right. inversion H as [E]. exists (ENew C a1s E e2s). destruct H0.
            *** left. sync_destruct_exists H0. destruct H0. simpl. rewrite<- H0.
                apply deref_map in H2. rewrite <- H2. destruct H7. repeat split; eauto. 
            *** right. sync_destruct_exists H0. destruct H0. subst. destruct H7.
                simpl. rewrite (deref_map _ _ H2). repeat split; eauto.
   - intros. subst. destruct H; try tauto.
-    + destruct H as [a H]. subst. unfold is_sound.
-      apply eventually_concrete in h. inject h. inject H. inject H1.
-      * inject Hwfh. pose proof (H2). apply H1 in H2. inject H2.
-        destruct (compute_subtype empty_mu s k Hwfct (class C) t0 H4 w).
-        ** right. left. exists (Ref a). exists s. repeat split; eauto.
-           *** pose proof s0. apply subtype_only_classes in s0. inject s0. eapply SSubCast; eauto. 
-           ***
-Abort.
+    + destruct H as [a H]. subst. unfold is_sound. pose proof h as h'.
+      apply eventually_concrete in h. inject h. inject H. apply ref_has_cell' in H1. 
+      pose proof Hwfh as Hwfh'. inject Hwfh. pose proof H2. inject H1. destruct x0. destruct p as [C a'].
+      pose proof H4 as HIn. apply H2 in H4. inject H4.
+      destruct (compute_subtype empty_mu s k Hwfct (class C) t0 H1 w).
+      ** right. left. exists (Ref a). exists s. repeat split; eauto.
+         *** pose proof s0. apply subtype_only_classes in s0. inject s0. eapply SSubCast; eauto. 
+         *** eapply WFSWP; eauto. econstructor; eauto.
+      ** right. right. exists EHole. right. exists t0. exists a. exists C. exists a'. repeat split; eauto.
+    + destruct H.
+      * destruct H as [e' [s' [HSteps [HWFS [HHT Hrr]]]]]. unfold is_sound. right. left.
+        eval_ctx (ESubCast t0 EHole).
+        ** simpl. constructor. econstructor; eauto.
+      * inject H. unfold is_sound. right. right. exists (ESubCast t0 x). inject H0.
+        ** left. sync_destruct_exists H. inject H. inject H1. repeat split; eauto.
+        ** right. sync_destruct_exists H. inject H. inject H1. repeat split; eauto.
+  - admit.
+  - intros. pose proof (H0 H1 H2 H3).  pose proof (H H1 H2 H3) as H'.
+    destruct H4 as [e1s [a1s [t1s [e2s [t2s H4]]]]].
+    inject H4. inject H6. inject H2. inject H3. inject H4. clear H0.
+    inject H'.
+    + inject H0. exists ((Ref x) :: e1s). exists (x::a1s). exists (Field f t0 :: t1s). 
+      exists e2s. exists t2s. repeat split; eauto; constructor; eauto. 
+    + exists nil. exists nil. exists nil. exists (e0 :: e1s ++ e2s). exists (Field f t0 :: t1s ++ t2s). simpl.
+      repeat split; eauto; try constructor. 
+      * intros. inject H4. inject H0.
+        ** destruct H4 as [? [? [? H6]]]. eapply ref_is_finished. apply H0.
+        ** inject H4. inject H0.
+           *** destruct H4 as [? [? [? [? [? [Heq H6]]]]]]. subst. unfold not. intros.
+               destruct x; try (simpl in H0; inject H0).
+           *** destruct H4 as [? [? [? [? [Heq H4]]]]]. subst. unfold not. intros.
+               destruct x; try (simpl in H0; inject H0).
+      * right. apply H0.
+      * generalize dependent t1s. generalize dependent a1s. induction e1s.
+        ** intros. simpl. pose proof H5. apply sound_destr in H5. apply (same_size_prefix_hts _ _ _ _ _ _ _ h0) in H5.
+           destruct t1s. 
+           *** simpl. apply H4.
+           *** simpl in H5. inject H5.
+        ** intros. destruct t1s.
+           *** apply sound_destr in H5. apply (same_size_prefix_hts _ _ _ _ _ _ _ h0) in H5. simpl in H5.
+               inject H5.
+           *** simpl. destruct f0. pose proof H2 as H2'. inject H2. constructor.
+               **** left. exists a0. auto.
+               **** eapply IHe1s; eauto.
+                    ***** inject h0. auto.
+                    ***** inject H1. auto. 
+  - intros. subst. exists nil. exists nil. exists nil. exists nil. exists nil. repeat split; eauto; try econstructor.
+    intros. inject H.
+Admitted.
