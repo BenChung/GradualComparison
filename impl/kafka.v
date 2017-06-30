@@ -13,6 +13,7 @@ Module PairNatList := MSetList.Make(Nat_Pair_OT).
 
 Definition id := nat.
 Definition this:id := 0.
+Definition that:id := 0.
 Definition ref := nat.
 (* Cell = id [class] * [list of fields]  *)
 Inductive Cell :=
@@ -96,8 +97,21 @@ Inductive md := (* M X t t e *)
 Inductive k :=
 | ClassDef : id -> list fd -> list md -> k.
 Definition ct := list k.
-
+Definition ct_ext (k : ct) (k' : ct) := exists k'',
+           k' = k ++ k''.
 Require Import Coq.Logic.FinFun.
+
+(*CT extension basic property*)
+Lemma ct_exten_refl : forall k,
+        ct_ext k k.
+Proof.
+  intros.
+  unfold ct_ext.
+  exists nil.
+  symmetry.
+  apply app_nil_r.
+Abort.
+
 Lemma type_dec : forall x y : type, {x = y} + {x <> y}.
 Proof.
   decide equality; try (apply Nat.eq_dec).
@@ -154,6 +168,8 @@ Fixpoint fields (C:id)(k:ct) :=
   | nil => nil
   end.
 
+Search Nat.eqb.
+
 Fixpoint methods (C:id)(k:ct) :=
   match k with
   | (ClassDef D fds mds)::r =>
@@ -163,6 +179,16 @@ Fixpoint methods (C:id)(k:ct) :=
     end
   | nil => nil
   end.
+
+Fixpoint method_def (m:id) (ms:list md) : (list md) :=
+  match ms with
+  | (Method m' x t1 t2 e)::r =>
+    match Nat.eqb m m' with
+    | true => (Method m' x t1 t2 e) :: nil
+    | false => method_def m r
+    end
+  | nil => nil
+end.
 
 Inductive Subtype : PairNatList.t -> ct -> type -> type -> Prop :=
 | STRefl : forall m k t, Subtype m k t t
@@ -312,6 +338,8 @@ Lemma subtype_transitive : forall mu k t1 t2 t3,
   Subtype mu k t1 t2 -> Subtype mu k t2 t3 -> Subtype mu k t1 t3. 
 Admitted.
 
+
+
 Lemma subtype_method_containment : forall k C D md,
     Subtype empty_mu k (class C) (class D) -> In md (methods D k) ->
     exists md', In md' (methods C k) /\ Md_Subtypes empty_mu k (md'::nil) (md::nil).
@@ -419,6 +447,7 @@ Inductive WellFormedMethod : env -> heap -> ct -> md -> Prop :=
     HasType (g ++ (x,(class C1))::nil) s k e (class C2) ->
     WellFormedMethod g s k (Method m x (class C1) (class C2) e).
 
+
 Inductive NoDupsMds : list md -> Prop :=
 | NDUPTC : forall m x C D e mds,
     NoDupsMds mds -> 
@@ -433,6 +462,7 @@ Inductive NoDupsMds : list md -> Prop :=
 Inductive NoDupsFds : list fd -> Prop :=
 | NDUPFD : forall f t fds, NoDupsFds fds -> (forall t', ~ (In (Field f t') fds)) -> NoDupsFds ((Field f t)::fds).
 
+(*TODO: duplicate classes will need to change if we can extend the class table*)
 Inductive NoDupsClasses : list k -> Prop :=
 | NDUPK : forall C fds mds ks, NoDupsClasses ks -> (forall fds' mds', ~(In (ClassDef C fds' mds') ks)) ->
           NoDupsClasses ((ClassDef C fds mds)::ks).
@@ -450,6 +480,129 @@ Inductive WellFormedClassTable : heap -> ct -> Prop :=
     NoDupsClasses k ->
     WellFormedClassTable s k.
 
+(*Lemmas for CT extensions*)
+Lemma ct_exten_wfct : forall s k k',
+        WellFormedClassTable s k /\ ct_ext k k' -> WellFormedClassTable s k'.
+Proof.
+Abort.
+
+Lemma ct_exten_hastype : forall g s k e t k',
+        HasType g s k e t /\ ct_ext k k' -> HasType g s k' e t.
+Proof.
+Abort.
+
+Lemma ct_exten_subtyp : forall m k t t' k',
+        Subtype m k t t' /\ ct_ext k k' -> Subtype m k' t t'.
+Proof.
+Abort.
+
+(* Inductive expr :=
+| Var : id -> expr
+| Ref : ref -> expr (* location of object *)
+| GetF : expr -> id -> expr
+| SetF : expr -> id -> expr -> expr
+| Call : expr -> id -> type -> type -> expr -> expr
+| DynCall : expr -> id -> expr -> expr
+| SubCast : type -> expr -> expr (* <t> *)
+| BehCast : type -> expr -> expr (* << t >>*)
+| New : id -> list expr -> expr. *)
+
+Fixpoint WrapAny_methods(input_meth : md) (D_meth : list md) : md :=
+  match input_meth with
+  | Method m x t1 t2 e => Method m x Any Any (BehCast Any (Call (GetF (Var this) that) m t1 t2 (BehCast t1 (Var x))))
+end.
+
+Search List.find.
+
+Fixpoint Wrap_methods (input_meth : md) (D_meth : list md) : md :=
+  match input_meth with
+  | Method m x t1 t2 e => match method_def m D_meth with
+                        | Method m' x' t1' t2' e'::r => Method m x t1' t2' (BehCast t2' (Call (GetF (Var this) that) m t1 t2 (BehCast t1' (Var x))))
+                        | nil => Method m x t1 t2 (Call (GetF (Var this) that) m t1 t2 (Var x))
+                        end
+end.
+
+Fixpoint Wrap_classes (C : id) (md1 : list md) (md2 : list md) (D : id) : k :=
+  ClassDef D ((Field that (class C))::nil) (map (fun x => Wrap_methods x md2) md1).
+
+Fixpoint WrapAny_classes (C : id) (md1 : list md) (D : id) : k :=
+  ClassDef D ((Field that (class C))::nil) (map (fun x => WrapAny_methods x md1) md1).
+
+
+(*Inductive WellFormedClass : heap -> ct -> k -> Prop :=
+| WFWC : forall s k C mds fds,
+    (forall fd, In fd fds -> WellFormedField k fd) ->
+    (forall md, In md mds -> WellFormedMethod ((this, class C) :: nil) s k md) ->
+    NoDupsFds fds -> NoDupsMds mds -> 
+    WellFormedClass s k (ClassDef C fds mds).*)
+
+Search Nat.eqb.
+ 
+Lemma correctness_MWrapAny : forall m x t1 t2 e g s k md mds mds' C D,
+    C <> D ->
+    md = Method m x t1 t2 e ->
+    In md (methods C ((ClassDef D ((Field that (class C))::nil) mds') :: k)) ->
+    WellFormedMethod ((this, class C) :: g) s k md -> 
+    WellFormedMethod ((this, class D) :: g) s ((ClassDef D ((Field that (class C))::nil) mds') :: k) (WrapAny_methods md mds).
+Proof.
+  intros.
+  subst.
+  simpl.
+  constructor.
+  - inject H2; eauto.
+  - constructor.
+    econstructor.
+    constructor.
+    constructor.
+    econstructor.
+    * simpl. constructor. econstructor.
+      ** apply in_eq.
+      ** simpl. rewrite -> Nat.eqb_refl.
+         apply in_eq.
+    * constructor. econstructor.
+      ** inject H2.
+        *** constructor.
+        *** inject H11. econstructor. apply in_cons. eauto.
+      ** constructor. econstructor. apply in_or_app. right. apply in_eq.
+    * eauto.
+Qed.
+
+Lemma correctness_MWrap : forall m x t1 t2 e g s k md mds mds' C D,
+    C <> D ->
+    md = Method m x t1 t2 e ->
+    In md (methods C ((ClassDef D ((Field that (class C))::nil) mds') :: k)) ->
+    WellFormedMethod ((this, class C) :: g) s k md -> 
+    WellFormedMethod ((this, class D) :: g) s ((ClassDef D ((Field that (class C))::nil) mds') :: k) (Wrap_methods md mds).
+Proof.
+  intros.
+  subst.
+  simpl.
+
+  inject H2.
+
+Abort.
+
+Lemma correctness_CWrapAny : forall s k C D fds mds,
+    WellFormedClass s k (ClassDef C fds mds) -> 
+    WellFormedClass s k (WrapAny_classes C mds D).
+Proof.
+  intros.
+  induction mds as [mds'|mds''].
+  - unfold WrapAny_classes.
+    compute.
+Abort.
+
+Lemma correctness_CWrap : forall s k C D fds mds mds',
+    WellFormedClass s k (ClassDef C fds mds) -> 
+    WellFormedClass s k (Wrap_classes C mds mds' D).
+Proof.
+  intros.
+Abort.
+
+
+(*Lemmas for CT extensions ENDS*)
+
+
 Inductive FieldRefWellFormed : ct -> heap -> list fd -> list ref -> Prop :=
 | FRWF_Cons : forall k s f t fds a a', HasType nil s k (Ref a) t ->
                                        FieldRefWellFormed k s fds a' ->
@@ -463,7 +616,16 @@ Inductive NoDupsHeap : heap -> Prop :=
 Inductive WellFormedHeap : ct -> heap -> Prop :=
 | WFH : forall k s, NoDupsHeap s ->
                     (forall a C aps, In (a,HCell(C, aps)) s -> WellFormedType k (class C) /\ FieldRefWellFormed k s (fields C k) aps) ->
-                    WellFormedHeap k s.       
+                    WellFormedHeap k s.
+
+(*Lemmas for CT extensions*)
+Lemma ct_exten_wfheap : forall s k k',
+        WellFormedHeap k s /\ ct_ext k k' -> WellFormedHeap k' s.
+Proof.
+Abort.
+
+(*Lemmas for CT extensions ENDS*)
+
 
 Inductive WellFormedState : ct -> expr -> heap -> Prop :=
 | WFSWP : forall k e s t, HasType nil s k e t -> WellFormedHeap k s ->
@@ -895,6 +1057,7 @@ Inductive EvalCtx :=
 | EDCall1 : EvalCtx -> id -> expr -> EvalCtx
 | EDCall2 : ref -> id -> EvalCtx -> EvalCtx
 | ESubCast : type -> EvalCtx -> EvalCtx
+| EBehCast : type -> EvalCtx -> EvalCtx
 | ENew : id -> list ref -> EvalCtx -> list expr -> EvalCtx
 | EHole : EvalCtx.
 
@@ -906,9 +1069,54 @@ Fixpoint equivExpr(ei:expr)(E:EvalCtx) :=
   | EDCall1 E m e => DynCall (equivExpr ei E) m e
   | EDCall2 a m E => DynCall (Ref a) m (equivExpr ei E)
   | ESubCast t E => SubCast t (equivExpr ei E)
+  | EBehCast t E => BehCast t (equivExpr ei E)
   | ENew C aps E ers => New C ((map Ref aps) ++ (equivExpr ei E)::ers)
   | EHole => ei
   end.
+
+Fixpoint fresh_ref (s:heap)(i:nat) :=
+  match s with
+  | (a,hc)::r => match Nat.ltb a i with
+                 | true => fresh_ref r i
+                 | false => fresh_ref r (S a)
+                 end
+  | nil => i
+  end.
+
+Fixpoint fresh_class (k:ct)(i:nat) :=
+  match k with
+  | (ClassDef C fds mds)::r => match Nat.ltb C i with
+                 | true => fresh_class r i
+                 | false => fresh_class r (S C)
+                 end
+  | nil => i
+  end.
+
+Require Import Coq.omega.Omega.
+
+Theorem fresh_not_in :
+  forall s a a', a = fresh_ref s a' -> a' <= a /\ forall a'' hc, In(a'',hc) s -> a'' < a.
+Proof.
+  intros. generalize dependent a'. induction s.
+  - intros. split.
+    + unfold fresh_ref in H. omega.
+    + intros. inversion H0.
+  - intros.
+    destruct a0 as [a'' hc]. unfold fresh_ref in H.
+    destruct (Nat.ltb a'' a') eqn:Haa.
+    + apply Nat.ltb_lt in Haa. apply IHs in H. destruct H. split.
+      * omega.
+      * intros. inversion H1.
+        ** inject H2. omega.
+        ** apply H0 in H2. omega.
+    + apply Nat.ltb_ge in Haa. apply IHs in H. destruct H. split.
+      * omega.
+      * intros. inversion H1.
+        ** inject H2. omega.
+        ** apply H0 in H2.  omega.
+Qed.
+
+Import Syntax Coq.Lists.List.
 
 Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
 | SNew : forall a' s s' C k ais ais', (forall hc, ~ (In (a',hc) s)) ->
@@ -939,6 +1147,28 @@ Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
     In (a, HCell(C,aps)) s ->
     Subtype empty_mu k (class C) (class D) ->
     Steps k (SubCast (class D) (Ref a)) s k (Ref a) s
+| SBehCastAny : forall a s (k:ct) ap C E (D:id) mds a' s' k' a'',
+    In (a, HCell(C,ap)) s ->
+    E = fresh_class k D ->
+    C <> E ->
+    a'' = fresh_ref s a' ->
+    mds = (methods C k) ->
+    NoDupsMds mds ->
+    s' = (a'', HCell(E,  a::nil))::s ->
+    k' = k ++ [(WrapAny_classes C mds E)] ->
+    Steps k (BehCast (class E) (Ref a)) s k' (Ref a'') s'
+| SBehCast : forall a s k ap C E D mds mds' C' a' s' k' a'',
+    In (a, HCell(C,ap)) s ->
+    E = fresh_class k D ->
+    C <> E ->
+    a'' = fresh_ref s a' ->
+    mds = (methods C k) ->
+    mds' = (methods C' k) ->
+    incl mds mds' ->
+    NoDupsMds mds' ->
+    s' = (a'', HCell(E,  a::nil))::s ->
+    k' = k ++ [(Wrap_classes C mds mds' E)] ->
+    Steps k (BehCast (class E) (Ref a)) s k' (Ref a'') s'
 | SCtx : forall k e s e' s' E,
     Steps k e s k e' s' -> Steps k (equivExpr e E) s k (equivExpr e' E) s'.
 Hint Constructors Steps.
@@ -1075,7 +1305,7 @@ Proof.
         ** inject H1. apply Nat.eqb_neq in n. tauto.
         ** apply H1.
 Qed.
-        
+
 Lemma methods_are_wf : forall s k C mds,
     WellFormedClassTable s k ->
     WellFormedType k (class C) ->
@@ -1104,39 +1334,6 @@ Proof.
   intros. induction H.
   - simpl. subst. reflexivity.
   - reflexivity.
-Qed.
-
-Fixpoint fresh_ref (s:heap)(i:nat) :=
-  match s with
-  | (a,hc)::r => match Nat.ltb a i with
-                 | true => fresh_ref r i
-                 | false => fresh_ref r (S a)
-                 end
-  | nil => i
-  end.
-
-Require Import Coq.omega.Omega.
-
-Theorem fresh_not_in :
-  forall s a a', a = fresh_ref s a' -> a' <= a /\ forall a'' hc, In(a'',hc) s -> a'' < a.
-Proof.
-  intros. generalize dependent a'. induction s.
-  - intros. split.
-    + unfold fresh_ref in H. omega.
-    + intros. inversion H0.
-  - intros.
-    destruct a0 as [a'' hc]. unfold fresh_ref in H.
-    destruct (Nat.ltb a'' a') eqn:Haa.
-    + apply Nat.ltb_lt in Haa. apply IHs in H. destruct H. split.
-      * omega.
-      * intros. inversion H1.
-        ** inject H2. omega.
-        ** apply H0 in H2. omega.
-    + apply Nat.ltb_ge in Haa. apply IHs in H. destruct H. split.
-      * omega.
-      * intros. inversion H1.
-        ** inject H2. omega.
-        ** apply H0 in H2.  omega.
 Qed.
 
 Theorem weakening_retains_refs: forall s s', retains_references s (s' ++ s).
@@ -1681,6 +1878,7 @@ Ltac unfolde name :=
   | [ H : (exists a:?t, _) |- (exists b:?t, _) ] => let v' := a in
                                                     destruct H as [name H];
                                                     exists name end.
+
 Lemma ref_is_finished : forall k e s k' e' s' a, Steps k e s k' e' s' -> e <> Ref a.
 Proof.
   intros. contradict H. intros H'. subst. dependent induction H'.
@@ -1706,7 +1904,6 @@ Ltac eval_ctx E :=
                                    | apply Htype | eauto ]]]
     end
   end.
-
 
 Ltac sync_destruct_exists H :=
   repeat (let x := fresh "x" in destruct H as [x H]; exists x).
