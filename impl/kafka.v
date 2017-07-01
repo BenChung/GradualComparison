@@ -567,9 +567,24 @@ Proof.
     * eauto.
 Qed.
 
+
+Lemma correctness_mdef : forall m x t1 t2 e mds,
+  In (Method m x t1 t2 e) (method_def m mds) -> In (Method m x t1 t2 e) mds.
+Proof.
+  intros.
+  - induction mds.
+    + simpl in H. inversion H.
+    + simpl in H. destruct a. destruct (Nat.eqb m i).
+      * inject H.
+        ** inject H0. apply in_eq.
+        ** inject H0.
+      * apply in_cons. apply IHmds. apply H.
+Qed.
+
 Lemma correctness_MWrap : forall m x t1 t2 e g s k md mds mds' C D,
     C <> D ->
     md = Method m x t1 t2 e ->
+    (forall md', In md' mds -> WellFormedMethod ((this, class C) :: g) s k md') ->
     In md (methods C ((ClassDef D ((Field that (class C))::nil) mds') :: k)) ->
     WellFormedMethod ((this, class C) :: g) s k md -> 
     WellFormedMethod ((this, class D) :: g) s ((ClassDef D ((Field that (class C))::nil) mds') :: k) (Wrap_methods md mds).
@@ -577,8 +592,39 @@ Proof.
   intros.
   subst.
   simpl.
+  destruct (method_def m mds) eqn:Hmd.
+  - inject H3.
+    + econstructor.
+      * eauto.
+      * constructor.
+        econstructor.
+        ** constructor.
+           econstructor.
+           *** simpl. left. reflexivity.
+           *** simpl. rewrite -> Nat.eqb_refl. apply in_eq.
+        ** constructor.
+           econstructor. simpl. right. rewrite in_app_iff. right. apply in_eq.
+        ** simpl. apply H2.
+    + econstructor; eauto.
+      * inject H12. econstructor. apply in_cons. apply H4.
+      * inject H13. econstructor. apply in_cons. apply H4.
+      * constructor. econstructor.
+        ** constructor. econstructor.
+           *** simpl. left. reflexivity.
+           *** simpl. rewrite -> Nat.eqb_refl. apply in_eq.
+        ** constructor. econstructor. simpl. right. rewrite in_app_iff. right. apply in_eq.
+        ** simpl. apply H2.
+  - destruct m0.
+    pose proof correctness_mdef.
+    assert (Hin : In (Method i i0 t t0 e0) (method_def m mds)).
+    {subst. rewrite -> Hmd. apply in_eq. }
+    pose proof (correctness_mdef i i0 t t0).
+    
+    destruct (H1 (Method i i0 t t0 e0)).
+    + 
 
-  inject H2.
+
+constructor.
 
 Abort.
 
