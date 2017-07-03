@@ -98,7 +98,7 @@ Inductive k :=
 | ClassDef : id -> list fd -> list md -> k.
 Definition ct := list k.
 Definition ct_ext (k : ct) (k' : ct) := exists k'',
-           k' = k ++ k''.
+           k' = k'' ++ k.
 Require Import Coq.Logic.FinFun.
 
 (*CT extension basic property*)
@@ -107,10 +107,8 @@ Lemma ct_exten_refl : forall k,
 Proof.
   intros.
   unfold ct_ext.
-  exists nil.
-  symmetry.
-  apply app_nil_r.
-Abort.
+  exists nil. simpl. auto.
+Qed.
 
 Lemma type_dec : forall x y : type, {x = y} + {x <> y}.
 Proof.
@@ -180,14 +178,14 @@ Fixpoint methods (C:id)(k:ct) :=
   | nil => nil
   end.
 
-Fixpoint method_def (m:id) (ms:list md) : (list md) :=
+Fixpoint method_def (m:id) (ms:list md) : (option md) :=
   match ms with
   | (Method m' x t1 t2 e)::r =>
     match Nat.eqb m m' with
-    | true => (Method m' x t1 t2 e) :: nil
+    | true => Some(Method m' x t1 t2 e)
     | false => method_def m r
     end
-  | nil => nil
+  | nil => None
 end.
 
 Inductive Subtype : PairNatList.t -> ct -> type -> type -> Prop :=
@@ -205,7 +203,8 @@ with Md_Subtypes : PairNatList.t -> ct -> list md -> list md -> Prop :=
      | MDNil : forall mu k mds, (Md_Subtypes mu k mds nil)
 with Md_Subtype : PairNatList.t -> ct -> md -> md -> Prop :=
      | MDSub : forall mu k t1 t1' t2 t2' x x' e e' m, (Subtype mu k t1 t1') -> (Subtype mu k t2' t2) ->
-                      Md_Subtype mu k (Method m x' t1' t2' e') (Method m x t1 t2 e).
+                                                      Md_Subtype mu k (Method m x' t1' t2' e') (Method m x t1 t2 e).
+
 Scheme subtyping_ind := Induction for Subtype Sort Prop
                         with md_subtypings_ind := Induction for Md_Subtypes Sort Prop
                                                   with md_subtype_ind := Induction for Md_Subtype Sort Prop.
@@ -449,14 +448,10 @@ Inductive WellFormedMethod : env -> heap -> ct -> md -> Prop :=
 
 
 Inductive NoDupsMds : list md -> Prop :=
-| NDUPTC : forall m x C D e mds,
+| NDUPTC : forall m x e mds t1 t2,
     NoDupsMds mds -> 
-    (forall x' C' D' e', ~ In (Method m x' (class C') (class D') e') mds) ->
-    NoDupsMds ((Method m x (class C) (class D) e)::mds)
-| NDUPUT : forall m x e mds,
-    NoDupsMds mds ->
-    (forall x' e', ~In (Method m x' Any Any e') mds) ->
-    NoDupsMds ((Method m x Any Any e)::mds)
+    (forall x' e' t1' t2', ~ In (Method m x' t1' t2' e') mds) ->
+    NoDupsMds ((Method m x t1 t2 e)::mds)
 | NDUPN : NoDupsMds nil.
 
 Inductive NoDupsFds : list fd -> Prop :=
@@ -496,6 +491,19 @@ Lemma ct_exten_subtyp : forall m k t t' k',
 Proof.
 Abort.
 
+Lemma ct_exten_wftype : forall t k k',
+    WellFormedType k t -> ct_ext k k' -> WellFormedType k' t.
+Proof.
+  intros. destruct t; try constructor. unfold ct_ext in H0.
+  destruct H0 as [k'' H']. subst. induction k0.
+  - inject H. inject H2.
+  - inject H. inject H2.
+    + simpl. econstructor. apply in_or_app. right. apply in_eq.
+    + simpl. econstructor. apply in_or_app. right. apply in_cons. eauto.
+Qed.
+
+Hint Resolve ct_exten_wftype.
+
 (* Inductive expr :=
 | Var : id -> expr
 | Ref : ref -> expr (* location of object *)
@@ -512,13 +520,11 @@ Fixpoint WrapAny_methods(input_meth : md) (D_meth : list md) : md :=
   | Method m x t1 t2 e => Method m x Any Any (BehCast Any (Call (GetF (Var this) that) m t1 t2 (BehCast t1 (Var x))))
 end.
 
-Search List.find.
-
 Fixpoint Wrap_methods (input_meth : md) (D_meth : list md) : md :=
   match input_meth with
   | Method m x t1 t2 e => match method_def m D_meth with
-                        | Method m' x' t1' t2' e'::r => Method m x t1' t2' (BehCast t2' (Call (GetF (Var this) that) m t1 t2 (BehCast t1' (Var x))))
-                        | nil => Method m x t1 t2 (Call (GetF (Var this) that) m t1 t2 (Var x))
+                        | Some(Method m' x' t1' t2' e') => Method m x t1' t2' (BehCast t2' (Call (GetF (Var this) that) m t1 t2 (BehCast t1' (Var x))))
+                        | None => Method m x t1 t2 (Call (GetF (Var this) that) m t1 t2 (Var x))
                         end
 end.
 
@@ -535,8 +541,6 @@ Fixpoint WrapAny_classes (C : id) (md1 : list md) (D : id) : k :=
     (forall md, In md mds -> WellFormedMethod ((this, class C) :: nil) s k md) ->
     NoDupsFds fds -> NoDupsMds mds -> 
     WellFormedClass s k (ClassDef C fds mds).*)
-
-Search Nat.eqb.
  
 Lemma correctness_MWrapAny : forall m x t1 t2 e g s k md mds mds' C D,
     C <> D ->
@@ -569,64 +573,96 @@ Qed.
 
 
 Lemma correctness_mdef : forall m x t1 t2 e mds,
-  In (Method m x t1 t2 e) (method_def m mds) -> In (Method m x t1 t2 e) mds.
+    NoDupsMds mds ->
+    Some (Method m x t1 t2 e) = (method_def m mds) <-> In (Method m x t1 t2 e) mds.
 Proof.
-  intros.
+  intros. split; intros.
   - induction mds.
-    + simpl in H. inversion H.
-    + simpl in H. destruct a. destruct (Nat.eqb m i).
-      * inject H.
-        ** inject H0. apply in_eq.
-        ** inject H0.
-      * apply in_cons. apply IHmds. apply H.
+    + simpl in H0. inversion H0.
+    + simpl in H0. destruct a. destruct (Nat.eqb m i).
+      * inject H0. apply in_eq.
+      * apply in_cons. apply IHmds; eauto. inject H. eauto.
+  - induction mds.
+    + inject H0.
+    + simpl. destruct a as [m' x' t1' t2' e']. inject H0.
+      * inject H1. rewrite Nat.eqb_refl. auto.
+      * destruct (Nat.eqb m m') eqn:Heq.
+        ** apply Nat.eqb_eq in Heq. subst. inject H. apply H8 in H1. tauto.
+        ** inject H. apply IHmds; eauto.
 Qed.
 
+Lemma mdef_same_name : forall i m mds x t1 t2 e, Some(Method i x t1 t2 e) = (method_def m mds) -> i = m.
+Proof.
+  intros. induction mds.
+  - simpl in H. inject H.
+  - simpl in H. destruct a. destruct (Nat.eqb m i0) eqn:Heq.
+    + apply Nat.eqb_eq in Heq. inject H. auto.
+    + apply IHmds in H. apply H.
+Qed.
+
+Ltac ht :=
+  match goal with
+  | [ |- HasType _ _ _ _ _ ] => constructor
+  | [ |- HasTypeExpr _ _ _ _ _ ] => econstructor
+  end.
+
+Hint Constructors HasType.
+Hint Constructors HasTypeExpr.
 Lemma correctness_MWrap : forall m x t1 t2 e g s k md mds mds' C D,
-    C <> D ->
+    C <> D -> NoDupsMds mds -> NoDupsMds mds' ->
     md = Method m x t1 t2 e ->
     (forall md', In md' mds -> WellFormedMethod ((this, class C) :: g) s k md') ->
-    In md (methods C ((ClassDef D ((Field that (class C))::nil) mds') :: k)) ->
+    In md mds -> In md (methods C k) ->
     WellFormedMethod ((this, class C) :: g) s k md -> 
-    WellFormedMethod ((this, class D) :: g) s ((ClassDef D ((Field that (class C))::nil) mds') :: k) (Wrap_methods md mds).
+    WellFormedMethod ((this, class D) :: g) s ((ClassDef D ((Field that (class C))::nil) mds') :: k)
+                     (Wrap_methods md mds).
 Proof.
-  intros.
-  subst.
-  simpl.
+  intros. subst. simpl.
+  assert (Hctext: ct_ext k0 (ClassDef D (Field that (class C) :: nil) mds' :: k0)).
+  { unfold ct_ext. exists ((ClassDef D (Field that (class C) :: nil) mds')::nil). simpl. auto. }
+  assert (Hwt: forall t1 t2 t x',
+             WellFormedType (ClassDef D (Field that (class C) :: nil) mds' :: k0) t1 ->
+             In (Method m x t1 t2 e) (methods C k0) ->
+             HasTypeExpr (((this, class D) :: g) ++ (x', t) :: nil) s
+                         (ClassDef D (Field that (class C) :: nil) mds' :: k0)
+                         (Call (GetF (Var this) that) m t1
+                               t2 (BehCast t1 (Var x'))) 
+                         t2).
+  { intros. repeat (ht; eauto). 
+    * simpl. left. auto.
+    * simpl. rewrite Nat.eqb_refl. apply in_eq.
+    * simpl. right. apply in_or_app. right. apply in_eq.
+    * simpl. apply Nat.eqb_neq in H. rewrite H. eauto. }
   destruct (method_def m mds) eqn:Hmd.
-  - inject H3.
-    + econstructor.
-      * eauto.
-      * constructor.
-        econstructor.
-        ** constructor.
-           econstructor.
-           *** simpl. left. reflexivity.
-           *** simpl. rewrite -> Nat.eqb_refl. apply in_eq.
-        ** constructor.
-           econstructor. simpl. right. rewrite in_app_iff. right. apply in_eq.
-        ** simpl. apply H2.
-    + econstructor; eauto.
-      * inject H12. econstructor. apply in_cons. apply H4.
-      * inject H13. econstructor. apply in_cons. apply H4.
-      * constructor. econstructor.
+  - destruct m0 as [m' x' t1' t2' e']. symmetry in Hmd.
+    pose proof (mdef_same_name m' m _ _ _ _ _ Hmd). subst. rewrite<- correctness_mdef in H4; eauto.
+    rewrite<- Hmd in H4. inject H4. 
+    rewrite correctness_mdef in Hmd; eauto.
+    apply H3 in Hmd.
+    inject Hmd.
+    + repeat (constructor; eauto). econstructor; [constructor|]. constructor. econstructor.
+      * econstructor.
         ** constructor. econstructor.
-           *** simpl. left. reflexivity.
-           *** simpl. rewrite -> Nat.eqb_refl. apply in_eq.
-        ** constructor. econstructor. simpl. right. rewrite in_app_iff. right. apply in_eq.
-        ** simpl. apply H2.
-  - destruct m0.
-    pose proof correctness_mdef.
-    assert (Hin : In (Method i i0 t t0 e0) (method_def m mds)).
-    {subst. rewrite -> Hmd. apply in_eq. }
-    pose proof (correctness_mdef i i0 t t0).
-    
-    destruct (H1 (Method i i0 t t0 e0)).
-    + 
-
-
-constructor.
-
-Abort.
+           *** simpl; eauto.
+           *** simpl. rewrite Nat.eqb_refl. apply in_eq.
+        ** apply STRefl.
+      * repeat constructor. econstructor; [constructor|]. constructor. constructor. simpl.
+        right. apply in_or_app. right. apply in_eq.
+      * simpl. apply Nat.eqb_neq in H. rewrite H. apply H5.
+    + repeat (constructor; eauto).
+      repeat (ht; eauto). 
+  - apply H3 in H4. inject H4.
+    + constructor; eauto. repeat (ht; eauto).
+      * simpl. left. auto.
+      * simpl. rewrite Nat.eqb_refl. apply in_eq.
+      * simpl. right. apply in_or_app. right. apply in_eq.
+      * simpl. apply Nat.eqb_neq in H. rewrite H. eauto.
+    + constructor; eauto. repeat (ht; eauto).
+      * simpl. left. auto.
+      * simpl. rewrite Nat.eqb_refl. apply in_eq.
+      * simpl. right. apply in_or_app. right. apply in_eq.
+      * simpl. apply Nat.eqb_neq in H. rewrite H. eauto.
+Qed.
 
 Lemma correctness_CWrapAny : forall s k C D fds mds,
     WellFormedClass s k (ClassDef C fds mds) -> 
