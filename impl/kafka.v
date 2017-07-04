@@ -337,8 +337,6 @@ Lemma subtype_transitive : forall mu k t1 t2 t3,
   Subtype mu k t1 t2 -> Subtype mu k t2 t3 -> Subtype mu k t1 t3. 
 Admitted.
 
-
-
 Lemma subtype_method_containment : forall k C D md,
     Subtype empty_mu k (class C) (class D) -> In md (methods D k) ->
     exists md', In md' (methods C k) /\ Md_Subtypes empty_mu k (md'::nil) (md::nil).
@@ -458,6 +456,8 @@ Inductive NoDupsFds : list fd -> Prop :=
 | NDUPFD : forall f t fds, NoDupsFds fds -> (forall t', ~ (In (Field f t') fds)) -> NoDupsFds ((Field f t)::fds).
 
 (*TODO: duplicate classes will need to change if we can extend the class table*)
+(*TODO: NoDupsClasses will still be the same, right? Just need to ensure that it is not extended with a class
+        that's already in the table.*)
 Inductive NoDupsClasses : list k -> Prop :=
 | NDUPK : forall C fds mds ks, NoDupsClasses ks -> (forall fds' mds', ~(In (ClassDef C fds' mds') ks)) ->
           NoDupsClasses ((ClassDef C fds mds)::ks).
@@ -479,6 +479,10 @@ Inductive WellFormedClassTable : heap -> ct -> Prop :=
 Lemma ct_exten_wfct : forall s k k',
         WellFormedClassTable s k /\ ct_ext k k' -> WellFormedClassTable s k'.
 Proof.
+  intros. destruct k'.
+  - inversion H. unfold ct_ext in H1. exists nil in H1. inject H0.
+  - unfold ct_ext in H.
+    split H.
 Abort.
 
 Lemma ct_exten_hastype : forall g s k e t k',
@@ -534,14 +538,6 @@ Fixpoint Wrap_classes (C : id) (md1 : list md) (md2 : list md) (D : id) : k :=
 Fixpoint WrapAny_classes (C : id) (md1 : list md) (D : id) : k :=
   ClassDef D ((Field that (class C))::nil) (map (fun x => WrapAny_methods x md1) md1).
 
-
-(*Inductive WellFormedClass : heap -> ct -> k -> Prop :=
-| WFWC : forall s k C mds fds,
-    (forall fd, In fd fds -> WellFormedField k fd) ->
-    (forall md, In md mds -> WellFormedMethod ((this, class C) :: nil) s k md) ->
-    NoDupsFds fds -> NoDupsMds mds -> 
-    WellFormedClass s k (ClassDef C fds mds).*)
- 
 Lemma correctness_MWrapAny : forall m x t1 t2 e g s k md mds mds' C D,
     C <> D ->
     md = Method m x t1 t2 e ->
