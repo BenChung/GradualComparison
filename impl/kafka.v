@@ -453,7 +453,8 @@ Inductive NoDupsMds : list md -> Prop :=
 | NDUPN : NoDupsMds nil.
 
 Inductive NoDupsFds : list fd -> Prop :=
-| NDUPFD : forall f t fds, NoDupsFds fds -> (forall t', ~ (In (Field f t') fds)) -> NoDupsFds ((Field f t)::fds).
+| NDUPFD : forall f t fds, NoDupsFds fds -> (forall t', ~ (In (Field f t') fds)) -> NoDupsFds ((Field f t)::fds)
+| NDUPNI : NoDupsFds nil.
 
 (*TODO: duplicate classes will need to change if we can extend the class table*)
 (*TODO: NoDupsClasses will still be the same, right? Just need to ensure that it is not extended with a class
@@ -475,14 +476,31 @@ Inductive WellFormedClassTable : heap -> ct -> Prop :=
     NoDupsClasses k ->
     WellFormedClassTable s k.
 
+
+Lemma methods_in : forall fds mds s C k,
+    WellFormedClassTable s k ->
+    In (ClassDef C fds mds) k ->
+    mds = (methods C k).
+Proof.
+  intros. destruct H as [s k _ H]. induction k.
+  - inversion H0.
+  - destruct a as [D fds' mds']. destruct (Nat.eq_dec C D).
+    + subst. simpl. rewrite Nat.eqb_refl. inversion H0; eauto.
+      * inject H1. reflexivity.
+      * inject H. apply H7 in H1. tauto. 
+    + unfold methods. apply Nat.eqb_neq in n. rewrite -> n. apply IHk.
+      * inject H. apply H3.
+      * inversion H0.
+        ** inject H1. apply Nat.eqb_neq in n. tauto.
+        ** apply H1.
+Qed.
+
 (*Lemmas for CT extensions*)
 Lemma ct_exten_wfct : forall s k k',
         WellFormedClassTable s k /\ ct_ext k k' -> WellFormedClassTable s k'.
 Proof.
   intros. destruct k'.
-  - inversion H. unfold ct_ext in H1. exists nil in H1. inject H0.
-  - unfold ct_ext in H.
-    split H.
+  - inversion H. unfold ct_ext in H1.
 Abort.
 
 Lemma ct_exten_hastype : forall g s k e t k',
@@ -527,16 +545,28 @@ end.
 Fixpoint Wrap_methods (input_meth : md) (D_meth : list md) : md :=
   match input_meth with
   | Method m x t1 t2 e => match method_def m D_meth with
-                        | Some(Method m' x' t1' t2' e') => Method m x t1' t2' (BehCast t2' (Call (GetF (Var this) that) m t1 t2 (BehCast t1' (Var x))))
+                        | Some(Method m' x' t1' t2' e') => Method m x t1' t2' (BehCast t2' (Call (GetF (Var this) that) m t1 t2 (BehCast t1 (Var x))))
                         | None => Method m x t1 t2 (Call (GetF (Var this) that) m t1 t2 (Var x))
                         end
 end.
 
-Fixpoint Wrap_classes (C : id) (md1 : list md) (md2 : list md) (D : id) : k :=
-  ClassDef D ((Field that (class C))::nil) (map (fun x => Wrap_methods x md2) md1).
+Fixpoint Wrap_many_methods (mds1:list md) (mds2 : list md) :=
+  match mds1 with
+  | md::mdr => (Wrap_methods md mds2)::(Wrap_many_methods mdr mds2)
+  | nil => nil
+  end.
 
-Fixpoint WrapAny_classes (C : id) (md1 : list md) (D : id) : k :=
-  ClassDef D ((Field that (class C))::nil) (map (fun x => WrapAny_methods x md1) md1).
+Fixpoint Wrap_many_any_methods (mds1 : list md) (mds2 : list md) :=
+  match mds1 with
+  | md::mdr => (WrapAny_methods md mds2)::(Wrap_many_any_methods mdr mds2)
+  | nil => nil
+  end.
+
+Definition Wrap_classes (C : id) (md1 : list md) (md2 : list md) (D : id) : k :=
+  ClassDef D ((Field that (class C))::nil) (Wrap_many_methods md1 md2).
+
+Definition WrapAny_classes (C : id) (md1 : list md) (D : id) : k :=
+  ClassDef D ((Field that (class C))::nil) (Wrap_many_any_methods md1 md1).
 
 Lemma correctness_MWrapAny : forall m x t1 t2 e g s k md mds mds' C D,
     C <> D ->
@@ -605,10 +635,10 @@ Ltac ht :=
 Hint Constructors HasType.
 Hint Constructors HasTypeExpr.
 Lemma correctness_MWrap : forall m x t1 t2 e g s k md mds mds' C D,
-    C <> D -> NoDupsMds mds -> NoDupsMds mds' ->
+    C <> D -> NoDupsMds mds -> NoDupsMds mds' -> x <> this -> 
     md = Method m x t1 t2 e ->
     (forall md', In md' mds -> WellFormedMethod ((this, class C) :: g) s k md') ->
-    In md mds -> In md (methods C k) ->
+    In md (methods C k) ->
     WellFormedMethod ((this, class C) :: g) s k md -> 
     WellFormedMethod ((this, class D) :: g) s ((ClassDef D ((Field that (class C))::nil) mds') :: k)
                      (Wrap_methods md mds).
@@ -616,67 +646,198 @@ Proof.
   intros. subst. simpl.
   assert (Hctext: ct_ext k0 (ClassDef D (Field that (class C) :: nil) mds' :: k0)).
   { unfold ct_ext. exists ((ClassDef D (Field that (class C) :: nil) mds')::nil). simpl. auto. }
-  assert (Hwt: forall t1 t2 t x',
+  assert (Hwt: forall t1 t2 t x' e',
              WellFormedType (ClassDef D (Field that (class C) :: nil) mds' :: k0) t1 ->
              In (Method m x t1 t2 e) (methods C k0) ->
+             HasType (((this, class D) :: g) ++ (x', t) :: nil) s (ClassDef D (Field that (class C) :: nil) mds' :: k0) e' t1 ->
              HasTypeExpr (((this, class D) :: g) ++ (x', t) :: nil) s
                          (ClassDef D (Field that (class C) :: nil) mds' :: k0)
                          (Call (GetF (Var this) that) m t1
-                               t2 (BehCast t1 (Var x'))) 
+                               t2 e') 
                          t2).
   { intros. repeat (ht; eauto). 
     * simpl. left. auto.
     * simpl. rewrite Nat.eqb_refl. apply in_eq.
-    * simpl. right. apply in_or_app. right. apply in_eq.
     * simpl. apply Nat.eqb_neq in H. rewrite H. eauto. }
+  assert (Hwf: WellFormedType ((ClassDef D ((Field that (class C))::nil) mds') :: k0) t1 /\
+               WellFormedType ((ClassDef D ((Field that (class C))::nil) mds') :: k0) t2).
+  { inject H6; [split; try constructor|]. split; eapply ct_exten_wftype; eauto. }
+  inject Hwf. 
   destruct (method_def m mds) eqn:Hmd.
   - destruct m0 as [m' x' t1' t2' e']. symmetry in Hmd.
-    pose proof (mdef_same_name m' m _ _ _ _ _ Hmd). subst. rewrite<- correctness_mdef in H4; eauto.
-    rewrite<- Hmd in H4. inject H4. 
-    rewrite correctness_mdef in Hmd; eauto.
-    apply H3 in Hmd.
-    inject Hmd.
-    + repeat (constructor; eauto). econstructor; [constructor|]. constructor. econstructor.
-      * econstructor.
-        ** constructor. econstructor.
-           *** simpl; eauto.
-           *** simpl. rewrite Nat.eqb_refl. apply in_eq.
-        ** apply STRefl.
-      * repeat constructor. econstructor; [constructor|]. constructor. constructor. simpl.
-        right. apply in_or_app. right. apply in_eq.
-      * simpl. apply Nat.eqb_neq in H. rewrite H. apply H5.
-    + repeat (constructor; eauto).
-      repeat (ht; eauto). 
-  - apply H3 in H4. inject H4.
-    + constructor; eauto. repeat (ht; eauto).
-      * simpl. left. auto.
-      * simpl. rewrite Nat.eqb_refl. apply in_eq.
-      * simpl. right. apply in_or_app. right. apply in_eq.
-      * simpl. apply Nat.eqb_neq in H. rewrite H. eauto.
-    + constructor; eauto. repeat (ht; eauto).
-      * simpl. left. auto.
-      * simpl. rewrite Nat.eqb_refl. apply in_eq.
-      * simpl. right. apply in_or_app. right. apply in_eq.
-      * simpl. apply Nat.eqb_neq in H. rewrite H. eauto.
+    pose proof (mdef_same_name m' m _ _ _ _ _ Hmd). subst.
+    rewrite correctness_mdef in Hmd; eauto. apply H4 in Hmd. inject Hmd.
+    + constructor; eauto. ht. ht; eauto; [constructor|]. ht. apply Hwt; eauto.
+      repeat ht; eauto. apply in_or_app. right. apply in_eq. 
+    + constructor; eauto.  ht. ht; [eapply ct_exten_wftype; eauto|].
+      ht. eapply Hwt; eauto. repeat ht; eauto. apply in_or_app. right. apply in_eq. 
+  - inject H6.
+    + constructor; eauto. ht. apply Hwt; eauto. repeat ht. apply in_or_app. right. apply in_eq.
+    + constructor; eauto. ht. apply Hwt; eauto. repeat ht. apply in_or_app. right. apply in_eq. 
 Qed.
 
-Lemma correctness_CWrapAny : forall s k C D fds mds,
-    WellFormedClass s k (ClassDef C fds mds) -> 
-    WellFormedClass s k (WrapAny_classes C mds D).
+Lemma correctness_WrapMany : forall md2 mds' mds'' md' C D s k fds mds,
+    WellFormedClassTable s k ->
+    In (ClassDef C fds mds'') k ->
+    NoDupsMds md2 -> NoDupsMds mds' ->
+    (forall md' : md, In md' md2 -> WellFormedMethod ((this, class C) :: nil) s k md') ->
+    (forall md' : md, In md' mds -> WellFormedMethod ((this, class C) :: nil) s k md') ->
+    (forall md' : md, In md' mds -> In md' mds'') ->
+    In md' (Wrap_many_methods mds md2) -> C <> D ->
+    WellFormedMethod ((this, class D) :: nil) s
+                     ((ClassDef D ((Field that (class C))::nil) mds') :: k)
+                     md'.
 Proof.
-  intros.
-  induction mds as [mds'|mds''].
-  - unfold WrapAny_classes.
-    compute.
-Abort.
+  intros ? ? ? ? ? ? ? ? ? ? Hwfct HinC HNdmd2 HNdmd' Hforallmd2 Hforallmd Hsub HinMd Hneq.
+  induction mds.
+  - intros. simpl in HinMd. tauto.
+  - intros. simpl in HinMd. inject HinMd; revgoals.
+    + apply IHmds.
+      * intros. apply Hforallmd. apply in_cons. auto.
+      * intros. apply Hsub. apply in_cons. auto.
+      * auto.
+    + destruct a. specialize Hforallmd with (Method i i0 t t0 e).
+      pose proof (Hforallmd (in_eq _ _)). inject H.
+      * eapply correctness_MWrap; eauto.
+        ** erewrite<- methods_in.
+           *** apply Hsub. apply in_eq.
+           *** apply Hwfct.
+           *** apply HinC.
+        ** apply Hforallmd. apply in_eq.
+      * eapply correctness_MWrap; eauto.
+        ** erewrite<- methods_in.
+           *** apply Hsub. apply in_eq.
+           *** apply Hwfct.
+           *** apply HinC.
+        ** apply Hforallmd. apply in_eq.
+Qed.
 
-Lemma correctness_CWrap : forall s k C D fds mds mds',
-    WellFormedClass s k (ClassDef C fds mds) -> 
-    WellFormedClass s k (Wrap_classes C mds mds' D).
+
+Lemma correctness_WrapManyAny : forall md2 mds' mds'' md' C D s k fds mds,
+    WellFormedClassTable s k ->
+    In (ClassDef C fds mds'') k ->
+    NoDupsMds md2 -> NoDupsMds mds' ->
+    (forall md' : md, In md' md2 -> WellFormedMethod ((this, class C) :: nil) s k md') ->
+    (forall md' : md, In md' mds -> WellFormedMethod ((this, class C) :: nil) s k md') ->
+    (forall md' : md, In md' mds -> In md' mds'') ->
+    In md' (Wrap_many_any_methods mds md2) -> C <> D ->
+    WellFormedMethod ((this, class D) :: nil) s
+                     ((ClassDef D ((Field that (class C))::nil) mds') :: k)
+                     md'.
 Proof.
-  intros.
-Abort.
+  intros ? ? ? ? ? ? ? ? ? ? Hwfct HinC HNdmd2 HNdmd' Hforallmd2 Hforallmd Hsub HinMd Hneq.
+  induction mds.
+  - intros. simpl in HinMd. tauto.
+  - intros. simpl in HinMd. inject HinMd; revgoals.
+    + apply IHmds.
+      * intros. apply Hforallmd. apply in_cons. auto.
+      * intros. apply Hsub. apply in_cons. auto.
+      * auto.
+    + destruct a. specialize Hforallmd with (Method i i0 t t0 e).
+      pose proof (Hforallmd (in_eq _ _)). inject H.
+      * eapply correctness_MWrapAny.
+        ** eauto.
+        ** eauto.
+        ** simpl. apply Nat.eqb_neq in Hneq. rewrite Hneq.
+           erewrite<- methods_in.
+           *** apply Hsub. apply in_eq.
+           *** apply Hwfct.
+           *** apply HinC.
+        ** apply Hforallmd. apply in_eq.
+      * eapply correctness_MWrapAny; eauto.
+        ** simpl. apply Nat.eqb_neq in Hneq. rewrite Hneq.
+           erewrite<- methods_in.
+           *** apply Hsub. apply in_eq.
+           *** apply Hwfct.
+           *** apply HinC.
+        ** apply Hforallmd. apply in_eq.
+Qed.
 
+Lemma MWrapManyAny_NoDups : forall mds mds', NoDupsMds mds -> NoDupsMds (Wrap_many_any_methods mds mds').
+Proof.
+  intros. induction mds.
+  - simpl. constructor.
+  - simpl. destruct a. simpl. constructor.
+    + apply IHmds. inject H. auto.
+    + intros. intros H0. clear IHmds. induction mds.
+      * simpl in H0. tauto.
+      * simpl in H0. inject H0.
+        ** destruct a. simpl in H1. inject H1. inject H. specialize H7 with (x'0:=x')(e':=e0)(t1':= t1)(t2':=t2).
+           apply H7. apply in_eq.
+        ** apply IHmds.
+           *** inject H. inject H3. constructor; eauto. intros. intro H. eapply H8. apply in_cons. apply H.
+           *** auto.
+Qed.
+ 
+Lemma correctness_CWrapAny : forall k C D fds mds,
+    In (ClassDef C fds mds) k -> C <> D -> WellFormedClassTable nil k ->
+    NoDupsMds mds -> 
+    WellFormedClass nil k (ClassDef C fds mds) -> 
+    WellFormedClass nil (ClassDef D ((Field that (class C))::nil) (Wrap_many_any_methods mds mds) :: k)
+                           (WrapAny_classes C mds D).
+Proof.
+  intros k0 C D fds mds Hin Hneq Hwfct Hndmd Hwfc. unfold WrapAny_classes. constructor.
+  - intros. inject H; [|inject H0]. constructor. econstructor. apply in_cons. apply Hin.
+  - intros. eapply correctness_WrapManyAny; eauto.
+    + apply MWrapManyAny_NoDups; auto.
+    + intros. inject Hwfc. apply H7; auto.
+    + intros. inject Hwfc. apply H7; auto.
+  - inject Hwfc. constructor; eauto. constructor.
+  - apply MWrapManyAny_NoDups; auto.
+Qed.
+
+Lemma MWrapMany_NoDups : forall mds mds', NoDupsMds mds -> NoDupsMds (Wrap_many_methods mds mds').
+Proof.
+  intros. induction mds.
+  - simpl. constructor.
+  - simpl. destruct a. simpl. destruct (method_def i mds').
+    + destruct m. constructor.
+      * apply IHmds. inject H. apply H2.
+      * intros. clear IHmds. induction mds.
+        ** simpl. auto.
+        ** simpl. intros H0. inject H0.
+           *** destruct a. simpl in H1. destruct (method_def i1 mds').
+               **** destruct m. inject H1. inject H. eapply H7. apply in_eq.
+               **** inject H1. inject H. eapply H7. apply in_eq.
+           *** apply IHmds in H1; auto. inject H. inject H3. constructor; eauto. intros. intros H. eapply H8.
+               apply in_cons. apply H.
+    + constructor.
+      * apply IHmds. inject H. eauto.
+      * intros. clear IHmds. induction mds.
+        ** simpl. auto.
+        ** simpl. intro H0. inject H0.
+           *** destruct a. simpl in H1. destruct (method_def i1 mds').
+               **** destruct m. inject H1. inject H. eapply H7. apply in_eq.
+               **** inject H1. inject H. eapply H7. apply in_eq.
+           *** eapply IHmds.
+               **** inject H. inject H3. constructor; eauto. intros. intros H. eapply H8. apply in_cons. apply H.
+               **** auto.
+Qed.
+
+Lemma correctness_CWrap : forall k C D fds mds mds',
+    In (ClassDef C fds mds) k -> C <> D -> WellFormedClassTable nil k -> NoDupsMds mds' ->
+    (forall md' : md, In md' mds' -> WellFormedMethod ((this, class C) :: nil) nil k md') ->
+    WellFormedClass nil k (ClassDef C fds mds) -> 
+    WellFormedClass nil (ClassDef D ((Field that (class C))::nil) (Wrap_many_methods mds mds') :: k)
+                    (Wrap_classes C mds mds' D).
+Proof.
+  intros ? ? ? ? ? ? Hin Hneq Hwfct Hndmd Hfamd' Hwfc. constructor.
+  - intros. inject H; [|inject H0]. repeat constructor. econstructor. apply in_cons. apply Hin.
+  - intros. eapply correctness_WrapMany.
+    * eauto.
+    * apply Hin.
+    * apply Hndmd. 
+    * apply MWrapMany_NoDups. inject Hwfc. auto.
+    * intros. eauto.
+    * inject Hwfc. apply H6.
+    * intros. eauto.
+    * auto.
+    * apply Hneq.
+  - constructor.
+    + constructor.
+    + intros t' H. inversion H.
+  - apply MWrapMany_NoDups. inject Hwfc. apply H7.
+Qed.
 
 (*Lemmas for CT extensions ENDS*)
 
@@ -1363,25 +1524,6 @@ Proof.
   intros. inject H. apply WFCT.
   - intros. eapply wfc_doesnt_care; eauto.
   - eauto. 
-Qed.
-
-
-Lemma methods_in : forall fds mds s C k,
-    WellFormedClassTable s k ->
-    In (ClassDef C fds mds) k ->
-    mds = (methods C k).
-Proof.
-  intros. destruct H as [s k _ H]. induction k.
-  - inversion H0.
-  - destruct a as [D fds' mds']. destruct (Nat.eq_dec C D).
-    + subst. simpl. rewrite Nat.eqb_refl. inversion H0; eauto.
-      * inject H1. reflexivity.
-      * inject H. apply H7 in H1. tauto. 
-    + unfold methods. apply Nat.eqb_neq in n. rewrite -> n. apply IHk.
-      * inject H. apply H3.
-      * inversion H0.
-        ** inject H1. apply Nat.eqb_neq in n. tauto.
-        ** apply H1.
 Qed.
 
 Lemma methods_are_wf : forall s k C mds,
