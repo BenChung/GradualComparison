@@ -1,4 +1,4 @@
-\documentclass[acmlarge, anonymous, authordraft, review]{acmart} % can add review if you want line numbers
+\documentclass[acmsmall, anonymous, authordraft, review]{acmart} % can add review if you want line numbers
 \settopmatter{printacmref=false} % get rid of acm noise
 \renewcommand\footnotetextcopyrightpermission[1]{}
 \usepackage{stmaryrd}
@@ -398,7 +398,7 @@ will not occur within concretely typed code.
 \begin{figure}[!ht]
   \center
 ~ \\[2cm]
-  {\small
+  {\footnotesize
 \begin{tabular}{r|lllllllllllllr}
  & & \rot{Nominal}
   & \rot{Optional types}
@@ -516,7 +516,7 @@ common representation by the introduction of \emph{casts} and
 
 \vspace{4mm}
 
-\small\begin{tabular}{@{}lll}
+\small\begin{tabular}{@{}ll}
 
 \begin{minipage}{9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
 \e\hspace{.1cm} ::= & \hspace{.2cm} \x        
@@ -532,13 +532,12 @@ common representation by the introduction of \emph{casts} and
    &\B \DynCall\e\m\e 
 \end{tabular}\end{minipage}&
 \begin{minipage}{3.4cm}\begin{tabular}{l@{~}l@{}l@{}l}
-   ~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
-~ \t&::= ~ \any  \B   \C  \\ 
-\end{tabular}\end{minipage} &
-\begin{minipage}{3.0cm}\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e \\
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage}\end{tabular}
+  \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+ \md &::= ~ \Mdef\m\x\t\t\e \\ 
+ \fd &::= ~ \Fdef\f\t \\ 
+  \t &::= ~ \any  \B   \C  \\ 
+\end{tabular}\end{minipage} 
+\end{tabular}
 
 \vspace{4mm}
 
@@ -740,9 +739,9 @@ evaluation order.
 \\
 \K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a[1]..\ap..}}}
 \\
-\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x\t\tp\e\In \App\K\C  \HS  \App\s\a=\obj\C{\a[1]..}
+\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x\t\tp\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..}
 \\
- \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \> \Mdef\m\x\any\any\e \In \App\K\C \HS \App\s\a=\obj\C{\a[1]..}
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..}
 \\
  \K\HS {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
 \\
@@ -808,8 +807,8 @@ achieved by generating a new class with the right method signatures.
   \behcastE\a\Cp\s\K \Kp\ap\sp \HS\HS\WHERE\HS\HS \begin{cases}
 \HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
   \fresh{\D,\ap,\that} \HS\HS
-  \md[1].. \In \App\K\C \qquad \mdp[1].. \In \App\K\Cp \\\HS
-  \names{\mdp[1]..} \subseteq \names{\md[1]..} \HS\HS \cload{\mdp[1]..} \\\HS
+  \md[1].. \In \App\K\C \HS \mdp[1].. \In \App\K\Cp \\\HS
+  \names{\mdp[1]..} \subseteq \names{\md[1]..} \HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
   \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that \HS\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
   \end{cases}
@@ -991,17 +990,17 @@ translation produces well-typed \kafka code.
 \vspace{2mm}  \small
 
 \begin{tabular}{lll}
-\begin{minipage}{7cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\begin{minipage}{5.5cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
 \e\hspace{.1cm} ::= & \hspace{.2cm} \x        
     &\B \this         
    &\B \FRead\f     
-   &\B \FWrite\f\e   
-   &\B \Call\e\m\e \\
-   &
+   &\B \FWrite\f\e \\
+   &  
+   &\B \Call\e\m\e 
    &\B \that      
    &\B \New\C{\e[1]..}  
 \end{tabular}\end{minipage}&
-\begin{minipage}{4.4cm}\begin{tabular}{l@{~}l@{}l@{}ll}
+\begin{minipage}{4cm}\begin{tabular}{l@{~}l@{}l@{}ll}
    ~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
 ~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
 \end{tabular}\end{minipage} &
@@ -1021,7 +1020,7 @@ write programs such as
 \begin{tabbing}
 \hspace{1cm}\K\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
   \K\HS =\HS \= \class\= \C \{\\
-       \>  \>\Mdef\m\x\any\C{\HS\x\HS}\\
+       \> \HS \Mdef\m\x\any\C{\HS\x\HS}\\
        \> \}  \\
        \>\class \D \{ \}
 \end{tabbing}         
@@ -1040,17 +1039,17 @@ give rise to an error.
 \hrulefill  \small
 
 \hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllllll}  
-\begin{minipage}{1.25cm}\begin{mathpar}  
+\begin{minipage}{1.20cm}\begin{mathpar}  
  \Rule{STG-VAR}{
-    ~\\\\  ~\\\\
+    ~\\\\  ~\\\\ ~\\\\
    \HasType \Env\x\t
  }{
    \EnvTypeS \Env\K\x\t
 }
 \end{mathpar}\end{minipage}
 &
- \begin{minipage}{1.7cm}\begin{mathpar}
-  \Rule{STG-GET}{ ~\\\\
+ \begin{minipage}{1.5cm}\begin{mathpar}
+  \Rule{STG-GET}{ ~\\\\ ~\\\\
    \HasType \Env\this\C \\\\
   \Fdef\f\t \in \App\K\C
 }{
@@ -1058,34 +1057,38 @@ give rise to an error.
 }    
 \end{mathpar}
 \end{minipage} &
-  \begin{minipage}{3.05cm}\begin{mathpar}  
-\Rule{STG-SET}{
-  \HasType \Env\this\C \quad
-  {\Fdef\f\t \in \App\K\C} \\\\
+  \begin{minipage}{2.85cm}\begin{mathpar}  
+\Rule[width=12em]{STG-SET}{ ~\\\\
+  %\HasType \Env\this\C \quad
+  {\Fdef\f\t \in \App\K{\Env(\this)}} \\\\
   \EnvTypeS \Env\K\e\tp \\\\
   \ConvertE\K{s}\tp\t
 }{
   \EnvTypeS \Env\K{\FWrite\f\e}\t
 }    
-\end{mathpar}\end{minipage}& \begin{minipage}{2.15cm}\begin{mathpar}  
-  \Rule[width=15em]{STG-CALL}{
-   ~\\\\       
+\end{mathpar}
+\end{minipage} & 
+  \begin{minipage}{1.85cm}\begin{mathpar}  
+  \Rule{STG-CALL}{
+   ~\\\\ ~\\\\
   \EnvTypeS \Env\K\e\any \\\\
   \EnvTypeS \Env\K\ep\t 
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
 }    
-\end{mathpar}\end{minipage}& \begin{minipage}{3.21cm}\begin{mathpar}  
-\Rule[width=15em]{STG-CALL}{
-  \EnvTypeS \Env\K\e\C \quad
+\end{mathpar}
+\end{minipage} & 
+  \begin{minipage}{2.7cm}\begin{mathpar}  
+\Rule{STG-CALL}{
+  \EnvTypeS \Env\K\e\C \\\\
   \EnvTypeS \Env\K\ep\t \\\\
-  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
-  \ConvertE\K{s}\t{\t[1]}
+  \ConvertE\K{s}\t{\t[1]} \\\\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
 }    
-\end{mathpar}\end{minipage}&\begin{minipage}{3cm}\begin{mathpar}  
-\Rule{STG-NEW}{
+\end{mathpar}\end{minipage}&\begin{minipage}{2.0cm}\begin{mathpar}  
+\Rule{STG-NEW}{~\\\\
   \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
   \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
  \ConvertE\K{s}{\tp[1]}{\t[1]}..
@@ -1170,9 +1173,9 @@ that expression will evaluate successfully.
 {\small
 \begin{tabbing}
   \hspace{.5cm}
-   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
-   \> \Call{\New\C{}}\m{\New\C{}}                                  \>  \>  \Mdef\m\x\D\C{~\this~} \\
-   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\C{}}}              \>  \>  \Mdef\mp\x\any\D{~\x~}\\
+   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \> \Call{\New\C{}}\m{\New\C{}}                                  \>  \HS  \Mdef\m\x\D\C{~\this~} \\
+   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\C{}}}              \>  \HS  \Mdef\mp\x\any\D{~\x~}\\
    \>                                                              \>  \}   \\
    \>                                                              \> \Class\D{}{}
 \end{tabbing}}
@@ -1214,9 +1217,9 @@ translate the class definition and the last expression of the example above as:
 {\small
 \begin{tabbing}
   \hspace{.2cm}
-   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
-   \>                                   \>  \>  \Mdef\m\x\any\any{~\SubCast\any\this~} \\
-   \>              \>  \>  \Mdef\mp\x\any\any{~\x~}\\
+   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \>              \>\HS \Mdef\m\x\any\any{~\SubCast\any\this~} \\
+   \>              \>\HS  \Mdef\mp\x\any\any{~\x~}\\
    \>                                                              \>  \}   
 \end{tabbing}}
 \medskip
@@ -1398,11 +1401,11 @@ dynamic checks.
 % ERR -- D !|=> C} 
 \\\>
 \Call{\New\A{}}\m{\New\D{}}
-  \>    \>  \Mdef \n\x\C\C{~\x~}
+  \>    \HS  \Mdef \n\x\C\C{~\x~}
 % ERR -- D !|=> ?C 
 \\\>
 \Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
-  \>    \> \Mdef \m\x{\dt\C} {\dt\C}{~\x~}
+  \>    \HS \Mdef \m\x{\dt\C} {\dt\C}{~\x~}
 \\\>
 \Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
 %  -- Cast inserted} 
@@ -1475,11 +1478,12 @@ corresponding \f:\kty\t field.  As an example, the above translates to:
 \begin{tabbing}
   \HS
   \KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
-\HS\WHERE\HS \K=\HS\=
+  \\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+\WHERE\HS \K=\HS\=
  \class\= \A \{\\
-\>\>    \Mdef \m\x\any \any{~\x~}\\
-\>\>    \Mdef \n\x\C\C{~\x~}\\
-\>\>    \Mdef \n\x\any\any {\SubCast\any{\KCall\this\n{\SubCast\C\x}\C\C }} \\
+\>\HS    \Mdef \m\x\any \any{~\x~}\\
+\>\HS    \Mdef \n\x\C\C{~\x~}\\
+\>\HS    \Mdef \n\x\any\any {\SubCast\any{\KCall\this\n{\SubCast\C\x}\C\C }} \\
 \>\}
  \end{tabbing}
 \medskip
@@ -1514,8 +1518,8 @@ structural casts, are instrumental to give semantics to the Thorn language.
 \TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
 \hspace{4.6cm}\= \WHERE\HS 
   \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS
-  \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS
-  \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
+  \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+  \>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
 \\
 \TRG\x\Env = \src{\x}
 \\
@@ -1589,7 +1593,7 @@ illustrate the semantics of Typed Racket, consider the following example:
   \Call{\New\A{}}\m{\New\C{}}
   \HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=
   \class\=  \A \{ \\
-  \>\> \Mdef\m\x\any\any{ ~ \Call{\New\D{}}\m\x ~} \\
+  \>\HS \Mdef\m\x\any\any{ ~ \Call{\New\D{}}\m\x ~} \\
   \> \}\\
  \> \Class \C{}{\Mdef\m\x\any\any{~\x~}} \\
  \> \Class \D{}{\Mdef\m\x\D\D{~\Call\x\m\x~}} \\
@@ -1613,14 +1617,18 @@ code for the example is:
 %TODO: Jan is this better? { \bf JAN: I don't really like the above text. }
 
 \medskip
+\begin{minipage}{\textwidth}
 \begin{tabbing}
-\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \HS\WHERE\HS\K\HS=\HS\=
+\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\
+\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+\WHERE\HS\K\HS=\HS\=
 \class\= \A \{\\
-\>\> \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\D}\D~}} \\
+\>\HS \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\D}\D~}} \\
 \>\}\\
  \>  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
  \>  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
 \end{tabbing}
+\end{minipage}
 \medskip
 
 
@@ -1739,7 +1747,8 @@ it merely validates that all required method names are present.
   \fdp[1] = \src{\Ftype\f\any} .. \HS
   \fd[1] = \Ftype\f\t ..\HS\HS
   \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \HS
-  \md[1] = \Mdef\m\x\t\tp\e ..\HS\HS
+  \md[1] = \Mdef\m\x\t\tp\e .. \\
+  \HS\HS\HS\HS\HS\HS\HS\HS\HS
    \ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
 \end{tabbing}
 \begin{tabbing}
@@ -1837,7 +1846,7 @@ value on reads based on the static typing.
 \Class\D{}{&\Mdef{\xt n}\x\any\any{\idbody\D}} \\
 \Class{\xt E}{}{&\Mdef\m\x\any\any{\idbody\D}} \\
 \Class{\xt F}{}{&\Mdef\m\x\any\any{\idbody{\xt E}} \\
-                &\Mdef\n\x\any\any{\SubCast\any\x\sspce \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
+                &\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
 \multicolumn{2}{l}{\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}}
 \end{array}
 \)
@@ -1860,11 +1869,13 @@ to be called with a value of type \any at any point. However, this forces \m
 to check its arguments at every method invocation.
  
 
-%% \begin{figure}[!t]
+%\begin{figure}[!t]
 %% \small
 %%  \begin{tabular}{|lll|}\hline
 %%   \begin{minipage}{4.6cm}
 %%     \begin{lstlisting}
+   
+    
     
 %% class A {
 %%  m(x:A):A {this}}
@@ -1886,7 +1897,7 @@ to check its arguments at every method invocation.
 %%  m(x:A):A {this}}
 
 %% class Q { 
-%%  n(x:Q):Q {this}} 
+%%  m(x:Q):Q {this}} 
  
 %% class I {
 %%  m(x:Q):I {this}}
@@ -1928,15 +1939,15 @@ to check its arguments at every method invocation.
 
 %% \center
 
-%% \begin{tabular}{|r|l@{\hspace{3mm}}l@{\hspace{3mm}}l|}\hline
-%%                      & L1 & L2 & L3 \\\hline
-%% Thorn                &  ~~ & ~~  & ~~ \\\rowcolor{Gray}
-%% Typed Racket         &    & \V &    \\
-%% Transient RetPy      &    & \V & \V \\\rowcolor{Gray}
+%% \begin{tabular}{|r|l@{~}l@{~}l|}\hline
+%%                      & L1 & L2 & L3 \\\hline\rowcolor{Gray}
+%% Thorn                &    &    & \V \\
+%% Typed Racket         &    & \V &    \\\rowcolor{Gray}
+%% Transient RetPy      &    & \V & \V \\
 %% TypeScript           & \V & \V & \V \\\hline
 %% \end{tabular}  
-%%  \caption{Semantic litmus tests.}\label{litmus}
-%% \end{figure}
+%  \caption{Semantic litmus tests.}\label{litmus}
+%\end{figure}
 
 
 
