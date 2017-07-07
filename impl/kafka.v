@@ -2508,11 +2508,12 @@ Proof.
                       *** eapply hastypes_ignores_heapv; eauto.
                       *** symmetry. eapply frwf_deref_implies_eq_length; eauto.
              - rewrite <- Heq. inject Hi5. inject H. apply in_or_app. right. eauto. }
-        ** right. inversion H as [E]. exists (ENew C a1s E e2s). destruct H0.
-           *** left. sync_destruct_exists H0. destruct H0. simpl. rewrite<- H0.
+        ** right. inversion H as [E]. got_stuck (ENew C a1s E e2s). 
+           *** destruct H0. simpl. rewrite<- H0.
                apply deref_map in H2. rewrite <- H2. destruct H7. repeat split; eauto. 
-           *** right. sync_destruct_exists H0. destruct H0. subst. destruct H7.
+           *** destruct H0. subst. destruct H7.
                simpl. rewrite (deref_map _ _ H2). repeat split; eauto.
+           *** subst. simpl. rewrite (deref_map _ _ H2). auto. 
   - intros. subst. destruct H; try tauto.
     + destruct H as [a H]. subst. unfold is_sound. pose proof h as h'.
       apply eventually_concrete in h. inject h. inject H. apply ref_has_cell' in H1. 
@@ -2522,21 +2523,25 @@ Proof.
       ** right. left. exists (Ref a). exists s. exists k. repeat split; eauto.
          *** pose proof s0. apply subtype_only_classes in s0. inject s0. eapply SSubCast; eauto. 
          *** eapply WFSWP; eauto. econstructor; eauto.
-      ** right. right. exists EHole. right. exists t0. exists a. exists C. exists a'. repeat split; eauto.
+      ** right. right. exists EHole. right. left. exists t0. exists a. exists C. exists a'. repeat split; eauto.
     + destruct H.
       * destruct H as [e' [s' [k' [HSteps [HWFS [HHT [Hrr Hext]]]]]]]. unfold is_sound. right. left.
         eval_ctx (ESubCast t0 EHole). simpl. eauto. 
       * inject H. unfold is_sound. right. right. exists (ESubCast t0 x). inject H0.
         ** left. sync_destruct_exists H. inject H. inject H1. repeat split; eauto.
-        ** right. sync_destruct_exists H. inject H. inject H1. repeat split; eauto.
+        ** right. destruct H.
+           *** left. sync_destruct_exists H. inject H. inject H1. repeat split; eauto.
+           *** right. sync_destruct_exists H. subst. auto. 
   - intros. subst. destruct H; eauto; revgoals.
     + right. inject H.
       * left. destruct H0 as [e' [s' [k' [Hi1 [Hi2 [Hi3 [Hi4 Hi5]]]]]]].
         eval_ctx (EBehCast t0 EHole). simpl. eauto.
       * right. destruct H0 as [E [H1| H2]]; exists (EBehCast t0 E). 
         ** left. sync_destruct_exists H1. inject H1. split; auto.
-        ** right. sync_destruct_exists H2. inject H2. split; auto.
-    + destruct H as [a H]. subst. unfold is_sound. 
+        ** right. destruct H2.
+           *** left. sync_destruct_exists H. inject H. split; auto.
+           *** right. sync_destruct_exists H. inject H. split; auto.
+    + admit.
   - intros. pose proof (H0 H1 H2 H3).  pose proof (H H1 H2 H3) as H'.
     destruct H4 as [e1s [a1s [t1s [e2s [t2s H4]]]]].
     inject H4. inject H6. inject H2. inject H3. inject H4. clear H0.
@@ -2550,8 +2555,10 @@ Proof.
         ** inject H4. inject H0.
            *** destruct H4 as [? [? [? [? [? [Heq H6]]]]]]. subst. unfold not. intros.
                destruct x; try (simpl in H0; inject H0).
-           *** destruct H4 as [? [? [? [? [Heq H4]]]]]. subst. unfold not. intros.
-               destruct x; try (simpl in H0; inject H0).
+           *** destruct H4.
+               **** destruct H0 as [? [? [? [? [Heq H4]]]]]. subst. unfold not. intros.
+                    destruct x; try (simpl in H0; inject H0).
+               **** destruct H0 as [? [? H0]]. subst. intros H'. destruct x; try (simpl in H'; inject H').
       * right. apply H0.
       * generalize dependent t1s. generalize dependent a1s. induction e1s.
         ** intros. simpl. pose proof H5. apply sound_destr in H5. apply (same_size_prefix_hts _ _ _ _ _ _ _ h0) in H5.
