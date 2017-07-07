@@ -97,18 +97,8 @@ Inductive md := (* M X t t e *)
 Inductive k :=
 | ClassDef : id -> list fd -> list md -> k.
 Definition ct := list k.
-Definition ct_ext (k : ct) (k' : ct) := exists k'',
-           k' = k'' ++ k.
 Require Import Coq.Logic.FinFun.
 
-(*CT extension basic property*)
-Lemma ct_exten_refl : forall k,
-        ct_ext k k.
-Proof.
-  intros.
-  unfold ct_ext.
-  exists nil. simpl. auto.
-Qed.
 
 Lemma type_dec : forall x y : type, {x = y} + {x <> y}.
 Proof.
@@ -461,7 +451,8 @@ Inductive NoDupsFds : list fd -> Prop :=
         that's already in the table.*)
 Inductive NoDupsClasses : list k -> Prop :=
 | NDUPK : forall C fds mds ks, NoDupsClasses ks -> (forall fds' mds', ~(In (ClassDef C fds' mds') ks)) ->
-          NoDupsClasses ((ClassDef C fds mds)::ks).
+                               NoDupsClasses ((ClassDef C fds mds)::ks)
+| NDUPNIL : NoDupsClasses nil.
 
 Inductive WellFormedClass : heap -> ct -> k -> Prop :=
 | WFWC : forall s k C mds fds,
@@ -495,36 +486,115 @@ Proof.
         ** apply H1.
 Qed.
 
-(*Lemmas for CT extensions*)
-Lemma ct_exten_wfct : forall s k k',
-        WellFormedClassTable s k /\ ct_ext k k' -> WellFormedClassTable s k'.
-Proof.
-  intros. destruct k'.
-  - inversion H. unfold ct_ext in H1.
-Abort.
+Definition ct_ext (k : ct) (k' : ct) := exists k'',
+           k' = k'' ++ k /\ NoDupsClasses k'.
 
-Lemma ct_exten_hastype : forall g s k e t k',
-        HasType g s k e t /\ ct_ext k k' -> HasType g s k' e t.
+(*CT extension basic property*)
+Lemma ct_exten_refl : forall k,
+    NoDupsClasses k -> ct_ext k k.
 Proof.
-Abort.
-
-Lemma ct_exten_subtyp : forall m k t t' k',
-        Subtype m k t t' /\ ct_ext k k' -> Subtype m k' t t'.
-Proof.
-Abort.
-
-Lemma ct_exten_wftype : forall t k k',
-    WellFormedType k t -> ct_ext k k' -> WellFormedType k' t.
-Proof.
-  intros. destruct t; try constructor. unfold ct_ext in H0.
-  destruct H0 as [k'' H']. subst. induction k0.
-  - inject H. inject H2.
-  - inject H. inject H2.
-    + simpl. econstructor. apply in_or_app. right. apply in_eq.
-    + simpl. econstructor. apply in_or_app. right. apply in_cons. eauto.
+  intros.
+  unfold ct_ext.
+  exists nil. simpl. repeat split; auto; try inject H0. 
 Qed.
 
-Hint Resolve ct_exten_wftype.
+Hint Resolve ct_exten_refl. 
+
+(*Lemmas for CT extensions*)
+
+Lemma methods_implies_containment : forall m k C, In m (methods C k) ->
+                                                  exists fds mds, In (ClassDef C fds mds) k.
+Proof.
+  intros. induction k0.
+  - simpl in H. tauto.
+  - simpl in H. destruct a. destruct (Nat.eqb C i) eqn:Heq.
+    + apply Nat.eqb_eq in Heq. subst. exists l. exists l0. apply in_eq.
+    + apply IHk0 in H. inject H. inject H0.  exists x. exists x0. apply in_cons. apply H.
+Qed.
+
+Lemma fields_implies_containment : forall m k C, In m (fields C k) ->
+                                                  exists fds mds, In (ClassDef C fds mds) k.
+Proof.
+  intros. induction k0.
+  - simpl in H. tauto.
+  - simpl in H. destruct a. destruct (Nat.eqb C i) eqn:Heq.
+    + apply Nat.eqb_eq in Heq. subst. exists l. exists l0. apply in_eq.
+    + apply IHk0 in H. inject H. inject H0.  exists x. exists x0. apply in_cons. apply H.
+Qed.
+
+Lemma ct_exten_methods : forall m k k' C, In m (methods C k) -> ct_ext k k' -> In m (methods C k').
+Proof.
+  intros. inject H0. inject H1. induction x.
+  - simpl. apply H.
+  - simpl. destruct a. simpl in H2. inject H2.  apply methods_implies_containment in H.
+    inject H. inject H0. assert (Hin: (In (ClassDef C x0 x1) (x ++ k0))).
+    { apply in_or_app. auto. }
+    destruct (Nat.eqb C i) eqn:Heq.
+    + rewrite Nat.eqb_eq in Heq. subst. apply H6 in Hin. tauto.
+    + apply IHx. apply H3.
+Qed.
+
+Lemma ct_methods_eq : forall k k' C, WellFormedType k (class C) -> ct_ext k k' -> (methods C k) = (methods C k').
+Proof.
+  intros. inject H0. inject H1. induction x.
+  - simpl. auto.
+  - simpl. destruct a. destruct (Nat.eq_dec C i).
+    + subst. inject H. inject H2. assert (Hin: In (ClassDef i fds mds) (x ++ k0)).
+      { apply in_or_app. right. auto. }
+      apply H6 in Hin. tauto.
+    + rewrite<- Nat.eqb_neq in n. rewrite n. apply IHx. simpl in H2. inject H2. apply H3.
+Qed.
+
+Lemma ct_fields_eq : forall k k' C, WellFormedType k (class C) -> ct_ext k k' -> (fields C k) = (fields C k').
+Proof.
+  intros. inject H0. inject H1. induction x.
+  - simpl. auto.
+  - simpl. destruct a. destruct (Nat.eq_dec C i).
+    + subst. inject H. inject H2. assert (Hin: In (ClassDef i fds mds) (x ++ k0)).
+      { apply in_or_app. right. auto. }
+      apply H6 in Hin. tauto.
+    + rewrite<- Nat.eqb_neq in n. rewrite n. apply IHx. simpl in H2. inject H2. apply H3.
+Qed.
+
+Hint Resolve ct_fields_eq. 
+Hint Resolve ct_exten_methods. 
+Hint Resolve ct_methods_eq.
+Hint Resolve fields_implies_containment.
+
+Lemma fields_ct_ext : forall fd k k' C,
+    ct_ext k k' -> In fd (fields C k) -> In fd (fields C k').
+Proof.
+  intros. pose proof H0. apply fields_implies_containment in H0. inject H0. inject H2.  
+  erewrite<- ct_fields_eq; eauto. econstructor. apply H0. 
+Qed.
+
+Hint Resolve fields_ct_ext.
+
+Lemma ct_exten_subtyp : forall m k t t' k',
+        Subtype m k t t' -> ct_ext k k' -> Subtype m k' t t'.
+Proof.
+Admitted.
+
+Hint Resolve ct_exten_subtyp.
+
+Lemma ct_exten_wft : forall k k' t, WellFormedType k t -> ct_ext k k' -> WellFormedType k' t.
+Proof.
+  intros. inject H; try constructor. inject H0. inject H. econstructor. apply in_or_app.
+  right. apply H1.
+Qed.
+
+Hint Resolve ct_exten_wft.
+  
+Lemma ct_exten_hastype : forall g s k e t k',
+        HasType g s k e t -> ct_ext k k' -> HasType g s k' e t.
+Proof.
+  intros. pose proof (eq_refl k0). generalize dependent H1.
+  pose proof (typing_ind (fun gi si ki ei ti ih => ki = k0 -> HasType gi si k' ei ti)
+                         (fun gi si ki ei ti ih => ki = k0 -> HasTypeExpr gi si k' ei ti)
+                         (fun gi si ki esi tsi ih => ki = k0 -> HasTypes gi si k' esi tsi)).
+  apply H1; clear H1; try (intros; subst; econstructor; eauto; fail). 
+  - intros. subst. econstructor; eauto. inject H0. inject H2.  apply in_or_app. right. apply i.
+Qed.
 
 (* Inductive expr :=
 | Var : id -> expr
@@ -626,6 +696,9 @@ Proof.
     + apply IHmds in H. apply H.
 Qed.
 
+Definition fresh_class_name(C : id)(k : ct) :=
+  forall fds mds, ~ In (ClassDef C fds mds) k.
+
 Ltac ht :=
   match goal with
   | [ |- HasType _ _ _ _ _ ] => constructor
@@ -635,6 +708,7 @@ Ltac ht :=
 Hint Constructors HasType.
 Hint Constructors HasTypeExpr.
 Lemma correctness_MWrap : forall m x t1 t2 e g s k md mds mds' C D,
+    WellFormedClassTable nil k -> fresh_class_name D k -> 
     C <> D -> NoDupsMds mds -> NoDupsMds mds' -> x <> this -> 
     md = Method m x t1 t2 e ->
     (forall md', In md' mds -> WellFormedMethod ((this, class C) :: g) s k md') ->
@@ -645,7 +719,11 @@ Lemma correctness_MWrap : forall m x t1 t2 e g s k md mds mds' C D,
 Proof.
   intros. subst. simpl.
   assert (Hctext: ct_ext k0 (ClassDef D (Field that (class C) :: nil) mds' :: k0)).
-  { unfold ct_ext. exists ((ClassDef D (Field that (class C) :: nil) mds')::nil). simpl. auto. }
+  { unfold ct_ext. exists ((ClassDef D (Field that (class C) :: nil) mds')::nil). split.
+    - simpl. auto.
+    - constructor.
+      + inject H. auto.
+      + unfold fresh_class_name in H0. apply H0. }
   assert (Hwt: forall t1 t2 t x' e',
              WellFormedType (ClassDef D (Field that (class C) :: nil) mds' :: k0) t1 ->
              In (Method m x t1 t2 e) (methods C k0) ->
@@ -657,38 +735,38 @@ Proof.
                          t2).
   { intros. repeat (ht; eauto). 
     * simpl. left. auto.
-    * simpl. rewrite Nat.eqb_refl. apply in_eq.
-    * simpl. apply Nat.eqb_neq in H. rewrite H. eauto. }
+    * simpl. rewrite Nat.eqb_refl. apply in_eq. }
   assert (Hwf: WellFormedType ((ClassDef D ((Field that (class C))::nil) mds') :: k0) t1 /\
                WellFormedType ((ClassDef D ((Field that (class C))::nil) mds') :: k0) t2).
-  { inject H6; [split; try constructor|]. split; eapply ct_exten_wftype; eauto. }
+  { inject H8; [split; try constructor|]. split; eauto. }
   inject Hwf. 
   destruct (method_def m mds) eqn:Hmd.
   - destruct m0 as [m' x' t1' t2' e']. symmetry in Hmd.
     pose proof (mdef_same_name m' m _ _ _ _ _ Hmd). subst.
-    rewrite correctness_mdef in Hmd; eauto. apply H4 in Hmd. inject Hmd.
+    rewrite correctness_mdef in Hmd; eauto. apply H6 in Hmd. inject Hmd.
     + constructor; eauto. ht. ht; eauto; [constructor|]. ht. apply Hwt; eauto.
       repeat ht; eauto. apply in_or_app. right. apply in_eq. 
-    + constructor; eauto.  ht. ht; [eapply ct_exten_wftype; eauto|].
+    + constructor; eauto.  ht. ht; [eauto|].
       ht. eapply Hwt; eauto. repeat ht; eauto. apply in_or_app. right. apply in_eq. 
-  - inject H6.
+  - inject H8.
     + constructor; eauto. ht. apply Hwt; eauto. repeat ht. apply in_or_app. right. apply in_eq.
     + constructor; eauto. ht. apply Hwt; eauto. repeat ht. apply in_or_app. right. apply in_eq. 
 Qed.
 
-Lemma correctness_WrapMany : forall md2 mds' mds'' md' C D s k fds mds,
-    WellFormedClassTable s k ->
+Lemma correctness_WrapMany : forall md2 mds' mds'' md' C D k fds mds,
+    fresh_class_name D k ->
+    WellFormedClassTable nil k ->
     In (ClassDef C fds mds'') k ->
     NoDupsMds md2 -> NoDupsMds mds' ->
-    (forall md' : md, In md' md2 -> WellFormedMethod ((this, class C) :: nil) s k md') ->
-    (forall md' : md, In md' mds -> WellFormedMethod ((this, class C) :: nil) s k md') ->
+    (forall md' : md, In md' md2 -> WellFormedMethod ((this, class C) :: nil) nil k md') ->
+    (forall md' : md, In md' mds -> WellFormedMethod ((this, class C) :: nil) nil k md') ->
     (forall md' : md, In md' mds -> In md' mds'') ->
     In md' (Wrap_many_methods mds md2) -> C <> D ->
-    WellFormedMethod ((this, class D) :: nil) s
+    WellFormedMethod ((this, class D) :: nil) nil
                      ((ClassDef D ((Field that (class C))::nil) mds') :: k)
                      md'.
 Proof.
-  intros ? ? ? ? ? ? ? ? ? ? Hwfct HinC HNdmd2 HNdmd' Hforallmd2 Hforallmd Hsub HinMd Hneq.
+  intros ? ? ? ? ? ? ? ? ? HFresh Hwfct HinC HNdmd2 HNdmd' Hforallmd2 Hforallmd Hsub HinMd Hneq.
   induction mds.
   - intros. simpl in HinMd. tauto.
   - intros. simpl in HinMd. inject HinMd; revgoals.
@@ -817,13 +895,14 @@ Qed.
 Lemma correctness_CWrap : forall k C D fds mds mds',
     In (ClassDef C fds mds) k -> C <> D -> WellFormedClassTable nil k -> NoDupsMds mds' ->
     (forall md' : md, In md' mds' -> WellFormedMethod ((this, class C) :: nil) nil k md') ->
-    WellFormedClass nil k (ClassDef C fds mds) -> 
+    WellFormedClass nil k (ClassDef C fds mds) -> fresh_class_name D k -> 
     WellFormedClass nil (ClassDef D ((Field that (class C))::nil) (Wrap_many_methods mds mds') :: k)
                     (Wrap_classes C mds mds' D).
 Proof.
-  intros ? ? ? ? ? ? Hin Hneq Hwfct Hndmd Hfamd' Hwfc. constructor.
+  intros ? ? ? ? ? ? Hin Hneq Hwfct Hndmd Hfamd' Hwfc Hfresh. constructor.
   - intros. inject H; [|inject H0]. repeat constructor. econstructor. apply in_cons. apply Hin.
   - intros. eapply correctness_WrapMany.
+    * eauto.
     * eauto.
     * apply Hin.
     * apply Hndmd. 
@@ -1408,8 +1487,8 @@ Inductive Steps : ct -> expr -> heap -> ct -> expr -> heap -> Prop :=
     s' = (a'', HCell(E,  a::nil))::s ->
     k' = k ++ [(Wrap_classes C mds mds' E)] ->
     Steps k (BehCast (class E) (Ref a)) s k' (Ref a'') s'
-| SCtx : forall k e s e' s' E,
-    Steps k e s k e' s' -> Steps k (equivExpr e E) s k (equivExpr e' E) s'.
+| SCtx : forall k k' e s e' s' E,
+    Steps k e s k' e' s' -> Steps k (equivExpr e E) s k' (equivExpr e' E) s'.
 Hint Constructors Steps.
 Hint Constructors EvalCtx.
 
@@ -1681,22 +1760,6 @@ Proof.
     + inversion H2. 
     + simpl. simpl in H. inject H. eapply HTSCONS; eauto.
 Qed.
-  
-Definition is_sound(k:ct)(s:heap)(e:expr)(t:type) :=
-  (exists a : ref, e = Ref a) \/
-  (exists (e' : expr) (s' : heap), Steps k e s k e' s' /\
-                                           WellFormedState k e' s' /\
-                                           HasType nil s' k e' t /\
-                                           retains_references s s') \/
-  (exists E : EvalCtx,
-      (exists (a : ref) (m : id) (a' : ref) (C : id) (aps : list ref),
-          (e = equivExpr (DynCall (Ref a) m (Ref a')) E) /\
-          In (a, HCell(C, aps)) s /\
-          forall x e, ~ (In (Method m x Any Any e) (methods C k))) \/
-      (exists (t' : type) (a : ref) (C : id) (aps:list ref),
-          (e = equivExpr (SubCast t' (Ref a)) E) /\
-          In (a, HCell(C,aps)) s /\
-          ((Subtype empty_mu k (class C) t') -> False))).
 
 Lemma ht_any_expr : forall s k e, HasType nil s k e Any -> HasTypeExpr nil s k e Any.
 Proof.
@@ -2077,20 +2140,6 @@ Proof.
   - apply hastypes_same_length in H. repeat rewrite app_length in H.
     apply forall_same_size in H1. simpl in H. rewrite H1 in H. omega.
 Qed.
-Lemma sound_destr : forall k s e2s t2s,
-    Forall2 (is_sound k s) e2s (typesof t2s) ->
-    Forall2 (fun e fd => match fd with (Field f t) => is_sound k s e t end) e2s t2s.
-Proof.
-  intros. dependent induction H.
-  - destruct t2s.
-    + constructor.
-    + simpl in x. destruct f. inject x.
-  - destruct t2s.
-    + inject x.
-    + constructor.
-      * destruct f. simpl in x. inject x. auto.
-      * apply IHForall2. simpl in x. destruct f. inject x. auto.
-Qed.
 
 
 Ltac unfolde name :=
@@ -2107,10 +2156,39 @@ Proof.
     simpl in x. apply IHH' in x. tauto.
 Qed.
 
+Lemma ct_exten_refl'' : forall s k,
+    WellFormedClassTable s k -> ct_ext k k.
+Proof.
+  intros. inject H. eauto.
+Qed.
+Hint Resolve ct_exten_refl''. 
+
+Lemma frwf_exten_ctx : forall k k' s fs1 a1s, 
+    FieldRefWellFormed k s fs1 a1s -> ct_ext k k' -> FieldRefWellFormed k' s fs1 a1s.
+Proof.
+  intros. induction H.
+  - econstructor.
+    + eapply ct_exten_hastype; eauto.
+    + apply IHFieldRefWellFormed. eauto.
+  - constructor.
+Qed.
+
+Lemma ct_exten_hastypes :forall (g : env) (s : heap) (k : ct) e t (k' : ct),
+    HasTypes g s k e t -> ct_ext k k' -> HasTypes g s k' e t.
+Proof.
+  intros. induction H.
+  - econstructor.
+    + eapply ct_exten_hastype; eauto.
+    + eauto.
+  - eauto.
+Qed. 
+
+Hint Resolve frwf_exten_ctx.
+Hint Resolve ct_exten_hastypes.
 Ltac eval_ctx E :=
   match goal with
-  | [ H: Steps _ ?e1 _ _ ?e2 ?s |- _ ] =>
-    exists (equivExpr e2 E); exists s;
+  | [ H: Steps _ ?e1 _ ?k ?e2 ?s |- _ ] =>
+    exists (equivExpr e2 E); exists s; exists k;
     match goal with
     | [ H' : (WellFormedState _ _ ?s') |- context[(Steps _ ?e3 _ _ ?e4 ?s')]] =>
       let Htype := fresh "H" in
@@ -2121,9 +2199,45 @@ Ltac eval_ctx E :=
       [|assert (Hleft: e3 = (equivExpr e1 E));
         [try (subst; eauto;fail)| rewrite Hleft; clear Hleft; repeat split;
                                   [eauto| subst; simpl; try (inject H'; eapply WFSWP;eauto)
-                                   | apply Htype | eauto ]]]
+                                   | apply Htype | eauto | eauto ]]]
     end
   end.
+
+  
+Definition is_sound(k:ct)(s:heap)(e:expr)(t:type) :=
+  (exists a : ref, e = Ref a) \/
+  (exists (e' : expr) (s' : heap)(k':ct), Steps k e s k' e' s' /\
+                                           WellFormedState k' e' s' /\
+                                           HasType nil s' k' e' t /\
+                                           retains_references s s' /\
+                                           ct_ext k k') \/
+  (exists E : EvalCtx,
+      (exists (a : ref) (m : id) (a' : ref) (C : id) (aps : list ref),
+          (e = equivExpr (DynCall (Ref a) m (Ref a')) E) /\
+          In (a, HCell(C, aps)) s /\
+          forall x e, ~ (In (Method m x Any Any e) (methods C k))) \/
+      (exists (t' : type) (a : ref) (C : id) (aps:list ref),
+          (e = equivExpr (SubCast t' (Ref a)) E) /\
+          In (a, HCell(C,aps)) s /\
+          ((Subtype empty_mu k (class C) t') -> False))).
+
+
+Lemma sound_destr : forall k s e2s t2s,
+    Forall2 (is_sound k s) e2s (typesof t2s) ->
+    Forall2 (fun e fd => match fd with (Field f t) => is_sound k s e t end) e2s t2s.
+Proof.
+  intros. dependent induction H.
+  - destruct t2s.
+    + constructor.
+    + simpl in x. destruct f. inject x.
+  - destruct t2s.
+    + inject x.
+    + constructor.
+      * destruct f. simpl in x. inject x. auto.
+      * apply IHForall2. simpl in x. destruct f. inject x. auto.
+Qed.
+
+Hint Resolve ct_exten_refl. 
 
 Ltac sync_destruct_exists H :=
   repeat (let x := fresh "x" in destruct H as [x H]; exists x).
@@ -2153,23 +2267,26 @@ Proof.
   - intros. subst. destruct H; eauto.
     + unfold is_sound. eauto.
     + unfold is_sound. right. destruct H.
-      * left. destruct H  as [e' [s' [H1 [H2 [H3 H4]]]]]. exists e'. exists s'. repeat split; eauto.
+      * left. unfolde e'. unfolde s'. unfolde k'.
+        destruct H  as [H1 [H2 [H3 [H4 H5]]]].
+        repeat split; eauto. 
       * right. eauto.
   - intros. subst. destruct H; try (unfold is_sound); eauto.
   - intros. subst. unfold is_sound. right. left.
     destruct (infields_implies_fieldin _ _ _ _ _ _ _ Hwfh Hwfct i i0) as [a'' H1].
-    exists (Ref a''). exists s. repeat split; eauto.
+    exists (Ref a''). exists s. exists k. repeat split; eauto.
     + eapply WFSWP; eauto. destruct Hwfh. apply a0 in i. destruct i as [_ H2].
       eapply FieldsWFImpliesFieldIn; eauto.
     + eapply FieldsWFImpliesFieldIn; eauto. destruct Hwfh. apply H0 in i.
-      destruct i as [_ H2]. eauto. 
+      destruct i as [_ H2]. eauto.
   - intros. subst. destruct H; eauto.
     * unfold is_sound. right. left. inject H.
       remember (fields C k) as fds.
       remember (update_field_ref f x fds a') as aps'.
       remember (update_heap a aps' s) as s'.
       exists (Ref x).
-      exists s'. 
+      exists s'.
+      exists k. 
       assert (HHwrite: HeapWrite a aps' s s').
       { rewrite Heqs'. eapply update_heap_writes; eauto. }
       assert (HFwrite: FieldWrite f x a' fds aps').
@@ -2182,10 +2299,10 @@ Proof.
              **** rewrite Heqfds in i0. apply i0. 
              **** subst. apply HFwrite.
          *** eapply wfct_doesnt_care; eauto. eapply heapwrite_retains_refs'; eauto.
-      ** eapply heapwrite_retains_refs'; eauto. 
+      ** eapply heapwrite_retains_refs'; eauto.
     * unfold is_sound. right. inject H.
-      ** left. destruct H0 as [e' [s' [HS [Hwfs [Hht' Hret]]]]].
-         eval_ctx (EAssign a f (EHole)). simpl. constructor. apply Hret in i. inject i. eauto.  
+      ** left. destruct H0 as [e' [s' [k' [HS [Hwfs [Hht' [Hret Hct]]]]]]]. 
+         eval_ctx (EAssign a f (EHole)). simpl. constructor. apply Hret in i. inject i. eauto. 
       ** right. destruct H0 as [E H1]. remember (EAssign a f E) as E'.
          exists E'. subst. simpl. inversion H1.
          *** left. unfolde a0. unfolde m'. unfolde a''. unfolde C'. unfolde aps. destruct H.
@@ -2199,7 +2316,7 @@ Proof.
       * subst. pose proof (subtype_transitive _ _ _ _ _ H6 H1).
         apply subtype_method_containment with (md0 := (Method m x t0 t' eb)) in H; eauto.
         inversion H as [[m' x' t0' t'' e'] [H3 H4]]. inversion H4. subst. inject H8; [|inversion H5].
-        remember (subst a1 a2 x' e') as ebody. exists ebody. exists s.
+        remember (subst a1 a2 x' e') as ebody. exists ebody. exists s. exists k. 
         assert (Hbody: HasType nil s k ebody t').
         {
           inject H12. 
@@ -2214,8 +2331,11 @@ Proof.
         *** inject H12. eapply SCall with (C:=C0)(aps := a'); eauto.
       * subst. inversion H1.
     + destruct H as [a H]. subst. destruct H0.
-      * unfold is_sound. right. left. inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]].
-        eval_ctx (ECall2 a m t0 t' EHole). simpl. constructor. econstructor; eauto. 
+      * unfold is_sound. right. left. inversion H as [e0' [s' [k' [H1 [H2 [H3 [H4 H5]]]]]]].
+        eval_ctx (ECall2 a m t0 t' EHole). simpl. constructor. econstructor.
+        ** eapply ct_exten_hastype; eauto.
+        ** eauto.
+        ** eauto. 
       * unfold is_sound. right. right. destruct H as [E H].
         remember (ECall2 a m t0 t' E) as E'. exists E'. inject H.
         ** left. unfolde a0. unfolde m0. unfolde a'. unfolde C'. unfolde aps. destruct H0 as [H0 [H1 H2]]; subst. 
@@ -2223,9 +2343,10 @@ Proof.
         ** right. inversion H0 as [t'' [a' [C0 [ aps [He [H1' H2']]]]]]. exists t''. exists a'. exists C0.
            exists aps. simpl. rewrite He. tauto.
     + destruct H.
-      * inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]]. unfold is_sound.
+      * inversion H as [e0' [s' [k' [H1 [H2 [H3 [H4 H5]]]]]]]. unfold is_sound.
         right. left.
-        eval_ctx (ECall1 EHole m t0 t' e'). constructor. econstructor; eauto. 
+        eval_ctx (ECall1 EHole m t0 t' e'). constructor. econstructor; eauto.
+        eapply ct_exten_hastype; eauto. 
       * destruct H as [E H]. remember (ECall1 E m t0 t' e') as E'.
         unfold is_sound. right. right. exists E'. clear H0. inject H.
         ** left. unfolde a0. unfolde m0. unfolde a'. unfolde C'. unfolde aps. destruct H0 as [H0 [H1 H2]]. subst.
@@ -2233,9 +2354,9 @@ Proof.
         ** right. inversion H0 as [t'' [a' [C' [aps [He [H1' H2']]]]]]. exists t''. exists a'. exists C'. exists aps.
            subst. simpl. auto.
     + destruct H.
-      * inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]]. unfold is_sound.
+      * inversion H as [e0' [s' [k' [H1 [H2 [H3 [H4 H5]]]]]]]. unfold is_sound.
         right. left.
-        eval_ctx (ECall1 EHole m t0 t' e'). constructor. econstructor; eauto. 
+        eval_ctx (ECall1 EHole m t0 t' e'). constructor. econstructor; eauto. eapply ct_exten_hastype; eauto. 
       * destruct H as [E H]. remember (ECall1 E m t0 t' e') as E'.
         unfold is_sound. right. right. exists E'. clear H0. inject H.
         ** left. sync_destruct_exists H0. intuition idtac. subst. eauto.
@@ -2249,7 +2370,7 @@ Proof.
                           (map (fun md => match md with Method m _ t1 t2 _ => (m,t1,t2) end) (methods C k))).
         ** decide equality; eauto using type_dec. decide equality; eauto using type_dec, Nat.eq_dec.
         ** apply in_map_iff in i. destruct i as [md H]. destruct md. destruct H. inject H.
-           left. exists (subst a a' i0 e0). exists s.
+           left. exists (subst a a' i0 e0). exists s. exists k. 
            assert (Hmtyped : HasType nil s k (subst a a' i0 e0) Any).
            {
                inject Hwfh. pose proof H3. apply H1 in H3. destruct H3.
@@ -2257,14 +2378,14 @@ Proof.
                inject H5. eapply substituion_typing; eauto.
                **** apply H13.
            }           
-           repeat split; eauto.
+           repeat split; eauto.  
         ** right. exists EHole. left. simpl. exists a. exists m. exists a'. exists C. exists a'0.
            repeat split; eauto.
            *** intros. contradict n. apply in_map_iff. exists (Method m x Any Any e0). split; eauto.
     + destruct H0.
-      * inversion H0 as [e0' [s' [H1 [H2 [H3 H4]]]]]. unfold is_sound.
+      * inversion H0 as [e0' [s' [k' [H1 [H2 [H3 [H4 H5]]]]]]]. unfold is_sound.
         right. left. inversion H as [a]. subst.
-        eval_ctx (EDCall2 a m EHole). constructor. econstructor; eauto. 
+        eval_ctx (EDCall2 a m EHole). simpl. constructor. econstructor; eauto. eapply ct_exten_hastype; eauto. 
       * destruct H as [a H]. subst. destruct H0 as [E H0]. remember (EDCall2 a m E) as E'.
         unfold is_sound. right. right. exists E'. inject H0.
         ** left. sync_destruct_exists H. intuition idtac. subst. eauto.
@@ -2272,18 +2393,16 @@ Proof.
            exists C'. exists aps. subst. simpl. auto.
     + destruct H0 as [a H0]. subst. destruct H.
       * unfold is_sound. right. left. remember (EDCall1 EHole m (Ref a)) as E.
-        inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]].
+        inversion H as [e0' [s' [k' [H1 [H2 [H3 [H4 H5]]]]]]].
         assert (Hleft: equivExpr e0 E = (DynCall e0 m (Ref a))).
         { subst. tauto. }
         assert (Hright: equivExpr e0' E = DynCall e0' m (Ref a)).
         { subst. tauto. }
-        assert (Htyped: HasType nil s' k (equivExpr e0' E) Any).
-        { rewrite Hright. apply KTEXPR. eapply KTDYNCALL; eauto. }
-        exists (equivExpr e0' E). exists s'. repeat split; eauto.
+        assert (Htyped: HasType nil s' k' (equivExpr e0' E) Any).
+        { rewrite Hright. apply KTEXPR. eapply KTDYNCALL; eauto. eapply ct_exten_hastype; eauto. }
+        exists (equivExpr e0' E). exists s'. exists k'. repeat split; eauto.
         ** rewrite <- Hleft. eapply SCtx; eauto.
-        ** eapply WFSWP; eauto.
-           *** inversion H2; auto.
-           *** eapply wfct_doesnt_care; eauto.
+        ** inject H2. eapply WFSWP; eauto.
       * unfold is_sound. right. right. destruct H as [E H]. remember (EDCall1 E m (Ref a)) as E'.
         exists E'. inversion H.
         ** left. sync_destruct_exists H0. destruct H0. subst. eauto. 
@@ -2291,18 +2410,16 @@ Proof.
            exists a'. exists C'. exists aps. subst. auto.
     + clear H0. destruct H.
       * unfold is_sound. right. left. remember (EDCall1 EHole m e') as E.
-        inversion H as [e0' [s' [H1 [H2 [H3 H4]]]]].
+        inversion H as [e0' [s' [k' [H1 [H2 [H3 [H4 H5]]]]]]].
         assert (Hleft: equivExpr e0 E = (DynCall e0 m e')).
         { subst. tauto. }
         assert (Hright: equivExpr e0' E = DynCall e0' m e').
         { subst. tauto. }
-        assert (Htyped: HasType nil s' k (equivExpr e0' E) Any).
-        { rewrite Hright. apply KTEXPR. eapply KTDYNCALL; eauto. }
-        exists (equivExpr e0' E). exists s'. repeat split; eauto.
+        assert (Htyped: HasType nil s' k' (equivExpr e0' E) Any).
+        { rewrite Hright. apply KTEXPR. eapply KTDYNCALL; eauto. eapply ct_exten_hastype; eauto. }
+        exists (equivExpr e0' E). exists s'. exists k'. repeat split; eauto.
         ** rewrite <- Hleft. eapply SCtx; eauto.
-        ** eapply WFSWP; eauto.
-           *** inversion H2; auto.
-           *** eapply wfct_doesnt_care; eauto.
+        ** inject H2. eapply WFSWP; eauto.
       * unfold is_sound. right. right. destruct H as [E H]. remember (EDCall1 E m e') as E'.
         exists E'. inversion H.
         ** left. sync_destruct_exists H0. destruct H0. subst. eauto. 
@@ -2315,7 +2432,7 @@ Proof.
         remember (fresh_ref s 0) as a.
         remember (HCell(C,a1s)) as hc.
         remember ((a,hc)::s) as s'.
-        exists (Ref a). exists s'. repeat split; eauto. 
+        exists (Ref a). exists s'. exists k. repeat split; eauto. 
         ** eapply SNew.
            *** unfold not. intros. apply fresh_not_in in Heqa. destruct Heqa.
                apply H4 in H2. omega.
@@ -2373,22 +2490,25 @@ Proof.
         ** reflexivity.
         ** eauto.
       * destruct H. 
-        ** left. destruct H as [e' [s' [Hi1 [Hi2 [Hi3 Hi4]]]]].
+        ** left. destruct H as [e' [s' [k' [Hi1 [Hi2 [Hi3 [Hi4 Hi5]]]]]]].
            eval_ctx (ENew C a1s EHole e2s); revgoals.
            { subst. simpl. rewrite deref_map with (e1s:=e1s)(a1s:=a1s); eauto. }
            { subst. simpl. rewrite<- deref_map with (e1s:=e1s)(a1s:=a1s); eauto.
-             eapply KTEXPR. eapply KTNEW; eauto. apply HasTypes_split.
-             + eapply hastypes_split; eauto. 
-               * eapply fieldwf_still_good'; eauto.
-             + symmetry in H9. pose proof (typesof_cons t2s t' tps H9).
-               destruct H as [f [fds' Heq]]. rewrite Heq. eapply HTSCONS; eauto. 
-               * eapply hastypes_app.
-                 ** rewrite Heq in h. rewrite cons_app_app_app in h.
-                    pose proof (cons_app_app_app fd t1s). rewrite H in h.
-                    eapply hastypes_ignores_heapv; eauto.
-                 ** rewrite Heq in h. eapply hastypes_shortening.
-                    *** eapply hastypes_ignores_heapv; eauto.
-                    *** symmetry. eapply frwf_deref_implies_eq_length; eauto. }
+             eapply ct_exten_hastype; eauto.
+             eapply KTEXPR. inject Hi5. eapply KTNEW; eauto.
+             - symmetry in H9. pose proof (typesof_cons t2s t' tps H9).
+               destruct H as [f [fds' Heq]]. apply HasTypes_split.
+               + eapply hastypes_split; eauto. 
+                 * eapply fieldwf_still_good'; eauto.
+               + rewrite Heq. eapply HTSCONS; eauto. 
+                 * eapply hastypes_app.
+                   ** rewrite Heq in h. rewrite cons_app_app_app in h.
+                      pose proof (cons_app_app_app fd t1s). rewrite H in h.
+                      eapply hastypes_ignores_heapv; eauto. 
+                   ** rewrite Heq in h. eapply hastypes_shortening.
+                      *** eapply hastypes_ignores_heapv; eauto.
+                      *** symmetry. eapply frwf_deref_implies_eq_length; eauto.
+             - inject Hi5. }
         ** right. inversion H as [E]. exists (ENew C a1s E e2s). destruct H0.
            *** left. sync_destruct_exists H0. destruct H0. simpl. rewrite<- H0.
                apply deref_map in H2. rewrite <- H2. destruct H7. repeat split; eauto. 
@@ -2411,7 +2531,7 @@ Proof.
       * inject H. unfold is_sound. right. right. exists (ESubCast t0 x). inject H0.
         ** left. sync_destruct_exists H. inject H. inject H1. repeat split; eauto.
         ** right. sync_destruct_exists H. inject H. inject H1. repeat split; eauto.
-  - admit.
+  - admit. 
   - intros. pose proof (H0 H1 H2 H3).  pose proof (H H1 H2 H3) as H'.
     destruct H4 as [e1s [a1s [t1s [e2s [t2s H4]]]]].
     inject H4. inject H6. inject H2. inject H3. inject H4. clear H0.
