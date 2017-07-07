@@ -248,13 +248,15 @@ objects \a).  Methods can be statically resolved, denoted by a typed call
 \DynCall\a\m\x. The \kafka type system has two kinds of types; classes (
 denoted \C), which give rise to homonymous types, and the dynamic type \any.
 \kafka subtyping is structural with recursion, using the class table \K to
-resolve cycles.\footnote{One subtle design choice was to privatize fields.
-  An earlier version of this paper materialized fields in types by adding
-  getter and setter methods, adding substantial verbosity for little
-  benefit.  This arose from \kafka's support for transparent wrappers,
-  since, if fields are exposed, the wrappers must be able to interpose on
-  field accesses. This feature contributed substantial complexity to
-  \kafka.} The heart of any gradual type system implementation is the
+resolve cycles.
+  %\footnote{One subtle design choice was to privatize fields.
+  %An earlier version of this paper materialized fields in types by adding
+  %getter and setter methods, adding substantial verbosity for little
+  %benefit.  This arose from \kafka's support for transparent wrappers,
+  %since, if fields are exposed, the wrappers must be able to interpose on
+  %field accesses. This feature contributed substantial complexity to
+  %\kafka.} 
+The heart of any gradual type system implementation is the
 explicit casts that are inserted at type boundaries.  A structural cast is
 built-in to \kafka: the subtype cast \SubCast\t\a checks if the object
 referenced by \a is a subtype of type \t.  To support the Typed Racket
@@ -269,6 +271,25 @@ entails runtime generation of a new class, interposing on calls to the
 target object. We give \kafka an operational semantics and prove soundness
 of its type system. With the exception of behavioral casts the proof is
 straightforward.
+
+%* What are your contributions? The intro doesn't spell this out for me
+%* What are Kafka's design requirements (i.e. what are the core things the model needs)? I guess they are mutable state, aliasing, %  subtyping, & the dynamic type, but these should be clear before the intro starts describing what Kafka is.
+%* The footnotes are way too long. Footnote 5 definitely doesn't belong in the intro.
+%* Why is the background describing all of gradual typing? Why not just gradual typing for objects?
+%% Main contribution? - What are they? 
+%The main contributions for this paper are as follow,
+%
+%\begin{itemize}
+%	\item illustrating gradual typing in a object-oriented systems
+%	which have mutable states, aliasing, recursive typing, and subtyping.
+%	\item Transition to JVM and CRL.
+%	\item Kafka, a gradual typing formalism with a static type system 
+%	with dynamic cast, dynamic method resolution, class generation 
+%	at runtime.	
+%	\item A study of the pros and cons of the different gradual typing 
+%	paradigms. 
+%	\item 
+%\end{itemize}
 
 
 \paragraph{Threats to validity.} Our study has limitations, but we believe
@@ -491,6 +512,8 @@ every call. Finally, languages with generative casts tend to suffer prohibitive
 slow downs in pathological cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% TODO remove this newpage
 \newpage
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
@@ -1034,67 +1057,63 @@ give rise to an error.
 
 \subsection{TypeScript}
 
-\begin{figure}[!b]
+\begin{figure}[hb]
 
-\hrulefill  \small
+\hrulefill  \footnotesize
 
 \hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllllll}  
-\begin{minipage}{1.20cm}\begin{mathpar}  
- \Rule{STG-VAR}{
-    ~\\\\  ~\\\\ ~\\\\
-   \HasType \Env\x\t
- }{
-   \EnvTypeS \Env\K\x\t
-}
+\begin{minipage}{1cm}\begin{mathpar}  
+		\Rule{STG-VAR}{
+			~\\\\  ~\\\\
+			\HasType \Env\x\t
+		}{
+			\EnvTypeS \Env\K\x\t
+		}
 \end{mathpar}\end{minipage}
 &
- \begin{minipage}{1.5cm}\begin{mathpar}
-  \Rule{STG-GET}{ ~\\\\ ~\\\\
-   \HasType \Env\this\C \\\\
-  \Fdef\f\t \in \App\K\C
-}{
-  \EnvTypeS \Env\K{\FRead\f}\t
-}    
-\end{mathpar}
+\begin{minipage}{1.5cm}\begin{mathpar}
+		\Rule{STG-GET}{ ~\\\\
+			\HasType \Env\this\C \\\\
+			\Fdef\f\t \in \App\K\C
+		}{
+			\EnvTypeS \Env\K{\FRead\f}\t
+		}    
+	\end{mathpar}
 \end{minipage} &
-  \begin{minipage}{2.85cm}\begin{mathpar}  
-\Rule[width=12em]{STG-SET}{ ~\\\\
-  %\HasType \Env\this\C \quad
-  {\Fdef\f\t \in \App\K{\Env(\this)}} \\\\
-  \EnvTypeS \Env\K\e\tp \\\\
-  \ConvertE\K{s}\tp\t
-}{
-  \EnvTypeS \Env\K{\FWrite\f\e}\t
-}    
-\end{mathpar}
-\end{minipage} & 
-  \begin{minipage}{1.85cm}\begin{mathpar}  
-  \Rule{STG-CALL}{
-   ~\\\\ ~\\\\
-  \EnvTypeS \Env\K\e\any \\\\
-  \EnvTypeS \Env\K\ep\t 
-}{
-  \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
-}    
-\end{mathpar}
-\end{minipage} & 
-  \begin{minipage}{2.7cm}\begin{mathpar}  
-\Rule{STG-CALL}{
-  \EnvTypeS \Env\K\e\C \\\\
-  \EnvTypeS \Env\K\ep\t \\\\
-  \ConvertE\K{s}\t{\t[1]} \\\\
-  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  
-}{
-  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
-}    
-\end{mathpar}\end{minipage}&\begin{minipage}{2.0cm}\begin{mathpar}  
-\Rule{STG-NEW}{~\\\\
-  \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
-  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
- \ConvertE\K{s}{\tp[1]}{\t[1]}..
-}{
-  \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
-}
+\begin{minipage}{2.7cm}\begin{mathpar}  
+		\Rule{STG-SET}{
+			\HasType \Env\this\C \quad
+			{\Fdef\f\t \in \App\K\C} \\\\
+			\EnvTypeS \Env\K\e\tp \\\\
+			\ConvertE\K{s}\tp\t
+		}{
+			\EnvTypeS \Env\K{\FWrite\f\e}\t
+		}    
+\end{mathpar}\end{minipage}& \begin{minipage}{1.8cm}\begin{mathpar}  
+		\Rule[width=15em]{STG-CALL}{
+			~\\\\       
+			\EnvTypeS \Env\K\e\any \\\\
+			\EnvTypeS \Env\K\ep\t 
+		}{
+			\EnvTypeS \Env\K{\Call\e\m\ep}{\any}
+		}    
+\end{mathpar}\end{minipage}& \begin{minipage}{2.8cm}\begin{mathpar}  
+		\Rule[width=15em]{STG-CALL}{
+			\EnvTypeS \Env\K\e\C \quad
+			\EnvTypeS \Env\K\ep\t \\\\
+			\Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
+			\ConvertE\K{s}\t{\t[1]}
+		}{
+			\EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+		}    
+\end{mathpar}\end{minipage}&\begin{minipage}{2.6cm}\begin{mathpar}  
+		\Rule{STG-NEW}{
+			\Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+			\EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
+			\ConvertE\K{s}{\tp[1]}{\t[1]}..
+		}{
+			\EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+		}
 \end{mathpar}\end{minipage}\end{tabular}\end{minipage}
 
 \vspace{2mm}
@@ -1159,7 +1178,7 @@ give rise to an error.
 
 \end{figure}
 
-Typescript is a backward compatible extension of JavaScript with classes and
+TypeScript is a backward compatible extension of JavaScript with classes and
 type annotations. Type equivalence is structural and subtyping of recursive
 types is supported. The following three expressions illustrate the language.
 The first expression is ill-typed because method the receiver of the
@@ -1973,7 +1992,7 @@ typing.
 \end{wrapfigure}
 
 \noindent In this paper we have compared the essence of four gradual type
-system designs, namely Typescript, Thorn, Typed Racket, and Transient Python.
+system designs, namely TypeScript, Thorn, Typed Racket, and Transient Python.
 Our formalization have shown that they differ in which programs are viewed as
 statically correct. Thorn distinguishes between concrete and like types,
 whereas Transient uses the notion of consistency to determine if values may be
@@ -2055,8 +2074,9 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 \vspace{-1cm}
 
 \begin{figure}[!h]
+	\small
 \begin{minipage}{\textwidth}\begin{tabular}{ll}  
-\begin{minipage}{8cm}\begin{mathpar}  
+\begin{minipage}{7cm}\begin{mathpar}  
 \opdef{~\WFq{\K~\e~\s}}{\text{Well-formed program}}
 \vspace{-3mm}
 \IRule{WP}{
@@ -2066,7 +2086,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 }{
   \WFq{\K~\e~\s}
 }
-\end{mathpar}\end{minipage}& \begin{minipage}{6.0cm}\begin{mathpar} 
+\end{mathpar}\end{minipage}& \begin{minipage}{5.5cm}\begin{mathpar} 
 
 \opdef{\WF{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed class}}
 \vspace{-2.5mm}
@@ -2084,6 +2104,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 % The \xt{nodups} function states that there are no overloaded 
 % field or method names within the given field and method definitions. \\
 
+\small
 \opdef{~\WF \Env\s\K \md}{Well-formed methods}
 \vspace{-1mm}
 \begin{mathpar}
@@ -2107,8 +2128,9 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 \end{mathpar}
 
 \begin{figure}[!h]
+	\small
 \begin{minipage}{\textwidth}\begin{tabular}{lll}  
-\begin{minipage}{4cm}\begin{mathpar}  
+\begin{minipage}[t]{3.7cm}\begin{mathpar}  
 \vspace{4mm}
 \opdef{~\WFtype \K {\fd}}{\text{Well-formed fields}}
 % \vspace{-3mm}
@@ -2118,7 +2140,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 }{
  \WFtype\K{\Fdef\f\t}
 }
-\end{mathpar}\end{minipage}& \begin{minipage}{5cm}\begin{mathpar} 
+\end{mathpar}\end{minipage}& \begin{minipage}[t]{4.2cm}\begin{mathpar} 
  
 \opdef{~\WFtype\K\t}{\text{Well-formed types}}
 % \vspace{-3mm}
@@ -2134,7 +2156,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 }{
  \WFtype\K\C
 }
-\end{mathpar}\end{minipage}& \begin{minipage}{6cm}\begin{mathpar} 
+\end{mathpar}\end{minipage}& \begin{minipage}[t]{5cm}\begin{mathpar} 
 
 \opdef{~\WFtype\K\s}{\text{Well-formed heaps}}
 \IRule{WH}{
@@ -2154,7 +2176,7 @@ subtype cast, typed address.
 
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
-\vspace{-6mm}
+%\vspace{-2mm}
 \begin{mathpar}
 \IRule{KT-VAR}{
    ~\\\\
@@ -2308,8 +2330,9 @@ The well-formedness judgments for Thorn is similar to the well-formedness judgme
 of well-formed optional types ($\CW$). The turnstile ($\vdash_{\!s}$) of all source language judgment is characterized with s.
 
 \begin{figure}[!h]
+	\small
 \begin{minipage}{\textwidth}\begin{tabular}{ll}  
-\begin{minipage}{8cm}\begin{mathpar}  
+\begin{minipage}{7cm}\begin{mathpar}  
 \hspace{-1cm}
 \opdef{~\WFpW{\e}{\K}}{\text{Well-formed programs}}
 \vspace{-3mm}
@@ -2320,8 +2343,8 @@ of well-formed optional types ($\CW$). The turnstile ($\vdash_{\!s}$) of all sou
 }{
   \WFpW\e\K
 }
-\end{mathpar}\end{minipage}& \begin{minipage}{8.0cm}\begin{mathpar}
-\vspace{-6mm}
+\end{mathpar}\end{minipage}& \begin{minipage}{6.0cm}\begin{mathpar}
+%\vspace{-6mm}
 
 \opdef{\WFW{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed classes}}
 \vspace{-1mm}
@@ -2364,7 +2387,7 @@ of well-formed optional types ($\CW$). The turnstile ($\vdash_{\!s}$) of all sou
 \vspace{4mm}
 
 \begin{minipage}{\textwidth}\begin{tabular}{ll}  
-\begin{minipage}{8cm}\begin{mathpar}  
+\begin{minipage}{7cm}\begin{mathpar}  
 % \hspace{-1cm}
 \opdef{~\WFtypeW \K {\Fdef\f\t}}{\text{Well-formed fields}}
 \vspace{-3mm}
@@ -2374,7 +2397,7 @@ of well-formed optional types ($\CW$). The turnstile ($\vdash_{\!s}$) of all sou
  \WFtypeW\K{\Fdef\f\t}
 }
 
-\end{mathpar}\end{minipage}& \begin{minipage}{8.0cm}\begin{mathpar} 
+\end{mathpar}\end{minipage}& \begin{minipage}{6.0cm}\begin{mathpar} 
 \hspace{-2cm}
 \opdef{~\WFtypeW\K\t}{\text{Well-formed types}}
 \vspace{-3mm}
