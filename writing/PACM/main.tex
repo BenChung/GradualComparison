@@ -830,7 +830,7 @@ achieved by generating a new class with the right method signatures.
 \begin{equation*}
   \behcastE\a\Cp\s\K \Kp\ap\sp \HS\HS\WHERE\HS\HS \begin{cases}
 \HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
-  \fresh{\D,\ap,\that} \HS\HS
+  \fresh{\D,\ap} \HS\HS
   \md[1].. \In \App\K\C \HS \mdp[1].. \In \App\K\Cp \\\HS
   \names{\mdp[1]..} \subseteq \names{\md[1]..} \HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
   \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that \HS\HS
@@ -841,7 +841,7 @@ achieved by generating a new class with the right method signatures.
 \begin{equation*}
   \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
   \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. \In \App\K\C \HS\HS
-  \fresh{\D,\ap,\that} \HS\HS \cload{\md[1]..} \\\HS
+  \fresh{\D,\ap} \HS\HS \cload{\md[1]..} \\\HS
   \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \HS\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
 \end{cases}\end{equation*}
@@ -1069,7 +1069,7 @@ give rise to an error.
 \hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllllll}  
 \begin{minipage}{1cm}\begin{mathpar}  
 		\Rule{STG-VAR}{
-			~\\\\  ~\\\\
+			~\\\\  ~\\\\ ~\\\\
 			\HasType \Env\x\t
 		}{
 			\EnvTypeS \Env\K\x\t
@@ -1077,7 +1077,7 @@ give rise to an error.
 \end{mathpar}\end{minipage}
 &
 \begin{minipage}{1.5cm}\begin{mathpar}
-		\Rule{STG-GET}{ ~\\\\
+		\Rule{STG-GET}{ ~\\\\ ~\\\\
 			\HasType \Env\this\C \\\\
 			\Fdef\f\t \in \App\K\C
 		}{
@@ -1087,16 +1087,16 @@ give rise to an error.
 \end{minipage} &
 \begin{minipage}{2.7cm}\begin{mathpar}  
 		\Rule{STG-SET}{
-			\HasType \Env\this\C \quad
+			\HasType \Env\this\C \\\\
 			{\Fdef\f\t \in \App\K\C} \\\\
 			\EnvTypeS \Env\K\e\tp \\\\
 			\ConvertE\K{s}\tp\t
 		}{
 			\EnvTypeS \Env\K{\FWrite\f\e}\t
 		}    
-\end{mathpar}\end{minipage}& \begin{minipage}{1.8cm}\begin{mathpar}  
+\end{mathpar}\end{minipage}& \begin{minipage}{1.6cm}\begin{mathpar}  
 		\Rule[width=15em]{STG-CALL}{
-			~\\\\       
+			~\\\\ ~\\\\
 			\EnvTypeS \Env\K\e\any \\\\
 			\EnvTypeS \Env\K\ep\t 
 		}{
@@ -1104,15 +1104,15 @@ give rise to an error.
 		}    
 \end{mathpar}\end{minipage}& \begin{minipage}{2.8cm}\begin{mathpar}  
 		\Rule[width=15em]{STG-CALL}{
-			\EnvTypeS \Env\K\e\C \quad
+			\EnvTypeS \Env\K\e\C \\\\
 			\EnvTypeS \Env\K\ep\t \\\\
 			\Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
 			\ConvertE\K{s}\t{\t[1]}
 		}{
 			\EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
 		}    
-\end{mathpar}\end{minipage}&\begin{minipage}{2.6cm}\begin{mathpar}  
-		\Rule{STG-NEW}{
+\end{mathpar}\end{minipage}&\begin{minipage}{2.4cm}\begin{mathpar}  
+		\Rule{STG-NEW}{~\\\\
 			\Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
 			\EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
 			\ConvertE\K{s}{\tp[1]}{\t[1]}..
@@ -1293,18 +1293,6 @@ expressiveness or flexibility.  Subtyping on optional types is inherited
 from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
 whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
-The formalization of the Thorn type system is built on top of the rules
-presented for TypeScript in \figref{tsts} and \figref{convts}. The
-definition of subtyping is extended to account for optional types, this 
-appears in \figref{subth}. Optional types are subtypes if the corresponding
-concrete types are subtypes. Concrete types are subtypes of optional types,
-if the relation holds on concrete types. The convertibility rule must be
-extended by one case, as shown in \figref{convth}, this extra rule states
-that an optional type is convertible to a concrete parent type. Type rule
-for method calls, shown in \figref{thts} must be extended to handle
-receivers of optional types, they are treated as if they were concrete
-types.
-
 \begin{figure}[!t]
 
 \hrulefill  \small
@@ -1408,17 +1396,20 @@ types.
 \caption{Thorn translation}\label{thtr}
 \end{figure}
 
-The following expressions illustrate the difference between Thorn and
-TypeScript.  The class table \K has three classes, class \A defines methods
-\m and \n which both return their argument. The only difference between them
-is that \m uses optional types for its argument and return value, in both
-cases \CW.  Classes \C and \D are defined such that they are unrelated by
-subtyping. We will study the four expressions, the first two are ill-typed,
-the remaining two are deemed well-typed, but the last one will require
-dynamic checks.
+The formalization of the Thorn type system is built on top of the rules
+presented for TypeScript in \figref{tsts} and \figref{convts}. The
+definition of subtyping is extended to account for optional types, this 
+appears in \figref{subth}. Optional types are subtypes if the corresponding
+concrete types are subtypes. Concrete types are subtypes of optional types,
+if the relation holds on concrete types. The convertibility rule must be
+extended by one case, as shown in \figref{convth}, this extra rule states
+that an optional type is convertible to a concrete parent type. Type rule
+for method calls, shown in \figref{thts} must be extended to handle
+receivers of optional types, they are treated as if they were concrete
+types.
 
 \medskip
-
+\small
 \begin{tabbing}
 \HS\HS\HS\=  
 \Call{\New\A{}}\n{\New\D{}}\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=\class\= \A \{
@@ -1441,7 +1432,18 @@ dynamic checks.
 \end{tabbing}
 \medskip
 
-\noindent
+\normalsize
+
+The following expressions illustrate the difference between Thorn and
+TypeScript.  The class table \K has three classes, class \A defines methods
+\m and \n which both return their argument. The only difference between them
+is that \m uses optional types for its argument and return value, in both
+cases \CW.  Classes \C and \D are defined such that they are unrelated by
+subtyping. We will study the four expressions, the first two are ill-typed,
+the remaining two are deemed well-typed, but the last one will require
+dynamic checks.
+
+%\noindent
 The first expression is ill-typed because method \n expects a \C, it gets
 a \D which is not convertible to \C. The second expression is ill-typed
 because it attempts to convert a \D into a \dt\C.  Typing the argument of \m
