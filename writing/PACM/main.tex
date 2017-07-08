@@ -1255,15 +1255,17 @@ the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
 holds that if \e is a well-typed source expression with type \t, then
 \TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
 
+%\paragraph{Litmus Test}%
 
-\paragraph{Litmus Tests}
-
-TypeScript passes all three programs in our litmus test, as seen in
-figure~\ref{litmus}, as they are all well-typed, and because TypeScript
-inserts no runtime checks whatsoever, as illustrated in figure~\ref{tst}.
-Because the TypeScript translation converts all calls into dynamic calls,
-no invocation can be considered safe, according to the \kafka soundness 
-theorem. Moreover, because 
+%TypeScript passes all three programs in our litmus test, as seen in
+%figure~\ref{litmus}, as they are all well-typed, and because TypeScript
+%inserts no runtime checks whatsoever, as illustrated in figure~\ref{tst}.
+%\kafka's soundness theorem tells us that any dynamic call can get stuck if the
+%passed value does not have the required method, so by translating all calls to
+%dynamic calls, TypeScript provides no guarantee that any given call will
+%succeed. Moreover, since all method types are erased, argument types are not
+%guaranteed, either, as illustrated by the first litmus test, which passes
+%an instance of \xt{A} to a method expecting an \xt{I}.
 
 % \subsection*{Type Correctness}
 % 
@@ -1514,9 +1516,21 @@ corresponding \f:\kty\t field.  As an example, the above translates to:
 \medskip
 
 \noindent As expected, the outer invocation to \n has been protected by a
-structural cast to \C.  Remark that \kafka overloading and the combination
-of concretely typed and dynamically typed method invocation, together with
-structural casts, are instrumental to give semantics to the Thorn language.
+structural cast to \C, illustrating how Thorn relies on overloading and the
+different invocation forms to protect its type invariants from untyped code.
+
+%\paragraph{Litmus Test}
+
+%In contrast to TypeScript, which allowed all three programs in the litmus test
+%to run without error, the Thorn approach causes cast failures in all of the
+%programs, as a result of the strength of the subtype cast. To illustrate this, 
+%consider the Thorn translated version of the methods \xt{T.t} in L1 and L2, as
+%well as \xt{F.n} in L3. 
+
+%\begin{figure}
+%\begin{tabular}{ccc}
+%\end{tabular}
+%\end{figure}
 
 
 
@@ -1883,25 +1897,32 @@ design allows method \m, which expects an instance of class \C as argument,
 to be called with a value of type \any at any point. However, this forces \m
 to check its arguments at every method invocation.
  
-
-%\begin{figure}[!t]
+%%
+%%\begin{figure}[!t]
 %% \small
 %%  \begin{tabular}{|lll|}\hline
 %%   \begin{minipage}{4.6cm}
+<<<<<<< HEAD
 v%%     \begin{lstlisting}
    
     
     
+=======
+%%     \begin{lstlisting}
+   %%
+    %%
+    %%
+>>>>>>> origin/master
 %% class A {
 %%  m(x:A):A {this}}
-
+%%
 %% class I {
 %%  n(x:I):I {this}}
-
+%%
 %% class T {
 %%  s(x:I):T {this}
 %%  t(x:*):* {this.s(x)}}
- 
+ %%
 %% new T().t(new A()) 
 %%       \end{lstlisting}    
 %%   \end{minipage}
@@ -1910,59 +1931,59 @@ v%%     \begin{lstlisting}
 %%     \begin{lstlisting}
 %% class A {
 %%  m(x:A):A {this}}
-
+%%
 %% class Q { 
-%%  m(x:Q):Q {this}} 
- 
+%%  n(x:Q):Q {this}} 
+ %%
 %% class I {
 %%  m(x:Q):I {this}}
-
+%%
 %% class T {
 %%  s(x:I):T {this}
 %%  t(x:*):* {this.s(x)}}
- 
+ %%
 %% new T().t(new A()) 
 %%       \end{lstlisting}    
 %%   \end{minipage}
 %% &  
-%%   \begin{minipage}{4.3cm}
+%%   \begin{minipage}{4.4cm}
 %%     \begin{lstlisting}
-    
+    %%
 %% class C {
-%%  m(x:C):C {x}}
-
+%%  a(x:C):C {x}}
+%%
 %% class D {
-%%  n(x:D):D {x}} 
- 
+%%  b(x:D):D {x}} 
+ %%
 %% class E {
-%%  m(x:D):D {x}}
-
+%%  a(x:D):D {x}}
+%%
 %% class F {
 %%  m(x:E):E {x}
 %%  n(x:*):* {this.m(x)}}
- 
+ %%
 %% new F().n(new C())
-%%        .m(new C()) 
+%%        .a(new C()) 
 %%       \end{lstlisting}    
 %%   \end{minipage}  
 %% \\[2mm]
 %% (Litmus test 1) & (Litmus test 2) & (Litmus test 3) 
 %% \\[3mm]
-
+%%
 %% \\\hline
 %% \end{tabular}
 
-%% \center
+ \center
 
-%% \begin{tabular}{|r|l@{~}l@{~}l|}\hline
-%%                      & L1 & L2 & L3 \\\hline\rowcolor{Gray}
-%% Thorn                &    &    & \V \\
-%% Typed Racket         &    & \V &    \\\rowcolor{Gray}
-%% Transient RetPy      &    & \V & \V \\
-%% TypeScript           & \V & \V & \V \\\hline
-%% \end{tabular}  
-%  \caption{Semantic litmus tests.}\label{litmus}
-%\end{figure}
+ \begin{tabular}{|r|l@{~}l@{~}l|}\hline
+                      & L1 & L2 & L3 \\\hline\rowcolor{Gray}
+ Thorn                &    &    &    \\
+ Typed Racket         &    & \V &    \\\rowcolor{Gray}
+ Transient RetPy      &    & \V & \V \\
+ TypeScript           & \V & \V & \V \\\hline
+ \end{tabular}  
+  \caption{Semantic litmus tests.}\label{litmus}
+\end{figure}
 
 
 \section{Conclusion}\label{litm}
