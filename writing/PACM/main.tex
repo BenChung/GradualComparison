@@ -850,7 +850,7 @@ every method of the source type.
 \newpage
 
 \subsection{Type soundness} 
-We have mechanized the type soundness proof for \kafka in Coq,  which is
+We have mechanized the type soundness proof for \kafka in Coq, 
 available at \emph{[link omitted for blind review]}. In Coq syntax, the
 \kafka type soundness theorem is stated as follows:
 
@@ -894,36 +894,37 @@ formed (condition 1), and if the top-level expression \verb|e| has type
 \verb|t| (condition 2), then the program can only make one of the following
 five choices:
 
-\begin{enumerate}
-  \item The program is already fully evaluated. Since \kafka has only one value,
+\begin{description}
+  \item[Case 1] The program is already fully evaluated. Since \kafka has only one value,
   reference (ref in our Coq formalization), we can say that there exists some
   reference that is equal to our entire program, or \verb|exists a : ref, e = Ref a|.
 
-  \item The program can take a step. In this case, the program will
+  \item[Case 2] The program can take a step. In this case, the program will
 step to some new configuration (expression \verb|e'|, heap \verb|s'|, and
 class table \verb|k'|) that is both itself well formed and that retains all of
 the entries and types in the old heap \verb|s| (expressed using
 \verb|retains_references|) and class table \verb|k| (expressed using \verb|ct_ext|).
 
-  \item The program could be stuck at a dynamic call expression. T
+  \item[Case 3] The program could be stuck at a dynamic call expression. T
   A dynamic call expression of the form \verb|DynCall (Ref a) m (Ref a')| can get 
   stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
   that does not contain a method \verb|m| to call. 
   
-  \item The program could have gotten stuck on a subtype cast. 
+  \item[Case 4] The program could have gotten stuck on a subtype cast. 
   In an expression of the form \verb|SubCast t' (Ref a)|, the program
   can get stuck if \verb|s| maps \verb|a| to an object of class \verb|C|,
   and if \verb|C| is not a subtype of \verb|t'|.
 
-  \item The program may get stuck on a behavioral cast, of the form
+  \item[Case 5] The program may get stuck on a behavioral cast, of the form
 \verb|BehCast (class C') (Ref a)|, if \verb|C|, the class of \verb|a| in
 \verb|s| does not have all of the methods needed to implement \verb|C'|.
-\end{enumerate}
+\end{description}
 
-We therefore prove that a \kafka program will not get stuck, except if it
+We have proven that a \kafka program will not get stuck, except if it
 encounters a dynamic call to an object that does not have the required method,
 tries to use subtype cast on a value that is not actually a subtype, or attempts
-to force an object to act like one it cannot implement. 
+to force an object to act like another object, however with missing required 
+method signature. 
 
 As a result of this soundness theorem, the \kafka type system provides a
 strong guarantee of progress, where most expressions are guaranteed to step.
