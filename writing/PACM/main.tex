@@ -197,27 +197,22 @@ enforce. Transient Python will also allow calls to go through, but may get
 stuck if the called function returns a value of the wrong type.
 
 The design of \kafka is another contribution.  \kafka is a statically typed
-object calculus.  It is class based (with an explicit class table \K), with
+object calculus.  It is class based (with an explicit class table \K) with
 mutable state (a heap address \a refers to an object with a set of private
 fields denoted by \f). It allows the dynamic generation of wrapper classes
 (by addition of new classes to the class table \K and allocation of objects
 \a).  Methods can be statically resolved, denoted by a typed call
 \KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a dynamic call
-\DynCall\a\m\x. The \kafka type system has two kinds of types; classes
-(denoted \C), which give rise to homonymous types, and the dynamic type
-\any.  \kafka subtyping is structural with recursion, using the class table
-\K to resolve cycles.  The heart of any gradual type system implementation
-is the explicit casts that are inserted at type boundaries.  A structural
-cast is built-in to \kafka: the subtype cast \SubCast\t\a checks if the
-object referenced by \a is a subtype of type \t.  To support the Typed
-Racket translation, \kafka is extended with a \emph{behavioral} cast
-operation, which creates wrappers that enforce a specific type. This
-behavioral cast, \BehCast\t\a, ensures that every method \m invoked on \a
-respects the type \t.  Protecting \a entails runtime generation of a new
-class, interposing on calls to the target object. We give \kafka an
-operational semantics and prove soundness of its type system. With the
-exception of behavioral casts the proof is straightforward.
-
+\DynCall\a\m\x. The \kafka type system has two kinds of types; classes which
+give rise to homonymous types, and the dynamic type \any.  \kafka subtyping
+is structural with recursion.  The heart of any gradual type system are the
+explicit casts that are inserted at type boundaries.  Structural casts,
+\SubCast\t\a, check if the object referenced by \a is a subtype of type \t.
+Behavioral casts, \BehCast\t\a, create wrappers that enforce a specific
+type, this entails runtime generation of a new class. Finally, We give
+\kafka an operational semantics. We report on a mechanized proof of
+soundness for \kafka inclusive of its casts, as well as a proof-of-concept
+implmentation of the calculus on top of the .NET virtual machine.
 
 \section{Background}
 
@@ -2035,7 +2030,7 @@ users define their own cast semantics.
 \bibliography{../../bib/jv,../../bib/all}
 
 \appendix
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Full  Definition}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{appendix:kafka}
