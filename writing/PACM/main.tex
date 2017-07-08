@@ -890,9 +890,73 @@ target type.
 $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
 {\bf then} $\StrSub\emptyset\K\D\Cp$..\\
 
-We have mechanized the type soundness proof for \kafka in Coq, 
-which is available at \emph{[link omitted for blind review]}.
+We have mechanized the type soundness proof for \kafka in Coq,  which is
+available at \emph{[link omitted for blind review]}, which proves the 
+following theorem:
 
+\begin{verbatim}
+forall (k:ct) (s : heap) (e:expr) (t : type),
+  WellFormedState k e s -> 
+  HasType nil s k e t -> 
+  (exists a : ref, e = Ref a) \/
+  (exists (e' : expr) (s' : heap)(k':ct), Steps k e s k' e' s' /\
+                                           WellFormedState k' e' s' /\
+                                           HasType nil s' k' e' t /\
+                                           retains_references s s' /\
+                                           ct_ext k k') \/
+  (exists E : EvalCtx,
+      (exists (a : ref) (m : id) (a' : ref) (C : id) (aps : list ref),
+          (e = equivExpr (DynCall (Ref a) m (Ref a')) E) /\
+          In (a, HCell(C, aps)) s /\
+          forall x e, ~ (In (Method m x Any Any e) (methods C k))) \/
+      (exists (t' : type) (a : ref) (C : id) (aps:list ref),
+          (e = equivExpr (SubCast t' (Ref a)) E) /\
+          In (a, HCell(C,aps)) s /\
+          ((Subtype empty_mu k (class C) t') -> False)) \/
+      (exists t0 a aps C', e = equivExpr (BehCast (class C') (Ref a)) E /\
+                        In (a, HCell(C, aps)) /\
+                        ~ (incl (method_names C' k) (method_names C k))))
+\end{verbatim}
+
+Informally, this theorem states that for any class table (\verb|k|), heap
+(\verb|s|), expression (\verb|e|), and type (\verb|t|), if the state is well
+formed (e.g. all references inside the heap are well-typed, all  classes
+consist of well typed methods, and that the top-level expression is well-typed
+, which is encapsulated inside the relation \verb|WellFormedState|), and if
+the top-level expression \verb|e| is well typed under type \verb|t| (using
+\verb|HasType|), then the program can only make one of the following five
+choices:
+
+\begin{itemize}
+  \item The program can be fully evaluated. Since \kafka has only one value,
+  reference (ref in our Coq formalization), we can say that there exists some
+  reference that is equal to our program, or \verb|exists a : ref, e = Ref a|.
+
+  \item The program can take a step. The resulting expression, class table,
+and heap need to be well-typed and well-formed, respectively, and need to
+retain previously added memory cells and classes. In order to represent the
+last two properties, the Coq theorem statement adds the additional
+requirements \verb|retains_references s s'|, which states that if a reference
+is in \verb|s|, then it is in \verb|s'|, and \verb|ct_ext k k'|, which
+states the same but for classes.
+
+  \item The program could be stuck at a dynamic call expression
+\verb|DynCall (Ref a) m (Ref a')| when \verb|a| refers to a class
+\verb|C| in \verb|s| that does not contain a method \verb|m| in 
+\verb|k|.
+  
+  \item The program could have gotten stuck on a subtype cast \verb|SubCast t' (Ref a)|, 
+where the real class of \verb|a| in \verb|s|, \verb|C|, is not a subtype of 
+\verb|t'|.
+
+  \item A behavioral cast \verb|BehCast (class C') (Ref a)| could have gotten
+stuck, when the real class of \verb|a| in \verb|s|, \verb|C|, was missing at
+least one method required for it to act like a \verb|C'|.
+\end{itemize}
+
+Note that in each of the three error stuck states, the actual stuck expression
+can be inside some evaluation context \verb|E|, where \verb|equivExpr| fills 
+in the hole in \verb|E| with the given expression.
 
 \subsection{Implementation}
 
