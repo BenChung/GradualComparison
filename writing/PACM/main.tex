@@ -110,9 +110,9 @@ mutable state, self references and subtyping presents interesting challenges
 to designers of gradual type systems.  This paper reviews the state of the
 art in gradual typing for objects. We introduce \kafka, a class-based object
 calculus with a static type system, dynamic method dispatch, transparent
-wrappers and dynamic class generation. We model key features of several
-gradual type systems by translation to \kafka and discuss the implications
-of the respective designs.
+wrappers and dynamic class generation. We model key features of four gradual
+type systems by translation to \kafka and discuss the implications of the
+respective designs.
 \end{abstract}
 
 \maketitle
@@ -216,11 +216,10 @@ implmentation of the calculus on top of the .NET virtual machine.
 
 \section{Background}
 
-\vspace{-5mm}
 
 \epigraph{\small\it ``If you know the enemy and know yourself...''}
 
-\vspace{-5mm}
+\vspace{-8mm}
 
 \noindent The intellectual lineage of gradual types can be traced back to
 attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
@@ -264,19 +263,20 @@ for a program by choosing to annotate function parameters with types, or
 not.'' Their contribution was a formalization of the idea in a lambda
 calculus with references and a proof of soundness. They defined the type
 consistency relation $\t \sim \tp$ which states that types that agree on
-non-\any positions are compatible.  In~\cite{SiekTaha07} the authors extended
-their result to a stateless object calculus and combined consistency with
-structural subtyping, but extending this approach to mutable objects proved challenging.
- Reticulated Python~\cite{siek14} attempts to find a compromise
-between soundness and efficiency.  The language has three modes: the
-\emph{guarded} mode behaves as Racket with contracts applied to values, but
-without the module granularity of Racket. The \emph{transient} mode performs
-shallow checks on reads and returns, only validating if the value
-obtained has matching method names, while ignoring argument types. Lastly, the
-\emph{monotonic} mode is fundamentally different from the other modes. Under the
-monotonic semantics, a cast updates the type of an object in place by replacing some
-of the occurrences of \any with more specific types, which can then propagate recursively
-through the heap until a fixed point is reached.
+non-\any positions are compatible.  In~\cite{SiekTaha07} the authors
+extended their result to a stateless object calculus and combined
+consistency with structural subtyping, but extending this approach to
+mutable objects proved challenging.  Reticulated Python~\cite{siek14}
+attempts to find a compromise between soundness and efficiency.  The
+language has three modes: the \emph{guarded} mode behaves as Racket with
+contracts applied to values, but without the module granularity of
+Racket. The \emph{transient} mode performs shallow checks on reads and
+returns, only validating if the value obtained has matching method names,
+while ignoring argument types. Lastly, the \emph{monotonic} mode is
+fundamentally different from the other modes. Under the monotonic semantics,
+a cast updates the type of an object in place by replacing some of the
+occurrences of \any with more specific types, which can then propagate
+recursively through the heap until a fixed point is reached.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, and
@@ -404,18 +404,16 @@ slow downs in pathological cases.
 
 \section{Litmus test}\label{litmustest}
 
-\noindent
 Gradual typing has matured beyond being an experimental language feature in
-the petri dish of academia. Applications are now written incorporating gradual types.  
-However, the current proposed language designs possess dark corners with
-subtle semantics differences. It is the responsibility of language researchers 
-to bring clarity for each approach to gradual typing.
+the petri dish of academia. Applications are now written incorporating
+gradual types.  However, the current proposed language designs possess dark
+corners with subtle semantics differences. It is the responsibility of
+language researchers to bring clarity for each approach to gradual typing.
 
-\begin{wrapfigure}{r}{.7\columnwidth}
-	\vspace{-.4cm}
-	\includegraphics[width=.7\columnwidth]{../figures/litm}
+\begin{figure}[!h]
+	\includegraphics[width=.9\columnwidth]{../figures/litm}
 	\caption{Gradual typing semantic litmus test.}\label{litmus}
-\end{wrapfigure}
+\end{figure}
 
 \noindent In this paper we present the essence of four gradual type
 system designs, namely TypeScript, Thorn, Typed Racket, and Transient Python.
@@ -455,15 +453,13 @@ unlike Racket, it does not recall the prior cast to \xt E. Thus given these
 three programs and the ability to observe errors, one can divine which semantics a language implements.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% TODO remove this newpage
-%\newpage
+
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
 \epigraph{\hspace{-1cm}\small\it ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}
 
-\vspace{-2mm}
+\vspace{-5mm}
 
 \noindent
 The basis of our formal approach is \kafka, a class-based, statically typed
@@ -1262,6 +1258,10 @@ holds that if \e is a well-typed source expression with type \t, then
 
 \paragraph{Litmus Tests}
 
+\epigraph{\small\it ``There is no perfection only life.''}
+
+\vspace{-5mm}
+
 TypeScript passes all three programs in our litmus test, as seen in
 figure~\ref{litmus}, as they are all well-typed, and because TypeScript
 inserts no runtime checks whatsoever, as illustrated in figure~\ref{tst}.
@@ -1982,11 +1982,7 @@ to check its arguments at every method invocation.
 
 
 
-\section{Gradual Type System Shootout \& Conclusions}\label{litm}
-
-\epigraph{\small\it ``There is no perfection only life.''}
-
-\vspace{-5mm}
+\section{Conclusions}\label{litm}
 
 Another open question for gradual type system designers is performance of
 the resulting implementation. On the one hand, type annotations are a source
