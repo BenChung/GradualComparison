@@ -154,47 +154,26 @@ distinguish between the type systems. In an untyped language these programs
 run without error, but with gradual types we observe different numbers of
 errors depending on the runtime enforcement strategy used.
 
+Our aim is to shed light on core features of each type system, namely their
+treatment of objects, and which errors are caught statically and which ones
+are caught dynamically.  These four languages were selected because they had
+open source implementations and their designs were representative of
+different philosophies.  TypeScript stands for unsound systems that work by
+erasure, such as Dart and Hack.  Thorn combines dynamic and static types
+inspired by C\# and further developed in StrongScript. Typed Racket provides
+a sound type system that is close in spirit to Siek and Taha's original
+idea. Lastly, Transient was designed to decrease the overhead of soundness,
+while retaining some systematic runtime checks.
 
-
-We selected these four points in the design space
-because the languages had open source implementations and the designs were
-influential.  TypeScript was chosen as a representative of unsound systems
-that work by erasure, such as Dart and Hack.  Thorn combines dynamic and
-static types in the same way as C\#, an approach further developed in
-StrongScript. Typed Racket provides a sound type system that is close in
-spirit to Siek and Taha's original idea. Lastly, Transient was designed to
-decrease the overhead of soundness, while retaining some systematic runtime
-checks.
-
-
-We focus on core features of each type system, namely their
-treatment of objects, and explain which errors are caught statically and
-which ones are caught dynamically. One, perhaps surprising, observation is
-that there is no agreement on what constitutes a ``correct`` program.  We
-illustrate this in Section~\ref{litm} with litmus tests that differentiate
-between the type systems based on which runtime errors are generated.
-
-
-
-We aim to expose the forces that influenced the design of existing systems
-and discuss the implications of key decisions. While there are practical
-challenges that, in the end, may prevent adoption of some of the more
-ambitious type systems, there may be workable compromises that have not yet
-been fully explored.  To capture the essence of gradual typing, we present
-translations of representative subsets of four gradually typed languages
-into a common target. This target language, dubbed \kafka, is modeled on the
-features exposed by the intermediate languages of the Java Virtual Machine
-and the Common Language Runtime -- both of which have been used as targets
-for implementations of gradual typing systems.  The particular features we
+To capture the essence of gradual typing, we present translations of
+representative subsets of four gradually typed languages into a common
+target. This target language, dubbed \kafka, is modeled on the features
+exposed by the intermediate languages of the Java Virtual Machine and the
+Common Language Runtime -- both of which have been used as targets for
+implementations of gradual typing systems.  The particular features we
 exploit are a simple static type system equipped with dynamic casts that
 check the runtime type of values, the ability to dynamically resolve method
-targets, and support for generating new classes at runtime.\footnote{Both
-  the JVM and the CLR have runtime type tests, reflective invocation based
-  on method names and runtime code generation. Dynamic resolution was added
-  to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
-  custom method dispatch. The languages have similar class loading
-  mechanisms.}
-
+targets, and support for generating new classes at runtime.
 
 Translating a gradually typed language into a statically typed language,
 such as the JVM's bytecode or \kafka makes explicit which of the underlying
