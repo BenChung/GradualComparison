@@ -383,61 +383,72 @@ optional types no overhead is expected, as the type annotations are erased
 during compilation. Concrete types insert efficient casts, and lead to code
 that can be optimized.  The performance of the transient semantics for
 Reticulated Python is a worst case scenario for concrete types -- i.e. there
-is a shallow cast at almost every call. Finally, languages with generative
+is a cast at almost every call. Finally, languages with generative
 casts tend to suffer prohibitive slow downs in pathological cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Litmus test}\label{litmustest}
 
-Gradual typing has matured beyond being an experimental language feature in
-the petri dish of academia. Applications are now written incorporating
-gradual types.  However, the current proposed language designs possess dark
-corners with subtle semantics differences. It is the responsibility of
-language researchers to bring clarity for each approach to gradual typing.
+\epigraph{\small ``There is no perfection only life.''}
+
+\vspace{-5mm}
+
+One of the salient implication of the various runtime type enforcement
+strategies used in the four gradual type systems under study is that they
+have different notions of what constitutes an erroneous program.
+Understanding why a program fails with a runtime error is something that
+should be clear for usability.
+
+In this section, we propose a litmus test that can be used to distinguish
+the four type systems. The three programs of \figref{litmus} are statically
+well-typed in all four gradual type system. Furthermore, in an untyped
+language all three programs would execute without error. Depending on the
+runtime enforcement strategy, some of these program will halt with a runtime
+error due to inserted casts. Different type system will report a different
+number of errors, and will stop at different points.  For completeness we
+provide source code in TypeScript, Typed Racket, Thorn and Reticulated
+Python in appendix.
 
 \begin{figure}[!h]
-	\includegraphics[width=.9\columnwidth]{../figures/litm}
+	\includegraphics[width=.95\columnwidth]{../figures/litm}
 	\caption{Gradual typing semantic litmus test.}\label{litmus}
 \end{figure}
 
-\noindent In this paper we present the essence of four gradual type
-system designs, namely TypeScript, Thorn, Typed Racket, and Transient Python.
-Our formalization will show how they each differ in programs that are viewed as
-statically correct. Thorn distinguishes between concrete and like types,
-whereas Transient uses the notion of consistency to determine if values may be
-compatible. A perhaps more surprising result is that even at runtime these
-languages do not agree on what constitutes a valid program. 
+The programs of \figref{litmus} are given in our idealized syntax, presented
+in Section 5, we assume they are translated to \kafka and that they execute
+according to the semantics of Section 4. Each program consist of a class
+table (larger box), and a top-level expression (smaller box).
 
-Consider \figref{litmus}, which presents three small programs that are well-typed 
-in all four languages. These synthetic examples consist of a class table in the main boxes 
-and a top-level expression in the smaller boxes below. 
-All the examples will execute without getting stuck under TypeScript's permissive semantics. 
+All the programs execute without getting stuck under TypeScript's permissive
+semantics.
 
-{\bf L1} fails in each of the other semantics. 
-For Thorn, the method call to $\this.$s(x) in method \texttt{t} of class \texttt{T}
-fails because \A is not a subtype of \xt I, as method \texttt{m} of class \A exhibits different
-types to method \texttt{n} of class \xt I. For Typed Racket and Transient Python, 
-\A and \xt I are also not considered subtypes because their respective class have methods with different 
-sets of names.  
+{\bf L1} fails in each of the other semantics.  For Thorn, the method call
+to {\tt this.s(x)} in method {\tt t} of class {\tt T} fails because \A is
+not a subtype of \xt I, as method {\tt m} of class \A exhibits different
+types to method {\tt n} of class \xt I. For Typed Racket and Transient
+Python, \A and \xt I are also not considered subtypes because their
+respective class have methods with different sets of names.
 
-{\bf L2} fails only in Thorn. As shown in {\bf L1}, Thorn's concrete type checking 
-requires \A to be a subtype of \xt I, however in this case, \xt Q is not a subtype of \A as methods
-\texttt{m} and \texttt{n} exhibit different types. 
-Typed Racket and Transient works fine because \A have the same methods as \xt I.
+{\bf L2} fails only in Thorn. As shown in {\bf L1}, Thorn's concrete type
+checking requires \A to be a subtype of \xt I, however in this case, \xt Q
+is not a subtype of \A as methods {\tt m} and {\tt n} exhibit different
+types.  Typed Racket and Transient works fine because \A have the same
+methods as \xt I.
 
-{\bf L3} fails in Thorn and Typed Racket.
-For Thorn, the method invocation of $\this.$m(x) in method \n of class \xt F fails because
-an instance of \C being casted to \xt E, despite \C not being a subtype of \xt E.
-Just as \A is not a subtype of \xt I for {\bf L1} and {\bf L2}, \C is not a subtype of \xt E,
-{\bf L3} also fails in Typed Racket as the method invocation of \xt{.a(new C())} in the top-level expression 
-is calling method \texttt{a} of class \xt E. This requires casting an instance of \C to \D,
-which in turn requires method \texttt{a} of class \C to only take and return values of type \D, however,
-there are no subtyping relation between \C and \D.
-Transient, in contrast, can run {\bf L3} without error, as, unlike Thorn, it does not compare argument types, and,
-unlike Racket, it does not recall the prior cast to \xt E. Thus given these
-three programs and the ability to observe errors, one can divine which semantics a language implements.
-
+{\bf L3} fails in Thorn and Typed Racket.  For Thorn, the method invocation
+of {\tt this.m(x)} in method \n of class \xt F fails because an instance of
+\C being casted to \xt E, despite \C not being a subtype of \xt E.  Just as
+\A is not a subtype of \xt I for {\bf L1} and {\bf L2}, \C is not a subtype
+of \xt E, {\bf L3} also fails in Typed Racket as the method invocation of
+\xt{.a(new C())} in the top-level expression is calling method \texttt{a} of
+class \xt E. This requires casting an instance of \C to \D, which in turn
+requires method \texttt{a} of class \C to only take and return values of
+type \D, however, there are no subtyping relation between \C and \D.
+Transient, in contrast, can run {\bf L3} without error, as, unlike Thorn, it
+does not compare argument types, and, unlike Racket, it does not recall the
+prior cast to \xt E. Thus given these three programs and the ability to
+observe errors, one can divine which semantics a language implements.
 
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
@@ -773,9 +784,8 @@ achieved by generating a new class with the right method signatures.
 
 \hrulefill
 \vspace{-2mm}\caption{Behavioral casts}\label{behavetext}
-\end{figure}
 
-\begin{figure}[!t]
+%\end{figure} \begin{figure}[!t]
 \hrulefill
 \small
 
