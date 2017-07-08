@@ -212,7 +212,7 @@ Behavioral casts, \BehCast\t\a, create wrappers that enforce a specific
 type, this entails runtime generation of a new class. Finally, We give
 \kafka an operational semantics. We report on a mechanized proof of
 soundness for \kafka inclusive of its casts, as well as a proof-of-concept
-implmentation of the calculus on top of the .NET virtual machine.
+implementation of the calculus on top of the .NET virtual machine.
 
 \section{Background}
 
@@ -396,8 +396,8 @@ casts tend to suffer prohibitive slow downs in pathological cases.
 
 One of the salient implication of the various runtime type enforcement
 strategies used in the four gradual type systems under study is that they
-have different notions of what constitutes an erroneous program.
-Understanding why a program fails with a runtime error is something that
+have different notions of what constitutes as an erroneous program.
+Understanding why a program fails due to a certain runtime error is something that
 should be clear for usability.
 
 In this section, we propose a litmus test that can be used to distinguish
@@ -408,7 +408,7 @@ runtime enforcement strategy, some of these program will halt with a runtime
 error due to inserted casts. Different type system will report a different
 number of errors, and will stop at different points.  For completeness we
 provide source code in TypeScript, Typed Racket, Thorn and Reticulated
-Python in appendix.
+Python in the appendix.
 
 \begin{figure}[!h]
 	\includegraphics[width=.95\columnwidth]{../figures/litm}
@@ -417,7 +417,7 @@ Python in appendix.
 
 The programs of \figref{litmus} are given in our idealized syntax, presented
 in Section 5, we assume they are translated to \kafka and that they execute
-according to the semantics of Section 4. Each program consist of a class
+according to the semantics of Section \ref{kafkacore}. Each program consist of a class
 table (larger box), and a top-level expression (smaller box).
 
 All the programs execute without getting stuck under TypeScript's permissive
@@ -431,16 +431,16 @@ Python, \A and \xt I are also not considered subtypes because their
 respective class have methods with different sets of names.
 
 {\bf L2} fails only in Thorn. As shown in {\bf L1}, Thorn's concrete type
-checking requires \A to be a subtype of \xt I, however in this case, \xt Q
+checking requires \A to be a subtype of \xt I, while in {\bf L2}, \xt Q
 is not a subtype of \A as methods {\tt m} and {\tt n} exhibit different
 types.  Typed Racket and Transient works fine because \A have the same
 methods as \xt I.
 
 {\bf L3} fails in Thorn and Typed Racket.  For Thorn, the method invocation
 of {\tt this.m(x)} in method \n of class \xt F fails because an instance of
-\C being casted to \xt E, despite \C not being a subtype of \xt E.  Just as
+\C is being casted to \xt E, despite \C not being a subtype of \xt E.  Just as
 \A is not a subtype of \xt I for {\bf L1} and {\bf L2}, \C is not a subtype
-of \xt E, {\bf L3} also fails in Typed Racket as the method invocation of
+of \xt E. {\bf L3} also fails in Typed Racket as the method invocation of
 \xt{.a(new C())} in the top-level expression is calling method \texttt{a} of
 class \xt E. This requires casting an instance of \C to \D, which in turn
 requires method \texttt{a} of class \C to only take and return values of
@@ -1986,8 +1986,8 @@ differences between type systems.
 The key features needed in \kafka are two casts, one structural and 
 one behavioral, and the ability to extend the class table at runtime.
 \kafka was also carefully engineered to support transparent wrappers.  We
-provide a mechanized proof of soundnes for \kafka that includes runtime
-class generation.  We also demonstrate that \kafka can be straightfowardly
+provide a mechanized proof of soundness for \kafka that includes runtime
+class generation.  We also demonstrate that \kafka can be straightforwardly
 implemented on top of a stock virtual machine.
 
 Going forward there are several issues we wish to investigate further.  We do
