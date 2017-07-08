@@ -423,6 +423,48 @@ slow downs in pathological cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\section{Litmus tests}\label{litmustests}
+
+\noindent
+Gradual typing has matured beyond being an experimental language feature in
+the petri dish of academia. Applications are now written incorporating gradual types.  
+However, the current proposed language designs possess dark corners with
+subtle semantics differences. It is the responsibility of language researchers 
+to bring clarity for each approach to gradual typing.
+
+\begin{wrapfigure}{r}{.7\columnwidth}
+	\vspace{-.4cm}
+	\includegraphics[width=.7\columnwidth]{../figures/litm}
+	\caption{Gradual typing semantic litmus tests.}\label{litmus}
+\end{wrapfigure}
+
+\noindent In this paper we present the essence of four gradual type
+system designs, namely TypeScript, Thorn, Typed Racket, and Transient Python.
+Our formalization will show how they each differ in programs that are viewed as
+statically correct. Thorn distinguishes between concrete and like types,
+whereas Transient uses the notion of consistency to determine if values may be
+compatible. A perhaps more surprising result is that even at runtime these
+languages do not agree on what constitutes a valid program. 
+
+Consider \figref{litmus} which shows three small programs -- well-typed in all four
+languages. These synthetic examples consist of a class table and a top-level
+expression. All three will execute without getting stuck under TypeScript's
+permissive semantics.  {\bf L1} fails in all other semantics because \A is not
+a subtype of \xt I (Thorn) and \A and \xt I have different sets of methods
+(Racket and Python).  {\bf L2} fails in Thorn because the concrete type checks
+require subtyping of \A and \xt I to hold. {\bf L3} fails in Thorn because \n
+casts an instance of \C to \xt E, despite \C not being a subtype of \xt E.
+{\bf L3} also fails in Racket as \xt{F.m} casts an instance of \C to \xt E,
+which in turn requires \C.\m to only take and return values of type \D, which
+is then called with an instance of a \C. Transient, in contrast, can run {\bf
+	L3} without error, as, unlike Thorn, it does not compare argument types, and,
+unlike Racket, it does not recall the prior cast to \xt E. Thus given these
+three programs and the ability to observe errors, one can divine which
+semantics a language implements.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % TODO remove this newpage
 %\newpage
 \section{KafKa: A Core Calculus}\label{kafkacore}
@@ -1896,43 +1938,6 @@ to check its arguments at every method invocation.
 \epigraph{\small\it ``There is no perfection only life.''}
 
 \vspace{-5mm}
-
-\noindent
-Gradual typing has matured beyond being an experimental language feature in
-the petri dish of academia. Applications are now being written that
-incorporate gradual types.  However the proposed language designs have
-subtle semantics and differ in their dark corners. It is the responsibility
-of language researchers to paint a clear picture of each approach to gradual
-typing.
-
-\begin{wrapfigure}{r}{.7\columnwidth}
- \vspace{-.4cm}
-  \includegraphics[width=.7\columnwidth]{../figures/litm}
-   \caption{Gradual typing semantic litmus tests.}\label{litmus}
-\end{wrapfigure}
-
-\noindent In this paper we have compared the essence of four gradual type
-system designs, namely TypeScript, Thorn, Typed Racket, and Transient Python.
-Our formalization have shown that they differ in which programs are viewed as
-statically correct. Thorn distinguishes between concrete and like types,
-whereas Transient uses the notion of consistency to determine if values may be
-compatible. A perhaps more surprising result is that even at runtime these
-languages do not agree on what constitutes a valid program. Consider
-\figref{litmus} which shows three small programs -- well-typed in all four
-languages. These synthetic examples consist of a class table and a top-level
-expression. All three will execute without getting stuck under TypeScript's
-permissive semantics.  {\bf L1} fails in all other semantics because \A is not
-a subtype of \xt I (Thorn) and \A and \xt I have different sets of methods
-(Racket and Python).  {\bf L2} fails in Thorn because the concrete type checks
-require subtyping of \A and \xt I to hold. {\bf L3} fails in Thorn because \n
-casts an instance of \C to \xt E, despite \C not being a subtype of \xt E.
-{\bf L3} also fails in Racket as \xt{F.m} casts an instance of \C to \xt E,
-which in turn requires \C.\m to only take and return values of type \D, which
-is then called with an instance of a \C. Transient, in contrast, can run {\bf
-L3} without error, as, unlike Thorn, it does not compare argument types, and,
-unlike Racket, it does not recall the prior cast to \xt E. Thus given these
-three programs and the ability to observe errors, one can divine which
-semantics a language implements.
 
 Another open question for gradual type system designers is performance of
 the resulting implementation. On the one hand, type annotations are a source
