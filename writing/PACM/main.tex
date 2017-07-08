@@ -15,10 +15,8 @@
 \usetikzlibrary{backgrounds}
 \usepackage[inline]{enumitem}
 \usepackage{epigraph}
-%\setlength{\epigraphwidth}{0.75\linewidth}
 \setlength{\epigraphrule}{0pt}
 \renewcommand*{\textflush}{flushright}
-%\renewcommand*{\epigraphsize}{\normalsize\itshape}
 \setlength{\epigraphwidth}{4in}
 \newcommand{\code}[1]{{\tt #1}\xspace}
 \newcommand{\FZ}[1]{\textbf{FZ: #1}}
@@ -144,29 +142,21 @@ industrial languages have chosen to compromise on soundness to avoid
 degrading performance.
 
 This paper explores the design space of gradual type systems for
-object-oriented languages. We aim to expose the forces that influenced the
-design of existing systems and discuss the implications of key
-decisions. While there are practical challenges that, in the end, may
-prevent adoption of some of the more ambitious type systems, there may be
-workable compromises that have not yet been fully explored.  To capture the
-essence of gradual typing, we present translations of representative subsets
-of four gradually typed languages into a common target. This target
-language, dubbed \kafka, is modeled on the features exposed by the
-intermediate languages of the Java Virtual Machine and the Common Language
-Runtime -- both of which have been used as targets for implementations of
-gradual typing systems.  The particular features we exploit are a simple
-static type system equipped with dynamic casts that check the runtime type
-of values, the ability to dynamically resolve method targets, and support
-for generating new classes at runtime.\footnote{Both the JVM and the CLR
-  have runtime type tests, reflective invocation based on method names and
-  runtime code generation. Dynamic resolution was added to C\# in version
-  4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for custom method
-  dispatch. The languages have similar class loading mechanisms.}
+object-oriented languages by studying four distinctive systems,
+idealizations of TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
+Racket~\cite{tf-popl08}, and Transient Reticulated Python~\cite{siek14},
+which significantly different semantics.  Beyond the difference in runtime
+overheads imposed by these systems, which we do not study here, there is not
+even agreement over what constitutes a runtime error.  To highlight the
+issue, we propose a litmus test consisting of three simple programs,
+well-typed in the four respective source languages, which allow us to
+distinguish between the type systems. In an untyped language these programs
+run without error, but with gradual types we observe different numbers of
+errors depending on the runtime enforcement strategy used.
 
-The type systems considered in this work are idealizations of
-TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
-Racket~\cite{tf-popl08}, and the Transient variant of Reticulated
-Python~\cite{siek14}. We selected these four points in the design space
+
+
+We selected these four points in the design space
 because the languages had open source implementations and the designs were
 influential.  TypeScript was chosen as a representative of unsound systems
 that work by erasure, such as Dart and Hack.  Thorn combines dynamic and
@@ -174,19 +164,37 @@ static types in the same way as C\#, an approach further developed in
 StrongScript. Typed Racket provides a sound type system that is close in
 spirit to Siek and Taha's original idea. Lastly, Transient was designed to
 decrease the overhead of soundness, while retaining some systematic runtime
-checks.  We focus on core features of each type system, namely their
+checks.
+
+
+We focus on core features of each type system, namely their
 treatment of objects, and explain which errors are caught statically and
 which ones are caught dynamically. One, perhaps surprising, observation is
 that there is no agreement on what constitutes a ``correct`` program.  We
 illustrate this in Section~\ref{litm} with litmus tests that differentiate
-between the type systems based on which runtime errors are generated. It is
-worth emphasizing that the litmus tests are well-typed in all of the
-respective source languages and that, in an untyped implementation, they all
-run without error.  Dynamic errors encountered in them when running under
-the typed implementations vary due to differences in the runtime checking
-strategies employed by the languages, rather than a fundamental bug in the
-tests.  The translation to \kafka makes those differences explicit and
-comparable in the same framework.
+between the type systems based on which runtime errors are generated.
+
+
+
+We aim to expose the forces that influenced the design of existing systems
+and discuss the implications of key decisions. While there are practical
+challenges that, in the end, may prevent adoption of some of the more
+ambitious type systems, there may be workable compromises that have not yet
+been fully explored.  To capture the essence of gradual typing, we present
+translations of representative subsets of four gradually typed languages
+into a common target. This target language, dubbed \kafka, is modeled on the
+features exposed by the intermediate languages of the Java Virtual Machine
+and the Common Language Runtime -- both of which have been used as targets
+for implementations of gradual typing systems.  The particular features we
+exploit are a simple static type system equipped with dynamic casts that
+check the runtime type of values, the ability to dynamically resolve method
+targets, and support for generating new classes at runtime.\footnote{Both
+  the JVM and the CLR have runtime type tests, reflective invocation based
+  on method names and runtime code generation. Dynamic resolution was added
+  to C\# in version 4.0~\cite{BAT14}. In Java, \xt{invokedynamic} allows for
+  custom method dispatch. The languages have similar class loading
+  mechanisms.}
+
 
 Translating a gradually typed language into a statically typed language,
 such as the JVM's bytecode or \kafka makes explicit which of the underlying
@@ -2047,12 +2055,9 @@ users define their own cast semantics.
 
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Full  Definition}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{appendix:kafka}
-
 \subsection{Well-formedness}
 
 The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
@@ -2308,11 +2313,12 @@ method definitions or method typings, and ensures there are no duplicates.
 
 \section{Source language syntax and semantics}
 
-
 \subsection*{Well-formedness for Thorn}
 
-The well-formedness judgments for Thorn is similar to the well-formedness judgments of \kafka with the addition
-of well-formed optional types ($\CW$). The turnstile ($\vdash_{\!s}$) of all source language judgment is characterized with s.
+The well-formedness judgments for Thorn is similar to the well-formedness
+judgments of \kafka with the addition of well-formed optional types
+($\CW$). The turnstile ($\vdash_{\!s}$) of all source language judgment is
+characterized with s.
 
 \begin{figure}[!h]
 	\footnotesize
@@ -2693,7 +2699,6 @@ class T:
      return self.s(x)
 T().t(A())
 \end{verbatim}
-
 
 \noindent\textbf{Litmus Test 3}:
 \begin{verbatim}
