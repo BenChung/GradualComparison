@@ -897,27 +897,27 @@ formed (condition 1), and if the top-level expression \verb|e| has type
 five choices:
 
 \begin{enumerate}
-  \item The program is already fully evaluated (case 1). Since \kafka has only one value,
+  \item The program is already fully evaluated. Since \kafka has only one value,
   reference (ref in our Coq formalization), we can say that there exists some
   reference that is equal to our entire program, or \verb|exists a : ref, e = Ref a|.
 
-  \item The program can take a step (case 2). In this case, the program will
+  \item The program can take a step. In this case, the program will
 step to some new configuration (expression \verb|e'|, heap \verb|s'|, and
 class table \verb|k'|) that is both itself well formed and that retains all of
 the entries and types in the old heap \verb|s| (expressed using
 \verb|retains_references|) and class table \verb|k| (expressed using \verb|ct_ext|).
 
-  \item The program could be stuck at a dynamic call expression (case 3). T
+  \item The program could be stuck at a dynamic call expression. T
   A dynamic call expression of the form \verb|DynCall (Ref a) m (Ref a')| can get 
   stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
   that does not contain a method \verb|m| to call. 
   
-  \item The program could have gotten stuck on a subtype cast (case 4). 
+  \item The program could have gotten stuck on a subtype cast. 
   In an expression of the form \verb|SubCast t' (Ref a)|, the program
   can get stuck if \verb|s| maps \verb|a| to an object of class \verb|C|,
   and if \verb|C| is not a subtype of \verb|t'|.
 
-  \item The program may get stuck on a behavioral cast (case 5), of the form
+  \item The program may get stuck on a behavioral cast, of the form
 \verb|BehCast (class C') (Ref a)|, if \verb|C|, the class of \verb|a| in
 \verb|s| does not have all of the methods needed to implement \verb|C'|.
 \end{enumerate}
