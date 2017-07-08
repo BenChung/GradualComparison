@@ -928,7 +928,13 @@ the entries and types in the old heap \verb|s| (expressed using
 We therefore prove that a \kafka program will not get stuck, except if it
 encounters a dynamic call to an object that does not have the required method,
 tries to use subtype cast on a value that is not actually a subtype, or attempts
-to force an object to act like one it cannot implement.
+to force an object to act like one it cannot implement. 
+
+As a result of this soundness theorem, the \kafka type system provides a
+strong guarantee of progress, where most expressions are guaranteed to step.
+By providing this guarantee, we localize where \kafka programs could
+potentially encounter runtime errors, which will allow us to reason easily
+about where gradually typed programs go wrong under each of the semantics.
 
 \subsection{Implementation}
 
@@ -1257,6 +1263,16 @@ the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
 holds that if \e is a well-typed source expression with type \t, then
 \TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
 
+
+\paragraph{Litmus Tests}
+
+TypeScript passes all three programs in our litmus test, as seen in
+figure~\ref{litmus}, as they are all well-typed, and because TypeScript
+inserts no runtime checks whatsoever, as illustrated in figure~\ref{tst}.
+Because the TypeScript translation converts all calls into dynamic calls,
+no invocation can be considered safe, according to the \kafka soundness 
+theorem. Moreover, because 
+
 % \subsection*{Type Correctness}
 % 
 % The type correctness lemma states that well-typed TypeScript expressions 
@@ -1509,6 +1525,7 @@ corresponding \f:\kty\t field.  As an example, the above translates to:
 structural cast to \C.  Remark that \kafka overloading and the combination
 of concretely typed and dynamically typed method invocation, together with
 structural casts, are instrumental to give semantics to the Thorn language.
+
 
 
 %%  \FZ{TODO 4.2: I believe ANYCONC should go to be in synch with Fig.2 of the
