@@ -45,6 +45,7 @@
   numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
 }
 
+
 %\usepackage[ruled]{algorithm2e} % For algorithms
 %\renewcommand{\algorithmcfname}{ALGORITHM}
 %\SetAlFnt{\small}
@@ -851,40 +852,36 @@ also never contain any duplicates as it can only contain methods that exists
 in the source type.  Furthermore, at most the wrapper class will contain
 every method of the source type.
 
+\newpage
+
 \subsection{Type soundness} 
 We have mechanized the type soundness proof for \kafka in Coq,  which is
 available at \emph{[link omitted for blind review]}. In Coq syntax, the
 \kafka type soundness theorem is stated as follows:
 
-\begin{verbatim}
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
+morekeywords={forall, exists}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={}]
 forall (k:ct) (s : heap) (e:expr) (t : type),
-  (* condition 1 *)
-  WellFormedState k e s -> 
-  (* condition 2 *)
-  HasType nil s k e t -> 
-  (* case 1 *)
-  (exists a : ref, e = Ref a) \/
-  (* case 2 *) 
-  (exists (e' : expr) (s' : heap)(k':ct), 
+  (* condition 1 *) WellFormedState k e s -> 
+  (* condition 2 *) HasType nil s k e t -> 
+  (* case 1 *) (exists a : ref, e = Ref a) \/
+  (* case 2 *) (exists (e' : expr) (s' : heap)(k':ct), 
     Steps k e s k' e' s' /\  WellFormedState k' e' s' /\
-    HasType nil s' k' e' t /\ retains_references s s' /\ t_ext k k') \/
+    HasType nil s' k' e' t /\ retains_references s s' /\ ct_ext k k') \/
   (exists E : EvalCtx,
-    (* case 3 *)
-    (exists (a : ref) (m : id) (a' : ref) (C : id) (aps : list ref),
+    (* case 3 *) (exists (a : ref) (m : id) (a' : ref) (C : id) (aps : list ref),
       (e = equivExpr (DynCall (Ref a) m (Ref a')) E) /\
       In (a, HCell(C, aps)) s /\
       forall x e, ~ (In (Method m x Any Any e) (methods C k))) \/
-    (* case 4 *)
-    (exists (t' : type) (a : ref) (C : id) (aps:list ref),
+    (* case 4 *) (exists (t' : type) (a : ref) (C : id) (aps:list ref),
       (e = equivExpr (SubCast t' (Ref a)) E) /\
       In (a, HCell(C,aps)) s /\
       ((Subtype empty_mu k (class C) t') -> False)) \/
-    (* case 5 *)
-    (exists t0 a aps C', 
+    (* case 5 *) (exists a aps C C', 
       e = equivExpr (BehCast (class C') (Ref a)) E /\
-      In (a, HCell(C, aps)) /\
+      In (a, HCell(C, aps)) s /\
       ~ (incl (method_names C' k) (method_names C k))))
-\end{verbatim}
+\end{lstlisting}
 
 Our Coq mechanization is identical to our formalism. In particular,
 $\EnvType\Env\s\k\e\t$ is equivalent to \verb|HasType g s k e t| and
