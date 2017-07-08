@@ -425,7 +425,7 @@ languages do not agree on what constitutes a valid program.
 
 Consider \figref{litmus}, which presents three small programs that are well-typed 
 in all four languages. These synthetic examples consist of a class table in the main boxes 
-and a top-level expression in the small boxes below. 
+and a top-level expression in the smaller boxes below. 
 All the examples will execute without getting stuck under TypeScript's permissive semantics. 
 
 {\bf L1} fails in each of the other semantics. 
@@ -444,15 +444,13 @@ Typed Racket and Transient works fine because \A have the same methods as \xt I.
 For Thorn, the method invocation of $\this.$m(x) in method \n of class \xt F fails because
 an instance of \C being casted to \xt E, despite \C not being a subtype of \xt E.
 Just as \A is not a subtype of \xt I for {\bf L1} and {\bf L2}, \C is not a subtype of \xt E,
-{\bf L3} also fails in Typed Racket as the method invocation of \xt{.m(new C())} in the top-level expression 
-is calling method \texttt{m} of class \xt E. This requires casting an instance of \C to \D,
-which in turn requires method \m of class \C to only take and return values of type \D, however,
+{\bf L3} also fails in Typed Racket as the method invocation of \xt{.a(new C())} in the top-level expression 
+is calling method \texttt{a} of class \xt E. This requires casting an instance of \C to \D,
+which in turn requires method \texttt{a} of class \C to only take and return values of type \D, however,
 there are no subtyping relation between \C and \D.
 Transient, in contrast, can run {\bf L3} without error, as, unlike Thorn, it does not compare argument types, and,
 unlike Racket, it does not recall the prior cast to \xt E. Thus given these
 three programs and the ability to observe errors, one can divine which semantics a language implements.
-
-
 
 
 \section{KafKa: A Core Calculus}\label{kafkacore}
