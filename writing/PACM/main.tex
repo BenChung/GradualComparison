@@ -826,9 +826,9 @@ one of the two casts provided by the language.
     there is some \ep such that \Reduce \K\e\s \Kp\ep\sp and
        \WFp\Kp{\ep~\sp} and \EnvType\cdot\sp\Kp\ep\t,
 {\bf or} \e is stuck on one of the three following error contexts
-    $\EE[\DynCall\a\m{\ap}]$,
-    $\EE[\SubCast\tp\a]$,
-   or $\EE[\BehCast\tp\a]$.\\
+    $\EE[\DynCall\a\m{\ap}]$ where $\a$ has no method $\m$,
+    $\EE[\SubCast\tp\a]$ where $\a$ is not a subtype of $\tp$,
+   or $\EE[\BehCast\tp\a]$ where $\a$ is missing at least one method of $\tp$.\\
 
 \noindent
 The wrapper class generated from behavioral cast will not contain
@@ -848,8 +848,8 @@ target type.
 $~\names{\mdp[1]..} \subseteq \names{\md[1]..}$, and $~\wrap\C{\md[1]..}{\mdp[1]..}\D\that $, 
 {\bf then} $\StrSub\emptyset\K\D\Cp$..\\
 
-We have implemented a complete Coq implementation of type soundness
-for kafka. The Coq proofs are available at \emph{[link omitted for blind review]}.
+We have mechanized the type soundness proof for \kafka in Coq, 
+which is available at \emph{[link omitted for blind review]}.
 
 
 \subsection{Implementation}
@@ -910,19 +910,17 @@ well-typed source programs into well-typed \kafka terms, respecting a
 uniform mapping of source types to \kafka types.  The compilation makes
 explicit which type casts (and, in turn, \emph{dynamic type-checks}) are
 implicitly inserted and performed by the runtime of each language,
-highlighting the similarities and differences among them.
+highlighting the similarities and differences between them.
 
 To avoid unnecessary clutter, we represent the source languages using the
 common syntax reported in \figref{f:sourcesyntax}.  This defines a simple
 object calculus similar to \kafka, but without method overloading and, most
-importantly, cast operations.  When modeling the Thorn type system, the
-additional type \CW is added to the type grammar to denote Thorn \emph{like
-  types}.  For each language will we also give a source-level type system;
-we write $\vdash_{\!s}$ to emphasize that this is the source level typing
-(and not the \kafka level typing).  As the various type system are mostly
-similar we will only present their differences assuming that all the omitted
-rules are identical. Given well-type source level code, each of the four
-translation produces well-typed \kafka code.
+importantly, cast operations. Additionally, when modeling the Thorn type
+system, the additional type \CW is added to the type grammar to denote Thorn
+\emph{like   types}. Lastly, we also give a source-level type system for 
+each language (notated $\vdash_{\!s}$), which are largely identical. To 
+simplify the presentation, we will elide the identical rules, instead presenting
+only the altered rules.
 
 \begin{figure}[!h]\hrulefill
 \vspace{2mm}  \small
@@ -951,9 +949,8 @@ translation produces well-typed \kafka code.
 \caption{Common syntax of source languages}\label{f:sourcesyntax}
 \end{figure}
 
-
-The common source language does not have explicit casts but it allows to
-write programs such as
+Our source language has no explicit casts, instead silently coercing
+types at typed-untyped boundaries, allowing code like the following:
 
 \begin{tabbing}
 \hspace{1cm}\K\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
@@ -963,12 +960,18 @@ write programs such as
        \>\class \D \{ \}
 \end{tabbing}         
 
-\noindent
-Here, the method \m takes an argument of type \any and returns the same
-value under type \C.  If the top-level expression passes an instance of \D
-into \m, the result is going to be of the wrong type. All the source
-language would allow this program but they differ in whether it is should
-give rise to an error. 
+\noindent Here, the method \m takes an argument of type \any and returns the
+same value under type \C. Without a cast, this operation is patently unsafe,
+as if \m is passed a \D, the return type of \m will be wrong. However, our
+source language allows this, instead deferring  to the translation to  provide
+a safety guarantee.
+
+By deferring to the translation to provide a soundness guarantee, the source 
+language allows us to implement very different approaches to gradual typing
+within the same framework. Through the simple invariant that well-typed source
+terms translate to well-typed \kafka terms, we are able to provide a simple
+soundness guarantee, and provide some intuition as to where different approaches
+allow programs to go wrong.
 
 \subsection{TypeScript}
 
