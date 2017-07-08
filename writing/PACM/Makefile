@@ -1,17 +1,17 @@
 all: 
-	pdflatex gradualcomp
-	bibtex gradualcomp
-	pdflatex gradualcomp
-	pdflatex gradualcomp
+	pdflatex main
+	bibtex main
+	pdflatex main
+	pdflatex main
 
 jan: 
-	pdflatex gradualcomp && open gradualcomp.pdf
+	pdflatex main.tex && bibtex main.aux && open main.pdf
 
 halfclean:
 	rm -f *.log *.aux *.bbl *.blg *~  *.out  *#  .#*  *.fls *.vtc
 
 clean: halfclean
-	rm -f gradualcomp.pdf
+	rm -f main.pdf
 
 # figures:
 # 	racket format-racket.rkt ../examples/typed_racket/untyped1.rkt untyped-rkt1.pdf
