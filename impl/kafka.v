@@ -3238,3 +3238,21 @@ Proof.
   - intros. subst. exists nil. exists nil. exists nil. exists nil. exists nil. repeat split; eauto; try econstructor.
     intros. inject H.
 Qed.
+
+(* TODO:
+ 1: show transitivity of subtyping (** hard, subtype_transitive. Hint: mu correctness is the tricky part **)
+ 2: show that subtyping is retained over ct_ext (** easy **)
+ 3: show that subyping implies method containment (** medium, subtype_method_containment **)
+ 
+General notes:
+* mu is the tricky issue here. A class being in mu implies that if the relation succeeds, then the class is
+  actually a subtype. If you can write this, then 1 and 3 should be easy enough.
+* mu is also an MSetList of pairs of nats. As a result, fsetdec (in the MDec module that is created here
+  from the functor) is your friend.
+* You will need to use the custom IH that's defined for subtyping, to handle the Md_Subtype and Md_Subtypes
+  cases. Normal induction won't work.
+* It might make sense to redefine #3 (subtype_method_containment) in terms of the more modern 
+  Md_Subtype relation that was introduced as part of the effort to prove that subtyping is decidable.
+  The conclusion of the lemma is equivalent, in any case, and it should be an easy enough change in the
+  rest of the proof.
+*)
