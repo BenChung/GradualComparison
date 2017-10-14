@@ -478,20 +478,22 @@ common representation by the introduction of \emph{casts} and
 
 \small\begin{tabular}{@{}ll}
 
-\begin{minipage}{9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\begin{minipage}{7.2cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
 \e\hspace{.1cm} ::= & \hspace{.2cm} \x        
-    &\B \this         
+   &\B \this         
    &\B \that      
-   &\B \FRead\f     
-   &\B \FWrite\f\e   
-   &\B \KCall\e\m\e\t\t \\
+   &\B \FRead\f  \\   
    & &
+   &\B \FWrite\f\e 
+   &\B \KCall\e\m\e\t\t \\
+   & &   
    &\B \SubCast\t\e 
-   &\B \BehCast\t\e 
+   &\B \BehCast\t\e \\
+   & &   
    &\B \New\C{\e[1]..}  
    &\B \DynCall\e\m\e 
 \end{tabular}\end{minipage}&
-\begin{minipage}{3.4cm}\begin{tabular}{l@{~}l@{}l@{}l}
+\begin{minipage}{2.4cm}\begin{tabular}{l@{~}l@{}l@{}l}
   \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
  \md &::= ~ \Mdef\m\x\t\t\e \\ 
  \fd &::= ~ \Fdef\f\t \\ 
@@ -693,16 +695,16 @@ evaluation order.
 \begin{minipage}{\textwidth}
 \small        
 \begin{tabbing}
-  \K\HS \New\C{\a[1]..} \HS\HS\HS\= \s~ \HS\HS \=\Red\HS\HS \= \K \HS\= \ap \HS\HS\= \sp\HS\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
+  \K\HS \New\C{\a[1]..} \HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
 \\
 \K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..}
 \\
-\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a[1]..\ap..}}}
+\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..} \HS  \\ \> \> \> \> \> \> \> \sp = \Map\s{\Bind\a{\obj\C{\a[1]..\ap..}}}
 \\
-\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
+\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \\ \> \> \> \> \> \> \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
 \> \> \> \> \> \> \> \StrSub {\emptyset}\K{\t_{2}} \tp
 \\
- \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..} 
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \\ \> \> \> \> \> \> \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..} 
 \\
  \K\HS {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
 \\
@@ -765,21 +767,22 @@ achieved by generating a new class with the right method signatures.
 \vspace{-4mm}
 
 \begin{equation*}
-  \behcastE\a\Cp\s\K \Kp\ap\sp \HS\HS\WHERE\HS\HS \begin{cases}
+  \behcastE\a\Cp\s\K \Kp\ap\sp \HS\WHERE\HS \begin{cases}
 \HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
   \fresh{\D,\ap} \HS\HS
-  \md[1].. \In \App\K\C \HS \mdp[1].. \In \App\K\Cp \\\HS
-  \names{\mdp[1]..} \subseteq \names{\md[1]..} \HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
-  \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that \HS\HS
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\\HS
+  \md[1].. \In \App\K\C \HS\HS \names{\mdp[1]..} \subseteq \names{\md[1]..} \\\HS
+  \mdp[1].. \In \App\K\Cp \HS\HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
+  \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that 
+
   \end{cases}
 \end{equation*}
 
 \begin{equation*}
   \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
   \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. \In \App\K\C \HS\HS
-  \fresh{\D,\ap} \HS\HS \cload{\md[1]..} \\\HS
-  \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \HS\HS
+  \fresh{\D,\ap} \\\HS \cload{\md[1]..} \HS\HS
+  \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \\\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
 \end{cases}\end{equation*}
 
@@ -794,14 +797,14 @@ achieved by generating a new class with the right method signatures.
 \begin{tabbing}\small
   \wrap\C{\md[1]..}{\mdp[1]..}\D\that = \src{\Class\D{\Fdef\that\C}{\mdpp[1]..}}\\
   \HS\HS\WHERE\HS\= \Mdef\m\x{\t[1]}{\t[2]}\e\In\md[1].. \\
-                 \> \mdpp[1] =\= \src{\Mdef\m\x{\tp[1]}{\tp[2]}{~\BehCast{\tp[2]}{\KCall{\FRead\that}\m{\bscast{\tp[1]}\x}{\t[1]}{\t[2]}}}} ..
-    \HS \= \textbf{if} \HS \Mdef\m\x{\tp[1]}{\tp[2]}\ep\In\mdp[1].. \\
+                 \> \mdpp[1] =\= \src{\Mdef\m\x{\tp[1]}{\tp[2]}{~\BehCast{\tp[2]}{\KCall{\FRead\that}\m{\bscast{\tp[1]}\x}{\t[1]}{\t[2]}}}} .. \\
+\> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\tp[1]}{\tp[2]}\ep\In\mdp[1].. \\
 \\[-3mm]
-\> \>  \src{\Mdef\m\x{\t[1]}{\t[2]}{~\KCall{\FRead\that}\m{\x}{\t[1]}{\t[2]}}} ..  \>\textbf{otherwise}
+\> \>  \src{\Mdef\m\x{\t[1]}{\t[2]}{~\KCall{\FRead\that}\m{\x}{\t[1]}{\t[2]}}} .. \\ \> \> \HS\HS \textbf{otherwise}
 \\[3mm]
   \wrapAny{\C}{\md[1]..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mdp[1]..}}\\
 \HS\HS\WHERE\HS\=\mdp[1] = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
-    \HS\HS\HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\md[1].. \\
+    \HS\HS\HS\HS \\ \> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\md[1].. \\
 \end{tabbing}
 
 \vspace{-5mm}
@@ -875,7 +878,7 @@ forall (k:ct) (s:heap) (e:expr) (t:type),
 
 Our Coq mechanization is identical to our formalism. In particular,
 $\EnvType\Env\s\k\e\t$ is equivalent to \verb|HasType g s k e t| and
-$\WFq{\K~\e~\s}$ is equivalent to \verb|WellFormedState k e s|. Note that in
+$\WFq{\K~\e~\s}$ is equivalent to \verb|WellFormedS-| \verb|tate k e s|. Note that in
 each of the three error stuck states, cases 3 through 5, the actual stuck
 expression can be inside some evaluation context \verb|E|. \verb|equivExpr|
 fills in the hole in \verb|E| with the given expression.
@@ -908,7 +911,7 @@ the entries and types in the old heap \verb|s| (expressed using
   and if \verb|C| is not a subtype of \verb|t'|.
 
   \item[Case 5] The program may get stuck on a behavioral cast, of the form
-\verb|BehCast (class C') (Ref a)|, if \verb|C|, the class of \verb|a| in
+\verb|BehCast| \verb|(class C') (Ref a)|, if \verb|C|, the class of \verb|a| in
 \verb|s| does not have all of the methods needed to implement \verb|C'|.
 \end{description}
 
@@ -972,7 +975,7 @@ restrictions on what programs can be reasonably written in \kafka.
 
 %\epigraph{\small\it ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
 
-\vspace{-5mm}
+\vspace{-2mm}
 
 \noindent
 We are now ready to give semantics to the four gradual type systems of
@@ -997,27 +1000,26 @@ only the altered rules.
 \begin{figure}[!h]\hrulefill
 \vspace{2mm}  \small
 
-\begin{tabular}{lll}
-\begin{minipage}{5.5cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\begin{tabular}{ll}
+\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
 \e\hspace{.1cm} ::= & \hspace{.2cm} \x        
     &\B \this         
-   &\B \FRead\f     
-   &\B \FWrite\f\e \\
-   &  
-   &\B \Call\e\m\e 
+   &\B \FRead\f \\    
+   &
+   &\B \FWrite\f\e
+   &\B \Call\e\m\e \\
+   & 
    &\B \that      
    &\B \New\C{\e[1]..}  
 \end{tabular}\end{minipage}&
-\begin{minipage}{4cm}\begin{tabular}{l@{~}l@{}l@{}ll}
+\begin{minipage}{5cm}\begin{tabular}{l@{~}l@{}l@{}l}
    ~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
-~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
-\end{tabular}\end{minipage} &
-\begin{minipage}{2.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
-\md &::= \Mdef\m\x\t\t\e \\
-~\fd&::= ~ \Fdef\f\t \\ 
-\end{tabular}\end{minipage}\end{tabular}
-
-\vspace{2mm}\hrulefill
+   ~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
+    \md &::= \Mdef\m\x\t\t\e \\
+   ~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage} 
+\end{tabular}
+\vspace{2mm} 
 \caption{Common syntax of source languages}\label{f:sourcesyntax}
 \end{figure}
 
@@ -1226,7 +1228,7 @@ translate the class definition and the last expression of the example above as:
 {\small
 \begin{tabbing}
   \hspace{.2cm}
-   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \\ \\ \HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
    \>              \>\HS \Mdef\m\x\any\any{~\SubCast\any\this~} \\
    \>              \>\HS  \Mdef\mp\x\any\any{~\x~}\\
    \>                                                              \>  \}   
@@ -1501,7 +1503,7 @@ corresponding \f:\kty\t field.  As an example, the above translates to:
 \begin{tabbing}
   \HS
   \KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
-  \\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+  \\ \\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
 \WHERE\HS \K=\HS\=
  \class\= \A \{\\
 \>\HS    \Mdef \m\x\any \any{~\x~}\\
@@ -1616,9 +1618,9 @@ illustrate the semantics of Typed Racket, consider the following example:
 \medskip
 \begin{minipage}{\textwidth}
 \begin{tabbing}
- \HS\HS\HS
+ \HS
   \Call{\New\A{}}\m{\New\C{}}
-  \HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=
+  \HS\HS\HS \WHERE \HS\K\HS=\HS\=
   \class\=  \A \{ \\
   \>\HS \Mdef\m\x\any\any{ ~ \Call{\New\D{}}\m\x ~} \\
   \> \}\\
@@ -1644,8 +1646,8 @@ code for the example is:
 \medskip
 \begin{minipage}{\textwidth}
 \begin{tabbing}
-\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\
-\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\ \\
+\HS\HS\HS\HS\HS\HS\HS\HS\HS
 \WHERE\HS\K\HS=\HS\=
 \class\= \A \{\\
 \>\HS \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\D}\D~}} \\
@@ -1855,6 +1857,7 @@ value on reads based on the static typing.
 \newcommand{\idbody}[1]{\SubCast{#1}\x\sspce \SubCast{#1}\x}
 \begin{tabular}{lr}
 \multicolumn{1}{c}{\textbf{Source}} & \multicolumn{1}{c}{\textsf{\textbf{KafKa}}} \\
+\footnotesize
 \(
 \begin{array}{l@{\,}l}
 \Class\C{}{&\Mdef\m\x\C\C\x} \\
@@ -1865,13 +1868,15 @@ value on reads based on the static typing.
 \multicolumn{2}{l}{\Call{\Call{\New{\xt F}{}}\n{\New\C{}}}\m{\New\C{}}}
 \end{array}
 \) &
+\footnotesize
 \(
 \begin{array}{l@{\,}l}
 \Class\C{}{&\Mdef\m\x\any\any{\idbody\C}} \\
 \Class\D{}{&\Mdef{\xt n}\x\any\any{\idbody\D}} \\
 \Class{\xt E}{}{&\Mdef\m\x\any\any{\idbody\D}} \\
 \Class{\xt F}{}{&\Mdef\m\x\any\any{\idbody{\xt E}} \\
-                &\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
+                &\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
+                \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
 \multicolumn{2}{l}{\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}}
 \end{array}
 \)
@@ -2027,7 +2032,7 @@ boundary. Transient Python inserts casts after variable reads.
 
 The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
 
-\vspace{-1cm}
+\vspace{1cm}
 
 \begin{figure}[!h]
 	\footnotesize
