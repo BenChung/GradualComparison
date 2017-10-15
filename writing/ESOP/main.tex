@@ -1047,13 +1047,15 @@ terms translate to well-typed \kafka terms, we are able to provide a simple
 soundness guarantee, and provide some intuition as to where different approaches
 allow programs to go wrong.
 
+\clearpage
+
 \subsection{TypeScript}
 
 \begin{figure}[hb]
 
 \hrulefill  \footnotesize
 
-\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllllll}  
+\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{llllll}  
 \begin{minipage}{1cm}\begin{mathpar}  
 		\Rule{STG-VAR}{
 			~\\\\  ~\\\\ ~\\\\
@@ -1063,7 +1065,7 @@ allow programs to go wrong.
 		}
 \end{mathpar}\end{minipage}
 &
-\begin{minipage}{1.5cm}\begin{mathpar}
+\begin{minipage}{1cm}\begin{mathpar}
 		\Rule{STG-GET}{ ~\\\\ ~\\\\
 			\HasType \Env\this\C \\\\
 			\Fdef\f\t \in \App\K\C
@@ -1072,7 +1074,7 @@ allow programs to go wrong.
 		}    
 	\end{mathpar}
 \end{minipage} &
-\begin{minipage}{2.7cm}\begin{mathpar}  
+\begin{minipage}{3cm}\begin{mathpar}  
 		\Rule{STG-SET}{
 			\HasType \Env\this\C \\\\
 			{\Fdef\f\t \in \App\K\C} \\\\
@@ -1081,7 +1083,7 @@ allow programs to go wrong.
 		}{
 			\EnvTypeS \Env\K{\FWrite\f\e}\t
 		}    
-\end{mathpar}\end{minipage}& \begin{minipage}{1.6cm}\begin{mathpar}  
+\end{mathpar}\end{minipage}& \begin{minipage}{2cm}\begin{mathpar}  
 		\Rule[width=15em]{STG-CALL}{
 			~\\\\ ~\\\\
 			\EnvTypeS \Env\K\e\any \\\\
@@ -1089,7 +1091,8 @@ allow programs to go wrong.
 		}{
 			\EnvTypeS \Env\K{\Call\e\m\ep}{\any}
 		}    
-\end{mathpar}\end{minipage}& \begin{minipage}{2.8cm}\begin{mathpar}  
+\end{mathpar}\end{minipage} \\
+\begin{minipage}{2.8cm}\begin{mathpar}  
 		\Rule[width=15em]{STG-CALL}{
 			\EnvTypeS \Env\K\e\C \\\\
 			\EnvTypeS \Env\K\ep\t \\\\
@@ -1098,7 +1101,7 @@ allow programs to go wrong.
 		}{
 			\EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
 		}    
-\end{mathpar}\end{minipage}&\begin{minipage}{2.4cm}\begin{mathpar}  
+\end{mathpar}\end{minipage} & \begin{minipage}{2.4cm}\begin{mathpar}  
 		\Rule{STG-NEW}{~\\\\
 			\Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
 			\EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
@@ -1144,7 +1147,7 @@ allow programs to go wrong.
 \small
  \begin{minipage}{8cm}  
 \begin{tabbing}
-\TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\HS \WHERE\HS
+\TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE\HS
   \=\fdp[1] = \src{\Ftype\f\any}..\HS\HS\=\fd[1] = \Ftype\f\t .. \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
   \>\mdp[1] = \src{\Mdef\m\x\any\any\ep}..\HS\HS \>\>\ep = \TR{\e}
 \end{tabbing}
@@ -1278,6 +1281,8 @@ holds that if \e is a well-typed source expression with type \t, then
 % and $~\TR\K = \Kp$,
 % and $~\TR\Env = \Envp$,
 % {\bf then} $~\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$. \\
+
+\clearpage
 
 \subsection{Thorn}
 
@@ -1530,7 +1535,7 @@ different invocation forms to protect its type invariants from untyped code.
 %\end{tabular}
 %\end{figure}
 
-
+\clearpage
 
 \subsection{Typed Racket}
 
@@ -1677,6 +1682,7 @@ without necessarily passing through a typed/untyped boundary. As a result,
 inheritance in a gradually typed setting requires the protection of all
 self-references.
 
+\clearpage
 
 \subsection{Transient Python}
 
@@ -1898,87 +1904,8 @@ design allows method \m, which expects an instance of class \C as argument,
 to be called with a value of type \any at any point. However, this forces \m
 to check its arguments at every method invocation.
  
-%%
-%%\begin{figure}[!t]
-%% \small
-%%  \begin{tabular}{|lll|}\hline
-%%   \begin{minipage}{4.6cm}
-%%     \begin{lstlisting}
-   %%
-    %%
-    %%
-%% class A {
-%%  m(x:A):A {this}}
-%%
-%% class I {
-%%  n(x:I):I {this}}
-%%
-%% class T {
-%%  s(x:I):T {this}
-%%  t(x:*):* {this.s(x)}}
- %%
-%% new T().t(new A()) 
-%%       \end{lstlisting}    
-%%   \end{minipage}
-%% &
-%%   \begin{minipage}{4.6cm}
-%%     \begin{lstlisting}
-%% class A {
-%%  m(x:A):A {this}}
-%%
-%% class Q { 
-%%  n(x:Q):Q {this}} 
- %%
-%% class I {
-%%  m(x:Q):I {this}}
-%%
-%% class T {
-%%  s(x:I):T {this}
-%%  t(x:*):* {this.s(x)}}
- %%
-%% new T().t(new A()) 
-%%       \end{lstlisting}    
-%%   \end{minipage}
-%% &  
-%%   \begin{minipage}{4.4cm}
-%%     \begin{lstlisting}
-    %%
-%% class C {
-%%  a(x:C):C {x}}
-%%
-%% class D {
-%%  b(x:D):D {x}} 
- %%
-%% class E {
-%%  a(x:D):D {x}}
-%%
-%% class F {
-%%  m(x:E):E {x}
-%%  n(x:*):* {this.m(x)}}
- %%
-%% new F().n(new C())
-%%        .a(new C()) 
-%%       \end{lstlisting}    
-%%   \end{minipage}  
-%% \\[2mm]
-%% (Litmus test 1) & (Litmus test 2) & (Litmus test 3) 
-%% \\[3mm]
-%%
-%% \\\hline
-%% \end{tabular}
-%%
-%% \center
-%%
-%% \begin{tabular}{|r|l@{~}l@{~}l|}\hline
-%%                      & L1 & L2 & L3 \\\hline\rowcolor{Gray}
-%% Thorn                &    &    &    \\
-%% Typed Racket         &    & \V &    \\\rowcolor{Gray}
-%% Transient RetPy      &    & \V & \V \\
-%% TypeScript           & \V & \V & \V \\\hline
-%% \end{tabular}  
-%%  \caption{Semantic litmus tests.}\label{litmus}
-%%\end{figure}
 
+\clearpage
 
 \section{Conclusion}\label{litm}
 
@@ -2090,9 +2017,8 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 
 \begin{figure}[!h]
 	\footnotesize
-\begin{minipage}{\textwidth}\begin{tabular}{lll}  
-\begin{minipage}[t]{3.7cm}\begin{mathpar}  
-\vspace{4mm}
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}[t]{7cm}\begin{mathpar}  
 \opdef{~\WFtype \K {\fd}}{\text{Well-formed fields}}
 % \vspace{-3mm}
 \IRule{WF}{
@@ -2101,7 +2027,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 }{
  \WFtype\K{\Fdef\f\t}
 }
-\end{mathpar}\end{minipage}& \begin{minipage}[t]{4.2cm}\begin{mathpar} 
+\end{mathpar}\end{minipage}& \begin{minipage}[t]{5cm}\begin{mathpar} 
  
 \opdef{~\WFtype\K\t}{\text{Well-formed types}}
 % \vspace{-3mm}
@@ -2117,9 +2043,11 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 }{
  \WFtype\K\C
 }
-\end{mathpar}\end{minipage}& \begin{minipage}[t]{5cm}\begin{mathpar} 
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}\end{figure}
 
+\footnotesize
 \opdef{~\WFtype\K\s}{\text{Well-formed heaps}}
+\begin{mathpar} 
 \IRule{WH}{
 \Bind\ap{\obj\C{\a[1] ..}}~\in~\s \implies \\\\
 \Class\C{\fd[1]..}{\md[1]..}\in\K ~~~\wedge~~~  
@@ -2127,7 +2055,7 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
 }{
  \WFtype\K\s
 }
-\end{mathpar}\end{minipage}\end{tabular}\end{minipage}\end{figure}
+\end{mathpar}
 
 \subsection{Expression typing}
 
@@ -2465,6 +2393,575 @@ The well-formedness judgments for Typed Racket, TypeScript, and Transient is a s
 \end{mathpar}\end{minipage}\end{tabular}\end{minipage}
 \end{figure}
 
+
+\section{Translations}
+
+To avoid unnecessary clutter, we represent the source languages using the
+common syntax reported in \figref{f:sourcesyntax2}.  This defines a simple
+object calculus similar to \kafka, but without method overloading and, most
+importantly, cast operations. Additionally, when modeling the Thorn type
+system, the additional type \CW is added to the type grammar to denote Thorn
+\emph{like   types}. Lastly, we also give a source-level type system for 
+each language (notated $\vdash_{\!s}$), which are largely identical. To 
+simplify the presentation, we will elide the identical rules, instead presenting
+only the altered rules.
+
+\begin{figure}[!h]\hrulefill
+	\vspace{2mm}  \small
+	
+	\begin{tabular}{ll}
+		\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+				\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+				&\B \this         
+				&\B \FRead\f \\    
+				&
+				&\B \FWrite\f\e
+				&\B \Call\e\m\e \\
+				& 
+				&\B \that      
+				&\B \New\C{\e[1]..}  
+		\end{tabular}\end{minipage}&
+		\begin{minipage}{5cm}\begin{tabular}{l@{~}l@{}l@{}l}
+				~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+				~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
+				\md &::= \Mdef\m\x\t\t\e \\
+				~\fd&::= ~ \Fdef\f\t \\ 
+		\end{tabular}\end{minipage} 
+	\end{tabular}
+	\vspace{2mm} 
+	\caption{Common syntax of source languages}\label{f:sourcesyntax2}
+\end{figure}
+
+\subsection{TypeScript}
+
+
+Our formalization of TypeScript's type system is in
+\figref{convts2}. The type system relies on the \emph{convertibility}
+relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
+type conversions allowed by TypeScript.  The relation appears in
+\figref{tsts} and states that a type is convertible to a super type and
+that \any is convertible to anything and conversely. We illustrate the type
+system by focusing on the example above. For the first expression, the
+receiver has type \C, but the class does not have method \n. The second
+expression is ill-typed because the argument to method \m is of type \C and
+\C is not convertible to \D. The third expression is correct because the
+argument to \mp is of type \C and \C is convertible to \any, the expected
+type of \mp.
+
+\begin{figure}[hb]
+	
+	\hrulefill  \footnotesize
+	
+	\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{llllll}  
+			\begin{minipage}{1cm}\begin{mathpar}  
+					\Rule{STG-VAR}{
+						~\\\\  ~\\\\ ~\\\\
+						\HasType \Env\x\t
+					}{
+						\EnvTypeS \Env\K\x\t
+					}
+			\end{mathpar}\end{minipage}
+			&
+			\begin{minipage}{1cm}\begin{mathpar}
+					\Rule{STG-GET}{ ~\\\\ ~\\\\
+						\HasType \Env\this\C \\\\
+						\Fdef\f\t \in \App\K\C
+					}{
+						\EnvTypeS \Env\K{\FRead\f}\t
+					}    
+				\end{mathpar}
+			\end{minipage} &
+			\begin{minipage}{3cm}\begin{mathpar}  
+					\Rule{STG-SET}{
+						\HasType \Env\this\C \\\\
+						{\Fdef\f\t \in \App\K\C} \\\\
+						\EnvTypeS \Env\K\e\tp \\\\
+						\ConvertE\K{s}\tp\t
+					}{
+						\EnvTypeS \Env\K{\FWrite\f\e}\t
+					}    
+			\end{mathpar}\end{minipage}& \begin{minipage}{2cm}\begin{mathpar}  
+					\Rule[width=15em]{STG-CALL}{
+						~\\\\ ~\\\\
+						\EnvTypeS \Env\K\e\any \\\\
+						\EnvTypeS \Env\K\ep\t 
+					}{
+						\EnvTypeS \Env\K{\Call\e\m\ep}{\any}
+					}    
+			\end{mathpar}\end{minipage} \\
+			\begin{minipage}{2.8cm}\begin{mathpar}  
+					\Rule[width=15em]{STG-CALL}{
+						\EnvTypeS \Env\K\e\C \\\\
+						\EnvTypeS \Env\K\ep\t \\\\
+						\Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
+						\ConvertE\K{s}\t{\t[1]}
+					}{
+						\EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+					}    
+			\end{mathpar}\end{minipage} & \begin{minipage}{2.4cm}\begin{mathpar}  
+					\Rule{STG-NEW}{~\\\\
+						\Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+						\EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
+						\ConvertE\K{s}{\tp[1]}{\t[1]}..
+					}{
+						\EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+					}
+	\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+	
+	\vspace{2mm}
+	
+	\hrulefill
+	\caption{TypeScript type system}\label{convts2}
+\end{figure}
+
+\begin{figure}[hb]
+	\hrulefill  \small  \vspace{-3mm}
+	
+	\begin{mathpar}
+		\Rule{STGC-SUB}{
+			\SSub\cdot\K\t\tp
+		}{
+			\ConvertE\K{s}\t\tp
+		}
+		
+		\Rule{STGC-TOANY}{~
+		}{
+			\ConvertE\K{s}\t\any
+		}
+		
+		\Rule{STGC-ANYCONC}{~
+		}{
+			\ConvertE\K{s}\any\tp
+		}
+	\end{mathpar}
+	\vspace{-5mm}
+	
+	\hrulefill\caption{TypeScript type convertibility}\label{tsts2}
+\end{figure}
+
+\begin{figure}[hb]	
+	\hrulefill
+	
+	\smallskip
+	
+	\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+		\small
+		\begin{minipage}{8cm}  
+			\begin{tabbing}
+				\TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE\HS
+				\=\fdp[1] = \src{\Ftype\f\any}..\HS\HS\=\fd[1] = \Ftype\f\t .. \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+				\>\mdp[1] = \src{\Mdef\m\x\any\any\ep}..\HS\HS \>\>\ep = \TR{\e}
+			\end{tabbing}
+			\begin{tabbing}
+				\TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
+				\\
+				\TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
+				\\
+				\TR\this           \>= \src{\SubCast\any\this}
+				\\
+				\TR\x \> = \src \x
+				\\
+				\TR{\Call{\e[1]}\m{\e[2]}} \> = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} \HS\>\WHERE\HS\ep[1] = \TR{ \e[1]} \HS \ep[2] = \TR{\e[2]}
+				\\
+				\TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e[1]} ..
+			\end{tabbing}
+		\end{minipage}
+	\end{tabular}
+	
+	\smallskip
+	\hrulefill
+	\caption{TypeScript translation}\label{tst2}
+	
+\end{figure}
+
+
+\clearpage
+
+\subsection{Thorn}
+
+The formalization of the Thorn type system is built on top of the rules
+presented for TypeScript in \figref{tsts2} and \figref{convts2}. The
+definition of subtyping is extended to account for optional types, this 
+appears in \figref{subth2}. Optional types are subtypes if the corresponding
+concrete types are subtypes. Concrete types are subtypes of optional types,
+if the relation holds on concrete types. The convertibility rule must be
+extended by one case, as shown in \figref{convth2}, this extra rule states
+that an optional type is convertible to a concrete parent type. Type rule
+for method calls, shown in \figref{thts2} must be extended to handle
+receivers of optional types, they are treated as if they were concrete
+types.
+
+The translation of Thorn into \kafka is given in~\figref{thtr2}. As with
+TypeScript translation proceeds top-down. The differences are that the
+translation function for expressions, \TRG{\e}\Env, takes a source-level
+typing environment as input. This is used to record the expect type of \this
+and arguments \x to methods. Furthermore, the translation can also request
+the insertion of casts, this is done with the function \TAG{\e}\Env\t which
+translates an expression and ensures that the result is of type \t. The most
+interesting case in the translation is the handling of method invocation
+\Call\e\m\ep. If the type of \e is a concrete \C, then a statically resolved
+invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
+or an optional type, then a dynamically resolved call of the form
+\DynCall\e\m\ep is emitted.  The argument of statically resolved method
+invocation, as well as constructors and field assignment are all translated
+using the auxiliary function as their expected type is known.  This function
+translates its argument, checks if its type is a subtype of the expected
+type \t, and if not it inserts the appropriate cast.  The cast is performed
+in the \kafka type system, and not in the source type system, and must
+respect the mapping from Thorn types to \kafka types.  This mapping is
+defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
+otherwise.  Thorn optional and dynamic types are mapped to the \any type,
+while concrete types are unchanged.
+
+\begin{figure}[!t]
+	
+	\hrulefill  \small
+	\vspace{-3mm}
+	
+	\begin{mathpar}
+		\Rule{TSWeak}{
+			\SSub \M\K\C\D
+		}{
+			\SSub \M\K{\dt\C}{\dt\D}
+		}
+		
+		\Rule{TSLow}{
+			\SSub \M\K\C\D
+		}{
+			\SSub \M\K{\C}{\dt\D}
+		}
+	\end{mathpar}
+	
+	\hrulefill
+	\caption{Thorn subtyping}\label{subth2}
+\end{figure}	
+\begin{figure}[hb]	
+	\hrulefill  \small
+	\vspace{-3mm}
+	
+	\begin{mathpar}
+		\Rule{STHC-OPTCONC}{
+			\SSub\cdot\K\C\D
+		}{
+			\ConvertE\K{th}\CW\D
+		}
+	\end{mathpar}
+	
+	\hrulefill
+	\caption{Thorn type convertibility}\label{convth2}
+\end{figure}	
+\begin{figure}[hb]	
+	
+	\hrulefill  
+	\vspace{0.5mm}
+	
+	\begin{mathpar}  
+		\Rule{STH-CALL}{
+			\EnvTypeW \Env\K\e\tp \\  (\tp=\C~~\vee~~\tp=\CW) \\
+			\Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\
+			\EnvTypeW \Env\K\ep\tpp  \\
+			\ConvertE\K{th}\tpp{\t[1]}
+		}{
+			\EnvTypeW \Env\K{\Call\e\m\ep}{\t[2]}
+		}    
+	\end{mathpar}
+	
+	\hrulefill
+	\caption{Thorn type system}\label{thts2}
+\end{figure}	
+\begin{figure}[hb]		
+	\hrulefill
+	
+	\medskip
+	
+	\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+		\small
+		\begin{minipage}{8cm}  
+			\begin{tabbing}
+				\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
+				\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
+				\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \\ \>  \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
+				\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\
+				\>\hspace{1cm}\HS\HS\HS\HS\HS\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
+				\>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
+			\end{tabbing}
+			\begin{tabbing}
+				\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
+				\\
+				\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
+				\\
+				\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
+				\=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
+				\\
+				\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
+				\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \HS\HS\= \ep[2]=\TAG{\e[2]}\Env\any
+				\\
+				\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
+				\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \>  \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \\
+				\> \> \> \t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
+				\\
+				\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
+				\>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
+				\\
+				\TAG\e\Env\t\> = \src\ep 
+				\>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \Sub \kty\t}
+				\\
+				\TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+				\>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
+			\end{tabbing}
+		\end{minipage}
+	\end{tabular}
+	
+	\medskip
+	
+	\hrulefill
+	\caption{Thorn translation}\label{thtr2}
+\end{figure}
+
+\clearpage
+
+\subsection{Transient}
+
+The Transient static type system is based on TypeScript except that the
+convertibility rules now builds on an auxiliary \emph{consistency} relation,
+defined in~\figref{subtp2} to relate types \t and \tp. The modified
+convertibility rule appears in \figref{convtp2}. Consistent subtyping holds
+between types with signatures that agree up to \any.  It is worth observing
+that the Transient runtime does not use consistent subtyping, instead
+it merely validates that all required method names are present.
+
+\begin{figure}[!t]
+	\hrulefill
+	\vspace{-4mm}
+	
+	\begin{mathpar}
+		\Rule{STTC-SUB}{
+			\ConSub\cdot\K\t\tp
+		}{
+			\ConvertE\K{tr}\t\tp
+		}
+	\end{mathpar}
+	\vspace{-6mm}
+	
+	\hrulefill
+	\caption{Transient convertibility}\label{convtp2}
+\end{figure}	
+\begin{figure}[hb]		
+	
+	\hrulefill
+	\small\vspace{-4mm}
+	
+	\begin{mathpar} 
+		\Rule{CSCons}{
+			~
+		}{
+			\ConSub\M\K \any \C
+		}
+		
+		\Rule{CSCons}{
+			~
+		}{
+			\ConSub\M\K \C \any
+		}
+		
+		\Rule{CSCons}{
+			~
+		}{
+			\ConSub\M\K \t \t
+		}
+		
+		\Rule{CSAss}{
+			\C \Sub \D \in \M
+		}{
+			\ConSub \M\K \C\D
+		}
+		
+		\Rule{CSRec}{
+			\M' = \M~\C\Sub\D \\\\
+			\mt \in \App\K\D \implies 
+			\mtp \in \App\K\C ~~~\wedge~~~   \ConSub{\M'}\K\mt{\mtp}
+		}{
+			\ConSub \M\K \C \D 
+		}
+		
+		\Rule{CSMet}{
+			\ConSub \M\K {\t[2]} {\t[1]} \\
+			\ConSub \M\K {\tp[1]} {\tp[2]}
+		}{
+			\ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+		}
+	\end{mathpar}
+	
+	\hrulefill
+	\caption{Transient consistent subtyping}\label{subtp2}
+\end{figure}	
+\begin{figure}[hb]		
+	\hrulefill
+	\vspace{1mm}
+	
+	\begin{tabular}{@{}l@{~ ~ ~}ll}
+		\small
+		\begin{minipage}{8cm}  
+			\begin{tabbing}
+				\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
+				\hspace{.5cm}  \WHERE\HS \=
+				\fdp[1] = \src{\Ftype\f\any} .. \HS
+				\fd[1] = \Ftype\f\t ..\HS\HS
+				\mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
+				\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+				\md[1] = \Mdef\m\x\t\tp\e .. 
+				\HS\HS
+				\ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
+			\end{tabbing}
+			\begin{tabbing}
+				\TRG\this\Env \hspace{1cm} \= = \src\this
+				\\
+				\TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
+				\\
+				\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C \HS\HS\= \Ftype\f\t\In\App\K\C
+				\\
+				\TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
+				\>\WHERE\HS
+				\TypeCk{\K,\Env}\this\C
+				\> \Ftype\f\t\In\App\K\C \\
+				\> \> \HS\HS\HS\HS\HS\HS\HS  \= \ep = \TAG\e\Env\any
+				\\
+				\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
+				\>\WHERE \HS 
+				\TypeCk{\K,\Env}{\e[1]}\any 
+				\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}\Env \\
+				\> \> \HS\HS\HS\HS\HS\HS\HS \ep[2] = \TAG{\e[2]}\Env\any
+				\\
+				\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
+				\>\WHERE\HS
+				\TypeCk{\K,\Env}{\e[1]}\C
+				\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Mtype\m\t\tp\In\App\K\C\HS \\
+				\> \> \HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}\Env \HS\HS\HS\HS\=
+				\ep[2] = \TAG{\e[2]}\Env\any
+				\\
+				\TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
+				\Ftype{\f[1]}{\t[1]}\In\App\K\C
+				\>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
+				\\
+				\TAG\e\Env\t \>= \src{\SubCast\t\ep}
+				\>\WHERE\HS \TypeCk{\K,\Env}\e\tp 
+				\> \EM{\ConSub{}\K\t\tp} \\
+				\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\t\not{<:}\tp}  
+				\> \EM{\ep = \TRG\e\Env}
+				\\
+				\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp
+				\>\EM{\K\vdash\t\Sub\tp} \HS \\
+				\> \> \HS\HS\HS\HS\HS\HS\HS \ep = \TRG\e\Env
+			\end{tabbing}
+		\end{minipage}
+	\end{tabular}
+	
+	\medskip
+	
+	\hrulefill
+	
+	\caption{Transient translation}\label{tptr2}
+\end{figure}
+
+The Transient translation appears in \figref{tptr2}. Each class is translated
+to a homonymous \kafka class, field types are translated to \any, method
+types are given the $\any \to \any$ signature. Since argument and return
+types are erased, our translation can use structural casts to implement
+Transient runtime checks. They degenerate to simple inclusion checks on
+method names.  The translation of method invocation makes explicit the
+Transient guarantee.  A method call \Call\e\m\ep is translated to
+\KCall\e\m\ep\any\any if the type \e is not \any. This translation combined
+with the soundness of \kafka entails that the method call will not get
+stuck.  Of course of \e is of type \any, the call will be translated to
+\DynCall\e\m\ep which can get stuck.  To achieve that guarantee the
+translation must insert structural casts at every expression read. Transient
+also checks arguments of methods, since the expression may not use the
+argument (but Transient checks it anyway) our translation generates method
+bodies of the form \SubCast\t\x; \e where \e is the body of the expression
+and the semi colon is syntactic sugar for sequencing. Likewise, in order to 
+ensure that field assignment will not get stuck, Transient gives all fields 
+type \any, then checks the field value on reads based on the static typing.
+
+\clearpage
+
+\subsection{Typed Racket}
+
+The translation for Typed Racket, shown in \figref{trtr2} maps classes to
+homonymous classes and types to types of the same name. The \kty{t} function
+is the identity.  Calls with a receiver of type \any are translated to
+\kafka dynamic calls, and calls with a receiver of some type \C are
+translated to statically typed calls. The auxiliary type-directed
+translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
+appropriately. Thus casts can appear are at typed/untyped boundaries in
+assignment, argument of calls or constructors. Because of the strong
+guarantee provided by the behavioral cast, the Typed Racket translation is
+straightforward. In Typed Racket, every typed value is assumed to behave as
+specified, delegating the complexity of checking for consistency with the
+type to the wrapper introduced by the behavioral cast.  So the difference
+with the TypeScript translation is that typed code is able to use typed
+accesses. The difference with Thorn is essentially the presence of wrappers
+and the fact that each wrapper application only check the presence of
+methods names rather than complete signatures for concrete types.
+
+\begin{figure}[!b]
+	
+	\hrulefill
+	
+	\medskip
+	
+	\small
+	\begin{minipage}{12cm}  
+		\begin{tabbing}
+			\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
+			\hspace{4.6cm}\= \WHERE\HS 
+			\mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
+			\>\qquad\HS\HS\HS\HS\md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+			\>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
+			\\
+			\TRG\x\Env = \src{\x}
+			\\
+			\TRG{\FRead\f}\Env  = \src{\FRead\f}
+			\\
+			\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
+			\>\WHERE\HS
+			\= \TypeCk\K{\this}\C \HS\HS
+			\=  \ep = \TAG\e\Env\t \HS\HS
+			\= \Ftype\f\t\In\App\K\C
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
+			\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
+			\> \ep[1] = \TRG{\e[1]}\Env \HS
+			\> \ep[2] = \TAG{\e[2]}\Env\any
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
+			\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
+			\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
+			\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS \\
+			\> \> \=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
+			\\
+			\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
+			\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
+			\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
+			\\
+			\TAG\e\Env\t = \src\ep
+			\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
+			\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash \t \Sub \tp}
+			\>\ep = \TRG\e\Env
+			\\
+			\TAG\e\Env\t = \src{\BehCast\t\e}
+			\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS 
+			\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS  \EM{\K\vdash \t \not \Sub \tp}
+			\> \ep = \TRG\e\Env
+		\end{tabbing}
+	\end{minipage}
+	
+	\medskip
+	
+	\hrulefill
+	\caption{Typed Racket translation}\label{trtr2}
+\end{figure}
+
+\clearpage
 
 \section{Litmus tests}
 
