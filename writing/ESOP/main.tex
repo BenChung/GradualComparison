@@ -396,21 +396,23 @@ casts tend to suffer prohibitive slow downs in pathological cases.
 
 \vspace{-5mm}
 
-One of the salient implication of the various runtime type enforcement
+One of the salient implications of the various runtime type enforcement
 strategies used in the four gradual type systems under study is that they
 have different notions of what constitutes as an erroneous program.
-Understanding why a program fails due to a certain runtime error is something that
-should be clear for usability.
+In order for a type system to be usable, the reason behind an error needs to
+be clear.
 
 In this section, we propose a litmus test that can be used to distinguish
 the four type systems. The three programs of \figref{litmus} are statically
-well-typed in all four gradual type system. Furthermore, in an untyped
+well-typed in all four gradual type systems. Furthermore, in an untyped
 language all three programs would execute without error. Depending on the
-runtime enforcement strategy, some of these program will halt with a runtime
-error due to inserted casts. Different type system will report a different
-number of errors, and will stop at different points.  For completeness we
+runtime enforcement strategy, some of these programs will halt with a runtime
+error due to inserted casts. Different type systems will report a different
+number of errors, and will stop at different points. For completeness we
 provide source code in TypeScript, Typed Racket, Thorn and Reticulated
 Python in the appendix.
+
+TODO: Rework figure in terms of semantic names
 
 \begin{figure}[!h]
 	\includegraphics[width=.95\columnwidth]{../figures/litm}
@@ -422,35 +424,36 @@ in Section 5, we assume they are translated to \kafka and that they execute
 according to the semantics of Section \ref{kafkacore}. Each program consist of a class
 table (larger box), and a top-level expression (smaller box).
 
-All the programs execute without getting stuck under TypeScript's permissive
-semantics.
+All programs execute correctly under the optional semantics, as the typing
+pathologies are never relied upon dynamically.
 
-{\bf L1} fails in each of the other semantics.  For Thorn, the method call
-to {\tt this.s(x)} in method {\tt t} of class {\tt T} fails because \A is
-not a subtype of \xt I, as method {\tt m} of class \A exhibits different
-types to method {\tt n} of class \xt I. For Typed Racket and Transient
-Python, \A and \xt I are also not considered subtypes because their
-respective class have methods with different sets of names.
+{\bf L1} fails in every sound semantics. Under the concrete semantics, the
+method call to {\tt this.s(x)} in method {\tt t} of class {\tt T} fails
+because \A is not a subtype of \xt I, as method {\tt m} of class \A exhibits
+different types to method {\tt n} of class \xt I. Similarly, in the behavioral
+and transient semantics, \A and \xt I are also not considered subtypes because
+their respective class have methods with different sets of names.
 
-{\bf L2} fails only in Thorn. As shown in {\bf L1}, Thorn's concrete type
-checking requires \A to be a subtype of \xt I, while in {\bf L2}, \xt Q
-is not a subtype of \A as methods {\tt m} and {\tt n} exhibit different
-types.  Typed Racket and Transient works fine because \A have the same
-methods as \xt I.
+{\bf L2} fails only under the concrete semantics. As shown in {\bf L1},
+concrete type checking requires \A to be a subtype of \xt I, while in {\bf
+L2}, \xt Q is not a subtype of \A as methods {\tt m} and {\tt n} exhibit
+different types. The program works fine under the behavioral and transient
+semantics because \A have the same methods as \xt I.
 
-{\bf L3} fails in Thorn and Typed Racket.  For Thorn, the method invocation
-of {\tt this.m(x)} in method \n of class \xt F fails because an instance of
-\C is being casted to \xt E, despite \C not being a subtype of \xt E.  Just as
-\A is not a subtype of \xt I for {\bf L1} and {\bf L2}, \C is not a subtype
-of \xt E. {\bf L3} also fails in Typed Racket as the method invocation of
-\xt{.a(new C())} in the top-level expression is calling method \texttt{a} of
-class \xt E. This requires casting an instance of \C to \D, which in turn
-requires method \texttt{a} of class \C to only take and return values of
-type \D, however, there are no subtyping relation between \C and \D.
-Transient, in contrast, can run {\bf L3} without error, as, unlike Thorn, it
-does not compare argument types, and, unlike Racket, it does not recall the
-prior cast to \xt E. Thus given these three programs and the ability to
-observe errors, one can divine which semantics a language implements.
+{\bf L3} fails with the concrete and behavioral semantics. Using concrete
+semantics, the method invocation of {\tt this.m(x)} in method \n of class \xt
+F fails because an instance of \C is being casted to \xt E, despite \C not
+being a subtype of \xt E.  Just as \A is not a subtype of \xt I for {\bf L1}
+and {\bf L2}, \C is not a subtype of \xt E. {\bf L3} also fails with the
+behavioral semantics as the method invocation of \xt{.a(new C())} in the top-
+level expression is calling method \texttt{a} of class \xt E. This requires
+casting an instance of \C to \D, which in turn requires method \texttt{a} of
+class \C to only take and return values of type \D, however, there are no
+subtyping relation between \C and \D. Transient, in contrast, can run {\bf L3}
+without error, as, unlike Thorn, it does not compare argument types, and,
+unlike Racket, it does not recall the prior cast to \xt E. Thus given these
+three programs and the ability to observe errors, one can divine which
+semantics a language implements.
 
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
@@ -1047,7 +1050,7 @@ terms translate to well-typed \kafka terms, we are able to provide a simple
 soundness guarantee, and provide some intuition as to where different approaches
 allow programs to go wrong.
 
-\subsection{TypeScript}
+\subsection{Optional}
 
 \begin{figure}[hb]
 
@@ -1111,7 +1114,7 @@ allow programs to go wrong.
 \vspace{2mm}
 
 \hrulefill
-\caption{TypeScript type system}\label{convts}
+\caption{Typescript type system}\label{convts}
 
 \hrulefill  \small  \vspace{-3mm}
   
@@ -1134,7 +1137,7 @@ allow programs to go wrong.
 \end{mathpar}
 \vspace{-5mm}
 
-\hrulefill\caption{TypeScript type convertibility}\label{tsts}
+\hrulefill\caption{Typescript type convertibility}\label{tsts}
 
 \hrulefill
 
@@ -1166,19 +1169,20 @@ allow programs to go wrong.
 
 \smallskip
 \hrulefill
-\caption{TypeScript translation}\label{tst}
+\caption{Typescript translation}\label{tst}
 
 \end{figure}
 
-TypeScript is a backward compatible extension of JavaScript with classes and
-type annotations. Type equivalence is structural and subtyping of recursive
-types is supported. The following three expressions illustrate the language.
-The first expression is ill-typed because method the receiver of the
-invocation to \n is of type \C and \C does not have a method by that name.
-The second expression will also be flagged as erroneous as the argument to
-\m is \C rather than a \D as expected. The last expression is statically
-correct as the instance of \C is cast to a \D via method \mp. At runtime
-that expression will evaluate successfully.
+Used by languages such as TypeScript [CITEME] and Hack [CITEME], optional type
+systems provide  easy backwards compatibility, with static checks being used
+where applicable. In our formalization, based on TypeScript's semantics,
+equivalence is structural and subtyping of recursive types is supported. The
+following three expressions illustrate the language. The first expression is
+ill-typed because method the receiver of the invocation to \n is of type \C
+and \C does not have a method by that name. The second expression will also be
+flagged as erroneous as the argument to \m is \C rather than a \D as expected.
+The last expression is statically correct as the instance of \C is cast to a
+\D via method \mp. At runtime that expression will evaluate successfully.
 
 
 {\small
@@ -1279,7 +1283,12 @@ holds that if \e is a well-typed source expression with type \t, then
 % and $~\TR\Env = \Envp$,
 % {\bf then} $~\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$. \\
 
-\subsection{Thorn}
+\subsection{Concrete}
+
+Concrete gradual type systems strictly enforce type membership. In a concrete
+gradual type system, only objects that arise from static subtypes of a type
+are allowed to inhabit that type. We will use Thorn as an example of a
+concretely gradually typed language.
 
 Thorn has a combination of dynamic, optional, and concrete types.  Concrete
 types, written \C, behave as one would expect: a variable \HT\x\C is
@@ -1532,7 +1541,7 @@ different invocation forms to protect its type invariants from untyped code.
 
 
 
-\subsection{Typed Racket}
+\subsection{Behavioral}
 
 
 \begin{figure}[!b]
@@ -1592,6 +1601,11 @@ different invocation forms to protect its type invariants from untyped code.
 \hrulefill
 \caption{Typed Racket translation}\label{trtr}
 \end{figure}
+
+The Behavioral semantics require that, to be of a type, a value must  behave
+as if it actually was of that type, up to cast errors. We will consider Typed
+Racket, a language with behavioral semantics, as a representative example of
+languages that use this design.
 
 Typed Racket is an extension of the Racket programming language, supporting
 Racket's key functionality through a system of contracts that dynamically
