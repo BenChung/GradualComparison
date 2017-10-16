@@ -72,8 +72,8 @@
 % DOI
 %\acmDOI{0000001.0000001}
 \begin{document}
-\title{Gradual Types for Objects Redux}
-\titlerunning{Gradual Types for Objects Redux}
+\title{\kafka: A common framework for gradual typing objects}
+\titlerunning{\kafka: A common framework for gradual typing objects}
 \author{Benjamin Chung, Paley Li, Francesco Zappa Nardelli, Jan Vitek}
 \authorrunning{Chung et al.} 
 \institute{Northeastern University, CVUT and INRIA}
@@ -115,7 +115,7 @@ to designers of gradual type systems.  This paper reviews the state of the
 art in gradual typing for objects. We introduce \kafka, a class-based object
 calculus with a static type system, dynamic method dispatch, transparent
 wrappers and dynamic class generation. We model key features of four gradual
-type systems by translation to \kafka and discuss the implications of the
+type systems by translating them to \kafka and discuss the implications of their
 respective designs.
 \end{abstract}
 
@@ -123,7 +123,7 @@ respective designs.
 
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
 
-\vspace{-5mm}
+%\vspace{-5mm}
 
 \noindent A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual
 type system for a variant of Abadi and Cardelli's object-based
@@ -144,24 +144,28 @@ their performance implications appear daunting. Predictably, developers of
 industrial languages have chosen to compromise on soundness to avoid
 degrading performance.
 
+%TODO: The paragraph above seems to justify the previously proposed solutions are 
+% not great because they have poor performance. Which pushes us towards
+% declaring performance as a major factor for any solution we present.
+
 This paper explores the design space of gradual type systems for
 object-oriented languages by studying four distinctive systems,
 idealizations of TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
 Racket~\cite{tf-popl08}, and Transient Reticulated Python~\cite{siek14},
-which significantly different semantics.  Beyond the difference in runtime
-overheads imposed by these systems, which we do not study here, there is not
-even agreement over what constitutes a runtime error.  To highlight the
+each with significantly different semantics.  Beyond the difference in runtime
+overheads, which we do not study here, there is no collective
+agreement over what constitutes a runtime error.  To highlight the
 issue, we propose a litmus test consisting of three simple programs,
-well-typed in the four respective source languages, which allow us to
-distinguish between the type systems. In an untyped language these programs
-run without error, but with gradual types we observe different numbers of
-errors depending on the runtime enforcement strategy used.
+well-typed in the four respective source languages and easily
+distinguishable between the type systems. In an untyped language these programs
+run without error, but with gradual types we observe several different errors 
+depending on the runtime enforcement strategy used.
 
 Our aim is to shed light on core features of each type system, namely their
 treatment of objects, and which errors are caught statically and which ones
 are caught dynamically.  These four languages were selected because they had
 open source implementations and their designs were representative of
-different philosophies.  TypeScript stands for unsound systems that work by
+different gradual typing philosophies.  TypeScript stands for unsound systems that work by
 erasure, such as Dart and Hack.  Thorn combines dynamic and static types
 inspired by C\# and further developed in StrongScript. Typed Racket provides
 a sound type system that is close in spirit to Siek and Taha's original
@@ -181,10 +185,10 @@ targets, and support for generating new classes at runtime.
 Translating a gradually typed language into a statically typed language,
 such as the JVM's bytecode or \kafka makes explicit which of the underlying
 type system's guarantees can be relied upon statically, and where dynamism
-is really required.  Our core contribution is thus four translations, each
+is really required. A core part of our contribution is the four translations, each
 taking a gradually typed expression \HT\e\T in the source language and
 returning the corresponding \kafka term. The translation of a term entails
-translation of the classes needed to evaluate it.  The translation allows us
+translating the classes needed to evaluate it.  The translations allows us
 to study where program can get stuck in the different systems.  With gradual
 types, an expression \Call\x\m\e, where \x is declared to be of class \C,
 can have significantly different behavior depending on choices made while
@@ -198,7 +202,7 @@ may fail if their target does not behave like the type that they
 enforce. Transient Python will also allow calls to go through, but may get
 stuck if the called function returns a value of the wrong type.
 
-The design of \kafka is another contribution.  \kafka is a statically typed
+The design of \kafka is another part of our contribution.  \kafka is a statically typed
 object calculus.  It is class based (with an explicit class table \K) with
 mutable state (a heap address \a refers to an object with a set of private
 fields denoted by \f). It allows the dynamic generation of wrapper classes
@@ -221,7 +225,7 @@ implementation of the calculus on top of the .NET virtual machine.
 
 %\epigraph{\small\it ``If you know the enemy and know yourself...''}
 
-\vspace{-5mm}
+%\vspace{-5mm}
 
 \noindent The intellectual lineage of gradual types can be traced back to
 attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
@@ -1261,9 +1265,9 @@ the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
 holds that if \e is a well-typed source expression with type \t, then
 \TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
 
-This translation illustrates optional typing's lack of impact on performance,
-one of the features highlighted by Bracha~\cite{pluggabletypes}. A notional
-type-less language would have an identical translation, causing performance to
+A feature of optional typing highlighted by Bracha~\cite{pluggabletypes} 
+is the minimal impact on performance, which is also evident in our optional translation.
+A notional type-less language would have an identical translation, causing performance to
 be identical to a language with an optional type system.
 
 %\paragraph{Litmus Test}%
@@ -1539,13 +1543,12 @@ The concrete semantics allows Thorn to provide the guarantee that typed code
 will have no internal checks, an unusual feature among gradual type systems
 caused by the strong guarantee provided by the concrete semantics. In
 conjunction with relatively light-weight casts (caused by only needing to
-compare type tags, as in Java or similar languages), the concrete semantics
-provides acceptable performance~\cite{oopsla09}. 
+compare type tags), the concrete semantics provides acceptable performance~\cite{oopsla09}. 
 
-However, this strong guarantee is a result of the rigid semantics of the cast
+However, this strong guarantee does result in rigid semantics of the cast
 operations, which pass only subtypes of the given type. As a consequence, this
 means that untyped objects can never be treated as typed ones, requiring the 
-programmer to add a potentially large number of types in order to begin using
+programmer to add a potentially large number of types in order to fully utilize
 the concrete type system.
 
 %\paragraph{Litmus Test}
@@ -3011,11 +3014,13 @@ methods names rather than complete signatures for concrete types.
 
 \section{Litmus tests}
 
-In this section, we present the examples of the litmus test, present in
-\figref{litmus} of section \ref{litmustest}, in the source code of
-the  four gradual typing languages: Thorn, TypeScript, Typed Racket, and Transient.
+Below we present source code for each of the litmus tests presented in
+\figref{litmus} of section \ref{litmustest}. The source code are
+the four gradual typing languages: Thorn, TypeScript, Typed Racket, and Transient.
 
 \subsection*{Thorn}
+
+The code for the litmus tests in Thorn. \\ 
 
 \noindent
 \textbf{Litmus Test 1}:
@@ -3056,6 +3061,9 @@ F().n(C()).m(C());
 \end{verbatim}
 
 \subsection*{TypeScript}
+
+The code for the litmus tests in TypeScript. \\
+
 \noindent\textbf{Litmus Test 1}:
 \begin{verbatim}
 class A { m(x: A): A { return this } }
@@ -3092,6 +3100,8 @@ new F().n(new C()).m(new C())
 \end{verbatim}
 
 \subsection*{Typed Racket}
+
+The code for the litmus tests in Typed Racket. \\
 
 \noindent\textbf{Litmus Test 1}:
 
@@ -3177,6 +3187,8 @@ new F().n(new C()).m(new C())
 
 
 \subsection*{Transient}
+
+The code for the litmus tests in Transient. \\
 
 \noindent\textbf{Litmus Test 1}:
 \begin{verbatim}
