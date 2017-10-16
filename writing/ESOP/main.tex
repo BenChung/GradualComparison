@@ -414,22 +414,57 @@ runtime enforcement strategy, some of these programs will halt with a runtime
 error due to inserted casts. Different type systems will report a different
 number of errors, and will stop at different points. For completeness we
 provide source code in TypeScript, Typed Racket, Thorn and Reticulated
-Python in the appendix.
-
-TODO: Rework figure in terms of semantic names
+Python, which implement the respective type systems, in the appendix.
 
 \begin{figure}[!h]
 	\includegraphics[width=.95\columnwidth]{../figures/litm}
 	\caption{Gradual typing semantic litmus test.}\label{litmus}
 \end{figure}
 
-The programs of \figref{litmus} are given in our idealized syntax, presented
-in Section 5, we assume they are translated to \kafka and that they execute
-according to the semantics of Section \ref{kafkacore}. Each program consist of a class
-table (larger box), and a top-level expression (smaller box).
+In \figref{litmus}, we present 3 programs, consisting of a class table and a
+top-level expression, written in an idealized syntax. Each program is ran
+through a semantics-dependent translation to \kafka and executed according to
+\kafka's semantics (shown in section \ref{kafkacore}).
 
-All programs execute correctly under the optional semantics, as the typing
-pathologies are never relied upon dynamically.
+All of these programs execute correctly if we ignore the type annotations, and
+all type check statically. As a result, the optional type system, which simply
+erases all of the type annotations at runtime, will run all without error.
+However, in each of the three sound gradual type systems, each program has at
+least one problem.
+
+{\bf Concrete} The guarantee provided by the concrete semantics is that only
+statically checked values can be of a type, implying that untyped values can
+never be passed in placed of a typed one. This strong requirement causes the
+concrete semantics to reject all three programs. {\bf L1} fails as it attempts
+to pass an \A instance in place of an instance of \xt I, which are incompatible.
+{\bf L2} also fails as despite \A and \xt I's method now being of the same
+name, the types are statically incompatible due to \xt Q not being a static
+super type of \A. {\bf L3} fails as it tries to pass a \C as an \xt E, in the
+call to \m inside of \xt N in \xt F, impossible under the concrete semantics
+as \C is not a subtype of \xt E.
+
+{\bf Behavioral} In contrast to the concrete semantics, the behavioral
+semantics  does allow untyped values to be passed under a type if they are
+structurally compatible, but dynamically ensures that the untyped values to
+respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
+method, \m, could never be used as \xt I's \xt n. {\bf L2}, however, executes
+without error, as while \A.\xt m does not properly implement \xt I.\xt n, this
+is never observed dynamically, and the value is therefore observationally of
+the ascribed type. {\bf L3} is rejected by the behavioral semantics, as when
+the top-level expression calls \xt a on a \xt C that has been cast to an \xt
+E, the check that the value (another instance of \xt C) is structurally
+compatible with the required type (\xt D), fails.
+
+{\bf Transient} The transient semantics further weakens the guarantee,
+retaining the structural checks at casts of the behavioral semantics, but only
+checks adherence to the locally ascribed type, rather than every potentially
+applicable type. Transient fails {\bf L1}, for the same reason as the other
+two type systems, and passes {\bf L2}, for the same reason as the behavioral
+semantics, as a result, but differs in {\bf L3}. {\bf L3} failed under the
+behavioral semantics because the return value of \xt n carried the type
+applied by \xt m with it, forcing the \xt C instance to act like an \xt E. 
+However, the transient semantics does not check this, letting the invocation
+to \xt a succeed.
 
 {\bf L1} fails in every sound semantics. Under the concrete semantics, the
 method call to {\tt this.s(x)} in method {\tt t} of class {\tt T} fails
@@ -1725,7 +1760,15 @@ bloat and large slowdowns in many cases~\cite{popl16}.
 
 \clearpage
 
-\subsection{Transient Python}
+\subsection{Transient}
+
+Transient semantics weakens the guarantee provided by the behavioral semantics
+further, to enable better performance~\cite{siek14}. In the behavioral
+semantics, the ]basic structure of objects was checked at cast sites, then a
+wrapper was applied to ensure that the type is respected dynamically. However,
+the guarantee of behavioral adherence to the type is not needed if all code
+that relies upon the type checks it dynamically, the key observation behind
+the transient semantics. 
 
 The Transient variant of Reticulated Python aims for a form soundness with a
 predictable cost model. The intuition for the Transient guarantee is that,
