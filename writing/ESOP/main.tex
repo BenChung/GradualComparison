@@ -1099,6 +1099,7 @@ allow programs to go wrong.
 \hrulefill  \footnotesize
 
 \hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{llllll}  
+\hspace{.5cm}
 \begin{minipage}{1cm}\begin{mathpar}  
 		\Rule{STG-VAR}{
 			~\\\\  ~\\\\ ~\\\\
@@ -1108,7 +1109,7 @@ allow programs to go wrong.
 		}
 \end{mathpar}\end{minipage}
 &
-\begin{minipage}{1cm}\begin{mathpar}
+\begin{minipage}{0.5cm}\begin{mathpar}
 		\Rule{STG-GET}{ ~\\\\ ~\\\\
 			\HasType \Env\this\C \\\\
 			\Fdef\f\t \in \App\K\C
@@ -1116,8 +1117,8 @@ allow programs to go wrong.
 			\EnvTypeS \Env\K{\FRead\f}\t
 		}    
 	\end{mathpar}
-\end{minipage} &
-\begin{minipage}{3cm}\begin{mathpar}  
+\end{minipage} & \hspace{-1cm}
+\begin{minipage}{3.2cm}\begin{mathpar}  
 		\Rule{STG-SET}{
 			\HasType \Env\this\C \\\\
 			{\Fdef\f\t \in \App\K\C} \\\\
@@ -1126,7 +1127,7 @@ allow programs to go wrong.
 		}{
 			\EnvTypeS \Env\K{\FWrite\f\e}\t
 		}    
-\end{mathpar}\end{minipage}& \begin{minipage}{2cm}\begin{mathpar}  
+\end{mathpar}\end{minipage}& \begin{minipage}{3cm}\begin{mathpar}  
 		\Rule[width=15em]{STG-CALL}{
 			~\\\\ ~\\\\
 			\EnvTypeS \Env\K\e\any \\\\
@@ -1135,6 +1136,7 @@ allow programs to go wrong.
 			\EnvTypeS \Env\K{\Call\e\m\ep}{\any}
 		}    
 \end{mathpar}\end{minipage} \\
+\hspace{.3cm}
 \begin{minipage}{2.8cm}\begin{mathpar}  
 		\Rule[width=15em]{STG-CALL}{
 			\EnvTypeS \Env\K\e\C \\\\
@@ -1144,7 +1146,7 @@ allow programs to go wrong.
 		}{
 			\EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
 		}    
-\end{mathpar}\end{minipage} & \begin{minipage}{2.4cm}\begin{mathpar}  
+\end{mathpar}\end{minipage} & \hspace{.3cm} \begin{minipage}{3cm}\begin{mathpar}  
 		\Rule{STG-NEW}{~\\\\
 			\Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
 			\EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
@@ -1403,47 +1405,50 @@ whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 \hrulefill
 \caption{Thorn type system}\label{thts}
  
-
 \hrulefill
 
-\medskip
+	\medskip
 
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-  \small
- \begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
-\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
-\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \HS\HS \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
-\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
-\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
-          \>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
-\end{tabbing}
-\begin{tabbing}
-\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
-\\
-\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
-\\
-\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
-   \=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
-\\
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
-   \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \HS\HS\= \ep[2]=\TAG{\e[2]}\Env\any
-\\
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
-\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \>  \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \\
-\> \> \> \t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
-\\
-\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
-     \>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
-\\
-\TAG\e\Env\t\> = \src\ep 
-     \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \Sub \kty\t}
-\\
- \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
-     \>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
-\end{tabbing}
-\end{minipage}
+	\small
+	\begin{minipage}{8cm}  
+		\begin{tabbing}
+			\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
+			\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
+			\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \\ \>  \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
+			\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\
+			\>\hspace{1cm}\HS\HS\HS\HS\HS\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
+			\>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
+		\end{tabbing}
+		\begin{tabbing}
+			\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
+			\\
+			\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
+			\\
+			\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
+			\=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
+			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \= \\ 
+			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[2]=\TAG{\e[2]}\Env\any
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
+			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \\ 
+			\> \> \HS\HS\HS\HS\HS\HS\HS \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \>
+			\t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
+			\\
+			\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
+			\>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
+			\\
+			\TAG\e\Env\t\> = \src\ep 
+			\>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\kty\tp \Sub \kty\t}
+			\\
+			\TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+			\>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
+		\end{tabbing}
+	\end{minipage}
 \end{tabular}
 
 \medskip
@@ -1611,55 +1616,55 @@ the concrete type system.
 \medskip
 
  \small
-\begin{minipage}{12cm}  
-\begin{tabbing}
-\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
-\hspace{4.6cm}\= \WHERE\HS 
-  \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS
-  \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
-  \>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
-\\
-\TRG\x\Env = \src{\x}
-\\
-\TRG{\FRead\f}\Env  = \src{\FRead\f}
-\\
-\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
-\>\WHERE\HS
-\= \TypeCk\K{\this}\C \HS\HS
-\=  \ep = \TAG\e\Env\t \HS\HS
-\= \Ftype\f\t\In\App\K\C
-\\
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
-\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
-\> \ep[1] = \TRG{\e[1]}\Env \HS
-\> \ep[2] = \TAG{\e[2]}\Env\any
-\\
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
-\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
-\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
-\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS
-\=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
-\\
-\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
-\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
-\> \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
-\\
-\TAG\e\Env\t = \src\ep
-\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
-\> \EM{\K\vdash \t \Sub \tp}
-\>  \ep = \TRG\e\Env
-\\
-\TAG\e\Env\t = \src{\BehCast\t\e}
-\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS
-   \> \EM{\K\vdash \t \not \Sub \tp}
-  \>     \ep = \TRG\e\Env
-\end{tabbing}
+	\begin{minipage}{12cm}  
+	\begin{tabbing}
+		\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
+		\hspace{4.6cm}\= \WHERE\HS 
+		\mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
+		\>\qquad\HS\HS\HS\HS\md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+		\>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
+		\\
+		\TRG\x\Env = \src{\x}
+		\\
+		\TRG{\FRead\f}\Env  = \src{\FRead\f}
+		\\
+		\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
+		\>\WHERE\HS
+		\= \TypeCk\K{\this}\C \HS\HS
+		\=  \ep = \TAG\e\Env\t \HS\HS
+		\= \Ftype\f\t\In\App\K\C
+		\\
+		\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
+		\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
+		\> \ep[1] = \TRG{\e[1]}\Env \HS
+		\> \ep[2] = \TAG{\e[2]}\Env\any
+		\\
+		\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
+		\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
+		\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
+		\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS \\
+		\> \> \=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
+		\\
+		\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
+		\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
+		\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
+		\\
+		\TAG\e\Env\t = \src\ep
+		\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
+		\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash \t \Sub \tp}
+		\>\ep = \TRG\e\Env
+		\\
+		\TAG\e\Env\t = \src{\BehCast\t\e}
+		\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS 
+		\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS  \EM{\K\vdash \t \not \Sub \tp}
+		\> \ep = \TRG\e\Env
+	\end{tabbing}
 \end{minipage}
 
 \medskip
 
 \hrulefill
-\caption{Typed Racket translation}\label{trtr}
+\caption{Typed Racket translation}\label{trtr2}
 \end{figure}
 
 The Behavioral semantics require that, to be of a type, a value must  behave
@@ -1752,7 +1757,7 @@ inheritance in a gradually typed setting requires the protection of all
 self-references.
 
 The behavioral semantics solve the problem illustrated by Thorn and the
-concrete semantics, requiring typed values to have been statically checked,
+concrete semantics, requiring typed values to be statically checked,
 and provides a stronger guarantee than the transient semantics. This, however,
 comes at the cost of having to check this guarantee at boundaries between
 typed and untyped code, seen in the behavioral cast operator, causing memory
@@ -1855,59 +1860,61 @@ it merely validates that all required method names are present.
 \hrulefill
 \vspace{1mm}
 
-\begin{tabular}{@{}l@{~ ~ ~}ll}
- \small
-\begin{minipage}{8cm}  
-\begin{tabbing}
-\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
-\hspace{.5cm}  \WHERE\HS \=
-  \fdp[1] = \src{\Ftype\f\any} .. \HS
-  \fd[1] = \Ftype\f\t ..\HS\HS
-  \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \HS
-  \md[1] = \Mdef\m\x\t\tp\e .. \\
-  \HS\HS\HS\HS\HS\HS\HS\HS\HS
-   \ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
-\end{tabbing}
-\begin{tabbing}
-\TRG\this\Env \hspace{1cm} \= = \src\this
-\\
-\TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
-\\
-\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C \HS\HS\= \Ftype\f\t\In\App\K\C
-\\
-\TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
-  \>\WHERE\HS
-  \TypeCk{\K,\Env}\this\C
-  \> \Ftype\f\t\In\App\K\C \hspace{.7cm}
-  \= \ep = \TAG\e\Env\any
-\\
-  \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
-  \>\WHERE \HS 
-  \TypeCk{\K,\Env}{\e[1]}\any \HS
-  \> \ep[1] = \TRG{\e[1]}\Env 
-  \> \ep[2] = \TAG{\e[2]}\Env\any
-\\
-\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
-   \>\WHERE\HS
-   \TypeCk{\K,\Env}{\e[1]}\C
-   \> \Mtype\m\t\tp\In\App\K\C\HS
-   \> \ep[1] = \TRG{\e[1]}\Env \HS\HS\=
-   \ep[2] = \TAG{\e[2]}\Env\any
-\\
-\TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
-\Ftype{\f[1]}{\t[1]}\In\App\K\C
-  \>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
-\\
-\TAG\e\Env\t \>= \src{\SubCast\t\ep}
-    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp 
-    \> \EM{\ConSub{}\K\t\tp} 
-    \> \EM{\K\vdash\t\not{<:}\tp} 
-    \> \EM{\ep = \TRG\e\Env}
-\\
-\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp
-     \>\EM{\K\vdash\t\Sub\tp} \HS \> \ep = \TRG\e\Env
-\end{tabbing}
-\end{minipage}
+	\begin{tabular}{@{}l@{~ ~ ~}ll}
+	\small
+	\begin{minipage}{8cm}  
+		\begin{tabbing}
+			\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
+			\hspace{.5cm}  \WHERE\HS \=
+			\fdp[1] = \src{\Ftype\f\any} .. \HS
+			\fd[1] = \Ftype\f\t ..\HS\HS
+			\mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
+			\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+			\md[1] = \Mdef\m\x\t\tp\e .. 
+			\HS\HS
+			\ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
+		\end{tabbing}
+		\begin{tabbing}
+			\TRG\this\Env \hspace{1cm} \= = \src\this
+			\\
+			\TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
+			\\
+			\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C \HS\HS\= \Ftype\f\t\In\App\K\C
+			\\
+			\TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
+			\>\WHERE\HS
+			\TypeCk{\K,\Env}\this\C
+			\> \Ftype\f\t\In\App\K\C \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS  \= \ep = \TAG\e\Env\any
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
+			\>\WHERE \HS 
+			\TypeCk{\K,\Env}{\e[1]}\any 
+			\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}\Env \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[2] = \TAG{\e[2]}\Env\any
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
+			\>\WHERE\HS
+			\TypeCk{\K,\Env}{\e[1]}\C
+			\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Mtype\m\t\tp\In\App\K\C\HS \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}\Env \HS\HS\HS\HS\=
+			\ep[2] = \TAG{\e[2]}\Env\any
+			\\
+			\TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
+			\Ftype{\f[1]}{\t[1]}\In\App\K\C
+			\>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
+			\\
+			\TAG\e\Env\t \>= \src{\SubCast\t\ep}
+			\>\WHERE\HS \TypeCk{\K,\Env}\e\tp 
+			\> \EM{\ConSub{}\K\t\tp} \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\t\not{<:}\tp}  
+			\> \EM{\ep = \TRG\e\Env}
+			\\
+			\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp
+			\>\EM{\K\vdash\t\Sub\tp} \HS \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \ep = \TRG\e\Env
+		\end{tabbing}
+	\end{minipage}
 \end{tabular}
 
 \medskip
@@ -2765,43 +2772,47 @@ while concrete types are unchanged.
 	
 	\medskip
 	
-	\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-		\small
-		\begin{minipage}{8cm}  
-			\begin{tabbing}
-				\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
-				\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
-				\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \\ \>  \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
-				\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\
-				\>\hspace{1cm}\HS\HS\HS\HS\HS\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
-				\>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
-			\end{tabbing}
-			\begin{tabbing}
-				\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
-				\\
-				\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
-				\\
-				\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
-				\=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
-				\\
-				\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
-				\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \HS\HS\= \ep[2]=\TAG{\e[2]}\Env\any
-				\\
-				\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
-				\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \>  \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \\
-				\> \> \> \t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
-				\\
-				\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
-				\>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
-				\\
-				\TAG\e\Env\t\> = \src\ep 
-				\>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \Sub \kty\t}
-				\\
-				\TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
-				\>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
-			\end{tabbing}
-		\end{minipage}
-	\end{tabular}
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+	\small
+	\begin{minipage}{8cm}  
+		\begin{tabbing}
+			\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
+			\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
+			\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \\ \>  \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
+			\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\
+			\>\hspace{1cm}\HS\HS\HS\HS\HS\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
+			\>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
+		\end{tabbing}
+		\begin{tabbing}
+			\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
+			\\
+			\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
+			\\
+			\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
+			\=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
+			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \= \\ 
+			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[2]=\TAG{\e[2]}\Env\any
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
+			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \\ 
+			\> \> \HS\HS\HS\HS\HS\HS\HS \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \>
+			\t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
+			\\
+			\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
+			\>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
+			\\
+			\TAG\e\Env\t\> = \src\ep 
+			\>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\kty\tp \Sub \kty\t}
+			\\
+			\TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+			\>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
+			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
+		\end{tabbing}
+	\end{minipage}
+\end{tabular}
 	
 	\medskip
 	
