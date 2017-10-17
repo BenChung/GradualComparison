@@ -1306,62 +1306,6 @@ expressiveness or flexibility.  Subtyping on optional types is inherited
 from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
 whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
-\begin{figure}[!t]
-
-\hrulefill  \small
-\vspace{-3mm}
-  
-\begin{mathpar}
-\Rule{TSWeak}{
-  \SSub \M\K\C\D
-}{
-  \SSub \M\K{\dt\C}{\dt\D}
-}
-
-\Rule{TSLow}{
-  \SSub \M\K\C\D
-}{
-  \SSub \M\K{\C}{\dt\D}
-}
-\end{mathpar}
-
-\hrulefill
-\caption{Thorn subtyping}\label{subth}
-
-\hrulefill  \small
-\vspace{-3mm}
-  
-\begin{mathpar}
-\Rule{STHC-OPTCONC}{
-  \SSub\cdot\K\C\D
-}{
-  \ConvertE\K{th}\CW\D
-}
-\end{mathpar}
-
-\hrulefill
-\caption{Thorn type convertibility}\label{convth}
-\end{figure}
-
-\begin{figure}[!h]
-\hrulefill  
-\vspace{0.5mm}
-
-\begin{mathpar}  
-\Rule{STH-CALL}{
-  \EnvTypeW \Env\K\e\tp \\  (\tp=\C~~\vee~~\tp=\CW) \\
-  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\
-  \EnvTypeW \Env\K\ep\tpp  \\
-  \ConvertE\K{th}\tpp{\t[1]}
-  }{
-  \EnvTypeW \Env\K{\Call\e\m\ep}{\t[2]}
-}    
-\end{mathpar}
-
-\hrulefill
-\caption{Thorn type system}\label{thts}
-\end{figure}
-
 \begin{figure}[!h] 
 \hrulefill
 
@@ -1371,12 +1315,12 @@ whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 	\small
 	\begin{minipage}{8cm}  
 		\begin{tabbing}
-			\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
-			\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
-			\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \\ \>  \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
-			\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\
-			\>\hspace{1cm}\HS\HS\HS\HS\HS\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
-			\>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
+			\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fd[1]..}{\mdp[1]..~ \mdpp[1]..}} 
+			\HS \WHERE \\ 
+      \> \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
+			\> {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
+			\> {\mdpp[1]} = \=\src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \=\textbf{\IF} {\t[1]} = \any\\
+			\> \> empty \> {\bf otherwise}  ..                  
 		\end{tabbing}
 		\begin{tabbing}
 			\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
@@ -1384,27 +1328,27 @@ whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 			\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
 			\\
 			\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
-			\=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
+			\=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\t}
 			\\
 			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
-			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \= \\ 
+			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \t=\any \>  \ep[1]= \TRG{\e[1]}\Env \= \\ 
 			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[2]=\TAG{\e[2]}\Env\any
 			\\
 			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
 			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \\ 
 			\> \> \HS\HS\HS\HS\HS\HS\HS \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \>
-			\t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
+			\t[2] = {\t[1]} \> \tp[2] = {\tp[1]}
 			\\
 			\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
 			\>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
 			\\
 			\TAG\e\Env\t\> = \src\ep 
 			\>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\kty\tp \Sub \kty\t}
+			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\tp \Sub \t}
 			\\
-			\TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+			\TAG\e\Env\t \>= \src{\SubCast{\t}\ep}
 			\>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
+			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\tp \not\Sub \t} 
 		\end{tabbing}
 	\end{minipage}
 \end{tabular}
@@ -1441,7 +1385,7 @@ types.
 		% ERR -- D !|=> ?C 
 		\\\>
 		\Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
-		\>    \HS \Mdef \m\x{\dt\C} {\dt\C}{~\x~}
+		\>    \HS \Mdef \m\x{\C} {\C}{~\x~}
 		\\\>
 		\Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
 		%  -- Cast inserted} 
