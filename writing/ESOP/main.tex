@@ -1089,9 +1089,6 @@ terms translate to well-typed \kafka terms, we are able to provide a simple
 soundness guarantee, and provide some intuition as to where different approaches
 allow programs to go wrong.
 
-
-\clearpage
-
 \subsection{Optional}
 
 \begin{figure}[hb]
@@ -1160,6 +1157,9 @@ allow programs to go wrong.
 
 \hrulefill
 \caption{Typescript type system}\label{convts}
+\end{figure}
+
+\begin{figure}[hb]
 
 \hrulefill  \small  \vspace{-3mm}
   
@@ -1184,6 +1184,9 @@ allow programs to go wrong.
 
 \hrulefill\caption{Typescript type convertibility}\label{tsts}
 
+\end{figure}
+
+\begin{figure}[!h]
 \hrulefill
 
 \smallskip
@@ -1386,8 +1389,9 @@ whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
 \hrulefill
 \caption{Thorn type convertibility}\label{convth}
+\end{figure}
 
-
+\begin{figure}[!h]
 \hrulefill  
 \vspace{0.5mm}
 
@@ -1404,7 +1408,9 @@ whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
 \hrulefill
 \caption{Thorn type system}\label{thts}
- 
+\end{figure}
+
+\begin{figure}[!h] 
 \hrulefill
 
 	\medskip
@@ -1469,30 +1475,31 @@ for method calls, shown in \figref{thts} must be extended to handle
 receivers of optional types, they are treated as if they were concrete
 types.
 
-\medskip
-\small
-\begin{tabbing}
-\HS\HS\HS\=  
-\Call{\New\A{}}\n{\New\D{}}\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=\class\= \A \{
-% ERR -- D !|=> C} 
-\\\>
-\Call{\New\A{}}\m{\New\D{}}
-  \>    \HS  \Mdef \n\x\C\C{~\x~}
-% ERR -- D !|=> ?C 
-\\\>
-\Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
-  \>    \HS \Mdef \m\x{\dt\C} {\dt\C}{~\x~}
-\\\>
-\Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
-%  -- Cast inserted} 
-  \> \}
-  \\\>   \> \Class\C{}{\Mdef\mp\x\any\any\x}
-  \\\>   \> \Class\D{}{\Mdef\m\x\any\any\x}
 
 
-\end{tabbing}
-\medskip
-
+\begin{figure}[!h]
+	\small
+	\begin{tabbing}
+		\HS\HS\HS\=  
+		\Call{\New\A{}}\n{\New\D{}}\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=\class\= \A \{
+		% ERR -- D !|=> C} 
+		\\\>
+		\Call{\New\A{}}\m{\New\D{}}
+		\>    \HS  \Mdef \n\x\C\C{~\x~}
+		% ERR -- D !|=> ?C 
+		\\\>
+		\Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
+		\>    \HS \Mdef \m\x{\dt\C} {\dt\C}{~\x~}
+		\\\>
+		\Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
+		%  -- Cast inserted} 
+		\> \}
+		\\\>   \> \Class\C{}{\Mdef\mp\x\any\any\x}
+		\\\>   \> \Class\D{}{\Mdef\m\x\any\any\x}
+		
+		
+	\end{tabbing}
+\end{figure}
 \normalsize
 
 The following expressions illustrate the difference between Thorn and
@@ -1725,7 +1732,7 @@ code for the example is:
 \medskip
 \begin{minipage}{\textwidth}
 \begin{tabbing}
-\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\ \\
+\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\
 \HS\HS\HS\HS\HS\HS\HS\HS\HS
 \WHERE\HS\K\HS=\HS\=
 \class\= \A \{\\
@@ -2002,8 +2009,6 @@ required to check the type on every argument. As a result, the transient
 semantics will cause checks to be inserted even in fully typed methods, with
 the most checks existing in a fully-typed program, unlike the behavioral or
 concrete semantics.
-
-\clearpage
 
 \section{Conclusion}\label{litm}
 
