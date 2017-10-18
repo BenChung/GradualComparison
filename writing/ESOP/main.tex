@@ -1534,6 +1534,57 @@ the concrete type system.
 \subsection{Behavioral}
 
 \begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		{\scriptsize Optional} \\
+		\TR[\OTS]\x & = \src \x \\
+		\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
+		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
+		{\scriptsize Transient} \\
+		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
+		\TRG[\TTS]\this\Env & = \src\this \\
+		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
+		{\scriptsize Behavioral} \\ 
+		\TRG[\BTS]\x\Env &= \src{\x} \\
+		\TRG[\BTS]\this\Env &= \src{\this} \\
+		\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
+		{\scriptsize Concrete} \\
+		\TRG[\CTS]{\x}\Env & = \src \x \\
+		\TRG[\CTS]\this\Env &= \src{\this} \\
+		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
+	\end{tabular}
+	\caption{Translations for variables and field access}
+	\label{fig:travar}
+\end{figure}
+
+%% Going by x, this, and field assignment -- compare them individually and not as a group.
+\figref{fig:travar} presents the translation for the field access expression and the variables. 
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		{\scriptsize Optional} \\
+		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
+		{\scriptsize Transient} \\
+		\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
+		& \TypeCk{\K,\Env}\this\C
+		& \Ftype\f\t\In\App\K\C 
+		& \ep = \TAG[\TTS]\e\Env\any\\
+		{\scriptsize Behavioral} \\ 
+		\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
+		& \TypeCk{\K,\Env}{\this}\C
+		& \Ftype\f\t\In\App\K\C 
+		& \ep = \TAG[\BTS]\e\Env\t\\
+		{\scriptsize Concrete} \\
+		\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
+		& \TypeCk{\K, \Env}\this\C
+		& \Ftype\f\t\In\App\K\C
+		& \ep = \TAG[\CTS]\e\Env{\t} \\
+	\end{tabular}
+	
+	\caption{Translations for field assignment}
+	\label{fig:trassn}
+\end{figure}
+
+\begin{figure}
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 {\scriptsize Optional} \\
 \TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
@@ -1563,58 +1614,9 @@ only difference lies in which recursive translation to call for the arguments of
 whereby each semantics call their respective translation. The optional semantics 
 require an additional any cast to ease any typing information from the object.
 
-\begin{figure}
-\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-{\scriptsize Optional} \\
-\TR[\OTS]\x & = \src \x \\
-\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
-\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
-{\scriptsize Transient} \\
-\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
-\TRG[\TTS]\this\Env & = \src\this \\
-\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
-{\scriptsize Behavioral} \\ 
-\TRG[\BTS]\x\Env &= \src{\x} \\
-\TRG[\BTS]\this\Env &= \src{\this} \\
-\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
-{\scriptsize Concrete} \\
-\TRG[\CTS]{\x}\Env & = \src \x \\
-\TRG[\CTS]\this\Env &= \src{\this} \\
-\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
-\end{tabular}
-\caption{Translations for variables and field access}
-\label{fig:travar}
-\end{figure}
-
-%% Going by x, this, and field assignment -- compare them individually and not as a group.
-\figref{fig:travar} presents the translation for the field access expression and the variables. 
 
 
 
-\begin{figure}
-\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-{\scriptsize Optional} \\
-\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
-{\scriptsize Transient} \\
-\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
-  & \TypeCk{\K,\Env}\this\C
-  & \Ftype\f\t\In\App\K\C 
-  & \ep = \TAG[\TTS]\e\Env\any\\
-{\scriptsize Behavioral} \\ 
-\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
-  & \TypeCk{\K,\Env}{\this}\C
-  & \Ftype\f\t\In\App\K\C 
-  & \ep = \TAG[\BTS]\e\Env\t\\
-{\scriptsize Concrete} \\
-\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
-   & \TypeCk{\K, \Env}\this\C
-   & \Ftype\f\t\In\App\K\C
-   & \ep = \TAG[\CTS]\e\Env{\t} \\
-\end{tabular}
-
-\caption{Translations for field assignment}
-\label{fig:trassn}
-\end{figure}
 
 \begin{figure}
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
