@@ -1613,10 +1613,7 @@ is almost identical between the transient, behavioral, and concrete semantics. T
 only difference lies in which recursive translation to call for the arguments of the object, 
 whereby each semantics call their respective translation. The optional semantics 
 require an additional any cast to ease any typing information from the object.
-
-
-
-
+%TODO: Need to talk more about comparing the semantics.
 
 \begin{figure}
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1690,6 +1687,42 @@ require an additional any cast to ease any typing information from the object.
 
 \caption{Translations for function invocation}
 \label{fig:trafuninv}
+\end{figure}
+
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+
+		{\scriptsize Optional} \\
+		\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } & \WHERE & \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\ 
+		& & & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+		& & & \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\
+		& & & \ep = \TR[\OTS]{\e} \\
+		
+		{\scriptsize Transient} \\
+		\TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } &
+		\WHERE & \fdp[1] = \src{\Ftype\f\any} .. \HS
+		\fd[1] = \Ftype\f\t ..\HS\HS \\
+		& & & \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
+		& & & \md[1] = \Mdef\m\x\t\tp\e .. \\
+		& & & \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\tp~ .. \\		
+		
+		{\scriptsize Behavioral} \\
+		\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } & \WHERE & \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
+		& & & \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+		& & & \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\
+		
+		{\scriptsize Concrete} \\
+		\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} & \WHERE & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\
+        & & & \ep = \TAG[\CTS]{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
+        & & & {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
+		& & & {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\  & & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\
+		& & & \HS\HS\HS\HS\HS\HS \src{empty} \\ 
+		& & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..
+	\end{tabular}
+	
+	\caption{Translations for class}
+	\label{fig:traclass}
 \end{figure}
 
 \clearpage
