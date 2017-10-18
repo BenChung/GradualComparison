@@ -839,25 +839,22 @@ every method of the source type.
 \newpage
 
 \subsection{Type soundness} 
-We have mechanized the type soundness proof for \kafka in Coq, 
-available at \emph{https://github.com/BenChung/GradualComparison/tree/master/impl}. In Coq syntax, the
+We have mechanized the type soundness proof for \kafka in Coq, available online\footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}. In Coq syntax, the
 conditions for \kafka's type soundness theorem is stated as follows:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
 
 $\forall$ (k:ct) (s:heap) (e:expr) (t:type),
-
   (*condition 1*) --(\emph{WellFormedState})-- k e s $\rightarrow$ 
-
   (*condition 2*) --(\emph{HasType})-- nil s k e t $\rightarrow$ 
 \end{lstlisting}
 
 Our Coq mechanization is identical to our formalism. In particular, the
 inference rules $\EnvType\Env\s\k\e\t$ and $\WFq{\K~\e~\s}$ is equivalent 
-to the Coq functions \verb|HasType| and \verb|WellFormedState| respectively. 
+to the Coq functions \emph{HasType} and \emph{WellFormedState} respectively. 
 Note that in each of the three error stuck states, cases 3 through 5, the actual stuck
-expression can be inside some evaluation context \verb|E|. \verb|equivExpr|
+expression can be inside some evaluation context \verb|E|. The \emph{equivExpr} function
 fills in the hole in \verb|E| with the given expression.
 
 Our theorem states that for any class table (\verb|k|), heap
@@ -868,17 +865,17 @@ five choices:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
-  (*case 1*) ($\exists$ a:ref, e = Ref a) $\vee$
+ (*case 1*) ($\exists$ a:ref, e = Ref a) $\vee$
 \end{lstlisting}
 
 \begin{description}
 \item[Case 1] The program is already fully evaluated. Since \kafka has only one value,
 reference (ref in our Coq formalization), we can say that there exists some
-reference that is equal to our entire program, or \verb|exists a : ref, e = Ref a|.
+reference that is equal to our entire program, or $\exists$ \verb|a : ref, e = Ref a|.
 \end{description}
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
-  (*case 2*) ($\exists$ (e$'$:expr) (s$'$:heap)(k$'$:ct), 
+ (*case 2*) ($\exists$ (e$'$:expr) (s$'$:heap)(k$'$:ct), 
        --(\emph{Steps})-- k e s k$'$ e$'$ s$'$ $\wedge$
        --(\emph{WellFormedState})-- k$'$ e$'$ s$'$ $\wedge$
 	     --(\emph{HasType})-- nil s$'$ k$'$ e$'$ t $\wedge$
@@ -890,48 +887,47 @@ morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}
 step to some new configuration (expression \verb|e|$'$, heap \verb|s|$'$, and
 class table \verb|k|$'$) that is both itself well formed and that retains all of
 the entries and types in the old heap \verb|s| (expressed using
-\verb|retains_references|) and class table \verb|k| (expressed using \verb|ct_ext|).
+\emph{retains{\textunderscore}references}) and class table \verb|k| (expressed using \emph{ct{\textunderscore}ext}).
 \end{description}
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
-  ($\exists$ E:EvalCtx,
-   (*case 3*) ($\exists$ (a:ref) (m:id) (a$'$:ref) (C:id) (aps:list ref),
+ ($\exists$ E:EvalCtx,
+ (*case 3*) ($\exists$ (a:ref) (m:id) (a$'$:ref) (C:id) (aps:list ref),
        (e = --(\emph{equivExpr})-- (--(\emph{DynCall})-- (--(\emph{Ref})-- a) m (--(\emph{Ref})-- a$'$)) E) $\wedge$
        --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
        $\forall$ x e, ~ (--(\emph{In})-- (--(\emph{Method})-- m x Any Any e) --(\emph{(methods})-- C k))) $\vee$
 \end{lstlisting}
 \begin{description}
-  \item[Case 3] The program could be stuck at a dynamic call expression. T
-A dynamic call expression of the form \verb|DynCall (Ref a) m (Ref a')| can get 
-stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
+  \item[Case 3] The program could be stuck at a dynamic call expression. The
+dynamic call expression of the form \emph{DynCall} (\emph{Ref} \texttt{a) m (}\emph{Ref} \texttt{a}$'$) can get stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
 that does not contain a method \verb|m| to call. 
 \end{description}
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
-    (*case 4*) ($\exists$ (t$'$:type) (a:ref) (C:id) (aps:list ref),
+ (*case 4*) ($\exists$ (t$'$:type) (a:ref) (C:id) (aps:list ref),
        (e = --(\emph{equivExpr})-- (--(\emph{SubCas})-- t$'$ (--(\emph{Ref})-- a)) E) $\wedge$
        --(\emph{In})-- (a, --(\emph{HCell})--(C,aps)) s $\wedge$
-       ((--(\emph{Subtype})-- empty_mu k (--(\emph{class})-- C) t$'$) -> False)) $\vee$
+       ((--(\emph{Subtype})-- --(\emph{empty{\textunderscore}mu})-- k (--(\emph{class})-- C) t$'$) -> False)) $\vee$
 \end{lstlisting}
 \begin{description}
   \item[Case 4] The program could have gotten stuck on a subtype cast. 
-In an expression of the form \texttt{SubCast t$'$ (Ref a)}, the program
+In an expression of the form \emph{SubCast} \texttt{t$'$} (\emph{Ref} \texttt{a)}, the program
 can get stuck if \verb|s| maps \verb|a| to an object of class \verb|C|,
 and if \verb|C| is not a subtype of \verb|t|$'$.
 \end{description}
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
-    (*case 5*) ($\exists$ a aps C C$'$, 
-       e = equivExpr (BehCast (class C') (Ref a)) E $\wedge$
-       In (a, HCell(C, aps)) s $\wedge$
-       ~(incl (method_names C$'$ k) (method_names C k))))
+ (*case 5*) ($\exists$ a aps C C$'$, 
+       e = --(\emph{equivExpr})-- (--(\emph{BehCast})-- (--(\emph{class})-- C') (--(\emph{Ref})-- a)) E $\wedge$
+       --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
+       ~(--(\emph{incl})-- (--(\emph{method{\textunderscore}names})-- C$'$ k) (--(\emph{method{\textunderscore}names})-- C k))))
 \end{lstlisting}
 \begin{description}
   \item[Case 5] The program may get stuck on a behavioral cast, of the form
-\verb|BehCast| \texttt{(class C$'$) (Ref a)}, if \verb|C|, the class of \verb|a| in
+\emph{BehCast} (\emph{class} \texttt{C}$'$) (\emph{Ref} \texttt{a}), if \verb|C|, the class of \verb|a| in
 \verb|s| does not have all of the methods needed to implement \verb|C|$'$.
 \end{description}
 
