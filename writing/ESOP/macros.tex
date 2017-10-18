@@ -1,8 +1,12 @@
-\newcommand{\TR}[1]{\EM{\llbracket    #1 \rrbracket}}
-\newcommand{\TA}[1]{\EM{\llparenthesis 2 \rrparenthesis}}
+\DeclareDocumentCommand\TR{om}{\EM{\IfNoValueTF{#1}{\PackageWarning{}{Undefined Type System}}{#1}\llbracket #2 \rrbracket}}
 
-\newcommand{\TRG}[2]{\EM{\llbracket    #1 \rrbracket_{#2}}}
-\newcommand{\TAG}[3]{\EM{\llparenthesis #1 \rrparenthesis_{#2}^{#3}}}
+\DeclareDocumentCommand\TRG{omm}{\EM{\IfNoValueTF{#1}{\PackageWarning{}{Undefined Type System}}{#1}\llbracket #2 \rrbracket_{#3}}}
+\DeclareDocumentCommand\TAG{ommm}{\EM{\IfNoValueTF{#1}{\PackageWarning{}{Undefined Type System}}{#1}\llparenthesis #2 \rrparenthesis_{#3}^{#4}}}
+
+\newcommand{\OTS}{{\mathcal{O}}}
+\newcommand{\CTS}{{\mathcal{C}}}
+\newcommand{\BTS}{{\mathcal{B}}}
+\newcommand{\TTS}{{\mathcal{T}}}
 
 \newcommand{\bscast}[2]{\EM{\BehCast{#1}{{#2}}}}
 \newcommand{\kty}[1]{\EM{\xt{kty}(#1)}}

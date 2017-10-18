@@ -1510,6 +1510,187 @@ the concrete type system.
 
 \subsection{Behavioral}
 
+\begin{figure}
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+{\scriptsize Optional} \\
+\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
+   & \ep[1] = \TR[\OTS]{\e[1]} .. \\
+{\scriptsize Transient} \\
+\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
+   & \Ftype{\f[1]}{\t[1]}\In\App\K\C
+   & \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\
+{\scriptsize Behavioral} \\ 
+\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
+   & \Ftype{\f[1]}{\t[1]}\In\App\K\C
+   & \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
+{\scriptsize Concrete} \\
+\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
+   & \Ftype{\f[1]}{\t[1]}\In\App\K\C
+   & \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
+\end{tabular}
+
+\caption{Translations for field assignment}
+\label{fig:trassn}
+\end{figure}
+
+\begin{figure}
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+{\scriptsize Optional} \\
+\TR[\OTS]\x & = \src \x \\
+\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
+\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
+{\scriptsize Transient} \\
+\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
+\TRG[\TTS]\this\Env & = \src\this \\
+\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
+{\scriptsize Behavioral} \\ 
+\TRG[\BTS]\x\Env &= \src{\x} \\
+\TRG[\BTS]\this\Env &= \src{\this} \\
+\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
+{\scriptsize Concrete} \\
+\TRG[\CTS]{\x}\Env & = \src \x \\
+\TRG[\CTS]\this\Env &= \src{\this} \\
+\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
+\end{tabular}
+
+\caption{Translations for variables and field access}
+\label{fig:travar}
+\end{figure}
+\begin{figure}
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+{\scriptsize Optional} \\
+\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
+{\scriptsize Transient} \\
+\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
+  & \TypeCk{\K,\Env}\this\C
+  & \Ftype\f\t\In\App\K\C 
+  & \ep = \TAG[\TTS]\e\Env\any\\
+{\scriptsize Behavioral} \\ 
+\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
+  & \TypeCk{\K,\Env}{\this}\C
+  & \Ftype\f\t\In\App\K\C 
+  & \ep = \TAG[\BTS]\e\Env\t\\
+{\scriptsize Concrete} \\
+\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
+   & \TypeCk{\K, \Env}\this\C
+   & \Ftype\f\t\In\App\K\C
+   & \ep = \TAG[\CTS]\e\Env{\t} \\
+\end{tabular}
+
+\caption{Translations for field assignment}
+\label{fig:trassn}
+\end{figure}
+
+\begin{figure}
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+{\scriptsize Transient} \\
+\TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
+   & \TypeCk{\K,\Env}\e\tp
+   & \EM{\K\vdash\t\Sub\tp}
+   & \ep = \TRG[\TTS]\e\Env \\
+\TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
+   & \TypeCk{\K,\Env}\e\tp 
+   & \EM{\ConSub{}\K\t\tp}
+   & \EM{\K\vdash\t\not{<:}\tp}  \\
+& & & \EM{\ep = \TRG[\TTS]\e\Env} \\
+{\scriptsize Behavioral} \\ 
+\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
+   & \TypeCk{\K,\Env}\e\tp
+   & \EM{\K\vdash \t \Sub \tp}
+   & \ep = \TRG[\BTS]\e\Env\\
+\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\e} & \WHERE
+   & \TypeCk{\K,\Env}\e\tp \HS 
+   & \EM{\K\vdash \t \not \Sub \tp}
+   & \ep = \TRG[\BTS]\e\Env \\
+{\scriptsize Concrete} \\
+\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
+   & \TypeCk{\K,\Env}\e\tp 
+   & \ep = \TRG[\CTS]\e\Env
+   & \EM{\K\vdash\tp \Sub \t} \\
+\TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
+   & \TypeCk{\K,\Env}\e\tp 
+   & \ep = \TRG[\CTS]\e\Env 
+   & \EM{\K\vdash\tp \not\Sub \t} 
+\end{tabular}
+
+\caption{Type requirement translation}
+\label{fig:trtype}
+\end{figure}
+
+
+
+\begin{figure}
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+{\scriptsize Transient} \\
+\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
+& \TypeCk{\K,\Env}{\e[1]}\any 
+& \ep[1] = \TRG[\TTS]{\e[1]}\Env
+& \ep[2] = \TAG[\TTS]{\e[2]}\Env\any
+\\
+\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = 
+& \WHERE
+& \TypeCk{\K,\Env}{\e[1]}\C  
+& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\D[2]} \\
+\multicolumn{2}{l}{\HS\HS\HS\HS\src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\SubCast{\any}{\ep[2]}}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
+{\scriptsize Behavioral} \\ 
+\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
+ &  \TypeCk{\K,\Env}{\e[1]}\any
+ &  \ep[1] = \TRG[\BTS]{\e[1]}\Env
+ &  \ep[2] = \TAG[\BTS]{\e[2]}\Env\any
+\\
+\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}} & \WHERE 
+& \TypeCk{\K,\Env}{\e[1]}\C 
+& \ep[1] = \TRG[\BTS]{\e[1]}\Env
+& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
+& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
+{\scriptsize Concrete} \\
+\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE &
+      \TypeCk{\K,\Env}{\e[1]}\any &  \ep[1]= \TRG[\CTS]{\e[1]}\Env & \ep[2] = \TAG[\CTS]{\e[2]}\Env\any\\
+\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
+& \WHERE & \TypeCk{\K,\Env}{\e[1]}\C &  \ep[1] = \TRG[\CTS]{\e[1]}\Env &   \ep[2] = \TAG[\CTS]{\e[2]}\Env{\D[1]} \\ 
+& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
+\end{tabular}
+
+\caption{Translations for function invocation}
+\label{fig:trafuninv}
+\end{figure}
+
+
+Figure~\ref{fig:trafuninv} depicts the translation approach taken by each of
+the four semantics for function invocation, illustrating how function calls
+must be guarded under each different semantics.
+
+Under the optional semantics, we do not know if the function actually exists
+on the object or not, leading the translation to make all function invocations
+with the untyped call operator, which can fail at any time.
+
+All three sound systems have to make a distinction between safe typed calls and
+unsafe untyped calls. As a result, they condition on the type of the receiver, 
+using a sound call if it is typed, and an dynamic invocation if not.
+
+The weakest of the sound systems, the transient semantics, works almost
+identically to the optional semantics in the case of an invocation on an
+untyped expression, generating a dynamic invocation with an argument generated
+with result type \any, producing a result similar to that of Typescript.
+However, in the sound case, the transient semantics guarantees the existence,
+but not types, of the method \m. In conjunction with class translation, which
+ensures that an untyped method always exists for any typed method, the
+transient semantics can insert a statically-typed call to the \any-typed
+invocation site guaranteed to exist. However, the argument still needs to
+be cast to \any to be compatible with the dynamic call, and the return type
+needs to be checked against the expected type.
+
+The behavioral semantics has the same untyped invocation as transient, but 
+is able to provide a stronger guarantee, enabling a simpler typed invocation.
+The behavioral semantics guarantees that a typed receiver respects the type
+that it is under, allowing the invocation form to call the method under the
+expected type and not have to verify the return type, as an ill-typed return
+would be caught by a wrapper before it reaches the caller.
+
+Lastly, the concrete semantics provides the strongest guarantee, providing a 
+typed invocation form identical to that of the behavioral semantics. 
+
+
 
 \begin{figure}[!b]
 
