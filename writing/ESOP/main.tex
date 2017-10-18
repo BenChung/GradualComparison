@@ -840,73 +840,99 @@ every method of the source type.
 
 \subsection{Type soundness} 
 We have mechanized the type soundness proof for \kafka in Coq, 
-available at \emph{[link omitted for blind review]}. In Coq syntax, the
-\kafka type soundness theorem is stated as follows:
+available at \emph{https://github.com/BenChung/GradualComparison/tree/master/impl}. In Coq syntax, the
+conditions for \kafka's type soundness theorem is stated as follows:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
-morekeywords={forall, exists}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={}]
-forall (k:ct) (s:heap) (e:expr) (t:type),
-  (*condition 1*) WellFormedState k e s -> 
-  (*condition 2*) HasType nil s k e t -> 
-  (*case 1*) (exists a:ref, e = Ref a) \/
-  (*case 2*) (exists (e':expr) (s':heap)(k':ct), 
-       Steps k e s k' e' s' /\
-       WellFormedState k' e' s' /\
-       HasType nil s' k' e' t /\
-       retains_references s s' /\
-       ct_ext k k') \/
-  (exists E:EvalCtx,
-    (*case 3*) (exists (a:ref) (m:id) (a':ref) (C:id) (aps:list ref),
-       (e = equivExpr (DynCall (Ref a) m (Ref a')) E) /\
-       In (a, HCell(C, aps)) s /\
-       forall x e, ~ (In (Method m x Any Any e) (methods C k))) \/
-    (*case 4*) (exists (t':type) (a:ref) (C:id) (aps:list ref),
-       (e = equivExpr (SubCast t' (Ref a)) E) /\
-       In (a, HCell(C,aps)) s /\
-       ((Subtype empty_mu k (class C) t') -> False)) \/
-    (*case 5*) (exists a aps C C', 
-       e = equivExpr (BehCast (class C') (Ref a)) E /\
-       In (a, HCell(C, aps)) s /\
-       ~(incl (method_names C' k) (method_names C k))))
+morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
+
+$\forall$ (k:ct) (s:heap) (e:expr) (t:type),
+
+  (*condition 1*) --(\emph{WellFormedState})-- k e s $\rightarrow$ 
+
+  (*condition 2*) --(\emph{HasType})-- nil s k e t $\rightarrow$ 
 \end{lstlisting}
 
-Our Coq mechanization is identical to our formalism. In particular,
-$\EnvType\Env\s\k\e\t$ is equivalent to \verb|HasType g s k e t| and
-$\WFq{\K~\e~\s}$ is equivalent to \verb|WellFormedS-| \verb|tate k e s|. Note that in
-each of the three error stuck states, cases 3 through 5, the actual stuck
+Our Coq mechanization is identical to our formalism. In particular, the
+inference rules $\EnvType\Env\s\k\e\t$ and $\WFq{\K~\e~\s}$ is equivalent 
+to the Coq functions \verb|HasType| and \verb|WellFormedState| respectively. 
+Note that in each of the three error stuck states, cases 3 through 5, the actual stuck
 expression can be inside some evaluation context \verb|E|. \verb|equivExpr|
 fills in the hole in \verb|E| with the given expression.
 
-Informally, our theorem states that for any class table (\verb|k|), heap
+Our theorem states that for any class table (\verb|k|), heap
 (\verb|s|), expression (\verb|e|), and type (\verb|t|), if the state is well
 formed (condition 1), and if the top-level expression \verb|e| has type
 \verb|t| (condition 2), then the program can only make one of the following
 five choices:
 
-\begin{description}
-  \item[Case 1] The program is already fully evaluated. Since \kafka has only one value,
-  reference (ref in our Coq formalization), we can say that there exists some
-  reference that is equal to our entire program, or \verb|exists a : ref, e = Ref a|.
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
+morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
+  (*case 1*) ($\exists$ a:ref, e = Ref a) $\vee$
+\end{lstlisting}
 
-  \item[Case 2] The program can take a step. In this case, the program will
-step to some new configuration (expression \verb|e'|, heap \verb|s'|, and
-class table \verb|k'|) that is both itself well formed and that retains all of
+\begin{description}
+\item[Case 1] The program is already fully evaluated. Since \kafka has only one value,
+reference (ref in our Coq formalization), we can say that there exists some
+reference that is equal to our entire program, or \verb|exists a : ref, e = Ref a|.
+\end{description}
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
+morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
+  (*case 2*) ($\exists$ (e$'$:expr) (s$'$:heap)(k$'$:ct), 
+       --(\emph{Steps})-- k e s k$'$ e$'$ s$'$ $\wedge$
+       --(\emph{WellFormedState})-- k$'$ e$'$ s$'$ $\wedge$
+	     --(\emph{HasType})-- nil s$'$ k$'$ e$'$ t $\wedge$
+       --(\emph{retains{\textunderscore}references})-- s s' $\wedge$
+       --(\emph{ct{\textunderscore}ext})-- k k') $\vee$
+\end{lstlisting}
+\begin{description}
+\item[Case 2] The program can take a step. In this case, the program will
+step to some new configuration (expression \verb|e|$'$, heap \verb|s|$'$, and
+class table \verb|k|$'$) that is both itself well formed and that retains all of
 the entries and types in the old heap \verb|s| (expressed using
 \verb|retains_references|) and class table \verb|k| (expressed using \verb|ct_ext|).
+\end{description}
 
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
+morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
+  ($\exists$ E:EvalCtx,
+   (*case 3*) ($\exists$ (a:ref) (m:id) (a$'$:ref) (C:id) (aps:list ref),
+       (e = --(\emph{equivExpr})-- (--(\emph{DynCall})-- (--(\emph{Ref})-- a) m (--(\emph{Ref})-- a$'$)) E) $\wedge$
+       --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
+       $\forall$ x e, ~ (--(\emph{In})-- (--(\emph{Method})-- m x Any Any e) --(\emph{(methods})-- C k))) $\vee$
+\end{lstlisting}
+\begin{description}
   \item[Case 3] The program could be stuck at a dynamic call expression. T
-  A dynamic call expression of the form \verb|DynCall (Ref a) m (Ref a')| can get 
-  stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
-  that does not contain a method \verb|m| to call. 
-  
-  \item[Case 4] The program could have gotten stuck on a subtype cast. 
-  In an expression of the form \verb|SubCast t' (Ref a)|, the program
-  can get stuck if \verb|s| maps \verb|a| to an object of class \verb|C|,
-  and if \verb|C| is not a subtype of \verb|t'|.
+A dynamic call expression of the form \verb|DynCall (Ref a) m (Ref a')| can get 
+stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
+that does not contain a method \verb|m| to call. 
+\end{description}
 
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
+morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
+    (*case 4*) ($\exists$ (t$'$:type) (a:ref) (C:id) (aps:list ref),
+       (e = --(\emph{equivExpr})-- (--(\emph{SubCas})-- t$'$ (--(\emph{Ref})-- a)) E) $\wedge$
+       --(\emph{In})-- (a, --(\emph{HCell})--(C,aps)) s $\wedge$
+       ((--(\emph{Subtype})-- empty_mu k (--(\emph{class})-- C) t$'$) -> False)) $\vee$
+\end{lstlisting}
+\begin{description}
+  \item[Case 4] The program could have gotten stuck on a subtype cast. 
+In an expression of the form \texttt{SubCast t$'$ (Ref a)}, the program
+can get stuck if \verb|s| maps \verb|a| to an object of class \verb|C|,
+and if \verb|C| is not a subtype of \verb|t|$'$.
+\end{description}
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
+morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
+    (*case 5*) ($\exists$ a aps C C$'$, 
+       e = equivExpr (BehCast (class C') (Ref a)) E $\wedge$
+       In (a, HCell(C, aps)) s $\wedge$
+       ~(incl (method_names C$'$ k) (method_names C k))))
+\end{lstlisting}
+\begin{description}
   \item[Case 5] The program may get stuck on a behavioral cast, of the form
-\verb|BehCast| \verb|(class C') (Ref a)|, if \verb|C|, the class of \verb|a| in
-\verb|s| does not have all of the methods needed to implement \verb|C'|.
+\verb|BehCast| \texttt{(class C$'$) (Ref a)}, if \verb|C|, the class of \verb|a| in
+\verb|s| does not have all of the methods needed to implement \verb|C|$'$.
 \end{description}
 
 We have proven that a \kafka program will not get stuck, except if it
