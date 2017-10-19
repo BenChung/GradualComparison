@@ -1121,13 +1121,13 @@ translation, by discarding the type of the callee and systematically relying
 on dynamic method invocation for method calls it clear that optional
 programs can get stuck at any point of their execution.
 
-All optional types are represented with the dynamic \kafka type, \any, and
-all translated expressions have type \any.  This is a simple instance of a
-general property that all our translations into \kafka satisfy.  Let
-\(\kty\t\) be a mapping from source types to \kafka types -- for the optional semantics
-the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
-holds that if \e is a well-typed source expression with type \t, then
-\TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
+%All optional types are represented with the dynamic \kafka type, \any, and
+%all translated expressions have type \any.  This is a simple instance of a
+%general property that all our translations into \kafka satisfy.  Let
+%\(\kty\t\) be a mapping from source types to \kafka types -- for the optional semantics
+%the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
+%holds that if \e is a well-typed source expression with type \t, then
+%\TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
 
 A feature of optional typing highlighted by Bracha~\cite{pluggabletypes} 
 is the minimal impact on performance, which is also evident in our optional translation.
@@ -1410,6 +1410,7 @@ the value has the correct types to the user, Typed Racket is able to
 translate the typed code in class \D as if the language had no untyped
 code. Any misbehavior will be instantly caught by the value themselves.
 
+%TODO: Do we really need this paragraph?
 As mentioned earlier, we depart from Typed Racket in several ways. In Type
 Racket the granularity of boundaries is the module, all classes in the same
 module are either typed or untyped.  The finer granularity adopted here does
@@ -1539,29 +1540,47 @@ concrete semantics.
 
 \subsection{Translation discussion}
 
-The translation to \kafka appears in \figref{tst} and is straightforward.
-The translation function \(\TR{\dots}\) is applied to class definitions and
-expression, it takes TypeScript and returns the corresponding \kafka
-code. Grey background is used to identify translated terms. 
+%	\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{llllll}  
+%		\hspace{.5cm}
+%		\begin{minipage}{1cm}\begin{mathpar}  
+%				\Rule{STG-VAR}{
+%					~\\\\  ~\\\\ ~\\\\
+%					\HasType \Env\x\t
+%				}{
+%					\EnvTypeS \Env\K\x\t
+%				}
+%		\end{mathpar}\end{minipage}
+
 
 \begin{figure}
+	\begin{tabular}{lll}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize Optional} \\
 		\TR[\OTS]\x & = \src \x \\
 		\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
 		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
+	\end{tabular}
+	&
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize Transient} \\
 		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
 		\TRG[\TTS]\this\Env & = \src\this \\
 		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
+	\end{tabular}
+	\\ \\
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
 		{\scriptsize Behavioral} \\ 
 		\TRG[\BTS]\x\Env &= \src{\x} \\
 		\TRG[\BTS]\this\Env &= \src{\this} \\
 		\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
+	\end{tabular}
+	&
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
 		{\scriptsize Concrete} \\
 		\TRG[\CTS]{\x}\Env & = \src \x \\
 		\TRG[\CTS]\this\Env &= \src{\this} \\
 		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
+	\end{tabular}
 	\end{tabular}
 	\caption{Translations for variables and field access}
 	\label{fig:travar}
