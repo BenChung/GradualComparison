@@ -1487,8 +1487,8 @@ value that has the method requested.
 
 \newcommand{\sspce}{;~}
 \newcommand{\idbody}[1]{\SubCast{#1}\x\sspce \SubCast{#1}\x}
-\begin{tabular}{lr}
-\multicolumn{1}{c}{\textbf{Source}} & \multicolumn{1}{c}{\textsf{\textbf{KafKa}}} \\
+\begin{tabular}{ll}
+\multicolumn{1}{c}{\footnotesize{\textbf{Source}}} & \multicolumn{1}{c}{\footnotesize{\textsf{\textbf{KafKa}}}} \\
 \footnotesize
 \(
 \begin{array}{l@{\,}l}
@@ -1502,14 +1502,15 @@ value that has the method requested.
 \) &
 \footnotesize
 \(
-\begin{array}{l@{\,}l}
-\Class\C{}{&\Mdef\m\x\any\any{\idbody\C}} \\
-\Class\D{}{&\Mdef{\xt n}\x\any\any{\idbody\D}} \\
-\Class{\xt E}{}{&\Mdef\m\x\any\any{\idbody\D}} \\
-\Class{\xt F}{}{&\Mdef\m\x\any\any{\idbody{\xt E}} \\
-                &\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
+\begin{array}{l}
+\footnotesize
+\Class\C{}{\Mdef\m\x\any\any{\idbody\C}} \\
+\Class\D{}{\Mdef{\xt n}\x\any\any{\idbody\D}} \\
+\Class{\xt E}{}{\Mdef\m\x\any\any{\idbody\D}} \\
+\Class{\xt F}{}{\Mdef\m\x\any\any{\idbody{\xt E}} \\
+               \HS\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
                 \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
-\multicolumn{2}{l}{\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}}
+\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}
 \end{array}
 \)
 \end{tabular} \\[1em]
@@ -1540,43 +1541,31 @@ concrete semantics.
 
 \subsection{Translation discussion}
 
-%	\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{llllll}  
-%		\hspace{.5cm}
-%		\begin{minipage}{1cm}\begin{mathpar}  
-%				\Rule{STG-VAR}{
-%					~\\\\  ~\\\\ ~\\\\
-%					\HasType \Env\x\t
-%				}{
-%					\EnvTypeS \Env\K\x\t
-%				}
-%		\end{mathpar}\end{minipage}
-
-
 \begin{figure}
-	\begin{tabular}{lll}
+	\begin{tabular}{l@{\HS}l}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Optional} \\
+		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]\x & = \src \x \\
 		\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
 		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
 	\end{tabular}
 	&
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Transient} \\
+		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
 		\TRG[\TTS]\this\Env & = \src\this \\
 		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
 	\end{tabular}
 	\\ \\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
-		{\scriptsize Behavioral} \\ 
+		{\scriptsize \bf{Behavioral}} \\ 
 		\TRG[\BTS]\x\Env &= \src{\x} \\
 		\TRG[\BTS]\this\Env &= \src{\this} \\
 		\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
 	\end{tabular}
 	&
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
-		{\scriptsize Concrete} \\
+		{\scriptsize\bf{Concrete}} \\
 		\TRG[\CTS]{\x}\Env & = \src \x \\
 		\TRG[\CTS]\this\Env &= \src{\this} \\
 		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
@@ -1606,19 +1595,19 @@ use site.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Optional} \\
+		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
-		{\scriptsize Transient} \\
+		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
 		& \TypeCk{\K,\Env}\this\C
 		& \Ftype\f\t\In\App\K\C 
 		& \ep = \TAG[\TTS]\e\Env\any\\
-		{\scriptsize Behavioral} \\ 
+		{\scriptsize \bf{Behavioral}} \\ 
 		\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
 		& \TypeCk{\K,\Env}{\this}\C
 		& \Ftype\f\t\In\App\K\C 
 		& \ep = \TAG[\BTS]\e\Env\t\\
-		{\scriptsize Concrete} \\
+		{\scriptsize \bf{Concrete}} \\
 		\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
 		& \TypeCk{\K, \Env}\this\C
 		& \Ftype\f\t\In\App\K\C
@@ -1645,18 +1634,18 @@ we translate the argument expression targeting the known type of the field.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Optional} \\
+		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
 		& \ep[1] = \TR[\OTS]{\e[1]} .. \\
-		{\scriptsize Transient} \\
+		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
 		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 		& \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\
-		{\scriptsize Behavioral} \\ 
+		{\scriptsize \bf{Behavioral}} \\ 
 		\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
 		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 		& \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
-		{\scriptsize Concrete} \\
+		{\scriptsize \bf{Concrete}} \\
 		\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
 		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 		& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
@@ -1676,7 +1665,7 @@ require an additional any cast to ease any typing information from the object.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Transient} \\
+		{\scriptsize \bf{Transient}} \\
 		\TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
 		& \TypeCk{\K,\Env}\e\tp
 		& \EM{\K\vdash\tp\Sub\t}
@@ -1685,7 +1674,7 @@ require an additional any cast to ease any typing information from the object.
 		& \TypeCk{\K,\Env}\e\tp 
 		& \EM{\K\vdash \tp \not \Sub \t}
 		& \EM{\ep = \TRG[\TTS]\e\Env} \\
-		{\scriptsize Behavioral} \\ 
+		{\scriptsize \bf{Behavioral}} \\ 
 		\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
 		& \TypeCk{\K,\Env}\e\tp
 		& \EM{\K\vdash \tp \Sub \t}
@@ -1694,7 +1683,7 @@ require an additional any cast to ease any typing information from the object.
 		& \TypeCk{\K,\Env}\e\tp \HS 
 		& \EM{\K\vdash \tp \not \Sub \t}
 		& \ep = \TRG[\BTS]\e\Env \\
-		{\scriptsize Concrete} \\
+		{\scriptsize\bf{ Concrete}} \\
 		\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
 		& \TypeCk{\K,\Env}\e\tp 
 		& \EM{\K\vdash\tp \Sub \t} 
@@ -1735,18 +1724,17 @@ the entire class type is compatible.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Transient} \\
+		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
 		& \TypeCk{\K,\Env}{\e[1]}\any 
 		& \ep[1] = \TRG[\TTS]{\e[1]}\Env
-		& \ep[2] = \TAG[\TTS]{\e[2]}\Env\any
-		\\
+		& \ep[2] = \TAG[\TTS]{\e[2]}\Env\any \\ 
 		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = 
 		& \WHERE
 		& \TypeCk{\K,\Env}{\e[1]}\C  
 		& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\D[2]} \\
-		\multicolumn{2}{l}{\HS\HS\HS\HS\src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\SubCast{\any}{\ep[2]}}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-		{\scriptsize Behavioral} \\ 
+		\multicolumn{2}{l}{\HS\HS\HS\HS\src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\SubCast{\any}{\ep[2]}}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\ \\
+		{\scriptsize \bf{Behavioral}} \\ 
 		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
 		&  \TypeCk{\K,\Env}{\e[1]}\any
 		&  \ep[1] = \TRG[\BTS]{\e[1]}\Env
@@ -1757,7 +1745,7 @@ the entire class type is compatible.
 		& \ep[1] = \TRG[\BTS]{\e[1]}\Env
 		& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
 		& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-		{\scriptsize Concrete} \\
+		{\scriptsize \bf{Concrete}} \\
 		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE &
 		\TypeCk{\K,\Env}{\e[1]}\any &  \ep[1]= \TRG[\CTS]{\e[1]}\Env & \ep[2] = \TAG[\CTS]{\e[2]}\Env\any\\
 		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
@@ -1770,34 +1758,38 @@ the entire class type is compatible.
 \end{figure}
 
 \begin{figure}
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+	\begin{tabular}{llc@{\hspace{.25cm}}l}
 		
-		{\scriptsize Optional} \\
-		\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } & \WHERE & \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\ 
-		& & & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
-		& & & \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\
-		& & & \ep = \TR[\OTS]{\e} \\
+		{\scriptsize \bf{Optional}} \\
+		\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\ 
+		& \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\ 
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS  \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS  \ep = \TR[\OTS]{\e} \\
 		
-		{\scriptsize Transient} \\
-		\TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } &
-		\WHERE & \fdp[1] = \src{\Ftype\f\any} .. \HS
+		{\scriptsize \bf{Transient}} \\
+		\TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\
+		& \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any} .. \HS
 		\fd[1] = \Ftype\f\t ..\HS\HS \\
-		& & & \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
-		& & & \md[1] = \Mdef\m\x\t\tp\e .. \\
-		& & & \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\tp~ .. \\		
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. \\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\tp~ .. \\		
 		
-		{\scriptsize Behavioral} \\
-		\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } & \WHERE & \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
-		& & & \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
-		& & & \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\
+		{\scriptsize \bf{Behavioral}} \\
+		\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\
+		& \WHERE \HS\HS\HS \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\
 		
-		{\scriptsize Concrete} \\
-		\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} & \WHERE & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\
-		& & & {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
-		& & & \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\        
-		& & & {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\  & & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\
-		& & & \HS\HS\HS\HS\HS\HS \src{empty} \\ 
-		& & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..
+		{\scriptsize \bf{Concrete}} \\
+		\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\
+		& \WHERE \HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\        
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\  
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty} \\ 
+		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..
 	\end{tabular}
 	
 	\caption{Translations for class}
@@ -1904,14 +1896,14 @@ boundary. Transient Python inserts casts after variable reads.
 
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Full  Definition}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Type system for \kafka}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{appendix:kafka}
 \subsection{Well-formedness}
 
 The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
 
-\vspace{1cm}
+%\vspace{1cm}
 
 \begin{figure}[!h]
 	\footnotesize
@@ -1996,9 +1988,10 @@ The well-formedness judgments for \kafka are defined for programs, classes, meth
  \WFtype\K\C
 }
 \end{mathpar}\end{minipage}\end{tabular}\end{minipage}\end{figure}
-
+\vspace{-0.8cm}
 \footnotesize
 \opdef{~\WFtype\K\s}{\text{Well-formed heaps}}
+\vspace{-3mm}
 \begin{mathpar} 
 \IRule{WH}{
 \Bind\ap{\obj\C{\a[1] ..}}~\in~\s \implies \\\\
@@ -2627,7 +2620,9 @@ while concrete types are unchanged.
 	\caption{Thorn type system}\label{thts2}
 \end{figure}	
 
-\begin{figure}[hb]		
+\begin{figure}[hb]	
+	\hrulefill
+	\vspace{4mm}	
 	\hrulefill
 	\medskip
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
