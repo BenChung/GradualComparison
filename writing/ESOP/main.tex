@@ -1004,7 +1004,6 @@ highlighting the similarities and differences between them.
 Our source semantics has no explicit casts, instead silently coercing
 types at typed-untyped boundaries, allowing code like the following:
 
-\begin{figure}
 \begin{tabbing}
 \hspace{1cm}\K\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
   \K\HS =\HS \= \class\= \C \{\\
@@ -1012,7 +1011,6 @@ types at typed-untyped boundaries, allowing code like the following:
        \> \}  \\
        \>\class \D \{ \}
 \end{tabbing}         
-\end{figure}
 
 \noindent The method \m takes an argument of type \any and returns the
 same value under type \C. Without a cast, this operation is patently unsafe,
@@ -1031,7 +1029,7 @@ simplify the presentation, we will elide the identical rules, instead presenting
 only the altered rules.
 
 \begin{figure}[!h]\hrulefill
-	\vspace{2mm}  \small
+ \small
 	
 	\begin{tabular}{ll}
 		\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
@@ -1180,74 +1178,18 @@ expressiveness or flexibility.  Subtyping on optional types is inherited
 from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
 whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
 
-\begin{figure}[!h] 
-\hrulefill
+%The formalization of the Thorn type system is built on top of the rules
+%presented for TypeScript in \figref{tsts} and \figref{convts}. The
+%definition of subtyping is extended to account for optional types, this 
+%appears in \figref{subth}. Optional types are subtypes if the corresponding
+%concrete types are subtypes. Concrete types are subtypes of optional types,
+%if the relation holds on concrete types. The convertibility rule must be
+%extended by one case, as shown in \figref{convth}, this extra rule states
+%that an optional type is convertible to a concrete parent type. Type rule
+%for method calls, shown in \figref{thts} must be extended to handle
+%receivers of optional types, they are treated as if they were concrete
+%types.
 
-	\medskip
-
-\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
-	\small
-	\begin{minipage}{8cm}  
-		\begin{tabbing}
-			\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fd[1]..}{\mdp[1]..~ \mdpp[1]..}} 
-			\HS \WHERE \\ 
-      \> \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
-			\> {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
-			\> {\mdpp[1]} = \=\src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \=\textbf{\IF} {\t[1]} = \any\\
-			\> \> empty \> {\bf otherwise}  ..                  
-		\end{tabbing}
-		\begin{tabbing}
-			\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
-			\\
-			\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
-			\\
-			\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
-			\=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\t}
-			\\
-			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
-			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \t=\any \>  \ep[1]= \TRG{\e[1]}\Env \= \\ 
-			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[2]=\TAG{\e[2]}\Env\any
-			\\
-			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
-			\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \\ 
-			\> \> \HS\HS\HS\HS\HS\HS\HS \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \>
-			\t[2] = {\t[1]} \> \tp[2] = {\tp[1]}
-			\\
-			\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
-			\>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
-			\\
-			\TAG\e\Env\t\> = \src\ep 
-			\>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\tp \Sub \t}
-			\\
-			\TAG\e\Env\t \>= \src{\SubCast{\t}\ep}
-			\>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\tp \not\Sub \t} 
-		\end{tabbing}
-	\end{minipage}
-\end{tabular}
-
-\medskip
-
-\hrulefill
-\caption{Thorn translation}\label{thtr}
-\end{figure}
-
-The formalization of the Thorn type system is built on top of the rules
-presented for TypeScript in \figref{tsts} and \figref{convts}. The
-definition of subtyping is extended to account for optional types, this 
-appears in \figref{subth}. Optional types are subtypes if the corresponding
-concrete types are subtypes. Concrete types are subtypes of optional types,
-if the relation holds on concrete types. The convertibility rule must be
-extended by one case, as shown in \figref{convth}, this extra rule states
-that an optional type is convertible to a concrete parent type. Type rule
-for method calls, shown in \figref{thts} must be extended to handle
-receivers of optional types, they are treated as if they were concrete
-types.
-
-
-
-\begin{figure}[!h]
 	\small
 	\begin{tabbing}
 		\HS\HS\HS\=  
@@ -1269,7 +1211,6 @@ types.
 		
 		
 	\end{tabbing}
-\end{figure}
 \normalsize
 
 The following expressions illustrate the difference between Thorn and
@@ -1291,53 +1232,61 @@ method only with instances that behave as \C; since \D does not convert to
 where \dt\C is expected; this is allowed as subtyping implies
 convertibility.  The last expression invokes \n and passes a \dt\C where a
 \C is expected; although potentially unsound, this is allowed by Thorn to
-foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\)
-rule; at runtime Thorn protects the call and ensures soundness by inserting
-a dynamic type cast to \C around the argument.  If the receiver object has
-an optional type, method invocation is statically checked: optional types
-behave as contracts between variables and contexts, and whenever an object
-has type \dt\C a well-typed context is expected to use it only as a variable
-pointing to an instance of the class \C.  Since the runtime does not
-guarantee that \dt\C variables points to instances of the class \C, the
-conformance of the value actually accessed is checked individually at each
-method invocation, as if the callee had type \any.
+foster program evolution.  
 
-The translation of Thorn into \kafka is given in~\figref{thtr}. As with
-TypeScript translation proceeds top-down. The differences are that the
-translation function for expressions, \TRG{\e}\Env, takes a source-level
-typing environment as input. This is used to record the expect type of \this
-and arguments \x to methods. Furthermore, the translation can also request
-the insertion of casts, this is done with the function \TAG{\e}\Env\t which
-translates an expression and ensures that the result is of type \t. The most
-interesting case in the translation is the handling of method invocation
-\Call\e\m\ep. If the type of \e is a concrete \C, then a statically resolved
-invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
-or an optional type, then a dynamically resolved call of the form
-\DynCall\e\m\ep is emitted.  The argument of statically resolved method
-invocation, as well as constructors and field assignment are all translated
-using the auxiliary function as their expected type is known.  This function
-translates its argument, checks if its type is a subtype of the expected
-type \t, and if not it inserts the appropriate cast.  The cast is performed
-in the \kafka type system, and not in the source type system, and must
-respect the mapping from Thorn types to \kafka types.  This mapping is
-defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
-otherwise.  Thorn optional and dynamic types are mapped to the \any type,
-while concrete types are unchanged.
+%Convertibility thus includes a \(\dt\C\Mapsto\C\)
+%rule; at runtime Thorn protects the call and ensures soundness by inserting
+%a dynamic type cast to \C around the argument.  If the receiver object has
+%an optional type, method invocation is statically checked: optional types
+%behave as contracts between variables and contexts, and whenever an object
+%has type \dt\C a well-typed context is expected to use it only as a variable
+%pointing to an instance of the class \C.  Since the runtime does not
+%guarantee that \dt\C variables points to instances of the class \C, the
+%conformance of the value actually accessed is checked individually at each
+%method invocation, as if the callee had type \any.
+%
+%The translation of Thorn into \kafka is given in~\figref{thtr}. As with
+%TypeScript translation proceeds top-down. The differences are that the
+%translation function for expressions, \TRG{\e}\Env, takes a source-level
+%typing environment as input. This is used to record the expect type of \this
+%and arguments \x to methods. Furthermore, the translation can also request
+%the insertion of casts, this is done with the function \TAG{\e}\Env\t which
+%translates an expression and ensures that the result is of type \t. The most
+%interesting case in the translation is the handling of method invocation
+%\Call\e\m\ep. If the type of \e is a concrete \C, then a statically resolved
+%invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
+%or an optional type, then a dynamically resolved call of the form
+%\DynCall\e\m\ep is emitted.  The argument of statically resolved method
+%invocation, as well as constructors and field assignment are all translated
+%using the auxiliary function as their expected type is known.  This function
+%translates its argument, checks if its type is a subtype of the expected
+%type \t, and if not it inserts the appropriate cast.  The cast is performed
+%in the \kafka type system, and not in the source type system, and must
+%respect the mapping from Thorn types to \kafka types.  This mapping is
+%defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
+%otherwise.  Thorn optional and dynamic types are mapped to the \any type,
+%while concrete types are unchanged.
 
-We have seen that any method can be called statically and dynamically. For
+In Thorn, any method can be called statically and dynamically. For
 this to work out it is necessary to generate a dynamic version of all Thorn
 methods.  Class translation relies on overloading to provide two
 implementations of each method: one is used with concrete receiver
-and the other is
-optionally typed (or dynamic) object.  More precisely, given a Thorn method
-\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
-generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
-(protecting the the return value with appropriate cast to \kty{\t[2]} if
-necessary), to be used in a concretely typed context.  The \kafka
-translation also generates a second method \mdpp, that wraps \mdp so that it
-is safe to invoke it with type \(\any \to \any\), that is from an optionally
-typed or dynamic context.  Finally, each field \f:\t is mapped to the
-corresponding \f:\kty\t field.  As an example, the above translates to:
+and the other is optionally typed (or dynamic) object. As an example, 
+the above translates to:
+
+%More precisely, given a Thorn method
+%\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
+%generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
+%(protecting the the return value with appropriate cast to \kty{\t[2]} if
+%necessary), to be used in a concretely typed context.  The \kafka
+%translation also generates a second method \mdpp, that wraps \mdp so that it
+%is safe to invoke it with type \(\any \to \any\), that is from an optionally
+%typed or dynamic context.  Finally, each field \f:\t is mapped to the
+%corresponding \f:\kty\t field.  
+
+
+
+
 
 \begin{tabbing}
   \HS
@@ -1381,354 +1330,7 @@ the concrete type system.
 %\end{tabular}
 %\end{figure}
 
-\clearpage
-
-\subsection{Translation discussion}
-
-The translation to \kafka appears in \figref{tst} and is straightforward.
-The translation function \(\TR{\dots}\) is applied to class definitions and
-expression, it takes TypeScript and returns the corresponding \kafka
-code. Grey background is used to identify translated terms. 
-
-\begin{figure}
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Optional} \\
-		\TR[\OTS]\x & = \src \x \\
-		\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
-		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
-		{\scriptsize Transient} \\
-		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
-		\TRG[\TTS]\this\Env & = \src\this \\
-		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
-		{\scriptsize Behavioral} \\ 
-		\TRG[\BTS]\x\Env &= \src{\x} \\
-		\TRG[\BTS]\this\Env &= \src{\this} \\
-		\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
-		{\scriptsize Concrete} \\
-		\TRG[\CTS]{\x}\Env & = \src \x \\
-		\TRG[\CTS]\this\Env &= \src{\this} \\
-		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
-	\end{tabular}
-	\caption{Translations for variables and field access}
-	\label{fig:travar}
-\end{figure}
-
-%% Going by x, this, and field assignment -- compare them individually and not as a group.
-\figref{fig:travar} presents the translation for the field access and variables. For the
-most part, these operations are translated verbatim, with notable exceptions in the transient 
-and optional semantics.
-
-In the optional semantics, in order to produced well-typed \kafka terms, we
-need to eliminate the type on one of the two typed introduction forms, \this,
-which is accomplished by casting to \any. Otherwise, the optional semantics
-makes no alterations to these terms.
-
-The guarantee provided by the transient semantics does not extend to correct
-argument types, and therefore, does not guarantee that the type of variables
-is correct, which is modeled in \kafka by having all argument types be
-translated to \any. In the original presentation~\cite{siek14}, the transient
-semantics  implemented this check on function entry, but due to the single-
-expression construction of \kafka, we instead insert casts at every variable
-use site.
-
-\begin{figure}
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize Optional} \\
-		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
-		{\scriptsize Transient} \\
-		\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
-		& \TypeCk{\K,\Env}\this\C
-		& \Ftype\f\t\In\App\K\C 
-		& \ep = \TAG[\TTS]\e\Env\any\\
-		{\scriptsize Behavioral} \\ 
-		\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
-		& \TypeCk{\K,\Env}{\this}\C
-		& \Ftype\f\t\In\App\K\C 
-		& \ep = \TAG[\BTS]\e\Env\t\\
-		{\scriptsize Concrete} \\
-		\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
-		& \TypeCk{\K, \Env}\this\C
-		& \Ftype\f\t\In\App\K\C
-		& \ep = \TAG[\CTS]\e\Env{\t} \\
-	\end{tabular}
-	
-	\caption{Translations for field assignment}
-	\label{fig:trassn}
-\end{figure}
-
-Field assignment illustrates the continuum of strength provided by each
-gradual type system. Under the unsound optional semantics, we simply translate
-the assignment directly, with no guards or additional checks. However, in the
-three sound semantics, the behaviour differs depending on the strength of the
-soundness guarantee.
-
-Under the transient semantics, assignment to a field is unchecked, instead
-deferring type checking to dereference time. As a result, we use the analytic
-translation operator to translate the argument according to the transient
-semantics, but targeting type \any, instead of the known type of the field,
-enabled by the class translation erasing field typing. Under the behavioral
-and concrete semantics, which do guarantee heap type consistency, however,
-we translate the argument expression targeting the known type of the field.
-
-\begin{figure}
-\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-{\scriptsize Optional} \\
-\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
-   & \ep[1] = \TR[\OTS]{\e[1]} .. \\
-{\scriptsize Transient} \\
-\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
-   & \Ftype{\f[1]}{\t[1]}\In\App\K\C
-   & \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\
-{\scriptsize Behavioral} \\ 
-\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
-   & \Ftype{\f[1]}{\t[1]}\In\App\K\C
-   & \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
-{\scriptsize Concrete} \\
-\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
-   & \Ftype{\f[1]}{\t[1]}\In\App\K\C
-   & \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
-\end{tabular}
-
-\caption{Translations for object creation}
-\label{fig:tranew}
-\end{figure}
-
-\figref{fig:tranew} presents the translation for the object creation expression. 
-Apart from the optional semantics, the translation for the object creation expression
-is almost identical between the transient, behavioral, and concrete semantics. The 
-only difference lies in which recursive translation to call for the arguments of the object, 
-whereby each semantics call their respective translation. The optional semantics 
-require an additional any cast to ease any typing information from the object.
-%TODO: Need to talk more about comparing the semantics.
-
-\begin{figure}
-\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-{\scriptsize Transient} \\
-\TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
-   & \TypeCk{\K,\Env}\e\tp
-   & \EM{\K\vdash\tp\Sub\t}
-   & \ep = \TRG[\TTS]\e\Env \\
-\TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
-   & \TypeCk{\K,\Env}\e\tp 
-   & \EM{\K\vdash \tp \not \Sub \t}
-   & \EM{\ep = \TRG[\TTS]\e\Env} \\
-{\scriptsize Behavioral} \\ 
-\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
-   & \TypeCk{\K,\Env}\e\tp
-   & \EM{\K\vdash \tp \Sub \t}
-   & \ep = \TRG[\BTS]\e\Env\\
-\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
-   & \TypeCk{\K,\Env}\e\tp \HS 
-   & \EM{\K\vdash \tp \not \Sub \t}
-   & \ep = \TRG[\BTS]\e\Env \\
-{\scriptsize Concrete} \\
-\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
-   & \TypeCk{\K,\Env}\e\tp 
-   & \EM{\K\vdash\tp \Sub \t} 
-   & \ep = \TRG[\CTS]\e\Env\\
-\TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
-   & \TypeCk{\K,\Env}\e\tp 
-   & \EM{\K\vdash\tp \not\Sub \t}
-   & \EM{\ep = \TRG[\CTS]\e\Env} 
-\end{tabular}
-
-\caption{Type requirement translation}
-\label{fig:trtype}
-\end{figure}
-
-Figure~\ref{fig:trtype} depicts the type requirement translation mode. Under
-this translation, we are given the expression to translate, the environment
-which it should be translated against, and the \kafka type of the resulting
-expression. Under the optional system, all terms have type \any, rendering its
-type requirement translation useless. However, all of the sound systems have a
-different notion of what it means to inhabit a type, driving different checks
-when generating an expression of a pre-determined type.
-
-In the sound systems, however, all differentiate between the case where the
-statically-known type is compatible with the required type, and the case where
-something has to be done to convert the statically-known type to that required
-by the invoking expression. The main differentiation comes from in what each
-system then does when confronted with a difference in types.
-
-The transient and concrete semantics use the standard dynamic subtype test,
-but while concrete uses the classes as defined by the programmer, the
-transient semantics alters them during translation. Under the transient
-semantics, classes are rewritten with dynamic types in place of static types
-in functions and field, causing the subtype test cast in the context of the
-transient class translation to simply check for the existence of a method of
-the required name during dynamic subtype testing, rather than checking that
-the entire class type is compatible.
-
-
-\begin{figure}
-\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-{\scriptsize Transient} \\
-\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
-& \TypeCk{\K,\Env}{\e[1]}\any 
-& \ep[1] = \TRG[\TTS]{\e[1]}\Env
-& \ep[2] = \TAG[\TTS]{\e[2]}\Env\any
-\\
-\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = 
-& \WHERE
-& \TypeCk{\K,\Env}{\e[1]}\C  
-& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\D[2]} \\
-\multicolumn{2}{l}{\HS\HS\HS\HS\src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\SubCast{\any}{\ep[2]}}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-{\scriptsize Behavioral} \\ 
-\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
- &  \TypeCk{\K,\Env}{\e[1]}\any
- &  \ep[1] = \TRG[\BTS]{\e[1]}\Env
- &  \ep[2] = \TAG[\BTS]{\e[2]}\Env\any
-\\
-\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}} & \WHERE 
-& \TypeCk{\K,\Env}{\e[1]}\C 
-& \ep[1] = \TRG[\BTS]{\e[1]}\Env
-& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
-& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-{\scriptsize Concrete} \\
-\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE &
-      \TypeCk{\K,\Env}{\e[1]}\any &  \ep[1]= \TRG[\CTS]{\e[1]}\Env & \ep[2] = \TAG[\CTS]{\e[2]}\Env\any\\
-\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
-& \WHERE & \TypeCk{\K,\Env}{\e[1]}\C &  \ep[1] = \TRG[\CTS]{\e[1]}\Env &   \ep[2] = \TAG[\CTS]{\e[2]}\Env{\D[1]} \\ 
-& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
-\end{tabular}
-
-\caption{Translations for function invocation}
-\label{fig:trafuninv}
-\end{figure}
-
-
-\begin{figure}
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-
-		{\scriptsize Optional} \\
-		\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } & \WHERE & \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\ 
-		& & & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
-		& & & \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\
-		& & & \ep = \TR[\OTS]{\e} \\
-		
-		{\scriptsize Transient} \\
-		\TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } &
-		\WHERE & \fdp[1] = \src{\Ftype\f\any} .. \HS
-		\fd[1] = \Ftype\f\t ..\HS\HS \\
-		& & & \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
-		& & & \md[1] = \Mdef\m\x\t\tp\e .. \\
-		& & & \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\tp~ .. \\		
-		
-		{\scriptsize Behavioral} \\
-		\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } & \WHERE & \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
-		& & & \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
-		& & & \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\
-		
-		{\scriptsize Concrete} \\
-		\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} & \WHERE & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\
-        & & & {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
-        & & & \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\        
-		& & & {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\  & & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\
-		& & & \HS\HS\HS\HS\HS\HS \src{empty} \\ 
-		& & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..
-	\end{tabular}
-	
-	\caption{Translations for class}
-	\label{fig:traclass}
-\end{figure}
-
-\clearpage
-
-Figure~\ref{fig:trafuninv} depicts the translation approach taken by each of
-the four semantics for function invocation, illustrating how function calls
-must be guarded under each different semantics.
-
-Under the optional semantics, we do not know if the function actually exists
-on the object or not, leading the translation to make all function invocations
-with the untyped call operator, which can fail at any time.
-
-All three sound systems have to make a distinction between safe typed calls and
-unsafe untyped calls. As a result, they condition on the type of the receiver, 
-using a sound call if it is typed, and an dynamic invocation if not.
-
-The weakest of the sound systems, the transient semantics, works almost
-identically to the optional semantics in the case of an invocation on an
-untyped expression, generating a dynamic invocation with an argument generated
-with result type \any, producing a result similar to that of Typescript.
-However, in the sound case, the transient semantics guarantees the existence,
-but not types, of the method \m. In conjunction with class translation, which
-ensures that an untyped method always exists for any typed method, the
-transient semantics can insert a statically-typed call to the \any-typed
-invocation site guaranteed to exist. However, the argument still needs to
-be cast to \any to be compatible with the dynamic call, and the return type
-needs to be checked against the expected type.
-
-The behavioral semantics has the same untyped invocation as transient, but 
-is able to provide a stronger guarantee, enabling a simpler typed invocation.
-The behavioral semantics guarantees that a typed receiver respects the type
-that it is under, allowing the invocation form to call the method under the
-expected type and not have to verify the return type, as an ill-typed return
-would be caught by a wrapper before it reaches the caller.
-
-Lastly, the concrete semantics provides the strongest guarantee, providing a 
-typed invocation form identical to that of the behavioral semantics. 
-
-\clearpage
-
 \subsection{Behavioral}
-
-\begin{figure}[!b]
-
-\hrulefill
-
-\medskip
-
- \small
-	\begin{minipage}{12cm}  
-	\begin{tabbing}
-		\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
-		\hspace{4.6cm}\= \WHERE\HS 
-		\mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
-		\>\qquad\HS\HS\HS\HS\md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
-		\>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
-		\\
-		\TRG\x\Env = \src{\x}
-		\\
-		\TRG{\FRead\f}\Env  = \src{\FRead\f}
-		\\
-		\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
-		\>\WHERE\HS
-		\= \TypeCk\K{\this}\C \HS\HS
-		\=  \ep = \TAG\e\Env\t \HS\HS
-		\= \Ftype\f\t\In\App\K\C
-		\\
-		\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
-		\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
-		\> \ep[1] = \TRG{\e[1]}\Env \HS
-		\> \ep[2] = \TAG{\e[2]}\Env\any
-		\\
-		\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
-		\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
-		\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
-		\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS \\
-		\> \> \=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
-		\\
-		\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
-		\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
-		\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
-		\\
-		\TAG\e\Env\t = \src\ep
-		\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
-		\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash \t \Sub \tp}
-		\>\ep = \TRG\e\Env
-		\\
-		\TAG\e\Env\t = \src{\BehCast\t\e}
-		\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS 
-		\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS  \EM{\K\vdash \t \not \Sub \tp}
-		\> \ep = \TRG\e\Env
-	\end{tabbing}
-\end{minipage}
-
-\medskip
-
-\hrulefill
-\caption{Typed Racket translation}\label{trtr}
-\end{figure}
 
 The Behavioral semantics require that, to be of a type, a value must  behave
 as if it actually was of that type, up to cast errors. We will consider Typed
@@ -1739,23 +1341,25 @@ Typed Racket is an extension of the Racket programming language, supporting
 Racket's key functionality through a system of contracts that dynamically
 enforces type guarantees.  At first brush the formalization may appear
 exceedingly simple.  The Typed Racket static type system is identical to
-that of TypeScript. The translation, shown in \figref{trtr} maps classes to
-homonymous classes and types to types of the same name. The \kty{t} function
-is the identity.  Calls with a receiver of type \any are translated to
-\kafka dynamic calls, and calls with a receiver of some type \C are
-translated to statically typed calls. The auxiliary type-directed
-translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
-appropriately. Thus casts can appear are at typed/untyped boundaries in
-assignment, argument of calls or constructors. Because of the strong
-guarantee provided by the behavioral cast, the Typed Racket translation is
-straightforward. In Typed Racket, every typed value is assumed to behave as
-specified, delegating the complexity of checking for consistency with the
-type to the wrapper introduced by the behavioral cast.  So the difference
-with the TypeScript translation is that typed code is able to use typed
-accesses. The difference with Thorn is essentially the presence of wrappers
-and the fact that each wrapper application only check the presence of
-methods names rather than complete signatures for concrete types.  To
-illustrate the semantics of Typed Racket, consider the following example:
+that of TypeScript. To illustrate the semantics of Typed Racket, 
+consider the following example:
+
+%The translation, shown in \figref{trtr} maps classes to
+%homonymous classes and types to types of the same name. The \kty{t} function
+%is the identity.  Calls with a receiver of type \any are translated to
+%\kafka dynamic calls, and calls with a receiver of some type \C are
+%translated to statically typed calls. The auxiliary type-directed
+%translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
+%appropriately. Thus casts can appear are at typed/untyped boundaries in
+%assignment, argument of calls or constructors. Because of the strong
+%guarantee provided by the behavioral cast, the Typed Racket translation is
+%straightforward. In Typed Racket, every typed value is assumed to behave as
+%specified, delegating the complexity of checking for consistency with the
+%type to the wrapper introduced by the behavioral cast.  So the difference
+%with the TypeScript translation is that typed code is able to use typed
+%accesses. The difference with Thorn is essentially the presence of wrappers
+%and the fact that each wrapper application only check the presence of
+%methods names rather than complete signatures for concrete types.  
 
 \medskip
 \begin{minipage}{\textwidth}
@@ -1846,169 +1450,38 @@ that guarantee by statically checking that every expression is consistent to
 the expected type and dynamically checking that expressions evaluates to a
 value that has the method requested.
 
-The Transient static type system is based on TypeScript except that the
-convertibility rules now builds on an auxiliary \emph{consistency} relation,
-defined in~\figref{subtp} to relate types \t and \tp. The modified
-convertibility rule appears in \figref{convtp}. Consistent subtyping holds
-between types with signatures that agree up to \any.  It is worth observing
-that the Transient runtime does not use consistent subtyping, instead
-it merely validates that all required method names are present.
+%The Transient static type system is based on TypeScript except that the
+%convertibility rules now builds on an auxiliary \emph{consistency} relation,
+%defined in~\figref{subtp} to relate types \t and \tp. The modified
+%convertibility rule appears in \figref{convtp}. Consistent subtyping holds
+%between types with signatures that agree up to \any.  It is worth observing
+%that the Transient runtime does not use consistent subtyping, instead
+%it merely validates that all required method names are present.
 
-\begin{figure}[!t]
-\hrulefill
-\vspace{-4mm}
-
-\begin{mathpar}
-\Rule{STTC-SUB}{
-  \ConSub\cdot\K\t\tp
-}{
-  \ConvertE\K{tr}\t\tp
-}
-\end{mathpar}
-\vspace{-6mm}
-
-\hrulefill
-\caption{Transient convertibility}\label{convtp}
-
-
-\hrulefill
-\small\vspace{-4mm}
-
-\begin{mathpar} 
-\Rule{CSCons}{
- ~
-}{
- \ConSub\M\K \any \C
-}
-
-\Rule{CSCons}{
-  ~
-}{
- \ConSub\M\K \C \any
-}
-
-\Rule{CSCons}{
-  ~
-}{
- \ConSub\M\K \t \t
-}
-
-\Rule{CSAss}{
-\C \Sub \D \in \M
-}{
- \ConSub \M\K \C\D
-}
-
-\Rule{CSRec}{
- \M' = \M~\C\Sub\D \\\\
-\mt \in \App\K\D \implies 
-\mtp \in \App\K\C ~~~\wedge~~~   \ConSub{\M'}\K\mt{\mtp}
-}{
- \ConSub \M\K \C \D 
-}
-
-\Rule{CSMet}{
-  \ConSub \M\K {\t[2]} {\t[1]} \\
-  \ConSub \M\K {\tp[1]} {\tp[2]}
-}{
- \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
-}
-\end{mathpar}
-
-\hrulefill
-\caption{Transient consistent subtyping}\label{subtp}
-
-\hrulefill
-\vspace{1mm}
-
-	\begin{tabular}{@{}l@{~ ~ ~}ll}
-	\small
-	\begin{minipage}{8cm}  
-		\begin{tabbing}
-			\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
-			\hspace{.5cm}  \WHERE\HS \=
-			\fdp[1] = \src{\Ftype\f\any} .. \HS
-			\fd[1] = \Ftype\f\t ..\HS\HS
-			\mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
-			\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
-			\md[1] = \Mdef\m\x\t\tp\e .. 
-			\HS\HS
-			\ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
-		\end{tabbing}
-		\begin{tabbing}
-			\TRG\this\Env \hspace{1cm} \= = \src\this
-			\\
-			\TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
-			\\
-			\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C \HS\HS\= \Ftype\f\t\In\App\K\C
-			\\
-			\TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
-			\>\WHERE\HS
-			\TypeCk{\K,\Env}\this\C
-			\> \Ftype\f\t\In\App\K\C \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS  \= \ep = \TAG\e\Env\any
-			\\
-			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
-			\>\WHERE \HS 
-			\TypeCk{\K,\Env}{\e[1]}\any 
-			\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}\Env \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[2] = \TAG{\e[2]}\Env\any
-			\\
-			\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
-			\>\WHERE\HS
-			\TypeCk{\K,\Env}{\e[1]}\C
-			\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Mtype\m\t\tp\In\App\K\C\HS \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}\Env \HS\HS\HS\HS\=
-			\ep[2] = \TAG{\e[2]}\Env\any
-			\\
-			\TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
-			\Ftype{\f[1]}{\t[1]}\In\App\K\C
-			\>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
-			\\
-			\TAG\e\Env\t \>= \src{\SubCast\t\ep}
-			\>\WHERE\HS \TypeCk{\K,\Env}\e\tp 
-			\> \EM{\ConSub{}\K\t\tp} \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash\t\not{<:}\tp}  
-			\> \EM{\ep = \TRG\e\Env}
-			\\
-			\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp
-			\>\EM{\K\vdash\t\Sub\tp} \HS \\
-			\> \> \HS\HS\HS\HS\HS\HS\HS \ep = \TRG\e\Env
-		\end{tabbing}
-	\end{minipage}
-\end{tabular}
-
-\medskip
-
-\hrulefill
-
-\caption{Transient translation}\label{tptr}
-\end{figure}
-
-The Transient translation appears in \figref{tptr}. Each class is translated
-to a homonymous \kafka class, field types are translated to \any, method
-types are given the $\any \to \any$ signature. Since argument and return
-types are erased, our translation can use structural casts to implement
-Transient runtime checks. They degenerate to simple inclusion checks on
-method names.  The translation of method invocation makes explicit the
-Transient guarantee.  A method call \Call\e\m\ep is translated to
-\KCall\e\m\ep\any\any if the type \e is not \any. This translation combined
-with the soundness of \kafka entails that the method call will not get
-stuck.  Of course of \e is of type \any, the call will be translated to
-\DynCall\e\m\ep which can get stuck.  To achieve that guarantee the
-translation must insert structural casts at every expression read. Transient
-also checks arguments of methods, since the expression may not use the
-argument (but Transient checks it anyway) our translation generates method
-bodies of the form \SubCast\t\x; \e where \e is the body of the expression
-and the semi colon is syntactic sugar for sequencing.\footnote{This can be
-  sugared to
-  \SubCast\tp{\KCall{\New\A{\SubCast\any{\SubCast\t\x}}}\m{\SubCast\any\e}\any\any}
-  where \A is class with a single field of type \any and an identity method
-  \m. The type of \e is \tp. All of the cast expect the one to \t are only
-  there to please the type system and can be optimized away as they will
-  always succeed. } Likewise, in order to ensure that field assignment will
-not get stuck, Transient gives all fields type \any, then checks the field
-value on reads based on the static typing.
+%The Transient translation appears in \figref{tptr}. Each class is translated
+%to a homonymous \kafka class, field types are translated to \any, method
+%types are given the $\any \to \any$ signature. Since argument and return
+%types are erased, our translation can use structural casts to implement
+%Transient runtime checks. They degenerate to simple inclusion checks on
+%method names.  The translation of method invocation makes explicit the
+%Transient guarantee.  A method call \Call\e\m\ep is translated to
+%\KCall\e\m\ep\any\any if the type \e is not \any. This translation combined
+%with the soundness of \kafka entails that the method call will not get
+%stuck.  Of course of \e is of type \any, the call will be translated to
+%\DynCall\e\m\ep which can get stuck.  To achieve that guarantee the
+%translation must insert structural casts at every expression read. Transient
+%also checks arguments of methods, since the expression may not use the
+%argument (but Transient checks it anyway) our translation generates method
+%bodies of the form \SubCast\t\x; \e where \e is the body of the expression
+%and the semi colon is syntactic sugar for sequencing.\footnote{This can be
+%  sugared to
+%  \SubCast\tp{\KCall{\New\A{\SubCast\any{\SubCast\t\x}}}\m{\SubCast\any\e}\any\any}
+%  where \A is class with a single field of type \any and an identity method
+%  \m. The type of \e is \tp. All of the cast expect the one to \t are only
+%  there to please the type system and can be optimized away as they will
+%  always succeed. } Likewise, in order to ensure that field assignment will
+%not get stuck, Transient gives all fields type \any, then checks the field
+%value on reads based on the static typing.
 
 
 \newcommand{\sspce}{;~}
@@ -2063,6 +1536,309 @@ required to check the type on every argument. As a result, the transient
 semantics will cause checks to be inserted even in fully typed methods, with
 the most checks existing in a fully-typed program, unlike the behavioral or
 concrete semantics.
+
+\subsection{Translation discussion}
+
+The translation to \kafka appears in \figref{tst} and is straightforward.
+The translation function \(\TR{\dots}\) is applied to class definitions and
+expression, it takes TypeScript and returns the corresponding \kafka
+code. Grey background is used to identify translated terms. 
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		{\scriptsize Optional} \\
+		\TR[\OTS]\x & = \src \x \\
+		\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
+		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
+		{\scriptsize Transient} \\
+		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
+		\TRG[\TTS]\this\Env & = \src\this \\
+		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
+		{\scriptsize Behavioral} \\ 
+		\TRG[\BTS]\x\Env &= \src{\x} \\
+		\TRG[\BTS]\this\Env &= \src{\this} \\
+		\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
+		{\scriptsize Concrete} \\
+		\TRG[\CTS]{\x}\Env & = \src \x \\
+		\TRG[\CTS]\this\Env &= \src{\this} \\
+		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
+	\end{tabular}
+	\caption{Translations for variables and field access}
+	\label{fig:travar}
+\end{figure}
+
+%% Going by x, this, and field assignment -- compare them individually and not as a group.
+\figref{fig:travar} presents the translation for the field access and variables. For the
+most part, these operations are translated verbatim, with notable exceptions in the transient 
+and optional semantics.
+
+In the optional semantics, in order to produced well-typed \kafka terms, we
+need to eliminate the type on one of the two typed introduction forms, \this,
+which is accomplished by casting to \any. Otherwise, the optional semantics
+makes no alterations to these terms.
+
+The guarantee provided by the transient semantics does not extend to correct
+argument types, and therefore, does not guarantee that the type of variables
+is correct, which is modeled in \kafka by having all argument types be
+translated to \any. In the original presentation~\cite{siek14}, the transient
+semantics  implemented this check on function entry, but due to the single-
+expression construction of \kafka, we instead insert casts at every variable
+use site.
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		{\scriptsize Optional} \\
+		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
+		{\scriptsize Transient} \\
+		\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
+		& \TypeCk{\K,\Env}\this\C
+		& \Ftype\f\t\In\App\K\C 
+		& \ep = \TAG[\TTS]\e\Env\any\\
+		{\scriptsize Behavioral} \\ 
+		\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
+		& \TypeCk{\K,\Env}{\this}\C
+		& \Ftype\f\t\In\App\K\C 
+		& \ep = \TAG[\BTS]\e\Env\t\\
+		{\scriptsize Concrete} \\
+		\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
+		& \TypeCk{\K, \Env}\this\C
+		& \Ftype\f\t\In\App\K\C
+		& \ep = \TAG[\CTS]\e\Env{\t} \\
+	\end{tabular}
+	
+	\caption{Translations for field assignment}
+	\label{fig:trassn}
+\end{figure}
+
+Field assignment illustrates the continuum of strength provided by each
+gradual type system. Under the unsound optional semantics, we simply translate
+the assignment directly, with no guards or additional checks. However, in the
+three sound semantics, the behaviour differs depending on the strength of the
+soundness guarantee.
+
+Under the transient semantics, assignment to a field is unchecked, instead
+deferring type checking to dereference time. As a result, we use the analytic
+translation operator to translate the argument according to the transient
+semantics, but targeting type \any, instead of the known type of the field,
+enabled by the class translation erasing field typing. Under the behavioral
+and concrete semantics, which do guarantee heap type consistency, however,
+we translate the argument expression targeting the known type of the field.
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		{\scriptsize Optional} \\
+		\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
+		& \ep[1] = \TR[\OTS]{\e[1]} .. \\
+		{\scriptsize Transient} \\
+		\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
+		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
+		& \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\
+		{\scriptsize Behavioral} \\ 
+		\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
+		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
+		& \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
+		{\scriptsize Concrete} \\
+		\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
+		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
+		& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
+	\end{tabular}
+	
+	\caption{Translations for object creation}
+	\label{fig:tranew}
+\end{figure}
+
+\figref{fig:tranew} presents the translation for the object creation expression. 
+Apart from the optional semantics, the translation for the object creation expression
+is almost identical between the transient, behavioral, and concrete semantics. The 
+only difference lies in which recursive translation to call for the arguments of the object, 
+whereby each semantics call their respective translation. The optional semantics 
+require an additional any cast to ease any typing information from the object.
+%TODO: Need to talk more about comparing the semantics.
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		{\scriptsize Transient} \\
+		\TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
+		& \TypeCk{\K,\Env}\e\tp
+		& \EM{\K\vdash\tp\Sub\t}
+		& \ep = \TRG[\TTS]\e\Env \\
+		\TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
+		& \TypeCk{\K,\Env}\e\tp 
+		& \EM{\K\vdash \tp \not \Sub \t}
+		& \EM{\ep = \TRG[\TTS]\e\Env} \\
+		{\scriptsize Behavioral} \\ 
+		\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
+		& \TypeCk{\K,\Env}\e\tp
+		& \EM{\K\vdash \tp \Sub \t}
+		& \ep = \TRG[\BTS]\e\Env\\
+		\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
+		& \TypeCk{\K,\Env}\e\tp \HS 
+		& \EM{\K\vdash \tp \not \Sub \t}
+		& \ep = \TRG[\BTS]\e\Env \\
+		{\scriptsize Concrete} \\
+		\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
+		& \TypeCk{\K,\Env}\e\tp 
+		& \EM{\K\vdash\tp \Sub \t} 
+		& \ep = \TRG[\CTS]\e\Env\\
+		\TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
+		& \TypeCk{\K,\Env}\e\tp 
+		& \EM{\K\vdash\tp \not\Sub \t}
+		& \EM{\ep = \TRG[\CTS]\e\Env} 
+	\end{tabular}
+	
+	\caption{Type requirement translation}
+	\label{fig:trtype}
+\end{figure}
+
+Figure~\ref{fig:trtype} depicts the type requirement translation mode. Under
+this translation, we are given the expression to translate, the environment
+which it should be translated against, and the \kafka type of the resulting
+expression. Under the optional system, all terms have type \any, rendering its
+type requirement translation useless. However, all of the sound systems have a
+different notion of what it means to inhabit a type, driving different checks
+when generating an expression of a pre-determined type.
+
+In the sound systems, however, all differentiate between the case where the
+statically-known type is compatible with the required type, and the case where
+something has to be done to convert the statically-known type to that required
+by the invoking expression. The main differentiation comes from in what each
+system then does when confronted with a difference in types.
+
+The transient and concrete semantics use the standard dynamic subtype test,
+but while concrete uses the classes as defined by the programmer, the
+transient semantics alters them during translation. Under the transient
+semantics, classes are rewritten with dynamic types in place of static types
+in functions and field, causing the subtype test cast in the context of the
+transient class translation to simply check for the existence of a method of
+the required name during dynamic subtype testing, rather than checking that
+the entire class type is compatible.
+
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		{\scriptsize Transient} \\
+		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
+		& \TypeCk{\K,\Env}{\e[1]}\any 
+		& \ep[1] = \TRG[\TTS]{\e[1]}\Env
+		& \ep[2] = \TAG[\TTS]{\e[2]}\Env\any
+		\\
+		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = 
+		& \WHERE
+		& \TypeCk{\K,\Env}{\e[1]}\C  
+		& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\D[2]} \\
+		\multicolumn{2}{l}{\HS\HS\HS\HS\src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\SubCast{\any}{\ep[2]}}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
+		{\scriptsize Behavioral} \\ 
+		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
+		&  \TypeCk{\K,\Env}{\e[1]}\any
+		&  \ep[1] = \TRG[\BTS]{\e[1]}\Env
+		&  \ep[2] = \TAG[\BTS]{\e[2]}\Env\any
+		\\
+		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}} & \WHERE 
+		& \TypeCk{\K,\Env}{\e[1]}\C 
+		& \ep[1] = \TRG[\BTS]{\e[1]}\Env
+		& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
+		& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
+		{\scriptsize Concrete} \\
+		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE &
+		\TypeCk{\K,\Env}{\e[1]}\any &  \ep[1]= \TRG[\CTS]{\e[1]}\Env & \ep[2] = \TAG[\CTS]{\e[2]}\Env\any\\
+		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
+		& \WHERE & \TypeCk{\K,\Env}{\e[1]}\C &  \ep[1] = \TRG[\CTS]{\e[1]}\Env &   \ep[2] = \TAG[\CTS]{\e[2]}\Env{\D[1]} \\ 
+		& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
+	\end{tabular}
+	
+	\caption{Translations for function invocation}
+	\label{fig:trafuninv}
+\end{figure}
+
+\begin{figure}
+	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+		
+		{\scriptsize Optional} \\
+		\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } & \WHERE & \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\ 
+		& & & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+		& & & \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\
+		& & & \ep = \TR[\OTS]{\e} \\
+		
+		{\scriptsize Transient} \\
+		\TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } &
+		\WHERE & \fdp[1] = \src{\Ftype\f\any} .. \HS
+		\fd[1] = \Ftype\f\t ..\HS\HS \\
+		& & & \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
+		& & & \md[1] = \Mdef\m\x\t\tp\e .. \\
+		& & & \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\tp~ .. \\		
+		
+		{\scriptsize Behavioral} \\
+		\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } & \WHERE & \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
+		& & & \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+		& & & \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\
+		
+		{\scriptsize Concrete} \\
+		\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} & \WHERE & \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\
+		& & & {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
+		& & & \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\        
+		& & & {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\  & & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\
+		& & & \HS\HS\HS\HS\HS\HS \src{empty} \\ 
+		& & & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..
+	\end{tabular}
+	
+	\caption{Translations for class}
+	\label{fig:traclass}
+\end{figure}
+
+In concrete source language, any method can be called statically and dynamically. For
+this to work out it is necessary to generate a dynamic version of all concrete source
+methods.  Class translation relies on overloading to provide two
+implementations of each method: one is used with concrete receiver
+and the other is optionally typed (or dynamic) object. 
+More precisely, given a Thorn method
+\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
+generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
+(protecting the the return value with appropriate cast to \kty{\t[2]} if
+necessary), to be used in a concretely typed context.  The \kafka
+translation also generates a second method \mdpp, that wraps \mdp so that it
+is safe to invoke it with type \(\any \to \any\), that is from an optionally
+typed or dynamic context.  Finally, each field \f:\t is mapped to the
+corresponding \f:\kty\t field.
+
+Figure~\ref{fig:trafuninv} depicts the translation approach taken by each of
+the four semantics for function invocation, illustrating how function calls
+must be guarded under each different semantics.
+
+Under the optional semantics, we do not know if the function actually exists
+on the object or not, leading the translation to make all function invocations
+with the untyped call operator, which can fail at any time.
+
+All three sound systems have to make a distinction between safe typed calls and
+unsafe untyped calls. As a result, they condition on the type of the receiver, 
+using a sound call if it is typed, and an dynamic invocation if not.
+
+The weakest of the sound systems, the transient semantics, works almost
+identically to the optional semantics in the case of an invocation on an
+untyped expression, generating a dynamic invocation with an argument generated
+with result type \any, producing a result similar to that of Typescript.
+However, in the sound case, the transient semantics guarantees the existence,
+but not types, of the method \m. In conjunction with class translation, which
+ensures that an untyped method always exists for any typed method, the
+transient semantics can insert a statically-typed call to the \any-typed
+invocation site guaranteed to exist. However, the argument still needs to
+be cast to \any to be compatible with the dynamic call, and the return type
+needs to be checked against the expected type.
+
+The behavioral semantics has the same untyped invocation as transient, but 
+is able to provide a stronger guarantee, enabling a simpler typed invocation.
+The behavioral semantics guarantees that a typed receiver respects the type
+that it is under, allowing the invocation form to call the method under the
+expected type and not have to verify the return type, as an ill-typed return
+would be caught by a wrapper before it reaches the caller.
+
+%The concrete translation for function invocation,
+%\Call\e\m\ep, states that if the type of \e is a concrete \C, then a statically resolved
+%invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
+%or an optional type, then a dynamically resolved call of the form
+%\DynCall\e\m\ep is emitted.
+
+Lastly, the concrete semantics provides the strongest guarantee, providing a 
+typed invocation form identical to that of the behavioral semantics. 
 
 \section{Conclusion}\label{litm}
 
@@ -2739,7 +2515,7 @@ additional overhead.
 
 \clearpage
 
-\subsection{Thorn}
+\subsection{Concrete (Thorn)}
 
 The formalization of the Thorn type system is built on top of the rules
 presented for TypeScript in \figref{tsts2} and \figref{convts2}. The
@@ -2831,11 +2607,10 @@ while concrete types are unchanged.
 	\hrulefill
 	\caption{Thorn type system}\label{thts2}
 \end{figure}	
+
 \begin{figure}[hb]		
 	\hrulefill
-	
 	\medskip
-	
 \begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
 	\small
 	\begin{minipage}{8cm}  
@@ -2886,7 +2661,86 @@ while concrete types are unchanged.
 
 \clearpage
 
-\subsection{Transient}
+\subsection{Behavioral (Typed Racket)}
+
+The translation for Typed Racket, shown in \figref{trtr2} maps classes to
+homonymous classes and types to types of the same name. The \kty{t} function
+is the identity.  Calls with a receiver of type \any are translated to
+\kafka dynamic calls, and calls with a receiver of some type \C are
+translated to statically typed calls. The auxiliary type-directed
+translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
+appropriately. Thus casts can appear are at typed/untyped boundaries in
+assignment, argument of calls or constructors. Because of the strong
+guarantee provided by the behavioral cast, the Typed Racket translation is
+straightforward. In Typed Racket, every typed value is assumed to behave as
+specified, delegating the complexity of checking for consistency with the
+type to the wrapper introduced by the behavioral cast.  So the difference
+with the TypeScript translation is that typed code is able to use typed
+accesses. The difference with Thorn is essentially the presence of wrappers
+and the fact that each wrapper application only check the presence of
+methods names rather than complete signatures for concrete types.
+
+\begin{figure}[!b]
+	
+	\hrulefill
+	
+	\medskip
+	
+	\small
+	\begin{minipage}{12cm}  
+		\begin{tabbing}
+			\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
+			\hspace{4.6cm}\= \WHERE\HS 
+			\mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
+			\>\qquad\HS\HS\HS\HS\md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+			\>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
+			\\
+			\TRG\x\Env = \src{\x}
+			\\
+			\TRG{\FRead\f}\Env  = \src{\FRead\f}
+			\\
+			\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
+			\>\WHERE\HS
+			\= \TypeCk\K{\this}\C \HS\HS
+			\=  \ep = \TAG\e\Env\t \HS\HS
+			\= \Ftype\f\t\In\App\K\C
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
+			\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
+			\> \ep[1] = \TRG{\e[1]}\Env \HS
+			\> \ep[2] = \TAG{\e[2]}\Env\any
+			\\
+			\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
+			\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
+			\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
+			\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS \\
+			\> \> \=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
+			\\
+			\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
+			\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
+			\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
+			\\
+			\TAG\e\Env\t = \src\ep
+			\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
+			\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash \t \Sub \tp}
+			\>\ep = \TRG\e\Env
+			\\
+			\TAG\e\Env\t = \src{\BehCast\t\e}
+			\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS 
+			\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS  \EM{\K\vdash \t \not \Sub \tp}
+			\> \ep = \TRG\e\Env
+		\end{tabbing}
+	\end{minipage}
+	
+	\medskip
+	
+	\hrulefill
+	\caption{Typed Racket translation}\label{trtr2}
+\end{figure}
+
+\clearpage
+
+\subsection{Transient (Reticulated Python)}
 
 The Transient static type system is based on TypeScript except that the
 convertibility rules now builds on an auxiliary \emph{consistency} relation,
@@ -3050,83 +2904,6 @@ bodies of the form \SubCast\t\x; \e where \e is the body of the expression
 and the semi colon is syntactic sugar for sequencing. Likewise, in order to 
 ensure that field assignment will not get stuck, Transient gives all fields 
 type \any, then checks the field value on reads based on the static typing.
-
-\subsection{Typed Racket}
-
-The translation for Typed Racket, shown in \figref{trtr2} maps classes to
-homonymous classes and types to types of the same name. The \kty{t} function
-is the identity.  Calls with a receiver of type \any are translated to
-\kafka dynamic calls, and calls with a receiver of some type \C are
-translated to statically typed calls. The auxiliary type-directed
-translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
-appropriately. Thus casts can appear are at typed/untyped boundaries in
-assignment, argument of calls or constructors. Because of the strong
-guarantee provided by the behavioral cast, the Typed Racket translation is
-straightforward. In Typed Racket, every typed value is assumed to behave as
-specified, delegating the complexity of checking for consistency with the
-type to the wrapper introduced by the behavioral cast.  So the difference
-with the TypeScript translation is that typed code is able to use typed
-accesses. The difference with Thorn is essentially the presence of wrappers
-and the fact that each wrapper application only check the presence of
-methods names rather than complete signatures for concrete types.
-
-\begin{figure}[!b]
-	
-	\hrulefill
-	
-	\medskip
-	
-	\small
-	\begin{minipage}{12cm}  
-		\begin{tabbing}
-			\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
-			\hspace{4.6cm}\= \WHERE\HS 
-			\mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
-			\>\qquad\HS\HS\HS\HS\md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
-			\>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
-			\\
-			\TRG\x\Env = \src{\x}
-			\\
-			\TRG{\FRead\f}\Env  = \src{\FRead\f}
-			\\
-			\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
-			\>\WHERE\HS
-			\= \TypeCk\K{\this}\C \HS\HS
-			\=  \ep = \TAG\e\Env\t \HS\HS
-			\= \Ftype\f\t\In\App\K\C
-			\\
-			\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
-			\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
-			\> \ep[1] = \TRG{\e[1]}\Env \HS
-			\> \ep[2] = \TAG{\e[2]}\Env\any
-			\\
-			\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
-			\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
-			\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
-			\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS \\
-			\> \> \=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
-			\\
-			\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
-			\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
-			\> \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
-			\\
-			\TAG\e\Env\t = \src\ep
-			\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
-			\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \EM{\K\vdash \t \Sub \tp}
-			\>\ep = \TRG\e\Env
-			\\
-			\TAG\e\Env\t = \src{\BehCast\t\e}
-			\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS 
-			\>\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS  \EM{\K\vdash \t \not \Sub \tp}
-			\> \ep = \TRG\e\Env
-		\end{tabbing}
-	\end{minipage}
-	
-	\medskip
-	
-	\hrulefill
-	\caption{Typed Racket translation}\label{trtr2}
-\end{figure}
 
 \clearpage
 
