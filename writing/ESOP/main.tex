@@ -1555,7 +1555,22 @@ the concrete type system.
 \end{figure}
 
 %% Going by x, this, and field assignment -- compare them individually and not as a group.
-\figref{fig:travar} presents the translation for the field access expression and the variables. 
+\figref{fig:travar} presents the translation for the field access and variables. For the
+most part, these operations are translated verbatim, with notable exceptions in the transient 
+and optional semantics.
+
+In the optional semantics, in order to produced well-typed \kafka terms, we
+need to eliminate the type on one of the two typed introduction forms, \this,
+which is accomplished by casting to \any. Otherwise, the optional semantics
+makes no alterations to these terms.
+
+The guarantee provided by the transient semantics does not extend to correct
+argument types, and therefore, does not guarantee that the type of variables
+is correct, which is modeled in \kafka by having all argument types be
+translated to \any. In the original presentation~\cite{siek14}, the transient
+semantics  implemented this check on function entry, but due to the single-
+expression construction of \kafka, we instead insert casts at every variable
+use site.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1581,6 +1596,20 @@ the concrete type system.
 	\caption{Translations for field assignment}
 	\label{fig:trassn}
 \end{figure}
+
+Field assignment illustrates the continuum of strength provided by each
+gradual type system. Under the unsound optional semantics, we simply translate
+the assignment directly, with no guards or additional checks. However, in the
+three sound semantics, the behaviour differs depending on the strength of the
+soundness guarantee.
+
+Under the transient semantics, assignment to a field is unchecked, instead
+deferring type checking to dereference time. As a result, we use the analytic
+translation operator to translate the argument according to the transient
+semantics, but targeting type \any, instead of the known type of the field,
+enabled by the class translation erasing field typing. Under the behavioral
+and concrete semantics, which do guarantee heap type consistency, however,
+we translate the argument expression targeting the known type of the field.
 
 \begin{figure}
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1618,37 +1647,58 @@ require an additional any cast to ease any typing information from the object.
 {\scriptsize Transient} \\
 \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
    & \TypeCk{\K,\Env}\e\tp
-   & \EM{\K\vdash\t\Sub\tp}
+   & \EM{\K\vdash\tp\Sub\t}
    & \ep = \TRG[\TTS]\e\Env \\
 \TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
    & \TypeCk{\K,\Env}\e\tp 
-   & \EM{\ConSub{}\K\t\tp}
-   & \EM{\K\vdash\t\not{<:}\tp}  \\
-& & & \EM{\ep = \TRG[\TTS]\e\Env} \\
+   & \EM{\K\vdash \tp \not \Sub \t}
+   & \EM{\ep = \TRG[\TTS]\e\Env} \\
 {\scriptsize Behavioral} \\ 
 \TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
    & \TypeCk{\K,\Env}\e\tp
-   & \EM{\K\vdash \t \Sub \tp}
+   & \EM{\K\vdash \tp \Sub \t}
    & \ep = \TRG[\BTS]\e\Env\\
-\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\e} & \WHERE
+\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
    & \TypeCk{\K,\Env}\e\tp \HS 
-   & \EM{\K\vdash \t \not \Sub \tp}
+   & \EM{\K\vdash \tp \not \Sub \t}
    & \ep = \TRG[\BTS]\e\Env \\
 {\scriptsize Concrete} \\
 \TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
    & \TypeCk{\K,\Env}\e\tp 
-   & \ep = \TRG[\CTS]\e\Env
-   & \EM{\K\vdash\tp \Sub \t} \\
+   & \EM{\K\vdash\tp \Sub \t} 
+   & \ep = \TRG[\CTS]\e\Env\\
 \TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
    & \TypeCk{\K,\Env}\e\tp 
-   & \ep = \TRG[\CTS]\e\Env 
-   & \EM{\K\vdash\tp \not\Sub \t} 
+   & \EM{\K\vdash\tp \not\Sub \t}
+   & \EM{\ep = \TRG[\CTS]\e\Env} 
 \end{tabular}
 
 \caption{Type requirement translation}
 \label{fig:trtype}
 \end{figure}
 
+Figure~\ref{fig:trtype} depicts the type requirement translation mode. Under
+this translation, we are given the expression to translate, the environment
+which it should be translated against, and the \kafka type of the resulting
+expression. Under the optional system, all terms have type \any, rendering its
+type requirement translation useless. However, all of the sound systems have a
+different notion of what it means to inhabit a type, driving different checks
+when generating an expression of a pre-determined type.
+
+In the sound systems, however, all differentiate between the case where the
+statically-known type is compatible with the required type, and the case where
+something has to be done to convert the statically-known type to that required
+by the invoking expression. The main differentiation comes from in what each
+system then does when confronted with a difference in types.
+
+The transient and concrete semantics use the standard dynamic subtype test,
+but while concrete uses the classes as defined by the programmer, the
+transient semantics alters them during translation. Under the transient
+semantics, classes are rewritten with dynamic types in place of static types
+in functions and field, causing the subtype test cast in the context of the
+transient class translation to simply check for the existence of a method of
+the required name during dynamic subtype testing, rather than checking that
+the entire class type is compatible.
 
 
 \begin{figure}
