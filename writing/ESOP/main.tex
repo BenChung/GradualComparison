@@ -2013,6 +2013,46 @@ optional typed {\xt E} were passed where a behavioral typed {\xt E} was
 expected, then a wrapper, implementing the fully typed {\xt E}, would be
 generated on top of the untyped, optional typed {\xt E}, ensuring type safety.
 
+\subsection{Theoretical performance}
+
+A feature of optional typing highlighted by Bracha~\cite{pluggabletypes} 
+is the minimal impact on performance, which is also evident in our optional translation.
+A notional type-less language would have an identical translation, causing performance to
+be identical to a language with an optional type system.
+
+The concrete semantics allows Thorn to provide the guarantee that typed code
+will have no internal checks, an unusual feature among gradual type systems
+caused by the strong guarantee provided by the concrete semantics. In
+conjunction with relatively light-weight casts (caused by only needing to
+compare type tags), the concrete semantics provides acceptable performance~\cite{oopsla09}. 
+However, this strong guarantee does result in rigid semantics of the cast
+operations, which pass only subtypes of the given type. As a consequence, this
+means that untyped objects can never be treated as typed ones, requiring the 
+programmer to add a potentially large number of types in order to fully utilize
+the concrete type system.
+
+The behavioral semantics solve the problem illustrated by Thorn and the
+concrete semantics, requiring typed values to be statically checked,
+and provides a stronger guarantee than the transient semantics. This, however,
+comes at the cost of having to check this guarantee at boundaries between
+typed and untyped code, seen in the behavioral cast operator, causing memory
+bloat and large slowdowns in many cases~\cite{popl16}.
+
+In Typed Racket, any call to method \m of class \code F, encounters a
+wrapper that ensures that the argument and return type of \m is always a
+\D. Therefore, if the method \m is called with a \C, the program would get
+stuck at the cast to \D. In Transient, the cast to \code E is a no-op, so
+when we call \m with \C, no extra cast to \D is encountered. The Transient
+design allows method \m, which expects an instance of class \C as argument,
+to be called with a value of type \any at any point. However, this forces \m
+to check its arguments at every method invocation. One interesting consequence 
+of this requirement is that programs using the
+transient semantics actually acquire more casts as they get typed, with the
+fully-typed version of a program having the most casts, as seen by \m being
+required to check the type on every argument. As a result, the transient
+semantics will cause checks to be inserted even in fully typed methods, with
+the most checks existing in a fully-typed program, unlike the behavioral or
+concrete semantics.
 
 \section{Conclusion}\label{litm}
 
@@ -2057,6 +2097,7 @@ boundary. Transient Python inserts casts after variable reads.
 \bibliographystyle{unsrturl}
 \bibliography{../../bib/jv,../../bib/all}
 
+\newpage
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Type system for \kafka}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2322,11 +2363,10 @@ method definitions or method typings, and ensures there are no duplicates.
 \subsection*{Well-formedness for Concrete}
 
 The well-formedness judgments for Concrete is similar to the well-formedness
-judgments of \kafka with the addition of well-formed optional types
-($\CW$). The turnstile ($\vdash_{\!s}$) of all source language judgment is
+judgments of \kafka. The turnstile ($\vdash_{\!s}$) of all source language judgment is
 characterized with s.
 
-\begin{figure}[!h]
+%\begin{figure}[!h]
 	\footnotesize
 \begin{minipage}{\textwidth}\begin{tabular}{ll}  
 \begin{minipage}{6cm}\begin{mathpar}  
@@ -2416,8 +2456,8 @@ characterized with s.
  \WFtypeW\K{\CW}
 }
 \end{mathpar}\end{minipage}\end{tabular}\end{minipage}
-\end{figure}
 
+\clearpage
 
 \subsection*{Well-formedness for Behavioral, Optional, Transient}
 
@@ -2428,7 +2468,7 @@ The well-formedness judgments for Behavioral, Optional, and Transient is a subse
 \begin{minipage}{\textwidth}\begin{tabular}{ll}  
 \begin{minipage}{4cm}\begin{mathpar} 
 \opdef{~$\WFpx{\e}{\K}$}{\text{Well-formed programs}}
-\vspace{-2mm}
+%\vspace{-2mm}
 \IRule{SWF-PROG}{
   \EnvTypex\Env\cdot\K\e\t \\\\
   \k \in \K \implies \WFx{}\cdot\K\k
@@ -2438,7 +2478,7 @@ The well-formedness judgments for Behavioral, Optional, and Transient is a subse
 \end{mathpar}\end{minipage}& \begin{minipage}{9.0cm}\begin{mathpar} 
 
 \opdef{\WFx{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed classes}}
-\vspace{-3mm}
+%\vspace{-3mm}
 \IRule[width=25em]{SWF-CLASS}{
  \cload{\fd[1]..,\md[1]..} \\
  \fd\in\fd[1]..\implies \WFx {}{}\K \fd \\
@@ -2449,9 +2489,11 @@ The well-formedness judgments for Behavioral, Optional, and Transient is a subse
 \end{mathpar}\end{minipage}\end{tabular}\end{minipage}
 \end{figure}
 
+\begin{figure}[!h]
+\vspace{2mm}
 \opdef{~\WFx \Env{}\K \md}{Well-formed methods}
 \begin{mathpar}
-\hspace{-8mm}
+\hspace{4mm}
 
 \IRule[width=18em]{SWF-TYMETH}{
  \EnvTypex {\Env{~\Ftype\x\C}~}\K\e\D\\
@@ -2469,7 +2511,7 @@ The well-formedness judgments for Behavioral, Optional, and Transient is a subse
  \WFx \Env{}\K {\Mdef\m\x\any\any\e}
 }
 \end{mathpar}
-
+\end{figure}
 
 \begin{figure}[!h]
 % \vspace{-8mm}
@@ -2501,6 +2543,7 @@ The well-formedness judgments for Behavioral, Optional, and Transient is a subse
 \end{mathpar}\end{minipage}\end{tabular}\end{minipage}
 \end{figure}
 
+\clearpage
 
 \section{Source semantics type systems and translations}
 
@@ -2543,8 +2586,8 @@ only the altered rules.
 Our formalization of TypeScript's type system is in
 \figref{convts2}. The type system relies on the \emph{convertibility}
 relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
-type conversions allowed by TypeScript.  The relation appears in
-\figref{tsts} and states that a type is convertible to a super type and
+type conversions allowed by TypeScript.  The convertible relation appears in
+\figref{tsts2} and states that a type is convertible to a super type and
 that \any is convertible to anything and conversely. 
 
 \begin{figure}[hb]
@@ -2615,6 +2658,16 @@ that \any is convertible to anything and conversely.
 	\caption{Optional type system}\label{convts2}
 \end{figure}
 
+The TypeScript compiler translates code to JavaScript with all types erased.
+Since convertibility allows arbitrary values can be passed whenever a \any
+value is expected, method calls may fail because the receiver need not have
+the requested method. The designers of TypeScript saw this unsoundness as a
+way to ensure that types do not get in the way of running correct programs,
+e.g. when importing a new library with type annotations inconsistent with
+existing client code; and an insurance for backwards compatibility, as
+ignoring types means all browsers can run TypeScript code -- with no
+additional overhead.
+
 \begin{figure}[hb]
 	\hrulefill  \small  \vspace{-3mm}
 	
@@ -2676,15 +2729,13 @@ that \any is convertible to anything and conversely.
 	
 \end{figure}
 
-The TypeScript compiler translates code to JavaScript with all types erased.
-Since convertibility allows arbitrary values can be passed whenever a \any
-value is expected, method calls may fail because the receiver need not have
-the requested method. The designers of TypeScript saw this unsoundness as a
-way to ensure that types do not get in the way of running correct programs,
-e.g. when importing a new library with type annotations inconsistent with
-existing client code; and an insurance for backwards compatibility, as
-ignoring types means all browsers can run TypeScript code -- with no
-additional overhead.
+Observe that the optional translations, in \figref{tst2}, does insert some structural casts
+to \any, they are needed for the result to be well-typed, but these have no
+operational effect (a structural cast to \any always succeed at runtime).
+The unsoundness of the optional type system is evidence in the
+translation, by discarding the type of the callee and systematically relying
+on dynamic method invocation for method calls it clear that optional
+programs can get stuck at any point of their execution.
 
 \clearpage
 
@@ -2701,6 +2752,65 @@ that an optional type is convertible to a concrete parent type. Type rule
 for method calls, shown in \figref{thts2} must be extended to handle
 receivers of optional types, they are treated as if they were concrete
 types.
+
+\begin{figure}[hb]
+	
+	\hrulefill  \small
+	\vspace{-3mm}
+	
+	\begin{mathpar}
+		\Rule{TSWeak}{
+			\SSub \M\K\C\D
+		}{
+			\SSub \M\K{\dt\C}{\dt\D}
+		}
+		
+		\Rule{TSLow}{
+			\SSub \M\K\C\D
+		}{
+			\SSub \M\K{\C}{\dt\D}
+		}
+	\end{mathpar}
+	
+	\hrulefill
+	\caption{Concrete subtyping}\label{subth2}
+\end{figure}	
+
+\begin{figure}[hb]	
+	\hrulefill  \small
+	\vspace{-3mm}
+	
+	\begin{mathpar}
+		\Rule{STHC-OPTCONC}{
+			\SSub\cdot\K\C\D
+		}{
+			\ConvertE\K{th}\CW\D
+		}
+	\end{mathpar}
+	
+	\hrulefill
+	\caption{Concrete type convertibility}\label{convth2}
+\end{figure}	
+
+\begin{figure}[hb]	
+	
+	\hrulefill  
+	\vspace{0.5mm}
+	
+	\begin{mathpar}  
+		\Rule{STH-CALL}{
+			\EnvTypeW \Env\K\e\tp \\  (\tp=\C~~\vee~~\tp=\CW) \\
+			\Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\
+			\EnvTypeW \Env\K\ep\tpp  \\
+			\ConvertE\K{th}\tpp{\t[1]}
+		}{
+			\EnvTypeW \Env\K{\Call\e\m\ep}{\t[2]}
+		}    
+	\end{mathpar}
+	
+	\hrulefill
+	\caption{Concrete type system}\label{thts2}
+\end{figure}	
 
 The translation of Thorn into \kafka is given in~\figref{thtr2}. As with
 TypeScript translation proceeds top-down. The differences are that the
@@ -2723,63 +2833,6 @@ respect the mapping from Thorn types to \kafka types.  This mapping is
 defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
 otherwise.  Thorn optional and dynamic types are mapped to the \any type,
 while concrete types are unchanged.
-
-\begin{figure}[!t]
-	
-	\hrulefill  \small
-	\vspace{-3mm}
-	
-	\begin{mathpar}
-		\Rule{TSWeak}{
-			\SSub \M\K\C\D
-		}{
-			\SSub \M\K{\dt\C}{\dt\D}
-		}
-		
-		\Rule{TSLow}{
-			\SSub \M\K\C\D
-		}{
-			\SSub \M\K{\C}{\dt\D}
-		}
-	\end{mathpar}
-	
-	\hrulefill
-	\caption{Concrete subtyping}\label{subth2}
-\end{figure}	
-\begin{figure}[hb]	
-	\hrulefill  \small
-	\vspace{-3mm}
-	
-	\begin{mathpar}
-		\Rule{STHC-OPTCONC}{
-			\SSub\cdot\K\C\D
-		}{
-			\ConvertE\K{th}\CW\D
-		}
-	\end{mathpar}
-	
-	\hrulefill
-	\caption{Concrete type convertibility}\label{convth2}
-\end{figure}	
-\begin{figure}[hb]	
-	
-	\hrulefill  
-	\vspace{0.5mm}
-	
-	\begin{mathpar}  
-		\Rule{STH-CALL}{
-			\EnvTypeW \Env\K\e\tp \\  (\tp=\C~~\vee~~\tp=\CW) \\
-			\Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\
-			\EnvTypeW \Env\K\ep\tpp  \\
-			\ConvertE\K{th}\tpp{\t[1]}
-		}{
-			\EnvTypeW \Env\K{\Call\e\m\ep}{\t[2]}
-		}    
-	\end{mathpar}
-	
-	\hrulefill
-	\caption{Concrete type system}\label{thts2}
-\end{figure}	
 
 \begin{figure}[hb]	
 	\hrulefill
@@ -2912,8 +2965,6 @@ methods names rather than complete signatures for concrete types.
 	\hrulefill
 	\caption{Behavioral translation}\label{trtr2}
 \end{figure}
-
-\clearpage
 
 \subsection{Transient (Reticulated Python)}
 
