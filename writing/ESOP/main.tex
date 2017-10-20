@@ -1021,9 +1021,7 @@ a safety guarantee.
 To avoid unnecessary clutter, we represent the source semantics using the
 common syntax reported in \figref{f:sourcesyntax}.  This defines a simple
 object calculus similar to \kafka, but without method overloading and, most
-importantly, cast operations. Additionally, when modeling the Thorn type
-system, the additional type \CW is added to the type grammar to denote Thorn
-\emph{like   types}. Lastly, we also give a source-level type system for 
+importantly, cast operations. Lastly, we give a source-level type system for 
 each semantics (notated $\vdash_{\!s}$), which are largely identical. To 
 simplify the presentation, we will elide the identical rules, instead presenting
 only the altered rules.
@@ -1054,47 +1052,43 @@ only the altered rules.
 	\caption{Common syntax of source languages}\label{f:sourcesyntax}
 \end{figure}
 
-
-By deferring to the translation to provide a soundness guarantee, the source 
-semantics allows us to implement very different approaches to gradual typing
-within the same framework. Through the simple invariant that well-typed source
-terms translate to well-typed \kafka terms, we are able to provide a simple
-soundness guarantee, and provide some intuition as to where different approaches
-allow similar programs to go wrong.
+We then translate this same source language to \kafka, modelling the semantics
+of each of the gradual type systems. Each of the type systems in question
+provides a different soundness guarantee, which then drives their
+translations, and what programs are allowed dynamically.
 
 \subsection{Optional}
 
-%TODO: The cite needs to be filled out.
+%TODO: The cite needs to be filled out.  
+
 The optional semantics are used by languages such as TypeScript [CITEME] and
-Hack [CITEME] to provide easy backwards compatibility without being burden 
+Hack [CITEME] to provide easy backwards compatibility without being burden
 with static checks. In our formalization, equivalence is structural and
- subtyping of recursive types is supported. The
-following three expressions illustrate the language. The first expression is
-ill-typed because method the receiver of the invocation to \n is of type \C
-and \C does not have a method by that name. The second expression will also be
-flagged as erroneous as the argument to \m is \C rather than a \D as expected.
-The last expression is statically correct as the instance of \C is cast to a
-\D via method \mp. At runtime that expression will evaluate successfully.
+subtyping of recursive types is supported. The following three expressions
+illustrate the language. The first expression is ill-typed because the
+receiver is of type \C, so has no method \n. The second expression will also
+be flagged as erroneous as the argument to \m is \D rather than a \C as
+expected. The last expression is statically correct, as the instance of \D is
+cast to a \C via method \mp, and, since \m uses none of the functionality of
+\C, it will execute without error.
 
 
 {\small
 \begin{tabbing}
   \hspace{.5cm}
    \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
-   \> \Call{\New\C{}}\m{\New\C{}}                                  \>  \HS  \Mdef\m\x\D\C{~\this~} \\
-   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\C{}}}              \>  \HS  \Mdef\mp\x\any\D{~\x~}\\
+   \> \Call{\New\C{}}\m{\New\D{}}                                  \>  \HS  \Mdef\m\x\C\C{~\this~} \\
+   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\D{}}}              \>  \HS  \Mdef\mp\x\any\C{~\x~}\\
    \>                                                              \>  \}   \\
    \>                                                              \> \Class\D{}{}
 \end{tabbing}}
 
 
-\noindent
-We illustrate the type system by focusing on the example above. 
-For the first expression, the receiver has type \C, but the class does 
-not have method \n. The second expression is ill-typed because the 
-argument to method \m is of type \C and \C is not convertible to \D. 
-The third expression is correct because the argument to \mp is of type
- \C and \C is convertible to \any, the expected type of \mp.
+\noindent This last case illustrates the soundness guarantee of the optional
+semantics, as we are able to take a value that supports no operations, then
+use it in place of one that exposes methods, methods that will not exist if
+used. As a result, while the optional semantics does provide type checking,
+it provides the same guarantees as an untyped language would.
 
 The translation from the optional source language to \kafka
 is exceedingly simple, all type annotations become \any and all source
@@ -1546,7 +1540,7 @@ concrete semantics.
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]\x & = \src \x \\
-		\TR[\OTS]\this           & = \src{\SubCast\any\this} \\
+		\TR[\OTS]\this & = \src{\SubCast\any\this} \\
 		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
 	\end{tabular}
 	&
@@ -1587,11 +1581,39 @@ makes no alterations to these terms.
 
 The guarantee provided by the transient semantics does not extend to correct
 argument types, and therefore, does not guarantee that the type of variables
-is correct, which is modeled in \kafka by having all argument types be
-translated to \any. In the original presentation~\cite{siek14}, the transient
-semantics  implemented this check on function entry, but due to the single-
-expression construction of \kafka, we instead insert casts at every variable
-use site.
+or fields is correct, which is modeled in \kafka by having all argument types
+be translated to \any. Notably, the cast introduced by the transient semantics
+on variables will never fail - as in the original presentation~\cite{siek14},
+we check that the value is correct on function entry - but in order to produce
+a well-typed \kafka term, we are forced to cast every invocation site.
+
+However, under the transient semantics, fields can take on ill-typed values.
+Consider the following source language program:
+
+\begin{verbatim}
+class C {
+  f : E
+  get (x:D):E { this.f }
+  set (x:*):* { this.f = x }
+}
+
+class E { m(x:E):E { x } }
+
+class D { }
+
+c = new C(new E())
+c.set(new D())
+c.get(new D())
+\end{verbatim}
+
+This is well-typed, according to the surface type system, as the type-
+violating operation is untyped, when set is called with a value of type \any.
+Moreover, the get operation is well-typed itself, because \f has type \xt{E},
+so dereferencing would seem to be safe. However, owing to the weak soundness
+guarantee of the transient semantics, no dynamic check is done on assignment
+of an untyped value to a typed field. As a result, we are dynamically allowed
+to assign an instance of \D to \f, requiring a check at dereference time to
+avoid returning a value of the wrong type.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1631,6 +1653,14 @@ semantics, but targeting type \any, instead of the known type of the field,
 enabled by the class translation erasing field typing. Under the behavioral
 and concrete semantics, which do guarantee heap type consistency, however,
 we translate the argument expression targeting the known type of the field.
+
+One observation of this figure is that the other two sound translations demand
+the correct type to be returned from the argument expression, while the
+transient semantics only needs it to be well-formed. As a consequence, the two
+stronger sound type systems will raise an error when set tries to assign an
+value of the wrong type to the field, whereas the transient semantics raises
+the error upon dereference.
+
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1732,9 +1762,10 @@ the entire class type is compatible.
 		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = 
 		& \WHERE
 		& \TypeCk{\K,\Env}{\e[1]}\C  
-		& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\D[2]} \\
-		\multicolumn{2}{l}{\HS\HS\HS\HS\src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\SubCast{\any}{\ep[2]}}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\ \\
-		{\scriptsize \bf{Behavioral}} \\ 
+		& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\any} \\
+		\multicolumn{2}{l}{\HS\HS\HS\HS\HS\HS\HS\HS\HS
+    \src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\ep[2]}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
+		{\scriptsize Behavioral} \\ 
 		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
 		&  \TypeCk{\K,\Env}{\e[1]}\any
 		&  \ep[1] = \TRG[\BTS]{\e[1]}\Env
@@ -1796,20 +1827,19 @@ the entire class type is compatible.
 	\label{fig:traclass}
 \end{figure}
 
-In concrete source language, any method can be called statically and dynamically. For
-this to work out it is necessary to generate a dynamic version of all concrete source
-methods.  Class translation relies on overloading to provide two
-implementations of each method: one is used with concrete receiver
-and the other is optionally typed (or dynamic) object. 
-More precisely, given a Thorn method
-\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
-generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
-(protecting the the return value with appropriate cast to \kty{\t[2]} if
-necessary), to be used in a concretely typed context.  The \kafka
-translation also generates a second method \mdpp, that wraps \mdp so that it
-is safe to invoke it with type \(\any \to \any\), that is from an optionally
-typed or dynamic context.  Finally, each field \f:\t is mapped to the
-corresponding \f:\kty\t field.
+In the concrete source language, any method can be called statically and
+dynamically. For this to work out it is necessary to generate a dynamic
+version of all concrete source methods.  Class translation relies on
+overloading to provide two implementations of each method: one is used with
+concrete receiver and the other is optionally typed (or dynamic) object.  More
+precisely, given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the
+\kafka translation first generates a method \(\mdp\) with type \(\kty{\t[1]}
+\to \kty{\t[2]}\) (protecting the the return value with appropriate cast to
+\kty{\t[2]} if necessary), to be used in a concretely typed context.  The
+\kafka translation also generates a second method \mdpp, that wraps \mdp so
+that it is safe to invoke it with type \(\any \to \any\), that is from an
+optionally typed or dynamic context.  Finally, each field \f:\t is mapped to
+the corresponding \f:\kty\t field.
 
 Figure~\ref{fig:trafuninv} depicts the translation approach taken by each of
 the four semantics for function invocation, illustrating how function calls
