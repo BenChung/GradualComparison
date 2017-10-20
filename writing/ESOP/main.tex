@@ -1570,41 +1570,50 @@ concrete semantics.
 \end{figure}
 
 %% Going by x, this, and field assignment -- compare them individually and not as a group.
-\figref{fig:travar} presents the translation for the field access and variables. For the
+\figref{fig:travar} presents the translation for field access and variables. For the
 most part, these operations are translated verbatim, with notable exceptions in the transient 
 and optional semantics.
 
 In the optional semantics, in order to produced well-typed \kafka terms, we
 need to eliminate the type on one of the two typed introduction forms, \this,
 which is accomplished by casting to \any. Otherwise, the optional semantics
-makes no alterations to these terms.
+makes no alterations to these terms, as it has no soundness guarantee to
+ensure.
 
-The guarantee provided by the transient semantics does not extend to correct
-argument types, and therefore, does not guarantee that the type of variables
-or fields is correct, which is modeled in \kafka by having all argument types
-be translated to \any. Notably, the cast introduced by the transient semantics
-on variables will never fail - as in the original presentation~\cite{siek14},
-we check that the value is correct on function entry - but in order to produce
-a well-typed \kafka term, we are forced to cast every invocation site.
+Transient does not guarantee that the values passed to functions or assigned
+to fields respect the declared type of those functions or fields. Class
+translation inserts checks for invalid variables upon method entry, so while
+the transient translation has to insert casts to appease the \kafka type
+system, these casts will never fail. However, fields are not protected such,
+and values can  be passed through them that violate their types, requiring a
+guard after dereference. Consider the following program:
 
-However, under the transient semantics, fields can take on ill-typed values.
-Consider the following source language program:
-
-\begin{verbatim}
-class C {
-  f : E
-  get (x:D):E { this.f }
-  set (x:*):* { this.f = x }
-}
-
-class E { m(x:E):E { x } }
-
-class D { }
-
-c = new C(new E())
-c.set(new D())
-c.get(new D())
-\end{verbatim}
+\begin{tabular}{cc}
+\begin{tabular}{l@{}l}
+\class&\hspace{0.3em}\C \{ \\
+    &\Ftype\f{\xt{E}} \\
+    &\Mdef{\xt{get}}\x{\xt{D}}{\xt{E}}{\FRead\f} \\
+    &\Mdef{\xt{set}}\x\any\any{\FWrite\f\x} \\
+\} \\
+\class&\hspace{0.3em}\xt{E} \{ \Mdef\m\x{\xt{E}}{\xt{E}}\x \} \\
+\class&\hspace{0.3em}\xt{D} \{ \} \\
+\multicolumn{2}{l}{\xt{c} = \New\C{\New{\xt{E}}}} \\
+\multicolumn{2}{l}{\Call{\xt{c}}{\xt{set}}{\New{\xt{D}}}} \\
+\multicolumn{2}{l}{\Call{\xt{c}}{\xt{get}}{\New{\xt{D}}}} \\
+\end{tabular} &
+\begin{tabular}{l@{}l}
+\class&\hspace{0.3em}\C \{ \\
+    &\Ftype\f\any \\
+    &\Mdef{\xt{get}}\x{\any}{\any}{\SubCast{\D}{\x}; \SubCast{\xt{E}}{\FRead\f}}\\
+    &\Mdef{\xt{set}}\x{\any}{\any}{\SubCast{\any}{\x}; \SubCast{\any}{\FWrite\f\x}}\\
+\} \\
+\class&\hspace{0.3em}\xt{E} \{ \Mdef\m\x{\any}{\any}{\SubCast{\xt{E}}{\x};\SubCast{\xt{E}}{\x}} \} \\
+\class&\hspace{0.3em}\xt{D} \{ \} \\
+\multicolumn{2}{l}{\xt{c} = \New\C{\SubCast{\any}{\New{\xt{E}}{}}}} \\
+\multicolumn{2}{l}{\SubCast\any{\Call{\xt{c}}{\xt{set}}{\SubCast{\any}{\New{\xt{D}}{}}}}} \\
+\multicolumn{2}{l}{\SubCast{\xt{E}}{\Call{\xt{c}}{\xt{get}}{\SubCast{\any}{\New{\xt{D}}{}}}}} \\
+\end{tabular}
+\end{tabular}
 
 This is well-typed, according to the surface type system, as the type-
 violating operation is untyped, when set is called with a value of type \any.
