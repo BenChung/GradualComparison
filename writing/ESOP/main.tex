@@ -1,4 +1,4 @@
-\documentclass{tex/llncs}
+\documentclass[runnningheads]{tex/llncs}
 \usepackage{stmaryrd}
 \usepackage{xspace,listings,url,framed,amssymb,
             mathpartir,hyperref,doi, mathtools,wrapfig,
@@ -21,6 +21,7 @@
 \input{macros}
 \definecolor{Gray}{gray}{0.9}
 \definecolor{vlightgray}{gray}{0.93}
+\pagestyle{headings} 
 
 \lstdefinelanguage{JavaScript}{
   keywords={typeof,new,true,false,instanceof,catch,function,return,null, 
@@ -44,37 +45,34 @@
 }
 
 \begin{document}
-\title{\kafka: A common framework for\\ gradual typing objects}
-\titlerunning{\kafka: A common framework for gradual typing objects}
+\title{KafKa: A Common Framework for\\ Gradual Typing of Objects}
+\titlerunning{Gradual typing of objects}
 \author{Benjamin Chung, Paley Li, Francesco Zappa Nardelli, Jan Vitek}
 \authorrunning{Chung et al.} 
-\institute{Northeastern University, CVUT and INRIA}
+\institute{\vspace{-3mm} Northeastern University, CVUT and INRIA}
 
 \maketitle
 
-
-
 \begin{abstract}
-The enduring popularity of dynamically typed languages has given rise to a
-cottage industry of static type systems, often called \emph{gradual type
-  systems}, that let developers annotate legacy code piecemeal. Type
-soundness for a program which mixes typed and untyped code does not ensure
-the absence of errors at runtime, rather it means that some errors will
-caught at type checking time, while other will be caught as the program
-executes. After a decade of research it is clear that the combination of
-mutable state, self references and subtyping presents interesting challenges
-to designers of gradual type systems.  This paper reviews the state of the
-art in gradual typing for objects. We introduce \kafka, a class-based object
-calculus with a static type system, dynamic method dispatch, transparent
-wrappers and dynamic class generation. We model key features of four gradual
-type systems by translating them to \kafka and discuss the implications of their
-respective designs.
+The enduring popularity of dynamically typed languages has motivated
+research on \emph{gradual type systems} to allow developers to annotate
+legacy dynamic code piecemeal. Type soundness for a program which contains a
+mixture of typed and untyped code cannot mean the traditional absence of
+errors. While some errors will caught at type checking time, others can only
+be caught as the program executes. After a decade of research it is clear
+that the combination of mutable state, aliasing and subtyping presents
+challenges to gradual type systems.  We introduce \kafka, a class-based
+object calculus with a static type system, dynamic method dispatch,
+transparent wrappers and dynamic class generation. \kafka was designed as a
+common framework for expressing the semantics of various gradually typed
+object-oriented languages. We demonstrate the usefulness by translating
+idealizations of four different gradually typed language languages into the
+calculus and discuss the implications of their respective designs.
 \end{abstract}
 
 \section{Introduction}
 
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
-
 %\vspace{-5mm}
 
 \noindent A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual
@@ -92,16 +90,25 @@ consider state. The combination of mutable state, aliasing and subtyping
 prevalent in object-oriented languages complicates enforcement strategies,
 as one must consider situations where an object is being accessed and
 mutated at different types. While several solutions have been proposed,
-their performance implications appear daunting. Predictably, developers of
-industrial languages have chosen to compromise on soundness to avoid
-degrading performance.
-
-%TODO: The paragraph above seems to justify the previously proposed solutions are 
-% not great because they have poor performance. Which pushes us towards
-% declaring performance as a major factor for any solution we present.
+their performance implications appear daunting. Developers of industrial
+languages have chosen to compromise on soundness to avoid degrading
+performance.
 
 This paper explores the design space of gradual type systems for
-object-oriented languages by studying four distinctive systems,
+object-oriented languages by studying four approaches to gradual typing of
+objects with different runtime characteristics in terms of errors and
+overheads.  The four approaches are representative of languages with
+implementations that available in open source. The \emph{optional} approach,
+chosen by TypeScript, Dart, and Hack, amounts to a static check followed by
+type erasure at runtime.  The \emph{concrete} approach, used in C\#, Thorn,
+and StrongScript, combines optional types with traditional statically
+typing.  The \emph{behavioral} approach, followed by TypedRacket and
+Gradualtalk, 
+
+WORKINPROGRESS
+
+
+distinctive systems,
 idealizations of TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
 Racket~\cite{tf-popl08}, and Transient Reticulated Python~\cite{siek14},
 each with significantly different semantics.  Beyond the difference in runtime
@@ -117,12 +124,13 @@ Our aim is to shed light on core features of each type system, namely their
 treatment of objects, and which errors are caught statically and which ones
 are caught dynamically.  These four languages were selected because they had
 open source implementations and their designs were representative of
-different gradual typing philosophies.  TypeScript stands for unsound systems that work by
-erasure, such as Dart and Hack.  Thorn combines dynamic and static types
-inspired by C\# and further developed in StrongScript. Typed Racket provides
-a sound type system that is close in spirit to Siek and Taha's original
-idea. Lastly, Transient was designed to decrease the overhead of soundness,
-while retaining some systematic runtime checks.
+different gradual typing philosophies.  TypeScript stands for unsound
+systems that work by erasure, such as Dart and Hack.  Thorn combines dynamic
+and static types inspired by C\# and further developed in
+StrongScript. Typed Racket provides a sound type system that is close in
+spirit to Siek and Taha's original idea. Lastly, Transient was designed to
+decrease the overhead of soundness, while retaining some systematic runtime
+checks.
 
 To capture the essence of gradual typing, we present translations of
 representative subsets of four gradually typed languages into a common
@@ -137,46 +145,46 @@ targets, and support for generating new classes at runtime.
 Translating a gradually typed language into a statically typed language,
 such as the JVM's bytecode or \kafka makes explicit which of the underlying
 type system's guarantees can be relied upon statically, and where dynamism
-is really required. A core part of our contribution is the four translations, each
-taking a gradually typed expression \HT\e\T in the source language and
-returning the corresponding \kafka term. The translation of a term entails
-translating the classes needed to evaluate it.  The translations allows us
-to study where program can get stuck in the different systems.  With gradual
-types, an expression \Call\x\m\e, where \x is declared to be of class \C,
-can have significantly different behavior depending on choices made while
-designing the type system. TypeScript has \emph{optional types}; any call
-can get stuck, as every type translates to \any. Thorn has \emph{concrete
-  types}; a program will not get stuck at calls on these types as they
-translate to statically typed method calls in \kafka. Typed Racket has
-\emph{promised types}; a well-typed program will not get stuck at a call to
-\m, because \x refers to an object, or wrapper, that implements \m. Wrappers
-may fail if their target does not behave like the type that they
-enforce. Transient Python will also allow calls to go through, but may get
-stuck if the called function returns a value of the wrong type.
+is really required. A core part of our contribution is the four
+translations, each taking a gradually typed expression \HT\e\T in the source
+language and returning the corresponding \kafka term. The translation of a
+term entails translating the classes needed to evaluate it.  The
+translations allows us to study where program can get stuck in the different
+systems.  With gradual types, an expression \Call\x\m\e, where \x is
+declared to be of class \C, can have significantly different behavior
+depending on choices made while designing the type system. TypeScript has
+\emph{optional types}; any call can get stuck, as every type translates to
+\any. Thorn has \emph{concrete types}; a program will not get stuck at calls
+on these types as they translate to statically typed method calls in
+\kafka. Typed Racket has \emph{promised types}; a well-typed program will
+not get stuck at a call to \m, because \x refers to an object, or wrapper,
+that implements \m. Wrappers may fail if their target does not behave like
+the type that they enforce. Transient Python will also allow calls to go
+through, but may get stuck if the called function returns a value of the
+wrong type.
 
-The design of \kafka is another part of our contribution.  \kafka is a statically typed
-object calculus.  It is class based (with an explicit class table \K) with
-mutable state (a heap address \a refers to an object with a set of private
-fields denoted by \f). It allows the dynamic generation of wrapper classes
-(by addition of new classes to the class table \K and allocation of objects
-\a).  Methods can be statically resolved, denoted by a typed call
-\KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a dynamic call
-\DynCall\a\m\x. The \kafka type system has two kinds of types; classes which
-give rise to homonymous types, and the dynamic type \any.  \kafka subtyping
-is structural with recursion.  The heart of any gradual type system are the
-explicit casts that are inserted at type boundaries.  Structural casts,
-\SubCast\t\a, check if the object referenced by \a is a subtype of type \t.
-Behavioral casts, \BehCast\t\a, create wrappers that enforce a specific
-type, this entails runtime generation of a new class. Finally, We give
-\kafka an operational semantics. We report on a mechanized proof of
-soundness for \kafka inclusive of its casts, as well as a proof-of-concept
-implementation of the calculus on top of the .NET virtual machine.
+The design of \kafka is another part of our contribution.  \kafka is a
+statically typed object calculus.  It is class based (with an explicit class
+table \K) with mutable state (a heap address \a refers to an object with a
+set of private fields denoted by \f). It allows the dynamic generation of
+wrapper classes (by addition of new classes to the class table \K and
+allocation of objects \a).  Methods can be statically resolved, denoted by a
+typed call \KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a
+dynamic call \DynCall\a\m\x. The \kafka type system has two kinds of types;
+classes which give rise to homonymous types, and the dynamic type \any.
+\kafka subtyping is structural with recursion.  The heart of any gradual
+type system are the explicit casts that are inserted at type boundaries.
+Structural casts, \SubCast\t\a, check if the object referenced by \a is a
+subtype of type \t.  Behavioral casts, \BehCast\t\a, create wrappers that
+enforce a specific type, this entails runtime generation of a new
+class. Finally, We give \kafka an operational semantics. We report on a
+mechanized proof of soundness for \kafka inclusive of its casts, as well as
+a proof-of-concept implementation of the calculus on top of the .NET virtual
+machine.
 
 \section{Background}
 
-
 %\epigraph{\small\it ``If you know the enemy and know yourself...''}
-
 %\vspace{-5mm}
 
 \noindent The intellectual lineage of gradual types can be traced back to
@@ -887,9 +895,7 @@ restrictions on what programs can be reasonably written in \kafka.
 
 \section{Litmus test}\label{litmustest}
 
-%\epigraph{\small ``There is no perfection only life.''}
-
-\vspace{-5mm}
+%\epigraph{\small ``There is no perfection only life.''} \vspace{-5mm}
 
 One of the salient implications of the various runtime type enforcement
 strategies used in the four gradual type systems under study is that they
@@ -988,9 +994,7 @@ semantics a language implements.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
 
-%\epigraph{\small\it ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
-
-\vspace{-2mm}
+%\epigraph{\small\it ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}\vspace{-2mm}
 
 \noindent
 We are now ready to translate the four gradual type semantics into \kafka.  
