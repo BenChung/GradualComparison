@@ -408,7 +408,7 @@ a common representation through the introduction of \emph{casts} and
 
 \paragraph{Syntax}  
 \kafka is an object calculus that satisfies the above design
-requirement. Its syntax is given in \figref{syn}.  Types consist of class
+requirements. Its syntax is given in \figref{syn}.  Types consist of class
 names \C, \D and the dynamic type, written \any.  Class definitions have a
 class name and (possibly empty) sequences of field and method definitions,
 \Class\C{\fd[1]..}{\md[1]..}. Field definitions consist of a field and its
@@ -439,27 +439,27 @@ heap \s mapping addresses ranged over by \a to objects
 denoted \hspace{-1mm}\obj\C{\a[1]..}.
 
 
-\paragraph{Static semantics}
-A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
-class table \K where each class \k is well-formed and \e is well-typed with
-respect to \K.  A class is well-formed if all its fields and methods are
-well-typed and it has at most two definitions for any method \m, one typed
-\Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The static semantics
-of \kafka is mostly standard; the complete set of rules is in Appendix.  The
-subtype relation, \StrSub\M\K\t\tp, shown in \figref{sub}, allows for
-recursive structural subtyping: for this the environment \M keeps track of
-the set of subtype relations assumed.  The dynamic type \any is a singleton
-in the subtype relation, it is neither a super or a sub-type of any other
-type.  The notation \md\In\App\K\C denotes the method definition \md
-occurring in class \C and class table \K.  Recall fields are hidden from the
-class type signature, so subtyping is limited to method definitions.  Key
-type rules are in \figref{f:staticsem}.  Method calls use syntactic
-disambiguation to select between typed and untyped methods (dynamic method
-resolution uses @). A dynamically resolved call places no requirements on
-the receiver or argument, and returns a value of type \any.  A statically
-resolved call has the usual type requirements on arguments. The two subtype
-cast rules are similar; they ensure the value has the cast-to type. However,
-the way their soundness is enforced at runtime is very different.  
+\paragraph{Static semantics} A well-formed program, denoted \WFp\e\K, consists
+of an expression \e and a class table \K, where each class \k is well-formed
+and \e is well-typed with respect to \K.  A class is well-formed if all its
+fields and methods are well-typed and it has at most two definitions for any
+method \m, one typed \Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The
+static semantics of \kafka is mostly standard; the complete set of rules is in
+Appendix FIXME.  The subtype relation, \StrSub\M\K\t\tp, shown in
+\figref{sub}, allows for recursive structural subtyping, using the environment
+\M as in the amber rule.  The dynamic type \any is a singleton in the subtype
+relation, it is neither a super or a sub-type of any other type.  The notation
+\md\In\App\K\C denotes the method definition \md occurring in class \C and
+class table \K.  Recall fields are hidden from the class type signature, so
+subtyping is limited to method definitions.  Key type rules are in
+\figref{f:staticsem}.  Method calls use syntactic disambiguation to select
+between methods, based on type signature, where dynamic method invocation (@)
+always invokes methods of type\any. A dynamically resolved call places no
+requirements on the receiver or argument, and returns a value of type \any.  A
+statically resolved call has the usual type requirements on arguments. The two
+subtype cast rules are similar; they ensure the value has the cast-to type.
+However, their enforcement mechanisms are very different, as will be discussed
+later.
 
 \begin{figure}[!t] \hrulefill\small
 
@@ -623,22 +623,21 @@ evaluation order.
 
 
 
-\paragraph{Behavioral Casts}\label{p:behcast}
-A cast \BehCast\t\a creates a wrapped object \ap which dynamically checks
-that object \a behaves as if it was of type \t.  We refer to the type of \a
-as the \emph{source} type, and to the type \t as the \emph{target} type.
-This cast is generative as it creates both a new class (for the wrapper
-object) and a new instance of that class (the wrapper itself). Its dynamic
-semantics is reported in \figref{behavetext} and \figref{w}.  When the
-target type is a class, say \Cp, the bcast function wraps a reference \a
-with an instance of a freshly generated wrapper class \D that abides by the
-interface of \Cp or gets stuck. The function allocates the wrapper in the
-heap and updates the class table.  The cast performs a check that the source
-type has at least all the method names requested by the target type.  Also
-the cast is not defined for classes with overloaded methods (\textsf{nodups}
-checks that).  This prevents ambiguity in method resolution for wrapped
-objects. When the target type is \any, the cast allows \a to act like an
-instance of \any.
+\paragraph{Behavioral Casts}\label{p:behcast} A cast \BehCast\t\a creates a
+wrapped object \ap which dynamically checks that object \a behaves as if it
+was of type \t.  We refer to the type of \a as the \emph{source} type, and to
+the type \t as the \emph{target} type. This cast is generative as it creates
+both a new class (for the wrapper object) and a new instance of that class
+(the wrapper itself). Its dynamic semantics is reported in \figref{behavetext}
+and \figref{w}.  When the target type is a class, say \Cp, the bcast function
+wraps a reference \a with an instance of a freshly generated wrapper class \D
+that abides by the interface of \Cp or gets stuck. The function allocates the
+wrapper in the heap and updates the class table.  The cast performs a check
+that the source type has at least all the method names requested by the target
+type.  Also the cast is not defined for classes with overloaded methods
+(\textsf{nodups} prevents it from being used in this case).  This prevents
+ambiguity in method resolution for wrapped objects. When the target type is
+\any, the cast allows \a to act like an instance of \any.
 
 One way to understand wrappers is that they play two roles, they check that
 object being wrapped has the method expected by the target type, and they
