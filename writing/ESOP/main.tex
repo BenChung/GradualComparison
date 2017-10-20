@@ -1732,9 +1732,7 @@ Figure~\ref{fig:trtype} depicts the type requirement translation mode. Under
 this translation, we are given the expression to translate, the environment
 which it should be translated against, and the \kafka type of the resulting
 expression. Under the optional system, all terms have type \any, rendering its
-type requirement translation useless. However, all of the sound systems have a
-different notion of what it means to inhabit a type, driving different checks
-when generating an expression of a pre-determined type.
+type requirement translation useless.
 
 In the sound systems, however, all differentiate between the case where the
 statically-known type is compatible with the required type, and the case where
@@ -1750,6 +1748,16 @@ in functions and field, causing the subtype test cast in the context of the
 transient class translation to simply check for the existence of a method of
 the required name during dynamic subtype testing, rather than checking that
 the entire class type is compatible.
+
+The behavioral semantics has the same untyped invocation as transient, but 
+is able to provide a stronger guarantee, enabling a simpler typed invocation.
+The behavioral semantics guarantees that a typed receiver respects the type
+that it is under, allowing the invocation form to call the method under the
+expected type and not have to verify the return type, as an ill-typed return
+would be caught by a wrapper before it reaches the caller.
+
+Lastly, the concrete semantics provides the strongest guarantee, providing a 
+typed invocation form identical to that of the behavioral semantics. 
 
 
 \begin{figure}
@@ -1788,58 +1796,6 @@ the entire class type is compatible.
 	\label{fig:trafuninv}
 \end{figure}
 
-\begin{figure}
-	\begin{tabular}{llc@{\hspace{.25cm}}l}
-		
-		{\scriptsize \bf{Optional}} \\
-		\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\ 
-		& \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\ 
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS  \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS  \ep = \TR[\OTS]{\e} \\
-		
-		{\scriptsize \bf{Transient}} \\
-		\TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\
-		& \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any} .. \HS
-		\fd[1] = \Ftype\f\t ..\HS\HS \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\tp~ .. \\		
-		
-		{\scriptsize \bf{Behavioral}} \\
-		\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\
-		& \WHERE \HS\HS\HS \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\
-		
-		{\scriptsize \bf{Concrete}} \\
-		\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\
-		& \WHERE \HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\ 
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\        
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\  
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty} \\ 
-		& \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..
-	\end{tabular}
-	
-	\caption{Translations for class}
-	\label{fig:traclass}
-\end{figure}
-
-In the concrete source language, any method can be called statically and
-dynamically. For this to work out it is necessary to generate a dynamic
-version of all concrete source methods.  Class translation relies on
-overloading to provide two implementations of each method: one is used with
-concrete receiver and the other is optionally typed (or dynamic) object.  More
-precisely, given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the
-\kafka translation first generates a method \(\mdp\) with type \(\kty{\t[1]}
-\to \kty{\t[2]}\) (protecting the the return value with appropriate cast to
-\kty{\t[2]} if necessary), to be used in a concretely typed context.  The
-\kafka translation also generates a second method \mdpp, that wraps \mdp so
-that it is safe to invoke it with type \(\any \to \any\), that is from an
-optionally typed or dynamic context.  Finally, each field \f:\t is mapped to
-the corresponding \f:\kty\t field.
 
 Figure~\ref{fig:trafuninv} depicts the translation approach taken by each of
 the four semantics for function invocation, illustrating how function calls
@@ -1864,22 +1820,6 @@ transient semantics can insert a statically-typed call to the \any-typed
 invocation site guaranteed to exist. However, the argument still needs to
 be cast to \any to be compatible with the dynamic call, and the return type
 needs to be checked against the expected type.
-
-The behavioral semantics has the same untyped invocation as transient, but 
-is able to provide a stronger guarantee, enabling a simpler typed invocation.
-The behavioral semantics guarantees that a typed receiver respects the type
-that it is under, allowing the invocation form to call the method under the
-expected type and not have to verify the return type, as an ill-typed return
-would be caught by a wrapper before it reaches the caller.
-
-%The concrete translation for function invocation,
-%\Call\e\m\ep, states that if the type of \e is a concrete \C, then a statically resolved
-%invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
-%or an optional type, then a dynamically resolved call of the form
-%\DynCall\e\m\ep is emitted.
-
-Lastly, the concrete semantics provides the strongest guarantee, providing a 
-typed invocation form identical to that of the behavioral semantics. 
 
 \section{Conclusion}\label{litm}
 
