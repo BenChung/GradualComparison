@@ -837,7 +837,7 @@ every method of the source type.
 \newpage
 
 \subsection{Type soundness} 
-We have mechanized the type soundness proof for \kafka in Coq, available online\footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}. In Coq syntax, the
+We have mechanized the type soundness proof for \kafka in Coq, available online \footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}. In Coq syntax, the
 conditions for \kafka's type soundness theorem is stated as follows:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
@@ -947,7 +947,7 @@ We designed \kafka to have a close correspondence to the intermediate
 languages used by common VMs. To validate this aspect of our design, we
 implemented a small compiler from \kafka to C\# and the CLR, alongside a
 runtime that provides the behavioral cast operation. The implementation is
-available from our website \emph{[link omitted for blind review]}.
+available online \footnote{https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl}.
 
 The only substantial challenge in the development relates to one of our earliest design
 choices: the use of a structural type system. As previously mentioned,
@@ -1570,23 +1570,20 @@ concrete semantics.
 \end{figure}
 
 %% Going by x, this, and field assignment -- compare them individually and not as a group.
-\figref{fig:travar} presents the translation for field access and variables. For the
-most part, these operations are translated verbatim, with notable exceptions in the transient 
-and optional semantics.
+\figref{fig:travar} presents the translation for field access and variables, 
+with notable exceptions in the transient and optional semantics, 
+these operations are translated verbatim.
 
-In the optional semantics, in order to produced well-typed \kafka terms, we
-need to eliminate the type on one of the two typed introduction forms, \this,
-which is accomplished by casting to \any. Otherwise, the optional semantics
-makes no alterations to these terms, as it has no soundness guarantee to
-ensure.
+For the optional semantics, we have eliminated the type of the \this introduction form
+by casting to \any. The optional semantics make no other alterations to these terms, 
+as it has no soundness guarantee to ensure.
 
-Transient does not guarantee that the values passed to functions or assigned
-to fields respect the declared type of those functions or fields. Class
+Transient does not guarantee the values passed to functions or field assignment
+respect the declared type of those expressions. Class
 translation inserts checks for invalid variables upon method entry, so while
 the transient translation has to insert casts to appease the \kafka type
-system, these casts will never fail. However, fields are not protected such,
-and values can  be passed through them that violate their types, requiring a
-guard after dereference. 
+system, these casts will never fail. However, fields are not protected and requires
+a guard after dereferencing, as values can  be passed through them to violate their types.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1613,26 +1610,27 @@ guard after dereference.
 	\label{fig:trassn}
 \end{figure}
 
-Field assignment illustrates the continuum of strength provided by each
-gradual type system. Under the unsound optional semantics, we simply translate
+Field assignment, presented in \figref{fig:trassn}, illustrates the distinct 
+continuum  provided by each gradual type system. Under the unsound optional 
+semantics, we simply translate
 the assignment directly, with no guards or additional checks. However, in the
 three sound semantics, the behaviour differs depending on the strength of the
 soundness guarantee.
 
-Under the transient semantics, assignment to a field is unchecked, instead
-deferring type checking to dereference time. As a result, we use the analytic
+Under the transient semantics, field assignment is unchecked, 
+deferring type checking to dereferencing. As a result, we use the analytic
 translation operator to translate the argument according to the transient
-semantics, but targeting type \any, instead of the known type of the field,
-enabled by the class translation erasing field typing. Under the behavioral
-and concrete semantics, which do guarantee heap type consistency, however,
-we translate the argument expression targeting the known type of the field.
+semantics. The type of the field is erased by targeting the $\star$ type in 
+the translation. Under the behavioral and concrete semantics, type 
+consistency is guaranteed for the heap, and the translation for
+the argument expression is done with the known type of the field.
 
-One observation of this figure is that the other two sound translations demand
+One observation from these translations is that the behavioral and concrete semantics demand
 the correct type to be returned from the argument expression, while the
-transient semantics only needs it to be well-formed. As a consequence, the two
-stronger sound type systems will raise an error when set tries to assign an
-value of the wrong type to the field, whereas the transient semantics raises
-the error upon dereference.
+transient semantics only needs to be well-formed. As a consequence, the 
+behavioral and concrete semantics will raise an error when assigning a value of
+the wrong type to a field, whereas the transient semantics will rise an
+error upon dereference.
 
 
 \begin{figure}
@@ -1661,9 +1659,9 @@ the error upon dereference.
 \figref{fig:tranew} presents the translation for the object creation expression. 
 Apart from the optional semantics, the translation for the object creation expression
 is almost identical between the transient, behavioral, and concrete semantics. The 
-only difference lies in which recursive translation to call for the arguments of the object, 
+only difference lies in the recursive translation  call for the arguments of the object, 
 whereby each semantics call their respective translation. The optional semantics 
-require an additional any cast to ease any typing information from the object.
+require an additional $\star$ cast easing any typing information from the object.
 %TODO: Need to talk more about comparing the semantics.
 
 \begin{figure}
@@ -1697,40 +1695,42 @@ require an additional any cast to ease any typing information from the object.
 		& \EM{\ep = \TRG[\CTS]\e\Env} 
 	\end{tabular}
 	
-	\caption{Type requirement translation}
+	\caption{Translation for type requirement}
 	\label{fig:trtype}
 \end{figure}
 
-Figure~\ref{fig:trtype} depicts the type requirement translation mode. Under
+Figure~\ref{fig:trtype} depicts the translation for type requirement. For
 this translation, we are given the expression to translate, the environment
-which it should be translated against, and the \kafka type of the resulting
-expression. Under the optional system, all terms have type \any, rendering its
-type requirement translation useless.
+to translate against, and the \kafka type of the resulting
+expression. Under the optional system, all terms have type \any, rendering a
+translation for type requirement redundant.
 
-In the sound systems, however, all differentiate between the case where the
-statically-known type is compatible with the required type, and the case where
-something has to be done to convert the statically-known type to that required
-by the invoking expression. The main differentiation comes from in what each
-system then does when confronted with a difference in types.
+%TODO: This is nonsense, I can't make head or tail of this paragraph. 
+%TODO: @Ben please rewrite this part if you want to keep it 
+%In the sound systems, however, all differentiate between the case where the
+%statically-known type is compatible with the required type, and the case where
+%something has to be done to convert the statically-known type to that required
+%by the invoking expression. The main differentiation comes from in what each
+%system then does when confronted with a difference in types.
 
-The transient and concrete semantics use the standard dynamic subtype test,
-but while concrete uses the classes as defined by the programmer, the
+The transient and concrete semantics use standard dynamic subtyping.
+The concrete semantics use classes defined by the programmer, while the
 transient semantics alters them during translation. Under the transient
 semantics, classes are rewritten with dynamic types in place of static types
-in functions and field, causing the subtype test cast in the context of the
-transient class translation to simply check for the existence of a method of
-the required name during dynamic subtype testing, rather than checking that
-the entire class type is compatible.
+in functions and field. This causes the subtyping cast in the context of the
+transient class translation to check for the existence of a method of
+the required name during dynamic subtyping, rather than required to ensure 
+the entire class is type compatible.
 
 The behavioral semantics has the same untyped invocation as transient, but 
-is able to provide a stronger guarantee, enabling a simpler typed invocation.
-The behavioral semantics guarantees that a typed receiver respects the type
-that it is under, allowing the invocation form to call the method under the
-expected type and not have to verify the return type, as an ill-typed return
+provides a stronger guarantee. 
+The behavioral semantics guarantee a typed receiver respects the type
+it is under, allowing the invocation to call the method under the
+expected type and not to verify the return type. An ill-typed return
 would be caught by a wrapper before it reaches the caller.
 
-Lastly, the concrete semantics provides the strongest guarantee, providing a 
-typed invocation form identical to that of the behavioral semantics. 
+%Lastly, the concrete semantics provides the strongest guarantee, providing a 
+%typed invocation form identical to that of the behavioral semantics. 
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1769,28 +1769,25 @@ typed invocation form identical to that of the behavioral semantics.
 \end{figure}
 
 
-Figure~\ref{fig:trafuninv} depicts the translation approach taken by each of
-the four semantics for function invocation, illustrating how function calls
-must be guarded under each different semantics.
+Figure~\ref{fig:trafuninv} depicts the translation of function invocation
+for the four semantics. For the optional semantics, we do not know if the 
+function exists over the object. The translation compensate by having 
+untyped call operator for every function invocation.
 
-Under the optional semantics, we do not know if the function actually exists
-on the object or not, leading the translation to make all function invocations
-with the untyped call operator, which can fail at any time.
-
-All three sound systems have to make a distinction between safe typed calls and
-unsafe untyped calls. As a result, they condition on the type of the receiver, 
+Each semantics has to make a distinction between safe typed calls and
+unsafe untyped calls. As a result, a condition is placed over the type of the receiver, 
 using a sound call if it is typed, and an dynamic invocation if not.
 
-The weakest of the sound systems, the transient semantics, works almost
-identically to the optional semantics in the case of an invocation on an
-untyped expression, generating a dynamic invocation with an argument generated
-with result type \any, producing a result similar to that of Typescript.
-However, in the sound case, the transient semantics guarantees the existence,
-but not types, of the method \m. In conjunction with class translation, which
-ensures that an untyped method always exists for any typed method, the
-transient semantics can insert a statically-typed call to the \any-typed
-invocation site guaranteed to exist. However, the argument still needs to
-be cast to \any to be compatible with the dynamic call, and the return type
+The transient semantics is almost identically to the optional semantics 
+for function invocation on untyped expressions. 
+A dynamic invocation is generated with a generated argument 
+and \any as the return type, an expression similar to those found in Typescript.
+In case of sound expressions, the transient semantics will guarantees the existence,
+but not the types, of methods. In conjunction with class translation, which
+ensures an untyped method will exist for every typed method, the
+transient semantics insert a statically-typed call to the \any-typed
+invocation site. However, to be compatible with the dynamic call,
+the argument still needs to be cast to \any and the return type
 needs to be checked against the expected type.
 
 \begin{figure}    
@@ -1823,7 +1820,7 @@ needs to be checked against the expected type.
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\   
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\            
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} $\neq$ \any \\    
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty} \\     
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
   \end{tabular}   
@@ -1832,24 +1829,26 @@ needs to be checked against the expected type.
   \label{fig:traclass}    
 \end{figure}    
     
-In the concrete source language, any method can be called statically and    
-dynamically. For this to work out it is necessary to generate a dynamic   
-version of all concrete source methods.  Class translation relies on    
-overloading to provide two implementations of each method: one is used with   
-concrete receiver and the other is optionally typed (or dynamic) object.  More    
-precisely, given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the    
-\kafka translation first generates a method \(\mdp\) with type \(\kty{\t[1]}    
+In the concrete semantics any method can be called statically and    
+dynamically, by generating a dynamic   
+version of all source level methods.  Class translation relies on    
+overloading to provide the two versions of each method: one with   
+concrete receiver and the other with optionally typed object.  More    
+precisely, given a concrete method \(\md\) with type \(\t[1] \to \t[2]\), the    
+concrete translation first generates a method \(\mdp\) with type \(\kty{\t[1]}    
 \to \kty{\t[2]}\) (protecting the the return value with appropriate cast to   
-\kty{\t[2]} if necessary), to be used in a concretely typed context.  The   
-\kafka translation also generates a second method \mdpp, that wraps \mdp so   
-that it is safe to invoke it with type \(\any \to \any\), that is from an   
-optionally typed or dynamic context.  Finally, each field \f:\t is mapped to    
-the corresponding \f:\kty\t field. 
+\kty{\t[2]} if necessary).  The   
+concrete translation also generates a second method \mdpp that wraps \mdp to
+allow a safe invocation with type \(\any \to \any\).  
+Finally, every field \f:\t is mapped to the corresponding field \f:\kty\t. 
 
-For an example of how translation drives semantics, consider the key class
-{\xt F} in Litmus Test 3, shown in figure~\ref{litmus}. We will translate
-class {\xt F}'s definition using each of the four translations, clearly
-indicating where the behavior of the program comes from.
+%TODO: explaination for the class translation
+\figref{fig:traclass} presents the translation for the classes in each gradual typing
+semantics.
+
+\figref{fig:l3trans} presents an example of how our translation drives the semantics.
+We will translate class {\xt F}'s definition using each of the four translations, clearly
+indicating where the behavior of each program.
 
 \begin{figure}
   \begin{tabular}{l}
@@ -1895,38 +1894,32 @@ indicating where the behavior of the program comes from.
   \label{fig:l3trans}
 \end{figure}
 
-Translation under the optional semantics is extremely simple - the types are
-erased and all invocation is dynamic. When we introduce soundness, however,
-translation becomes much more complex.
+Translation under the optional semantics is extremely simple, all types are
+erased and all invocations are dynamic. However, the translations become 
+much more complicated when we introduce soundness.
 
-The first sound, and weakest, gradual type system we consider is the transient
-semantics. Under the transient semantics, all types are erased from the class
-- as argument and return types are not guaranteed. Since transient guarantees
-that all the required methods will exist on a type (if not their types), we
-can make a statically typed invocation to the untyped method \m, but have to
-pass it untyped arguments, and test its return type before returning it again
-as an \any.
+The first sound, but weakest, gradual type semantics is the transient
+semantics. Under the transient semantics, all types are erased from the class.
+Argument and return types are not guaranteed. The transient soundness guarantees
+only require methods to exist on a type. A statically typed invocation 
+can be made to an untyped method \m with only untyped arguments 
+and the return type casted as an \any.
 
-The weak guarantee provided by the transient semantics means that we are not
-guaranteed the return type of any methods, and cannot trust the given argument
-type. However, the behavioral semantics recovers these properties, by using
-the behavioral cast operator. By inserting wrappers, the behavioral system
-allows methods to trust declared argument and return types, enabling the call
-to \m to have known types. However, the cost of this is that the behavioral
-cast is a complex and expensive operation.
+The weakness of the guarantee provided by the transient semantics means  
+the return type of a method is not guaranteed and the argument
+types cannot be trusted. The behavioral semantics recover these properties by using
+the behavioral cast operator. The behavioral semantics inserts wrappers over
+methods to ensure safety for declared argument and return types. 
+However, there is a cost associated with the behavioral
+cast, as it is complex and expensive.
 
-Like the behavioral semantics, the concrete semantics allows the use of a
-typed version of \m, and has similarly simple semantics to the transient
-version, as only values that have statically been checked to be safe are
-allowed to pass casts. However, the similarity of the concrete translation to
-the transient - at least in principle, using the same subtype cast operator -
-is marked. How is the concrete translation able to provide a much stronger
-guarantee, while using the same cast?
-
-The reason why is illustrated if we show the translation of {\xt E} in the
-four systems, seen in figure~\ref{fig:l3etrans}, which  drives the semantics
-of the subtype cast in particular.
-
+The concrete semantics is similar to the behavioral semantics in using the 
+typed version of \m, and with similarly semantics to the transient
+semantics. Whereby only the values statically checked are
+allowed to pass through cast boundary. 
+In \figref{fig:l3etrans} we present the translation of a simply
+class {\xt E}. This example aims to illustrate the difference in
+soundness guarantee provided by the difference semantics.
 
 \begin{figure}
   \begin{tabular}{rl}
@@ -1978,28 +1971,28 @@ of the subtype cast in particular.
   \label{fig:l3etrans}
 \end{figure}
 
-In the transient semantics, when \x is cast to {\xt E}, all of the types on
-{\xt E} have been erased by the transient class translation, so casting to
-{\xt E} is tantamount to asking if the method \m exists at all. In contrast,
-the concrete semantics retained all of the types on \m, so in the concrete
-translation, checking if a class is a subtype of {\xt E} is equivalent to
-checking of method \m exists \emph{taking and returning an {\xt E}}.
+For the transient semantics, when \x is cast to {\xt E}, all of the types on
+{\xt E} are erased by the transient class translation. Casting to
+{\xt E} is tantamount to asking for the existence of the method \m. In contrast,
+the concrete semantics retained the types of \m. A concrete
+translation that checks if a class is a subtype of {\xt E} is equivalent to
+checking if a method \m that takes and returns an {\xt E} exists.
 
-While this allows the concrete semantics to provide a strong type guarantee,
-it comes at the cost of the ability to easily migrate code from untyped to
-typed. If we were to suppose that both the optional and concrete versions of
-{\xt E} existed (under different names) in the same system, only the concrete
-version of {\xt E} could be used with the concrete {\xt F}, as despite
+While the concrete semantics provide a stronger type guarantee,
+it comes at the cost of the ability to migrate between untyped and
+typed code. Suppose that both the optional and concrete versions of
+{\xt E} existed, under different a name {\xt F}. In that system, only the concrete
+version of {\xt E} could be used with the concrete version of {\xt F}. Despite
 implementing the same behavior, the optional version of {\xt E} would not be
-able to be used with the concrete {\xt F}, as it is not statically known to
-implement an \m taking and returning an {\xt E}.
+able to be used with the concrete version of {\xt F}, as statically it does not 
+know \m would take and return an {\xt E}.
 
 The behavioral semantics is able to use the same representation for {\xt E} as
-the concrete semantics while still allowing the optional {\xt E} to be used
-because it uses the much more complex behavioral cast. In effect, if an
-optional {\xt E} were to be passed through where a behavioral {\xt E} was
+the concrete semantics. The behavioral cast allows the behavioral semantics
+to use an optional typed {\xt E}. In effect, if an
+optional typed {\xt E} were passed where a behavioral typed {\xt E} was
 expected, then a wrapper, implementing the fully typed {\xt E}, would be
-generated on top of the untyped, optional, {\xt E}, ensuring type safety.
+generated on top of the untyped, optional typed {\xt E}, ensuring type safety.
 
 
 \section{Conclusion}\label{litm}
