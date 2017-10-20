@@ -1732,53 +1732,6 @@ would be caught by a wrapper before it reaches the caller.
 Lastly, the concrete semantics provides the strongest guarantee, providing a 
 typed invocation form identical to that of the behavioral semantics. 
 
-Notably, this last difference is what causes the behavioral semantics to
-differ from the transient semantics in litmus test 3. Consider the
-translations of class \xt{F}.
-
-\begin{verbatim}
-class F {
-  m(x:E):E { x }
-  n(x:*):* { this.m(x) }
-}
-\end{verbatim}
-
-\begin{verbatim}
-class F {
-  m(x:*):* { <E>x; <E> x }
-  n(x:*):* { <*> x; <*><E>this.m(<*>x) }
-}
-\end{verbatim}
-
-\begin{verbatim}
-class F {
-  m(x:E):E { x }
-  n(x:*):* { <|*|>this.m(<|E|>x) }
-}
-\end{verbatim}
-
-The argument to the function \m is declared to be of type \xt{E}, so the
-translation mechanism will insert casts as needed to achieve this type. The
-transient semantics only needs to ensure an \any argument is passed, so only
-inserts an \any cast, while checking the result with a cast to \xt{E}, using
-subtype casts throughout. The behavioural semantics needs to guard the both
-the argument and return types, and inserts behavioural casts to meet this
-requirement. 
-
-When the input, an instance of class \C, is passed through the transient
-translation of \n, no changes will be made to the underlying object, as the
-subtype cast operation simply returns the same value as it was passed if the
-cast succeeds. In contrast, when given to the behavioral translation, it will
-be wrapped inside a behavioral wrapper guaranteeing the \xt{E} type, which is then
-retained.
-
-As a result, when litmus test 3 then calls \xt{a} on the return and it returns
-a \xt{D}, instead of the expected \xt{C} (due to the different underlying
-value), the behavioral wrapper is now in place to observe this violation of a
-now-gone type contract, while the transient semantics observes no anomalous
-behavior at this point, as the new return type is completely consistent with
-the dynamic call site.
-
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Transient}} \\
@@ -1892,6 +1845,161 @@ precisely, given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the
 that it is safe to invoke it with type \(\any \to \any\), that is from an   
 optionally typed or dynamic context.  Finally, each field \f:\t is mapped to    
 the corresponding \f:\kty\t field. 
+
+For an example of how translation drives semantics, consider the key class
+{\xt F} in Litmus Test 3, shown in figure~\ref{litmus}. We will translate
+class {\xt F}'s definition using each of the four translations, clearly
+indicating where the behavior of the program comes from.
+
+\begin{figure}
+  \begin{tabular}{l}
+    {\scriptsize\bf{Source}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
+                &\Mdef\n\x\any\any{\Call\this\m\x}} \\
+\end{array}
+\) \\
+    {\scriptsize\bf{Optional}} \\ 
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x{\any}{\any}\x \\
+                &\Mdef\n\x\any\any{\DynCall\this\m\x}} \\
+\end{array}
+\) \\
+    {\scriptsize\bf{Transient}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x\any\any{\idbody{\xt E}} \\
+                &\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
+                \SubCast{\any}{\SubCast{\xt E}{\KCall\this\m{\SubCast\any{\SubCast\any\x}}\any\any}}}} \\
+\end{array}
+\)\\
+    {\scriptsize\bf{Behavioral}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
+                &\Mdef\n\x\any\any{\BehCast\any{\KCall\this\m{\BehCast{\xt E}\x}{\xt E}{\xt E}}}} \\
+\end{array}
+\) \\
+    {\scriptsize\bf{Concrete}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
+                &\Mdef\n\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\xt E}\x}{\xt E}{\xt E}}}} \\
+\end{array}
+\) \\
+  \end{tabular}
+  
+  \caption{Litmus Test 3 Class Translation}
+  \label{fig:l3trans}
+\end{figure}
+
+Translation under the optional semantics is extremely simple - the types are
+erased and all invocation is dynamic. When we introduce soundness, however,
+translation becomes much more complex.
+
+The first sound, and weakest, gradual type system we consider is the transient
+semantics. Under the transient semantics, all types are erased from the class
+- as argument and return types are not guaranteed. Since transient guarantees
+that all the required methods will exist on a type (if not their types), we
+can make a statically typed invocation to the untyped method \m, but have to
+pass it untyped arguments, and test its return type before returning it again
+as an \any.
+
+The weak guarantee provided by the transient semantics means that we are not
+guaranteed the return type of any methods, and cannot trust the given argument
+type. However, the behavioral semantics recovers these properties, by using
+the behavioral cast operator. By inserting wrappers, the behavioral system
+allows methods to trust declared argument and return types, enabling the call
+to \m to have known types. However, the cost of this is that the behavioral
+cast is a complex and expensive operation.
+
+Like the behavioral semantics, the concrete semantics allows the use of a
+typed version of \m, and has similarly simple semantics to the transient
+version, as only values that have statically been checked to be safe are
+allowed to pass casts. However, the similarity of the concrete translation to
+the transient - at least in principle, using the same subtype cast operator -
+is marked. How is the concrete translation able to provide a much stronger
+guarantee, while using the same cast?
+
+The reason why is illustrated if we show the translation of {\xt E} in the
+four systems, seen in figure~\ref{fig:l3etrans}, which  drives the semantics
+of the subtype cast in particular.
+
+
+\begin{figure}
+  \begin{tabular}{rl}
+  \multicolumn{2}{c}{
+  \begin{tabular}{l}
+    {\scriptsize\bf{Source}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt E}{}{&\Mdef\m\x{\xt D}{\xt D}\x } \\
+\end{array}
+\) 
+\end{tabular}}
+\\
+  \begin{tabular}{l}
+    {\scriptsize\bf{Optional}} \\ 
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt E}{}{&\Mdef\m\x{\any}{\any}\x } \\
+\end{array}
+\) 
+\end{tabular}&
+  \begin{tabular}{l}
+    {\scriptsize\bf{Transient}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt E}{}{&\Mdef\m\x\any\any{\idbody{\xt E}}} \\
+\end{array}
+\)
+\end{tabular}\\
+  \begin{tabular}{l}
+    {\scriptsize\bf{Behavioral}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt E}{}{&\Mdef\m\x{\xt E}{\xt E}\x} \\
+\end{array}
+\) 
+\end{tabular} &
+  \begin{tabular}{l}
+    {\scriptsize\bf{Concrete}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt E}{}{&\Mdef\m\x{\xt E}{\xt E}\x} \\
+\end{array}
+\) 
+\end{tabular}\\
+  \end{tabular}
+  
+  \caption{Litmus Test 3 Translation for {\xt E}}
+  \label{fig:l3etrans}
+\end{figure}
+
+In the transient semantics, when \x is cast to {\xt E}, all of the types on
+{\xt E} have been erased by the transient class translation, so casting to
+{\xt E} is tantamount to asking if the method \m exists at all. In contrast,
+the concrete semantics retained all of the types on \m, so in the concrete
+translation, checking if a class is a subtype of {\xt E} is equivalent to
+checking of method \m exists \emph{taking and returning an {\xt E}}.
+
+While this allows the concrete semantics to provide a strong type guarantee,
+it comes at the cost of the ability to easily migrate code from untyped to
+typed. If we were to suppose that both the optional and concrete versions of
+{\xt E} existed (under different names) in the same system, only the concrete
+version of {\xt E} could be used with the concrete {\xt F}, as despite
+implementing the same behavior, the optional version of {\xt E} would not be
+able to be used with the concrete {\xt F}, as it is not statically known to
+implement an \m taking and returning an {\xt E}.
+
+The behavioral semantics is able to use the same representation for {\xt E} as
+the concrete semantics while still allowing the optional {\xt E} to be used
+because it uses the much more complex behavioral cast. In effect, if an
+optional {\xt E} were to be passed through where a behavioral {\xt E} was
+expected, then a wrapper, implementing the fully typed {\xt E}, would be
+generated on top of the untyped, optional, {\xt E}, ensuring type safety.
 
 
 \section{Conclusion}\label{litm}
