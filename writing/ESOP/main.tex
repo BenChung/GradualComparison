@@ -1586,43 +1586,7 @@ translation inserts checks for invalid variables upon method entry, so while
 the transient translation has to insert casts to appease the \kafka type
 system, these casts will never fail. However, fields are not protected such,
 and values can  be passed through them that violate their types, requiring a
-guard after dereference. Consider the following program:
-
-\begin{tabular}{cc}
-\begin{tabular}{l@{}l}
-\class&\hspace{0.3em}\C \{ \\
-    &\Ftype\f{\xt{E}} \\
-    &\Mdef{\xt{get}}\x{\xt{D}}{\xt{E}}{\FRead\f} \\
-    &\Mdef{\xt{set}}\x\any\any{\FWrite\f\x} \\
-\} \\
-\class&\hspace{0.3em}\xt{E} \{ \Mdef\m\x{\xt{E}}{\xt{E}}\x \} \\
-\class&\hspace{0.3em}\xt{D} \{ \} \\
-\multicolumn{2}{l}{\xt{c} = \New\C{\New{\xt{E}}}} \\
-\multicolumn{2}{l}{\Call{\xt{c}}{\xt{set}}{\New{\xt{D}}}} \\
-\multicolumn{2}{l}{\Call{\xt{c}}{\xt{get}}{\New{\xt{D}}}} \\
-\end{tabular} &
-\begin{tabular}{l@{}l}
-\class&\hspace{0.3em}\C \{ \\
-    &\Ftype\f\any \\
-    &\Mdef{\xt{get}}\x{\any}{\any}{\SubCast{\D}{\x}; \SubCast{\xt{E}}{\FRead\f}}\\
-    &\Mdef{\xt{set}}\x{\any}{\any}{\SubCast{\any}{\x}; \SubCast{\any}{\FWrite\f\x}}\\
-\} \\
-\class&\hspace{0.3em}\xt{E} \{ \Mdef\m\x{\any}{\any}{\SubCast{\xt{E}}{\x};\SubCast{\xt{E}}{\x}} \} \\
-\class&\hspace{0.3em}\xt{D} \{ \} \\
-\multicolumn{2}{l}{\xt{c} = \New\C{\SubCast{\any}{\New{\xt{E}}{}}}} \\
-\multicolumn{2}{l}{\SubCast\any{\Call{\xt{c}}{\xt{set}}{\SubCast{\any}{\New{\xt{D}}{}}}}} \\
-\multicolumn{2}{l}{\SubCast{\xt{E}}{\Call{\xt{c}}{\xt{get}}{\SubCast{\any}{\New{\xt{D}}{}}}}} \\
-\end{tabular}
-\end{tabular}
-
-This is well-typed, according to the surface type system, as the type-
-violating operation is untyped, when set is called with a value of type \any.
-Moreover, the get operation is well-typed itself, because \f has type \xt{E},
-so dereferencing would seem to be safe. However, owing to the weak soundness
-guarantee of the transient semantics, no dynamic check is done on assignment
-of an untyped value to a typed field. As a result, we are dynamically allowed
-to assign an instance of \D to \f, requiring a check at dereference time to
-avoid returning a value of the wrong type.
+guard after dereference. 
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
