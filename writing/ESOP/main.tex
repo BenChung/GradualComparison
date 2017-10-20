@@ -1001,7 +1001,8 @@ explicit which type casts (and, in turn, \emph{dynamic type-checks}) are
 implicitly inserted and performed by the runtime of each semantics,
 highlighting the similarities and differences between them.
 
-Our source semantics has no explicit casts, instead silently coercing
+Our source languages, those being translated to \kafka, 
+have no explicit casts, instead silently coercing
 types at typed-untyped boundaries, allowing code like the following:
 
 \begin{tabbing}
@@ -1789,6 +1790,8 @@ invocation site. However, to be compatible with the dynamic call,
 the argument still needs to be cast to \any and the return type
 needs to be checked against the expected type.
 
+%\vspace{-2cm}
+\medskip
 \begin{figure}    
   \begin{tabular}{llc@{\hspace{.25cm}}l}    
         
@@ -1827,7 +1830,10 @@ needs to be checked against the expected type.
   \caption{Translations for class}    
   \label{fig:traclass}    
 \end{figure}    
-    
+\medskip
+%\vspace{-1cm}
+
+
 In the concrete semantics any method can be called statically and    
 dynamically, by generating a dynamic   
 version of all source level methods.  Class translation relies on    
@@ -1842,8 +1848,22 @@ allow a safe invocation with type \(\any \to \any\).
 Finally, every field \f:\t is mapped to the corresponding field \f:\kty\t. 
 
 %TODO: explanation for the class translation
-\figref{fig:traclass} presents the translation for the classes in each gradual typing
-semantics.
+\figref{fig:traclass} presents the class translation for each gradual typing
+semantics. The translation for a language with the optional semantics 
+will simply replace the type of every field and method in class with $\star$.
+The transient translation will also erase the type of every field in the class,
+replacing them with $\star$. The methods are treated slightly differently, the types of
+the method will be erased and replaced with $\star$, but within the method body the
+original type of the argument is casted over the newly untyped argument. This is
+to ensure the transient guarantee is preserved within the method body.
+The behavioral translation simply duplicate the fields of the class as well 
+as maintaining the typing of the methods. Finally, the concrete translation 
+is required to generate a typed and untyped method for every method in the class 
+being translated. The typed method is a duplicate of the typed method. 
+The untyped method has it's typing erased with $\star$ and it's
+body contains a function invocation to the corresponding typed method, where
+the return of the typed method is erased with $\star$ and the typed method is 
+called with the argument casted with it's original type.
 
 \figref{fig:l3trans} presents an example of how our translation drives the semantics.
 We will translate class {\xt F}'s definition using each of the four translations, clearly
