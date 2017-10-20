@@ -346,106 +346,6 @@ casts tend to suffer prohibitive slow downs in pathological cases.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Litmus test}\label{litmustest}
-
-%\epigraph{\small ``There is no perfection only life.''}
-
-\vspace{-5mm}
-
-One of the salient implications of the various runtime type enforcement
-strategies used in the four gradual type systems under study is that they
-have different notions of what constitutes as an erroneous program.
-In order for a type system to be usable, the reason behind an error needs to
-be clear.
-
-In this section, we propose a litmus test that can be used to distinguish
-the four type systems. The three programs of \figref{litmus} are statically
-well-typed in all four gradual type systems. Furthermore, in an untyped
-language all three programs would execute without error. Depending on the
-runtime enforcement strategy, some of these programs will halt with a runtime
-error due to inserted casts. Different type systems will report a different
-number of errors, and will stop at different points. For completeness we
-provide source code in TypeScript, Typed Racket, Thorn and Reticulated
-Python, which implement the respective type systems, in the appendix.
-
-\begin{figure}[!h]
-	\includegraphics[width=.95\columnwidth]{../figures/litm}
-	\caption{Gradual typing semantic litmus test.}\label{litmus}
-\end{figure}
-
-In \figref{litmus}, we present 3 programs, consisting of a class table and a
-top-level expression, written in an idealized syntax. Each program is ran
-through a semantics-dependent translation to \kafka and executed according to
-\kafka's semantics (shown in section \ref{kafkacore}).
-
-All of these programs execute correctly if we ignore the type annotations, and
-all type check statically. As a result, the optional type system, which simply
-erases all of the type annotations at runtime, will run all without error.
-However, in each of the three sound gradual type systems, each program has at
-least one problem.
-
-{\bf Concrete} The guarantee provided by the concrete semantics is that only
-statically checked values can be of a type, implying that untyped values can
-never be passed in placed of a typed one. This strong requirement causes the
-concrete semantics to reject all three programs. {\bf L1} fails as it attempts
-to pass an \A instance in place of an instance of \xt I, which are incompatible.
-{\bf L2} also fails as despite \A and \xt I's method now being of the same
-name, the types are statically incompatible due to \xt Q not being a static
-super type of \A. {\bf L3} fails as it tries to pass a \C as an \xt E, in the
-call to \m inside of \xt N in \xt F, impossible under the concrete semantics
-as \C is not a subtype of \xt E.
-
-{\bf Behavioral} In contrast to the concrete semantics, the behavioral
-semantics  does allow untyped values to be passed under a type if they are
-structurally compatible, but dynamically ensures that the untyped values to
-respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
-method, \m, could never be used as \xt I's \xt n. {\bf L2}, however, executes
-without error, as while \A.\xt m does not properly implement \xt I.\xt n, this
-is never observed dynamically, and the value is therefore observationally of
-the ascribed type. {\bf L3} is rejected by the behavioral semantics, as when
-the top-level expression calls \xt a on a \xt C that has been cast to an \xt
-E, the check that the value (another instance of \xt C) is structurally
-compatible with the required type (\xt D), fails.
-
-{\bf Transient} The transient semantics further weakens the guarantee,
-retaining the structural checks at casts of the behavioral semantics, but only
-checks adherence to the locally ascribed type, rather than every potentially
-applicable type. Transient fails {\bf L1}, for the same reason as the other
-two type systems, and passes {\bf L2}, for the same reason as the behavioral
-semantics, as a result, but differs in {\bf L3}. {\bf L3} failed under the
-behavioral semantics because the return value of \xt n carried the type
-applied by \xt m with it, forcing the \xt C instance to act like an \xt E. 
-However, the transient semantics does not check this, letting the invocation
-to \xt a succeed.
-
-{\bf L1} fails in every sound semantics. Under the concrete semantics, the
-method call to {\tt this.s(x)} in method {\tt t} of class {\tt T} fails
-because \A is not a subtype of \xt I, as method {\tt m} of class \A exhibits
-different types to method {\tt n} of class \xt I. Similarly, in the behavioral
-and transient semantics, \A and \xt I are also not considered subtypes because
-their respective class have methods with different sets of names.
-
-{\bf L2} fails only under the concrete semantics. As shown in {\bf L1},
-concrete type checking requires \A to be a subtype of \xt I, while in {\bf
-L2}, \xt Q is not a subtype of \A as methods {\tt m} and {\tt n} exhibit
-different types. The program works fine under the behavioral and transient
-semantics because \A have the same methods as \xt I.
-
-{\bf L3} fails with the concrete and behavioral semantics. Using concrete
-semantics, the method invocation of {\tt this.m(x)} in method \n of class \xt
-F fails because an instance of \C is being casted to \xt E, despite \C not
-being a subtype of \xt E.  Just as \A is not a subtype of \xt I for {\bf L1}
-and {\bf L2}, \C is not a subtype of \xt E. {\bf L3} also fails with the
-behavioral semantics as the method invocation of \xt{.a(new C())} in the top-
-level expression is calling method \texttt{a} of class \xt E. This requires
-casting an instance of \C to \D, which in turn requires method \texttt{a} of
-class \C to only take and return values of type \D, however, there are no
-subtyping relation between \C and \D. Transient, in contrast, can run {\bf L3}
-without error, as, unlike Thorn, it does not compare argument types, and,
-unlike Racket, it does not recall the prior cast to \xt E. Thus given these
-three programs and the ability to observe errors, one can divine which
-semantics a language implements.
-
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
 %\epigraph{\hspace{-1cm}\small\it ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}\vspace{-5mm}
@@ -905,7 +805,7 @@ that does not contain a method \verb|m| to call.
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
  (*case 4*) ($\exists$ (t$'$:type) (a:ref) (C:id) (aps:list ref),
-       (e = --(\emph{equivExpr})-- (--(\emph{SubCas})-- t$'$ (--(\emph{Ref})-- a)) E) $\wedge$
+       (e = --(\emph{equivExpr})-- (--(\emph{SubCast})-- t$'$ (--(\emph{Ref})-- a)) E) $\wedge$
        --(\emph{In})-- (a, --(\emph{HCell})--(C,aps)) s $\wedge$
        ((--(\emph{Subtype})-- --(\emph{empty{\textunderscore}mu})-- k (--(\emph{class})-- C) t$'$) -> False)) $\vee$
 \end{lstlisting}
@@ -981,8 +881,109 @@ range of factors, including having none of the commonly-cited performance
 optimizations, such as threesomes~\cite{siek10}, combined with the inherent
 restrictions on what programs can be reasonably written in \kafka.
 
+%\medskip
 
-\medskip
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Litmus test}\label{litmustest}
+
+%\epigraph{\small ``There is no perfection only life.''}
+
+\vspace{-5mm}
+
+One of the salient implications of the various runtime type enforcement
+strategies used in the four gradual type systems under study is that they
+have different notions of what constitutes as an erroneous program.
+In order for a type system to be usable, the reason behind an error needs to
+be clear.
+
+In this section, we propose a litmus test that can be used to distinguish
+the four type systems. The three programs of \figref{litmus} are statically
+well-typed in all four gradual type systems. Furthermore, in an untyped
+language all three programs would execute without error. Depending on the
+runtime enforcement strategy, some of these programs will halt with a runtime
+error due to inserted casts. Different type systems will report a different
+number of errors, and will stop at different points. For completeness we
+provide source code in TypeScript, Typed Racket, Thorn and Reticulated
+Python, which implement the respective type systems, in the appendix.
+
+\begin{figure}[!h]
+	\includegraphics[width=.95\columnwidth]{../figures/litm}
+	\caption{Gradual typing semantic litmus test.}\label{litmus}
+\end{figure}
+
+In \figref{litmus}, we present 3 programs, consisting of a class table and a
+top-level expression, written in an idealized syntax. Each program is ran
+through a semantics-dependent translation to \kafka and executed according to
+\kafka's semantics (shown in section \ref{kafkacore}).
+
+All of these programs execute correctly if we ignore the type annotations, and
+all type check statically. As a result, the optional type system, which simply
+erases all of the type annotations at runtime, will run all without error.
+However, in each of the three sound gradual type systems, each program has at
+least one problem.
+
+{\bf Concrete} The guarantee provided by the concrete semantics is that only
+statically checked values can be of a type, implying that untyped values can
+never be passed in placed of a typed one. This strong requirement causes the
+concrete semantics to reject all three programs. {\bf L1} fails as it attempts
+to pass an \A instance in place of an instance of \xt I, which are incompatible.
+{\bf L2} also fails as despite \A and \xt I's method now being of the same
+name, the types are statically incompatible due to \xt Q not being a static
+super type of \A. {\bf L3} fails as it tries to pass a \C as an \xt E, in the
+call to \m inside of \xt N in \xt F, impossible under the concrete semantics
+as \C is not a subtype of \xt E.
+
+{\bf Behavioral} In contrast to the concrete semantics, the behavioral
+semantics  does allow untyped values to be passed under a type if they are
+structurally compatible, but dynamically ensures that the untyped values to
+respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
+method, \m, could never be used as \xt I's \xt n. {\bf L2}, however, executes
+without error, as while \A.\xt m does not properly implement \xt I.\xt n, this
+is never observed dynamically, and the value is therefore observationally of
+the ascribed type. {\bf L3} is rejected by the behavioral semantics, as when
+the top-level expression calls \xt a on a \xt C that has been cast to an \xt
+E, the check that the value (another instance of \xt C) is structurally
+compatible with the required type (\xt D), fails.
+
+{\bf Transient} The transient semantics further weakens the guarantee,
+retaining the structural checks at casts of the behavioral semantics, but only
+checks adherence to the locally ascribed type, rather than every potentially
+applicable type. Transient fails {\bf L1}, for the same reason as the other
+two type systems, and passes {\bf L2}, for the same reason as the behavioral
+semantics, as a result, but differs in {\bf L3}. {\bf L3} failed under the
+behavioral semantics because the return value of \xt n carried the type
+applied by \xt m with it, forcing the \xt C instance to act like an \xt E. 
+However, the transient semantics does not check this, letting the invocation
+to \xt a succeed.
+
+{\bf L1} fails in every sound semantics. Under the concrete semantics, the
+method call to {\tt this.s(x)} in method {\tt t} of class {\tt T} fails
+because \A is not a subtype of \xt I, as method {\tt m} of class \A exhibits
+different types to method {\tt n} of class \xt I. Similarly, in the behavioral
+and transient semantics, \A and \xt I are also not considered subtypes because
+their respective class have methods with different sets of names.
+
+{\bf L2} fails only under the concrete semantics. As shown in {\bf L1},
+concrete type checking requires \A to be a subtype of \xt I, while in {\bf
+	L2}, \xt Q is not a subtype of \A as methods {\tt m} and {\tt n} exhibit
+different types. The program works fine under the behavioral and transient
+semantics because \A have the same methods as \xt I.
+
+{\bf L3} fails with the concrete and behavioral semantics. Using concrete
+semantics, the method invocation of {\tt this.m(x)} in method \n of class \xt
+F fails because an instance of \C is being casted to \xt E, despite \C not
+being a subtype of \xt E.  Just as \A is not a subtype of \xt I for {\bf L1}
+and {\bf L2}, \C is not a subtype of \xt E. {\bf L3} also fails with the
+behavioral semantics as the method invocation of \xt{.a(new C())} in the top-
+level expression is calling method \texttt{a} of class \xt E. This requires
+casting an instance of \C to \D, which in turn requires method \texttt{a} of
+class \C to only take and return values of type \D, however, there are no
+subtyping relation between \C and \D. Transient, in contrast, can run {\bf L3}
+without error, as, unlike Thorn, it does not compare argument types, and,
+unlike Racket, it does not recall the prior cast to \xt E. Thus given these
+three programs and the ability to observe errors, one can divine which
+semantics a language implements.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
@@ -992,9 +993,8 @@ restrictions on what programs can be reasonably written in \kafka.
 \vspace{-2mm}
 
 \noindent
-We are now ready to give semantics to the four gradual type systems of
-interest by translating them into \kafka.  For each semantics,
-compilation into \kafka is realized by a translation function that maps
+We are now ready to translate the four gradual type semantics into \kafka.  
+For each semantics, compilation into \kafka is realized by a translation function that maps
 well-typed source programs into well-typed \kafka terms, respecting a
 uniform mapping of source types to \kafka types.  The compilation makes
 explicit which type casts (and, in turn, \emph{dynamic type-checks}) are
@@ -1026,6 +1026,7 @@ each semantics (notated $\vdash_{\!s}$), which are largely identical. To
 simplify the presentation, we will elide the identical rules, instead presenting
 only the altered rules.
 
+%TODO: Like types are removed from the 
 \begin{figure}[!h]\hrulefill
  \small
 	
@@ -1043,497 +1044,495 @@ only the altered rules.
 		\end{tabular}\end{minipage}&
 		\begin{minipage}{5cm}\begin{tabular}{l@{~}l@{}l@{}l}
 				~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
-				~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
+				~ \t&::= ~ \any  \B   \C  \\ 
 				\md &::= \Mdef\m\x\t\t\e \\
 				~\fd&::= ~ \Fdef\f\t \\ 
 		\end{tabular}\end{minipage} 
 	\end{tabular}
 	\vspace{2mm} 
-	\caption{Common syntax of source languages}\label{f:sourcesyntax}
+	\caption{Common syntax of source language for each semantics}\label{f:sourcesyntax}
 \end{figure}
 
-We then translate this same source language to \kafka, modelling the semantics
+We then translate this same source language to \kafka, modeling the semantics
 of each of the gradual type systems. Each of the type systems in question
-provides a different soundness guarantee, which then drives their
-translations, and what programs are allowed dynamically.
-
-\subsection{Optional}
-
-%TODO: The cite needs to be filled out.  
-
-The optional semantics are used by languages such as TypeScript [CITEME] and
-Hack [CITEME] to provide easy backwards compatibility without being burden
-with static checks. In our formalization, equivalence is structural and
-subtyping of recursive types is supported. The following three expressions
-illustrate the language. The first expression is ill-typed because the
-receiver is of type \C, so has no method \n. The second expression will also
-be flagged as erroneous as the argument to \m is \D rather than a \C as
-expected. The last expression is statically correct, as the instance of \D is
-cast to a \C via method \mp, and, since \m uses none of the functionality of
-\C, it will execute without error.
-
-
-{\small
-\begin{tabbing}
-  \hspace{.5cm}
-   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
-   \> \Call{\New\C{}}\m{\New\D{}}                                  \>  \HS  \Mdef\m\x\C\C{~\this~} \\
-   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\D{}}}              \>  \HS  \Mdef\mp\x\any\C{~\x~}\\
-   \>                                                              \>  \}   \\
-   \>                                                              \> \Class\D{}{}
-\end{tabbing}}
-
-
-\noindent This last case illustrates the soundness guarantee of the optional
-semantics, as we are able to take a value that supports no operations, then
-use it in place of one that exposes methods, methods that will not exist if
-used. As a result, while the optional semantics does provide type checking,
-it provides the same guarantees as an untyped language would.
-
-The translation from the optional source language to \kafka
-is exceedingly simple, all type annotations become \any and all source
-method calls are translated to dynamic \kafka calls.  For instance one would
-translate the class definition and the last expression of the example above as:
-
-\medskip
-{\small
-\begin{tabbing}
-  \hspace{.2cm}
-   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \\ \\ \HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
-   \>              \>\HS \Mdef\m\x\any\any{~\SubCast\any\this~} \\
-   \>              \>\HS  \Mdef\mp\x\any\any{~\x~}\\
-   \>                                                              \>  \}   
-\end{tabbing}}
-\medskip
-
-\noindent
-Observe that the optional translations does insert some structural casts
-to \any, they are needed for the result to be well-typed, but these have no
-operational effect (a structural cast to \any always succeed at runtime).
-The unsoundness of the optional type system is evidence in the
-translation, by discarding the type of the callee and systematically relying
-on dynamic method invocation for method calls it clear that optional
-programs can get stuck at any point of their execution.
-
-%All optional types are represented with the dynamic \kafka type, \any, and
-%all translated expressions have type \any.  This is a simple instance of a
-%general property that all our translations into \kafka satisfy.  Let
-%\(\kty\t\) be a mapping from source types to \kafka types -- for the optional semantics
-%the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
-%holds that if \e is a well-typed source expression with type \t, then
-%\TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
-
-A feature of optional typing highlighted by Bracha~\cite{pluggabletypes} 
-is the minimal impact on performance, which is also evident in our optional translation.
-A notional type-less language would have an identical translation, causing performance to
-be identical to a language with an optional type system.
-
-%\paragraph{Litmus Test}%
-
-%TypeScript passes all three programs in our litmus test, as seen in
-%figure~\ref{litmus}, as they are all well-typed, and because TypeScript
-%inserts no runtime checks whatsoever, as illustrated in figure~\ref{tst}.
-%\kafka's soundness theorem tells us that any dynamic call can get stuck if the
-%passed value does not have the required method, so by translating all calls to
-%dynamic calls, TypeScript provides no guarantee that any given call will
-%succeed. Moreover, since all method types are erased, argument types are not
-%guaranteed, either, as illustrated by the first litmus test, which passes
-%an instance of \xt{A} to a method expecting an \xt{I}.
-
-% \subsection*{Type Correctness}
-% 
-% The type correctness lemma states that well-typed TypeScript expressions 
-% will always translate to well-typed \kafka expressions.
-% 
-% \medskip\noindent{\bf Lemma: Type correctness of TypeScript translation.}
-% {\bf Given} $~\WFpX\K\e{s}~$,
-% and $~\WFtypeX \K{s}\t$,
-% and $\HT\x\tp \in \Env \implies \WFtypeX\K{s}\tp$,
-% and $~\EnvTypeE\Env\K{s}\e\t$,
-% and $~\TR\K = \Kp$,
-% and $~\TR\Env = \Envp$,
-% {\bf then} $~\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$. \\
-
-\subsection{Concrete}
-
-Concrete gradual type systems strictly enforce type membership. In a concrete
-gradual type system, only objects that arise from static subtypes of a type
-are allowed to inhabit that type. We will use Thorn as an example of a
-concretely gradually typed language.
-
-Thorn has a combination of dynamic, optional, and concrete types.  Concrete
-types, written \C, behave as one would expect: a variable \HT\x\C is
-guaranteed to refer to an instance of \C or a subtype thereof.  Optional
-types are analogous of TypeScript type annotations: occurrences of
-optionally typed variables, denoted \HT\x{\dt\C}, are checked statically
-within their scope but may be bound to dynamic values.  Optional types thus
-provide some of the benefits of static typing without any loss of
-expressiveness or flexibility.  Subtyping on optional types is inherited
-from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
-whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
-
-%The formalization of the Thorn type system is built on top of the rules
-%presented for TypeScript in \figref{tsts} and \figref{convts}. The
-%definition of subtyping is extended to account for optional types, this 
-%appears in \figref{subth}. Optional types are subtypes if the corresponding
-%concrete types are subtypes. Concrete types are subtypes of optional types,
-%if the relation holds on concrete types. The convertibility rule must be
-%extended by one case, as shown in \figref{convth}, this extra rule states
-%that an optional type is convertible to a concrete parent type. Type rule
-%for method calls, shown in \figref{thts} must be extended to handle
-%receivers of optional types, they are treated as if they were concrete
-%types.
-
-	\small
-	\begin{tabbing}
-		\HS\HS\HS\=  
-		\Call{\New\A{}}\n{\New\D{}}\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=\class\= \A \{
-		% ERR -- D !|=> C} 
-		\\\>
-		\Call{\New\A{}}\m{\New\D{}}
-		\>    \HS  \Mdef \n\x\C\C{~\x~}
-		% ERR -- D !|=> ?C 
-		\\\>
-		\Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
-		\>    \HS \Mdef \m\x{\C} {\C}{~\x~}
-		\\\>
-		\Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
-		%  -- Cast inserted} 
-		\> \}
-		\\\>   \> \Class\C{}{\Mdef\mp\x\any\any\x}
-		\\\>   \> \Class\D{}{\Mdef\m\x\any\any\x}
-		
-		
-	\end{tabbing}
-\normalsize
-
-The following expressions illustrate the difference between Thorn and
-TypeScript.  The class table \K has three classes, class \A defines methods
-\m and \n which both return their argument. The only difference between them
-is that \m uses optional types for its argument and return value, in both
-cases \CW.  Classes \C and \D are defined such that they are unrelated by
-subtyping. We will study the four expressions, the first two are ill-typed,
-the remaining two are deemed well-typed, but the last one will require
-dynamic checks.
-
-%\noindent
-The first expression is ill-typed because method \n expects a \C, it gets
-a \D which is not convertible to \C. The second expression is ill-typed
-because it attempts to convert a \D into a \dt\C.  Typing the argument of \m
-as a \dt\C suggests that the intention of the programmer is to invoke this
-method only with instances that behave as \C; since \D does not convert to
-\C the expression is flagged as erroneous. The third expression passes \C
-where \dt\C is expected; this is allowed as subtyping implies
-convertibility.  The last expression invokes \n and passes a \dt\C where a
-\C is expected; although potentially unsound, this is allowed by Thorn to
-foster program evolution.  
-
-%Convertibility thus includes a \(\dt\C\Mapsto\C\)
-%rule; at runtime Thorn protects the call and ensures soundness by inserting
-%a dynamic type cast to \C around the argument.  If the receiver object has
-%an optional type, method invocation is statically checked: optional types
-%behave as contracts between variables and contexts, and whenever an object
-%has type \dt\C a well-typed context is expected to use it only as a variable
-%pointing to an instance of the class \C.  Since the runtime does not
-%guarantee that \dt\C variables points to instances of the class \C, the
-%conformance of the value actually accessed is checked individually at each
-%method invocation, as if the callee had type \any.
+provides a different soundness guarantee, which drives their
+translations, and determines what programs are allowed dynamically.
 %
-%The translation of Thorn into \kafka is given in~\figref{thtr}. As with
-%TypeScript translation proceeds top-down. The differences are that the
-%translation function for expressions, \TRG{\e}\Env, takes a source-level
-%typing environment as input. This is used to record the expect type of \this
-%and arguments \x to methods. Furthermore, the translation can also request
-%the insertion of casts, this is done with the function \TAG{\e}\Env\t which
-%translates an expression and ensures that the result is of type \t. The most
-%interesting case in the translation is the handling of method invocation
-%\Call\e\m\ep. If the type of \e is a concrete \C, then a statically resolved
-%invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
-%or an optional type, then a dynamically resolved call of the form
-%\DynCall\e\m\ep is emitted.  The argument of statically resolved method
-%invocation, as well as constructors and field assignment are all translated
-%using the auxiliary function as their expected type is known.  This function
-%translates its argument, checks if its type is a subtype of the expected
-%type \t, and if not it inserts the appropriate cast.  The cast is performed
-%in the \kafka type system, and not in the source type system, and must
-%respect the mapping from Thorn types to \kafka types.  This mapping is
-%defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
-%otherwise.  Thorn optional and dynamic types are mapped to the \any type,
-%while concrete types are unchanged.
-
-In Thorn, any method can be called statically and dynamically. For
-this to work out it is necessary to generate a dynamic version of all Thorn
-methods.  Class translation relies on overloading to provide two
-implementations of each method: one is used with concrete receiver
-and the other is optionally typed (or dynamic) object. As an example, 
-the above translates to:
-
-%More precisely, given a Thorn method
-%\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
-%generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
-%(protecting the the return value with appropriate cast to \kty{\t[2]} if
-%necessary), to be used in a concretely typed context.  The \kafka
-%translation also generates a second method \mdpp, that wraps \mdp so that it
-%is safe to invoke it with type \(\any \to \any\), that is from an optionally
-%typed or dynamic context.  Finally, each field \f:\t is mapped to the
-%corresponding \f:\kty\t field.  
-
-
-
-
-
-\begin{tabbing}
-  \HS
-  \KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
-  \\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
-\WHERE\HS \K=\HS\=
- \class\= \A \{\\
-\>\HS    \Mdef \m\x\any \any{~\x~}\\
-\>\HS    \Mdef \n\x\C\C{~\x~}\\
-\>\HS    \Mdef \n\x\any\any {\SubCast\any{\KCall\this\n{\SubCast\C\x}\C\C }} \\
-\>\}
- \end{tabbing}
-\medskip
-
-\noindent As expected, the outer invocation to \n has been protected by a
-structural cast to \C, illustrating how Thorn relies on overloading and the
-different invocation forms to protect its type invariants from untyped code.
-
-The concrete semantics allows Thorn to provide the guarantee that typed code
-will have no internal checks, an unusual feature among gradual type systems
-caused by the strong guarantee provided by the concrete semantics. In
-conjunction with relatively light-weight casts (caused by only needing to
-compare type tags), the concrete semantics provides acceptable performance~\cite{oopsla09}. 
-
-However, this strong guarantee does result in rigid semantics of the cast
-operations, which pass only subtypes of the given type. As a consequence, this
-means that untyped objects can never be treated as typed ones, requiring the 
-programmer to add a potentially large number of types in order to fully utilize
-the concrete type system.
-
-%\paragraph{Litmus Test}
-
-%In contrast to TypeScript, which allowed all three programs in the litmus test
-%to run without error, the Thorn approach causes cast failures in all of the
-%programs, as a result of the strength of the subtype cast. To illustrate this, 
-%consider the Thorn translated version of the methods \xt{T.t} in L1 and L2, as
-%well as \xt{F.n} in L3. 
-
-%\begin{figure}
-%\begin{tabular}{ccc}
-%\end{tabular}
-%\end{figure}
-
-\subsection{Behavioral}
-
-The Behavioral semantics require that, to be of a type, a value must  behave
-as if it actually was of that type, up to cast errors. We will consider Typed
-Racket, a language with behavioral semantics, as a representative example of
-languages that use this design.
-
-Typed Racket is an extension of the Racket programming language, supporting
-Racket's key functionality through a system of contracts that dynamically
-enforces type guarantees.  At first brush the formalization may appear
-exceedingly simple.  The Typed Racket static type system is identical to
-that of TypeScript. To illustrate the semantics of Typed Racket, 
-consider the following example:
-
-%The translation, shown in \figref{trtr} maps classes to
-%homonymous classes and types to types of the same name. The \kty{t} function
-%is the identity.  Calls with a receiver of type \any are translated to
-%\kafka dynamic calls, and calls with a receiver of some type \C are
-%translated to statically typed calls. The auxiliary type-directed
-%translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
-%appropriately. Thus casts can appear are at typed/untyped boundaries in
-%assignment, argument of calls or constructors. Because of the strong
-%guarantee provided by the behavioral cast, the Typed Racket translation is
-%straightforward. In Typed Racket, every typed value is assumed to behave as
-%specified, delegating the complexity of checking for consistency with the
-%type to the wrapper introduced by the behavioral cast.  So the difference
-%with the TypeScript translation is that typed code is able to use typed
-%accesses. The difference with Thorn is essentially the presence of wrappers
-%and the fact that each wrapper application only check the presence of
-%methods names rather than complete signatures for concrete types.  
-
-\medskip
-\begin{minipage}{\textwidth}
-\begin{tabbing}
- \HS
-  \Call{\New\A{}}\m{\New\C{}}
-  \HS\HS\HS \WHERE \HS\K\HS=\HS\=
-  \class\=  \A \{ \\
-  \>\HS \Mdef\m\x\any\any{ ~ \Call{\New\D{}}\m\x ~} \\
-  \> \}\\
- \> \Class \C{}{\Mdef\m\x\any\any{~\x~}} \\
- \> \Class \D{}{\Mdef\m\x\D\D{~\Call\x\m\x~}} \\
-\end{tabbing}
-\end{minipage}
-\medskip
-
-\noindent Values cross several typed/untyped boundaries in this example.
-For instance, \A's method \m expects a value of type \any while the method 
-\m of \D expects a value of type \D.  The resulting
-translation will insert a behavioral cast from \any to \D at the call site.  
-In order to protect class \D from misbehaving objects, Typed Racket inserts a wrapper
-object around the argument of \D; the wrapper is responsible for ensuring
-that the actual value respects the constraints of class \D.  The \kafka
-translation for Typed Racket inserts a behavioral cast at the boundary
-between the invocation of class \D's method \m in class \A.  This has the
-same effect of Typed Racket wrapping: the object with type \C is wrapped to
-make sure that it acts as an object of type {\xt D}.  The generated \kafka
-code for the example is:
-
-\medskip
-\begin{minipage}{\textwidth}
-\begin{tabbing}
-\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\
-\HS\HS\HS\HS\HS\HS\HS\HS\HS
-\WHERE\HS\K\HS=\HS\=
-\class\= \A \{\\
-\>\HS \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\D}\D~}} \\
-\>\}\\
- \>  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
- \>  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
-\end{tabbing}
-\end{minipage}
-\medskip
-
-
-\noindent By enforcing types on the values and not leaving the check that
-the value has the correct types to the user, Typed Racket is able to
-translate the typed code in class \D as if the language had no untyped
-code. Any misbehavior will be instantly caught by the value themselves.
-
-%TODO: Do we really need this paragraph?
-As mentioned earlier, we depart from Typed Racket in several ways. In Type
-Racket the granularity of boundaries is the module, all classes in the same
-module are either typed or untyped.  The finer granularity adopted here does
-not lose expressiveness and matches the approach adopted in the Guarded
-variant of Reticulated Python. Another feature of Typed Racket, that can be
-switched on or off is protection of the \this reference. When that feature
-is on, accesses to the \this reference are protected. This is needed to
-support inheritance -- if an untyped class inherits from a typed one, then
-the self-reference may be accessed from both typed and untyped contexts
-without necessarily passing through a typed/untyped boundary. As a result,
-inheritance in a gradually typed setting requires the protection of all
-self-references.
-
-The behavioral semantics solve the problem illustrated by Thorn and the
-concrete semantics, requiring typed values to be statically checked,
-and provides a stronger guarantee than the transient semantics. This, however,
-comes at the cost of having to check this guarantee at boundaries between
-typed and untyped code, seen in the behavioral cast operator, causing memory
-bloat and large slowdowns in many cases~\cite{popl16}.
-
-\subsection{Transient}
-
-Transient semantics weakens the guarantee provided by the behavioral semantics
-further, to enable better performance~\cite{siek14}. In the behavioral
-semantics, the ]basic structure of objects was checked at cast sites, then a
-wrapper was applied to ensure that the type is respected dynamically. However,
-the guarantee of behavioral adherence to the type is not needed if all code
-that relies upon the type checks it dynamically, the key observation behind
-the transient semantics. 
-
-The Transient variant of Reticulated Python aims for a form soundness with a
-predictable cost model. The intuition for the Transient guarantee is that,
-in a call such as \Call\e\m\ep, if the type of \e is some class \C, then that
-method invocation will succeed. More precisely, if \e evaluates to a value
-\a, the object denoted by \a has a method \m. Of course, if the type of \e is
-\any, then the call can get stuck on a method not found. Transient obtains
-that guarantee by statically checking that every expression is consistent to
-the expected type and dynamically checking that expressions evaluates to a
-value that has the method requested.
-
-%The Transient static type system is based on TypeScript except that the
-%convertibility rules now builds on an auxiliary \emph{consistency} relation,
-%defined in~\figref{subtp} to relate types \t and \tp. The modified
-%convertibility rule appears in \figref{convtp}. Consistent subtyping holds
-%between types with signatures that agree up to \any.  It is worth observing
-%that the Transient runtime does not use consistent subtyping, instead
-%it merely validates that all required method names are present.
-
-%The Transient translation appears in \figref{tptr}. Each class is translated
-%to a homonymous \kafka class, field types are translated to \any, method
-%types are given the $\any \to \any$ signature. Since argument and return
-%types are erased, our translation can use structural casts to implement
-%Transient runtime checks. They degenerate to simple inclusion checks on
-%method names.  The translation of method invocation makes explicit the
-%Transient guarantee.  A method call \Call\e\m\ep is translated to
-%\KCall\e\m\ep\any\any if the type \e is not \any. This translation combined
-%with the soundness of \kafka entails that the method call will not get
-%stuck.  Of course of \e is of type \any, the call will be translated to
-%\DynCall\e\m\ep which can get stuck.  To achieve that guarantee the
-%translation must insert structural casts at every expression read. Transient
-%also checks arguments of methods, since the expression may not use the
-%argument (but Transient checks it anyway) our translation generates method
-%bodies of the form \SubCast\t\x; \e where \e is the body of the expression
-%and the semi colon is syntactic sugar for sequencing.\footnote{This can be
-%  sugared to
-%  \SubCast\tp{\KCall{\New\A{\SubCast\any{\SubCast\t\x}}}\m{\SubCast\any\e}\any\any}
-%  where \A is class with a single field of type \any and an identity method
-%  \m. The type of \e is \tp. All of the cast expect the one to \t are only
-%  there to please the type system and can be optimized away as they will
-%  always succeed. } Likewise, in order to ensure that field assignment will
-%not get stuck, Transient gives all fields type \any, then checks the field
-%value on reads based on the static typing.
-
-
-\newcommand{\sspce}{;~}
-\newcommand{\idbody}[1]{\SubCast{#1}\x\sspce \SubCast{#1}\x}
-\begin{tabular}{ll}
-\multicolumn{1}{c}{\footnotesize{\textbf{Source}}} & \multicolumn{1}{c}{\footnotesize{\textsf{\textbf{KafKa}}}} \\
-\footnotesize
-\(
-\begin{array}{l@{\,}l}
-\Class\C{}{&\Mdef\m\x\C\C\x} \\
-\Class\D{}{&\Mdef{\xt n}\x\D\D\x} \\
-\Class{\xt E}{}{&\Mdef\m\x\D\D\x} \\
-\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
-                &\Mdef\n\x\any\any{\Call\this\m\x}} \\
-\multicolumn{2}{l}{\Call{\Call{\New{\xt F}{}}\n{\New\C{}}}\m{\New\C{}}}
-\end{array}
-\) &
-\footnotesize
-\(
-\begin{array}{l}
-\footnotesize
-\Class\C{}{\Mdef\m\x\any\any{\idbody\C}} \\
-\Class\D{}{\Mdef{\xt n}\x\any\any{\idbody\D}} \\
-\Class{\xt E}{}{\Mdef\m\x\any\any{\idbody\D}} \\
-\Class{\xt F}{}{\Mdef\m\x\any\any{\idbody{\xt E}} \\
-               \HS\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
-                \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
-\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}
-\end{array}
-\)
-\end{tabular} \\[1em]
-
-The example presents two mutually incompatible classes \C and \D,
-along two potential consumers for \C and \D, \C itself and \code E,
-and a conversion class \code F. \code F is used to acquire a
-reference to \C as an \code E, which implies that the method \m of \C has type \D to
-\D, despite it actually having type \C to \C, even with the possibility to call
-method \m through untyped code.
-
-In Typed Racket, any call to method \m of class \code F, encounters a
-wrapper that ensures that the argument and return type of \m is always a
-\D. Therefore, if the method \m is called with a \C, the program would get
-stuck at the cast to \D. In Transient, the cast to \code E is a no-op, so
-when we call \m with \C, no extra cast to \D is encountered. The Transient
-design allows method \m, which expects an instance of class \C as argument,
-to be called with a value of type \any at any point. However, this forces \m
-to check its arguments at every method invocation.
-
-One interesting consequence of this requirement is that programs using the
-transient semantics actually acquire more casts as they get typed, with the
-fully-typed version of a program having the most casts, as seen by \m being
-required to check the type on every argument. As a result, the transient
-semantics will cause checks to be inserted even in fully typed methods, with
-the most checks existing in a fully-typed program, unlike the behavioral or
-concrete semantics.
-
-\subsection{Translation discussion}
+%\subsection{Optional}
+%
+%%TODO: The cite needs to be filled out.  
+%
+%The optional semantics are used by languages such as TypeScript [CITEME] and
+%Hack [CITEME] to provide easy backwards compatibility without being burden
+%with static checks. In our formalization, equivalence is structural and
+%subtyping of recursive types is supported. The following three expressions
+%illustrate the language. The first expression is ill-typed because the
+%receiver is of type \C, so has no method \n. The second expression will also
+%be flagged as erroneous as the argument to \m is \D rather than a \C as
+%expected. The last expression is statically correct, as the instance of \D is
+%cast to a \C via method \mp, and, since \m uses none of the functionality of
+%\C, it will execute without error.
+%
+%
+%{\small
+%\begin{tabbing}
+%  \hspace{.5cm}
+%   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+%   \> \Call{\New\C{}}\m{\New\D{}}                                  \>  \HS  \Mdef\m\x\C\C{~\this~} \\
+%   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\D{}}}              \>  \HS  \Mdef\mp\x\any\C{~\x~}\\
+%   \>                                                              \>  \}   \\
+%   \>                                                              \> \Class\D{}{}
+%\end{tabbing}}
+%
+%
+%\noindent This last case illustrates the soundness guarantee of the optional
+%semantics, as we are able to take a value that supports no operations, then
+%use it in place of one that exposes methods, methods that will not exist if
+%used. As a result, while the optional semantics does provide type checking,
+%it provides the same guarantees as an untyped language would.
+%
+%The translation from the optional source language to \kafka
+%is exceedingly simple, all type annotations become \any and all source
+%method calls are translated to dynamic \kafka calls.  For instance one would
+%translate the class definition and the last expression of the example above as:
+%
+%\medskip
+%{\small
+%\begin{tabbing}
+%  \hspace{.2cm}
+%   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \\ \\ \HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+%   \>              \>\HS \Mdef\m\x\any\any{~\SubCast\any\this~} \\
+%   \>              \>\HS  \Mdef\mp\x\any\any{~\x~}\\
+%   \>                                                              \>  \}   
+%\end{tabbing}}
+%\medskip
+%
+%\noindent
+%Observe that the optional translations does insert some structural casts
+%to \any, they are needed for the result to be well-typed, but these have no
+%operational effect (a structural cast to \any always succeed at runtime).
+%The unsoundness of the optional type system is evidence in the
+%translation, by discarding the type of the callee and systematically relying
+%on dynamic method invocation for method calls it clear that optional
+%programs can get stuck at any point of their execution.
+%
+%%All optional types are represented with the dynamic \kafka type, \any, and
+%%all translated expressions have type \any.  This is a simple instance of a
+%%general property that all our translations into \kafka satisfy.  Let
+%%\(\kty\t\) be a mapping from source types to \kafka types -- for the optional semantics
+%%the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
+%%holds that if \e is a well-typed source expression with type \t, then
+%%\TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
+%
+%A feature of optional typing highlighted by Bracha~\cite{pluggabletypes} 
+%is the minimal impact on performance, which is also evident in our optional translation.
+%A notional type-less language would have an identical translation, causing performance to
+%be identical to a language with an optional type system.
+%
+%%\paragraph{Litmus Test}%
+%
+%%TypeScript passes all three programs in our litmus test, as seen in
+%%figure~\ref{litmus}, as they are all well-typed, and because TypeScript
+%%inserts no runtime checks whatsoever, as illustrated in figure~\ref{tst}.
+%%\kafka's soundness theorem tells us that any dynamic call can get stuck if the
+%%passed value does not have the required method, so by translating all calls to
+%%dynamic calls, TypeScript provides no guarantee that any given call will
+%%succeed. Moreover, since all method types are erased, argument types are not
+%%guaranteed, either, as illustrated by the first litmus test, which passes
+%%an instance of \xt{A} to a method expecting an \xt{I}.
+%
+%% \subsection*{Type Correctness}
+%% 
+%% The type correctness lemma states that well-typed TypeScript expressions 
+%% will always translate to well-typed \kafka expressions.
+%% 
+%% \medskip\noindent{\bf Lemma: Type correctness of TypeScript translation.}
+%% {\bf Given} $~\WFpX\K\e{s}~$,
+%% and $~\WFtypeX \K{s}\t$,
+%% and $\HT\x\tp \in \Env \implies \WFtypeX\K{s}\tp$,
+%% and $~\EnvTypeE\Env\K{s}\e\t$,
+%% and $~\TR\K = \Kp$,
+%% and $~\TR\Env = \Envp$,
+%% {\bf then} $~\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$. \\
+%
+%\subsection{Concrete}
+%
+%Concrete gradual type systems strictly enforce type membership. In a concrete
+%gradual type system, only objects that arise from static subtypes of a type
+%are allowed to inhabit that type. We will use Thorn as an example of a
+%concretely gradually typed language.
+%
+%Thorn has a combination of dynamic, optional, and concrete types.  Concrete
+%types, written \C, behave as one would expect: a variable \HT\x\C is
+%guaranteed to refer to an instance of \C or a subtype thereof.  Optional
+%types are analogous of TypeScript type annotations: occurrences of
+%optionally typed variables, denoted \HT\x{\dt\C}, are checked statically
+%within their scope but may be bound to dynamic values.  Optional types thus
+%provide some of the benefits of static typing without any loss of
+%expressiveness or flexibility.  Subtyping on optional types is inherited
+%from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
+%whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
+%
+%%The formalization of the Thorn type system is built on top of the rules
+%%presented for TypeScript in \figref{tsts} and \figref{convts}. The
+%%definition of subtyping is extended to account for optional types, this 
+%%appears in \figref{subth}. Optional types are subtypes if the corresponding
+%%concrete types are subtypes. Concrete types are subtypes of optional types,
+%%if the relation holds on concrete types. The convertibility rule must be
+%%extended by one case, as shown in \figref{convth}, this extra rule states
+%%that an optional type is convertible to a concrete parent type. Type rule
+%%for method calls, shown in \figref{thts} must be extended to handle
+%%receivers of optional types, they are treated as if they were concrete
+%%types.
+%
+%	\small
+%	\begin{tabbing}
+%		\HS\HS\HS\=  
+%		\Call{\New\A{}}\n{\New\D{}}\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=\class\= \A \{
+%		% ERR -- D !|=> C} 
+%		\\\>
+%		\Call{\New\A{}}\m{\New\D{}}
+%		\>    \HS  \Mdef \n\x\C\C{~\x~}
+%		% ERR -- D !|=> ?C 
+%		\\\>
+%		\Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
+%		\>    \HS \Mdef \m\x{\C} {\C}{~\x~}
+%		\\\>
+%		\Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
+%		%  -- Cast inserted} 
+%		\> \}
+%		\\\>   \> \Class\C{}{\Mdef\mp\x\any\any\x}
+%		\\\>   \> \Class\D{}{\Mdef\m\x\any\any\x}
+%		
+%		
+%	\end{tabbing}
+%\normalsize
+%
+%The following expressions illustrate the difference between Thorn and
+%TypeScript.  The class table \K has three classes, class \A defines methods
+%\m and \n which both return their argument. The only difference between them
+%is that \m uses optional types for its argument and return value, in both
+%cases \CW.  Classes \C and \D are defined such that they are unrelated by
+%subtyping. We will study the four expressions, the first two are ill-typed,
+%the remaining two are deemed well-typed, but the last one will require
+%dynamic checks.
+%
+%%\noindent
+%The first expression is ill-typed because method \n expects a \C, it gets
+%a \D which is not convertible to \C. The second expression is ill-typed
+%because it attempts to convert a \D into a \dt\C.  Typing the argument of \m
+%as a \dt\C suggests that the intention of the programmer is to invoke this
+%method only with instances that behave as \C; since \D does not convert to
+%\C the expression is flagged as erroneous. The third expression passes \C
+%where \dt\C is expected; this is allowed as subtyping implies
+%convertibility.  The last expression invokes \n and passes a \dt\C where a
+%\C is expected; although potentially unsound, this is allowed by Thorn to
+%foster program evolution.  
+%
+%%Convertibility thus includes a \(\dt\C\Mapsto\C\)
+%%rule; at runtime Thorn protects the call and ensures soundness by inserting
+%%a dynamic type cast to \C around the argument.  If the receiver object has
+%%an optional type, method invocation is statically checked: optional types
+%%behave as contracts between variables and contexts, and whenever an object
+%%has type \dt\C a well-typed context is expected to use it only as a variable
+%%pointing to an instance of the class \C.  Since the runtime does not
+%%guarantee that \dt\C variables points to instances of the class \C, the
+%%conformance of the value actually accessed is checked individually at each
+%%method invocation, as if the callee had type \any.
+%%
+%%The translation of Thorn into \kafka is given in~\figref{thtr}. As with
+%%TypeScript translation proceeds top-down. The differences are that the
+%%translation function for expressions, \TRG{\e}\Env, takes a source-level
+%%typing environment as input. This is used to record the expect type of \this
+%%and arguments \x to methods. Furthermore, the translation can also request
+%%the insertion of casts, this is done with the function \TAG{\e}\Env\t which
+%%translates an expression and ensures that the result is of type \t. The most
+%%interesting case in the translation is the handling of method invocation
+%%\Call\e\m\ep. If the type of \e is a concrete \C, then a statically resolved
+%%invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
+%%or an optional type, then a dynamically resolved call of the form
+%%\DynCall\e\m\ep is emitted.  The argument of statically resolved method
+%%invocation, as well as constructors and field assignment are all translated
+%%using the auxiliary function as their expected type is known.  This function
+%%translates its argument, checks if its type is a subtype of the expected
+%%type \t, and if not it inserts the appropriate cast.  The cast is performed
+%%in the \kafka type system, and not in the source type system, and must
+%%respect the mapping from Thorn types to \kafka types.  This mapping is
+%%defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
+%%otherwise.  Thorn optional and dynamic types are mapped to the \any type,
+%%while concrete types are unchanged.
+%
+%In Thorn, any method can be called statically and dynamically. For
+%this to work out it is necessary to generate a dynamic version of all Thorn
+%methods.  Class translation relies on overloading to provide two
+%implementations of each method: one is used with concrete receiver
+%and the other is optionally typed (or dynamic) object. As an example, 
+%the above translates to:
+%
+%%More precisely, given a Thorn method
+%%\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
+%%generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
+%%(protecting the the return value with appropriate cast to \kty{\t[2]} if
+%%necessary), to be used in a concretely typed context.  The \kafka
+%%translation also generates a second method \mdpp, that wraps \mdp so that it
+%%is safe to invoke it with type \(\any \to \any\), that is from an optionally
+%%typed or dynamic context.  Finally, each field \f:\t is mapped to the
+%%corresponding \f:\kty\t field.  
+%
+%
+%
+%
+%
+%\begin{tabbing}
+%  \HS
+%  \KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
+%  \\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+%\WHERE\HS \K=\HS\=
+% \class\= \A \{\\
+%\>\HS    \Mdef \m\x\any \any{~\x~}\\
+%\>\HS    \Mdef \n\x\C\C{~\x~}\\
+%\>\HS    \Mdef \n\x\any\any {\SubCast\any{\KCall\this\n{\SubCast\C\x}\C\C }} \\
+%\>\}
+% \end{tabbing}
+%\medskip
+%
+%\noindent As expected, the outer invocation to \n has been protected by a
+%structural cast to \C, illustrating how Thorn relies on overloading and the
+%different invocation forms to protect its type invariants from untyped code.
+%
+%The concrete semantics allows Thorn to provide the guarantee that typed code
+%will have no internal checks, an unusual feature among gradual type systems
+%caused by the strong guarantee provided by the concrete semantics. In
+%conjunction with relatively light-weight casts (caused by only needing to
+%compare type tags), the concrete semantics provides acceptable performance~\cite{oopsla09}. 
+%
+%However, this strong guarantee does result in rigid semantics of the cast
+%operations, which pass only subtypes of the given type. As a consequence, this
+%means that untyped objects can never be treated as typed ones, requiring the 
+%programmer to add a potentially large number of types in order to fully utilize
+%the concrete type system.
+%
+%%\paragraph{Litmus Test}
+%
+%%In contrast to TypeScript, which allowed all three programs in the litmus test
+%%to run without error, the Thorn approach causes cast failures in all of the
+%%programs, as a result of the strength of the subtype cast. To illustrate this, 
+%%consider the Thorn translated version of the methods \xt{T.t} in L1 and L2, as
+%%well as \xt{F.n} in L3. 
+%
+%%\begin{figure}
+%%\begin{tabular}{ccc}
+%%\end{tabular}
+%%\end{figure}
+%
+%\subsection{Behavioral}
+%
+%The Behavioral semantics require that, to be of a type, a value must  behave
+%as if it actually was of that type, up to cast errors. We will consider Typed
+%Racket, a language with behavioral semantics, as a representative example of
+%languages that use this design.
+%
+%Typed Racket is an extension of the Racket programming language, supporting
+%Racket's key functionality through a system of contracts that dynamically
+%enforces type guarantees.  At first brush the formalization may appear
+%exceedingly simple.  The Typed Racket static type system is identical to
+%that of TypeScript. To illustrate the semantics of Typed Racket, 
+%consider the following example:
+%
+%%The translation, shown in \figref{trtr} maps classes to
+%%homonymous classes and types to types of the same name. The \kty{t} function
+%%is the identity.  Calls with a receiver of type \any are translated to
+%%\kafka dynamic calls, and calls with a receiver of some type \C are
+%%translated to statically typed calls. The auxiliary type-directed
+%%translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
+%%appropriately. Thus casts can appear are at typed/untyped boundaries in
+%%assignment, argument of calls or constructors. Because of the strong
+%%guarantee provided by the behavioral cast, the Typed Racket translation is
+%%straightforward. In Typed Racket, every typed value is assumed to behave as
+%%specified, delegating the complexity of checking for consistency with the
+%%type to the wrapper introduced by the behavioral cast.  So the difference
+%%with the TypeScript translation is that typed code is able to use typed
+%%accesses. The difference with Thorn is essentially the presence of wrappers
+%%and the fact that each wrapper application only check the presence of
+%%methods names rather than complete signatures for concrete types.  
+%
+%\medskip
+%\begin{minipage}{\textwidth}
+%\begin{tabbing}
+% \HS
+%  \Call{\New\A{}}\m{\New\C{}}
+%  \HS\HS\HS \WHERE \HS\K\HS=\HS\=
+%  \class\=  \A \{ \\
+%  \>\HS \Mdef\m\x\any\any{ ~ \Call{\New\D{}}\m\x ~} \\
+%  \> \}\\
+% \> \Class \C{}{\Mdef\m\x\any\any{~\x~}} \\
+% \> \Class \D{}{\Mdef\m\x\D\D{~\Call\x\m\x~}} \\
+%\end{tabbing}
+%\end{minipage}
+%\medskip
+%
+%\noindent Values cross several typed/untyped boundaries in this example.
+%For instance, \A's method \m expects a value of type \any while the method 
+%\m of \D expects a value of type \D.  The resulting
+%translation will insert a behavioral cast from \any to \D at the call site.  
+%In order to protect class \D from misbehaving objects, Typed Racket inserts a wrapper
+%object around the argument of \D; the wrapper is responsible for ensuring
+%that the actual value respects the constraints of class \D.  The \kafka
+%translation for Typed Racket inserts a behavioral cast at the boundary
+%between the invocation of class \D's method \m in class \A.  This has the
+%same effect of Typed Racket wrapping: the object with type \C is wrapped to
+%make sure that it acts as an object of type {\xt D}.  The generated \kafka
+%code for the example is:
+%
+%\medskip
+%\begin{minipage}{\textwidth}
+%\begin{tabbing}
+%\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\
+%\HS\HS\HS\HS\HS\HS\HS\HS\HS
+%\WHERE\HS\K\HS=\HS\=
+%\class\= \A \{\\
+%\>\HS \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\D}\D~}} \\
+%\>\}\\
+% \>  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
+% \>  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
+%\end{tabbing}
+%\end{minipage}
+%\medskip
+%
+%
+%\noindent By enforcing types on the values and not leaving the check that
+%the value has the correct types to the user, Typed Racket is able to
+%translate the typed code in class \D as if the language had no untyped
+%code. Any misbehavior will be instantly caught by the value themselves.
+%
+%%TODO: Do we really need this paragraph?
+%As mentioned earlier, we depart from Typed Racket in several ways. In Type
+%Racket the granularity of boundaries is the module, all classes in the same
+%module are either typed or untyped.  The finer granularity adopted here does
+%not lose expressiveness and matches the approach adopted in the Guarded
+%variant of Reticulated Python. Another feature of Typed Racket, that can be
+%switched on or off is protection of the \this reference. When that feature
+%is on, accesses to the \this reference are protected. This is needed to
+%support inheritance -- if an untyped class inherits from a typed one, then
+%the self-reference may be accessed from both typed and untyped contexts
+%without necessarily passing through a typed/untyped boundary. As a result,
+%inheritance in a gradually typed setting requires the protection of all
+%self-references.
+%
+%The behavioral semantics solve the problem illustrated by Thorn and the
+%concrete semantics, requiring typed values to be statically checked,
+%and provides a stronger guarantee than the transient semantics. This, however,
+%comes at the cost of having to check this guarantee at boundaries between
+%typed and untyped code, seen in the behavioral cast operator, causing memory
+%bloat and large slowdowns in many cases~\cite{popl16}.
+%
+%\subsection{Transient}
+%
+%Transient semantics weakens the guarantee provided by the behavioral semantics
+%further, to enable better performance~\cite{siek14}. In the behavioral
+%semantics, the ]basic structure of objects was checked at cast sites, then a
+%wrapper was applied to ensure that the type is respected dynamically. However,
+%the guarantee of behavioral adherence to the type is not needed if all code
+%that relies upon the type checks it dynamically, the key observation behind
+%the transient semantics. 
+%
+%The Transient variant of Reticulated Python aims for a form soundness with a
+%predictable cost model. The intuition for the Transient guarantee is that,
+%in a call such as \Call\e\m\ep, if the type of \e is some class \C, then that
+%method invocation will succeed. More precisely, if \e evaluates to a value
+%\a, the object denoted by \a has a method \m. Of course, if the type of \e is
+%\any, then the call can get stuck on a method not found. Transient obtains
+%that guarantee by statically checking that every expression is consistent to
+%the expected type and dynamically checking that expressions evaluates to a
+%value that has the method requested.
+%
+%%The Transient static type system is based on TypeScript except that the
+%%convertibility rules now builds on an auxiliary \emph{consistency} relation,
+%%defined in~\figref{subtp} to relate types \t and \tp. The modified
+%%convertibility rule appears in \figref{convtp}. Consistent subtyping holds
+%%between types with signatures that agree up to \any.  It is worth observing
+%%that the Transient runtime does not use consistent subtyping, instead
+%%it merely validates that all required method names are present.
+%
+%%The Transient translation appears in \figref{tptr}. Each class is translated
+%%to a homonymous \kafka class, field types are translated to \any, method
+%%types are given the $\any \to \any$ signature. Since argument and return
+%%types are erased, our translation can use structural casts to implement
+%%Transient runtime checks. They degenerate to simple inclusion checks on
+%%method names.  The translation of method invocation makes explicit the
+%%Transient guarantee.  A method call \Call\e\m\ep is translated to
+%%\KCall\e\m\ep\any\any if the type \e is not \any. This translation combined
+%%with the soundness of \kafka entails that the method call will not get
+%%stuck.  Of course of \e is of type \any, the call will be translated to
+%%\DynCall\e\m\ep which can get stuck.  To achieve that guarantee the
+%%translation must insert structural casts at every expression read. Transient
+%%also checks arguments of methods, since the expression may not use the
+%%argument (but Transient checks it anyway) our translation generates method
+%%bodies of the form \SubCast\t\x; \e where \e is the body of the expression
+%%and the semi colon is syntactic sugar for sequencing.\footnote{This can be
+%%  sugared to
+%%  \SubCast\tp{\KCall{\New\A{\SubCast\any{\SubCast\t\x}}}\m{\SubCast\any\e}\any\any}
+%%  where \A is class with a single field of type \any and an identity method
+%%  \m. The type of \e is \tp. All of the cast expect the one to \t are only
+%%  there to please the type system and can be optimized away as they will
+%%  always succeed. } Likewise, in order to ensure that field assignment will
+%%not get stuck, Transient gives all fields type \any, then checks the field
+%%value on reads based on the static typing.
+%
+%
+%\begin{tabular}{ll}
+%\multicolumn{1}{c}{\footnotesize{\textbf{Source}}} & \multicolumn{1}{c}{\footnotesize{\textsf{\textbf{KafKa}}}} \\
+%\footnotesize
+%\(
+%\begin{array}{l@{\,}l}
+%\Class\C{}{&\Mdef\m\x\C\C\x} \\
+%\Class\D{}{&\Mdef{\xt n}\x\D\D\x} \\
+%\Class{\xt E}{}{&\Mdef\m\x\D\D\x} \\
+%\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
+%                &\Mdef\n\x\any\any{\Call\this\m\x}} \\
+%\multicolumn{2}{l}{\Call{\Call{\New{\xt F}{}}\n{\New\C{}}}\m{\New\C{}}}
+%\end{array}
+%\) &
+%\footnotesize
+%\(
+%\begin{array}{l}
+%\footnotesize
+%\Class\C{}{\Mdef\m\x\any\any{\idbody\C}} \\
+%\Class\D{}{\Mdef{\xt n}\x\any\any{\idbody\D}} \\
+%\Class{\xt E}{}{\Mdef\m\x\any\any{\idbody\D}} \\
+%\Class{\xt F}{}{\Mdef\m\x\any\any{\idbody{\xt E}} \\
+%               \HS\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
+%                \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
+%\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}
+%\end{array}
+%\)
+%\end{tabular} \\[1em]
+%
+%The example presents two mutually incompatible classes \C and \D,
+%along two potential consumers for \C and \D, \C itself and \code E,
+%and a conversion class \code F. \code F is used to acquire a
+%reference to \C as an \code E, which implies that the method \m of \C has type \D to
+%\D, despite it actually having type \C to \C, even with the possibility to call
+%method \m through untyped code.
+%
+%In Typed Racket, any call to method \m of class \code F, encounters a
+%wrapper that ensures that the argument and return type of \m is always a
+%\D. Therefore, if the method \m is called with a \C, the program would get
+%stuck at the cast to \D. In Transient, the cast to \code E is a no-op, so
+%when we call \m with \C, no extra cast to \D is encountered. The Transient
+%design allows method \m, which expects an instance of class \C as argument,
+%to be called with a value of type \any at any point. However, this forces \m
+%to check its arguments at every method invocation.
+%
+%One interesting consequence of this requirement is that programs using the
+%transient semantics actually acquire more casts as they get typed, with the
+%fully-typed version of a program having the most casts, as seen by \m being
+%required to check the type on every argument. As a result, the transient
+%semantics will cause checks to be inserted even in fully typed methods, with
+%the most checks existing in a fully-typed program, unlike the behavioral or
+%concrete semantics.
+%
+%\subsection{Translation discussion}
 
 \begin{figure}
 	\begin{tabular}{l@{\HS}l}
@@ -1614,7 +1613,7 @@ Field assignment, presented in \figref{fig:trassn}, illustrates the distinct
 continuum  provided by each gradual type system. Under the unsound optional 
 semantics, we simply translate
 the assignment directly, with no guards or additional checks. However, in the
-three sound semantics, the behaviour differs depending on the strength of the
+three sound semantics, the behavior differs depending on the strength of the
 soundness guarantee.
 
 Under the transient semantics, field assignment is unchecked, 
@@ -1842,7 +1841,7 @@ concrete translation also generates a second method \mdpp that wraps \mdp to
 allow a safe invocation with type \(\any \to \any\).  
 Finally, every field \f:\t is mapped to the corresponding field \f:\kty\t. 
 
-%TODO: explaination for the class translation
+%TODO: explanation for the class translation
 \figref{fig:traclass} presents the translation for the classes in each gradual typing
 semantics.
 
