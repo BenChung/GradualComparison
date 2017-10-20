@@ -1773,7 +1773,7 @@ class F {
 \begin{verbatim}
 class F {
   m(x:*):* { <E>x; <E> x }
-  n(x:*):* { <*> x; <*><E>this.m(<*><E>x) }
+  n(x:*):* { <*> x; <*><E>this.m(<*>x) }
 }
 \end{verbatim}
 
@@ -1784,8 +1784,27 @@ class F {
 }
 \end{verbatim}
 
+The argument to the function \m is declared to be of type \xt{E}, so the
+translation mechanism will insert casts as needed to achieve this type. The
+transient semantics only needs to ensure an \any argument is passed, so only
+inserts an \any cast, while checking the result with a cast to \xt{E}, using
+subtype casts throughout. The behavioural semantics needs to guard the both
+the argument and return types, and inserts behavioural casts to meet this
+requirement. 
+
 When the input, an instance of class \C, is passed through the transient
-translation, the 
+translation of \n, no changes will be made to the underlying object, as the
+subtype cast operation simply returns the same value as it was passed if the
+cast succeeds. In contrast, when given to the behavioral translation, it will
+be wrapped inside a behavioral wrapper guaranteeing the \xt{E} type, which is then
+retained.
+
+As a result, when litmus test 3 then calls \xt{a} on the return and it returns
+a \xt{D}, instead of the expected \xt{C} (due to the different underlying
+value), the behavioral wrapper is now in place to observe this violation of a
+now-gone type contract, while the transient semantics observes no anomalous
+behavior at this point, as the new return type is completely consistent with
+the dynamic call site.
 
 \begin{figure}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1854,8 +1873,8 @@ needs to be checked against the expected type.
     {\scriptsize \bf{Optional}} \\    
     \TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\     
     & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\   
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\   
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \ep = \TR[\OTS]{\e} \\   
         
     {\scriptsize \bf{Transient}} \\   
@@ -1864,7 +1883,7 @@ needs to be checked against the expected type.
     \fd[1] = \Ftype\f\t ..\HS\HS \\   
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\    
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\tp~ .. \\        
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\any~ .. \\        
         
     {\scriptsize \bf{Behavioral}} \\    
     \TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\    
@@ -1874,8 +1893,8 @@ needs to be checked against the expected type.
         
     {\scriptsize \bf{Concrete}} \\    
     \TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\   
-    & \WHERE \HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\    
+    & \WHERE \HS\HS\HS {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\   
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\            
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\     
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} = \any \\    
@@ -1899,7 +1918,7 @@ precisely, given a Thorn method \(\md\) with type \(\t[1] \to \t[2]\), the
 \kafka translation also generates a second method \mdpp, that wraps \mdp so   
 that it is safe to invoke it with type \(\any \to \any\), that is from an   
 optionally typed or dynamic context.  Finally, each field \f:\t is mapped to    
-the corresponding \f:\kty\t field.    
+the corresponding \f:\kty\t field. 
 
 
 \section{Conclusion}\label{litm}
