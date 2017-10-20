@@ -1021,12 +1021,12 @@ as if \m is passed a \D, the return type of \m will be wrong. However, our
 source language allows this, instead deferring  to the translation to  provide
 a safety guarantee.
 
-To avoid unnecessary clutter, we represent the source semantics using the
-common syntax reported in \figref{f:sourcesyntax}.  This defines a simple
+To avoid unnecessary clutter, we present a
+common syntax, reported in \figref{f:sourcesyntax}, for the source language. This defines a simple
 object calculus similar to \kafka, but without method overloading and, most
 importantly, cast operations. Lastly, we give a source-level type system for 
 each semantics (notated $\vdash_{\!s}$), which are largely identical. To 
-simplify the presentation, we will elide the identical rules, instead presenting
+simplify the presentation, we will elide rules identical to those in \kafka, and present
 only the altered rules.
 
 %TODO: Like types are removed from the 
@@ -1056,7 +1056,7 @@ only the altered rules.
 	\caption{Common syntax of source language for each semantics}\label{f:sourcesyntax}
 \end{figure}
 
-The type system for this surface language is a simple one, allowing implicit
+The type system for the surface languages is straightforward, allowing implicit
 mixing of static and dynamically typed terms, and is shared between all of the
 gradual type systems, shown in figure~\ref{fig:slts}.
 
@@ -1121,19 +1121,19 @@ gradual type systems, shown in figure~\ref{fig:slts}.
   \caption{Source language type system}\label{fig:slts}
 \end{figure}
 
-The major differentiating factor between a gradually typed language and a
-language that simply has an \any type is the ability to implicitly down-cast
-from \any to some known type \t, and the mechanisms through which this is made
-safe are what differentiate the different gradual typing semantics.
+The difference between a gradually typed language and a
+language with the \any type is the ability to implicitly down-cast
+from \any to some known type \t. The mechanisms which makes this operation
+safe are what differentiate each gradual typing semantics.
 
 The naive typing rules would not allow an implicit downcast from \any to a
-non-\any type, as it is not safe. However, as we want to make our surface
+non-\any type, as it is not safe. However, to make our surface
 language a gradually typed one, we need to represent the ability to make some
 kinds of unsafe type conversion within our type system.
 
 The $\ConvertE\K{s}{\t}{\tp}$ operator is used to denote that type $\t$ is
 convertible to one of type $\tp$, and is used both for traditional down-
-casting and for conversions of \any to non-\any types.. Our definition of the
+casting and for conversions of \any to non-\any types. Our definition of the
 type convertibility operator is shown in figure~\ref{fig:tyconvert}, denoting
 the surface level typing judgment as $\EnvTypeS\Env\K\e\t$, for a term $\t$
 having type $\t$.
@@ -1165,15 +1165,15 @@ having type $\t$.
 \label{fig:tyconvert}
 \end{figure}
 
-In the surface language, it is possible to pass subtypes as arguments and new
-field values (\RuleRef{STGC-SUB}), as in the \kafka type system and as is
-traditional. However, the surface language compatiblity relation adds two new
+In the source language, it is possible to pass subtypes as arguments and new
+field values (\RuleRef{STGC-SUB}), as in the \kafka type system. 
+However, the source language compatibility relation adds two new
 cases, \RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}, allowing typed values
-to be used in place of untyped values and vice versa, respectively.
+to be used in place of untyped values and vice versa respectively.
 
-If the source program typechecks correctly, we can proceed with translation to
-\kafka, the key component of our surface language semantics. For each of the
-four semantics in question, we provide a translation from this common,
+If the source program type checks correctly, we can proceed with translation to
+\kafka, the key component of our source language semantics. For each of the
+four semantics, we provide a translation from this common,
 gradually typed, source language to the statically-typed \kafka target
 language, illustrating how the soundness guarantees provided by each system
 influence semantics and performance.
