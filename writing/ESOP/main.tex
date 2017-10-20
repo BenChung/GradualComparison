@@ -359,7 +359,7 @@ casts tend to suffer prohibitive slow downs in pathological cases.
 %\epigraph{\hspace{-1cm}\small\it ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}\vspace{-5mm}
 
 \noindent
-The basis of our formal approach is \kafka, a class-based, statically typed
+The basis of our formal approach is \kafka, a class-based, statically typed,
 object-oriented language. The distinctive features of the calculus are its
 support for both typed and untyped method innovation, as well as that
 dynamic class generation by explicit class tables.  The features of \kafka
@@ -1058,10 +1058,128 @@ only the altered rules.
 	\caption{Common syntax of source language for each semantics}\label{f:sourcesyntax}
 \end{figure}
 
-We then translate this same source language to \kafka, modeling the semantics
-of each of the gradual type systems. Each of the type systems in question
-provides a different soundness guarantee, which drives their
-translations, and determines what programs are allowed dynamically.
+The type system for this surface language is a simple one, allowing implicit
+mixing of static and dynamically typed terms, and is shared between all of the
+gradual type systems, shown in figure~\ref{fig:slts}.
+
+
+\begin{figure}[hb]
+  
+  \hrulefill  \footnotesize
+  
+  \hspace{-.5cm}\begin{mathpar}
+          \Rule{STG-VAR}{
+            ~\\\\  ~\\\\ ~\\\\
+            \HasType \Env\x\t
+          }{
+            \EnvTypeS \Env\K\x\t
+          }
+
+          \Rule{STG-GET}{ ~\\\\ ~\\\\
+            \HasType \Env\this\C \\\\
+            \Fdef\f\t \in \App\K\C
+          }{
+            \EnvTypeS \Env\K{\FRead\f}\t
+          }    
+
+          \Rule{STG-SET}{
+            \HasType \Env\this\C \\\\
+            {\Fdef\f\t \in \App\K\C} \\\\
+            \EnvTypeS \Env\K\e\tp \\\\
+            \ConvertE\K{s}\tp\t
+          }{
+            \EnvTypeS \Env\K{\FWrite\f\e}\t
+          }    
+
+          \Rule[width=15em]{STG-CALL}{
+            ~\\\\ ~\\\\
+            \EnvTypeS \Env\K\e\any \\\\
+            \EnvTypeS \Env\K\ep\t 
+          }{
+            \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
+          }    
+
+          \Rule[width=15em]{STG-CALL}{
+            \EnvTypeS \Env\K\e\C \\\\
+            \EnvTypeS \Env\K\ep\t \\\\
+            \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
+            \ConvertE\K{s}\t{\t[1]}
+          }{
+            \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+          }    
+
+          \Rule{STG-NEW}{~\\\\
+            \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+            \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
+            \ConvertE\K{s}{\tp[1]}{\t[1]}..
+          }{
+            \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+          }
+          \end{mathpar}
+  
+  \vspace{2mm}
+  
+  \hrulefill
+  \caption{Source language type system}\label{fig:slts}
+\end{figure}
+
+The major differentiating factor between a gradually typed language and a
+language that simply has an \any type is the ability to implicitly down-cast
+from \any to some known type \t, and the mechanisms through which this is made
+safe are what differentiate the different gradual typing semantics.
+
+The naive typing rules would not allow an implicit downcast from \any to a
+non-\any type, as it is not safe. However, as we want to make our surface
+language a gradually typed one, we need to represent the ability to make some
+kinds of unsafe type conversion within our type system.
+
+The $\ConvertE\K{s}{\t}{\tp}$ operator is used to denote that type $\t$ is
+convertible to one of type $\tp$, and is used both for traditional down-
+casting and for conversions of \any to non-\any types.. Our definition of the
+type convertibility operator is shown in figure~\ref{fig:tyconvert}, denoting
+the surface level typing judgment as $\EnvTypeS\Env\K\e\t$, for a term $\t$
+having type $\t$.
+
+\begin{figure}[hb]
+  \hrulefill  \small  \vspace{-3mm}
+  
+  \begin{mathpar}
+    \Rule{STGC-SUB}{
+      \SSub\cdot\K\t\tp
+    }{
+      \ConvertE\K{s}\t\tp
+    }
+    
+    \Rule{STGC-TOANY}{~
+    }{
+      \ConvertE\K{s}\t\any
+    }
+    
+    \Rule{STGC-ANYCONC}{~
+    }{
+      \ConvertE\K{s}\any\t
+    }
+  \end{mathpar}
+  \vspace{-8mm}
+  
+  \hrulefill
+  \caption{Optional type convertibility}
+\label{fig:tyconvert}
+\end{figure}
+
+In the surface language, it is possible to pass subtypes as arguments and new
+field values (\RuleRef{STGC-SUB}), as in the \kafka type system and as is
+traditional. However, the surface language compatiblity relation adds two new
+cases, \RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}, allowing typed values
+to be used in place of untyped values and vice versa, respectively.
+
+If the source program typechecks correctly, we can proceed with translation to
+\kafka, the key component of our surface language semantics. For each of the
+four semantics in question, we provide a translation from this common,
+gradually typed, source language to the statically-typed \kafka target
+language, illustrating how the soundness guarantees provided by each system
+influence semantics and performance.
+
 %
 %\subsection{Optional}
 %
