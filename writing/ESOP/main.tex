@@ -115,7 +115,6 @@ type casts but does so only for the top-level of data structures. The cast
 insertion strategy is related to the tests performed by behavioral types
 except transient instruments code and not values.
 
-
 While the software engineering benefits of the different approaches are
 being debated, it is worthwhile to observe that the definition of type error
 is also open for debate.  Each of the approaches will catch different
@@ -134,40 +133,27 @@ method \code{m}, while in behavioral the call will succeed, but a failure
 may occur upon return if the returned value does not have the expected
 methods.
 
+This paper introduces a core calculus for evaluating gradual type systems
+for object-oriented languages. The calculus, \kafka, is a statically typed
+class-based object calculus with mutable state expressly designed designed
+to support different gradual type systems. The calculus has a number of
+features that
 
-This paper propose a common core calculus for evaluating gradual type
-systems for object-oriented languages. The calculus, named \kafka, is
-designed to support different gradual type systems.
 
-WIP
-
-
-The design of \kafka is another part of our contribution.  \kafka is a
-statically typed object calculus.  It is class based (with an explicit class
-table \K) with mutable state (a heap address \a refers to an object with a
-set of private fields denoted by \f). It allows the dynamic generation of
-wrapper classes (by addition of new classes to the class table \K and
-allocation of objects \a).  Methods can be statically resolved, denoted by a
-typed call \KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a
-dynamic call \DynCall\a\m\x. The \kafka type system has two kinds of types;
-classes which give rise to homonymous types, and the dynamic type \any.
-\kafka subtyping is structural with recursion.  The heart of any gradual
-type system are the explicit casts that are inserted at type boundaries.
-Structural casts, \SubCast\t\a, check if the object referenced by \a is a
-subtype of type \t.  Behavioral casts, \BehCast\t\a, create wrappers that
-enforce a specific type, this entails runtime generation of a new
-class. Finally, We give \kafka an operational semantics. We report on a
-mechanized proof of soundness for \kafka inclusive of its casts, as well as
-a proof-of-concept implementation of the calculus on top of the .NET virtual
-machine.
-
-target. This target language, dubbed \kafka, is modeled on the features
-exposed by the intermediate languages of the Java Virtual Machine and the
-Common Language Runtime -- both of which have been used as targets for
-implementations of gradual typing systems.  The particular features we
-exploit are a simple static type system equipped with dynamic casts that
-check the runtime type of values, the ability to dynamically resolve method
-targets, and support for generating new classes at runtime.
+It allows the dynamic generation of wrapper classes (by addition of new
+classes to the class table \K and allocation of objects \a).  Methods can be
+statically resolved, denoted by a typed call \KCall\a\m\x\t\tp, or can be
+dynamically resolved, denoted by a dynamic call \DynCall\a\m\x. The \kafka
+type system has two kinds of types; classes which give rise to homonymous
+types, and the dynamic type \any.  \kafka subtyping is structural with
+recursion.  The heart of any gradual type system are the explicit casts that
+are inserted at type boundaries.  Structural casts, \SubCast\t\a, check if
+the object referenced by \a is a subtype of type \t.  Behavioral casts,
+\BehCast\t\a, create wrappers that enforce a specific type, this entails
+runtime generation of a new class. Finally, We give \kafka an operational
+semantics. We report on a mechanized proof of soundness for \kafka inclusive
+of its casts, as well as a proof-of-concept implementation of the calculus
+on top of the .NET virtual machine.
 
 Translating a gradually typed language into a statically typed language,
 such as the JVM's bytecode or \kafka makes explicit which of the underlying
