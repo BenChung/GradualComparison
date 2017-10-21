@@ -137,7 +137,7 @@ This paper introduces a core calculus for evaluating gradual type systems
 for object-oriented languages. The calculus, \kafka, is a statically typed
 class-based object calculus with mutable state expressly designed designed
 to support different gradual type systems. The calculus has a number of
-features specifically for that purpose. It has two kninds of type casts.
+features specifically for that purpose. It has two kinds of type casts.
 Structural casts, \SubCast\t\a, check if the object referenced by \a is a
 subtype of type \t.  Behavioral casts, \BehCast\t\a, create wrappers that
 enforce that the object referenced by \a behaves as if it was of type \t.
@@ -155,7 +155,7 @@ of soundness for \kafka in Coq inclusive of its casts and of the runtime
 class generation needed to implement them.  We completed a proof-of-concept
 implementation of the calculus on top of the .NET virtual machine to
 demonstrate that this design matches the features available in commercial
-system. The only challenge in that implementation was to suppor structural
+system. The only challenge in that implementation was to support structural
 subtyping which is required by behavioral and transient, neither approach is
 sensible in nominal type system.
 
@@ -164,14 +164,14 @@ terms into \kafka term.  These translations make explicit which of the
 underlying type system's guarantees can be relied upon statically, and where
 dynamism is really required. Part of our contribution are the four
 translations, each taking a gradually typed expression \HT\e\T in a source
-language implementing one of the above mentionned approaches and returning
+language implementing one of the above mentioned approaches and returning
 the corresponding \kafka term. The translation of a term entails translating
 the classes needed to evaluate it.  The translations allows us to study
 where program can get stuck in the different systems.  With gradual types,
 an expression \Call\x\m\e, where \x is declared to be of class \C, can have
 significantly different behavior depending on choices made while designing
 the type system. We believe that expressing the semantics of gradually typed
-object-oriented languages as translations into a core illiminates the
+object-oriented languages as translations into a core illuminates the
 difference and similarities between designs.
 
 
@@ -203,7 +203,7 @@ errors was an important design consideration. Another consideration was to
 prevent surprises for beginning users, thus the value held in a variable
 annotated as a \C should always behave as a \C. To aid debugging, any
 departure from the expected behavior of an object, as defined by its
-behavioraltype, must be reported at the first discrepancy.  Whenever a value
+behavioral type, must be reported at the first discrepancy.  Whenever a value
 crosses a boundary between typed and untyped code, it is wrapped in a
 contract that monitors its behavior. This ensures that mutable values
 remains consistent with their declared type and functions respect their
@@ -857,7 +857,7 @@ runtime that provides the behavioral cast
 operation.\footnote{https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl}.
 
 The only substantial challenge in the development relates to one of our
-earliest design choices: structural subtyoing.  Structural typing is key for
+earliest design choices: structural subtyping.  Structural typing is key for
 the consistent subtyping used in Reticulated Python, but few virtual
 machines have built-in support for it. Our implementation converts
 structural types to nominal types, maintaining semantic equivalence.  We do
