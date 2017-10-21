@@ -137,44 +137,43 @@ This paper introduces a core calculus for evaluating gradual type systems
 for object-oriented languages. The calculus, \kafka, is a statically typed
 class-based object calculus with mutable state expressly designed designed
 to support different gradual type systems. The calculus has a number of
-features that
+features specifically for that purpose. It has two kninds of type casts.
+Structural casts, \SubCast\t\a, check if the object referenced by \a is a
+subtype of type \t.  Behavioral casts, \BehCast\t\a, create wrappers that
+enforce that the object referenced by \a behaves as if it was of type \t.
+To do this, the calculus support runtime generation of a classes and
+transparent wrappers.  The \kafka type system has two kinds of types;
+classes and the dynamic type \any.  More technically, \kafka has two kinds
+of method calls, statically resolved calls, \KCall\a\m\x\t\tp, and
+dynamically resolved ones, \DynCall\a\m\x. This goes to choice of a
+statically typed core calculus. It makes obvious which calls are guaranteed
+to succeed without error (statically resolved calls) and which calls may
+fail at runtime (dynamically resolved calls).
 
+This paper presents a semantics for \kafka and reports on a mechanized proof
+of soundness for \kafka in Coq inclusive of its casts and of the runtime
+class generation needed to implement them.  We completed a proof-of-concept
+implementation of the calculus on top of the .NET virtual machine to
+demonstrate that this design matches the features available in commercial
+system. The only challenge in that implementation was to suppor structural
+subtyping which is required by behavioral and transient, neither approach is
+sensible in nominal type system.
 
-It allows the dynamic generation of wrapper classes (by addition of new
-classes to the class table \K and allocation of objects \a).  Methods can be
-statically resolved, denoted by a typed call \KCall\a\m\x\t\tp, or can be
-dynamically resolved, denoted by a dynamic call \DynCall\a\m\x. The \kafka
-type system has two kinds of types; classes which give rise to homonymous
-types, and the dynamic type \any.  \kafka subtyping is structural with
-recursion.  The heart of any gradual type system are the explicit casts that
-are inserted at type boundaries.  Structural casts, \SubCast\t\a, check if
-the object referenced by \a is a subtype of type \t.  Behavioral casts,
-\BehCast\t\a, create wrappers that enforce a specific type, this entails
-runtime generation of a new class. Finally, We give \kafka an operational
-semantics. We report on a mechanized proof of soundness for \kafka inclusive
-of its casts, as well as a proof-of-concept implementation of the calculus
-on top of the .NET virtual machine.
+Gradually typed languages can be represented as translations from source
+terms into \kafka term.  These translations make explicit which of the
+underlying type system's guarantees can be relied upon statically, and where
+dynamism is really required. Part of our contribution are the four
+translations, each taking a gradually typed expression \HT\e\T in a source
+language implementing one of the above mentionned approaches and returning
+the corresponding \kafka term. The translation of a term entails translating
+the classes needed to evaluate it.  The translations allows us to study
+where program can get stuck in the different systems.  With gradual types,
+an expression \Call\x\m\e, where \x is declared to be of class \C, can have
+significantly different behavior depending on choices made while designing
+the type system. We believe that expressing the semantics of gradually typed
+object-oriented languages as translations into a core illiminates the
+difference and similarities between designs.
 
-Translating a gradually typed language into a statically typed language,
-such as the JVM's bytecode or \kafka makes explicit which of the underlying
-type system's guarantees can be relied upon statically, and where dynamism
-is really required. A core part of our contribution is the four
-translations, each taking a gradually typed expression \HT\e\T in the source
-language and returning the corresponding \kafka term. The translation of a
-term entails translating the classes needed to evaluate it.  The
-translations allows us to study where program can get stuck in the different
-systems.  With gradual types, an expression \Call\x\m\e, where \x is
-declared to be of class \C, can have significantly different behavior
-depending on choices made while designing the type system. TypeScript has
-\emph{optional types}; any call can get stuck, as every type translates to
-\any. Thorn has \emph{concrete types}; a program will not get stuck at calls
-on these types as they translate to statically typed method calls in
-\kafka. Typed Racket has \emph{promised types}; a well-typed program will
-not get stuck at a call to \m, because \x refers to an object, or wrapper,
-that implements \m. Wrappers may fail if their target does not behave like
-the type that they enforce. Transient Python will also allow calls to go
-through, but may get stuck if the called function returns a value of the
-wrong type.
 
 \section{Background}
 
