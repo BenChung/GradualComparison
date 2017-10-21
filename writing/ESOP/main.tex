@@ -186,11 +186,11 @@ side is the Strongtalk optional type system~\cite{Bracha93}, which led to
 Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types
 exist solely to catch errors at compile-time, never affecting the runtime
 behavior of programs. The rationale is that types are an add-on that can be
-turned off without affecting semantics.  In the words of Richards~\emph{et
-  al.}~\cite{ecoop15}, an optional type system is \emph{trace preserving},
-which means that if a term \e reduces to value \a, adding type annotations
-will never cause \e to get stuck. This property is valuable to developers as
-type annotations will not introduce errors or affect performance.  Optional
+turned off without affecting semantics.  In the term of Richards~\emph{et
+  al.}~\cite{ecoop15}, an optional type system is \emph{trace preserving}, a
+if when term \e reduces to value \a, adding type annotations will never
+cause \e to get stuck. This property is valuable to developers as type
+annotations will not introduce errors (or affect performance).  Optional
 type systems in wide use include Hack~\cite{hack13}, TypeScript~\cite{BAT14}
 and Dart~\cite{dart13}.
 
@@ -203,13 +203,14 @@ errors was an important design consideration. Another consideration was to
 prevent surprises for beginning users, thus the value held in a variable
 annotated as a \C should always behave as a \C. To aid debugging, any
 departure from the expected behavior of an object, as defined by its
-promised type, must be reported at the first discrepancy.  Whenever a value
+behavioraltype, must be reported at the first discrepancy.  Whenever a value
 crosses a boundary between typed and untyped code, it is wrapped in a
 contract that monitors its behavior. This ensures that mutable values
 remains consistent with their declared type and functions respect their
 declared interface. When a value misbehaves, blame can be assigned to a
 boundary. The granularity of typing is the module, thus a module is either
 entirely typed or entirely untyped. 
+
 
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
@@ -228,7 +229,10 @@ validating if the value obtained has matching method names.  The
 \emph{monotonic} mode is fundamentally different. Under the monotonic
 semantics, a cast updates the type of an object in place by replacing some
 of the occurrences of \any with more specific types, which can then
-propagate recursively through the heap until a fixed point is reached.
+propagate recursively through the heap until a fixed point is
+reached.\footnote{A previous version of this paper provided a translation
+  for monotonic. We removed it for space reason and because the authors
+  of Reticulated Python seem to have abandoned the approach.}
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, and
@@ -242,25 +246,25 @@ sublanguage in which values are guaranteed to be of their declared type.
 The implementation replaces \any by the type {\tt object} and adds casts
 where needed.  Thorn and StrongScript extend the C\# approach with the
 addition of optional types (called {\em like types} in Thorn).  Thorn is
-implemented by translation to the JVM. The presence of concrete types means
-that the compiler can optimize code (unbox data and in-line methods) and
-programmers are guaranteed that type errors will not occur within concretely
-typed code.
+implemented by translation to the JVM. StrongScript translate to an extended
+version of V8. The presence of concrete types means that the compiler can
+optimize code (unbox data and in-line methods) and programmers are
+guaranteed that type errors will not occur within concretely typed code.
+
 
 \newcommand{\rot}[1]{\rotatebox{80}{#1}}
 \newcommand{\X}{\EM{\bullet}}
 \newcommand{\XX}{\EM{\bullet^{(2)}}}
 \newcommand{\XY}{\EM{\bullet^{(1)}}}
 
-\begin{figure}[!ht]
+\begin{figure}[!t]
   \center
-~ \\[2cm]
   {\footnotesize
 \begin{tabular}{r|lllllllllllllr}
  & & \rot{Nominal}
   & \rot{Optional types}
   & \rot{Concrete types}
-  & \rot{Promised types}
+  & \rot{Behavioral types}
   & \rot{Class based}
   & \rot{First-class Class}
   & \rot{Soundness claim}
@@ -299,20 +303,27 @@ Reticulated Python    \\
 
 \figref{over} reviews gradual type systems with publicly available
 implementations. All languages here are class-based, except TypeScript which
-has both classes and plain JavaScript objects. Most languages base subtyping
-on explicit name-based subtype declarations, rather than on structural
-similarities.  TypeScript uses structural subtyping, but does not implement
-a runtime check for it.  Anecdotal evidence suggests that structural
-subtyping is rarely needed in TypeScript~\cite{ecoop15}. StongScript extends
-TypeScript changing subtyping back to nominal.  The consistency relation
-used in Reticulated Python is fundamentally structural, it would be
-nonsensical to use it in a nominal system.\footnote{Consistency relates
-  classes that differ in the number of occurrences of \any in their type
-  signature and not whether they are declared to extend one another.}  For
-Racket, the heavy use of first-class classes and class generation naturally
-leads to structural subtyping as many of the classes being manipulated have
-no names.  Optional types are the default execution mode for Dart, Hack and
-TypeScript.  Transient Python is, in some senses, optionally typed as any
+has both classes and plain JavaScript objects. That choice does not appear
+to be crucial to the approach, but since type declarations are needed,
+classes are an obvious way to introduce them.  Most languages base subtyping
+on explicit name-based subtype declarations (nominal subtyping, rather than
+on structural similarities.  TypeScript uses structural subtyping, but does
+not implement a runtime check for it.  Anecdotal evidence suggests that
+structural subtyping is rarely needed in TypeScript~\cite{ecoop15}, and in
+fact, StrongScript extends TypeScript changing subtyping back to nominal for
+improved performance. While nominal subtyping leads to more efficient type
+casts, the consistency relation used in Reticulated Python is fundamentally
+structural, it would be nonsensical to use it in a nominal
+system.\footnote{Consistency relates classes that differ in the number of
+  occurrences of \any in their type signature and not whether they are
+  declared to extend one another. There is no clear way to have consistency
+  and nominal subtyping in the same context.}  For Racket, the heavy use of
+first-class classes and class generation naturally leads to structural
+subtyping as many of the classes being manipulated have no names and arise
+during computation.
+
+Optional types are the default execution mode for Dart, Hack and TypeScript.
+Transient Reticulated Python is, in some senses, optionally typed as any
 value can flow into a variable regardless of its type annotation, leading to
 its ``open world'' soundness guarantee~\cite{siek14}.  In Thorn and C\#,
 primitives are concretely typed; they can be unboxed without tagging.  The
@@ -321,7 +332,7 @@ types naturally tend to use subtype casts to establish the type of
 values. For nominal systems, there are highly optimized algorithms. Shallow
 casts are casts that only check the presence of methods, but not their
 signature. These are used by Racket and Python to ensure some basic form of
-type conformance. Generative casts are used when information such as a type
+type conformance. Behavioral casts are used when information such as a type
 or a blame label must be associated with a reference or an object.
 
 Blame assignment is a topic of investigation in its own right. Anecdotal
@@ -331,7 +342,7 @@ printed by Java when a program terminates abruptly. Developers working in,
 e.g, C++ must run their program in a debugger to obtain the same
 information. Stack traces have little runtime cost because they piggyback on
 precise exceptions. Recording blame has a cost, but no data exists on its
-performance impact.
+performance impact. We do not consider blame further in this paper.
 
 The last column of \figref{over} lists self-reported performance
 pathologies.  These numbers are not comparable as they refer to different
@@ -342,8 +353,9 @@ optional types no overhead is expected, as the type annotations are erased
 during compilation. Concrete types insert efficient casts, and lead to code
 that can be optimized.  The performance of the transient semantics for
 Reticulated Python is a worst case scenario for concrete types -- i.e. there
-is a cast at almost every call. Finally, languages with generative
-casts tend to suffer prohibitive slow downs in pathological cases.
+is a cast at almost every call. Finally, languages with behavioral casts
+tend to suffer prohibitive slow downs in pathological cases. Compiler
+optimizations for reducing these overheads are an active research topic.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -351,18 +363,17 @@ casts tend to suffer prohibitive slow downs in pathological cases.
 
 %\epigraph{\hspace{-1cm}\small\it ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}\vspace{-5mm}
 
-\noindent The basis of our formal approach is \kafka, a class-based,
-statically typed, object-oriented language. The distinctive features of the
-calculus are its support for both typed and untyped method invocation, as well
-as dynamic class generation through explicit class tables.  The features of
-\kafka are modeled on common compilation targets for object-oriented language
-such as the JVM's Java Bytecode or the .NET CLR's Common Intermediate
-Language, both of which are typed intermediate languages with support for
-untyped method calls (through reflection) and class generation (via dynamic
-loading). Our design is guided by the intuition that the semantics of
-gradually-typed object-oriented languages can be represented by translation to
-a common representation through the introduction of \emph{casts} and
-\emph{wrappers}.
+\noindent \kafka is a class-based, statically typed, object-oriented
+calculus. The distinctive features of the calculus are its support for both
+typed and untyped method invocation, as well as dynamic class generation
+through explicit class tables.  The features of \kafka are modeled on common
+compilation targets for object-oriented language such as the JVM's Java
+Bytecode or the .NET CLR's Common Intermediate Language, both of which are
+typed intermediate languages with support for untyped method calls (through
+reflection) and class generation (via dynamic loading). Our design is guided
+by the intuition that the semantics of gradually-typed object-oriented
+languages can be represented by translation to a common representation
+through the introduction of \emph{casts} and \emph{wrappers}.
 
 \begin{figure}[!h]\hrulefill
 
@@ -393,68 +404,44 @@ a common representation through the introduction of \emph{casts} and
 \end{tabular}\end{minipage} 
 \end{tabular}
 
-\vspace{4mm}
+\vspace{2mm}
 
-\noindent\hrulefill
-\caption{\kafka Syntax.}\label{syn}
+\noindent\hrulefill\caption{\kafka Syntax.}\label{syn}
 \end{figure}
 
 \paragraph{Syntax}  
-\kafka is an object calculus that satisfies the above design
-requirements. Its syntax is given in \figref{syn}.  Types consist of class
-names \C, \D and the dynamic type, written \any.  Class definitions have a
-class name and (possibly empty) sequences of field and method definitions,
+\kafka's syntax is given in \figref{syn}.  Types consist of class names \C,
+\D and the dynamic type, written \any.  Class definitions have a class name
+and sequences of field and method definitions,
 \Class\C{\fd[1]..}{\md[1]..}. Field definitions consist of a field and its
 type, \Fdef\f\t. Method definitions have (for simplicity) a single argument
 and an expression, denoted \Mdef\m\x\t\t\e.  \kafka supports a limited form
 of overloading, allowing both a typed implementation and an untyped
 implementation for each method.  Fields are private to objects, and can be
 accessed only from the object's scope; reading a field is denoted
-\(\FRead\f\) and writing a field is denoted \(\FWrite\f\e \).  The calculus
-supports both statically and dynamically resolved method invocation.  A
-statically resolved call, denoted \KCall\e\m\ep\t\tp, is guaranteed to
-succeed as the type system ensures that the expression \e will evaluate to
-an object of a class which has a method \Mtype\m\t\tp. A dynamically
-resolved call, \DynCall\e\m\ep, can get stuck if the object that \e
-evaluates to does not have a method \Mtype\m\any\any.  We let meta-variables
-\x ranges over variable names, \m and \f range over methods and fields
-respectively; \this is a distinguished identifier representing a method
-receiver, while \that is a distinguished field name that will be used in
-wrapper classes.  Providing two different cast mechanisms is a key feature
-of the calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\),
-denotes the usual subtype cast that dynamically type-checks its argument.
-The latter, the \emph{behavioral cast}, \(\BehCast\t\e\), rather than
-type-checking the argument at runtime, builds a wrapper around it.  The
-wrapper then ensures that all the successive requests to the object will be
-understood (or raise an error). The design of the behavioral cast is
-intricate, and deserves its own section below.  State is represented via a
-heap \s mapping addresses ranged over by \a to objects
-denoted \hspace{-1mm}\obj\C{\a[1]..}.
+\(\FRead\f\) and writing a field is denoted \(\FWrite\f\e \).  A statically
+resolved call, denoted \KCall\e\m\ep\t\tp, is guaranteed to succeed as the
+type system ensures that the expression \e will evaluate to an object of a
+class which has a method \Mtype\m\t\tp. A dynamically resolved call,
+\DynCall\e\m\ep, can get stuck if the object that \e evaluates to does not
+have a method \Mtype\m\any\any.  We let meta-variables \x ranges over
+variable names, \m and \f range over methods and fields respectively; \this
+is a distinguished identifier representing a method receiver, while \that is
+a distinguished field name that will be used in wrapper classes.  Providing
+two different cast mechanisms is a key feature of the calculus.  The former,
+the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast
+that dynamically type-checks its argument.  The latter, the \emph{behavioral
+  cast}, \(\BehCast\t\e\), rather than type-checking the argument at
+runtime, builds a wrapper around it.  The wrapper then ensures that all the
+successive requests to the object will be understood (or raise an
+error). The design of the behavioral cast is intricate, and deserves its own
+section below.  State is represented via a heap \s mapping addresses ranged
+over by \a to objects denoted \hspace{-1mm}\obj\C{\a[1]..}. In some cases
+we allow the body of a method to be multiple expressions separated by
+a semi column, \e;\e, this is syntactic sugar (it can be encoded by creating
+a synthetic object with two fields).
 
-
-\paragraph{Static semantics} A well-formed program, denoted \WFp\e\K, consists
-of an expression \e and a class table \K, where each class \k is well-formed
-and \e is well-typed with respect to \K.  A class is well-formed if all its
-fields and methods are well-typed and it has at most two definitions for any
-method \m, one typed \Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The
-static semantics of \kafka is mostly standard; the complete set of rules is in
-Appendix FIXME.  The subtype relation, \StrSub\M\K\t\tp, shown in
-\figref{sub}, allows for recursive structural subtyping, using the environment
-\M as in the amber rule.  The dynamic type \any is a singleton in the subtype
-relation, it is neither a super or a sub-type of any other type.  The notation
-\md\In\App\K\C denotes the method definition \md occurring in class \C and
-class table \K.  Recall fields are hidden from the class type signature, so
-subtyping is limited to method definitions.  Key type rules are in
-\figref{f:staticsem}.  Method calls use syntactic disambiguation to select
-between methods, based on type signature, where dynamic method invocation (@)
-always invokes methods of type\any. A dynamically resolved call places no
-requirements on the receiver or argument, and returns a value of type \any.  A
-statically resolved call has the usual type requirements on arguments. The two
-subtype cast rules are similar; they ensure the value has the cast-to type.
-However, their enforcement mechanisms are very different, as will be discussed
-later.
-
-\begin{figure}[!t] \hrulefill\small
+\begin{figure}[!b] \hrulefill\small
 
 \vspace{-2mm}
 
@@ -484,10 +471,34 @@ later.
 }
 \end{mathpar}
 
-\hrulefill\caption{\kafka subtyping}\label{sub}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hrulefill\caption{\kafka subtyping}\label{sub}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{figure}
 
 
-\hrulefill\small
+\paragraph{Static semantics} A well-formed program, denoted \WFp\e\K, consists
+of an expression \e and a class table \K, where each class \k is well-formed
+and \e is well-typed with respect to \K.  A class is well-formed if all its
+fields and methods are well-typed and it has at most two definitions for any
+method \m, one typed \Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The
+static semantics of \kafka is mostly standard; the complete set of rules is in
+Appendix.  The subtype relation, \StrSub\M\K\t\tp, shown in
+\figref{sub}, allows for recursive structural subtyping, using the environment
+\M as in the amber rule.  The dynamic type \any is a singleton in the subtype
+relation, it is neither a super or a sub-type of any other type.  The notation
+\md\In\App\K\C denotes the method definition \md occurring in class \C and
+class table \K.  Fields are hidden from the class type signature, so
+subtyping is limited to method definitions.  Key type rules are in
+\figref{f:staticsem}.  Method calls use syntactic disambiguation to select
+between methods, based on type signature, where dynamic method invocation (@)
+always invokes methods of type\any. A dynamically resolved call places no
+requirements on the receiver or argument, and returns a value of type \any.  A
+statically resolved call has the usual type requirements on arguments. The two
+subtype cast rules are similar; they ensure the value has the cast-to type.
+However, their enforcement mechanisms are very different, as will be discussed
+later.
+
+
+\begin{figure}[!t] \hrulefill\small
 
 \begin{mathpar}
 \Rule{W6}{
@@ -574,15 +585,10 @@ subtype of \C.  Evaluation contexts are deterministic and enforce a strict
 evaluation order.
 
 
-
-
-%
 \begin{figure}[!h]
 \noindent\hrulefill
 
-
-\medskip
-\small
+\medskip\small
 
 \begin{minipage}{\textwidth}
 \small        
@@ -609,33 +615,31 @@ evaluation order.
 \end{minipage}
 
 \medskip
-
 \hrulefill
 \caption{\kafka dynamic semantics}\label{fig:semantics}
 \end{figure}
 
 
+A behavioral cast \BehCast\t\a creates a wrapped object \ap which
+dynamically checks that object \a behaves as if it was of type \t.  We refer
+to the type of \a as the \emph{source} type, and to the type \t as the
+\emph{target} type. This cast is generative as it creates both a new class
+(for the wrapper object) and a new instance of that class (the wrapper
+itself). Its dynamic semantics is reported in \figref{behavetext} and
+\figref{w}.  When the target type is a class, say \Cp, the bcast function
+wraps a reference \a with an instance of a freshly generated wrapper class
+\D that abides by the interface of \Cp or gets stuck. The function allocates
+the wrapper in the heap and updates the class table.  The cast performs a
+check that the source type has at least all the method names requested by
+the target type.  Also the cast is not defined for classes with overloaded
+methods (\textsf{nodups} prevents it from being used in this case).  This
+prevents ambiguity in method resolution for wrapped objects. When the target
+type is \any, the cast allows \a to act like an instance of \any.
 
-\paragraph{Behavioral Casts}\label{p:behcast} A cast \BehCast\t\a creates a
-wrapped object \ap which dynamically checks that object \a behaves as if it
-was of type \t.  We refer to the type of \a as the \emph{source} type, and to
-the type \t as the \emph{target} type. This cast is generative as it creates
-both a new class (for the wrapper object) and a new instance of that class
-(the wrapper itself). Its dynamic semantics is reported in \figref{behavetext}
-and \figref{w}.  When the target type is a class, say \Cp, the bcast function
-wraps a reference \a with an instance of a freshly generated wrapper class \D
-that abides by the interface of \Cp or gets stuck. The function allocates the
-wrapper in the heap and updates the class table.  The cast performs a check
-that the source type has at least all the method names requested by the target
-type.  Also the cast is not defined for classes with overloaded methods
-(\textsf{nodups} prevents it from being used in this case).  This prevents
-ambiguity in method resolution for wrapped objects. When the target type is
-\any, the cast allows \a to act like an instance of \any.
-
-One way to understand wrappers is that they play two roles, they check that
-object being wrapped has the method expected by the target type, and they
-are adapters that ensure \kafka code is well-typed. Consider for example
-a \EM{\BehCast\D\New\C{}} where \C and \D are defined as follows.
+Wrappers play two roles: they check that object being wrapped has the method
+expected by the target type, and they are adapters that ensure \kafka code
+is well-typed. Consider for example a \EM{\BehCast\D\New\C{}} where \C and
+\D are defined as follows.
 
 \begin{tabbing}
 \hspace{1cm}\= \class\= \C \{    \hspace{3cm}\=  \class\=  \D \{\\
@@ -707,35 +711,37 @@ achieved by generating a new class with the right method signatures.
 
 
 Wrapper class generation is implemented by the \xt{W} and \xt{W\!\any}
-functions. Their first three arguments \(\C\), \(\md[1]..\), \(\mdp[1]..\)
-are the source type and its methods definitions, and the method definitions
-of the target type. The fourth argument, \(\D\), is the class name of the
-wrapper class being built; this is always a fresh name. The last argument is
-the \that field name, which is also fresh.  The function builds a new
-wrapper class \(\D\).  The field \that stores a reference to the target
-object and has thus type \(\C\).  The invocation of a method that appears in
-\(\mdp[1]..\) is forwarded to the corresponding method invocation in
-\(\md[1]\), except that the arguments are protected by behavioral casts
-following the interface in \(\md[1]..\) and the return type following the
-interface in \(\mdp[1]..\).  Methods defined in the source type but missing
-from \(\mdp[1]..\) are added to the wrapper class and simply redirected to
-corresponding method in the wrapped object.  Wrapping an object so that it
-behaves as \any is simpler, as the wrapper systematically protects the input
-type and casts back the return type to \any. Only methods existing in the
-source type are wrapped. The behavioral cast reduction rule satisfies a
-property instrumental to our design: a wrapper class generated for a target
-type \D, is always a subtype of \D.  This will allow us to refer to both
-unwrapped and wrapped objects via the original, source language, types. The
-wrapper generation function will always produce a well-formed class for a
-target type $\D$. The reason being that the wrapper class only contain
-methods from either the source or the target type. The wrapper class will
-also never contain any duplicates as it can only contain methods that exists
-in the source type.  Furthermore, at most the wrapper class will contain
-every method of the source type.
+functions. Their first three arguments \C, \(\md[1]..\), \(\mdp[1]..\) are
+the source type and its methods definitions, and the method definitions of
+the target type. The fourth argument, \D, is the class name of the wrapper
+class being built; this is always a fresh name. The last argument is the
+\that field name, which is also fresh.  The function builds a new wrapper
+class \D.  The field \that stores a reference to the target object and has
+thus type \C.  The invocation of a method that appears in $\mdp[1]..$ is
+forwarded to the corresponding method invocation in $\md[1]$, except that
+the arguments are protected by behavioral casts following the interface in
+$\md[1]..$ and the return type following the interface in $\mdp[1]..$.
+Methods defined in the source type but missing from $\mdp[1]..$ are added to
+the wrapper class and simply redirected to corresponding method in the
+wrapped object.  Wrapping an object so that it behaves as \any is simpler,
+as the wrapper systematically protects the input type and casts back the
+return type to \any. Only methods existing in the source type are
+wrapped. The behavioral cast reduction rule satisfies a property
+instrumental to our design: a wrapper class generated for a target type \D,
+is always a subtype of \D.  This will allow us to refer to both unwrapped
+and wrapped objects via the original, source language, types. The wrapper
+generation function will always produce a well-formed class for a target
+type \D. The reason being that the wrapper class only contain methods from
+either the source or the target type. The wrapper class will also never
+contain any duplicates as it can only contain methods that exists in the
+source type.  Furthermore, at most the wrapper class will contain every
+method of the source type.
 
 \subsection{Type soundness} 
-We have mechanized the type soundness proof for \kafka in Coq, available online \footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}. In Coq syntax, the
-conditions for \kafka's type soundness theorem is stated as follows:
+We have mechanized the type soundness proof for \kafka in
+Coq\footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}. In
+Coq syntax, the conditions for \kafka's type soundness theorem is stated as
+follows:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
@@ -746,17 +752,18 @@ $\forall$ (k:ct) (s:heap) (e:expr) (t:type),
 \end{lstlisting}
 
 Our Coq mechanization is identical to our formalism. In particular, the
-inference rules $\EnvType\Env\s\k\e\t$ and $\WFq{\K~\e~\s}$ is equivalent 
-to the Coq functions \emph{HasType} and \emph{WellFormedState} respectively. 
-Note that in each of the three error stuck states, cases 3 through 5, the actual stuck
-expression can be inside some evaluation context \verb|E|. The \emph{equivExpr} function
-fills in the hole in \verb|E| with the given expression.
+inference rules $\EnvType\Env\s\k\e\t$ and $\WFq{\K~\e~\s}$ is equivalent to
+the Coq functions \emph{HasType} and \emph{WellFormedState} respectively.
+Note that in each of the three error stuck states, cases 3 through 5, the
+actual stuck expression can be inside some evaluation context \verb|E|. The
+\emph{equivExpr} function fills in the hole in \verb|E| with the given
+expression.
 
-Our theorem states that for any class table (\verb|k|), heap
-(\verb|s|), expression (\verb|e|), and type (\verb|t|), if the state is well
-formed (condition 1), and if the top-level expression \verb|e| has type
-\verb|t| (condition 2), then the program can only make one of the following
-five choices:
+The theorem states that for any class table (\verb|k|), heap (\verb|s|),
+expression (\verb|e|), and type (\verb|t|), if the state is well formed
+(condition 1), and if the top-level expression \verb|e| has type \verb|t|
+(condition 2), then the program can only make one of the following five
+choices:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
@@ -764,9 +771,10 @@ morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}
 \end{lstlisting}
 
 \begin{description}
-\item[Case 1] The program is already fully evaluated. Since \kafka has only one value,
-reference (ref in our Coq formalization), we can say that there exists some
-reference that is equal to our entire program, or $\exists$ \verb|a : ref, e = Ref a|.
+\item[Case 1] The program is already fully evaluated. Since \kafka has only
+  one value, reference (ref in our Coq formalization), we can say that there
+  exists some reference that is equal to our entire program, or $\exists$
+  \verb|a : ref, e = Ref a|.
 \end{description}
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
@@ -779,10 +787,11 @@ morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}
 \end{lstlisting}
 \begin{description}
 \item[Case 2] The program can take a step. In this case, the program will
-step to some new configuration (expression \verb|e|$'$, heap \verb|s|$'$, and
-class table \verb|k|$'$) that is both itself well formed and that retains all of
-the entries and types in the old heap \verb|s| (expressed using
-\emph{retains{\textunderscore}references}) and class table \verb|k| (expressed using \emph{ct{\textunderscore}ext}).
+  step to some new configuration (expression \verb|e|$'$, heap \verb|s|$'$,
+  and class table \verb|k|$'$) that is both itself well formed and that
+  retains all of the entries and types in the old heap \verb|s| (expressed
+  using \emph{retains{\textunderscore}references}) and class table \verb|k|
+  (expressed using \emph{ct{\textunderscore}ext}).
 \end{description}
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
@@ -795,8 +804,10 @@ morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}
 \end{lstlisting}
 \begin{description}
   \item[Case 3] The program could be stuck at a dynamic call expression. The
-dynamic call expression of the form \emph{DynCall} (\emph{Ref} \texttt{a) m (}\emph{Ref} \texttt{a}$'$) can get stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
-that does not contain a method \verb|m| to call. 
+    dynamic call expression of the form \emph{DynCall} (\emph{Ref}
+    \texttt{a) m (}\emph{Ref} \texttt{a}$'$) can get stuck if \verb|a|
+    refers to an instance of class \verb|C| in \verb|s| that does not
+    contain a method \verb|m| to call.
 \end{description}
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
@@ -807,10 +818,11 @@ morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}
        ((--(\emph{Subtype})-- --(\emph{empty{\textunderscore}mu})-- k (--(\emph{class})-- C) t$'$) -> False)) $\vee$
 \end{lstlisting}
 \begin{description}
-  \item[Case 4] The program could have gotten stuck on a subtype cast. 
-In an expression of the form \emph{SubCast} \texttt{t$'$} (\emph{Ref} \texttt{a)}, the program
-can get stuck if \verb|s| maps \verb|a| to an object of class \verb|C|,
-and if \verb|C| is not a subtype of \verb|t|$'$.
+  \item[Case 4] The program could have gotten stuck on a subtype cast.  In
+    an expression of the form \emph{SubCast} \texttt{t$'$} (\emph{Ref}
+    \texttt{a)}, the program can get stuck if \verb|s| maps \verb|a| to an
+    object of class \verb|C|, and if \verb|C| is not a subtype of
+    \verb|t|$'$.
 \end{description}
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
@@ -822,63 +834,54 @@ morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}
 \end{lstlisting}
 \begin{description}
   \item[Case 5] The program may get stuck on a behavioral cast, of the form
-\emph{BehCast} (\emph{class} \texttt{C}$'$) (\emph{Ref} \texttt{a}), if \verb|C|, the class of \verb|a| in
-\verb|s| does not have all of the methods needed to implement \verb|C|$'$.
+    \emph{BehCast} (\emph{class} \texttt{C}$'$) (\emph{Ref} \texttt{a}), if
+    \verb|C|, the class of \verb|a| in \verb|s| does not have all of the
+    methods needed to implement \verb|C|$'$.
 \end{description}
 
 We have proven that a \kafka program will not get stuck, except if it
-encounters a dynamic call to an object that does not have the required method,
-tries to use subtype cast on a value that is not actually a subtype, or attempts
-to force an object to act like another object, however with missing required 
-method signature. 
-
-As a result of this soundness theorem, the \kafka type system provides a
-strong guarantee of progress, where most expressions are guaranteed to step.
-By providing this guarantee, we localize where \kafka programs could
-potentially encounter runtime errors, which will allow us to reason easily
-about where gradually typed programs go wrong under each of the semantics.
+encounters a dynamic call to an object that does not have the required
+method, tries to use subtype cast on a value that is not actually a subtype,
+or attempts to force an object to act like another object, however with
+missing required method signature.  The \kafka type system provides a
+guarantee of progress, most expressions are guaranteed to step.  This
+localizes where \kafka programs could potentially encounter runtime errors,
+which helps reasoning about where gradually typed programs go wrong.
 
 \subsection{Implementation}
 
 We designed \kafka to have a close correspondence to the intermediate
-languages used by common VMs. To validate this aspect of our design, we
+languages of commercial VMs. To validate this aspect of our design, we
 implemented a small compiler from \kafka to C\# and the CLR, alongside a
-runtime that provides the behavioral cast operation. The implementation is
-available online \footnote{https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl}.
+runtime that provides the behavioral cast
+operation.\footnote{https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl}.
 
-The only substantial challenge in the development relates to one of our earliest design
-choices: the use of a structural type system. As previously mentioned,
-structural typing is key for the consistent subtyping used in Reticulated
-Python, but few virtual machines have built-in support for it. Thus our
-implementation converts structural types to nominal types, maintaining
-semantic equivalence.  We do this by whole program analysis. Consider a
-class table \K, and assume that \StrSub{}\K\t\tp for some \t and \tp. C\#
-already handles the case where \t or \tp is \any, via its \xt{dynamic} type,
-which has the same semantics as \any in \kafka. If $\t=\C$ and $\tp=\D$,
-then we generate the interface \xt{ID}, which the translated version of \C
-implements. \xt{ID} has the same methods as \D, allowing the same operations
-to be performed on its instances. We then refer to \D by \xt{ID} in the
-generated C\# type signatures and casts, which then allows our translation
-of \C to be used wherever a \D is expected, satisfying subtyping. If we
-apply this to every pair of types \C and \D where the subtyping relation
-holds, the C\# subtyping relation ends up mirroring the \kafka one exactly.
-C\# has another quirk in its type system, namely it does not allow for
-covariance or contravariance in interface implementation, whereas \kafka's
-subtyping allows both. However, C\# does allow for \emph{explicit
-  implementations}, which we use to implement covariant and contravariant
-interface implementation, by explicitly calling out the interface method to
-implement and forwarding to the actual implementation.
+The only substantial challenge in the development relates to one of our
+earliest design choices: structural subtyoing.  Structural typing is key for
+the consistent subtyping used in Reticulated Python, but few virtual
+machines have built-in support for it. Our implementation converts
+structural types to nominal types, maintaining semantic equivalence.  We do
+this by whole program analysis. Consider a class table \K, and assume that
+\StrSub{}\K\t\tp for some \t and \tp. C\# already handles the case where \t
+or \tp is \any, via its \xt{dynamic} type, which has the same semantics as
+\any in \kafka. If $\t=\C$ and $\tp=\D$, then we generate the interface
+\xt{ID}, which the translated version of \C implements. \xt{ID} has the same
+methods as \D, allowing the same operations to be performed on its
+instances. We then refer to \D by \xt{ID} in the generated C\# type
+signatures and casts, which then allows our translation of \C to be used
+wherever a \D is expected, satisfying subtyping. If we apply this to every
+pair of types \C and \D where the subtyping relation holds, the C\#
+subtyping relation ends up mirroring the \kafka one exactly.  C\# has
+another quirk in its type system, namely it does not allow for covariance or
+contravariance in interface implementation, whereas \kafka's subtyping
+allows both. However, C\# does allow for \emph{explicit implementations},
+which we use to implement covariant and contravariant interface
+implementation, by explicitly calling out the interface method to implement
+and forwarding to the actual implementation.
 
-The goal of our implementation was to validate the choice of features to
-include in \kafka by showing how they match against those provided in modern, high
-performance VMs, and for most of \kafka's functionality, the implementation
-was trivial. What our implementation does not do is provide a picture of the
-performance of the gradual typing systems. This limitation is due to a wide
-range of factors, including having none of the commonly-cited performance
-optimizations, such as threesomes~\cite{siek10}, combined with the inherent
-restrictions on what programs can be reasonably written in \kafka.
-
-%\medskip
+The goal of this implementation was to validate the choice of features
+included in \kafka by showing that they match those provided in modern VMs.
+For most of \kafka's functionality, the implementation was trivial. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
