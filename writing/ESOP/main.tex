@@ -137,7 +137,7 @@ This paper introduces a core calculus for evaluating gradual type systems
 for object-oriented languages. The calculus, \kafka, is a statically typed
 class-based object calculus with mutable state expressly designed designed
 to support different gradual type systems. The calculus has a number of
-features specifically for that purpose. It has two kninds of type casts.
+features specifically for that purpose. It has two kinds of type casts.
 Structural casts, \SubCast\t\a, check if the object referenced by \a is a
 subtype of type \t.  Behavioral casts, \BehCast\t\a, create wrappers that
 enforce that the object referenced by \a behaves as if it was of type \t.
@@ -155,7 +155,7 @@ of soundness for \kafka in Coq inclusive of its casts and of the runtime
 class generation needed to implement them.  We completed a proof-of-concept
 implementation of the calculus on top of the .NET virtual machine to
 demonstrate that this design matches the features available in commercial
-system. The only challenge in that implementation was to suppor structural
+system. The only challenge in that implementation was to support structural
 subtyping which is required by behavioral and transient, neither approach is
 sensible in nominal type system.
 
@@ -164,14 +164,14 @@ terms into \kafka term.  These translations make explicit which of the
 underlying type system's guarantees can be relied upon statically, and where
 dynamism is really required. Part of our contribution are the four
 translations, each taking a gradually typed expression \HT\e\T in a source
-language implementing one of the above mentionned approaches and returning
+language implementing one of the above mentioned approaches and returning
 the corresponding \kafka term. The translation of a term entails translating
 the classes needed to evaluate it.  The translations allows us to study
 where program can get stuck in the different systems.  With gradual types,
 an expression \Call\x\m\e, where \x is declared to be of class \C, can have
 significantly different behavior depending on choices made while designing
 the type system. We believe that expressing the semantics of gradually typed
-object-oriented languages as translations into a core illiminates the
+object-oriented languages as translations into a core illuminates the
 difference and similarities between designs.
 
 
@@ -203,7 +203,7 @@ errors was an important design consideration. Another consideration was to
 prevent surprises for beginning users, thus the value held in a variable
 annotated as a \C should always behave as a \C. To aid debugging, any
 departure from the expected behavior of an object, as defined by its
-behavioraltype, must be reported at the first discrepancy.  Whenever a value
+behavioral type, must be reported at the first discrepancy.  Whenever a value
 crosses a boundary between typed and untyped code, it is wrapped in a
 contract that monitors its behavior. This ensures that mutable values
 remains consistent with their declared type and functions respect their
@@ -859,7 +859,7 @@ runtime that provides the behavioral cast
 operation.\footnote{https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl}.
 
 The only substantial challenge in the development relates to one of our
-earliest design choices: structural subtyoing.  Structural typing is key for
+earliest design choices: structural subtyping.  Structural typing is key for
 the consistent subtyping used in Reticulated Python, but few virtual
 machines have built-in support for it. Our implementation converts
 structural types to nominal types, maintaining semantic equivalence.  We do
@@ -1132,7 +1132,7 @@ used in place of untyped values and vice versa respectively.  If the source
 program type checks correctly, we can proceed with translation to \kafka.
 For each of the four semantics, we provide a translation from this common,
 gradually typed, source language to the statically-typed \kafka target
-language, illustrating how the soundness guarantees provided by each system
+language, illustrating how the guarantees provided by each system
 influence semantics and performance.
 
 
@@ -1172,17 +1172,16 @@ influence semantics and performance.
 \figref{fig:travar} presents the translation for field access and variables,
 with notable exceptions in the transient and optional semantics, these
 operations are translated verbatim. The grey background is used to
-identify translated terms.
-For the optional semantics, we have eliminated the type of the \this
-introduction form by casting to \any. The optional semantics make no other
-alterations to these terms, as it has no soundness guarantee to ensure.
-Transient does not guarantee the values passed to functions or field
-assignment respect the declared type of those expressions. Class translation
-inserts checks for invalid variables upon method entry, so while the
-transient translation has to insert casts to appease the \kafka type system,
-these casts will never fail. However, fields are not protected and requires
-a guard after dereferencing, as values can be passed through them to violate
-their types.
+identify translated terms. For the optional semantics, we have
+eliminated the type of the \this introduction form by casting to \any. The
+optional semantics make no other alterations to these terms, as it has no
+guarantee to ensure.  Transient does not guarantee the values passed to
+functions or field assignment respect the declared type of those
+expressions. Class translation inserts checks for invalid variables upon
+method entry, so while the transient translation has to insert casts to
+appease the \kafka type system, these casts will never fail. However, fields
+are not protected and requires a guard after dereferencing, as values can be
+passed through them to violate their types.
 
 \begin{figure}[!h]
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1209,12 +1208,12 @@ their types.
 \end{figure}
 
 Field assignment, presented in \figref{fig:trassn}, illustrates the distinct
-continuum provided by each gradual type system. Under the unsound optional
+continuum provided by each gradual type system. Under the optional
 semantics, we simply translate the assignment directly, with no guards or
-additional checks. However, in the three sound semantics, the behavior
-differs depending on the strength of the soundness guarantee.  Under the
-transient semantics, field assignment is unchecked, deferring type checking
-to dereferencing. As a result, we use the analytic translation operator to
+additional checks. However, in the three remaining semantics, the behavior
+differs depending on the strength of the guarantees.  Under the transient
+semantics, field assignment is unchecked, deferring type checking to
+dereferencing. As a result, we use the analytic translation operator to
 translate the argument according to the transient semantics. The type of the
 field is erased by targeting the $\star$ type in the translation. Under the
 behavioral and concrete semantics, type consistency is guaranteed for the
@@ -1421,26 +1420,25 @@ mapped to the corresponding field \f:\kty\t.
 
 
 \figref{fig:traclass} presents the class translation for the four gradual
-typing semantics, a key part of their functionality. All need to guard against
-untyped code calling typed receivers through the dynamic invocation, which
-each handles differently. The optional semantics deals with the problem by
-eliminating all typed receivers, but the sound systems need to check argument
-and return types.
-The transient semantics heavily relies upon class translation to achieve the
-desired semantics, especially with relation to how it handles casts. Under the
-transient semantics, all types are removed from the method signatures and
-argument types are instead checked by the method body itself and return types
-by the caller. Now, with no typed methods, structural subtyping becomes
-equivalent to checking that all the required method names hold and no more,
-the cast semantics needed by the transient semantics.
-The behavioral semantics protects typed methods from untyped callers by means
-of the generated untyped wrappers, and, as a result, needs no explicit support 
-for such from its translation. 
-The most complex class translation is that of the concrete semantics, which
-needs to support both typed and untyped callers calling the same class. Here,
-it uses \kafka's type-based overloading to define a special untyped receiver
-method, one that is generated if the original method was typed. This receiver
-method is then responsible for guarding the typed version of the function.
+typing semantics, a key part of their functionality. All need to guard
+against untyped code calling typed receivers through the dynamic invocation,
+which each handles differently. The optional semantics deals with the
+problem by eliminating all typed receivers, but the other systems need to
+check argument and return types.  The transient semantics heavily relies
+upon class translation to achieve the desired semantics, especially with
+relation to how it handles casts. Under the transient semantics, all types
+are removed from the method signatures and argument types are instead
+checked by the method body itself and return types by the caller. Now, with
+no typed methods, structural subtyping becomes equivalent to checking that
+all the required method names hold and no more, the cast semantics needed by
+the transient semantics.  The behavioral semantics protects typed methods
+from untyped callers by means of the generated untyped wrappers, and, as a
+result, needs no explicit support for such from its translation.  The most
+complex class translation is that of the concrete semantics, which needs to
+support both typed and untyped callers calling the same class. Here, it uses
+\kafka's type-based overloading to define a special untyped receiver method,
+one that is generated if the original method was typed. This receiver method
+is then responsible for guarding the typed version of the function.
 
 
 \begin{figure}[!h]
@@ -1490,28 +1488,25 @@ method is then responsible for guarding the typed version of the function.
 semantics.  We will translate class {\xt F}'s definition using each of the
 four translations, clearly indicating where the behavior of each program.
 Translation under the optional semantics is extremely simple, all types are
-erased and all invocations are dynamic. However, the translations become 
-much more complicated when we introduce soundness.
-The first sound, but weakest, gradual type semantics is the transient
-semantics. Under the transient semantics, all types are erased from the class.
-Argument and return types are not guaranteed. The transient soundness guarantees
-only require methods to exist on a type. A statically typed invocation 
-can be made to an untyped method \m with only untyped arguments 
-and the return type casted as an \any.
-The weakness of the guarantee provided by the transient semantics means  
-the return type of a method is not guaranteed and the argument
-types cannot be trusted. The behavioral semantics recover these properties by using
-the behavioral cast operator. The behavioral semantics inserts wrappers over
-methods to ensure safety for declared argument and return types. 
-However, there is a cost associated with the behavioral
-cast, as it is complex and expensive.
-The concrete semantics is similar to the behavioral semantics in using the 
-typed version of \m, and with similarly semantics to the transient
-semantics. Whereby only the values statically checked are
-allowed to pass through cast boundary. 
-In \figref{fig:l3etrans} we present the translation of a simply
-class {\xt E}. This example aims to illustrate the difference in
-soundness guarantee provided by the difference semantics.
+erased and all invocations are dynamic. However, the translations become
+much more complicated when we introduce guarantees.  The first, but weakest,
+gradual type semantics is the transient semantics. Under the transient
+semantics, all types are erased from the class.  Argument and return types
+are not guaranteed. The transient guarantees only require methods to exist
+on a type. A statically typed invocation can be made to an untyped method \m
+with only untyped arguments and the return type casted as an \any.  The
+weakness of the guarantee provided by the transient semantics means the
+return type of a method is not guaranteed and the argument types cannot be
+trusted. The behavioral semantics recover these properties by using the
+behavioral cast operator. The behavioral semantics inserts wrappers over
+methods to ensure safety for declared argument and return types.  However,
+there is a cost associated with the behavioral cast, as it is complex and
+expensive.  The concrete semantics is similar to the behavioral semantics in
+using the typed version of \m, and with similarly semantics to the transient
+semantics. Whereby only the values statically checked are allowed to pass
+through cast boundary.  In \figref{fig:l3etrans} we present the translation
+of a simply class {\xt E}. This example aims to illustrate the difference in
+guarantee provided by the difference semantics.
 
 \begin{figure}[!h]
   \begin{tabular}{rl}
@@ -1563,61 +1558,26 @@ soundness guarantee provided by the difference semantics.
 \end{figure}
 
 For the transient semantics, when \x is cast to {\xt E}, all of the types on
-{\xt E} are erased by the transient class translation. Casting to
-{\xt E} is tantamount to asking for the existence of the method \m. In contrast,
-the concrete semantics retained the types of \m. A concrete
-translation that checks if a class is a subtype of {\xt E} is equivalent to
-checking if a method \m that takes and returns an {\xt E} exists.
-While the concrete semantics provide a stronger type guarantee,
-it comes at the cost of the ability to migrate between untyped and
-typed code. Suppose that both the optional and concrete versions of
-{\xt E} existed, under different a name {\xt F}. In that system, only the concrete
-version of {\xt E} could be used with the concrete version of {\xt F}. Despite
-implementing the same behavior, the optional version of {\xt E} would not be
-able to be used with the concrete version of {\xt F}, as statically it does not 
-know \m would take and return an {\xt E}.
-The behavioral semantics is able to use the same representation for {\xt E} as
-the concrete semantics. The behavioral cast allows the behavioral semantics
-to use an optional typed {\xt E}. In effect, if an
-optional typed {\xt E} were passed where a behavioral typed {\xt E} was
-expected, then a wrapper, implementing the fully typed {\xt E}, would be
-generated on top of the untyped, optional typed {\xt E}, ensuring type safety.
+{\xt E} are erased by the transient class translation. Casting to {\xt E} is
+tantamount to asking for the existence of the method \m. In contrast, the
+concrete semantics retained the types of \m. A concrete translation that
+checks if a class is a subtype of {\xt E} is equivalent to checking if a
+method \m that takes and returns an {\xt E} exists.  While the concrete
+semantics provide a stronger type guarantee, it comes at the cost of the
+ability to migrate between untyped and typed code. Suppose that both the
+optional and concrete versions of {\xt E} existed, under different a name
+{\xt F}. In that system, only the concrete version of {\xt E} could be used
+with the concrete version of {\xt F}. Despite implementing the same
+behavior, the optional version of {\xt E} would not be able to be used with
+the concrete version of {\xt F}, as statically it does not know \m would
+take and return an {\xt E}.  The behavioral semantics is able to use the
+same representation for {\xt E} as the concrete semantics. The behavioral
+cast allows the behavioral semantics to use an optional typed {\xt E}. In
+effect, if an optional typed {\xt E} were passed where a behavioral typed
+{\xt E} was expected, then a wrapper, implementing the fully typed {\xt E},
+would be generated on top of the untyped, optional typed {\xt E}, ensuring
+type safety.
 
-\subsection{Theoretical performance discussion}
-
-Presently performance is one of the major obstacles obstructing gradual typing 
-from being incorporated into mainstream languages. To illustrate the impact of 
-performance over the gradual typing semantics. We will discuss an overview of 
-the impact on performance for each gradual typing semantics.
-
-Notably, as a theoretical view on the systems, the amount of insight we can
-provide into performance is limited, especially if a complex compiler is used
-in conjunction with the gradually typed language. However, some interesting
-trends can be observed.
-
-Under the optional semantics, types are removed entirely by translation, with
-the program effectively becoming untyped. As a result, and as pointed out by
-Bracha~\cite{pluggabletypes}, the performance of the optional semantics will be
-identical to that of a wholly untyped program.
-
-The transient semantics suggests much odder semantics. By checking the type
-where it is used (e.g. on function return and entry), the act of adding types
-to a program under the transient semantics would introduce more casts and slow
-the program down. Additionally, the transient semantics's checks will be placed
-in fully typed code, providing a strict performance detriment without additional
-optimizations.
-
-In contrast, the behavioral semantics does entirely avoid having to insert
-casts into fully-typed code, because its soundness guarantee extends to
-variables being of their declared types. The cost it pays for this guarantee,
-however, is that the declared types are enforced by heavyweight wrappers,
-inserted at many places throughout the program, a problem noticed by real
-implementations, like that of Typed Racket~\cite{popl16}.
-
-Lastly, the concrete semantics is able to achieve a guarantee similar to that
-of the behavioral semantics, but without the overhead of having to add
-wrappers, enabled by the strong static guarantee checked for by the cast
-operator.
 
 \section{Conclusion}\label{litm}
 
@@ -1627,37 +1587,47 @@ provide translations from different source language into \kafka. These
 translations highlight the different runtime enforcement strategies deployed
 by the languages under study. The differences between gradual type systems
 are made explicit with a litmus test that demonstrates observable
-differences between type systems.
+differences between type systems. 
 
-The key features needed in \kafka are two casts, one structural and 
-one behavioral, and the ability to extend the class table at runtime.
-\kafka was also carefully engineered to support transparent wrappers.  We
-provide a mechanized proof of soundness for \kafka that includes runtime
-class generation.  We also demonstrate that \kafka can be straightforwardly
+The key features needed in \kafka are two casts, one structural and one
+behavioral, and the ability to extend the class table at runtime.  \kafka
+was also carefully engineered to support transparent wrappers.  We provide a
+mechanized proof of soundness for \kafka that includes runtime class
+generation.  We also demonstrate that \kafka can be straightforwardly
 implemented on top of a stock virtual machine.
 
-Going forward there are several issues we wish to investigate further.  We do
-not envision supporting nominal subtyping within \kafka will pose
+Going forward there are several issues we wish to investigate further.  We
+do not envision supporting nominal subtyping within \kafka will pose
 problems, it would only take adding a nominal cast and changing the
 definition of classes. Then nominal and structural could coexist. A more
 challenging question is how to handle the intricate semantics of Monotonic
 Python. For these we would need a somewhat more powerful cast operation.
 Rather than building each new cast into the calculus itself, it would be
 interesting to axiomatize the correctness requirements for a cast and let
-users define their own cast semantics. 
+users define their own cast semantics.
 
 Another open question for gradual type system designers is performance of
-the resulting implementation. Type annotations are a source of information
-that can be used to generate efficient code, but without soundness this
-cannot be relied upon and becomes, at best, hints.  Some guarantees become
-apparent in our translations -- when the translation generates static method
-invocations, for Thorn, Racket and Python, these invocations can be
-optimized. This comes at the cost of casts and wrappers.  The nature of
-these casts and their dynamic frequency will make a significant difference
-to end users.  Thorn inserts them at boundaries of concrete types
-only. Racket inserts them whenever a value crosses either a typed or untyped
-boundary. Transient Python inserts casts after variable reads.
-
+the resulting implementation.  Performance is one of the major obstacles
+obstructing gradual typing from being incorporated into mainstream
+languages. To illustrate the impact of performance over the gradual typing
+semantics. We will discuss an overview of the impact on performance for each
+gradual typing semantics.  Under the optional semantics, types are removed
+entirely by translation, with the program effectively becoming untyped. As a
+result, the performance of the optional semantics will be identical to that
+of a wholly untyped program.  The transient semantics checks types at uses
+(e.g. on function return and entry), the act of adding types to a program
+introduces more casts and will slow the program down. Additionally, the
+transient semantics's checks are needed in fully typed code, providing a
+strict performance detriment without additional optimizations.  In contrast,
+the behavioral semantics does entirely avoid having to insert casts into
+fully-typed code, because its soundness guarantee extends to variables being
+of their declared types. The cost it pays for this guarantee, however, is
+that the declared types are enforced by heavyweight wrappers, inserted at
+many places throughout the program, a problem noticed by real
+implementations.  Lastly, the concrete semantics is able to achieve a
+guarantee similar to that of the behavioral semantics, but without the
+overhead of having to add wrappers, enabled by the strong static guarantee
+checked for by the cast operator.
 
 \bibliographystyle{unsrturl}
 \bibliography{../../bib/jv,../../bib/all}
