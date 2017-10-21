@@ -659,7 +659,7 @@ The second role of the cast is for soundness of \kafka, the value
 returned by the cast must be a subtype of the target type \D. This is 
 achieved by generating a new class with the right method signatures.
 
-\begin{figure}[!b]
+\begin{figure}[!h]
 \hrulefill
 \small
 
@@ -740,8 +740,6 @@ methods from either the source or the target type. The wrapper class will
 also never contain any duplicates as it can only contain methods that exists
 in the source type.  Furthermore, at most the wrapper class will contain
 every method of the source type.
-
-\newpage
 
 \subsection{Type soundness} 
 We have mechanized the type soundness proof for \kafka in Coq, available online \footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}. In Coq syntax, the
@@ -1062,7 +1060,7 @@ mixing of static and dynamically typed terms, and is shared between all of the
 gradual type systems, shown in figure~\ref{fig:slts}.
 
 
-\begin{figure}[hb]
+\begin{figure}[!h]
   
   \hrulefill  \footnotesize
   
@@ -1139,7 +1137,7 @@ type convertibility operator is shown in figure~\ref{fig:tyconvert}, denoting
 the surface level typing judgment as $\EnvTypeS\Env\K\e\t$, for a term $\t$
 having type $\t$.
 
-\begin{figure}[hb]
+\begin{figure}[!h]
   \hrulefill  \small  \vspace{-3mm}
   
   \begin{mathpar}
@@ -1656,7 +1654,7 @@ influence semantics and performance.
 %
 %\subsection{Translation discussion}
 
-\begin{figure}
+\begin{figure}[!h]
 	\begin{tabular}{l@{\HS}l}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Optional}} \\
@@ -1706,7 +1704,7 @@ the transient translation has to insert casts to appease the \kafka type
 system, these casts will never fail. However, fields are not protected and requires
 a guard after dereferencing, as values can  be passed through them to violate their types.
 
-\begin{figure}
+\begin{figure}[!h]
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
@@ -1754,7 +1752,7 @@ the wrong type to a field, whereas the transient semantics will rise an
 error upon dereference.
 
 
-\begin{figure}
+\begin{figure}[!h]
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
@@ -1785,7 +1783,7 @@ whereby each semantics call their respective translation. The optional semantics
 require an additional $\star$ cast easing any typing information from the object.
 %TODO: Need to talk more about comparing the semantics.
 
-\begin{figure}
+\begin{figure}[!h]
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Transient}} \\
 		\TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
@@ -1853,7 +1851,7 @@ would be caught by a wrapper before it reaches the caller.
 %Lastly, the concrete semantics provides the strongest guarantee, providing a 
 %typed invocation form identical to that of the behavioral semantics. 
 
-\begin{figure}
+\begin{figure}[!h]
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
@@ -1913,7 +1911,7 @@ needs to be checked against the expected type.
 
 %\vspace{-2cm}
 \medskip
-\begin{figure}    
+\begin{figure}[!h]  
   \begin{tabular}{llc@{\hspace{.25cm}}l}    
         
     {\scriptsize \bf{Optional}} \\    
@@ -1969,28 +1967,37 @@ allow a safe invocation with type \(\any \to \any\).
 Finally, every field \f:\t is mapped to the corresponding field \f:\kty\t. 
 
 %TODO: explanation for the class translation
-\figref{fig:traclass} presents the class translation for each gradual typing
-semantics. The translation for a language with the optional semantics 
-will simply replace the type of every field and method in class with $\star$.
-The transient translation will also erase the type of every field in the class,
-replacing them with $\star$. The methods are treated slightly differently, the types of
-the method will be erased and replaced with $\star$, but within the method body the
-original type of the argument is casted over the newly untyped argument. This is
-to ensure the transient guarantee is preserved within the method body.
-The behavioral translation simply duplicate the fields of the class as well 
-as maintaining the typing of the methods. Finally, the concrete translation 
-is required to generate a typed and untyped method for every method in the class 
-being translated. The typed method is a duplicate of the typed method. 
-The untyped method has it's typing erased with $\star$ and it's
-body contains a function invocation to the corresponding typed method, where
-the return of the typed method is erased with $\star$ and the typed method is 
-called with the argument casted with it's original type.
+
+\figref{fig:traclass} presents the class translation for the four gradual
+typing semantics, a key part of their functionality. All need to guard against
+untyped code calling typed receivers through the dynamic invocation, which
+each handles differently. The optional semantics deals with the problem by
+eliminating all typed receivers, but the sound systems need to check argument
+and return types.
+
+The transient semantics heavily relies upon class translation to achieve the
+desired semantics, especially with relation to how it handles casts. Under the
+transient semantics, all types are removed from the method signatures and
+argument types are instead checked by the method body itself and return types
+by the caller. Now, with no typed methods, structural subtyping becomes
+equivalent to checking that all the required method names hold and no more,
+the cast semantics needed by the transient semantics.
+
+The behavioral semantics protects typed methods from untyped callers by means
+of the generated untyped wrappers, and, as a result, needs no explicit support 
+for such from its translation. 
+
+The most complex class translation is that of the concrete semantics, which
+needs to support both typed and untyped callers calling the same class. Here,
+it uses \kafka's type-based overloading to define a special untyped receiver
+method, one that is generated if the original method was typed. This receiver
+method is then responsible for guarding the typed version of the function.
 
 \figref{fig:l3trans} presents an example of how our translation drives the semantics.
 We will translate class {\xt F}'s definition using each of the four translations, clearly
 indicating where the behavior of each program.
 
-\begin{figure}
+\begin{figure}[!h]
   \begin{tabular}{l}
     {\scriptsize\bf{Source}} \\
 \(
@@ -2061,7 +2068,7 @@ In \figref{fig:l3etrans} we present the translation of a simply
 class {\xt E}. This example aims to illustrate the difference in
 soundness guarantee provided by the difference semantics.
 
-\begin{figure}
+\begin{figure}[!h]
   \begin{tabular}{rl}
   \multicolumn{2}{c}{
   \begin{tabular}{l}
