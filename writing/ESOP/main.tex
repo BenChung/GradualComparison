@@ -89,29 +89,41 @@ proved elusive. One potential reason may be that the original paper did not
 consider state. The combination of mutable state, aliasing and subtyping
 prevalent in object-oriented languages complicates enforcement strategies,
 as one must consider situations where an object is being accessed and
-mutated at different types. While several solutions have been proposed,
-their performance implications appear daunting. Developers of industrial
-languages have chosen to compromise on soundness to avoid degrading
-performance.
+mutated at different types. While solutions have been proposed, their
+performance implications are a source of concern.
 
 This paper explores the design space of gradual type systems for
-object-oriented languages by studying four approaches to gradual typing of
-objects with different runtime characteristics in terms of errors and
-overheads.  The four approaches are representative of languages with
-implementations that available in open source. The \emph{optional} approach,
-chosen by TypeScript, Dart, and Hack, amounts to a static check followed by
-type erasure at runtime.  The \emph{concrete} approach, used in C\#, Thorn,
-and StrongScript, combines optional types with traditional statically
-typing.  The \emph{behavioral} approach, followed by TypedRacket and
-Gradualtalk, 
+object-oriented languages by studying four approaches, each with markedly
+different characteristics in terms of errors and overheads.  These
+approaches are representative of most languages with implementations
+available in open source. The \emph{optional} approach, chosen by
+TypeScript, Dart, and Hack, amounts to static type-checking followed by
+erasure. Optional types do not impact performance, but fail to catch cases
+when erroneous values flow from dynamically typed code to statically typed
+code.  The \emph{concrete} approach, used in C\#, Thorn, and StrongScript,
+combines optional types, runtime type casts and traditional static
+typing. This approach allows statically typed code to execute at native
+speed, but is somewhat more restrictive in terms of which values can cross
+type boundaries, as they must satisfy a runtime type cast. The
+\emph{behavioral} approach, followed by Typed Racket, Gradualtalk and
+Reticulated Python, monitors values to ensure that they behave in accordance
+to their assigned types. This approach is the closest to the Siek and Taha
+proposal, but also the approach with the most significant performance
+overheads. Finally, the \emph{transient} approach, specific to the
+Reticulated Python language, lies between concrete and behavioral; it adds
+type casts but does so only for the top-level of data structures. The cast
+insertion strategy is related to the tests performed by behavioral types
+except transient instruments code and not values.
 
-WORKINPROGRESS
+
+WORKNPROGRESS
+
+While the software engineering benefits of the different approaches are
+still being debated, it is worthwhile that the notion of what consitutes an
+error is still fuzzy.  Each of the approach will catch different errors,
 
 
-distinctive systems,
-idealizations of TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
-Racket~\cite{tf-popl08}, and Transient Reticulated Python~\cite{siek14},
-each with significantly different semantics.  Beyond the difference in runtime
+Beyond the difference in runtime
 overheads, which we do not study here, there is no collective
 agreement over what constitutes a runtime error.  To highlight the
 issue, we propose a litmus test consisting of three simple programs,
@@ -120,17 +132,6 @@ distinguishable between the type systems. In an untyped language these programs
 run without error, but with gradual types we observe several different errors 
 depending on the runtime enforcement strategy used.
 
-Our aim is to shed light on core features of each type system, namely their
-treatment of objects, and which errors are caught statically and which ones
-are caught dynamically.  These four languages were selected because they had
-open source implementations and their designs were representative of
-different gradual typing philosophies.  TypeScript stands for unsound
-systems that work by erasure, such as Dart and Hack.  Thorn combines dynamic
-and static types inspired by C\# and further developed in
-StrongScript. Typed Racket provides a sound type system that is close in
-spirit to Siek and Taha's original idea. Lastly, Transient was designed to
-decrease the overhead of soundness, while retaining some systematic runtime
-checks.
 
 To capture the essence of gradual typing, we present translations of
 representative subsets of four gradually typed languages into a common
