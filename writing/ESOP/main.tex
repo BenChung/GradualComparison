@@ -2141,44 +2141,34 @@ from being incorporated into mainstream languages. To illustrate the impact of
 performance over the gradual typing semantics. We will discuss an overview of 
 the impact on performance for each gradual typing semantics.
 
-A feature of optional typing highlighted by Bracha~\cite{pluggabletypes} 
-is the minimal impact on performance, which is also evident in our optional translation.
-A notional type-less language would have an identical translation, causing performance to
-be identical to a language with an optional type system.
+Notably, as a theoretical view on the systems, the amount of insight we can
+provide into performance is limited, especially if a complex compiler is used
+in conjunction with the gradually typed language. However, some interesting
+trends can be observed.
 
-The concrete semantics allows Thorn to provide the guarantee that typed code
-will have no internal checks, an unusual feature among gradual type systems
-caused by the strong guarantee provided by the concrete semantics. In
-conjunction with relatively light-weight casts (caused by only needing to
-compare type tags), the concrete semantics provides acceptable performance~\cite{oopsla09}. 
-However, this strong guarantee does result in rigid semantics of the cast
-operations, which pass only subtypes of the given type. As a consequence, this
-means that untyped objects can never be treated as typed ones, requiring the 
-programmer to add a potentially large number of types in order to fully utilize
-the concrete type system.
+Under the optional semantics, types are removed entirely by translation, with
+the program effectively becoming untyped. As a result, and as pointed out by
+Bracha~\cite{pluggabletypes}, the performance of the optional semantics will be
+identical to that of a wholly untyped program.
 
-The behavioral semantics solve the problem illustrated by Thorn and the
-concrete semantics, requiring typed values to be statically checked,
-and provides a stronger guarantee than the transient semantics. This, however,
-comes at the cost of having to check this guarantee at boundaries between
-typed and untyped code, seen in the behavioral cast operator, causing memory
-bloat and large slowdowns in many cases~\cite{popl16}.
+The transient semantics suggests much odder semantics. By checking the type
+where it is used (e.g. on function return and entry), the act of adding types
+to a program under the transient semantics would introduce more casts and slow
+the program down. Additionally, the transient semantics's checks will be placed
+in fully typed code, providing a strict performance detriment without additional
+optimizations.
 
-In Typed Racket, any call to method \m of class \code F, encounters a
-wrapper that ensures that the argument and return type of \m is always a
-\D. Therefore, if the method \m is called with a \C, the program would get
-stuck at the cast to \D. In Transient, the cast to \code E is a no-op, so
-when we call \m with \C, no extra cast to \D is encountered. The Transient
-design allows method \m, which expects an instance of class \C as argument,
-to be called with a value of type \any at any point. However, this forces \m
-to check its arguments at every method invocation. One interesting consequence 
-of this requirement is that programs using the
-transient semantics actually acquire more casts as they get typed, with the
-fully-typed version of a program having the most casts, as seen by \m being
-required to check the type on every argument. As a result, the transient
-semantics will cause checks to be inserted even in fully typed methods, with
-the most checks existing in a fully-typed program, unlike the behavioral or
-concrete semantics.
+In contrast, the behavioral semantics does entirely avoid having to insert
+casts into fully-typed code, because its soundness guarantee extends to
+variables being of their declared types. The cost it pays for this guarantee,
+however, is that the declared types are enforced by heavyweight wrappers,
+inserted at many places throughout the program, a problem noticed by real
+implementations, like that of Typed Racket~\cite{popl16}.
+
+Lastly, the concrete semantics is able to achieve a guarantee similar to that
+of the behavioral semantics, but without the overhead of having to add
+wrappers, enabled by the strong static guarantee checked for by the cast
+operator.
 
 \section{Conclusion}\label{litm}
 
