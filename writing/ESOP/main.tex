@@ -471,7 +471,7 @@ a synthetic object with two fields).
 }
 \end{mathpar}
 
-\hrulefill\caption{\kafka subtyping}\label{sub}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hrulefill\caption{\kafka subtyping.}\label{sub}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{figure}
 
 
@@ -543,7 +543,7 @@ later.
 \end{mathpar}
 
 \hrulefill
-\caption{\kafka static semantics (excerpt)}\label{f:staticsem}
+\caption{\kafka static semantics (excerpt).}\label{f:staticsem}
 \end{figure}
 
 
@@ -616,7 +616,7 @@ evaluation order.
 
 \medskip
 \hrulefill
-\caption{\kafka dynamic semantics}\label{fig:semantics}
+\caption{\kafka dynamic semantics.}\label{fig:semantics}
 \end{figure}
 
 
@@ -683,7 +683,7 @@ achieved by generating a new class with the right method signatures.
 
 
 \hrulefill
-\vspace{-2mm}\caption{Behavioral casts}\label{behavetext}
+\vspace{-2mm}\caption{Behavioral casts.}\label{behavetext}
 
 %\end{figure} \begin{figure}[!t]
 \hrulefill
@@ -707,7 +707,7 @@ achieved by generating a new class with the right method signatures.
 \hrulefill
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\caption{Wrapper class generation}\label{w}\end{figure}
+\caption{Wrapper class generation.}\label{w}\end{figure}
 
 
 Wrapper class generation is implemented by the \xt{W} and \xt{W\!\any}
@@ -1075,7 +1075,7 @@ identical to those in \kafka, and present only the altered rules.
   \vspace{2mm}
   
   \hrulefill
-  \caption{Source language type system}\label{fig:slts}
+  \caption{Source language type system.}\label{fig:slts}
 \end{figure}
 
 The type system for the surface languages is straightforward, allowing
@@ -1119,8 +1119,7 @@ term $\t$ having type $\t$.
   \vspace{-8mm}
   
   \hrulefill
-  \caption{Optional type convertibility}
-\label{fig:tyconvert}
+  \caption{Optional type convertibility.}\label{fig:tyconvert}
 \end{figure}
 
 In the source language, it is possible to pass subtypes as arguments and new
@@ -1165,8 +1164,7 @@ influence semantics and performance.
 		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
 	\end{tabular}
 	\end{tabular}
-	\caption{Translations for variables and field access}
-	\label{fig:travar}
+\caption{Translations for variables and field access.}\label{fig:travar}
 \end{figure}
 
 \figref{fig:travar} presents the translation for field access and variables,
@@ -1204,8 +1202,7 @@ their types.
 		& \ep = \TAG[\CTS]\e\Env{\t} \\
 	\end{tabular}
 	
-	\caption{Translations for field assignment}
-	\label{fig:trassn}
+\caption{Translations for field assignment.}\label{fig:trassn}
 \end{figure}
 
 Field assignment, presented in \figref{fig:trassn}, illustrates the distinct
@@ -1246,8 +1243,7 @@ the transient semantics will rise an error upon dereference.
 		& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
 	\end{tabular}
 	
-	\caption{Translations for object creation}
-	\label{fig:tranew}
+\caption{Translations for object creation.}\label{fig:tranew}
 \end{figure}
 
 \figref{fig:tranew} presents the translation for the object creation
@@ -1290,8 +1286,7 @@ an additional $\star$ cast easing any typing information from the object.
 		& \EM{\ep = \TRG[\CTS]\e\Env} 
 	\end{tabular}
 	
-	\caption{Translation for type requirement}
-	\label{fig:trtype}
+\caption{Translation for type requirement.}\label{fig:trtype}
 \end{figure}
 
 Figure~\ref{fig:trtype} depicts the translation for type requirement. For
@@ -1347,8 +1342,7 @@ would be caught by a wrapper before it reaches the caller.
 		& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
 	\end{tabular}
 	
-	\caption{Translations for function invocation}
-	\label{fig:trafuninv}
+\caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
 
 
@@ -1369,6 +1363,17 @@ exist for every typed method, the transient semantics insert a
 statically-typed call to the \any-typed invocation site. However, to be
 compatible with the dynamic call, the argument still needs to be cast to
 \any and the return type needs to be checked against the expected type.
+In the concrete semantics any method can be called statically and
+dynamically, by generating a dynamic version of all source level methods.
+Class translation relies on overloading to provide the two versions of each
+method: one with concrete receiver and the other with optionally typed
+object.  More precisely, given a concrete method \(\md\) with type \(\t[1]
+\to \t[2]\), the concrete translation first generates a method \(\mdp\) with
+type \(\kty{\t[1]} \to \kty{\t[2]}\) (protecting the the return value with
+appropriate cast to \kty{\t[2]} if necessary).  The concrete translation
+also generates a second method \mdpp that wraps \mdp to allow a safe
+invocation with type \(\any \to \any\).  Finally, every field \f:\t is
+mapped to the corresponding field \f:\kty\t.
 
 %\vspace{-2cm}
 \medskip
@@ -1407,26 +1412,10 @@ compatible with the dynamic call, the argument still needs to be cast to
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
   \end{tabular}   
       
-  \caption{Translations for class}    
-  \label{fig:traclass}    
+ \caption{Translations for class.}     \label{fig:traclass}    
 \end{figure}    
 \medskip
-%\vspace{-1cm}
 
-
-In the concrete semantics any method can be called statically and
-dynamically, by generating a dynamic version of all source level methods.
-Class translation relies on overloading to provide the two versions of each
-method: one with concrete receiver and the other with optionally typed
-object.  More precisely, given a concrete method \(\md\) with type \(\t[1]
-\to \t[2]\), the concrete translation first generates a method \(\mdp\) with
-type \(\kty{\t[1]} \to \kty{\t[2]}\) (protecting the the return value with
-appropriate cast to \kty{\t[2]} if necessary).  The concrete translation
-also generates a second method \mdpp that wraps \mdp to allow a safe
-invocation with type \(\any \to \any\).  Finally, every field \f:\t is
-mapped to the corresponding field \f:\kty\t.
-
-%TODO: explanation for the class translation
 
 \figref{fig:traclass} presents the class translation for the four gradual
 typing semantics, a key part of their functionality. All need to guard against
@@ -1450,9 +1439,6 @@ it uses \kafka's type-based overloading to define a special untyped receiver
 method, one that is generated if the original method was typed. This receiver
 method is then responsible for guarding the typed version of the function.
 
-\figref{fig:l3trans} presents an example of how our translation drives the
-semantics.  We will translate class {\xt F}'s definition using each of the
-four translations, clearly indicating where the behavior of each program.
 
 \begin{figure}[!h]
   \begin{tabular}{l}
@@ -1494,10 +1480,12 @@ four translations, clearly indicating where the behavior of each program.
 \) \\
   \end{tabular}
   
-  \caption{Litmus Test 3 Class Translation}
-  \label{fig:l3trans}
+ \caption{Litmus Test 3 Class Translation.} \label{fig:l3trans}
 \end{figure}
 
+\figref{fig:l3trans} presents an example of how our translation drives the
+semantics.  We will translate class {\xt F}'s definition using each of the
+four translations, clearly indicating where the behavior of each program.
 Translation under the optional semantics is extremely simple, all types are
 erased and all invocations are dynamic. However, the translations become 
 much more complicated when we introduce soundness.
@@ -1568,8 +1556,7 @@ soundness guarantee provided by the difference semantics.
 \end{tabular}\\
   \end{tabular}
   
-  \caption{Litmus Test 3 Translation for {\xt E}}
-  \label{fig:l3etrans}
+ \caption{Litmus Test 3 Translation for {\xt E}.}  \label{fig:l3etrans}
 \end{figure}
 
 For the transient semantics, when \x is cast to {\xt E}, all of the types on
@@ -1578,7 +1565,6 @@ For the transient semantics, when \x is cast to {\xt E}, all of the types on
 the concrete semantics retained the types of \m. A concrete
 translation that checks if a class is a subtype of {\xt E} is equivalent to
 checking if a method \m that takes and returns an {\xt E} exists.
-
 While the concrete semantics provide a stronger type guarantee,
 it comes at the cost of the ability to migrate between untyped and
 typed code. Suppose that both the optional and concrete versions of
@@ -1587,7 +1573,6 @@ version of {\xt E} could be used with the concrete version of {\xt F}. Despite
 implementing the same behavior, the optional version of {\xt E} would not be
 able to be used with the concrete version of {\xt F}, as statically it does not 
 know \m would take and return an {\xt E}.
-
 The behavioral semantics is able to use the same representation for {\xt E} as
 the concrete semantics. The behavioral cast allows the behavioral semantics
 to use an optional typed {\xt E}. In effect, if an
@@ -2155,7 +2140,7 @@ only the altered rules.
 		\end{tabular}\end{minipage} 
 	\end{tabular}
 	\vspace{2mm} 
-	\caption{Common syntax of source languages}\label{f:sourcesyntax2}
+\caption{Common syntax of source languages.}\label{f:sourcesyntax2}
 \end{figure}
 
 \subsection{Optional}
@@ -2232,7 +2217,7 @@ that \any is convertible to anything and conversely.
 	\vspace{2mm}
 	
 	\hrulefill
-	\caption{Optional type system}\label{convts2}
+	\caption{Optional type system.}\label{convts2}
 \end{figure}
 
 The TypeScript compiler translates code to JavaScript with all types erased.
@@ -2267,7 +2252,7 @@ additional overhead.
 	\end{mathpar}
 	\vspace{-8mm}
 	
-	\hrulefill\caption{Optional type convertibility}\label{tsts2}
+	\hrulefill\caption{Optional type convertibility.}\label{tsts2}
 \end{figure}
 
 
@@ -2302,7 +2287,7 @@ additional overhead.
 	
 	\smallskip
 	\hrulefill
-	\caption{Optional translation}\label{tst2}
+	\caption{Optional translation.}\label{tst2}
 	
 \end{figure}
 
@@ -2350,7 +2335,7 @@ types.
 	\end{mathpar}
 	
 	\hrulefill
-	\caption{Concrete subtyping}\label{subth2}
+	\caption{Concrete subtyping.}\label{subth2}
 \end{figure}	
 
 \begin{figure}[hb]	
@@ -2366,7 +2351,7 @@ types.
 	\end{mathpar}
 	
 	\hrulefill
-	\caption{Concrete type convertibility}\label{convth2}
+	\caption{Concrete type convertibility.}\label{convth2}
 \end{figure}	
 
 \begin{figure}[hb]	
@@ -2386,7 +2371,7 @@ types.
 	\end{mathpar}
 	
 	\hrulefill
-	\caption{Concrete type system}\label{thts2}
+	\caption{Concrete type system.}\label{thts2}
 \end{figure}	
 
 The translation of Thorn into \kafka is given in~\figref{thtr2}. As with
@@ -2461,7 +2446,7 @@ while concrete types are unchanged.
 	\medskip
 	
 	\hrulefill
-	\caption{Concrete translation}\label{thtr2}
+	\caption{Concrete translation.}\label{thtr2}
 \end{figure}
 
 \clearpage
@@ -2540,7 +2525,7 @@ methods names rather than complete signatures for concrete types.
 	\medskip
 	
 	\hrulefill
-	\caption{Behavioral translation}\label{trtr2}
+	\caption{Behavioral translation.}\label{trtr2}
 \end{figure}
 
 \subsection{Transient}
@@ -2567,7 +2552,7 @@ merely validates that all required method names are present.
 	\vspace{-6mm}
 	
 	\hrulefill
-	\caption{Transient convertibility}\label{convtp2}
+	\caption{Transient convertibility.}\label{convtp2}
 \end{figure}	
 \begin{figure}[hb]		
 	
@@ -2616,7 +2601,7 @@ merely validates that all required method names are present.
 	\end{mathpar}
 	
 	\hrulefill
-	\caption{Transient consistent subtyping}\label{subtp2}
+	\caption{Transient consistent subtyping.}\label{subtp2}
 \end{figure}	
 
 \clearpage
@@ -2686,7 +2671,7 @@ merely validates that all required method names are present.
 	
 	\hrulefill
 	
-	\caption{Transient translation}\label{tptr2}
+	\caption{Transient translation.}\label{tptr2}
 \end{figure}
 
 The Transient translation appears in \figref{tptr2}. Each class is translated
@@ -2712,9 +2697,8 @@ type \any, then checks the field value on reads based on the static typing.
 
 \section{Litmus tests}
 
-Below we present source code for each of the litmus tests presented in
-\figref{litmus} of section \ref{litmustest}. The source code are the four
-gradual typing semantics: Concrete, Optional, Behavioral, and Transient.
+Below we present source code for each of the litmus tests of \figref{litmus}
+of section \ref{litmustest}. 
 
 \subsection*{Concrete}
 
