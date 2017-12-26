@@ -279,7 +279,7 @@ optimize code (unbox data and in-line methods) and programmers are
 guaranteed that type errors will not occur within concretely typed code.
 
 
-\newcommand{\rot}[1]{\rotatebox{80}{#1}}
+\newcommand{\rot}[1]{\rotatebox{80}{#1}\hspace{-10px}}
 \newcommand{\X}{\EM{\bullet}}
 \newcommand{\XX}{\EM{\bullet^{(2)}}}
 \newcommand{\XY}{\EM{\bullet^{(1)}}}
@@ -1169,13 +1169,15 @@ influence semantics and performance.
 		\TR[\OTS]\x & = \src \x \\
 		\TR[\OTS]\this & = \src{\SubCast\any\this} \\
 		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
+    \\
 	\end{tabular}
 	&
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
 		\TRG[\TTS]\this\Env & = \src\this \\
-		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \Ftype\f\t\In\App\K\C \\
+		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \\
+                             &                              &        & \Ftype\f\t\In\App\K\C \\
 	\end{tabular}
 	\\ \\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
