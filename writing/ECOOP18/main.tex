@@ -85,7 +85,7 @@ The enduring popularity of dynamically typed languages has motivated
 research on \emph{gradual type systems} to allow developers to annotate
 legacy dynamic code piecemeal. Type soundness for a program which contains a
 mixture of typed and untyped code cannot mean the traditional absence of
-errors. While some errors will caught at type checking time, others can only
+errors. While some errors will be caught at type checking time, others can only
 be caught as the program executes. After a decade of research it is clear
 that the combination of mutable state, aliasing and subtyping presents
 challenges to gradual type systems.  We introduce \kafka, a class-based
@@ -230,7 +230,7 @@ departure from the expected behavior of an object, as defined by its
 behavioral type, must be reported at the first discrepancy.  Whenever a value
 crosses a boundary between typed and untyped code, it is wrapped in a
 contract that monitors its behavior. This ensures that mutable values
-remains consistent with their declared type and functions respect their
+remain consistent with their declared type and functions respect their
 declared interface. When a value misbehaves, blame can be assigned to a
 boundary. The granularity of typing is the module, thus a module is either
 entirely typed or entirely untyped. 
@@ -777,7 +777,7 @@ $\forall$ (k:ct) (s:heap) (e:expr) (t:type),
   (*condition 2*) --(\emph{HasType})-- nil s k e t $\rightarrow$ 
 \end{lstlisting}
 
-Our Coq mechanization is identical to our formalism. In particular, the
+Our Coq mechanization is equivalent to our formalism. In particular, the
 inference rules $\EnvType\Env\s\k\e\t$ and $\WFq{\K~\e~\s}$ is equivalent to
 the Coq functions \emph{HasType} and \emph{WellFormedState} respectively.
 Note that in each of the three error stuck states, cases 3 through 5, the
