@@ -101,52 +101,53 @@ calculus and discuss the implications of their respective designs.
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
 %\vspace{-5mm}
 
-\noindent A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual
+\noindent A decade ago, Siek and Taha~\cite{SiekTaha07} presented a gradual
 type system for a variant of Abadi and Cardelli's object-based
 calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a
 dynamic type, denoted \any, and a subtype relation that combined structural
 subtyping with a consistency relation between terms that only differ in
 dynamic type annotations.  Soundness at the boundaries between typed and
-untyped code is ensured by inserting casts following in their earlier work
-for functional languages~\cite{SiekTaha06}.
+untyped code is ensured by inserting casts following in their earlier work for
+functional languages~\cite{SiekTaha06}.
 
-A decade later, practical realizations of Siek and Taha's elegant idea have
-proved elusive. One potential reason may be that the original paper did not
-consider state. The combination of mutable state, aliasing and subtyping
-prevalent in object-oriented languages complicates enforcement strategies,
-as one must consider situations where an object is being accessed and
-mutated at different types. While solutions have been proposed, their
-performance implications are a source of concern.
+Despite a decade of hard work, the practical realization of Siek and Taha's
+elegant idea remains elusive, as their original presentation elided mutable
+state, one of the most common features of object-oriented programming
+languages, and adding mutable state has proven to be complex. In conjunction
+with aliasing and subtyping, mutable state introduces many more points where
+typed and untyped code can interact, and a wide range of solutions have been
+put forward to protect these interactions, each of which has different
+semantics and performance implications.
 
-This paper explores the design space of gradual type systems for
-object-oriented languages by studying four approaches, each with markedly
-different characteristics in terms of errors and overheads.  These
-approaches are representative of most languages with implementations
-available in open source. The \emph{optional} approach, chosen by
-TypeScript, Dart, and Hack, amounts to static type-checking followed by
-erasure. Optional types do not impact performance, but fail to catch cases
-when erroneous values flow from dynamically typed code to statically typed
-code.  The \emph{concrete} approach, used in C\#, Thorn, and StrongScript,
-combines optional types, runtime type casts and traditional static
-typing. This approach allows statically typed code to execute at native
-speed, but is somewhat more restrictive in terms of which values can cross
-type boundaries, as they must satisfy a runtime type cast. The
-\emph{behavioral} approach, followed by Typed Racket, Gradualtalk and
-Reticulated Python, monitors values to ensure that they behave in accordance
-to their assigned types. This approach is the closest to the Siek and Taha
-proposal, but also the approach with the most significant performance
-overheads. Finally, the \emph{transient} approach, specific to the
-Reticulated Python language, lies between concrete and behavioral; it adds
-type casts but does so only for the top-level of data structures, and 
-adds casts precisely where types are asserted.
+Four major approaches have arisen to deal with this problem:
+\begin{itemize}
 
-Each of these approaches conceals a fundamental difference of opinion on what
-it means for a type system to be sound. Concrete systems guarantee all static
-types, behavioural systems ensure that values will behave as their types
-specify, up to errors, and the transient semantics ensures that calls will go
-through but not their value, all while the optional semantics provides no
-guarantees whatsoever. This key variation, however, is hidden under a thick
-layer of interesting syntax, different types, and complex semantics.
+\item \emph{Optional} type systems, used in languages including
+Dart~\cite{dart13} and Hack~\cite{hack13}, are widely used, but offer little
+in the way of runtime checking for types.
+
+\item \emph{Behavioral} type systems, used by languages like Typed
+Racket~\cite{Takikawa:2012,sth10} and versions of Reticulated Python
+\cite{siek14}, are the direct descendants of Siek and Taha's work,
+and claim good semantics, but have reported poor performance 
+results~\cite{practical-gt}.
+
+\item \emph{Transient} type systems, put forward as part of Reticulated
+Python~cite{siek14}, have been touted to provide better performance than
+behavioural type systems, but have a different enforcement semantics.
+
+\item \emph{Concrete} type systems, part of Thorn~\cite{oopsla09} and Nom
+CITEME, provide excellent performance, but suffer from reduced
+interoperability with untyped code.
+
+\end{itemize}
+
+The detail lurking behind the curtain of these different languages is that, to
+attain their benefits and semantic features, each of these approaches has a
+fundamentally different concept of soundness, with correspondingly different
+guarantees, correctness properties, and errors. Moreover, the obscuring
+curtain is a particularly opaque one, as these key details are hidden inside
+a sea of language-specific detail, making direct comparison impossible.
 
 %While the software engineering benefits of the different approaches are being
 %debated, it is worthwhile to observe that the definition of type error is also
