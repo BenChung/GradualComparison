@@ -4,6 +4,8 @@
             mathpartir,hyperref,doi, mathtools,wrapfig,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox,
             pgffor, makecell, microtype}
+
+\usepackage[1-2]{pagesel}
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \usetikzlibrary{arrows}
 \usetikzlibrary{shapes.geometric}
@@ -101,14 +103,22 @@ calculus and discuss the implications of their respective designs.
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
 %\vspace{-5mm}
 
-\noindent A decade ago, Siek and Taha~\cite{SiekTaha07} presented a gradual
-type system for a variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a
-dynamic type, denoted \any, and a subtype relation that combined structural
-subtyping with a consistency relation between terms that only differ in
-dynamic type annotations.  Soundness at the boundaries between typed and
-untyped code is ensured by inserting casts following in their earlier work for
-functional languages~\cite{SiekTaha06}.
+\noindent Since their inception by Siek and  Taha~\cite{SiekTaha06}, gradual
+type systems for a vast array of languages have been developed CITEME,
+enabling programmers to type untyped code gradually. Each of these approaches
+devotes great care and attention to getting typing for that language correct,
+providing tools to type the constructs of the balky untyped source language.
+However, in this process, the fundamental guarantees of gradual typing itself
+can be lost.
+
+Nowhere is this problem more apparent than in gradual type systems for object-
+oriented languages. The first effort, by Siek and Taha~\cite{SiekTaha07}
+presented a gradual type system for a variant of Abadi and Cardelli's object-
+based calculus~\cite{cardelli:1996:theory-of-objects}, adding a notion of
+subtype consistency on top of their earlier work for functional programming
+languages~\cite{SiekTaha06}. However, this type system does not support
+mutable state, which has became the key problem facing gradually-typed
+orbject
 
 Despite a decade of hard work, the practical realization of Siek and Taha's
 elegant idea remains elusive, as their original presentation elided mutable
