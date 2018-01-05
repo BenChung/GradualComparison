@@ -103,9 +103,9 @@ calculus and discuss the implications of their respective designs.
 %\vspace{-5mm}
 
 \noindent Since their inception by Siek and  Taha~\cite{SiekTaha06}, gradual
-type systems for a vast array of languages have been developed~\cite{CITEME},
-enabling programmers to type untyped code gradually. Each of these approaches
-devotes great care and attention to getting typing for that language correct,
+type systems for a vast array of languages have been developed, enabling
+programmers to add types to untyped code gradually. Each of these approaches devotes
+great care and attention to getting typing for that language correct,
 providing tools to type the constructs of the balky untyped source language.
 However, in this process, the fundamental guarantees of gradual typing itself
 can be lost.
@@ -131,32 +131,44 @@ semantics and performance implications.
 Four major approaches have arisen to deal with this problem:
 \begin{itemize}
 
-\item \emph{Optional} type systems, used in languages including
-Dart~\cite{dart13} and Hack~\cite{hack13}, are widely used, but offer little
-in the way of runtime checking for types.
+\item Thorn and Nom
 
-\item \emph{Behavioral} type systems, used by languages like Typed
-Racket~\cite{Takikawa:2012,sth10} and versions of Reticulated Python
-\cite{siek14}, are the direct descendants of Siek and Taha's work,
-and claim good semantics, but have reported poor performance 
-results~\cite{practical-gt}.
+\item Typed Racket and Reticulated Python
 
-\item \emph{Transient} type systems, put forward as part of Reticulated
-Python~\cite{siek14}, have been touted to provide better performance than
-behavioural type systems, but have a different enforcement semantics.
+\item Reticulated Python (transient)
 
-\item \emph{Concrete} type systems, part of Thorn~\cite{oopsla09} and Nom
-~\cite{CITEME}, provide excellent performance, but suffer from reduced
-interoperability with untyped code.
-
+\item Dart, Hack
 \end{itemize}
 
-The detail lurking behind the curtain of these different languages is that, to
-attain their benefits and semantic features, each of these approaches has a
-fundamentally different concept of soundness, with correspondingly different
-guarantees, correctness properties, and errors. Moreover, the obscuring
-curtain is a particularly opaque one, as these key details are hidden inside
-a sea of language-specific detail, making direct comparison difficult.
+These languages, spanning the design space, all purport to be gradually typed,
+allowing programmers to add just a few types at a time to previously untyped
+programs. Formally comparing these approaches is extremely difficult, however,
+as each is described with a different formalism, or no formalism at all, a
+situation gradual typing only makes more complex. As a result, foundational 
+differences in what it means to be gradually typed are easy to overlook among
+dozens of other language-specific differences. To compare gradual type systems,
+a common language that supports multiple approaches is needed, enabling direct
+and easy comparison.
+
+In this paper, we make two main contributions:
+
+\begin{itemize}  
+
+ \item The \kafka object-oriented calculus for gradual typing, providing a
+sound and representative translation target for a gradually typed source
+language, and discuss the differences between gradual type systems that drive
+language design decisions.
+      To validate \kafka, we have both proven the \kafka type system sound
+      and implemented the calculus on top of the CLR.
+
+\item A set of four translations, from a common Java-like source language
+  to \kafka, each implementing one type of gradual type system, illustrating
+  the key differences between them. 
+
+  We validate the source language design and translation semantics through
+  several litmus tests, demonstrating equivalent behavior between real programs 
+  on the actual language and programs written in our source calculi.
+\end{itemize}
 
 %While the software engineering benefits of the different approaches are being
 %debated, it is worthwhile to observe that the definition of type error is also
@@ -174,12 +186,6 @@ a sea of language-specific detail, making direct comparison difficult.
 %the call to \code{m} may fail because \code{x} lacks method \code{m}, while in
 %behavioral the call will succeed, but a failure may occur upon return if the
 %returned value does not have the expected methods.
-
-In this paper, we propose a sound core calculus for evaluating gradual type
-systems for object oriented-languages, called \kafka, and present translations
-from a common source syntax to \kafka, illustrating the key differences between
-four approaches to gradual typing for objects, and use this common framework to 
-directly compare gradual type systems for objects in the same setting.
 
 %This paper introduces a core calculus for evaluating gradual type systems for
 %object-oriented languages, called \kafka, designed to illustrate these
@@ -392,6 +398,7 @@ optimizations for reducing these overheads are an active research topic.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{KafKa: A Core Calculus}\label{kafkacore}
+
 
 %\epigraph{\hspace{-1cm}\small\it ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}\vspace{-5mm}
 
