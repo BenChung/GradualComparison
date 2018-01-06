@@ -401,9 +401,9 @@ optimizations for reducing these overheads are an active research topic.
 
 \noindent Even without gradual typing, it is notoriously difficult to compare
 languages, as presentation and semantic differences can make even similar
-languages look very different. As a result, these differences between gradual
-type systems are hard to find, hidden among major presentation and semantic
-differences  that are irrelevant to gradual typing itself.
+languages look very different. As a result, differences between gradual type
+systems are hard to notice, as they are hidden among major presentation and
+semantic differences that are irrelevant to gradual typing itself.
 
 \kafka is designed as a core calculus to which a common gradually typed source
 language can be compiled using different gradual typing semantics.
@@ -455,6 +455,51 @@ by its use as a target for a gradually typed language.
 \end{figure}
 
 \paragraph{Syntax}  
+
+The key requirement behind \kafka's design is that it needs to allow the
+optional, behavioral, transient, and concrete gradual typing semantics to all
+rely on the type soundness guarantee it provides, or to be able to  express
+the types of the gradually typed source language in \kafka's type system.
+Moreover, \kafka must support the casts needed by the source syntax.
+
+\kafka's syntax is given in \figref{syn}, which is mostly typical for
+class-based calculi, with four notable exceptions:
+
+\begin{itemize}
+    \item $\KCall\e\m\ep{\t}{\tp}$, denoting a typed call to a method $\m$ with declared type $\t\rightarrow\tp$, and with argument \ep.
+    This form is used to indicate a statically-typed call, for which we provide a soundness guarantee and (if well-typed) is provably
+    going to succeed.
+
+    The main oddity that caused our inclusion of the types of the receiver method on the function call was the concrete semantics, which
+    needs to expose methods from typed objects to untyped code. In order to support this, a check method needs to be called by the untyped
+    code, guarding the typed function's input from potentially ill-typed values. In order to make this call, we needed to do one of two things:
+    \begin{itemize}
+      \item Define a consistent name translation system, that would take a name of a typed function and convert it into the (free) name of its 
+      paired untyped function. 
+      \item Allow simple statically-resolved overloading, and determine what function implementation is called statically.
+    \end{itemize}
+
+    To avoid the complexity of defining a consistent translation from names to free names, we have taken the latter approach, which
+    also lets us provide the correct soundness guarantee for transient calls (e.g. a typed function call to a method from \any
+    to \any).
+    \item $\DynCall\e\m\ep$, indicating a dynamic call to method $\m$. This is the counterpart to the typed call, calling an untyped
+    method and providing no soundness guarantee.
+
+    We use this invocation for untyped code, where no gradual type system provides any static guarantees. Notably, the optional semantics
+    converts all method calls to dynamic calls, as it provides no soundness guarantee whatsoever.
+    \item $\SubCast\t\e$, which is a normal nominal cast operation.
+
+    The standard cast is common to two of the four calculi, as both the concrete and transient semantics use it. In particular, the use of
+    structural subtyping allows us to capture the structural check applied by Transient by simply erasing the types from methods on an object -
+    which would already be done to match the soundness guarantee - and casting where needed.
+    \item $\BehCast\e\t$, indicating the special cast operation used in the behavioral semantics.
+
+    Originally, we had three different casts, one for each system, but now only the behavioral cast is left. The behavioural cast is far more
+    complex than the nominal cast operation, as it needs to wrap objects that pass through it to ensure their compliance to the type specification.
+    In particular, since the behavioural semantics does not erase types, the implicit structural cast (similar to the Transient semantics) 
+    is difficult to represent using the nominal cast, making the presentation simpler with the behavioral cast as a separate syntactic construct.
+\end{itemize}
+
 \kafka's syntax is given in \figref{syn}.  Types consist of class names \C,
 \D and the dynamic type, written \any.  Class definitions have a class name
 and sequences of field and method definitions,
