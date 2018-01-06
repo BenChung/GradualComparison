@@ -487,6 +487,12 @@ class-based calculi, with four notable exceptions:
 
     We use this invocation for untyped code, where no gradual type system provides any static guarantees. Notably, the optional semantics
     converts all method calls to dynamic calls, as it provides no soundness guarantee whatsoever.
+
+    This syntax is somewhat unusual for gradually typed languages - other approaches (such as Reticulated Python~\cite{siek14}) represent
+    an unsafe call as a combination of a cast and a safe call. In \kafka notation, if we assume that class $\xt{M}$ has the untyped method
+    $\m$, this would be written as $\KCall{((\SubCast{\xt M}\e)}\m\ep\any\any$. However, this demands that for every call site we generate
+    the class $\xt{M}$, and obscures the soundness guarantee (or lack thereof) given to untyped invocations, leading to our representation 
+    of it as a special case.
     \item $\SubCast\t\e$, which is a normal nominal cast operation.
 
     The standard cast is common to two of the four calculi, as both the concrete and transient semantics use it. In particular, the use of
