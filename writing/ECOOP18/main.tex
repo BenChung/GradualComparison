@@ -399,20 +399,26 @@ optimizations for reducing these overheads are an active research topic.
 
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
+\noindent Even without gradual typing, it is notoriously difficult to compare
+languages, as presentation and semantic differences can make even similar
+languages look very different. As a result, these differences between gradual
+type systems are hard to find, hidden among major presentation and semantic
+differences  that are irrelevant to gradual typing itself.
 
-%\epigraph{\hspace{-1cm}\small\it ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}\vspace{-5mm}
+\kafka is designed as a core calculus to which a common gradually typed source
+language can be compiled using different gradual typing semantics.
+Fundamentally, \kafka is class-based, object-oriented, and statically typed,
+in the vein of Featherweight Java, but is carefully tuned to support multiple
+gradual type systems in the same environment.
 
-\noindent \kafka is a class-based, statically typed, object-oriented
-calculus. The distinctive features of the calculus are its support for both
-typed and untyped method invocation, as well as dynamic class generation
-through explicit class tables.  The features of \kafka are modeled on common
-compilation targets for object-oriented language such as the JVM's Java
-Bytecode or the .NET CLR's Common Intermediate Language, both of which are
-typed intermediate languages with support for untyped method calls (through
-reflection) and class generation (via dynamic loading). Our design is guided
-by the intuition that the semantics of gradually-typed object-oriented
-languages can be represented by translation to a common representation
-through the introduction of \emph{casts} and \emph{wrappers}.
+The desire to support multiple gradual type systems on top of the same
+calculus drove many of the design decisions behind \kafka, and illustrates
+many of the key differences that underlie each of the different approaches
+to gradual typing. At a basic level, \kafka is very similar to .NET Common
+Intermediate Language or Java Bytecode, augmented with the dynamic type and
+two types of cast, but with several odd aspects that were directly driven
+by its use as a target for a gradually typed language.
+
 
 \begin{figure}[!h]\hrulefill
 
