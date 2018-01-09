@@ -404,20 +404,25 @@ languages look very different. As a result, differences between gradual type
 systems are hard to notice, as they are hidden among major presentation and
 semantic differences that are irrelevant to gradual typing itself.
 
-\kafka is designed as a core calculus to which a common gradually typed source
-language can be compiled using different gradual typing semantics.
-Fundamentally, \kafka is class-based, object-oriented, and statically typed,
-in the vein of Featherweight Java, but is carefully tuned to support multiple
-gradual type systems in the same environment.
+To enable direct comparison, the different gradual typing approaches need to
+be placed in a single language and formal approach. In this section, we
+introduce our common translation target for gradual type systems, the \kafka
+calculi, designed to illustrate the differences between gradual type systems
+for objects.
 
-The desire to support multiple gradual type systems on top of the same
-calculus drove many of the design decisions behind \kafka, and illustrates
-many of the key differences that underlie each of the different approaches
-to gradual typing. At a basic level, \kafka is very similar to .NET Common
-Intermediate Language or Java Bytecode, augmented with the dynamic type and
-two types of cast, but with several odd aspects that were directly driven
-by its use as a target for a gradually typed language.
+The key design goal behind \kafka was to express the soundness guarantees
+provided by the source-level type systems with the target type system,
+allowing for the soundness property of the source language and its gradual
+typing approach to be represented purely through translation. Towards this
+end, we have designed \kafka as a class-based, object-oriented, statically
+typed language, providing natural analogies to real compilation targets such
+as the .NET CIL or Java Bytecode, while allowing the formal representation of
+soundness properties purely through translation.
 
+In order to support gradual typing, \kafka has several features that differ
+from traditional object calculi, most notably structural subtyping (without
+consistency, which will be discussed later), the inclusion of a dynamic type,
+and two cast operations.
 
 \begin{figure}[!h]\hrulefill
 
@@ -438,7 +443,8 @@ by its use as a target for a gradually typed language.
    &\B \BehCast\t\e \\
    & &   
    &\B \New\C{\e[1]..}  
-   &\B \DynCall\e\m\e 
+   &\B \DynCall\e\m\e \\
+   & & & \multicolumn{3}{@{}l}{\B \a \B \FReadR\a\f \B \FWriteR\a\f\e} 
 \end{tabular}\end{minipage}&
 \begin{minipage}{2.4cm}\begin{tabular}{l@{~}l@{}l@{}l}
   \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
@@ -453,88 +459,172 @@ by its use as a target for a gradually typed language.
 \noindent\hrulefill\caption{\kafka Syntax.}\label{syn}
 \end{figure}
 
-\paragraph{Syntax}  
 
-The key requirement behind \kafka's design is that it needs to allow the
-optional, behavioral, transient, and concrete gradual typing semantics to all
-rely on the type soundness guarantee it provides, or to be able to  express
-the types of the gradually typed source language in \kafka's type system.
-Moreover, \kafka must support the casts needed by the source syntax.
+\begin{figure}[!h]
+\noindent\hrulefill
 
-\kafka's syntax is given in \figref{syn}, which is mostly typical for
-class-based calculi, with four notable exceptions:
+\medskip\small
 
+\begin{minipage}{\textwidth}
+\small        
+\begin{tabbing}
+  \K\HS \New\C{\a[1]..} \HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
+\\
+\K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots}
+\\
+\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots} \HS  
+\\ \> \> \> \> \> \> \> \sp = \Map\s{\Bind\a{\obj\C{\a[1],\ldots\ap,\a[n]\ldots}}}
+\\
+\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \\ \> \> \> \> \> \> \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
+\> \> \> \> \> \> \> \StrSub {\emptyset}\K{\t_{2}} \tp
+\\
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \\ \> \> \> \> \> \> \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..} 
+\\
+ \K\HS {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
+\\
+ \K\HS {\SubCast \D\a} \> \s        \>\Red\>    \K \> \a \> \s \>  \WHERE\> \StrSub {\emptyset}\K\C \D \>\App\s\a=\obj\C{\a[1]..} 
+\\
+ \K\HS {\BehCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \behcast \a\t\s\K \Kp\ap\sp    
+\\
+\K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
+\end{tabbing}
+\end{minipage}
+
+\medskip
+\hrulefill
+\caption{\kafka dynamic semantics.}\label{fig:semantics}
+\end{figure}
+
+
+\subsection{Syntax \& Dynamic Semantics}
+
+\kafka has two key requirements. First, it needs to be able to match the
+dynamic semantics implied by each gradual type system, and, second, it needs a
+type system with which the soundness guarantees of the gradual type systems
+can be represents. The syntax of \kafka is shown in \ref{syn}, while the
+dynamic semantics is illustrated in \ref{fig:semantics}.
+
+\kafka's design is otherwise a standard Featherweight Java-style object
+calculi. At the top level, classes are notated as \Class\C{\fd[1]..}{\md[1]..},
+methods denoted as \Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist of
 \begin{itemize}
-    \item $\KCall\e\m\ep{\t}{\tp}$, denoting a typed call to a method $\m$ with declared type $\t\rightarrow\tp$, and with argument \ep.
-    This form is used to indicate a statically-typed call, for which we provide a soundness guarantee and (if well-typed) is provably
-    going to succeed.
-
-    The main oddity that caused our inclusion of the types of the receiver method on the function call was the concrete semantics, which
-    needs to expose methods from typed objects to untyped code. In order to support this, a check method needs to be called by the untyped
-    code, guarding the typed function's input from potentially ill-typed values. In order to make this call, we needed to do one of two things:
-    \begin{itemize}
-      \item Define a consistent name translation system, that would take a name of a typed function and convert it into the (free) name of its 
-      paired untyped function. 
-      \item Allow simple statically-resolved overloading, and determine what function implementation is called statically.
-    \end{itemize}
-
-    To avoid the complexity of defining a consistent translation from names to free names, we have taken the latter approach, which
-    also lets us provide the correct soundness guarantee for transient calls (e.g. a typed function call to a method from \any
-    to \any).
-    \item $\DynCall\e\m\ep$, indicating a dynamic call to method $\m$. This is the counterpart to the typed call, calling an untyped
-    method and providing no soundness guarantee.
-
-    We use this invocation for untyped code, where no gradual type system provides any static guarantees. Notably, the optional semantics
-    converts all method calls to dynamic calls, as it provides no soundness guarantee whatsoever.
-
-    This syntax is somewhat unusual for gradually typed languages - other approaches (such as Reticulated Python~\cite{siek14}) represent
-    an unsafe call as a combination of a cast and a safe call. In \kafka notation, if we assume that class $\xt{M}$ has the untyped method
-    $\m$, this would be written as $\KCall{((\SubCast{\xt M}\e)}\m\ep\any\any$. However, this demands that for every call site we generate
-    the class $\xt{M}$, and obscures the soundness guarantee (or lack thereof) given to untyped invocations, leading to our representation 
-    of it as a special case.
-    \item $\SubCast\t\e$, which is a normal nominal cast operation.
-
-    The standard cast is common to two of the four calculi, as both the concrete and transient semantics use it. In particular, the use of
-    structural subtyping allows us to capture the structural check applied by Transient by simply erasing the types from methods on an object -
-    which would already be done to match the soundness guarantee - and casting where needed.
-    \item $\BehCast\e\t$, indicating the special cast operation used in the behavioral semantics.
-
-    Originally, we had three different casts, one for each system, but now only the behavioral cast is left. The behavioural cast is far more
-    complex than the nominal cast operation, as it needs to wrap objects that pass through it to ensure their compliance to the type specification.
-    In particular, since the behavioural semantics does not erase types, the implicit structural cast (similar to the Transient semantics) 
-    is difficult to represent using the nominal cast, making the presentation simpler with the behavioral cast as a separate syntactic construct.
+\item Variable references \x.
+\item Self-reference \this, wrapped object reference \that.
+\item Field access \FRead\f and field writes \FWrite\f\e.
+\item New object creation \New\C{\e[1]..}.
+\item Typed and untyped invocations, discussed below.
+\item Subtype and behavioral casts, discussed below.
+\item References, assignment, and dereference forms for runtime use.
 \end{itemize}
 
-\kafka's syntax is given in \figref{syn}.  Types consist of class names \C,
-\D and the dynamic type, written \any.  Class definitions have a class name
-and sequences of field and method definitions,
-\Class\C{\fd[1]..}{\md[1]..}. Field definitions consist of a field and its
-type, \Fdef\f\t. Method definitions have (for simplicity) a single argument
-and an expression, denoted \Mdef\m\x\t\t\e.  \kafka supports a limited form
-of overloading, allowing both a typed implementation and an untyped
-implementation for each method.  Fields are private to objects, and can be
-accessed only from the object's scope; reading a field is denoted
-\(\FRead\f\) and writing a field is denoted \(\FWrite\f\e \).  A statically
-resolved call, denoted \KCall\e\m\ep\t\tp, is guaranteed to succeed as the
-type system ensures that the expression \e will evaluate to an object of a
-class which has a method \Mtype\m\t\tp. A dynamically resolved call,
-\DynCall\e\m\ep, can get stuck if the object that \e evaluates to does not
-have a method \Mtype\m\any\any.  We let meta-variables \x ranges over
-variable names, \m and \f range over methods and fields respectively; \this
-is a distinguished identifier representing a method receiver, while \that is
-a distinguished field name that will be used in wrapper classes.  Providing
-two different cast mechanisms is a key feature of the calculus.  The former,
-the \emph{structural cast}, \(\SubCast\t\e\), denotes the usual subtype cast
-that dynamically type-checks its argument.  The latter, the \emph{behavioral
-  cast}, \(\BehCast\t\e\), rather than type-checking the argument at
-runtime, builds a wrapper around it.  The wrapper then ensures that all the
-successive requests to the object will be understood (or raise an
-error). The design of the behavioral cast is intricate, and deserves its own
-section below.  State is represented via a heap \s mapping addresses ranged
-over by \a to objects denoted \hspace{-1mm}\obj\C{\a[1]..}. In some cases
-we allow the body of a method to be multiple expressions separated by
-a semicolon, \e;\e, this is syntactic sugar (it can be encoded by creating
-a helper object with two fields).
+Evaluation is likewise standard with a few exceptions, with an evaluation
+context consisting of a class table \K, an expression being evaluated \e, and
+a heap \s. Due to the need to dynamically generate classes, the class table \K
+is part of the state, and not the evaluation context.
+
+The majority of these constructs are orthogonal to the problem of supporting
+gradual type systems, and have typical semantics. Calls and casts, however,
+are the sites where the soundness guarantee applies and is enforced, and
+\kafka's treatment of these is atypical.
+
+\subsubsection{Invocations}
+    \kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$
+    and the typed invocation $\KCall\e\m\ep{\t}{\tp}$, both denoting a typed call to a
+    method $\m$ with argument \ep. Unusually, the typed form also specifies the
+    argument type (\t) and return type (\tp), enabling a key simplification.
+
+    Consider the following example:
+
+    \begin{verbatim}
+    class C {
+        m(x:Int):Int { x + 2 }
+    }
+    new C().m(2)
+    (<*>new C())@m("hello")
+    \end{verbatim}
+
+    The intuition for the first invocation of \m is clear - the method \C.\m is called.
+    However, the second invocation is less obvious. If we interpret the untyped
+    invocation (shown as an @) as calling \m directly, then it is clear that the types 
+    are not sound, and some mechanism is needed to intercede upon this untyped invocation.
+    This could be treated as a special case of untyped invocation, an approach taken in
+    many gradual type systems dedicated to one language~\cite{popl10,ecoop15,Muehlboeck2017}.
+
+    For a language designed to highlight differences between gradual type systems, though
+    this design has major drawbacks, most notably that it hides dynamic type tests, ones
+    which are impossible to determine statically and that it precludes alternative type
+    test locations, a key concern of the transient semantics. As a result, we take a pure
+    translation approach to protecting typed methods from untyped code.
+
+    \begin{itemize}
+      \item Globally consistent renaming, introducing a new untyped method for each
+      typed method, and renaming every untyped method consistently. Under this scheme,
+      every dynamic invocation can be translated to invoke functions under their untyped
+      names. Using this approach, and denoting the method name corresponding to \m as 
+      \xt{mu}, the example would become
+
+\begin{verbatim}
+class C {
+    m(x:Int):Int { x + 2 }
+    mu(x:*):* { <*>this.m(<Int>x)}
+}
+new C().m(2)
+(<*>new C())@mu("hello")
+\end{verbatim}
+
+      This is fully unambiguous, but the requirement for this globally-unique, always-free
+      name translation adds substantial complexity to the formalism.
+      \item Type-based overloading of methods, where the typed invocation form can choose
+      between methods of the same name but different type signatures, while the untyped
+      invocation always calls the untyped method. Using this approach, the code becomes
+
+\begin{verbatim}
+class C {
+    m(x:Int):Int { x + 2 }
+    m(x:*):* { <*>this.m_Int->Int(<Int>x)}
+}
+new C().m_Int->Int(2)
+(<*>new C())@m("hello")
+\end{verbatim}
+
+      With the simple restriction that only one typed and untyped method may
+      exist in a class at a time, this is equally unambiguous, and also allows
+      the invocation of untyped methods directly from typed code, enabling us
+      to clearly represent the soundness guarantee of the transient semantics.
+
+    \end{itemize}
+
+    By taking the second approach, eliminating the ambiguity by explicitly
+    calling out the type of the method, we allow the gradual type system
+    translation more flexibility in its soundness enforcement mechanisms,
+    remove the need for ``hidden'' dynamic type tests, and clearly denote
+    the method that will be called from a given call site, alongside 
+    simple invocation dynamic semantics.
+
+\subsubsection{Casts}
+
+\kafka has two fundamental cast operations: $\SubCast\t\e$ and $\BehCast\t\e$,
+both indicating that we desire the result of evaluating \e to be of type \t.
+Where the two casts differ is what is meant by ``be of type \t,'' as the two
+casts differ greatly in behavior.
+
+$\SubCast\t\e$ performs a standard subtype cast on the result of evaluating 
+$\e$, ensuring that the value returned is a (non-consistent) subtype of $\t$.
+If $\SubCast\t\e$ succeeds, then the value it returns must be of a subtype
+of $\t$.
+
+$\BehCast\t\e$ instead is a wrapper cast, wrapping the result of evaluating \e
+to enforce the invariant that it \emph{acts like} \t requires. The only
+property immediately checked by $\BehCast\t\e$ is that the value has all of
+the method names declared by \t, and nothing more. Failures due to improper
+typing will instead occur when the untyped value being called violates
+the type dynamically. More details of how this cast works are discussed in
+the section on the behavioral semantics.
+
+The minimal calculus would only have one cast operation, with the natural most
+general choice being $\SubCast\t\e$. However, generating the code for the
+wrappers created by $\BehCast\t\e$ is extremely complex and must happen at
+runtime (WHY?), in turn effectively mandating the use of a special cast form.
 
 \begin{figure}[!b] \hrulefill\small
 
@@ -679,41 +769,6 @@ structural casts to \C check that the runtime object is an instance of a
 subtype of \C.  Evaluation contexts are deterministic and enforce a strict
 evaluation order.
 
-
-\begin{figure}[!h]
-\noindent\hrulefill
-
-\medskip\small
-
-\begin{minipage}{\textwidth}
-\small        
-\begin{tabbing}
-  \K\HS \New\C{\a[1]..} \HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
-\\
-\K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots}
-\\
-\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots} \HS  
-\\ \> \> \> \> \> \> \> \sp = \Map\s{\Bind\a{\obj\C{\a[1],\ldots\ap,\a[n]\ldots}}}
-\\
-\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \\ \> \> \> \> \> \> \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
-\> \> \> \> \> \> \> \StrSub {\emptyset}\K{\t_{2}} \tp
-\\
- \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \\ \> \> \> \> \> \> \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..} 
-\\
- \K\HS {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
-\\
- \K\HS {\SubCast \D\a} \> \s        \>\Red\>    \K \> \a \> \s \>  \WHERE\> \StrSub {\emptyset}\K\C \D \>\App\s\a=\obj\C{\a[1]..} 
-\\
- \K\HS {\BehCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \behcast \a\t\s\K \Kp\ap\sp    
-\\
-\K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
-\end{tabbing}
-\end{minipage}
-
-\medskip
-\hrulefill
-\caption{\kafka dynamic semantics.}\label{fig:semantics}
-\end{figure}
 
 
 A behavioral cast \BehCast\t\a creates a wrapped object \ap which
