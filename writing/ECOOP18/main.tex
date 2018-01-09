@@ -102,33 +102,31 @@ calculus and discuss the implications of their respective designs.
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
 %\vspace{-5mm}
 
-\noindent Since their inception by Siek and  Taha~\cite{SiekTaha06}, gradual
+\noindent Since their inception by Siek and Taha~\cite{SiekTaha06}, gradual
 type systems for a vast array of languages have been developed, enabling
-programmers to add types to untyped code gradually. Each of these approaches devotes
-great care and attention to getting typing for that language correct,
-providing tools to type the constructs of the balky untyped source language.
-However, in this process, the fundamental guarantees of gradual typing itself
-can be lost.
+programmers to add types to untyped code incrementally. These approaches aim
+to improve the readability and usability of their associated language, and
+devote substantial effort to supporting their language's idioms. However, 
+by focusing on one language, the fundamental guarantees the gradual type
+system provides can be lost, hidden under an ocean of language details.
 
-Nowhere is this problem more apparent than in gradual type systems for 
-object-oriented languages. The first effort, by Siek and Taha~\cite{SiekTaha07}
-presented a gradual type system for a variant of Abadi and Cardelli's 
-object-based calculus~\cite{cardelli:1996:theory-of-objects}, adding a notion of
+Nowhere is this problem more apparent than in gradual type systems for object-
+oriented languages. The first effort, by Siek and Taha~\cite{SiekTaha07}
+presented a gradual type system for a variant of Abadi and Cardelli's  object-
+based calculus~\cite{cardelli:1996:theory-of-objects}, adding a notion of
 subtype consistency on top of their earlier work for functional programming
-languages~\cite{SiekTaha06}. However, this type system does not support
-mutable state, which has became the key problem facing gradually-typed
-orbject
+languages~\cite{SiekTaha06}. However, this approach devotes little attention
+to mutability and aliasing, while disregarding performance entirely, spawning
+a decade of research on this complex topic.
 
-Despite a decade of continued research, the practical realization of Siek and Taha's
-elegant idea remains elusive, as their original presentation elided mutable
-state, one of the most common features of object-oriented programming
-languages, and adding mutable state has proven to be complex. In conjunction
-with aliasing and subtyping, mutable state introduces many more points where
-typed and untyped code can interact, and a wide range of solutions have been
-put forward to protect these interactions, each of which has different
-semantics and performance implications.
+However, despite this effort, the practical realization of Siek and Taha's
+elegant idea remains elusive. These features that Siek and Taha elided
+have turned out to be some of the most complex and challenging to deal
+with, and no one approach has proven to be the most successful.
 
-Four major approaches have arisen to deal with this problem:
+Numerous languages include approaches to gradually typing objects, no
+two exactly the same, with some highlights including:
+
 \begin{itemize}
 \item TypeScript, annotating Javascript with types.
 \item Dart, a gradually typed language for web apps.
@@ -141,13 +139,13 @@ Four major approaches have arisen to deal with this problem:
 
 These languages, spanning the design space, all purport to be gradually typed,
 allowing programmers to add just a few types at a time to previously untyped
-programs. Formally comparing these approaches is extremely difficult, however,
-as each is described with a different formalism, or no formalism at all, a
-situation gradual typing only makes more complex. As a result, foundational 
-differences in what it means to be gradually typed are easy to overlook among
-dozens of other language-specific differences. To compare gradual type systems,
-a common language that supports multiple approaches is needed, enabling direct
-and easy comparison.
+programs. However, their fundamental guarantees differ in key ways, and
+formally comparing these approaches is extremely difficult, induced by
+different syntax, different formalizations, and different types. As a result,
+foundational differences in what it means to be gradually typed are easy to
+overlook among dozens of other language-specific differences. To compare
+gradual type systems, a common language that supports multiple approaches is
+needed, enabling direct and easy comparison.
 
 In this paper, we make two main contributions:
 
@@ -157,16 +155,17 @@ In this paper, we make two main contributions:
 sound and representative translation target for a gradually typed source
 language, and discuss the differences between gradual type systems that drive
 language design decisions.
-      To validate \kafka, we have both proven the \kafka type system sound
-      and implemented the calculus on top of the CLR.
+
+To validate \kafka, we have both proven the \kafka type system sound and
+implemented the calculus on top of the CLR.
 
 \item A set of four translations, from a common Java-like source language
   to \kafka, each implementing one type of gradual type system, illustrating
   the key differences between them. 
 
   We validate the source language design and translation semantics through
-  several litmus tests, demonstrating equivalent behavior between real programs 
-  on the actual language and programs written in our source calculi.
+several litmus tests, demonstrating equivalent behavior between real programs
+on the actual language and programs written in our source calculi.
 \end{itemize}
 
 %While the software engineering benefits of the different approaches are being
