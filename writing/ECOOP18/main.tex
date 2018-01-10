@@ -4,7 +4,7 @@
             mathpartir,hyperref,doi, mathtools,wrapfig,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox,
             pgffor, makecell, microtype}
-
+%\usepackage[1-2]{pagesel}
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \usetikzlibrary{arrows}
 \usetikzlibrary{shapes.geometric}
@@ -460,7 +460,21 @@ and two cast operations.
 
 
 \begin{figure}[!h]
+
 \noindent\hrulefill
+\[
+\begin{tabular}{llllllllllllllllll}
+\EE &::=& ~ \FWriteR\a\f\EE   &\B  
+        \KCall\EE\m\e\t\t  &\B
+        \KCall\a\m{\EE}\t\t &\B
+        \DynCall\EE\m\e   &\B\\
+&       & \DynCall\a\m\EE   &\B
+       \SubCast\t\EE  &\B
+      \BehCast\t\EE  &\B
+       \New\C{\a[1]..\,\EE\,\e[1]..} &\B 
+      \EM{\square}
+\end{tabular}
+\]
 
 \medskip\small
 
@@ -643,20 +657,174 @@ casts differ greatly in behavior.
 $\SubCast\t\e$ performs a standard subtype cast on the result of evaluating 
 $\e$, ensuring that the value returned is a (non-consistent) subtype of $\t$.
 If $\SubCast\t\e$ succeeds, then the value it returns must be of a subtype
-of $\t$.
+of $\t$. 
+
+\paragraph{Behavioral Casts}
 
 $\BehCast\t\e$ instead is a wrapper cast, wrapping the result of evaluating \e
 to enforce the invariant that it \emph{acts like} \t requires. The only
 property immediately checked by $\BehCast\t\e$ is that the value has all of
 the method names declared by \t, and nothing more. Failures due to improper
 typing will instead occur when the untyped value being called violates
-the type dynamically. More details of how this cast works are discussed in
-the section on the behavioral semantics.
+the type dynamically.
+
+The detailed semantics of $\BehCast\e\t$ are contained in the $\text{bcast}$
+metafunction, which implements the dynamic wrapper generation application
+operation, while the $\text{W}$ metafunction does wrapper generation.
+$\text{bcast}$'s semantics are shown in figure ~\ref{behavetext}, while
+$\text{W}$'s are shown in \ref{w}. 
+
+
+\begin{figure}[!h]
+\hrulefill
+\small
+
+\vspace{0mm}
+\begin{tabular}{ll|ll}
+\multicolumn{4}{c}{\behcastE\a\t\s\K \Kp\ap\sp} \\
+\a & Reference to wrap & \ap & Wrapped reference \\
+\t & Type to enforce & \Kp & Class table with wrapper\\ 
+\s & Original heap & \sp & New heap \\
+\K & Original class table &
+\end{tabular}
+
+\begin{equation*}
+  \behcastE\a\Cp\s\K \Kp\ap\sp \HS\WHERE\HS \begin{cases}
+\HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
+  \fresh{\D,\ap} \HS\HS
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\\HS
+  \md[1].. \In \App\K\C \HS\HS \names{\mdp[1]..} \subseteq \names{\md[1]..} \\\HS
+  \mdp[1].. \In \App\K\Cp \HS\HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
+  \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that 
+
+  \end{cases}
+\end{equation*}
+
+\begin{equation*}
+  \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
+  \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. \In \App\K\C \HS\HS
+  \fresh{\D,\ap} \\\HS \cload{\md[1]..} \HS\HS
+  \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \\\HS
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
+\end{cases}\end{equation*}
+
+
+\hrulefill
+\vspace{-2mm}\caption{Behavioral casts.}\label{behavetext}
+
+\end{figure}
+
+Both metafunctions have two key cases, one where the value must act as a given
+type (the $\C$ case), and one when the value must be protected against untyped
+code (the $\any$ case). 
+
+Only one kind of error is caught by the behavioral cast itself, when the desired
+interface (represented by a list of method declarations $\mdp[1]$) includes some
+method whose name is not included in the known methods (represented by a list of
+methods $\md[1]$), as in this case, it is impossible for the wrapped value to 
+implement the desired interface.
+
+However, if all methods are present in the typed case, or if the desired type
+is \any, then the function will generate a wrapper with the W metafunction, 
+create a new instance of that wrapper instantiated with the wrapped value,
+then pass a reference to the new heap, value, and class table back. 
+
+As a result, the actual enforcement of type invariants is the responsibility
+of the W class generation meta function, as the dynamics at the call site
+itself are extremely relaxed, with the invariants actually being enforced by
+the wrapper's method bodies.
+
+\begin{figure}[!h]
+\hrulefill
+\small
+
+\begin{tabular}{ll|ll}
+\multicolumn{4}{c}{\wrap\C{\md[1]..}{\mdp[1]..}\D} \\
+\C & Class to wrap & \D & New wrapper class name \\
+\md[1] & Wrapped method declarations & \mdp[1] & Target method declarations \\
+\end{tabular}
+
+\begin{tabbing}\small
+  \wrap\C{\md[1]..}{\mdp[1]..}\D = \src{\Class\D{\Fdef\that\C}{\mdpp[1]..}}\\
+  \HS\HS\WHERE\HS\= \Mdef\m\x{\t[1]}{\t[2]}\e\In\md[1].. \\
+                 \> \mdpp[1] =\= \src{\Mdef\m\x{\tp[1]}{\tp[2]}{~\BehCast{\tp[2]}{\KCall{\FRead\that}\m{\bscast{\tp[1]}\x}{\t[1]}{\t[2]}}}} .. \\
+\> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\tp[1]}{\tp[2]}\ep\In\mdp[1].. \\
+\\[-3mm]
+\> \>  \src{\Mdef\m\x{\t[1]}{\t[2]}{~\KCall{\FRead\that}\m{\x}{\t[1]}{\t[2]}}} .. \\ \> \> \HS\HS \textbf{otherwise}
+\\[3mm]
+\begin{tabular}{ll|ll}
+\multicolumn{4}{c}{\wrapAny\C{\md[1]..}\D} \\
+\C & Class to wrap & \D & New wrapper class name \\
+\md[1] & Wrapped method declarations \\
+\end{tabular} \\[3mm]
+  \wrapAny{\C}{\md[1]..}{\D} = \src{\Class \D{ \Fdef\that\C}{ \mdp[1]..}}\\
+\HS\HS\WHERE\HS\=\mdp[1] = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
+    \HS\HS\HS\HS \\ \> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\md[1].. \\
+\end{tabbing}
+
+\vspace{-5mm}
+
+\hrulefill
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\caption{Wrapper class generation.}\label{w}\end{figure}
+
+The W metafunction is the key to the behavioural cast, generating a wrapper
+class \D over the given type \C and methods \md[1], enforcing the type
+invariants of the methods \mdp[1]. Unlike bcast, the typed and untyped
+versions of wrapper generation are substantively different.
+
+In the typed version, it is required that the wrapper support all methods
+\mdp[1], while having implementations for every \md[1]. We are given that the
+names of the methods in \mdp[1] are a subset of the names in \md[1], so we
+never have to worry about a method in \mdp[1] that is not in \md[1].
+
+When we have both an implementation of \m in \md[1] and a contract \m in
+\mdp[1], we can simply wrap \m to have the same type signature as it has in
+\mdp[1]. However, the case when there is an implementation \m in \md[1], but
+no matching contract in \mdp[1], raises an issue, as it has no specified
+contract but implements behavior that may be expected.
+
+For example, consider the following:
+
+\begin{verbatim}
+class C {
+  a(x:*):* { x }
+  b(x:*):* { x }
+}
+class D {
+  a(x:Int):Int {x}
+}
+(<|C|>(<|D|> new C())).b(2)
+\end{verbatim}
+
+In this example, we start with an instance of \xt{C}, cast it to \xt{D}, which
+only has one of \xt{C}'s two methods, then cast it back. One interpretation
+would be to generate a wrapper at the first cast that does not include \xt{b},
+as it is not required to implement \xt{D}, but then this would cause the
+second cast to fail.
+
+As a result, if there is some \m that is not specified in \mdp[1], the typed W
+implementation will simply pass calls to it through the wrapper. This is still
+safe, as the wrapper's pass-through method for \m has the same types as the
+original \m, and allows the above example to succeed.
+
+In the untyped case, \EM{\xt{W}\!}, we want to protect a (potentially) typed
+value against the untyped wilds. Here, for every method \m, we generate a 
+wrapper method that casts its argument appropriately, then casts the return
+type to \any. 
+
+\paragraph{Why Two Casts?}
 
 The minimal calculus would only have one cast operation, with the natural most
-general choice being $\SubCast\t\e$. However, generating the code for the
-wrappers created by $\BehCast\t\e$ is extremely complex and must happen at
-runtime (WHY?), in turn effectively mandating the use of a special cast form.
+general choice being $\SubCast\t\e$. However, the need to maintain the same
+set of exposed methods through the behavioral cast operation means that the
+set of methods of the wrapper is only known at cast-time, and is dependent on
+the type of the cast value (which itself might be a wrapper, and so on). 
+
+As \kafka does not allow code to generate new code, we cannot represent the
+$\BehCast\e\t$ operation in \kafka itself, therefore demanding its own
+syntactic form.
 
 \begin{figure}[!b] \hrulefill\small
 
@@ -692,27 +860,21 @@ runtime (WHY?), in turn effectively mandating the use of a special cast form.
 \end{figure}
 
 
-\paragraph{Static semantics} A well-formed program, denoted \WFp\e\K, consists
-of an expression \e and a class table \K, where each class \k is well-formed
-and \e is well-typed with respect to \K.  A class is well-formed if all its
-fields and methods are well-typed and it has at most two definitions for any
-method \m, one typed \Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The
-static semantics of \kafka is mostly standard; the complete set of rules is in
-Appendix.  The subtype relation, \StrSub\M\K\t\tp, shown in
-\figref{sub}, allows for recursive structural subtyping, using the environment
-\M as in the amber rule.  The dynamic type \any is a singleton in the subtype
-relation, it is neither a super or a sub-type of any other type.  The notation
-\md\In\App\K\C denotes the method definition \md occurring in class \C and
-class table \K.  Fields are hidden from the class type signature, so
-subtyping is limited to method definitions.  Key type rules are in
-\figref{f:staticsem}.  Method calls use syntactic disambiguation to select
-between methods, based on type signature, where dynamic method invocation (@)
-always invokes methods of type\any. A dynamically resolved call places no
-requirements on the receiver or argument, and returns a value of type \any.  A
-statically resolved call has the usual type requirements on arguments. The two
-subtype cast rules are similar; they ensure the value has the cast-to type.
-However, their enforcement mechanisms are very different, as will be discussed
-later.
+\subsection{Static semantics}
+
+As has been heavily alluded to, the dynamics of \kafka are only half of its
+story. The statics of \kafka are key to enabling comparison of gradual type
+systems, as they enable the expression of gradual typing guarantees through
+the medium of \kafka's strict static typing.
+
+Unlike the dynamics, \kafka's statics hold few surprises. The entire type
+system is shown in appendix A, with the key typing rules excerpted in
+\figref{f:staticsem}. The key typing judgments are the subtyping relation
+\StrSub\M\K\t\tp (shown in \figref{sub}), the standard structural subtyping
+relation with the amber rule, the program typing relation \WFp\e\K, indicating
+that expression \e is well-formed with respect to class table \K, and the
+expression typing judgment $\EnvType \Env\s\K\e\t$, indicating that against
+\Env, with heap \s, and class table \K, \e has type \t.
 
 
 \begin{figure}[!t] \hrulefill\small
@@ -763,274 +925,81 @@ later.
 \caption{\kafka static semantics (excerpt).}\label{f:staticsem}
 \end{figure}
 
+The objective of \kafka's type system is to enable the static
+types of \kafka to illustrate the soundness guarantee provided
+by each gradual typing semantics by translation, encoding the 
+guarantees in \kafka types.
 
-\paragraph{Dynamic Semantics}
-The small step operational semantics for \kafka appears in
-\figref{fig:semantics}.  To resolve the \this reference in field accesses,
-the syntax of expressions is extended at runtime with forms
-%
-\[ \e  ::= \dots \B \a \B \FReadR\a\f \B \FWriteR\a\f\e \]
-%
-where \a is a reference.  The static typing of references
-(\figref{f:staticsem}) can be either the class of the object they map to in
-the heap \s or the dynamic type \any.  We also use evaluation contexts, \EE,
-defined as follows
-\[
-\begin{tabular}{llllllllllllllllll}
-\EE &::=& ~ \FWriteR\a\f\EE   &\B  
-        \KCall\EE\m\e\t\t  &\B
-        \KCall\a\m{\EE}\t\t &\B
-        \DynCall\EE\m\e   &\B\\
-&       & \DynCall\a\m\EE   &\B
-       \SubCast\t\EE  &\B
-      \BehCast\t\EE  &\B
-       \New\C{\a[1]..\,\EE\,\e[1]..} &\B 
-      \EM{\square}
-\end{tabular}
-\]
-\noindent
-The dynamic semantics is defined over \emph{configurations}: triples \K\e\s,
-where \K is a class table, \e is an expression and \s is a heap.  A
-configuration evaluates in one step to a new configuration, \Reduce
-\K\e\s\Kp\ep\sp; the new configuration may include a new class table built
-by extending the previous table with new classes.  Calling forms specify the
-typing of the method to resolve overloading; this is always \(\any \to
-\any\) for dynamic calls, but can be either \(\C \to \D\) or \(\any \to
-\any\) for static calls.  Structural casts to \any always succeed while
-structural casts to \C check that the runtime object is an instance of a
-subtype of \C.  Evaluation contexts are deterministic and enforce a strict
-evaluation order.
+\subsection{Type soundness}
+Type soundness is a key property of the \kafka type system, as
+if the soundness of gradual type systems is to be represented
+in terms of it, then it follows that \kafka must itself be
+type safe. 
 
+The \kafka type soundness theorem is stated as follows:
 
+\begin{theorem}[\kafka type soundness]
 
-A behavioral cast \BehCast\t\a creates a wrapped object \ap which
-dynamically checks that object \a behaves as if it was of type \t.  We refer
-to the type of \a as the \emph{source} type, and to the type \t as the
-\emph{target} type. This cast is generative as it creates both a new class
-(for the wrapper object) and a new instance of that class (the wrapper
-itself). Its dynamic semantics is reported in \figref{behavetext} and
-\figref{w}.  When the target type is a class, say \Cp, the bcast function
-wraps a reference \a with an instance of a freshly generated wrapper class
-\D that abides by the interface of \Cp or gets stuck. The function allocates
-the wrapper in the heap and updates the class table.  The cast performs a
-check that the source type has at least all the method names requested by
-the target type.  Also the cast is not defined for classes with overloaded
-methods (\textsf{nodups} prevents it from being used in this case).  This
-prevents ambiguity in method resolution for wrapped objects. When the target
-type is \any, the cast allows \a to act like an instance of \any.
+\noindent For every well-formed-state $\WFp\s\K$ and well-typed expression
+$\EnvType\emptyset\s\K\e\t$, one of the following holds:
 
-Wrappers play two roles: they check that object being wrapped has the method
-expected by the target type, and they are adapters that ensure \kafka code
-is well-typed. Consider for example a \EM{\BehCast\D\New\C{}} where \C and
-\D are defined as follows.
+\begin{itemize}
+\item There exists some reference $\a$ such that $\e = \a$.
+\item $\K~\e~\s \Red \Kp~\ep~\sp$, where $\WFp\sp\Kp$ and $\EnvType\emptyset\sp\Kp\ep\t$.
+\item $\e=E[\DynCall\a\m\ap]$ and $\a$ refers to an object without a method \m.
+\item $\e=E[\SubCast\C\a]$, and $\a$ refers to an object whose class is not a subtype of $\C$.
+\item $\e=E[\BehCast\C\a]$, and $\C$ contains a method that \a does not.
+\end{itemize}
+\end{theorem}
 
-\begin{tabbing}
-\hspace{1cm}\= \class\= \C \{    \hspace{3cm}\=  \class\=  \D \{\\
-   \>  \> \Mdef\m\x\any\any\x   \>        \>  \Mdef\m\x\D\D\x\\
-   \>  \}  \> \>                         \}
-\end{tabbing}
+As such, a valid \kafka program can only get stuck at a dynamic invocation, a
+subtype cast, or a behavioral cast, and only there when justified, which in turn
+enables us to reason about the semantics of the gradual type systems by reasoning
+about the type of their \kafka translation.
 
-\noindent
-The cast will check that the instance of \C has the method expected by \D,
-in this case this is the sole method \m.  Importantly, it does not check
-whether argument and return types match (in this example, they do not). 
-The second role of the cast is for soundness of \kafka, the value 
-returned by the cast must be a subtype of the target type \D. This is 
-achieved by generating a new class with the right method signatures.
-
-\begin{figure}[!h]
-\hrulefill
-\small
-
-\vspace{-4mm}
-
-\begin{equation*}
-  \behcastE\a\Cp\s\K \Kp\ap\sp \HS\WHERE\HS \begin{cases}
-\HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
-  \fresh{\D,\ap} \HS\HS
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\\HS
-  \md[1].. \In \App\K\C \HS\HS \names{\mdp[1]..} \subseteq \names{\md[1]..} \\\HS
-  \mdp[1].. \In \App\K\Cp \HS\HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
-  \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that 
-
-  \end{cases}
-\end{equation*}
-
-\begin{equation*}
-  \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
-  \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. \In \App\K\C \HS\HS
-  \fresh{\D,\ap} \\\HS \cload{\md[1]..} \HS\HS
-  \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \\\HS
-  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
-\end{cases}\end{equation*}
-
-
-\hrulefill
-\vspace{-2mm}\caption{Behavioral casts.}\label{behavetext}
-
-%\end{figure} \begin{figure}[!t]
-\hrulefill
-\small
-
-\begin{tabbing}\small
-  \wrap\C{\md[1]..}{\mdp[1]..}\D\that = \src{\Class\D{\Fdef\that\C}{\mdpp[1]..}}\\
-  \HS\HS\WHERE\HS\= \Mdef\m\x{\t[1]}{\t[2]}\e\In\md[1].. \\
-                 \> \mdpp[1] =\= \src{\Mdef\m\x{\tp[1]}{\tp[2]}{~\BehCast{\tp[2]}{\KCall{\FRead\that}\m{\bscast{\tp[1]}\x}{\t[1]}{\t[2]}}}} .. \\
-\> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\tp[1]}{\tp[2]}\ep\In\mdp[1].. \\
-\\[-3mm]
-\> \>  \src{\Mdef\m\x{\t[1]}{\t[2]}{~\KCall{\FRead\that}\m{\x}{\t[1]}{\t[2]}}} .. \\ \> \> \HS\HS \textbf{otherwise}
-\\[3mm]
-  \wrapAny{\C}{\md[1]..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mdp[1]..}}\\
-\HS\HS\WHERE\HS\=\mdp[1] = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
-    \HS\HS\HS\HS \\ \> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\md[1].. \\
-\end{tabbing}
-
-\vspace{-5mm}
-
-\hrulefill
-\vspace{-2mm}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\caption{Wrapper class generation.}\label{w}\end{figure}
-
-
-Wrapper class generation is implemented by the \xt{W} and \xt{W\!\any}
-functions. The grey background is used to identify generated code.
-Their first three arguments \C, \(\md[1]..\), \(\mdp[1]..\) are
-the source type and its methods definitions, and the method definitions of
-the target type. The fourth argument, \D, is the class name of the wrapper
-class being built; this is always a fresh name. The last argument is the
-\that field name, which is also fresh.  The function builds a new wrapper
-class \D.  The field \that stores a reference to the target object and has
-thus type \C.  The invocation of a method that appears in $\mdp[1]..$ is
-forwarded to the corresponding method invocation in $\md[1]$, except that
-the arguments are protected by behavioral casts following the interface in
-$\md[1]..$ and the return type following the interface in $\mdp[1]..$.
-Methods defined in the source type but missing from $\mdp[1]..$ are added to
-the wrapper class and simply redirected to corresponding method in the
-wrapped object.  Wrapping an object so that it behaves as \any is simpler,
-as the wrapper systematically protects the input type and casts back the
-return type to \any. Only methods existing in the source type are
-wrapped. The behavioral cast reduction rule satisfies a property
-instrumental to our design: a wrapper class generated for a target type \D,
-is always a subtype of \D.  This will allow us to refer to both unwrapped
-and wrapped objects via the original, source language, types. The wrapper
-generation function will always produce a well-formed class for a target
-type \D. The reason being that the wrapper class only contain methods from
-either the source or the target type. The wrapper class will also never
-contain any duplicates as it can only contain methods that exists in the
-source type.  Furthermore, at most the wrapper class will contain every
-method of the source type.
-
-\subsection{Type soundness} 
-We have mechanized the type soundness proof for \kafka in
-Coq\footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}. In
-Coq syntax, the conditions for \kafka's type soundness theorem is stated as
+To prove this key theorem, we have mechanized the type soundness proof for
+\kafka in
+Coq\footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}.
+In Coq syntax, the conditions for \kafka's type soundness theorem is stated as
 follows:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
-
 $\forall$ (k:ct) (s:heap) (e:expr) (t:type),
   (*condition 1*) --(\emph{WellFormedState})-- k e s $\rightarrow$ 
-  (*condition 2*) --(\emph{HasType})-- nil s k e t $\rightarrow$ 
-\end{lstlisting}
-
-Our Coq mechanization is equivalent to our formalism. In particular, the
-inference rules $\EnvType\Env\s\k\e\t$ and $\WFq{\K~\e~\s}$ is equivalent to
-the Coq functions \emph{HasType} and \emph{WellFormedState} respectively.
-Note that in each of the three error stuck states, cases 3 through 5, the
-actual stuck expression can be inside some evaluation context \verb|E|. The
-\emph{equivExpr} function fills in the hole in \verb|E| with the given
-expression.
-
-The theorem states that for any class table (\verb|k|), heap (\verb|s|),
-expression (\verb|e|), and type (\verb|t|), if the state is well formed
-(condition 1), and if the top-level expression \verb|e| has type \verb|t|
-(condition 2), then the program can only make one of the following five
-choices:
-
-\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
-morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
+  (*condition 2*) --(\emph{HasType})-- nil s k e t $\rightarrow$   
  (*case 1*) ($\exists$ a:ref, e = Ref a) $\vee$
-\end{lstlisting}
-
-\begin{description}
-\item[Case 1] The program is already fully evaluated. Since \kafka has only
-  one value, reference (ref in our Coq formalization), we can say that there
-  exists some reference that is equal to our entire program, or $\exists$
-  \verb|a : ref, e = Ref a|.
-\end{description}
-\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
-morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]  
  (*case 2*) ($\exists$ (e$'$:expr) (s$'$:heap)(k$'$:ct), 
        --(\emph{Steps})-- k e s k$'$ e$'$ s$'$ $\wedge$
        --(\emph{WellFormedState})-- k$'$ e$'$ s$'$ $\wedge$
 	     --(\emph{HasType})-- nil s$'$ k$'$ e$'$ t $\wedge$
        --(\emph{retains{\textunderscore}references})-- s s' $\wedge$
        --(\emph{ct{\textunderscore}ext})-- k k') $\vee$
-\end{lstlisting}
-\begin{description}
-\item[Case 2] The program can take a step. In this case, the program will
-  step to some new configuration (expression \verb|e|$'$, heap \verb|s|$'$,
-  and class table \verb|k|$'$) that is both itself well formed and that
-  retains all of the entries and types in the old heap \verb|s| (expressed
-  using \emph{retains{\textunderscore}references}) and class table \verb|k|
-  (expressed using \emph{ct{\textunderscore}ext}).
-\end{description}
-
-\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
-morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
  ($\exists$ E:EvalCtx,
  (*case 3*) ($\exists$ (a:ref) (m:id) (a$'$:ref) (C:id) (aps:list ref),
        (e = --(\emph{equivExpr})-- (--(\emph{DynCall})-- (--(\emph{Ref})-- a) m (--(\emph{Ref})-- a$'$)) E) $\wedge$
        --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
        $\forall$ x e, ~ (--(\emph{In})-- (--(\emph{Method})-- m x Any Any e) --(\emph{(methods})-- C k))) $\vee$
-\end{lstlisting}
-\begin{description}
-  \item[Case 3] The program could be stuck at a dynamic call expression. The
-    dynamic call expression of the form \emph{DynCall} (\emph{Ref}
-    \texttt{a) m (}\emph{Ref} \texttt{a}$'$) can get stuck if \verb|a|
-    refers to an instance of class \verb|C| in \verb|s| that does not
-    contain a method \verb|m| to call.
-\end{description}
-
-\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
-morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
  (*case 4*) ($\exists$ (t$'$:type) (a:ref) (C:id) (aps:list ref),
        (e = --(\emph{equivExpr})-- (--(\emph{SubCast})-- t$'$ (--(\emph{Ref})-- a)) E) $\wedge$
        --(\emph{In})-- (a, --(\emph{HCell})--(C,aps)) s $\wedge$
        ((--(\emph{Subtype})-- --(\emph{empty{\textunderscore}mu})-- k (--(\emph{class})-- C) t$'$) -> False)) $\vee$
-\end{lstlisting}
-\begin{description}
-  \item[Case 4] The program could have gotten stuck on a subtype cast.  In
-    an expression of the form \emph{SubCast} \texttt{t$'$} (\emph{Ref}
-    \texttt{a)}, the program can get stuck if \verb|s| maps \verb|a| to an
-    object of class \verb|C|, and if \verb|C| is not a subtype of
-    \verb|t|$'$.
-\end{description}
-
-\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
-morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
  (*case 5*) ($\exists$ a aps C C$'$, 
        e = --(\emph{equivExpr})-- (--(\emph{BehCast})-- (--(\emph{class})-- C') (--(\emph{Ref})-- a)) E $\wedge$
        --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
        ~(--(\emph{incl})-- (--(\emph{method{\textunderscore}names})-- C$'$ k) (--(\emph{method{\textunderscore}names})-- C k))))
 \end{lstlisting}
-\begin{description}
-  \item[Case 5] The program may get stuck on a behavioral cast, of the form
-    \emph{BehCast} (\emph{class} \texttt{C}$'$) (\emph{Ref} \texttt{a}), if
-    \verb|C|, the class of \verb|a| in \verb|s| does not have all of the
-    methods needed to implement \verb|C|$'$.
-\end{description}
 
-We have proven that a \kafka program will not get stuck, except if it
-encounters a dynamic call to an object that does not have the required
-method, tries to use subtype cast on a value that is not actually a subtype,
-or attempts to force an object to act like another object, however with
-missing required method signature.  The \kafka type system provides a
-guarantee of progress, most expressions are guaranteed to step.  This
-localizes where \kafka programs could potentially encounter runtime errors,
-which helps reasoning about where gradually typed programs go wrong.
+This theorem is slightly stronger than the one stated above, as case 2 in the
+Coq version also ensures that the new heap \sp has the same references as \s
+did, and that the new class table \Kp has the same classes that \K did. The
+most notable Coq predicate is \emph{equivExpr}, which instantiates some
+evaluation context $E$ with an expression \e.
+
+Type soundness is only one means of validating a language design and type
+system, however, as while it demonstrates that reasoning about types only need
+be done in \kafka, it does not demonstrate the practical applicability of 
+lessons learned from translations to \kafka, which needs a different approach.
 
 \subsection{Implementation}
 
