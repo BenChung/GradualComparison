@@ -146,26 +146,23 @@ overlook amongst the many other language-specific differences between them.
 In order to comprehensively compare these gradual type systems
 a common language that supports all of the gradual approaches is needed. 
 
-In this paper, we make two main contributions:
+\noindent In this paper, we make two main contributions:
 
 \begin{itemize}  
-
  \item The \kafka object-oriented calculus for gradual typing, providing a
 sound and representative translation target for a gradually typed source
 language, and discuss the differences between gradual type systems that drive
-language design decisions.
-
-To validate \kafka, we have both proven the \kafka type system sound and
-implemented the calculus on top of the CLR.
+language design decisions. To validate \kafka, we have both proven the \kafka 
+type system sound and implemented the calculus on top of the CLR.
 
 \item A set of four translations, from a common Java-like source language
   to \kafka, each implementing one type of gradual type system, illustrating
   the key differences between them. 
+\end{itemize}
 
-  We validate the source language design and translation semantics through
+\noindent We validate the source language design and translation semantics through
 several litmus tests, demonstrating equivalent behavior between real programs
 on the actual language and programs written in our source calculi.
-\end{itemize}
 
 %While the software engineering benefits of the different approaches are being
 %debated, it is worthwhile to observe that the definition of type error is also
@@ -246,7 +243,6 @@ declared interface. When a value misbehaves, blame can be assigned to a
 boundary. The granularity of typing is the module, thus a module is either
 entirely typed or entirely untyped. 
 
-
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
 for a program by choosing to annotate function parameters with types, or
@@ -258,10 +254,11 @@ extended their result to a stateless object calculus and combined
 consistency with structural subtyping, but extending this approach to
 mutable objects proved challenging.  Reticulated Python~\cite{siek14} is a
 compromise between soundness and efficiency.  The language has three modes:
-the \emph{guarded} mode behaves as Racket with contracts applied to values.
-The \emph{transient} mode performs shallow checks on reads and returns, only
-validating if the value obtained has matching method names.  The
-\emph{monotonic} mode is fundamentally different. Under the monotonic
+the \emph{guarded} mode behaves as Typed Racket with contracts applied to values.
+The \emph{transient} mode performs shallow checks on reads and method returns, only
+validating if the value obtained has matching method types.  The
+\emph{monotonic} mode is fundamentally different from any of the other previous
+approaches. Under the monotonic
 semantics, a cast updates the type of an object in place by replacing some
 of the occurrences of \any with more specific types, which can then
 propagate recursively through the heap until a fixed point is
@@ -275,7 +272,7 @@ StrongScript~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
 Felleisen-style contracts and mostly nominal type equivalence (structural
 equivalence can be specified on demand, but it is, in practice, rarely
 used). C\# 4.0 adds the type {\sf dynamic} to C\# and dynamically resolved
-method invocation.  C\# has thus a dynamic sublanguage that allows
+method invocation. Thus C\# has a dynamic sublanguage that allows
 developers to write unchecked code, working alongside a strongly typed
 sublanguage in which values are guaranteed to be of their declared type.
 The implementation replaces \any by the type {\tt object} and adds casts
@@ -285,7 +282,6 @@ implemented by translation to the JVM. StrongScript translate to an extended
 version of V8. The presence of concrete types means that the compiler can
 optimize code (unbox data and in-line methods) and programmers are
 guaranteed that type errors will not occur within concretely typed code.
-
 
 \newcommand{\rot}[1]{\rotatebox{80}{#1}\hspace{-10px}}
 \newcommand{\X}{\EM{\bullet}}
