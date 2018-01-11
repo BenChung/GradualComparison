@@ -96,36 +96,33 @@ calculus and discuss the implications of their respective designs.
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
 %\vspace{-5mm} 
 
-\noindent There has never been a single approach to gradual typing. In 2006, the
-field was created by two simultaneously published, independently developed papers. The
-first, by Siek and Taha, allows the incremental typing of individual lambda calculus
-terms through a consistency relation, and inserts casts based on a simple type
-inference system \cite{SiekTaha06}. The second, by Tobin-Hochtstat and
-Felleisen, adds types to entire Scheme modules, using constraint solving
-to find where casts must be added in untyped code~\cite{tf-dls06}.
+\noindent There has never been a single approach to gradual typing.  two
+simultaneously published, independently developed, papers opened the field
+in 2006. The first, by Siek and Taha, allows the incremental typing of
+individual lambda calculus terms through a consistency relation, and inserts
+casts based on a simple type inference system \cite{SiekTaha06}. The second,
+by Tobin-Hochtstat and Felleisen, adds types to entire Scheme modules, using
+constraint solving to find where casts must be added in untyped
+code~\cite{tf-dls06}. These two quite different solutions, targeting
+different languages, set the trend for the next ten years of
+research. Today, gradual type systems support a variety of languages,
+enforcement mechanisms, and soundness guarantees. However, this linguistic
+diversity is not without consequence.
 
-These two very different solutions, in very different languages, set the trend
-for the next ten years of gradual typing research. Gradual type systems today
-support an enormous variety of languages, enforcement mechanisms, and
-soundness guarantees. However, this linguistic diversity is not without
-consequence.
-
-Necessarily, the type system, syntax, and semantics of a programming language
-are tightly coupled, and each has to deal with the language's complexity. As a
-result, if we were to implement the same gradual typing semantics for two
-different  programming languages, the resulting semantics seem dissimilar,
-despite both being semantically identical. Comparing two different gradual
-type systems, implemented for two different languages, is correspondingly
-more difficult.
-
-The challenge in comparing the fundamental semantics of gradual type systems
-is particularly apparent for object-oriented languages. Siek and Taha's first
-effort~\cite{SiekTaha07} presents a gradual type system for a variant of Abadi
-and Cardelli's object- based calculus~\cite{cardelli:1996:theory-of-objects},
-relating objects by generalizing their earlier notion of
-consistency~\cite{SiekTaha06} over structural subtyping. This early work has
-several major holes, most notably in handling mutable state, aliasing, and
-subtyping, vital components of imperative object-oriented languages.
+The type system and semantics of a programming language are necessarily
+tightly coupled; each has to deal with the language's complexity. As a
+result, if we were to implement the same gradual type system for two
+different languages, the resulting semantics may appear dissimilar, despite
+both starting with the same ideas. Comparing different gradual type systems,
+targeting implemented for different languages, is correspondingly more
+difficult.  The difficulty is particularly apparent for object-oriented
+languages. Siek and Taha's first effort~\cite{SiekTaha07} presents a gradual
+type system for a variant of Abadi and Cardelli's object- based
+calculus~\cite{cardelli:1996:theory-of-objects}, relating objects by
+generalizing their notion of consistency~\cite{SiekTaha06} over structural
+subtyping. This early work has several drawbacks, most notably in handling
+mutable state, aliasing, and subtyping, vital components of imperative
+object-oriented languages.
 
 Underlying each of the subsequent gradual type systems for object-oriented
 languages is some solution to these problems, leveraging key differences in
