@@ -124,30 +124,30 @@ effort~\cite{SiekTaha07} presents a gradual type system for a variant of Abadi
 and Cardelli's object- based calculus~\cite{cardelli:1996:theory-of-objects},
 relating objects by generalizing their earlier notion of
 consistency~\cite{SiekTaha06} over structural subtyping. This early work has
-several major holes, most notably in handling mutable state and aliasing,
-vital components of imperative object-oriented languages.
+several major holes, most notably in handling mutable state, aliasing, and
+subtyping, vital components of imperative object-oriented languages.
 
 Underlying each of the subsequent gradual type systems for object-oriented
 languages is some solution to these problems, leveraging key differences in
 soundness property and enforcement, but these fundamental details are obscured
-by language features. The logical solution to this problem is to implement
-several gradual type systems for the same language, but no existing language
-is suitable for multiple gradual type systems.
+by language features. Gradual type systems enforce their invariants via translation
+to a stricter target language, but these targets are just as diverse as the
+source languages, ruling out easy comparison. Moreover, gradual typing imposes
+unique demands for dynamic typing and for casts on the target language, ruling
+out standard target calculi.
 
-This idea of using a single source language then induces a new problem, one
-of translation. Most gradual type systems are described by translation to
-a bespoke target calculus with the requisite primitives. Even with the same
-source, a direct implementation of several gradual type systems will then
-induce an equally large range of target languages and semantics.
+Even with the same target, different gradual type systems for different
+languages will produce dissimilar code, again frustrating detailed comparison.
+In addition to standardizing the target language, the source language must 
+be equally held constant, reducing the point of comparison to the translation
+alone.
 
 In this paper, we present a new framework for comparing gradual type systems,
-standardizing the source and target language. Using the \kafka core calculus,
-designed to provide the minimal set of features needed for gradual typing, we
-reduce the comparison of gradual type systems to the comparison of two
-different translations between the same source and target. We then use this
-approach to model four different gradually typed programming languages,
-illustrating their differences.
-
+standardizing the source and target language. We propose a new common target
+language, called \kafka, providing the minimum set of functionality needed
+for gradual typing while still offering a sound static type system, and use it
+along with a common source language to implement four different gradual type
+systems.
 
 %While the software engineering benefits of the different approaches are being
 %debated, it is worthwhile to observe that the definition of type error is also
