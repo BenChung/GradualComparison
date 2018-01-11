@@ -47,6 +47,7 @@
 \begin{document}
 \title{KafKa: A Common Framework for Gradual Typing of Objects}
 \titlerunning{Gradual typing of objects}
+<<<<<<< HEAD
 \author{Anon.}
 %\author[1]{B}
 %\affil[1,3]{Northeastern University}
@@ -55,6 +56,21 @@
 
 %\subjclass{Dummy classification -- please refer to \url{http://www.acm.org/about/class/ccs98-html}}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation". 
 %\keywords{Dummy keyword -- please provide 1--5 keywords}% mandatory: Please provide 1-5 keywords
+=======
+
+\author[1]{Benjamin Chung}
+\author[2]{Paley Li}
+\author[1]{Jan Vitek}
+\affil[1]{Northeastern University}
+\affil[2]{CVUT Prague}
+\authorrunning{B. Chung, P. Li, J. Vitek} %mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et. al.'
+
+
+\Copyright{John Q. Open and Joan R. Access}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+\subjclass{Dummy classification -- please refer to \url{http://www.acm.org/about/class/ccs98-html}}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation". 
+\keywords{Dummy keyword -- please provide 1--5 keywords}% mandatory: Please provide 1-5 keywords
+>>>>>>> Intro stuff
 % Author macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -90,73 +106,64 @@ object-oriented languages. We demonstrate the usefulness by translating
 idealizations of four different gradually typed language languages into the
 calculus and discuss the implications of their respective designs.
 \end{abstract}
-
+% THANKS: Francesco Zappa Nardelli, Leif Andersen
 \section{Introduction}
 
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
-%\vspace{-5mm}
+%\vspace{-5mm} 
 
-\noindent Since their inception by Siek and Taha~\cite{SiekTaha06}, gradual
-type systems for a vast array of languages have been developed, enabling
-programmers to add types to untyped code incrementally. These approaches aim
-to improve the readability and usability of their associated language, and
-devote substantial effort to supporting their language's idioms. However, 
-by focusing on one language, the fundamental guarantees the gradual type
-system provides can be lost, hidden under an ocean of language details.
+\noindent There has never been a single approach to gradual typing. In 2006, the
+field was created by two simultaneously published, independently developed papers. The
+first, by Siek and Taha, allows the incremental typing of individual lambda calculus
+terms through a consistency relation, and inserts casts based on a simple type
+inference system \cite{SiekTaha06}. The second, by Tobin-Hochtstat and
+Felleisen, adds types to entire Scheme modules, using constraint solving
+to find where casts must be added in untyped code~\cite{tf-dls06}.
 
-Nowhere is this problem more apparent than in gradual type systems for object-oriented
- languages. The first effort, by Siek and Taha~\cite{SiekTaha07}
-presents a gradual type system for a variant of Abadi and Cardelli's  object-based calculus~\cite{cardelli:1996:theory-of-objects}, adding a notion of
-subtype consistency on top of their earlier work for functional programming
-languages~\cite{SiekTaha06}. However, this approach devotes little attention
-to mutability and aliasing, while disregarding performance entirely, spawning
-a decade of research on this complex topic.
+These two very different solutions, in very different languages, set the trend
+for the next ten years of gradual typing research. Gradual type systems today
+support an enormous variety of languages, enforcement mechanisms, and
+soundness guarantees. However, this linguistic diversity is not without
+consequence.
 
-However, despite this effort, the practical realization of Siek and Taha's
-elegant idea remains elusive. These features that Siek and Taha elided
-have turned out to be some of the most complex and challenging to deal
-with, and no one approach has proven to be the most successful.
+Necessarily, the type system, syntax, and semantics of a programming language
+are tightly coupled, and each has to deal with the language's complexity. As a
+result, if we were to implement the same gradual typing semantics for two
+different  programming languages, the resulting semantics seem dissimilar,
+despite both being semantically identical. Comparing two different gradual
+type systems, implemented for two different languages, is correspondingly
+more difficult.
 
-Numerous languages include approaches to gradually typing objects, no
-two exactly the same, with some highlights including:
+The challenge in comparing the fundamental semantics of gradual type systems
+is particularly apparent for object-oriented languages. Siek and Taha's first
+effort~\cite{SiekTaha07} presents a gradual type system for a variant of Abadi
+and Cardelli's object- based calculus~\cite{cardelli:1996:theory-of-objects},
+relating objects by generalizing their earlier notion of
+consistency~\cite{SiekTaha06} over structural subtyping. This early work has
+several major holes, most notably in handling mutable state and aliasing,
+vital components of imperative object-oriented languages.
 
-\begin{itemize}
-\item TypeScript, annotating Javascript with types.
-\item Dart, a gradually typed language for web apps.
-\item Hack, adding types to PHP.
-\item Thorn, a new language with both typed and untyped code.
-\item Nom, another new language supporting both dynamic and static typing.
-\item Typed Racket, a rich gradual type system for Racket.
-\item Reticulated Python, a family of three different gradual type systems for Python.
-\end{itemize}
+Underlying each of the subsequent gradual type systems for object-oriented
+languages is some solution to these problems, leveraging key differences in
+soundness property and enforcement, but these fundamental details are obscured
+by language features. The logical solution to this problem is to implement
+several gradual type systems for the same language, but no existing language
+is suitable for multiple gradual type systems.
 
-These languages, spanning the design space, all purport to be gradually typed,
-allowing programmers to add types progressively to previously untyped
-programs. However, their fundamental guarantees differ in key ways, and
-formally comparing these approaches is extremely difficult, induced by
-different syntax, different formalizations, and different types. 
-The differences between the gradual typing approaches of these languages are easy to
-overlook amongst the many other language-specific differences between them.
-In order to comprehensively compare these gradual type systems
-a common language that supports all of the gradual approaches is needed. 
+This idea of using a single source language then induces a new problem, one
+of translation. Most gradual type systems are described by translation to
+a bespoke target calculus with the requisite primitives. Even with the same
+source, a direct implementation of several gradual type systems will then
+induce an equally large range of target languages and semantics.
 
-\noindent In this paper, we make two main contributions:
+In this paper, we present a new framework for comparing gradual type systems,
+standardizing the source and target language. Using the \kafka core calculus,
+designed to provide the minimal set of features needed for gradual typing, we
+reduce the comparison of gradual type systems to the comparison of two
+different translations between the same source and target. We then use this
+approach to model four different gradually typed programming languages,
+illustrating their differences.
 
-\begin{itemize}  
- \item The \kafka object-oriented calculus for gradual typing, providing a
-sound and representative translation target for a gradually typed source
-language, and discuss the differences between gradual type systems that drive
-language design decisions. To validate \kafka, we have both proven the \kafka 
-type system sound and implemented the calculus on top of the CLR.
-
-\item A set of four translations, from a common Java-like source language
-  to \kafka, each implementing one type of gradual type system, illustrating
-  the key differences between them. 
-\end{itemize}
-
-\noindent We validate the source language design and translation semantics through
-several litmus tests, demonstrating equivalent behavior between real programs
-on the actual language and programs written in our source calculi.
 
 %While the software engineering benefits of the different approaches are being
 %debated, it is worthwhile to observe that the definition of type error is also
