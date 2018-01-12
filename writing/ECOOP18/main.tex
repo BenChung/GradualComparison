@@ -377,21 +377,22 @@ optimizations for reducing these overheads are an active research topic.
 
 %\epigraph{\small ``There is no perfection only life.''} \vspace{-5mm}
 
-One of the salient implications of the various approaches to gradual typing
-is that they have different notions of what is an erroneous program.  This
-section proposes a litmus test that can distinguish the four type
-systems. The three programs of \figref{litmus} are statically well-typed in
-all four approaches to gradual type systems.\footnote{ For completeness we
-  implemented them in TypeScript, Typed Racket, Thorn and Reticulated
-  Python, code is in appendix.} Furthermore, in an untyped language all
-three programs would execute without error. Depending on the runtime
-enforcement strategy, some of these programs will halt with a runtime error
-due to inserted casts. Different type systems will report a different number
-of errors, and will stop at different points.  \figref{litmus} presents
-three programs, written in source language, which can be translated to
-\kafka following the four different approaches that will be presented in the
-next section. The programs consist of a class table and a top-level
-expression.
+One of the salient implications of the various approaches to gradual typing is
+that they have different notions of what is an erroneous program. By observing
+the errors that each gradual type system produces, one can determine what kind
+of type system is being used. Using this property, we propose a litmus test
+that can distinguish the four gradual type systems.
+
+Using the errors reported at runtime, this litmus test is able to determine
+what gradual type system a language uses. Depicted in \figref{litmus}, the
+test consists of three programs, written in our source
+language\footnote{Details on this language appear in section 5}. All of these
+programs type check according to each of the four gradual type systems, and
+run without error when executed in an untyped language. Due to the differences
+between gradual type systems and their runtime enforcement systems, however,
+some of these programs will halt with a runtime error due to one of the
+inserted casts. By observing which programs produce an error we can determine
+which gradual type system is being used.
 
 \begin{figure}[!h]
   \includegraphics[width=.95\columnwidth]{../figures/litm}
@@ -399,7 +400,7 @@ expression.
 \end{figure}
 
 {\bf Optional.~} An optional type system, which simply erases all of the
-type annotations at runtime, will run all without error.
+type annotations at runtime, will run all programs without error.
 
 {\bf Concrete.~} The guarantee provided by the concrete semantics is that
 only statically checked values can be of a type, implying that untyped
