@@ -96,36 +96,33 @@ calculus and discuss the implications of their respective designs.
 %\epigraph{\small\it ``Because half the problem is seeing the problem''}
 %\vspace{-5mm} 
 
-\noindent There has never been a single approach to gradual typing. In 2006, the
-field was created by two simultaneously published, independently developed papers. The
-first, by Siek and Taha, allows the incremental typing of individual lambda calculus
-terms through a consistency relation, and inserts casts based on a simple type
-inference system \cite{SiekTaha06}. The second, by Tobin-Hochtstat and
-Felleisen, adds types to entire Scheme modules, using constraint solving
-to find where casts must be added in untyped code~\cite{tf-dls06}.
+\noindent There has never been a single approach to gradual typing.  two
+simultaneously published, independently developed, papers opened the field
+in 2006. The first, by Siek and Taha, allows the incremental typing of
+individual Scheme terms through a consistency relation, and inserts
+casts based on a simple type inference system \cite{SiekTaha06}. The second,
+by Tobin-Hochtstat and Felleisen, adds types to entire modules, using
+constraint solving to find where casts must be added in untyped
+code~\cite{tf-dls06}. These two quite different solutions, solving the same
+program in the same language, set the trend for the next ten years of
+research. Today, gradual type systems support a variety of languages,
+enforcement mechanisms, and soundness guarantees. However, this linguistic
+diversity is not without consequence.
 
-These two very different solutions, in very different languages, set the trend
-for the next ten years of gradual typing research. Gradual type systems today
-support an enormous variety of languages, enforcement mechanisms, and
-soundness guarantees. However, this linguistic diversity is not without
-consequence.
-
-Necessarily, the type system, syntax, and semantics of a programming language
-are tightly coupled, and each has to deal with the language's complexity. As a
-result, if we were to implement the same gradual typing semantics for two
-different  programming languages, the resulting semantics seem dissimilar,
-despite both being semantically identical. Comparing two different gradual
-type systems, implemented for two different languages, is correspondingly
-more difficult.
-
-The challenge in comparing the fundamental semantics of gradual type systems
-is particularly apparent for object-oriented languages. Siek and Taha's first
-effort~\cite{SiekTaha07} presents a gradual type system for a variant of Abadi
-and Cardelli's object- based calculus~\cite{cardelli:1996:theory-of-objects},
-relating objects by generalizing their earlier notion of
-consistency~\cite{SiekTaha06} over structural subtyping. This early work has
-several major holes, most notably in handling mutable state, aliasing, and
-subtyping, vital components of imperative object-oriented languages.
+The type system and semantics of a programming language are necessarily
+tightly coupled; each has to deal with the language's complexity. As a
+result, if we were to implement the same gradual type system for two
+different languages, the resulting semantics may appear dissimilar, despite
+both starting with the same ideas. Comparing different gradual type systems,
+targeting implemented for different languages, is correspondingly more
+difficult.  The difficulty is particularly apparent for object-oriented
+languages. Siek and Taha's first effort~\cite{SiekTaha07} presents a gradual
+type system for a variant of Abadi and Cardelli's object- based
+calculus~\cite{cardelli:1996:theory-of-objects}, relating objects by
+generalizing their notion of consistency~\cite{SiekTaha06} over structural
+subtyping. This early work has several drawbacks, most notably in handling
+mutable state, aliasing, and subtyping, vital components of imperative
+object-oriented languages.
 
 Underlying each of the subsequent gradual type systems for object-oriented
 languages is some solution to these problems, leveraging key differences in
@@ -372,6 +369,80 @@ Reticulated Python is a worst case scenario for concrete types -- i.e. there
 is a cast at almost every call. Finally, languages with behavioral casts
 tend to suffer prohibitive slow downs in pathological cases. Compiler
 optimizations for reducing these overheads are an active research topic.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Litmus test}\label{litmustest}
+
+%\epigraph{\small ``There is no perfection only life.''} \vspace{-5mm}
+
+One of the salient implications of the various approaches to gradual typing is
+that they have different notions of what is an erroneous program. By observing
+the errors that each gradual type system produces, one can determine what kind
+of type system is being used. Using this property, we propose a litmus test
+that can distinguish the four gradual type systems.
+
+Using the errors reported at runtime, this litmus test is able to determine
+what gradual type system a language uses. Depicted in \figref{litmus}, the
+test consists of three programs, written in our source
+language\footnote{Details on this language appear in section 5}. All of these
+programs type check according to each of the four gradual type systems, and
+run without error when executed in an untyped language. Due to the differences
+between gradual type systems and their runtime enforcement systems, however,
+some of these programs will halt with a runtime error due to one of the
+inserted casts. By observing which programs produce an error we can determine
+which gradual type system is being used\footnote{To validate this, we have 
+implemented the litmus test in Typescript, Thorn, Typed Racket, and Transient
+Reticulated Python. These implementations are included in the appendix}.
+
+\begin{figure}[!h]
+  \includegraphics[width=.95\columnwidth]{../figures/litm}
+  \caption{Gradual typing litmus test.}\label{litmus}
+\end{figure}
+
+{\bf Optional.~} An optional type system, which simply erases all of the
+type annotations at runtime, will run all programs without error.
+
+{\bf Concrete.~} The guarantee provided by the concrete semantics is that
+only statically checked values can be of a type, implying that untyped
+values can never be passed in placed of a typed one. This strong requirement
+causes the concrete semantics to reject all three programs. {\bf L1} fails
+as it attempts to pass an \A instance in place of an instance of \xt I,
+which are incompatible.  {\bf L2} also fails despite \A and \xt I's
+method now being of the same name, the types are statically incompatible due
+to \xt Q not being a static super type of \A. {\bf L3} fails as it tries to
+pass a \C as an \xt E, in the call to \m inside of \xt N in \xt F,
+impossible under the concrete semantics as \C is not a subtype of \xt E.
+
+{\bf Behavioral.~} In contrast to the concrete semantics, the behavioral
+semantics does allow untyped values to be passed under a type if they are
+structurally compatible, but dynamically ensures that the untyped values to
+respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
+method, \m, could never be used as \xt I's \xt n. {\bf L2}, however,
+executes without error, as while \A.\xt m does not properly implement \xt
+I.\xt n, this is never observed dynamically, and the value is therefore
+observationally of the ascribed type. {\bf L3} is rejected by the behavioral
+semantics, as when the top-level expression calls \xt a on a \xt C that has
+been cast to an \xt E, the check that the value (another instance of \xt C)
+is structurally compatible with the required type (\xt D), fails.
+
+{\bf Transient.~} The transient semantics further weakens the guarantee,
+retaining the structural checks at casts of the behavioral semantics, but
+only checks adherence to the locally ascribed type, rather than every
+potentially applicable type. Transient fails {\bf L1}, for the same reason
+as the other two type systems, and passes {\bf L2}, for the same reason as
+the behavioral semantics, as a result, but differs in {\bf L3}. {\bf L3}
+failed under the behavioral semantics because the return value of \xt n
+carried the type applied by \xt m with it, forcing the \xt C instance to act
+like an \xt E.  However, the transient semantics does not check this,
+letting the invocation to \xt a succeed.
+
+We can use the litmus tests to discover what gradual type system is being
+used, but the test does not describe the semantics of the gradual type
+systems it differentiates. To provide detailed semantics for all four
+gradual type systems we use a two part approach, the first part of which,
+the \kafka core calculus, we discuss next.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1016,70 +1087,6 @@ The goal of this implementation was to validate the choice of features
 included in \kafka by showing that they match those provided in modern VMs.
 For most of \kafka's functionality, the implementation was trivial. 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Litmus test}\label{litmustest}
-
-%\epigraph{\small ``There is no perfection only life.''} \vspace{-5mm}
-
-One of the salient implications of the various approaches to gradual typing
-is that they have different notions of what is an erroneous program.  This
-section proposes a litmus test that can distinguish the four type
-systems. The three programs of \figref{litmus} are statically well-typed in
-all four approaches to gradual type systems.\footnote{ For completeness we
-  implemented them in TypeScript, Typed Racket, Thorn and Reticulated
-  Python, code is in appendix.} Furthermore, in an untyped language all
-three programs would execute without error. Depending on the runtime
-enforcement strategy, some of these programs will halt with a runtime error
-due to inserted casts. Different type systems will report a different number
-of errors, and will stop at different points.  \figref{litmus} presents
-three programs, written in source language, which can be translated to
-\kafka following the four different approaches that will be presented in the
-next section. The programs consist of a class table and a top-level
-expression.
-
-\begin{figure}[!h]
-	\includegraphics[width=.95\columnwidth]{../figures/litm}
-	\caption{Gradual typing litmus test.}\label{litmus}
-\end{figure}
-
-{\bf Optional.~} An optional type system, which simply erases all of the
-type annotations at runtime, will run all without error.
-
-{\bf Concrete.~} The guarantee provided by the concrete semantics is that
-only statically checked values can be of a type, implying that untyped
-values can never be passed in placed of a typed one. This strong requirement
-causes the concrete semantics to reject all three programs. {\bf L1} fails
-as it attempts to pass an \A instance in place of an instance of \xt I,
-which are incompatible.  {\bf L2} also fails despite \A and \xt I's
-method now being of the same name, the types are statically incompatible due
-to \xt Q not being a static super type of \A. {\bf L3} fails as it tries to
-pass a \C as an \xt E, in the call to \m inside of \xt N in \xt F,
-impossible under the concrete semantics as \C is not a subtype of \xt E.
-
-{\bf Behavioral.~} In contrast to the concrete semantics, the behavioral
-semantics does allow untyped values to be passed under a type if they are
-structurally compatible, but dynamically ensures that the untyped values to
-respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
-method, \m, could never be used as \xt I's \xt n. {\bf L2}, however,
-executes without error, as while \A.\xt m does not properly implement \xt
-I.\xt n, this is never observed dynamically, and the value is therefore
-observationally of the ascribed type. {\bf L3} is rejected by the behavioral
-semantics, as when the top-level expression calls \xt a on a \xt C that has
-been cast to an \xt E, the check that the value (another instance of \xt C)
-is structurally compatible with the required type (\xt D), fails.
-
-{\bf Transient.~} The transient semantics further weakens the guarantee,
-retaining the structural checks at casts of the behavioral semantics, but
-only checks adherence to the locally ascribed type, rather than every
-potentially applicable type. Transient fails {\bf L1}, for the same reason
-as the other two type systems, and passes {\bf L2}, for the same reason as
-the behavioral semantics, as a result, but differs in {\bf L3}. {\bf L3}
-failed under the behavioral semantics because the return value of \xt n
-carried the type applied by \xt m with it, forcing the \xt C instance to act
-like an \xt E.  However, the transient semantics does not check this,
-letting the invocation to \xt a succeed.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
@@ -1211,23 +1218,21 @@ identical to those in \kafka, and present only the altered rules.
   \caption{Source language type system.}\label{fig:slts}
 \end{figure}
 
-The type system for the surface languages is straightforward, allowing
-implicit mixing of static and dynamically typed terms, and is shared between
-all of the gradual type systems, shown in figure~\ref{fig:slts}.  The
-difference between a gradually typed language and a language with the \any
-type is the ability to implicitly down-cast from \any to some known type
-\t. The mechanisms which make this operation safe are what differentiate
-each gradual typing semantics.  The naive typing rules would not allow an
-implicit downcast from \any to a non-\any type, as it is not safe. However,
-to make our surface language a gradually typed one, we need to represent the
-ability to make some kinds of unsafe type conversion within our type system.
+The type system for the surface language, shown in figure~\ref{fig:slts}, is a
+straightforward static semantics for gradual typing. This surface static
+semantics allows implicit mixing of static and dynamically typed terms and is
+shared between all of the gradual type systems. As a gradually typed language,
+the surface language type system allows the implicit conversion of typed and
+untyped terms via the convertibility operator, written
+$\ConvertE\K{s}{\t}{\tp}$.
 
-The $\ConvertE\K{s}{\t}{\tp}$ operator is used to denote that type $\t$ is
-convertible to one of type $\tp$, and is used both for traditional
-down-casting and for conversions of \any to non-\any types. Our definition
-of the type convertibility operator is shown in figure~\ref{fig:tyconvert},
-denoting the surface level typing judgment as $\EnvTypeS\Env\K\e\t$, for a
-term $\t$ having type $\t$.
+This $\ConvertE\K{s}{\t}{\tp}$ relation indicates that type $\t$ is
+convertible to one of type $\tp$, and is used both for traditional down-
+casting and for conversions of \any to non-\any types. Our definition of the
+type convertibility operator is shown in figure~\ref{fig:tyconvert}. The
+operator enforces type discipline where possible (via \RuleRef{STGC-SUB})
+while allowing implicit conversion to and from the dynamic type where not (via
+\RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}).
 
 \begin{figure}[!h]
   \hrulefill  \small  \vspace{-3mm}
@@ -1252,20 +1257,22 @@ term $\t$ having type $\t$.
   \vspace{-8mm}
   
   \hrulefill
-  \caption{Optional type convertibility.}\label{fig:tyconvert}
+  \caption{Surface language type convertibility.}\label{fig:tyconvert}
 \end{figure}
 
-In the source language, it is possible to pass subtypes as arguments and new
-field values (\RuleRef{STGC-SUB}), as in the \kafka type system.  However,
-the source language compatibility relation adds two new cases,
-\RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}, allowing typed values to be
-used in place of untyped values and vice versa respectively.  If the source
-program type checks correctly, we can proceed with translation to \kafka.
-For each of the four semantics, we provide a translation from this common,
-gradually typed, source language to the statically-typed \kafka target
-language, illustrating how the guarantees provided by each system
-influence semantics and performance.
+Since \kafka only supports consumption, if \RuleRef{STGC-TOANY} or \RuleRef
+{STGC-ANYCONC} were used, then some dynamic check must be inserted. If
+\RuleRef{STGC-TOANY} is used, then some typed object is being passed into
+untyped code, and must be protected from misuse. Likewise, if \RuleRef{STGC-
+ANYCONC} is used, then an untyped value is being passed into typed code,
+and type invariants must be checked.
 
+In our approach, we reduce each gradual type system into translations,
+rewriting uses of \RuleRef{STGC-ANYCONC} and \RuleRef{STGC-TOANY} with casts,
+in conjunction with type rewriting. Type rewriting is essential to our
+approach, as it enables the expression of the source level soundness
+guarantee in terms of \kafka types; these types are then checked dynamically
+by the casts inserted by expression translation.
 
 \begin{figure}[!h]
 	\begin{tabular}{l@{\HS}l}

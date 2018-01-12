@@ -472,7 +472,7 @@
         {.4em\@plus.275em\@minus.183em}
 \RequirePackage{color}
 \definecolor{darkgray}{rgb}{0.31,0.31,0.33}
-\RequirePackage{babel}
+%\RequirePackage{babel}
 \RequirePackage[tbtags,fleqn]{amsmath}
 \RequirePackage{amsthm}
 \thm@headfont{%
