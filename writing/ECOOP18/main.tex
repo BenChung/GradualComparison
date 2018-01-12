@@ -1718,12 +1718,15 @@ gradual type systems for object-oriented languages. Our approach is to
 provide translations from different source language into \kafka. These
 translations highlight the different runtime enforcement strategies deployed
 by the languages under study. The differences between gradual type systems
-are made explicit with a litmus test that demonstrates observable
-differences between type systems. 
+are highlighted explicitly by the observable differences of their behavior in
+our litmus tests, demonstrating how there are no consensuses behavior amongst the
+gradual type systems. These litmus tests greatly motivated  the need to have
+a simple framework to demonstrate the similarities and differences between
+the gradual type systems.
 
 The key features needed in \kafka are two casts, one structural and one
-behavioral, and the ability to extend the class table at runtime.  \kafka
-was also carefully engineered to support transparent wrappers.  We provide a
+behavioral, the ability to extend the class table at runtime, and 
+wrappers that expose their underlining unwrapped methods.  We provide a
 mechanized proof of soundness for \kafka that includes runtime class
 generation.  We also demonstrate that \kafka can be straightforwardly
 implemented on top of a stock virtual machine.
@@ -1736,10 +1739,11 @@ challenging question is how to handle the intricate semantics of Monotonic
 Python. For these we would need a somewhat more powerful cast operation.
 Rather than building each new cast into the calculus itself, it would be
 interesting to axiomatize the correctness requirements for a cast and let
-users define their own cast semantics.
+users define their own cast semantics. The goal would be to have a collection
+of user defined pluggable casts within a single framework. 
 
 Another open question for gradual type system designers is performance of
-the resulting implementation.  Performance is one of the major obstacles
+the resulting implementation. Performance is one of the major obstacles
 obstructing gradual typing from being incorporated into mainstream
 languages. To illustrate the impact of performance over the gradual typing
 semantics, we will discuss an overview of the impact on performance for each
