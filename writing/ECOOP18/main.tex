@@ -1218,23 +1218,21 @@ identical to those in \kafka, and present only the altered rules.
   \caption{Source language type system.}\label{fig:slts}
 \end{figure}
 
-The type system for the surface languages is straightforward, allowing
-implicit mixing of static and dynamically typed terms, and is shared between
-all of the gradual type systems, shown in figure~\ref{fig:slts}.  The
-difference between a gradually typed language and a language with the \any
-type is the ability to implicitly down-cast from \any to some known type
-\t. The mechanisms which make this operation safe are what differentiate
-each gradual typing semantics.  The naive typing rules would not allow an
-implicit downcast from \any to a non-\any type, as it is not safe. However,
-to make our surface language a gradually typed one, we need to represent the
-ability to make some kinds of unsafe type conversion within our type system.
+The type system for the surface language, shown in figure~\ref{fig:slts}, is a
+straightforward static semantics for gradual typing. This surface static
+semantics allows implicit mixing of static and dynamically typed terms and is
+shared between all of the gradual type systems. As a gradually typed language,
+the surface language type system allows the implicit conversion of typed and
+untyped terms via the convertibility operator, written
+$\ConvertE\K{s}{\t}{\tp}$.
 
-The $\ConvertE\K{s}{\t}{\tp}$ operator is used to denote that type $\t$ is
-convertible to one of type $\tp$, and is used both for traditional
-down-casting and for conversions of \any to non-\any types. Our definition
-of the type convertibility operator is shown in figure~\ref{fig:tyconvert},
-denoting the surface level typing judgment as $\EnvTypeS\Env\K\e\t$, for a
-term $\t$ having type $\t$.
+This $\ConvertE\K{s}{\t}{\tp}$ relation indicates that type $\t$ is
+convertible to one of type $\tp$, and is used both for traditional down-
+casting and for conversions of \any to non-\any types. Our definition of the
+type convertibility operator is shown in figure~\ref{fig:tyconvert}. The
+operator enforces type discipline where possible (via \RuleRef{STGC-SUB})
+while allowing implicit conversion to and from the dynamic type where not (via
+\RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}).
 
 \begin{figure}[!h]
   \hrulefill  \small  \vspace{-3mm}
@@ -1259,20 +1257,22 @@ term $\t$ having type $\t$.
   \vspace{-8mm}
   
   \hrulefill
-  \caption{Optional type convertibility.}\label{fig:tyconvert}
+  \caption{Surface language type convertibility.}\label{fig:tyconvert}
 \end{figure}
 
-In the source language, it is possible to pass subtypes as arguments and new
-field values (\RuleRef{STGC-SUB}), as in the \kafka type system.  However,
-the source language compatibility relation adds two new cases,
-\RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}, allowing typed values to be
-used in place of untyped values and vice versa respectively.  If the source
-program type checks correctly, we can proceed with translation to \kafka.
-For each of the four semantics, we provide a translation from this common,
-gradually typed, source language to the statically-typed \kafka target
-language, illustrating how the guarantees provided by each system
-influence semantics and performance.
+Since \kafka only supports consumption, if \RuleRef{STGC-TOANY} or \RuleRef
+{STGC-ANYCONC} were used, then some dynamic check must be inserted. If
+\RuleRef{STGC-TOANY} is used, then some typed object is being passed into
+untyped code, and must be protected from misuse. Likewise, if \RuleRef{STGC-
+ANYCONC} is used, then an untyped value is being passed into typed code,
+and type invariants must be checked.
 
+In our approach, we reduce each gradual type system into translations,
+rewriting uses of \RuleRef{STGC-ANYCONC} and \RuleRef{STGC-TOANY} with casts,
+in conjunction with type rewriting. Type rewriting is essential to our
+approach, as it enables the expression of the source level soundness
+guarantee in terms of \kafka types; these types are then checked dynamically
+by the casts inserted by expression translation.
 
 \begin{figure}[!h]
 	\begin{tabular}{l@{\HS}l}
