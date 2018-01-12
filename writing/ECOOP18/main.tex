@@ -120,23 +120,57 @@ calculus~\cite{cardelli:1996:theory-of-objects}. It related objects by
 generalizing the notion of consistency~\cite{SiekTaha06} over structural
 subtyping. This early work had drawbacks, most notably in handling mutable
 state and aliasing -- vital components of object-oriented languages.
+Underlying each of the subsequent gradual type system are different choices
+on how to deal with state and aliasing -- often with key differences in
+soundness property and enforcement. These fundamental details are obscured
+by target language features. The goal of our work is to explore the design
+space of gradual types for object and allow comparison in a common
+framework.
 
-Underlying each of the subsequent gradual type systems for objects are
-different choices on how to deal with state and aliasing -- often with key
-differences in soundness property and enforcement. These fundamental details
-are obscured by target language features.
+
+Comparing gradual type systems requires selecting some representative
+languages from the numerous academic and industrial projects that
+have been proposed. Consider some of the languages in this space:
+
+\begin{itemize}
+ \item TypeScript: JavaScript with optional types.
+ \item C\#: a statically typed language with a {\tt dyn} type.
+ \item Dart: a class based language with optional types.
+ \item Hack: a statically typed variant of PHP that allows untyped code.
+ \item Thorn: a language with both statically typed and untyped code.
+ \item StrongScript: a variant of TypeScript with nominal types.
+ \item Nom: a language supporting dynamic types and nominal static typing.
+ \item Typed Racket: a rich gradual type system based on contracts.
+ \item GradualTalk: a variant of Smalltalk with contracts.
+\item Reticulated Python: a family of three gradual type systems for Python.
+\end{itemize}
+
+\noindent We focus on comparing the four main approaches to gradual typing
+which we label: optional, concrete, behavioral and transient. The
+\emph{optional} approach, chosen by TypeScript, Dart, and Hack, amounts to
+static type-checking followed by type-erasure. Optional types will not catch
+erroneous values flowing from dynamically typed code to statically typed
+code.  The \emph{concrete} approach, used in C\#, Thorn, StrongScript and
+Nom, combines optional types, combines runtime tag checks and traditional
+static typing. While statically typed code executes at native speed, values
+must be checks each time they cross dynamic/static boundaries. The
+\emph{behavioral} approach of Typed Racket, Gradualtalk and Reticulated
+Python, monitors values to ensure that they behave in accordance to their
+assigned types.  Finally, the \emph{transient} approach, specific to
+Reticulated Python, lies between concrete and behavioral; it adds type casts
+but does so only for the top-level of data structures.
+
+Our proposal to compare approaches to gradual typing for objects is to focus
+on a simple object calculus with only the features needed for a comparison.
+Our comparison is done by translating source languages into a common target
+language which we call \kafka.  \kafka is a statically typed class-based
+object calculus with mutable state expressly. The key features of \kafka are
+casts: \emph{structural casts} check if the object is a subtype of some type
+\t, \emph{behavioral casts} create wrappers that enforce that an object
+behaves as if it was of some type \t. For this the calculus needs to support
+runtime generation of a classes and transparent wrappers.
 
 
-In addition to standardizing the target language, the source language must
-be equally held constant, reducing the point of comparison to the
-translation alone.
-
-In this paper, we present a new framework for comparing gradual type systems,
-standardizing the source and target language. We propose a new common target
-language, called \kafka, providing the minimum set of functionality needed
-for gradual typing while still offering a sound static type system, and use it
-along with a common source language to implement four different gradual type
-systems.
 
 %While the software engineering benefits of the different approaches are being
 %debated, it is worthwhile to observe that the definition of type error is also
