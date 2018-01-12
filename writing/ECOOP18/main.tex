@@ -1151,6 +1151,8 @@ source-level type system for each semantics (notated $\vdash_{\!s}$), which
 are largely identical. To simplify the presentation, we will elide rules
 identical to those in \kafka, and present only the altered rules.
 
+\subsection{Source Language}
+
 %TODO: Like types are removed from the figure
 \begin{figure}[!h]\hrulefill
 	
@@ -1286,19 +1288,113 @@ while allowing implicit conversion to and from the dynamic type where not (via
   \caption{Surface language type convertibility.}\label{fig:tyconvert}
 \end{figure}
 
-Since \kafka only supports consumption, if \RuleRef{STGC-TOANY} or \RuleRef
+Since \kafka only supports subsumption, if \RuleRef{STGC-TOANY} or \RuleRef
 {STGC-ANYCONC} were used, then some dynamic check must be inserted. If
 \RuleRef{STGC-TOANY} is used, then some typed object is being passed into
 untyped code, and must be protected from misuse. Likewise, if \RuleRef{STGC-
 ANYCONC} is used, then an untyped value is being passed into typed code,
-and type invariants must be checked.
+and type invariants must be checked. 
 
-In our approach, we reduce each gradual type system into translations,
-rewriting uses of \RuleRef{STGC-ANYCONC} and \RuleRef{STGC-TOANY} with casts,
-in conjunction with type rewriting. Type rewriting is essential to our
-approach, as it enables the expression of the source level soundness
-guarantee in terms of \kafka types; these types are then checked dynamically
-by the casts inserted by expression translation.
+\subsection{Translations}
+
+The key to our approach are the translations between the source language and
+\kafka. These translations encode the soundness guarantee of the gradual type
+system into \kafka types and protect this guarantee via cast insertion, the
+details of which depend on the type system in question.
+
+Each translation aims to establish and protect a \kafka soundness guarantee,
+encoded in \kafka's expressions and classes. The soundness guarantee itself,
+the meaning of source level types, is represented with translated \kafka
+types. To protect this guarantee, the translations insert casts, establishing
+the  types of untyped values. We begin by presenting the class translation -
+the encoding of source language soundness - then discuss how expression
+translation maintains the guarantees so encoded.
+
+The soundness guarantee of each gradual type system is encoded directly in
+\kafka types through class translation. Given a source language class, the
+translation will transform it into a \kafka class that encodes the source-
+level guarantees as \kafka types. As each of the gradual type systems provide
+different guarantees for source level types, every one has its own class
+translation approach. These approaches are shown in \figref{fig:traclass}.
+
+\newpage
+
+\begin{figure}[!h]  
+  \begin{tabular}{llc@{\hspace{.25cm}}l}    
+        
+    {\scriptsize \bf{Optional}} \\    
+    \TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\     
+    & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\     
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \ep = \TR[\OTS]{\e} \\   
+        
+    {\scriptsize \bf{Transient}} \\   
+    \TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\   
+    & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any} .. \HS    
+    \fd[1] = \Ftype\f\t ..\HS\HS \\   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. \\   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\any~ .. \\        
+        
+    {\scriptsize \bf{Behavioral}} \\    
+    \TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\    
+    & \WHERE \HS\HS\HS \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\    
+        
+    {\scriptsize \bf{Concrete}} \\    
+    \TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\   
+    & \WHERE \HS\HS\HS {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\            
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\     
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} $\neq$ \any \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty} \\     
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
+  \end{tabular}   
+      
+ \caption{Translations for class.}     \label{fig:traclass}    
+\end{figure}
+
+{\bf Optional.~} The optional semantics provides no guarantees whatsoever
+about the correctness of source language types, allowing untyped code to
+run amok with typed references. To represent this, we translate all type
+annotations that appear in the source to the \any type, allowing any value
+to be passed for any type.
+
+{\bf Transient.~} The transient semantics ensures that the methods of a type
+will exist, but nothing more. While typed methods can still be called with any
+argument by untyped code, and untyped methods can still return any value, some
+checks are done. Transient ensures that all specified methods exist on the
+value, but not what the argument or return types of those methods are.
+
+Thanks to \kafka's use of structural subtyping, encoding these guarantees is
+simple. To allow methods to take or return any value, we first erase all of
+the types on arguments and return types, eliminating all type information. By
+erasing all types we then convert the subtype cast into a simple check that
+one type has all the method names as the other, exactly the check semantics 
+we need. We then use the subtype cast to check the argument type prior to
+(translated) method body entry, matching the transient soundness guarantee.
+
+{\bf Behavioral.~} Under the behavioral semantics, all values will conform to
+their type up to errors, a simple guarantee to represent in \kafka.  Wrappers
+will be subtypes of the required \kafka type, so source level types are simply
+carried through. Providing this guarantee through translation is therefore
+simple, with the source types retained into \kafka, and protected by casts,
+inserted later in the expression translation.
+
+{\bf Concrete.~} The concrete semantics provides a soundness guarantee
+identical to that of \kafka's: if a value inhabits a type, then the value is
+of that type. Despite this, the concrete class-level translation to \kafka is
+the most complex of the four.
+
+The challenge facing the concrete semantics is not representation, but
+enforcement. Representing types from the concrete semantics in \kafka is
+simple, through the identity function, but the lack of wrappers means that
+untyped code has direct access to typed values, unlike the behavioral
+semantics. To solve this, we use overloading (discussed previously in
+section 4), generating both typed and untyped variants of a method.
 
 \begin{figure}[!h]
 	\begin{tabular}{l@{\HS}l}
@@ -1543,68 +1639,6 @@ also generates a second method \mdpp that wraps \mdp to allow a safe
 invocation with type \(\any \to \any\).  Finally, every field \f:\t is
 mapped to the corresponding field \f:\kty\t.
 
-%\vspace{-2cm}
-\medskip
-\begin{figure}[!h]  
-  \begin{tabular}{llc@{\hspace{.25cm}}l}    
-        
-    {\scriptsize \bf{Optional}} \\    
-    \TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\     
-    & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \ep = \TR[\OTS]{\e} \\   
-        
-    {\scriptsize \bf{Transient}} \\   
-    \TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\   
-    & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any} .. \HS    
-    \fd[1] = \Ftype\f\t ..\HS\HS \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\any~ .. \\        
-        
-    {\scriptsize \bf{Behavioral}} \\    
-    \TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\    
-    & \WHERE \HS\HS\HS \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\    
-        
-    {\scriptsize \bf{Concrete}} \\    
-    \TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\   
-    & \WHERE \HS\HS\HS {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\            
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} $\neq$ \any \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty} \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
-  \end{tabular}   
-      
- \caption{Translations for class.}     \label{fig:traclass}    
-\end{figure}    
-\medskip
-
-
-\figref{fig:traclass} presents the class translation for the four gradual
-typing semantics, a key part of their functionality. All need to guard
-against untyped code calling typed receivers through the dynamic invocation,
-which each handles differently. The optional semantics deals with the
-problem by eliminating all typed receivers, but the other systems need to
-check argument and return types.  The transient semantics heavily relies
-upon class translation to achieve the desired semantics, especially with
-relation to how it handles casts. Under the transient semantics, all types
-are removed from the method signatures and argument types are instead
-checked by the method body itself and return types by the caller. Now, with
-no typed methods, structural subtyping becomes equivalent to checking that
-all the required method names hold and no more, the cast semantics needed by
-the transient semantics.  The behavioral semantics protects typed methods
-from untyped callers by means of the generated untyped wrappers, and, as a
-result, needs no explicit support for such from its translation.  The most
-complex class translation is that of the concrete semantics, which needs to
-support both typed and untyped callers calling the same class. Here, it uses
-\kafka's type-based overloading to define a special untyped receiver method,
-one that is generated if the original method was typed. This receiver method
-is then responsible for guarding the typed version of the function.
 
 
 \begin{figure}[!h]
