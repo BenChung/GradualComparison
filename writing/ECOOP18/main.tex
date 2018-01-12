@@ -392,7 +392,9 @@ run without error when executed in an untyped language. Due to the differences
 between gradual type systems and their runtime enforcement systems, however,
 some of these programs will halt with a runtime error due to one of the
 inserted casts. By observing which programs produce an error we can determine
-which gradual type system is being used.
+which gradual type system is being used\footnote{To validate this, we have 
+implemented the litmus test in Typescript, Thorn, Typed Racket, and Transient
+Reticulated Python. These implementations are included in the appendix}.
 
 \begin{figure}[!h]
   \includegraphics[width=.95\columnwidth]{../figures/litm}
@@ -435,6 +437,12 @@ failed under the behavioral semantics because the return value of \xt n
 carried the type applied by \xt m with it, forcing the \xt C instance to act
 like an \xt E.  However, the transient semantics does not check this,
 letting the invocation to \xt a succeed.
+
+We can use the litmus tests to discover what gradual type system is being
+used, but the test does not describe the semantics of the gradual type
+systems it differentiates. To provide detailed semantics for all four
+gradual type systems we use a two part approach, the first part of which,
+the \kafka core calculus, we discuss next.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
