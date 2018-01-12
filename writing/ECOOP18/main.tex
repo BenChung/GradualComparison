@@ -370,6 +370,71 @@ is a cast at almost every call. Finally, languages with behavioral casts
 tend to suffer prohibitive slow downs in pathological cases. Compiler
 optimizations for reducing these overheads are an active research topic.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Litmus test}\label{litmustest}
+
+%\epigraph{\small ``There is no perfection only life.''} \vspace{-5mm}
+
+One of the salient implications of the various approaches to gradual typing
+is that they have different notions of what is an erroneous program.  This
+section proposes a litmus test that can distinguish the four type
+systems. The three programs of \figref{litmus} are statically well-typed in
+all four approaches to gradual type systems.\footnote{ For completeness we
+  implemented them in TypeScript, Typed Racket, Thorn and Reticulated
+  Python, code is in appendix.} Furthermore, in an untyped language all
+three programs would execute without error. Depending on the runtime
+enforcement strategy, some of these programs will halt with a runtime error
+due to inserted casts. Different type systems will report a different number
+of errors, and will stop at different points.  \figref{litmus} presents
+three programs, written in source language, which can be translated to
+\kafka following the four different approaches that will be presented in the
+next section. The programs consist of a class table and a top-level
+expression.
+
+\begin{figure}[!h]
+  \includegraphics[width=.95\columnwidth]{../figures/litm}
+  \caption{Gradual typing litmus test.}\label{litmus}
+\end{figure}
+
+{\bf Optional.~} An optional type system, which simply erases all of the
+type annotations at runtime, will run all without error.
+
+{\bf Concrete.~} The guarantee provided by the concrete semantics is that
+only statically checked values can be of a type, implying that untyped
+values can never be passed in placed of a typed one. This strong requirement
+causes the concrete semantics to reject all three programs. {\bf L1} fails
+as it attempts to pass an \A instance in place of an instance of \xt I,
+which are incompatible.  {\bf L2} also fails despite \A and \xt I's
+method now being of the same name, the types are statically incompatible due
+to \xt Q not being a static super type of \A. {\bf L3} fails as it tries to
+pass a \C as an \xt E, in the call to \m inside of \xt N in \xt F,
+impossible under the concrete semantics as \C is not a subtype of \xt E.
+
+{\bf Behavioral.~} In contrast to the concrete semantics, the behavioral
+semantics does allow untyped values to be passed under a type if they are
+structurally compatible, but dynamically ensures that the untyped values to
+respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
+method, \m, could never be used as \xt I's \xt n. {\bf L2}, however,
+executes without error, as while \A.\xt m does not properly implement \xt
+I.\xt n, this is never observed dynamically, and the value is therefore
+observationally of the ascribed type. {\bf L3} is rejected by the behavioral
+semantics, as when the top-level expression calls \xt a on a \xt C that has
+been cast to an \xt E, the check that the value (another instance of \xt C)
+is structurally compatible with the required type (\xt D), fails.
+
+{\bf Transient.~} The transient semantics further weakens the guarantee,
+retaining the structural checks at casts of the behavioral semantics, but
+only checks adherence to the locally ascribed type, rather than every
+potentially applicable type. Transient fails {\bf L1}, for the same reason
+as the other two type systems, and passes {\bf L2}, for the same reason as
+the behavioral semantics, as a result, but differs in {\bf L3}. {\bf L3}
+failed under the behavioral semantics because the return value of \xt n
+carried the type applied by \xt m with it, forcing the \xt C instance to act
+like an \xt E.  However, the transient semantics does not check this,
+letting the invocation to \xt a succeed.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{KafKa: A Core Calculus}\label{kafkacore}
@@ -1012,70 +1077,6 @@ and forwarding to the actual implementation.
 The goal of this implementation was to validate the choice of features
 included in \kafka by showing that they match those provided in modern VMs.
 For most of \kafka's functionality, the implementation was trivial. 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Litmus test}\label{litmustest}
-
-%\epigraph{\small ``There is no perfection only life.''} \vspace{-5mm}
-
-One of the salient implications of the various approaches to gradual typing
-is that they have different notions of what is an erroneous program.  This
-section proposes a litmus test that can distinguish the four type
-systems. The three programs of \figref{litmus} are statically well-typed in
-all four approaches to gradual type systems.\footnote{ For completeness we
-  implemented them in TypeScript, Typed Racket, Thorn and Reticulated
-  Python, code is in appendix.} Furthermore, in an untyped language all
-three programs would execute without error. Depending on the runtime
-enforcement strategy, some of these programs will halt with a runtime error
-due to inserted casts. Different type systems will report a different number
-of errors, and will stop at different points.  \figref{litmus} presents
-three programs, written in source language, which can be translated to
-\kafka following the four different approaches that will be presented in the
-next section. The programs consist of a class table and a top-level
-expression.
-
-\begin{figure}[!h]
-	\includegraphics[width=.95\columnwidth]{../figures/litm}
-	\caption{Gradual typing litmus test.}\label{litmus}
-\end{figure}
-
-{\bf Optional.~} An optional type system, which simply erases all of the
-type annotations at runtime, will run all without error.
-
-{\bf Concrete.~} The guarantee provided by the concrete semantics is that
-only statically checked values can be of a type, implying that untyped
-values can never be passed in placed of a typed one. This strong requirement
-causes the concrete semantics to reject all three programs. {\bf L1} fails
-as it attempts to pass an \A instance in place of an instance of \xt I,
-which are incompatible.  {\bf L2} also fails despite \A and \xt I's
-method now being of the same name, the types are statically incompatible due
-to \xt Q not being a static super type of \A. {\bf L3} fails as it tries to
-pass a \C as an \xt E, in the call to \m inside of \xt N in \xt F,
-impossible under the concrete semantics as \C is not a subtype of \xt E.
-
-{\bf Behavioral.~} In contrast to the concrete semantics, the behavioral
-semantics does allow untyped values to be passed under a type if they are
-structurally compatible, but dynamically ensures that the untyped values to
-respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
-method, \m, could never be used as \xt I's \xt n. {\bf L2}, however,
-executes without error, as while \A.\xt m does not properly implement \xt
-I.\xt n, this is never observed dynamically, and the value is therefore
-observationally of the ascribed type. {\bf L3} is rejected by the behavioral
-semantics, as when the top-level expression calls \xt a on a \xt C that has
-been cast to an \xt E, the check that the value (another instance of \xt C)
-is structurally compatible with the required type (\xt D), fails.
-
-{\bf Transient.~} The transient semantics further weakens the guarantee,
-retaining the structural checks at casts of the behavioral semantics, but
-only checks adherence to the locally ascribed type, rather than every
-potentially applicable type. Transient fails {\bf L1}, for the same reason
-as the other two type systems, and passes {\bf L2}, for the same reason as
-the behavioral semantics, as a result, but differs in {\bf L3}. {\bf L3}
-failed under the behavioral semantics because the return value of \xt n
-carried the type applied by \xt m with it, forcing the \xt C instance to act
-like an \xt E.  However, the transient semantics does not check this,
-letting the invocation to \xt a succeed.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
