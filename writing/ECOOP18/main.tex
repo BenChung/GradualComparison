@@ -1315,9 +1315,7 @@ The soundness guarantee of each gradual type system is encoded directly in
 translation will transform it into a \kafka class that encodes the source-
 level guarantees as \kafka types. As each of the gradual type systems provide
 different guarantees for source level types, every one has its own class
-translation approach. These approaches are shown in \figref{fig:traclass}.
-
-\newpage
+translation approach. These approaches are shown in \figref{fig:traclass}.b
 
 \begin{figure}[!h]  
   \begin{tabular}{llc@{\hspace{.25cm}}l}    
@@ -1354,7 +1352,7 @@ translation approach. These approaches are shown in \figref{fig:traclass}.
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
   \end{tabular}   
       
- \caption{Translations for class.}     \label{fig:traclass}    
+ \caption{Translations for classes.}     \label{fig:traclass}    
 \end{figure}
 
 {\bf Optional.~} The optional semantics provides no guarantees whatsoever
@@ -1391,10 +1389,29 @@ the most complex of the four.
 
 The challenge facing the concrete semantics is not representation, but
 enforcement. Representing types from the concrete semantics in \kafka is
-simple, through the identity function, but the lack of wrappers means that
-untyped code has direct access to typed values, unlike the behavioral
-semantics. To solve this, we use overloading (discussed previously in
-section 4), generating both typed and untyped variants of a method.
+simple, through the identity function. This simplicity is betrayed by the lack
+of wrappers, as untyped code has a direct reference to typed objects, and
+therefore could potentially make unsafe invocations. To solve this, we use
+overloading (discussed previously in section 4), generating both typed and
+untyped variants of a method.
+
+This scheme protects typed methods from untyped code. When translating  a
+statically typed method, we generate both an identically-typed equivalent
+(with translated body) and a untyped guard method. This untyped guard protects
+the typed method by casting its argument and the return value. Which method is
+called depends on if the receiver is statically typed; if so, then the
+statically typed method is called, if not, then the dynamic one is.
+
+{\bf Expression Translation.~} Expression translation is driven by the
+soundness guarantees enshrined in class translation. By encoding the  meaning
+of soundness of the surface language into \kafka, a sound intermediate
+language, we reduce the problem of enforcing a gradual type system's soundness
+guarantee to producing well-typed \kafka terms. 
+
+We present four expression translation systems, one for each of the
+gradual type systems in question. Each takes a well-typed source language term
+and translates it into a well-typed \kafka term, in the presence of a suitably
+translated class table. 
 
 \begin{figure}[!h]
 	\begin{tabular}{l@{\HS}l}
