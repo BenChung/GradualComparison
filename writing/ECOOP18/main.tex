@@ -1052,7 +1052,7 @@ $\EnvType\emptyset\s\K\e\t$, one of the following holds:
 
 \begin{itemize}
 \item There exists some reference $\a$ such that $\e = \a$.
-\item $\K~\e~\s \Red \Kp~\ep~\sp$, where $\WFp\sp\Kp$ and $\EnvType\emptyset\sp\Kp\ep\t$.
+\item $\K~\e~\s \Red \Kp~\ep~\sp$, where $\WFp\sp\Kp$, $\EnvType\emptyset\sp\Kp\ep\t$, $\sp$ has all of the values of $\s$, and $\Kp$ has all of the classes of \K.
 \item $\e=E[\DynCall\a\m\ap]$ and $\a$ refers to an object without a method \m.
 \item $\e=E[\SubCast\C\a]$, and $\a$ refers to an object whose class is not a subtype of $\C$.
 \item $\e=E[\BehCast\C\a]$, and $\C$ contains a method that \a does not.
@@ -1064,11 +1064,26 @@ subtype cast, or a behavioral cast, and only there when justified, which in turn
 enables us to reason about the semantics of the gradual type systems by reasoning
 about the type of their \kafka translation.
 
+The proof is mostly straightforward, with one unusual case, centered around
+the \xt{bcast} metafunction. When the expression $\BehCast\C\a$ is
+encountered, the \xt{bcast} metafunction is used to generate a wrapper class,
+which is then instantiated, producing a new class table, return value, and
+heap. We must then show that the new class table is well formed, that the new
+heap is also well formed, and that the new wrapper is a subtype of the given
+type $\C$. 
+
+Proving these properties is relatively straightforward. Class table well-
+formedness follows by construction of the wrapper class and by well-formedness
+of the old class table. Heap well-formedness follows by well-formedness of the
+class table, construction of the new heap, and well-formedness of the old heap.
+Lastly, proving that the type of the wrapper is a subtype of the required type
+proceeds by structural induction over the required type.
+
 To prove this key theorem, we have mechanized the type soundness proof for
 \kafka in
-Coq\footnote{https://github.com/BenChung/GradualComparison/tree/master/impl}.
+Coq\footnote{Link to source removed for blind review}.
 In Coq syntax, the conditions for \kafka's type soundness theorem is stated as
-follows:
+follows: %https://github.com/BenChung/GradualComparison/tree/master/impl
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
@@ -1108,41 +1123,50 @@ system, however, as while it demonstrates that reasoning about types only need
 be done in \kafka, it does not demonstrate the practical applicability of 
 lessons learned from translations to \kafka, which needs a different approach.
 
-\subsection{Implementation}
-
-We designed \kafka to have a close correspondence to the intermediate
-languages of commercial VMs. To validate this aspect of our design, we
+\subsection{Implementation} We designed \kafka to have a close correspondence
+to the intermediate languages of commercial VMs so that lessons learned could
+be easily applied in practice. To validate this aspect of our design, we
 implemented a small compiler from \kafka to C\# and the CLR, alongside a
-runtime that provides the behavioral cast
-operation.\footnote{https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl}.
+runtime that provides the behavioral cast operation.\footnote{Link removed for
+double blind review}
+%https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl
 
-The only substantial challenge in the development relates to one of our
-earliest design choices: structural subtyping.  Structural typing is key for
-the consistent subtyping used in Reticulated Python, but few virtual
-machines have built-in support for it. Our implementation converts
-structural types to nominal types, maintaining semantic equivalence.  We do
-this by whole program analysis. Consider a class table \K, and assume that
-\StrSub{}\K\t\tp for some \t and \tp. C\# already handles the case where \t
-or \tp is \any, via its \xt{dynamic} type, which has the same semantics as
-\any in \kafka. If $\t=\C$ and $\tp=\D$, then we generate the interface
-\xt{ID}, which the translated version of \C implements. \xt{ID} has the same
-methods as \D, allowing the same operations to be performed on its
-instances. We then refer to \D by \xt{ID} in the generated C\# type
-signatures and casts, which then allows our translation of \C to be used
-wherever a \D is expected, satisfying subtyping. If we apply this to every
-pair of types \C and \D where the subtyping relation holds, the C\#
-subtyping relation ends up mirroring the \kafka one exactly.  C\# has
-another quirk in its type system, namely it does not allow for covariance or
-contravariance in interface implementation, whereas \kafka's subtyping
-allows both. However, C\# does allow for \emph{explicit implementations},
-which we use to implement covariant and contravariant interface
-implementation, by explicitly calling out the interface method to implement
-and forwarding to the actual implementation.
+The main challenges encountered in the compilation of \kafka to C\# arise due
+to the differences between subtyping between the two languages. First, \kafka
+uses structural typing, while C\# uses nominal typing. Second, \kafka allows
+method implementations to be contravariant in argument and covariant in return
+type, while C\# requires them to be invariant in both. Solving these two
+problems  forms the bulk of the implementation.
 
-The goal of this implementation was to validate the choice of features
-included in \kafka by showing that they match those provided in modern VMs.
-For most of \kafka's functionality, the implementation was trivial. 
+Implementing a structurally typed language on top of a nominally typed
+language is challenging. Structural type systems create implicit subtyping
+relationships, which the nominal type system expects to be explicit. This
+difference means that, with a naive approach, the only type that can be given
+in a nominally typed language to a structurally typed value is \xt{Object}, or
+an equivalent thereof. Prior work dealt with this problem by using reflection
+or complex runtime code generation~\cite{StructuralTypesOnJVM}, but this is
+needlessly complex for our proof of concept implementation.
 
+Instead, we reify the implicit relationships introduced by the structural type
+system into explicit nominal relationships through the generation of
+interfaces. Given two \kafka classes \C and \D, where the relation $\K\vdash
+\C \Sub \D$ holds, we will generate two C\# interfaces \xt{CI} and \xt{DI}, 
+where \xt{CI} is declared to be a subtype of \xt{DI}. As a result, if two
+\kafka types are subtypes, then their corresponding C\# interfaces will be
+as well.
+
+This approach induces another problem. \kafka allows methods to be
+contravariant in argument and covariant in return types while still retaining
+a subtyping relationship, but C\# does not. As a result, implementing only the
+methods in \xt{CI} may not be sufficient to implement \xt{DI} in C\#, unlike
+\kafka. We solve this by having every \kafka class's C\# equivalent implement
+every interface explicitly, with each explicit implementation delegating to
+the real, most general, implementation.
+
+By implementing \kafka on the CLR, we validate that the \kafka design is
+practical. In particular, lessons learned from translation to \kafka can be
+applied to languages that target C\#-like languages. It now only remains to
+define gradual type systems via translation to \kafka.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
