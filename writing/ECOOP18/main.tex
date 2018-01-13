@@ -447,10 +447,9 @@ the \kafka core calculus, we discuss next.
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
 \noindent Even without gradual typing, it is notoriously difficult to compare
-languages, as presentation and semantic differences can make even similar
-languages look very different. As a result, differences between gradual type
-systems are hard to notice, as they are hidden among major presentation and
-semantic differences that are irrelevant to gradual typing itself.
+languages. Presentation and semantic differences can make even the most similar
+languages look and behave very different. As a result, differences between gradual type
+systems are hard to notice amongst details that are irrelevant to gradual typing itself.
 
 To enable direct comparison, the different gradual typing approaches need to
 be placed in a single language and formal approach. In this section, we
@@ -470,7 +469,7 @@ soundness properties purely through translation.
 In order to support gradual typing, \kafka has several features that differ
 from traditional object calculi, most notably structural subtyping (without
 consistency, which will be discussed later), the inclusion of a dynamic type,
-and two cast operations.
+and two unique cast operations.
 
 \begin{figure}[!h]\hrulefill
 
@@ -561,13 +560,13 @@ and two cast operations.
 \subsection{Syntax \& Dynamic Semantics}
 
 \kafka has two key requirements. First, it needs to be able to match the
-dynamic semantics implied by each gradual type system, and, second, it needs a
-type system with which the soundness guarantees of the gradual type systems
-can be represents. The syntax of \kafka is shown in \ref{syn}, while the
+dynamic semantics implied by each gradual type system. Second, it needs a
+type system that can represent the soundness guarantees of all the gradual type systems. 
+The syntax of \kafka is shown in \ref{syn}, while the
 dynamic semantics is illustrated in \ref{fig:semantics}.
 
-\kafka's design is otherwise a standard Featherweight Java-style object
-calculi. At the top level, classes are notated as \Class\C{\fd[1]..}{\md[1]..},
+\kafka's design follows a standard Featherweight Java-style object calculi. 
+At the top level, classes are notated as \Class\C{\fd[1]..}{\md[1]..},
 methods denoted as \Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist of
 \begin{itemize}
 \item Variable references \x.
@@ -581,12 +580,12 @@ methods denoted as \Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist of
 
 Evaluation is likewise standard with a few exceptions, with an evaluation
 context consisting of a class table \K, an expression being evaluated \e, and
-a heap \s. Due to the need to dynamically generate classes, the class table \K
+a heap \s. Due to the need for dynamically generate classes, the class table \K
 is part of the state, and not the evaluation context.
 
-The majority of these constructs are orthogonal to the problem of supporting
-gradual type systems, and have typical semantics. Calls and casts, however,
-are the sites where the soundness guarantee applies and is enforced, and
+The treatment for majority of these constructs are orthogonal to the problem of supporting
+gradual type systems, therefore their semantics are typical for calculi of this style. 
+Calls and casts, however, are the sites where the soundness guarantee applies and is enforced, and
 \kafka's treatment of these is atypical.
 
 \subsubsection{Invocations}
@@ -597,7 +596,7 @@ method $\m$ with argument \ep. This is unusual for two reasons. First, most
 gradual type systems have no explicit untyped invocation form, and second, the
 typed form also specifies the argument type (\t) and return type (\tp).
 
-\paragraph{Untyped Invocation}
+\paragraph*{Untyped Invocation}
 
 Traditionally, untyped invocations are represented in gradual type translation
 targets through the combination of a cast and a normal typed invocation. For
@@ -620,7 +619,7 @@ Instead, we simply treat the untyped invocation form separately, specifying
 that it will always call an untyped method and that it may fail, as discussed
 later in our discussion of the \kafka soundness proof.
 
-\paragraph{Explicitly Typed Invocations}
+\paragraph*{Explicitly Typed Invocations}
 
 Our use of explicitly typed invocations is a result of the desire for \kafka
 to be the target of multiple gradual type systems and the corresponding
@@ -708,7 +707,7 @@ $\e$, ensuring that the value returned is a (non-consistent) subtype of $\t$.
 If $\SubCast\t\e$ succeeds, then the value it returns must be of a subtype
 of $\t$. 
 
-\paragraph{Behavioral Casts}
+\paragraph*{Behavioral Casts}
 
 $\BehCast\t\e$ instead is a wrapper cast, wrapping the result of evaluating \e
 to enforce the invariant that it \emph{acts like} \t requires. The only
@@ -863,7 +862,7 @@ value against the untyped wilds. Here, for every method \m, we generate a
 wrapper method that casts its argument appropriately, then casts the return
 type to \any. 
 
-\paragraph{Why Two Casts?}
+\paragraph*{Why Two Casts?}
 
 The minimal calculus would only have one cast operation, with the natural most
 general choice being $\SubCast\t\e$. However, the need to maintain the same
