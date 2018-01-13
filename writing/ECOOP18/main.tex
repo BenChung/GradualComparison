@@ -622,7 +622,7 @@ Calls and casts, however, are the sites where the soundness guarantee applies an
 \subsubsection{Invocations}
 
 \kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$ and
-the typed invocation $\KCall\e\m\ep{\t}{\tp}$, both denoting a typed call to a
+the typed invocation $\KCall\e\m\ep{\t}{\tp}$, both denoting a method call to 
 method $\m$ with argument \ep. This is unusual for two reasons. First, most
 gradual type systems have no explicit untyped invocation form, and second, the
 typed form also specifies the argument type (\t) and return type (\tp).
@@ -667,7 +667,7 @@ new C().m(2)
 (<*>new C())@m("hello")
 \end{verbatim}
 
-The intuition for the first invocation of \m is clear - the method \C.\m is called.
+The intuition for the first invocation of \m is clear - the method \m in class \C is called.
 However, the second invocation is less obvious. If we interpret the untyped
 invocation (shown as an @) as calling \m directly, then it is clear that the types 
 are not sound, and some mechanism is needed to intercede upon this untyped invocation.
@@ -684,7 +684,7 @@ translation approach to protecting typed methods from untyped code.
   \item Globally consistent renaming, introducing a new untyped method for each
   typed method, and renaming every untyped method consistently. Under this scheme,
   every dynamic invocation can be translated to invoke functions under their untyped
-  names. Using this approach, and denoting the method name corresponding to \m as 
+  names. Using this approach, and denoting the untyped method name corresponding to \m as 
   \xt{mu}, the example would become
 
 \begin{verbatim}
@@ -729,8 +729,8 @@ simple invocation dynamic semantics.
 \subsubsection{Casts}
 
 \kafka has two fundamental cast operations: $\SubCast\t\e$ and $\BehCast\t\e$,
-both indicating that we desire the result of evaluating \e to be of type \t.
-Where the two casts differ is what is meant by ``be of type \t,'' as the two
+both indicating the desire that the result of evaluating \e has type \t.
+Where the two casts differ is what is meant by ``has type \t,'' as the two
 casts differ greatly in behavior.
 
 $\SubCast\t\e$ performs a standard subtype cast on the result of evaluating 
@@ -758,7 +758,7 @@ $\text{W}$'s are shown in \ref{w}.
 \hrulefill
 \small
 
-\vspace{0mm}
+\vspace{1mm}
 \begin{tabular}{ll|ll}
 \multicolumn{4}{c}{\behcastE\a\t\s\K \Kp\ap\sp} \\
 \a & Reference to wrap & \ap & Wrapped reference \\
@@ -767,6 +767,13 @@ $\text{W}$'s are shown in \ref{w}.
 \K & Original class table &
 \end{tabular}
 
+\hrulefill
+\vspace{-2mm}\caption{Behavioral casts definition.}\label{behavetext2}
+\end{figure}
+
+\begin{figure}[!h]
+	\hrulefill
+	\small
 \begin{equation*}
   \behcastE\a\Cp\s\K \Kp\ap\sp \HS\WHERE\HS \begin{cases}
 \HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
@@ -789,7 +796,7 @@ $\text{W}$'s are shown in \ref{w}.
 
 
 \hrulefill
-\vspace{-2mm}\caption{Behavioral casts.}\label{behavetext}
+\vspace{-2mm}\caption{Behavioral casts semantics.}\label{behavetext}
 
 \end{figure}
 
@@ -823,6 +830,14 @@ the wrapper's method bodies.
 \md[1] & Wrapped method declarations & \mdp[1] & Target method declarations \\
 \end{tabular}
 
+\hrulefill
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\caption{Wrapper class definition.}\label{w2}\end{figure}
+
+\begin{figure}[!h]
+	\hrulefill
+	\small
 \begin{tabbing}\small
   \wrap\C{\md[1]..}{\mdp[1]..}\D = \src{\Class\D{\Fdef\that\C}{\mdpp[1]..}}\\
   \HS\HS\WHERE\HS\= \Mdef\m\x{\t[1]}{\t[2]}\e\In\md[1].. \\
@@ -846,7 +861,7 @@ the wrapper's method bodies.
 \hrulefill
 \vspace{-2mm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\caption{Wrapper class generation.}\label{w}\end{figure}
+\caption{Wrapper class generation semantics.}\label{w}\end{figure}
 
 The W metafunction is the key to the behavioural cast, generating a wrapper
 class \D over the given type \C and methods \md[1], enforcing the type
