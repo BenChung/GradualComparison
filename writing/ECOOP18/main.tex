@@ -986,7 +986,7 @@ systems, as they enable the expression of gradual typing guarantees through
 the medium of \kafka's static type system.
 
 Unlike the dynamics, \kafka's statics hold few surprises. The entire type
-system is shown in appendix A, with the{} key typing rules excerpted in
+system is shown in appendix A, with the key typing rules excerpted in
 \figref{f:staticsem}. The key typing judgments are the subtyping relation
 \StrSub\M\K\t\tp (shown in \figref{sub}), the standard structural subtyping
 relation with the Amber rule~\cite{cardelli1985amber}, the program typing
@@ -995,8 +995,7 @@ to class table \K, and the expression typing judgment $\EnvType \Env\s\K\e\t$,
 indicating that against \Env, with heap \s, and class table \K, \e has type
 \t.
 
-
-\begin{figure}[!t] \hrulefill\small
+\begin{figure}[!h] \hrulefill\small
 
 \begin{mathpar}
 \Rule{W6}{
@@ -1044,10 +1043,11 @@ indicating that against \Env, with heap \s, and class table \K, \e has type
 \caption{\kafka static semantics (excerpt).}\label{f:staticsem}
 \end{figure}
 
-The objective of \kafka's type system is to enable the static
-types of \kafka to illustrate the soundness guarantee provided
-by each gradual typing semantics by translation, encoding the 
-guarantees in \kafka types.
+The static type system of \kafka gives us the ability to reason about the
+soundness guarantee of the source language gradual type systems directly from
+the translation. If a well-typed program is translated from the source language
+to \kafka, then the \kafka soundness theorem (presented in the next section)
+can be used to provide a soundness guarantee for the gradual type system.
 
 \subsection{Type soundness}
 Type soundness is a key property of the \kafka type system, as
@@ -1059,12 +1059,12 @@ The \kafka type soundness theorem is stated as follows:
 
 \begin{theorem}[\kafka type soundness]
 
-\noindent For every well-formed-state $\WFp\s\K$ and well-typed expression
+\noindent For every well-formed-state $\WFq{\K~\e~\s}$ and well-typed expression
 $\EnvType\emptyset\s\K\e\t$, one of the following holds:
 
 \begin{itemize}
 \item There exists some reference $\a$ such that $\e = \a$.
-\item $\K~\e~\s \Red \Kp~\ep~\sp$, where $\WFp\sp\Kp$, $\EnvType\emptyset\sp\Kp\ep\t$, $\sp$ has all of the values of $\s$, and $\Kp$ has all of the classes of \K.
+\item $\K~\e~\s \Red \Kp~\ep~\sp$, where $\WFq{\Kp~\ep~\sp}$, $\EnvType\emptyset\sp\Kp\ep\t$, $\sp$ has all of the values of $\s$, and $\Kp$ has all of the classes of \K.
 \item $\e=E[\DynCall\a\m\ap]$ and $\a$ refers to an object without a method \m.
 \item $\e=E[\SubCast\C\a]$, and $\a$ refers to an object whose class is not a subtype of $\C$.
 \item $\e=E[\BehCast\C\a]$, and $\C$ contains a method that \a does not.
@@ -1093,9 +1093,9 @@ proceeds by structural induction over the required type.
 
 To prove this key theorem, we have mechanized the type soundness proof for
 \kafka in
-Coq\footnote{Link to source removed for blind review}.
-In Coq syntax, the conditions for \kafka's type soundness theorem is stated as
-follows: %https://github.com/BenChung/GradualComparison/tree/master/impl
+Coq\footnote{Link to source removed for blind review}. %https://github.com/BenChung/GradualComparison/tree/master/impl
+In Coq syntax, the \kafka type soundness theorem is stated as
+follows:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
@@ -1123,12 +1123,6 @@ $\forall$ (k:ct) (s:heap) (e:expr) (t:type),
        --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
        ~(--(\emph{incl})-- (--(\emph{method{\textunderscore}names})-- C$'$ k) (--(\emph{method{\textunderscore}names})-- C k))))
 \end{lstlisting}
-
-This theorem is slightly stronger than the one stated above, as case 2 in the
-Coq version also ensures that the new heap \sp has the same references as \s
-did, and that the new class table \Kp has the same classes that \K did. The
-most notable Coq predicate is \emph{equivExpr}, which instantiates some
-evaluation context $E$ with an expression \e.
 
 Type soundness is only one means of validating a language design and type
 system, however, as while it demonstrates that reasoning about types only need
@@ -1433,16 +1427,22 @@ to be passed for any type.
 {\bf Transient.~} The transient semantics ensures that the methods of a type
 will exist, but nothing more. While typed methods can still be called with any
 argument by untyped code, and untyped methods can still return any value, some
-checks are done. Transient ensures that all specified methods exist on the
-value, but not what the argument or return types of those methods are.
+checks are done. Transient ensures that all specified methods exist
+on the value, but not what the argument or return types of those methods are.
 
-Thanks to \kafka's use of structural subtyping, encoding these guarantees is
-simple. To allow methods to take or return any value, we first erase all of
-the types on arguments and return types, eliminating all type information. By
-erasing all types we then convert the subtype cast into a simple check that
-one type has all the method names as the other, exactly the check semantics 
-we need. We then use the subtype cast to check the argument type prior to
-(translated) method body entry, matching the transient soundness guarantee.
+Mutable state in transient is handled by checking at dereference time. Any
+value can be assigned to a field, but must conform to the statically expected
+type when fetched. We can express this in \kafka by converting all field types
+to \any.
+
+Thanks to \kafka's use of structural subtyping, encoding the transient
+soundness guarantee is simple. To allow methods to take or return any value,
+we first erase all of the types on arguments and return types, eliminating all
+type information. By erasing all types we then convert the subtype cast into a
+simple check that one type has all the method names as the other, exactly the
+check semantics  we need. We then use the subtype cast to check the argument
+type prior to (translated) method body entry, matching the transient soundness
+guarantee.
 
 {\bf Behavioral.~} Under the behavioral semantics, all values will conform to
 their type up to errors, a simple guarantee to represent in \kafka.  Wrappers
@@ -1477,10 +1477,102 @@ of soundness of the source language into \kafka, a sound intermediate
 language, we reduce the problem of enforcing a gradual type system's soundness
 guarantee to producing well-typed \kafka terms. 
 
-We present four expression translation systems, one for each of the
-gradual type systems in question. Each takes a well-typed source language term
-and translates it into a well-typed \kafka term, in the presence of a suitably
-translated class table. 
+We present four expression translation systems, one for each of the gradual
+type systems in question. Each takes a well-typed source language term and
+translates it into a well-typed \kafka term, in the presence of a suitably
+translated class table. These expression translation systems come in one of
+two forms - a straightforward typeless translation used for the optional
+semantics, and a bidirectional type-driven translation used for the other
+three gradual type systems.
+
+\begin{itemize}
+  \item $\TR[\OTS]\e$: Used for the optional semantics, this form translates the source level term $\e$ into a \kafka expression. Using this form, the translation of \e is completely independent of its statically known type.
+  \item Our system has two type-driven translation forms, whose design arises from prior work on bidirectional type checking~\cite{pierce:1998:local}. 
+
+  In order to determine where casts must be added, the type-driven
+  translations need to find the places where a dynamically-typed term was used
+  in place of a statically-typed one, or vice versa. While the existing type
+  system can find out the type of some sub-term, it cannot determine what type
+  the surrounding expression expected. To acquire this information during translation,
+  we use a second translation form which takes the expected type of the expression being
+  translated.
+
+  \begin{itemize}
+    \item $\TRG[\SOMS]\e\Env$: For the system $\SOMS$, and against the typing environment $\Env$, translate the source level term $\e$ to \kafka. 
+
+    This form, analogous to the \emph{synthetic} case of Pierce and Turner, is used
+    when no type is demanded of the resulting \kafka term.
+    \item $\TAG[\SOMS]\e\Env\t$: For the system $\SOMS$, and against the typing environment $\Env$, translate the source term $\e$ to \kafka, 
+    guaranteeing that the \kafka term has type \t.
+
+    This form, which we call assert translation, is equivalent to Pierce and
+    Turner's \emph{analytic} case, when some type is required of the expression
+    \e. 
+  \end{itemize}
+\end{itemize}
+
+We begin with the assert translations, as they enforce the soundness guarantee
+encoded by class translation, and illustrate how each gradual type system
+approaches the dynamic enforcement of soundness.
+
+\begin{figure}[!h]
+  \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+    {\scriptsize \bf{Transient}} \\
+    \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
+    & \TypeCk{\K,\Env}\e\tp
+    & \EM{\K\vdash\tp\Sub\t}
+    & \ep = \TRG[\TTS]\e\Env \\
+    \TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
+    & \TypeCk{\K,\Env}\e\tp 
+    & \EM{\K\vdash \tp \not \Sub \t}
+    & \EM{\ep = \TRG[\TTS]\e\Env} \\
+    {\scriptsize \bf{Behavioral}} \\ 
+    \TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
+    & \TypeCk{\K,\Env}\e\tp
+    & \EM{\K\vdash \tp \Sub \t}
+    & \ep = \TRG[\BTS]\e\Env\\
+    \TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
+    & \TypeCk{\K,\Env}\e\tp \HS 
+    & \EM{\K\vdash \tp \not \Sub \t}
+    & \ep = \TRG[\BTS]\e\Env \\
+    {\scriptsize\bf{ Concrete}} \\
+    \TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
+    & \TypeCk{\K,\Env}\e\tp 
+    & \EM{\K\vdash\tp \Sub \t} 
+    & \ep = \TRG[\CTS]\e\Env\\
+    \TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
+    & \TypeCk{\K,\Env}\e\tp 
+    & \EM{\K\vdash\tp \not\Sub \t}
+    & \EM{\ep = \TRG[\CTS]\e\Env} 
+  \end{tabular}
+  
+\caption{Assert translation.}\label{fig:trtype}
+\end{figure}
+
+Convertibility and assert translation, shown in figure~\ref{fig:trtype}, have
+a close correspondence. Every type-driven translation has two rules. The first
+handles the case of \RuleRef{STGC-SUB}, when the required type happens to be a
+supertype of the expression's actual type, and no further action is required
+of the translation. The second case shows the behavior when 
+\RuleRef{STGC-TOANY} or \RuleRef {STGC-ANYCONC} were needed to conclude the source level
+typing judgment. In these cases, we are converting to or from \any, and
+therefore dynamic behavior that depends on the soundness guarantee is
+required.
+
+In this second case, the encoding of surface level types into \kafka becomes
+paramount. While the concrete and behavioral translations are predictable -
+checking the runtime type of a value with subtype cast and behavioral casts,
+respectively - the transient assert translation is unusual. Despite offering a
+much weaker soundness guarantee than the concrete semantics, the transient
+assert translation is identical.
+
+This similarity is caused by the different class translations used by the
+concrete and transient semantics. The encoding of surface level types in
+\kafka according to the transient semantics,  shown in
+figure~\ref{fig:traclass}, calls for all types to be erased from methods while
+the concrete semantics retains them. As a result, the concrete subtype cast
+will check method types where the transient subtype cast will not.
+
 
 \begin{figure}[!h]
 	\begin{tabular}{l@{\HS}l}
@@ -1520,15 +1612,19 @@ translated class table.
 \figref{fig:travar} presents the translation for field access and variables,
 with notable exceptions in the transient and optional semantics, these
 operations are translated verbatim. The grey background is used to identify
-translated \kafka terms. For the optional semantics, we have eliminated the
-type of \this by casting it to \any. The optional semantics make no other
-alterations to these terms, as it has no guarantee to ensure.  Transient does
-not guarantee the values passed to functions or field assignment respect the
-declared type of those expressions. Class translation inserts checks for
-invalid variables upon method entry, so while the transient translation has to
-insert casts to appease the \kafka type system, these casts will never fail.
-However, fields are not protected and requires a guard after dereferencing, as
-values can be passed through them to violate their types.
+translated \kafka terms. 
+
+Even for these simple terms, the behavior of some gradual type systems is
+unusual. While the behavioral and concrete systems translate according to the
+identity function, the optional and transient approaches are more complex. The
+optional semantics erases all types; every operation under the optional
+semantics is dynamic. In order for this to be well-typed according to \kafka,
+every term produced by the behavioral semantics must be of type \any, and one
+term, \this, is always typed. We solve this unusual problem by casting every
+self reference to \any. Under the transient semantics, meanwhile, we face the
+problem that we erase all types on methods and fields - an artifact of the
+guarantee, as mentioned previously. To recover these types, we type check the
+expression in question, then cast to the statically-known type.
 
 \begin{figure}[!h]
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
@@ -1602,61 +1698,6 @@ behavioral, and concrete semantics. The only difference lies in the
 recursive translation call for the arguments of the object, whereby each
 semantics call their respective translation. The optional semantics require
 an additional $\star$ cast easing any typing information from the object.
-
-
-\begin{figure}[!h]
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize \bf{Transient}} \\
-		\TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
-		& \TypeCk{\K,\Env}\e\tp
-		& \EM{\K\vdash\tp\Sub\t}
-		& \ep = \TRG[\TTS]\e\Env \\
-		\TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
-		& \TypeCk{\K,\Env}\e\tp 
-		& \EM{\K\vdash \tp \not \Sub \t}
-		& \EM{\ep = \TRG[\TTS]\e\Env} \\
-		{\scriptsize \bf{Behavioral}} \\ 
-		\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
-		& \TypeCk{\K,\Env}\e\tp
-		& \EM{\K\vdash \tp \Sub \t}
-		& \ep = \TRG[\BTS]\e\Env\\
-		\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
-		& \TypeCk{\K,\Env}\e\tp \HS 
-		& \EM{\K\vdash \tp \not \Sub \t}
-		& \ep = \TRG[\BTS]\e\Env \\
-		{\scriptsize\bf{ Concrete}} \\
-		\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
-		& \TypeCk{\K,\Env}\e\tp 
-		& \EM{\K\vdash\tp \Sub \t} 
-		& \ep = \TRG[\CTS]\e\Env\\
-		\TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
-		& \TypeCk{\K,\Env}\e\tp 
-		& \EM{\K\vdash\tp \not\Sub \t}
-		& \EM{\ep = \TRG[\CTS]\e\Env} 
-	\end{tabular}
-	
-\caption{Translation for type requirement.}\label{fig:trtype}
-\end{figure}
-
-Figure~\ref{fig:trtype} depicts the translation for type requirement. For
-this translation, we are given the expression to translate, the environment
-to translate against, and the \kafka type of the resulting
-expression. Under the optional system, all terms have type \any, rendering a
-translation for type requirement redundant.
-The transient and concrete semantics use standard dynamic subtyping.
-The concrete semantics use classes defined by the programmer, while the
-transient semantics alters them during translation. Under the transient
-semantics, classes are rewritten with dynamic types in place of static types
-in functions and field. This causes the subtyping cast in the context of the
-transient class translation to check for the existence of a method of
-the required name during dynamic subtyping, rather than required to ensure 
-the entire class is type compatible.
-The behavioral semantics has the same untyped invocation as transient, but 
-provides a stronger guarantee. 
-The behavioral semantics guarantee a typed receiver respects the type
-it is under, allowing the invocation to call the method under the
-expected type and not to verify the return type. An ill-typed return
-would be caught by a wrapper before it reaches the caller.
 
 
 \begin{figure}[!h]
