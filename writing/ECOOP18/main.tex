@@ -415,33 +415,40 @@ of type system is being used. Using this property, we propose a litmus test
 that can distinguish the four gradual type system approaches of optional, concrete, 
 behavioral, and transient.
 
-Using the errors reported at runtime, this litmus test is able to determine
-what gradual type system a language uses. Depicted in \figref{litmus}, the
-test consists of three programs, written in our source
-language \footnote{Details of our source language appear in section 5}. 
-All of these programs type check according to each of the four gradual type systems, and
-run without error when executed in an untyped language. Due to the differences
-between gradual type systems and their runtime enforcement systems, however,
-some of these programs will halt with a runtime error due to one of the
-inserted casts. By observing which programs produce an error we can determine
-which gradual type system is being used\footnote{To validate this, we have 
-implemented the litmus test in Typescript (optional), Thorn (concrete), 
-Typed Racket (behavioral), and Transient Reticulated Python (transient). 
-These implementations are included in the appendix}.
+To differentiate gradual type systems with a litmus test, we need a set of
+programs whose execution depends on which gradual type system is in use. Each
+program should run without error when executed dynamically, and should be
+statically well-typed. However, in the presence of a gradual type system, the
+programs should induce cast failures depending on what semantics are in play.
 
-Each program of the litmus test consists of class definitions and a main expression.
+Using three different programs, we can differentiate between four gradual type
+systems. The litmus test is shown in \figref{litmus} and its constituent
+programs are written in our source language, whose full details appear in 
+section 5. Each of these programs consists of a class table and an expression,
+whose evaluation in the context of the class table determines if the litmus test
+succeeds or fails.
 
-\begin{itemize}
-	\item Litmus test 1 (L1) contains three classes, \texttt{A}, \texttt{I}, and \texttt{T}. The main expression for litmus test 1 invokes the method \t of class \texttt{T}.
-	\item Litmus test 2 (L2) contains four classes,
-	\item Litmus test 3 (L3) contains
-\end{itemize}
-
+The three programs in the litmus test are designed to induce errors in some
+gradual type systems. This is done via the construction of an untyped value
+that violates the type guarantees of some systems, but not others. In program
+L1, we build an instance of class \xt{A}, then pass it (as an untyped value)
+to a function that expects an instance of \xt{I}, a structurally incompatible
+type. In L2, we also construct an \xt{A}, but this time \xt{I} is structurally
+compatible (has the same method names) with incompatible argument types.
+Lastly, L3 uses the method \m to instantaneously asserts that an instance of a
+\C is actually an \xt{E}, then performs an untyped invocation on the result,
+assuming that the value is still a \C.  \footnote{To validate this, we have
+implemented the litmus test in Typescript (optional), Thorn (concrete),  Typed
+Racket (behavioral), and Transient Reticulated Python (transient).  These
+implementations are included in the appendix}.
 
 \begin{figure}[!h]
   \includegraphics[width=.95\columnwidth]{../figures/litm}
   \caption{Gradual typing litmus test.}\label{litmus}
 \end{figure}
+
+The various checks used at each of these type assertions can fail, depending
+on the semantics of the gradual type system in question.
 
 {\bf Optional.~} An optional type system, which simply erases all of the
 type annotations at runtime, will run all programs without error.
