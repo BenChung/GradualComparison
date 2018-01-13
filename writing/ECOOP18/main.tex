@@ -170,8 +170,8 @@ casts: \emph{structural casts} check if the object is a subtype of some type
 behaves as if it was of some type \t. For this the calculus needs to support
 runtime generation of a classes and transparent wrappers.
 
-\kafka allows us to demonstrate that notion of type error depends on the
-approach selected.  Each of the gradual type approaches will catch different
+\kafka allows us to demonstrate the meaning of type error depends on the
+approach.  Each of the gradual type approaches will catch different
 errors.  We demonstrate with a litmus test consisting of three simple
 programs that it is possible to distinguish the type systems. These three
 programs can be expressed in all four approaches and the programs are
@@ -192,6 +192,8 @@ This paper makes the following contributions:
   objet-oriented languages.
 \item A set of four translations from a common Java-like source language to
   \kafka, each translation implementing on the four gradual approaches.
+\item A litmus test comprised of three simple programs that renders the
+  difference between approaches observable.
 \item A proof of soundness, mechanized in Coq, demonstrating that \kafka
   programs respect the \kafka type system, the proof handles the case of
   dynamic class generation for wrappers.
@@ -199,7 +201,21 @@ This paper makes the following contributions:
   Language Runtime to demonstrate the viability of the design.
 \end{itemize}
 
-
+\noindent
+Our work does not address the question of performance of the translations.
+The main reason for this is that while there are some intrinsic performance
+costs to the various approaches, these costs can be mitigated by compiler
+optimizations. Optimizations of gradual types is an active research topic,
+our paper is more concerened with the semantic differences between
+approaches.  One significant difference with previous work is that \kafka is
+statically typed -- other system translate down to untyped calculi. The
+reason for this choice is that by translating to a statically typed core, we
+can clearly see when code is guaranteed to be free of dynamic errors, and
+when dynamic errors due to wrappers may occur. Another noteworthy design
+choice is the use of structural subtyping in \kafka. This is motivated by
+our desire to represent behavioral and transiet approaches that require
+structural subtyping.  There would be no major difficulty switching \kafka
+to a nominal subtype system or providing a nominal subtype cast.
 
 \section{Background}
 
