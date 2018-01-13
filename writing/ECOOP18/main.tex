@@ -122,7 +122,7 @@ subtyping. This early work had drawbacks, most notably in handling mutable
 state and aliasing -- vital components of object-oriented languages.
 Underlying each of the subsequent gradual type system are different choices
 on how to deal with state and aliasing -- often with key differences in
-soundness property and enforcement. These fundamental details are obscured
+soundness properties and enforcement. These fundamental details are obscured
 by target language features. The goal of our work is to explore the design
 space of gradual types for object and allow comparison in a common
 framework.
@@ -145,45 +145,45 @@ have been proposed. Consider some of the languages in this space:
 \item Reticulated Python: a family of three gradual type systems for Python.
 \end{itemize}
 
-\noindent We focus on comparing the four main approaches to gradual typing
+\noindent We focus on comparing the four main approaches to gradual typing,
 which we label optional, concrete, behavioral and transient. The
 \emph{optional} approach, chosen by TypeScript, Dart, and Hack, amounts to
 static type-checking followed by type-erasure. Optional types will not catch
-erroneous values flowing from dynamically typed code to statically typed
-code.  The \emph{concrete} approach, used in C\#, Thorn, StrongScript and
-Nom, combines optional types, combines runtime tag checks and traditional
-static typing. While statically typed code executes at native speed, values
-must be checks each time they cross dynamic/static boundaries. The
-\emph{behavioral} approach of Typed Racket, Gradualtalk and Reticulated
-Python, monitors values to ensure that they behave in accordance to their
-assigned types.  Finally, the \emph{transient} approach, specific to
-Reticulated Python, lies between concrete and behavioral; it adds type casts
-but does so only for the top-level of data structures.
+erroneous values flowing from dynamically typed code to statically typed code.
+The \emph{concrete} approach, used in C\#, Thorn, StrongScript and Nom, use
+runtime tag checks and traditional static typing. While statically typed code
+executes at native speed, values must be checked each time they cross
+dynamic/static boundaries. The \emph{behavioral} approach of Typed Racket,
+Gradualtalk and Reticulated Python, monitors values to ensure that they behave
+in accordance to their assigned types.  Finally, the \emph{transient}
+approach, specific to Reticulated Python, lies between concrete and
+behavioral; it adds type casts but does so only for the top-level of data
+structures.
 
 Our proposal to compare approaches to gradual typing for objects is to focus
 on a simple object calculus with only the features needed for a comparison.
 Our comparison is done by translating source languages into a common target
 language which we call \kafka.  \kafka is a statically typed class-based
-object calculus with mutable state expressly. The key features of \kafka are
+object calculus with explicit mutable state. The key features of \kafka are
 casts: \emph{structural casts} check if the object is a subtype of some type
-\t, \emph{behavioral casts} create wrappers that enforce that an object
+\t, while \emph{behavioral casts} create wrappers, enforcing that an object
 behaves as if it was of some type \t. For this the calculus needs to support
-runtime generation of a classes and transparent wrappers.
+runtime generation of classes and transparent wrappers.
 
 \kafka allows us to demonstrate that the meaning of type error depends on the
-approach.  Each of the gradual type approaches will catch different
-errors.  We demonstrate with a litmus test consisting of three simple
-programs that it is possible to distinguish the type systems. These three
-programs can be expressed in all four approaches and the programs are
-statically well-typed. Moreover, the programs are ``correct'' in the sense
-that in an untyped language they run to completion without error. Yet, in
-three of the four gradual type systems, they display different errors.  The
-significance of this observation is that there are still design questions to
-be resolved. For instance, consider a call, \code{x.m()}, in the concrete
-approach, if variable \code x is typed, this statement is guaranteed to
-succeed, with an optional approach the call may fail because \code{x} lacks
-method \code{m}, in behavioral the call will succeed, but a failure may
-occur upon return if the returned value is not of the expected type.
+approach taken.  Each of the gradual type systems will catch different errors.
+We demonstrate this with a litmus test consisting of three simple programs,
+capable of distinguishing all four type systems. These three programs can be
+expressed in all four approaches and the programs are statically well-typed.
+Moreover, the programs are ``correct'' in the sense that in an untyped
+language they run to completion without error. Yet, in three of the four
+gradual type systems, they display different errors.  The significance of this
+observation is that there are still design questions to be resolved. For
+instance, consider a call, \code{x.m()}, in the concrete approach, if variable
+\code x is typed, this statement is guaranteed to succeed, with an optional
+approach the call may fail because \code{x} lacks method \code{m}, in
+behavioral the call will succeed, but a failure may occur upon return if the
+returned value is not of the expected type.
 
 
 This paper makes the following contributions:
@@ -191,31 +191,30 @@ This paper makes the following contributions:
   \item The design of \kafka, a common framework for gradual type systems for
   objet-oriented languages.
 \item A set of four translations from a common Java-like source language to
-  \kafka, each translation implementing on the four gradual approaches.
-\item A litmus test comprised of three simple programs that renders the
-  difference between approaches observable.
+  \kafka, each translation implementing one of the four gradual approaches.
+\item A litmus test comprised of three simple programs, able to tell
+apart all four gradual type systems.
 \item A proof of soundness, mechanized in Coq, demonstrating that \kafka
   programs respect the \kafka type system, the proof handles the case of
   dynamic class generation for wrappers.
-\item A proof-of-concept implementation of \kafka on top of .Net Common
-  Language Runtime to demonstrate the viability of the design.
+\item A proof-of-concept implementation of \kafka on top of the .Net Common
+  Language Runtime, demonstrate the viability of the design.
 \end{itemize}
 
-\noindent
-Our work does not address the question of performance of the translations.
-The main reason for this is that while there are some intrinsic performance
-costs to the various approaches, these costs can be mitigated by compiler
-optimizations. Optimizations of gradual types is an active research topic,
-our paper is more concerned with the semantic differences between
+\noindent Our work does not address the question of performance of the
+translations. The main reason for this is that while there are some intrinsic
+performance costs to the various approaches, these costs can be mitigated by
+compiler optimizations. Optimizations of gradual types is an active research
+topic; our paper is more concerned with the semantic differences between
 approaches.  One significant difference with previous work is that \kafka is
-statically typed -- other system translate down to untyped calculi. The
+statically typed -- other systems translate down to untyped calculi. The
 reason for this choice is that by translating to a statically typed core, we
-can clearly see when code is guaranteed to be free of dynamic errors, and
-when dynamic errors due to wrappers may occur. Another noteworthy design
-choice is the use of structural subtyping in \kafka. This is motivated by
-our desire to represent behavioral and transient approaches that require
-structural subtyping.  There would be no major difficulty switching \kafka
-to a nominal subtype system or providing a nominal subtype cast.
+can clearly see when code is guaranteed to be free of dynamic errors and where
+wrapper-induced dynamic errors can occur. Another noteworthy design choice is
+the use of structural subtyping in \kafka. This is motivated by our desire to
+represent behavioral and transient approaches that require structural
+subtyping.  There would be no major difficulty switching \kafka to a nominal
+subtype system or providing a nominal subtype cast.
 
 \section{Background}
 
