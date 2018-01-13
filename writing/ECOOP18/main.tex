@@ -45,7 +45,7 @@
 }
 
 \begin{document}
-\title{KafKa: A Framework for Gradual Typed Objects}
+\title{A Combined Framework for Object-Oriented Gradual Typing}
 \titlerunning{Gradual typing of objects}
 \author{Anonymous}
 %\author[1]{B}
@@ -177,14 +177,13 @@ capable of distinguishing all four type systems. These three programs can be
 expressed in all four approaches and the programs are statically well-typed.
 Moreover, the programs are ``correct'' in the sense that in an untyped
 language they run to completion without error. Yet, in three of the four
-gradual type systems, they display different errors.  The significance of this
+gradual type systems, the programs display different errors. The significance of this
 observation is that there are still design questions to be resolved. For
 instance, consider a call, \code{x.m()}, in the concrete approach, if variable
 \code x is typed, this statement is guaranteed to succeed, with an optional
 approach the call may fail because \code{x} lacks method \code{m}, in
 behavioral the call will succeed, but a failure may occur upon return if the
 returned value is not of the expected type.
-
 
 This paper makes the following contributions:
 \begin{itemize}  
@@ -489,7 +488,7 @@ letting the invocation to \xt a succeed.
 We can use the litmus tests to discover what gradual type system is being
 used, but the test does not describe the semantics of the gradual type
 systems it differentiates. To provide detailed semantics for all four
-gradual type systems we use a two part approach, the first part of which,
+gradual type systems we use a two-part approach, the first part of which,
 the \kafka core calculus, we discuss next.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -504,7 +503,7 @@ systems are hard to notice amongst details that are irrelevant to gradual typing
 To enable direct comparison, the different gradual typing approaches need to
 be placed in a single language and formal approach. In this section, we
 introduce our common translation target for gradual type systems, the \kafka
-calculi, designed to illustrate the differences between gradual type systems
+calculus, designed to illustrate the differences between gradual type systems
 for objects.
 
 The key design goal behind \kafka was to express the soundness guarantees
@@ -612,26 +611,29 @@ and two unique cast operations.
 \kafka has two key requirements. First, it needs to be able to match the
 dynamic semantics implied by each gradual type system. Second, it needs a
 type system that can represent the soundness guarantees of all the gradual type systems. 
-The syntax of \kafka is shown in \ref{syn}, while the
-dynamic semantics is illustrated in \ref{fig:semantics}.
+The syntax of \kafka is shown in \figref{syn}, while the
+dynamic semantics is illustrated in \figref{fig:semantics}.
 
-\kafka's design follows a standard Featherweight Java-style object calculi. 
+\kafka's design follows a standard Featherweight Java-style object calculus.
 At the top level, classes are notated as \Class\C{\fd[1]..}{\md[1]..},
-methods denoted as \Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist of
+methods, ranged over by \md, are denoted as \Mdef\m\x\t\t\e, and fields
+\Fdef\f\t. Expressions consist of
+
 \begin{itemize}
 \item Variable references \x.
-\item Self-reference \this, wrapped object reference \that.
+\item Self-reference \this, wrapped object reference \that (used for the implementation of behavioral casts).
 \item Field access \FRead\f and field writes \FWrite\f\e.
 \item New object creation \New\C{\e[1]..}.
-\item Typed and untyped invocations, discussed below.
+\item Typed and untyped method invocations, discussed below.
 \item Subtype and behavioral casts, discussed below.
 \item References, assignment, and dereference forms for runtime use.
 \end{itemize}
 
 Evaluation is likewise standard with a few exceptions, with an evaluation
 context consisting of a class table \K, an expression being evaluated \e, and
-a heap \s. Due to the need for dynamically generate classes, the class table \K
-is part of the state, and not the evaluation context.
+a heap \s, mapping from addresses \a to objects, denoted $\C\{\a\ldots\}$. Due
+to the need for dynamically generate classes, the class table \K is part of
+the state, and not the evaluation context.
 
 The treatment for majority of these constructs are orthogonal to the problem of supporting
 gradual type systems, therefore their semantics are typical for calculi of this style. 
@@ -655,12 +657,12 @@ Siek 2017~\cite{Vitousek2017} would represent it as $(\SubCast{\any
 \rightarrow\any}{\m})(\e)$, casting the receiver to an arrow type then 
 performing a (sound) invocation. 
 
-In order to generate such a cast, it is necessary to generate the arrow type.
-If we attempt to translate the above example into \kafka, without imposing any
-assumptions on the class table, we run into a substantial problem -  we can
-not represent inline the arrow type needed by the standard approach. Instead,
-if we are trying to invoke a method \m on receiver \a with argument \e, we
-have to assume the existence of a class similar to $\Class{\xt
+In order to generate such a cast, we need to produce a type that guarantees
+the existence of the corresponding method. If we attempt to translate the
+above example into \kafka, without knowing anything about the context, we run
+into a substantial problem: types can only be declared in the class table.
+Instead, if we are trying to invoke a method \m on receiver \a with argument
+\e, we have to assume the existence of a class similar to $\Class{\xt
 M}{}{\Mdef\m\x\any\any\x}$ in the class table, from which we can then write
 $\KCall{\SubCast{\xt M}\a}\m\any\any\e$. However, this class needs to be
 generated by the translation, adding substantial complexity.
@@ -673,14 +675,14 @@ later in our discussion of the \kafka soundness proof.
 
 Our use of explicitly typed invocations is a result of the desire for \kafka
 to be the target of multiple gradual type systems and the corresponding
-requirement of generality, and arises from the need to protect typed  method
+requirement of generality, and arises from the need to protect typed method
 from untyped callers in the concrete semantics.
 
 Consider the following example:
 
 \begin{tabbing}
 \hspace{1cm}\K\HS\=
-\Call{\New\C{}}{\m}{2} \HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS
+\Call{\New\C{}}{\m}{2} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE
   \K\HS =\HS \= \class\= \C \{\\
 \> \Call{(\SubCast\any{\New\C{}})}{\m}{\xt{"hello"}}       \> \HS \Mdef{\xt{m}}\x {\xt{Int}}{\xt{Int}}{\HS \x + 2 \HS}\\
    \>    \> \}
@@ -693,11 +695,11 @@ are not sound, and some mechanism is needed to intercede upon this untyped invoc
 This could be treated as a special case of untyped invocation, an approach taken in
 many gradual type systems dedicated to one language~\cite{popl10,ecoop15,Muehlboeck2017}.
 
-For a language designed to highlight differences between gradual type systems, though
-this design has major drawbacks, most notably that it hides dynamic type tests, ones
-which are impossible to determine statically and that it precludes alternative type
-test locations, a key concern of the transient semantics. As a result, we take a pure
-translation approach to protecting typed methods from untyped code.
+This approach is untenable for multiple gradual type systems cohabiting in a
+single language. Fixing the untyped invocation semantics as part of basic
+semantics precludes  the use of different enforcement mechanisms, protecting
+typed from untyped code. Moreover, it hides an important set of type tests, 
+obscuring a potential source of type errors.
 
 \begin{itemize}
   \item Globally consistent renaming, introducing a new untyped method for each
@@ -756,10 +758,14 @@ both indicating the desire that the result of evaluating \e has type \t.
 Where the two casts differ is what is meant by ``has type \t,'' as the two
 casts differ greatly in behavior.
 
-$\SubCast\t\e$ performs a standard subtype cast on the result of evaluating 
-$\e$, ensuring that the value returned is a (non-consistent) subtype of $\t$.
-If $\SubCast\t\e$ succeeds, then the value it returns must be of a subtype
-of $\t$. 
+$\SubCast\t\e$ performs a standard subtype cast on the result of evaluating
+$\e$, ensuring that the value returned is a subtype of $\t$. If $\SubCast\t\e$
+succeeds, then the value it returns must be of a subtype of $\t$.
+
+This cast is enabled by the typed structure of the \kafka heap. In \kafka, the
+heap \s consists of mappings from values \a to objects, made up of a class \C
+and a list of field values $\ap\ldots$, notated $\s[\a \mapsto
+\C\{\ap\ldots\}]$. The cast then succeeds if $\StrSub \emptyset\K\C\D$ holds.
 
 \paragraph*{Behavioral Casts}
 
@@ -770,11 +776,11 @@ the method names declared by \t, and nothing more. Failures due to improper
 typing will instead occur when the untyped value being called violates
 the type dynamically.
 
-The detailed semantics of $\BehCast\e\t$ are contained in the $\text{bcast}$
+The detailed semantics of $\BehCast\t\e$ are contained in the $\text{bcast}$
 metafunction, which implements the dynamic wrapper generation application
-operation, while the $\text{W}$ metafunction does wrapper generation.
-$\text{bcast}$'s semantics are shown in figure ~\ref{behavetext}, while
-$\text{W}$'s are shown in \ref{w}. 
+operation, while the $\xt{W}$ metafunction does wrapper generation.
+$\xt{bcast}$'s semantics are shown in \figref{behavetext}, while
+$\xt{W}$'s are shown in \figref{w}.
 
 
 \begin{figure}[!h]
@@ -941,7 +947,7 @@ set of methods of the wrapper is only known at cast-time, and is dependent on
 the type of the cast value (which itself might be a wrapper, and so on). 
 
 As \kafka does not allow code to generate new code, we cannot represent the
-$\BehCast\e\t$ operation in \kafka itself, therefore demanding its own
+$\BehCast\t\e$ operation in \kafka itself, therefore demanding its own
 syntactic form.
 
 \begin{figure}[!b] \hrulefill\small
@@ -986,7 +992,7 @@ systems, as they enable the expression of gradual typing guarantees through
 the medium of \kafka's static type system.
 
 Unlike the dynamics, \kafka's statics hold few surprises. The entire type
-system is shown in appendix A, with the key typing rules excerpted in
+system is shown in Appendix A, with the key typing rules excerpted in
 \figref{f:staticsem}. The key typing judgments are the subtyping relation
 \StrSub\M\K\t\tp (shown in \figref{sub}), the standard structural subtyping
 relation with the Amber rule~\cite{cardelli1985amber}, the program typing
@@ -1306,7 +1312,7 @@ identical to those in \kafka, and present only the altered rules.
   \caption{Source language type system.}\label{fig:slts}
 \end{figure}
 
-The type system for the source language, shown in figure~\ref{fig:slts}, is a
+The type system for the source language, shown in \figref{fig:slts}, is a
 straightforward static semantics for gradual typing. To differentiate this
 type system from the \kafka type system, we use the $\EnvTypeS \Env\K\e\t$
 judgment form, indicating a well-typed expression in the surface type system.
@@ -1319,7 +1325,7 @@ $\ConvertE\K{s}{\t}{\tp}$.
 This $\ConvertE\K{s}{\t}{\tp}$ relation indicates that type $\t$ is
 convertible to one of type $\tp$, and is used both for traditional up-casting
 and for conversions of \any to non-\any types. Our definition of the type
-convertibility operator is shown in figure~\ref{fig:tyconvert}. The operator
+convertibility operator is shown in \figref{fig:tyconvert}. The operator
 enforces type discipline where possible (via \RuleRef{STGC-SUB}) while
 allowing implicit conversion to and from the dynamic type where not (via
 \RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}). To avoid collapsing the type
@@ -1329,18 +1335,18 @@ hierarchy, the type convertibility operator is not transitive.
   \hrulefill  \small  \vspace{-3mm}
   
   \begin{mathpar}
-    \Rule{STGC-SUB}{
-      \SSub\cdot\K\t\tp
+    \IRule{STGC-SUB}{
+      \SSub\emptyset\K\t\tp
     }{
       \ConvertE\K{s}\t\tp
     }
     
-    \Rule{STGC-TOANY}{~
+    \IRule{STGC-TOANY}{~
     }{
       \ConvertE\K{s}\t\any
     }
     
-    \Rule{STGC-ANYCONC}{~
+    \IRule{STGC-ANYCONC}{~
     }{
       \ConvertE\K{s}\any\t
     }
@@ -1360,10 +1366,10 @@ must be checked.
 
 \subsection{Translations}
 
-The key to our approach are the translations between the source language and
-\kafka. These translations encode the soundness guarantee of the gradual type
-system into \kafka types and protect this guarantee via cast insertion, the
-details of which depend on the type system in question.
+The translations between the source language and \kafka are the cornerstone of
+our approach. These translations encode the soundness guarantee of the gradual
+type system into \kafka types and protect this guarantee via cast insertion,
+the details of which depend on the type system in question.
 
 Each translation aims to establish and protect a \kafka soundness guarantee,
 encoded in \kafka's expressions and classes. The soundness guarantee itself,
@@ -1381,6 +1387,7 @@ different guarantees for source level types, every one has its own class
 translation approach. These approaches are shown in \figref{fig:traclass}.
 
 \begin{figure}[!h]  
+  \hrulefill\\
   \begin{tabular}{llc@{\hspace{.25cm}}l}    
         
     {\scriptsize \bf{Optional}} \\    
@@ -1415,6 +1422,7 @@ translation approach. These approaches are shown in \figref{fig:traclass}.
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
   \end{tabular}   
       
+  \hrulefill
  \caption{Translations for classes.}     \label{fig:traclass}    
 \end{figure}
 
@@ -1516,6 +1524,7 @@ encoded by class translation, and illustrate how each gradual type system
 approaches the dynamic enforcement of soundness.
 
 \begin{figure}[!h]
+  \hrulefill\\
   \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
     {\scriptsize \bf{Transient}} \\
     \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
@@ -1544,12 +1553,12 @@ approaches the dynamic enforcement of soundness.
     & \TypeCk{\K,\Env}\e\tp 
     & \EM{\K\vdash\tp \not\Sub \t}
     & \EM{\ep = \TRG[\CTS]\e\Env} 
-  \end{tabular}
-  
+  \end{tabular}\vspace{2mm}
+  \\\hrule\vspace{3mm}
 \caption{Assert translation.}\label{fig:trtype}
 \end{figure}
 
-Convertibility and assert translation, shown in figure~\ref{fig:trtype}, have
+Convertibility and assert translation, shown in \figref{fig:trtype}, have
 a close correspondence. Every type-driven translation has two rules. The first
 handles the case of \RuleRef{STGC-SUB}, when the required type happens to be a
 supertype of the expression's actual type, and no further action is required
@@ -1569,12 +1578,13 @@ assert translation is identical.
 This similarity is caused by the different class translations used by the
 concrete and transient semantics. The encoding of surface level types in
 \kafka according to the transient semantics,  shown in
-figure~\ref{fig:traclass}, calls for all types to be erased from methods while
+\figref{fig:traclass}, calls for all types to be erased from methods while
 the concrete semantics retains them. As a result, the concrete subtype cast
-will check method types where the transient subtype cast will not.
+will check method types where the transient subtype cast will no
 
 
 \begin{figure}[!h]
+\hrulefill\\
 	\begin{tabular}{l@{\HS}l}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Optional}} \\
@@ -1605,7 +1615,9 @@ will check method types where the transient subtype cast will not.
 		\TRG[\CTS]\this\Env &= \src{\this} \\
 		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
 	\end{tabular}
-	\end{tabular}
+	\end{tabular}\\
+
+\hrulefill
 \caption{Translations for variables and field access.}\label{fig:travar}
 \end{figure}
 
@@ -1627,6 +1639,7 @@ guarantee, as mentioned previously. To recover these types, we type check the
 expression in question, then cast to the statically-known type.
 
 \begin{figure}[!h]
+\hrulefill\\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
@@ -1645,7 +1658,9 @@ expression in question, then cast to the statically-known type.
 		& \TypeCk{\K, \Env}\this\C
 		& \Ftype\f\t\In\App\K\C
 		& \ep = \TAG[\CTS]\e\Env{\t} \\
-	\end{tabular}
+	\end{tabular}\\
+
+\hrulefill
 	
 \caption{Translations for field assignment.}\label{fig:trassn}
 \end{figure}
@@ -1670,6 +1685,7 @@ the transient semantics will rise an error upon dereference.
 
 
 \begin{figure}[!h]
+\hrulefill\\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Optional}} \\
 		\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
@@ -1686,7 +1702,9 @@ the transient semantics will rise an error upon dereference.
 		\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
 		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 		& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
-	\end{tabular}
+	\end{tabular}\\
+
+\hrulefill
 	
 \caption{Translations for object creation.}\label{fig:tranew}
 \end{figure}
@@ -1701,6 +1719,8 @@ an additional $\star$ cast easing any typing information from the object.
 
 
 \begin{figure}[!h]
+\hrulefill\\
+\\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
@@ -1730,13 +1750,14 @@ an additional $\star$ cast easing any typing information from the object.
 		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
 		& \WHERE & \TypeCk{\K,\Env}{\e[1]}\C &  \ep[1] = \TRG[\CTS]{\e[1]}\Env &   \ep[2] = \TAG[\CTS]{\e[2]}\Env{\D[1]} \\ 
 		& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
-	\end{tabular}
+	\end{tabular}\vspace{2mm}\\
+\hrule\vspace{4mm}
 	
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
 
 
-Figure~\ref{fig:trafuninv} depicts the translation of function invocation
+\figref{fig:trafuninv} depicts the translation of function invocation
 for the four semantics. For the optional semantics, we do not know if the
 function exists over the object. The translation compensate by having
 untyped call operator for every function invocation.  Each semantics has to
@@ -1765,9 +1786,10 @@ also generates a second method \mdpp that wraps \mdp to allow a safe
 invocation with type \(\any \to \any\).  Finally, every field \f:\t is
 mapped to the corresponding field \f:\kty\t.
 
-\subsection{Example Translation}
+\subsection{Translation Example}
 
 \begin{figure}[!h]
+\hrulefill\\
   \begin{tabular}{l}
     {\scriptsize\bf{Source}} \\
 \(
@@ -1805,9 +1827,10 @@ mapped to the corresponding field \f:\kty\t.
                 &\Mdef\n\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\xt E}\x}{\xt E}{\xt E}}}} \\
 \end{array}
 \) \\
-  \end{tabular}
-  
- \caption{Litmus Test 3 Class Translation.} \label{fig:l3trans}
+  \end{tabular}\vspace{2mm}\\
+\hrule\vspace{4mm}
+
+ \caption{Class translation for litmus test 3.} \label{fig:l3trans}
 \end{figure}
 
 \figref{fig:l3trans} presents an example of how our translation drives the
@@ -1835,6 +1858,7 @@ of a simply class {\xt E}. This example aims to illustrate the difference in
 guarantee provided by the difference semantics.
 
 \begin{figure}[!h]
+\hrulefill\\
   \begin{tabular}{rl}
   \multicolumn{2}{c}{
   \begin{tabular}{l}
@@ -1878,9 +1902,10 @@ guarantee provided by the difference semantics.
 \end{array}
 \) 
 \end{tabular}\\
-  \end{tabular}
+  \end{tabular}\vspace{2mm}\\
+\hrule\vspace{4mm}
   
- \caption{Litmus Test 3 Translation for {\xt E}.}  \label{fig:l3etrans}
+ \caption{Translation of \xt{E} in litmus test 3.}  \label{fig:l3etrans}
 \end{figure}
 
 For the transient semantics, when \x is cast to {\xt E}, all of the types on
