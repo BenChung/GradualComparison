@@ -45,7 +45,7 @@
 }
 
 \begin{document}
-\title{KafKa: A Common Framework for Gradual Typing of Objects}
+\title{KafKa: A Framework for Gradual Typed Objects}
 \titlerunning{Gradual typing of objects}
 \author{Anon.}
 %\author[1]{B}
@@ -120,71 +120,102 @@ calculus~\cite{cardelli:1996:theory-of-objects}. It related objects by
 generalizing the notion of consistency~\cite{SiekTaha06} over structural
 subtyping. This early work had drawbacks, most notably in handling mutable
 state and aliasing -- vital components of object-oriented languages.
+Underlying each of the subsequent gradual type system are different choices
+on how to deal with state and aliasing -- often with key differences in
+soundness property and enforcement. These fundamental details are obscured
+by target language features. The goal of our work is to explore the design
+space of gradual types for object and allow comparison in a common
+framework.
 
-Underlying each of the subsequent gradual type systems for object-oriented
-languages is some solution to these problems, leveraging key differences in
-soundness property and enforcement, but these fundamental details are obscured
-by language features. Gradual type systems enforce their invariants via translation
-to a stricter target language, but these targets are just as diverse as the
-source languages, ruling out easy comparison. Moreover, gradual typing imposes
-unique demands for dynamic typing and for casts on the target language, ruling
-out standard target calculi.
 
-Even with the same target, different gradual type systems for different
-languages will produce dissimilar code, again frustrating detailed comparison.
-In addition to standardizing the target language, the source language must 
-be equally held constant, reducing the point of comparison to the translation
-alone.
+Comparing gradual type systems requires selecting some representative
+languages from the numerous academic and industrial projects that
+have been proposed. Consider some of the languages in this space:
 
-In this paper, we present a new framework for comparing gradual type systems,
-standardizing the source and target language. We propose a new common target
-language, called \kafka, providing the minimum set of functionality needed
-for gradual typing while still offering a sound static type system, and use it
-along with a common source language to implement four different gradual type
-systems.
+\begin{itemize}
+ \item TypeScript: JavaScript with optional types.
+ \item C\#: a statically typed language with a {\tt dyn} type.
+ \item Dart: a class based language with optional types.
+ \item Hack: a statically typed variant of PHP that allows untyped code.
+ \item Thorn: a language with both statically typed and untyped code.
+ \item StrongScript: a variant of TypeScript with nominal types.
+ \item Nom: a language supporting dynamic types and nominal static typing.
+ \item Typed Racket: a rich gradual type system based on contracts.
+ \item GradualTalk: a variant of Smalltalk with contracts.
+\item Reticulated Python: a family of three gradual type systems for Python.
+\end{itemize}
 
-%While the software engineering benefits of the different approaches are being
-%debated, it is worthwhile to observe that the definition of type error is also
-%open for debate.  Each of the approaches will catch different errors.
-%Specifically, our work demonstrates with a litmus test consisting of three
-%simple programs that it is possible to distinguish the type systems. These
-%three programs can be expressed in all four approaches (source code is
-%included in appendix) and the programs are statically well typed for all
-%languages. The programs are ``correct'' in the sense that in an untyped
-%language they run to completion without error. In the gradual type systems,
-%they display different errors.  The significance of this observation is that
-%there are still design questions that must be resolved. For instance, consider
-%a call of the form \code{x.m()} for where the typed call, with the concrete
-%approach, this statement is guaranteed to succeed, with an optional approach
-%the call to \code{m} may fail because \code{x} lacks method \code{m}, while in
-%behavioral the call will succeed, but a failure may occur upon return if the
-%returned value does not have the expected methods.
+\noindent We focus on comparing the four main approaches to gradual typing
+which we label: optional, concrete, behavioral and transient. The
+\emph{optional} approach, chosen by TypeScript, Dart, and Hack, amounts to
+static type-checking followed by type-erasure. Optional types will not catch
+erroneous values flowing from dynamically typed code to statically typed
+code.  The \emph{concrete} approach, used in C\#, Thorn, StrongScript and
+Nom, combines optional types, combines runtime tag checks and traditional
+static typing. While statically typed code executes at native speed, values
+must be checks each time they cross dynamic/static boundaries. The
+\emph{behavioral} approach of Typed Racket, Gradualtalk and Reticulated
+Python, monitors values to ensure that they behave in accordance to their
+assigned types.  Finally, the \emph{transient} approach, specific to
+Reticulated Python, lies between concrete and behavioral; it adds type casts
+but does so only for the top-level of data structures.
 
-%This paper introduces a core calculus for evaluating gradual type systems for
-%object-oriented languages, called \kafka, designed to illustrate these
-%differences. \kafka is intended to be illustrative of realistic gradually
-%typed language implementations and to clearly demonstrate differences between
-%source language terms translated according to the different gradual type
-%systems. To achieve these goals, we designed \kafka as a statically typed
-%object-oriented language similar to Featherweight Java, augmented with dynamic
-%types and invocations, as well as two kinds of cast, making it easy to see
-%from the static \kafka types what soundness guarantee survives the gradual
-%type translation, while maintaining similarity to gradually-typed languages 
-%implemented through translation to Java Bytecode, among others.%
+Our proposal to compare approaches to gradual typing for objects is to focus
+on a simple object calculus with only the features needed for a comparison.
+Our comparison is done by translating source languages into a common target
+language which we call \kafka.  \kafka is a statically typed class-based
+object calculus with mutable state expressly. The key features of \kafka are
+casts: \emph{structural casts} check if the object is a subtype of some type
+\t, \emph{behavioral casts} create wrappers that enforce that an object
+behaves as if it was of some type \t. For this the calculus needs to support
+runtime generation of a classes and transparent wrappers.
 
-%Using a common source language, we present a translation for each of the four
-%gradual type systems into \kafka, making the guarantees provided by the
-%gradual type system explicit through the traditionally-sound \kafka type
-%system, while illustrating the cast insertion strategy needed to provide that
-%guarantee in the translation itself, and providing an evaluation semantics for
-%the gradually type system via the \kafka dynamic semantics.%
+\kafka allows us to demonstrate the meaning of type error depends on the
+approach.  Each of the gradual type approaches will catch different
+errors.  We demonstrate with a litmus test consisting of three simple
+programs that it is possible to distinguish the type systems. These three
+programs can be expressed in all four approaches and the programs are
+statically well-typed. Moreover, the programs are ``correct'' in the sense
+that in an untyped language they run to completion without error. Yet, in
+three of the four gradual type systems, they display different errors.  The
+significance of this observation is that there are still design questions to
+be resolved. For instance, consider a call, \code{x.m()}, in the concrete
+approach, if variable \code x is typed, this statement is guaranteed to
+succeed, with an optional approach the call may fail because \code{x} lacks
+method \code{m}, in behavioral the call will succeed, but a failure may
+occur upon return if the returned value is not of the expected type.
 
-%We provide a soundness proof for \kafka, mechanized in Coq, and a proof-of-
-%concept implementation of \kafka on top of the .NET Common Language Runtime,
-%demonstrating that \kafka provides strong type-based guarantees - and
-%validating  discussion of the type guarantees provided by the gradual typing
-%translation - and showing that \kafka can be a guide to implementation,
-%respectively.
+
+This paper makes the following contributions:
+\begin{itemize}  
+  \item The design of \kafka, a common framework for gradual type systems for
+  objet-oriented languages.
+\item A set of four translations from a common Java-like source language to
+  \kafka, each translation implementing on the four gradual approaches.
+\item A litmus test comprised of three simple programs that renders the
+  difference between approaches observable.
+\item A proof of soundness, mechanized in Coq, demonstrating that \kafka
+  programs respect the \kafka type system, the proof handles the case of
+  dynamic class generation for wrappers.
+\item A proof-of-concept implementation of \kafka on top of .Net Common
+  Language Runtime to demonstrate the viability of the design.
+\end{itemize}
+
+\noindent
+Our work does not address the question of performance of the translations.
+The main reason for this is that while there are some intrinsic performance
+costs to the various approaches, these costs can be mitigated by compiler
+optimizations. Optimizations of gradual types is an active research topic,
+our paper is more concerened with the semantic differences between
+approaches.  One significant difference with previous work is that \kafka is
+statically typed -- other system translate down to untyped calculi. The
+reason for this choice is that by translating to a statically typed core, we
+can clearly see when code is guaranteed to be free of dynamic errors, and
+when dynamic errors due to wrappers may occur. Another noteworthy design
+choice is the use of structural subtyping in \kafka. This is motivated by
+our desire to represent behavioral and transiet approaches that require
+structural subtyping.  There would be no major difficulty switching \kafka
+to a nominal subtype system or providing a nominal subtype cast.
 
 \section{Background}
 
@@ -1288,8 +1319,6 @@ level guarantees as \kafka types. As each of the gradual type systems provide
 different guarantees for source level types, every one has its own class
 translation approach. These approaches are shown in \figref{fig:traclass}.
 
-\newpage
-
 \begin{figure}[!h]  
   \begin{tabular}{llc@{\hspace{.25cm}}l}    
         
@@ -1325,7 +1354,7 @@ translation approach. These approaches are shown in \figref{fig:traclass}.
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
   \end{tabular}   
       
- \caption{Translations for class.}     \label{fig:traclass}    
+ \caption{Translations for classes.}     \label{fig:traclass}    
 \end{figure}
 
 {\bf Optional.~} The optional semantics provides no guarantees whatsoever
@@ -1362,10 +1391,29 @@ the most complex of the four.
 
 The challenge facing the concrete semantics is not representation, but
 enforcement. Representing types from the concrete semantics in \kafka is
-simple, through the identity function, but the lack of wrappers means that
-untyped code has direct access to typed values, unlike the behavioral
-semantics. To solve this, we use overloading (discussed previously in
-section 4), generating both typed and untyped variants of a method.
+simple, through the identity function. This simplicity is betrayed by the lack
+of wrappers, as untyped code has a direct reference to typed objects, and
+therefore could potentially make unsafe invocations. To solve this, we use
+overloading (discussed previously in section 4), generating both typed and
+untyped variants of a method.
+
+This scheme protects typed methods from untyped code. When translating  a
+statically typed method, we generate both an identically-typed equivalent
+(with translated body) and a untyped guard method. This untyped guard protects
+the typed method by casting its argument and the return value. Which method is
+called depends on if the receiver is statically typed; if so, then the
+statically typed method is called, if not, then the dynamic one is.
+
+{\bf Expression Translation.~} Expression translation is driven by the
+soundness guarantees enshrined in class translation. By encoding the  meaning
+of soundness of the surface language into \kafka, a sound intermediate
+language, we reduce the problem of enforcing a gradual type system's soundness
+guarantee to producing well-typed \kafka terms. 
+
+We present four expression translation systems, one for each of the
+gradual type systems in question. Each takes a well-typed source language term
+and translates it into a well-typed \kafka term, in the presence of a suitably
+translated class table. 
 
 \begin{figure}[!h]
 	\begin{tabular}{l@{\HS}l}
@@ -1610,7 +1658,7 @@ also generates a second method \mdpp that wraps \mdp to allow a safe
 invocation with type \(\any \to \any\).  Finally, every field \f:\t is
 mapped to the corresponding field \f:\kty\t.
 
-
+\subsection{Example Translation}
 
 \begin{figure}[!h]
   \begin{tabular}{l}
