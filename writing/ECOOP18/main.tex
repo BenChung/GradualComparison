@@ -47,7 +47,7 @@
 \begin{document}
 \title{KafKa: A Framework for Gradual Typed Objects}
 \titlerunning{Gradual typing of objects}
-\author{Anon.}
+\author{Anonymous}
 %\author[1]{B}
 %\affil[1,3]{Northeastern University}
 %\authorrunning{...}
@@ -146,7 +146,7 @@ have been proposed. Consider some of the languages in this space:
 \end{itemize}
 
 \noindent We focus on comparing the four main approaches to gradual typing
-which we label: optional, concrete, behavioral and transient. The
+which we label optional, concrete, behavioral and transient. The
 \emph{optional} approach, chosen by TypeScript, Dart, and Hack, amounts to
 static type-checking followed by type-erasure. Optional types will not catch
 erroneous values flowing from dynamically typed code to statically typed
@@ -170,7 +170,7 @@ casts: \emph{structural casts} check if the object is a subtype of some type
 behaves as if it was of some type \t. For this the calculus needs to support
 runtime generation of a classes and transparent wrappers.
 
-\kafka allows us to demonstrate the meaning of type error depends on the
+\kafka allows us to demonstrate that the meaning of type error depends on the
 approach.  Each of the gradual type approaches will catch different
 errors.  We demonstrate with a litmus test consisting of three simple
 programs that it is possible to distinguish the type systems. These three
@@ -206,14 +206,14 @@ Our work does not address the question of performance of the translations.
 The main reason for this is that while there are some intrinsic performance
 costs to the various approaches, these costs can be mitigated by compiler
 optimizations. Optimizations of gradual types is an active research topic,
-our paper is more concerened with the semantic differences between
+our paper is more concerned with the semantic differences between
 approaches.  One significant difference with previous work is that \kafka is
 statically typed -- other system translate down to untyped calculi. The
 reason for this choice is that by translating to a statically typed core, we
 can clearly see when code is guaranteed to be free of dynamic errors, and
 when dynamic errors due to wrappers may occur. Another noteworthy design
 choice is the use of structural subtyping in \kafka. This is motivated by
-our desire to represent behavioral and transiet approaches that require
+our desire to represent behavioral and transient approaches that require
 structural subtyping.  There would be no major difficulty switching \kafka
 to a nominal subtype system or providing a nominal subtype cast.
 
@@ -679,17 +679,17 @@ from untyped callers in the concrete semantics.
 
 Consider the following example:
 
-\begin{verbatim}
-class C {
-    m(x:Int):Int { x + 2 }
-}
-new C().m(2)
-(<*>new C())@m("hello")
-\end{verbatim}
+\begin{tabbing}
+\hspace{1cm}\K\HS\=
+\Call{\New\C{}}{\m}{2} \HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS
+  \K\HS =\HS \= \class\= \C \{\\
+\> \Call{(\SubCast\any{\New\C{}})}{\m}{\xt{"hello"}}       \> \HS \Mdef{\xt{m}}\x {\xt{Int}}{\xt{Int}}{\HS \x + 2 \HS}\\
+   \>    \> \}
+\end{tabbing}
 
 The intuition for the first invocation of \m is clear - the method \m in class \C is called.
 However, the second invocation is less obvious. If we interpret the untyped
-invocation (shown as an @) as calling \m directly, then it is clear that the types 
+invocation as calling \m directly, then it is clear that the types 
 are not sound, and some mechanism is needed to intercede upon this untyped invocation.
 This could be treated as a special case of untyped invocation, an approach taken in
 many gradual type systems dedicated to one language~\cite{popl10,ecoop15,Muehlboeck2017}.
@@ -705,16 +705,18 @@ translation approach to protecting typed methods from untyped code.
   typed method, and renaming every untyped method consistently. Under this scheme,
   every dynamic invocation can be translated to invoke functions under their untyped
   names. Using this approach, and denoting the untyped method name corresponding to \m as 
-  \xt{mu}, the example would become
+  \mp, the example would become
 
-\begin{verbatim}
-class C {
-    m(x:Int):Int { x + 2 }
-    mu(x:*):* { <*>this.m(<Int>x)}
-}
-new C().m(2)
-(<*>new C())@mu("hello")
-\end{verbatim}
+
+\begin{tabbing}
+\hspace{1cm}\K\HS\=
+\Call{\New\C{}}{\m}{2} \HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS
+  \K\HS =\HS \= \class\= \C \{\\
+\> \Call{(\SubCast\any{\New\C{}})}{\mp}{\xt{"hello"}}       \> \HS \Mdef{\m}\x {\xt{Int}}{\xt{Int}}{\HS \x + 2 \HS}\\
+\>\>\HS \=\mp(\x:~\any)~:~\any \{ \\
+\>\>\>\HS\HS\HS\SubCast\any{\Call\this\m{\SubCast{\xt{Int}}}} \HS\}\\
+   \>    \> \}
+\end{tabbing}
 
 This is fully unambiguous, but the requirement for this globally-unique, always-free
 name translation adds substantial complexity to the formalism.
@@ -722,14 +724,16 @@ name translation adds substantial complexity to the formalism.
 between methods of the same name but different type signatures, while the untyped
 invocation always calls the untyped method. Using this approach, the code becomes
 
-\begin{verbatim}
-class C {
-    m(x:Int):Int { x + 2 }
-    m(x:*):* { <*>this.m_Int->Int(<Int>x)}
-}
-new C().m_Int->Int(2)
-(<*>new C())@m("hello")
-\end{verbatim}
+
+\begin{tabbing}
+\hspace{1cm}\K\HS\=
+\KCall{\New\C{}}{\m}{2}{\xt{Int}}{\xt{Int}} \HS\HS\HS\HS\HS\WHERE~
+  \K ~=~ \= \class\= \C \{\\
+\> \KCall{(\SubCast\any{\New\C{}})}{\m}{\xt{"hello"}}\any\any \> \HS \Mdef{\m}\x {\xt{Int}}{\xt{Int}}{\HS \x + 2 \HS}\\
+\>\>\HS \=\mp(\x:~\any)~:~\any \{ \\
+\>\>\>\HS\HS\HS\SubCast\any{\KCall\this\m{\SubCast{\xt{Int}}}{\xt{Int}}{\xt{Int}}} \HS\}\\
+   \>    \> \}
+\end{tabbing}
 
 With the simple restriction that only one typed and untyped method may
 exist in a class at a time, this is equally unambiguous, and also allows
@@ -901,16 +905,17 @@ contract but implements behavior that may be expected.
 
 For example, consider the following:
 
-\begin{verbatim}
-class C {
-  a(x:*):* { x }
-  b(x:*):* { x }
-}
-class D {
-  a(x:Int):Int {x}
-}
-(<|C|>(<|D|> new C())).b(2)
-\end{verbatim}
+\begin{tabbing}
+\hspace{1cm}\K\HS
+\Call{(\BehCast\C{(\BehCast\D{\New\C{}})})}{\xt{b}}{2} \HS\HS\HS\WHERE\HS
+  \K\HS =\HS \= \class\= \C \{\\
+       \> \HS \Mdef{\xt{a}}\x\any\any{\HS\x\HS}\\
+       \> \HS \Mdef{\xt{b}}\x\any\any{\HS\x\HS}\\
+       \> \}  \\
+       \>\class \D \{\\
+       \> \HS \Mdef{\xt{a}}\x{\xt{Int}}{\xt{Int}}{\HS\x\HS}\\
+       \> \}
+\end{tabbing}
 
 In this example, we start with an instance of \xt{C}, cast it to \xt{D}, which
 only has one of \xt{C}'s two methods, then cast it back. One interpretation
@@ -979,16 +984,17 @@ syntactic form.
 As has been heavily alluded to, the dynamics of \kafka are only half of its
 story. The statics of \kafka are key to enabling comparison of gradual type
 systems, as they enable the expression of gradual typing guarantees through
-the medium of \kafka's strict static typing.
+the medium of \kafka's static type system.
 
 Unlike the dynamics, \kafka's statics hold few surprises. The entire type
-system is shown in appendix A, with the key typing rules excerpted in
+system is shown in appendix A, with the{} key typing rules excerpted in
 \figref{f:staticsem}. The key typing judgments are the subtyping relation
 \StrSub\M\K\t\tp (shown in \figref{sub}), the standard structural subtyping
-relation with the amber rule, the program typing relation \WFp\e\K, indicating
-that expression \e is well-formed with respect to class table \K, and the
-expression typing judgment $\EnvType \Env\s\K\e\t$, indicating that against
-\Env, with heap \s, and class table \K, \e has type \t.
+relation with the Amber rule~\cite{cardelli1985amber}, the program typing
+relation \WFp\e\K, indicating that expression \e is well-formed with respect
+to class table \K, and the expression typing judgment $\EnvType \Env\s\K\e\t$,
+indicating that against \Env, with heap \s, and class table \K, \e has type
+\t.
 
 
 \begin{figure}[!t] \hrulefill\small
@@ -1307,21 +1313,24 @@ identical to those in \kafka, and present only the altered rules.
   \caption{Source language type system.}\label{fig:slts}
 \end{figure}
 
-The type system for the surface language, shown in figure~\ref{fig:slts}, is a
-straightforward static semantics for gradual typing. This surface static
-semantics allows implicit mixing of static and dynamically typed terms and is
-shared between all of the gradual type systems. As a gradually typed language,
-the surface language type system allows the implicit conversion of typed and
-untyped terms via the convertibility operator, written
+The type system for the source language, shown in figure~\ref{fig:slts}, is a
+straightforward static semantics for gradual typing. To differentiate this
+type system from the \kafka type system, we use the $\EnvTypeS \Env\K\e\t$
+judgment form, indicating a well-typed expression in the surface type system.
+This surface static semantics allows implicit mixing of static and dynamically
+typed terms and is shared between all of the gradual type systems. As a
+gradually typed language, the source language type system allows the implicit
+conversion of typed and untyped terms via the convertibility operator, written
 $\ConvertE\K{s}{\t}{\tp}$.
 
 This $\ConvertE\K{s}{\t}{\tp}$ relation indicates that type $\t$ is
-convertible to one of type $\tp$, and is used both for traditional down-
-casting and for conversions of \any to non-\any types. Our definition of the
-type convertibility operator is shown in figure~\ref{fig:tyconvert}. The
-operator enforces type discipline where possible (via \RuleRef{STGC-SUB})
-while allowing implicit conversion to and from the dynamic type where not (via
-\RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}).
+convertible to one of type $\tp$, and is used both for traditional up-casting
+and for conversions of \any to non-\any types. Our definition of the type
+convertibility operator is shown in figure~\ref{fig:tyconvert}. The operator
+enforces type discipline where possible (via \RuleRef{STGC-SUB}) while
+allowing implicit conversion to and from the dynamic type where not (via
+\RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}). To avoid collapsing the type
+hierarchy, the type convertibility operator is not transitive.
 
 \begin{figure}[!h]
   \hrulefill  \small  \vspace{-3mm}
@@ -1346,7 +1355,7 @@ while allowing implicit conversion to and from the dynamic type where not (via
   \vspace{-8mm}
   
   \hrulefill
-  \caption{Surface language type convertibility.}\label{fig:tyconvert}
+  \caption{Source language type convertibility.}\label{fig:tyconvert}
 \end{figure}
 
 Since \kafka only supports subsumption, if \RuleRef{STGC-TOANY} or \RuleRef
@@ -1465,7 +1474,7 @@ statically typed method is called, if not, then the dynamic one is.
 
 {\bf Expression Translation.~} Expression translation is driven by the
 soundness guarantees enshrined in class translation. By encoding the  meaning
-of soundness of the surface language into \kafka, a sound intermediate
+of soundness of the source language into \kafka, a sound intermediate
 language, we reduce the problem of enforcing a gradual type system's soundness
 guarantee to producing well-typed \kafka terms. 
 
@@ -1511,17 +1520,16 @@ translated class table.
 
 \figref{fig:travar} presents the translation for field access and variables,
 with notable exceptions in the transient and optional semantics, these
-operations are translated verbatim. The grey background is used to
-identify translated \kafka terms. For the optional semantics, we have
-eliminated the type of the \this introduction form by casting it to \any. The
-optional semantics make no other alterations to these terms, as it has no
-guarantee to ensure.  Transient does not guarantee the values passed to
-functions or field assignment respect the declared type of those
-expressions. Class translation inserts checks for invalid variables upon
-method entry, so while the transient translation has to insert casts to
-appease the \kafka type system, these casts will never fail. However, fields
-are not protected and requires a guard after dereferencing, as values can be
-passed through them to violate their types.
+operations are translated verbatim. The grey background is used to identify
+translated \kafka terms. For the optional semantics, we have eliminated the
+type of \this by casting it to \any. The optional semantics make no other
+alterations to these terms, as it has no guarantee to ensure.  Transient does
+not guarantee the values passed to functions or field assignment respect the
+declared type of those expressions. Class translation inserts checks for
+invalid variables upon method entry, so while the transient translation has to
+insert casts to appease the \kafka type system, these casts will never fail.
+However, fields are not protected and requires a guard after dereferencing, as
+values can be passed through them to violate their types.
 
 \begin{figure}[!h]
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
