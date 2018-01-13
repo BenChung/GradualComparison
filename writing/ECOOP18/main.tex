@@ -328,6 +328,8 @@ Thorn        &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   & 0.8x
 \\\hline
 StrongScript &&\X &\X &\X &\X &\X &   &\XX &    &\X &   &\X &   & 1.1x   
 \\\hline
+Nom 		 &&\X &   &\X &   &\X &   &\XX & \X &\X &   &   &   & -   
+\\\hline
 Gradualtalk  &&\XY&   &   &\X &\X &   & \X &    &   &   &\X &\X &  5x
 \\\hline
 Typed Racket &&   &   &   &\X &\X &\X &\X  &    &   &\X &\X &\X & 121x 
@@ -339,7 +341,7 @@ Reticulated Python    \\
 \end{tabular}}
   \caption{Overview of implemented gradual type systems. (1) Gradualtalk has
     optional structural constraints. (2) Concretely typed expressions are
-    sound in C\#, Thorn and StrongScript.}\label{over}
+    sound in C\#, Thorn, Nom, and StrongScript.}\label{over}
 \end{figure}
 %TODO: Nom is still missing from the figure above, and in the background in general.
 
@@ -410,7 +412,8 @@ One of the salient implications of the various approaches to gradual typing is
 that they have different notions of what is an erroneous program. By observing
 the errors that each gradual type system produces, one can determine what kind
 of type system is being used. Using this property, we propose a litmus test
-that can distinguish the four gradual type systems.
+that can distinguish the four gradual type systems of optional, concrete, 
+behavioral, and transient.
 
 Using the errors reported at runtime, this litmus test is able to determine
 what gradual type system a language uses. Depicted in \figref{litmus}, the
@@ -422,8 +425,9 @@ between gradual type systems and their runtime enforcement systems, however,
 some of these programs will halt with a runtime error due to one of the
 inserted casts. By observing which programs produce an error we can determine
 which gradual type system is being used\footnote{To validate this, we have 
-implemented the litmus test in Typescript, Thorn, Typed Racket, and Transient
-Reticulated Python. These implementations are included in the appendix}.
+implemented the litmus test in Typescript (optional), Thorn (concrete), 
+Typed Racket (behavioral), and Transient Reticulated Python (transient). 
+These implementations are included in the appendix}.
 
 \begin{figure}[!h]
   \includegraphics[width=.95\columnwidth]{../figures/litm}
