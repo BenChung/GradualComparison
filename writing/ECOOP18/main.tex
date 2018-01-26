@@ -45,7 +45,7 @@
 }
 
 \begin{document}
-\title{A Combined Framework for Object-Oriented Gradual Typing}
+\title{A Framework for Object-Oriented Gradual Typing}
 \titlerunning{Gradual typing of objects}
 \author{Anonymous}
 %\author[1]{B}
@@ -1580,7 +1580,7 @@ concrete and transient semantics. The encoding of surface level types in
 \kafka according to the transient semantics,  shown in
 \figref{fig:traclass}, calls for all types to be erased from methods while
 the concrete semantics retains them. As a result, the concrete subtype cast
-will check method types where the transient subtype cast will no
+will check method types where the transient subtype cast will not.
 
 
 \begin{figure}[!h]
@@ -1621,22 +1621,36 @@ will check method types where the transient subtype cast will no
 \caption{Translations for variables and field access.}\label{fig:travar}
 \end{figure}
 
-\figref{fig:travar} presents the translation for field access and variables,
-with notable exceptions in the transient and optional semantics, these
-operations are translated verbatim. The grey background is used to identify
-translated \kafka terms. 
+The implications of class translation cause knock-on effects throughout
+the rest of the translation system, even for seemingly trivial expressions.
+This is shown in \figref{fig:travar}, which illustrates the translation for
+field access. Strong gradual type guarantees, such as those provided by
+the behavioral and concrete semantics, allow these simple forms to be
+translated verbatim, but under weaker guarantees, additional checks must
+be inserted.
 
-Even for these simple terms, the behavior of some gradual type systems is
-unusual. While the behavioral and concrete systems translate according to the
-identity function, the optional and transient approaches are more complex. The
-optional semantics erases all types; every operation under the optional
-semantics is dynamic. In order for this to be well-typed according to \kafka,
-every term produced by the behavioral semantics must be of type \any, and one
-term, \this, is always typed. We solve this unusual problem by casting every
-self reference to \any. Under the transient semantics, meanwhile, we face the
-problem that we erase all types on methods and fields - an artifact of the
-guarantee, as mentioned previously. To recover these types, we type check the
-expression in question, then cast to the statically-known type.
+Under the transient semantics, we have to treat both variable references
+and field access differently. Variables are translated to contain a cast
+to their statically known type, as while the method checks this upon entry
+(maintaining error semantics), this information cannot be bound in \kafka,
+as no binding forms exist outside of functions. For simplicity, we therefore
+insert a redundant cast (which will always succeed if reached) at each variable
+reference. Moreover, under the transient semantics, the type of field values
+is not guaranteed, so dereference from fields must be checked.
+
+This last property of the transient semantics creates unusual behavior.
+In particular, if an ill-typed value is inserted by untyped code into a 
+typed data structure, then the error will occur at dereference, rather than
+assignment. Even in the presence of a blame system, this error could be
+problematic, as the assigner will only ever be blamed if the reference is
+ever accessed and therefore ill-typed values can exist in the heap without
+error.
+
+The weakest type system under investigation is the optional type system, 
+which provides no soundness guarantee whatsoever. Here, we have the unusual
+problem that direct translation would have \emph{too many} known types, as the
+\this reference's type is always known. To allow the use of dynamic invocation
+on the \this reference, we therefore cast \this to \any.
 
 \begin{figure}[!h]
 \hrulefill\\
@@ -1665,23 +1679,12 @@ expression in question, then cast to the statically-known type.
 \caption{Translations for field assignment.}\label{fig:trassn}
 \end{figure}
 
-Field assignment, presented in \figref{fig:trassn}, illustrates the distinct
-continuum provided by each gradual type system. Under the optional
-semantics, we simply translate the assignment directly, with no guards or
-additional checks. However, in the three remaining semantics, the behavior
-differs depending on the strength of the guarantees.  Under the transient
-semantics, field assignment is unchecked, deferring type checking to
-dereferencing. As a result, we use the analytic translation operator to
-translate the argument according to the transient semantics. The type of the
-field is erased by targeting the $\star$ type in the translation. Under the
-behavioral and concrete semantics, type consistency is guaranteed for the
-heap, and the translation for the argument expression is done with the known
-type of the field.  One observation from these translations is that the
-behavioral and concrete semantics demand the correct type to be returned
-from the argument expression, while the transient semantics only needs to be
-well-formed. As a consequence, the behavioral and concrete semantics will
-raise an error when assigning a value of the wrong type to a field, whereas
-the transient semantics will rise an error upon dereference.
+Field assignment is much more typical than variable and field access. Shown in
+\figref{fig:trassn}, the only stand-out case is the transient semantics, which
+uses the assert translation mechanism to ensure that the assigned value is of
+type \any, not the statically asserted type of the field. This is due to the
+weak guarantees provided by the transient semantics, and again indicating that
+no assignment to a typed field in transient will ever fail.
 
 
 \begin{figure}[!h]
@@ -1733,7 +1736,7 @@ an additional $\star$ cast easing any typing information from the object.
 		& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\any} \\
 		\multicolumn{2}{l}{\HS\HS\HS\HS\HS\HS\HS\HS\HS
     \src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\ep[2]}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-		{\scriptsize Behavioral} \\ 
+		{\scriptsize \bf{Behavioral}} \\ 
 		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
 		&  \TypeCk{\K,\Env}{\e[1]}\any
 		&  \ep[1] = \TRG[\BTS]{\e[1]}\Env
@@ -1756,35 +1759,39 @@ an additional $\star$ cast easing any typing information from the object.
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
 
+The classic definition of soundness in an object oriented setting is that no
+"message not understood" errors will be produced, or that every well-typed
+method call will find a receiver. \kafka's type system is sound in this
+traditional sense, but the source language type systems are not.
 
-\figref{fig:trafuninv} depicts the translation of function invocation
-for the four semantics. For the optional semantics, we do not know if the
-function exists over the object. The translation compensate by having
-untyped call operator for every function invocation.  Each semantics has to
-make a distinction between safe typed calls and unsafe untyped calls. As a
-result, a condition is placed over the type of the receiver, using a sound
-call if it is typed, and an dynamic invocation if not.  The transient
-semantics is almost identically to the optional semantics for function
-invocation on untyped expressions.  A dynamic invocation is generated with a
-generated argument and \any as the return type, an expression similar to
-those found in Typescript.  In case of sound expressions, the transient
-semantics will guarantees the existence, but not the types, of methods. In
-conjunction with class translation, which ensures an untyped method will
-exist for every typed method, the transient semantics insert a
-statically-typed call to the \any-typed invocation site. However, to be
-compatible with the dynamic call, the argument still needs to be cast to
-\any and the return type needs to be checked against the expected type.
-In the concrete semantics any method can be called statically and
-dynamically, by generating a dynamic version of all source level methods.
-Class translation relies on overloading to provide the two versions of each
-method: one with concrete receiver and the other with optionally typed
-object.  More precisely, given a concrete method \(\md\) with type \(\t[1]
-\to \t[2]\), the concrete translation first generates a method \(\mdp\) with
-type \(\kty{\t[1]} \to \kty{\t[2]}\) (protecting the the return value with
-appropriate cast to \kty{\t[2]} if necessary).  The concrete translation
-also generates a second method \mdpp that wraps \mdp to allow a safe
-invocation with type \(\any \to \any\).  Finally, every field \f:\t is
-mapped to the corresponding field \f:\kty\t.
+Under each of the source language gradual type systems, a different
+soundness guarantee is provided for invocations, indicating which calls
+are guaranteed to succeed and which are not. Moreover, each source language
+type system provides different guarantees about the arguments passed to 
+each method.
+
+These differences can be clearly seen in the source-to-\kafka translations,
+seen in \figref{fig:trafuninv}. Each translation shows the behaviour taken by
+each gradual typing semantics at the call site in a fully explicit way, as
+otherwise the result of translation would not pass the \kafka type system.
+
+All three (sound) gradual type systems produce the same results when
+given an untyped invocation, but translation of the typed invocation varies,
+depending on the desired soundness guarantee. In particular, the transient
+semantics differs from the translation of the behavioral and concrete systems.
+
+The transient semantics's translation results from its guarantee (or lack
+thereof) of argument and return types. The transient semantics guarantees the
+existence of the required methods on a type, but leaves it up to the method
+and the caller, respectively, to check the argument and return types. Therefore,
+as detailed in class translation, we erase all method types under the transient
+semantics and make statically-checked calls to the relevant methods under type
+\any, then cast the return value.
+
+In contrast, the behavioral and concrete semantics do guarantee the argument
+and return types of methods. As a result, under these semantics, we take the
+straightforward translation of checking the argument values using assert
+translation, then letting the well-typed return value through directly.
 
 \subsection{Translation Example}
 
@@ -1949,17 +1956,6 @@ mechanized proof of soundness for \kafka that includes runtime class
 generation.  We also demonstrate that \kafka can be straightforwardly
 implemented on top of a stock virtual machine.
 
-Going forward there are several issues we wish to investigate further.  We
-do not envision supporting nominal subtyping within \kafka will pose
-problems, it would only take adding a nominal cast and changing the
-definition of classes. Then nominal and structural could coexist. A more
-challenging question is how to handle the intricate semantics of Monotonic
-Python. For these we would need a somewhat more powerful cast operation.
-Rather than building each new cast into the calculus itself, it would be
-interesting to axiomatize the correctness requirements for a cast and let
-users define their own cast semantics. The goal would be to have a collection
-of user defined pluggable casts within a single framework. 
-
 Another open question for gradual type system designers is performance of
 the resulting implementation. Performance is one of the major obstacles
 obstructing gradual typing from being incorporated into mainstream
@@ -1982,6 +1978,17 @@ implementations.  Lastly, the concrete semantics is able to achieve a
 guarantee similar to that of the behavioral semantics, but without the
 overhead of having to add wrappers, enabled by the strong static guarantee
 checked for by the cast operator.
+
+Going forward there are several issues we wish to investigate further.  We
+do not envision supporting nominal subtyping within \kafka will pose
+problems, it would only take adding a nominal cast and changing the
+definition of classes. Then nominal and structural could coexist. A more
+challenging question is how to handle the intricate semantics of Monotonic
+Python. For these we would need a somewhat more powerful cast operation.
+Rather than building each new cast into the calculus itself, it would be
+interesting to axiomatize the correctness requirements for a cast and let
+users define their own cast semantics. The goal would be to have a collection
+of user defined pluggable casts within a single framework.
 
 \bibliographystyle{plainurl}% the recommended bibstyle
 \bibliography{../../bib/jv,../../bib/all}
