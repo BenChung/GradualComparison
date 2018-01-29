@@ -1725,6 +1725,9 @@ an additional $\star$ cast easing any typing information from the object.
 \hrulefill\\
 \\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+    {\scriptsize \bf{Optional}} \\
+    \TR[\OTS]{\Call{\e[1]}\m{\e[2]}} & = \src{\DynCall{\ep[1]}\m{\ep[2]}} &\WHERE 
+    & \ep[1] = \TR[\OTS]{\e[1]} & \ep[2] = \TR[\OTS]{\e[2]} \\
 		{\scriptsize \bf{Transient}} \\
 		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
 		& \TypeCk{\K,\Env}{\e[1]}\any 
@@ -1759,39 +1762,31 @@ an additional $\star$ cast easing any typing information from the object.
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
 
-The classic definition of soundness in an object oriented setting is that no
-"message not understood" errors will be produced, or that every well-typed
-method call will find a receiver. \kafka's type system is sound in this
-traditional sense, but the source language type systems are not.
+In the object oriented context, a type system being sound means that no
+"message not understood" errors are produced, lending great importance to the
+handling of method invocation. Because \kafka's type system is sound in the
+traditional sense, it follows that any typed invocation in \kafka will always
+find an implementation. The guarantees provided by each gradual type system are
+then shown through the result of translation, as the \kafka type encapsulates
+the source language gradual typing guarantee.
 
-Under each of the source language gradual type systems, a different
-soundness guarantee is provided for invocations, indicating which calls
-are guaranteed to succeed and which are not. Moreover, each source language
-type system provides different guarantees about the arguments passed to 
-each method.
+At invocation sites, to avoid ``method not understood'' errors, the available
+methods and their types are the key property. If a method is known to exist,
+and have the correct argument and return types as in the concrete and
+behavioral semantics, it follows that the method can be called safely. However,
+if no methods are guaranteed, then the untyped invocation (with no soundness
+guarantee) must be used.
 
-These differences can be clearly seen in the source-to-\kafka translations,
-seen in \figref{fig:trafuninv}. Each translation shows the behaviour taken by
-each gradual typing semantics at the call site in a fully explicit way, as
-otherwise the result of translation would not pass the \kafka type system.
-
-All three (sound) gradual type systems produce the same results when
-given an untyped invocation, but translation of the typed invocation varies,
-depending on the desired soundness guarantee. In particular, the transient
-semantics differs from the translation of the behavioral and concrete systems.
-
-The transient semantics's translation results from its guarantee (or lack
-thereof) of argument and return types. The transient semantics guarantees the
-existence of the required methods on a type, but leaves it up to the method
-and the caller, respectively, to check the argument and return types. Therefore,
-as detailed in class translation, we erase all method types under the transient
-semantics and make statically-checked calls to the relevant methods under type
-\any, then cast the return value.
-
-In contrast, the behavioral and concrete semantics do guarantee the argument
-and return types of methods. As a result, under these semantics, we take the
-straightforward translation of checking the argument values using assert
-translation, then letting the well-typed return value through directly.
+The detailed translations for invocation are shown in \figref{fig:trafuninv}. 
+Each translation illustrates the soundness guarantee provided by the respective
+gradual type system through its choice of invocation. The optional semantics
+provides no guarantee whatsoever, so it has to always use dynamic invocation.
+The transient semantics is sometimes able to guarantee the existence of the
+method being called, but not what types it has, so it has to call it under 
+type \any and deal with a return type of \any with a cast. Finally, the
+optional and concrete systems both guarantee the existence and types of 
+methods on typed values, so can make statically-checked, fully typed 
+invocations.
 
 \subsection{Translation Example}
 
