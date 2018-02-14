@@ -1790,12 +1790,13 @@ invocations.
 
 \subsection{Litmus Test Translation}
 
-So far, we have compared approaches to gradual typing through two mechanisms,
-a litmus test that errors in different ways when executed in different semantics
-and a formal translation that shows how the gradual type systems differ formally.
-We can then use our translation to explain the behavior of the litmus test, showing
-where and why one of the litmus test programs fails.
-
+We have presented the differences between gradual type systems by means of
+either a litmus test or a formal semantics, but have not shown how they
+correspond. The litmus test shows that there are observable differences in
+execution based on chosen gradual typing semantic, while the formalization
+provides a detailed look into each gradual type system and how they differ
+internally. Now, we use our formalism to explain the behavior of one litmus
+test program.
 
 \begin{figure}[!h]
 \hrulefill\\
@@ -1839,54 +1840,57 @@ where and why one of the litmus test programs fails.
   \end{tabular}\vspace{2mm}\\
 \hrule\vspace{4mm}
 
- \caption{Class translation for litmus test 3.} \label{fig:l3trans}
+ \caption{Class translation for litmus test program 3.} \label{fig:l3trans}
 \end{figure}
 
-In this example, we will focus on litmus test 3, as its execution displays the
-most varied behavior between each of the gradual typing semantics. The
-operational principle of litmus test 3 is that it creates a new object (an
-instance of \C), then uses an untyped shim to represent it as type \xt{E}
-with an incorrect signature for one of its methods but does not use it as an
-\xt{E}. This test serves to identify the behavioral semantics which applies
-a wrapper forcing the instance of \C to act like an \xt{E}, despite only
-ever being used under type \C.
+In this example, we will focus on litmus test program 3, as its execution
+displays the most varied behavior between each of the gradual typing
+semantics. The operational principle of litmus test program 3 is that it
+creates a new object (an instance of \C), then uses an untyped shim to
+represent it as type \xt{E}. Type \xt{E} ascribes the wrong type for \xt{a}'s
+argument \x, substituting \xt{D} for the correct type \xt{C}. This type \xt{D}
+is structurally incompatible with \xt{C}. However, \xt{a} never uses its
+argument, so this faulty type is not relied upon anywhere else.
 
-The key to making litmus test 3 pass the \kafka type checker is the translation
-of \xt{F} into \kafka. Inside \xt{F}, method \xt{n} is responsible for calling
-method \m with an ill-typed argument using the dynamic type \any as a way to
-get it past the type checker. These coercions between \any and \xt{E} must then
-be guarded by each of the gradual type systems according to their own semantics.
+When we presented this example as part of the litmus test, we found that two
+of the gradual type systems notice this invalid type. Under the concrete
+semantics, \xt{E} is trivially not a subtype of \xt{C}, so this program is
+instantly rejected. Under the behavioral semantics, the unused type ascription
+is saved as a wrapper and is enforced later causing an error. The transient
+semantics does not check the argument types when casting, so produces no
+error. The optional semantics does no checking at all, so likewise produces
+no error.
 
-Under the optional semantics, this guard is nonexistent. The optional semantics
-provides no type guarantees whatsoever, so there is no special need to protect
-\m from \n. As a result, the optional semantics simply calls \m from \n using the
-dynamic invocation form.
+While this reasoning provides a high level intuition for why each approach
+detected an error where it did, it provides little technical detail, for which
+we turn to our formalism. In summary, the goal of the formalism is to make the
+input gradually typed program pass the \kafka type checker through
+translation, thereby extracting a type soundness property. We present the
+working of our translation on litmus test program 3 from the top down,
+starting with classes, then discussing method and expression translation in
+turn.
 
-TODO.
+The translations of the classes in litmus test program 3 are shown in
+\figref{fig:l3trans}, and demonstrate the top level transformation undertaken
+by each gradual typing approach to generate such a well-typed \kafka program.
 
-\figref{fig:l3trans} presents an example of how our translation drives the
-semantics.  We will translate class {\xt F}'s definition using each of the
-four translations, clearly indicating where the behavior of each program.
-Translation under the optional semantics is extremely simple, all types are
-erased and all invocations are dynamic. However, the translations become
-much more complicated when we introduce guarantees.  The first, but weakest,
-gradual type semantics is the transient semantics. Under the transient
-semantics, all types are erased from the class.  Argument and return types
-are not guaranteed. The transient guarantees only require methods to exist
-on a type. A statically typed invocation can be made to an untyped method \m
-with only untyped arguments and the return type casted as an \any.  The
-weakness of the guarantee provided by the transient semantics means the
-return type of a method is not guaranteed and the argument types cannot be
-trusted. The behavioral semantics recover these properties by using the
-behavioral cast operator. The behavioral semantics inserts wrappers over
-methods to ensure safety for declared argument and return types.  However,
-there is a cost associated with the behavioral cast, as it is complex and
-expensive.  The concrete semantics is similar to the behavioral semantics in
-using the typed version of \m, and with similarly semantics to the transient
-semantics. Whereby only the values statically checked are allowed to pass
-through cast boundary.  In \figref{fig:l3etrans} we present the translation
-of a simply class {\xt E}. This example aims to illustrate the difference in
-guarantee provided by the difference semantics.
+\begin{itemize}
+  \item The optional semantics does no checking whatsoever - and therefore cannot
+  provide any \kafka level type guarantees. As a result, its class translation 
+  deletes all types.
+  \item The transient semantics checks the existence of methods but does not
+  guarantee their types. As a result, if we delete all of the types on methods,
+  then the \kafka soundness guarantee becomes equivalent to the transient one. 
+  \item The behavioral semantics is conventionally sound, and therefore can 
+  use unmolested types in its \kafka translation.
+  \item The concrete semantics is likewise conventionally sound, and can also
+  not change the classes types through translation.
+\end{itemize}
+
+
+In \figref{fig:l3etrans} we present the translation of a simple class {\xt E}.
+This example aims to illustrate the difference in guarantee provided by the
+difference semantics.
 
 \begin{figure}[!h]
 \hrulefill\\
