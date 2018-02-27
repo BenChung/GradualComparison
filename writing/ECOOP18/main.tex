@@ -1185,17 +1185,19 @@ define gradual type systems via translation to \kafka.
 
 %\epigraph{\small\it ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}\vspace{-2mm}
 
-\noindent
-We are now ready to translate the four gradual type semantics into \kafka.
-For each semantics, compilation into \kafka is realized by a translation
-function that maps well-typed source programs into well-typed \kafka terms,
-respecting a uniform mapping of source types to \kafka types.  The
-compilation makes explicit which type casts (and, in turn, \emph{dynamic
-  type-checks}) are implicitly inserted and performed by the runtime of each
-semantics, highlighting the similarities and differences between them.  Our
-source languages, those being translated to \kafka, have no explicit casts,
-instead silently coercing types at typed-untyped boundaries, allowing code
-like the following:
+\noindent The four gradual type semantics are now ready to be translated into
+\kafka. Each semantics is translated into \kafka through a function mapping
+well-typed source programs into well-typed \kafka terms. The translation
+function explicitly determines which type casts (and, in turn, \emph{dynamic
+type-checks}) are implicitly inserted and performed by the runtime of each
+semantics.
+
+Cast insertion is the key to translation according to the gradual typing
+semantics. The source languages have no explicit casts, instead silently
+coercing types at typed-untyped boundaries. These boundaries would not
+normally have any special evaluation semantics, so a type driven translation
+is needed to insert casts that add semantic meaning. For example, consider the
+following small program:
 
 \begin{tabbing}
 \hspace{1cm}\K\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
@@ -1206,15 +1208,16 @@ like the following:
 \end{tabbing}         
 
 \noindent The method \m takes an argument of type \any and returns the same
-value under type \C. Without a cast, this operation is patently unsafe, as
-if \m is passed a \D, the return type of \m will be wrong. However, our
-source language allows this, instead deferring to the translation to provide
-a safety guarantee.  To avoid unnecessary clutter, we present a common
-syntax, reported in \figref{f:sourcesyntax}, for the source language. This
-defines a simple object calculus similar to \kafka, but without method
-overloading and, most importantly, cast operations. Lastly, we give a
-source-level type system for each semantics (notated $\vdash_{\!s}$), which
-are largely identical. To simplify the presentation, we will elide rules
+value under type \C. Without a cast, this operation is unsafe. If \m is passed
+a \D (which has no subtype relation with \C), the returned value will not
+match the declared return type. The source language allows this, deferring to
+the translation to provide the necessary safety guarantee. 
+
+To avoid unnecessary clutter, we present a common syntax for the source
+language in \figref{f:sourcesyntax}. This defines a simple object calculus
+similar to \kafka, but without method overloading or cast operations. Lastly,
+we give a largely identical source-level type system for each semantics
+(notated $\vdash_{\!s}$). To simplify the presentation, we will elide rules
 identical to those in \kafka, and present only the altered rules.
 
 \subsection{Source Language}
@@ -1313,18 +1316,17 @@ identical to those in \kafka, and present only the altered rules.
 \end{figure}
 
 The type system for the source language, shown in \figref{fig:slts}, is a
-straightforward static semantics for gradual typing. To differentiate this
-type system from the \kafka type system, we use the $\EnvTypeS \Env\K\e\t$
-judgment form, indicating a well-typed expression in the surface type system.
-This surface static semantics allows implicit mixing of static and dynamically
-typed terms and is shared between all of the gradual type systems. As a
-gradually typed language, the source language type system allows the implicit
-conversion of typed and untyped terms via the convertibility operator, written
-$\ConvertE\K{s}{\t}{\tp}$.
+standard static semantics for gradual typing. To differentiate this type
+system from the \kafka type system, we use the $\EnvTypeS \Env\K\e\t$ judgment
+form, indicating a well-typed expression in the surface type system. This
+surface static semantics allows mixing of static and dynamically typed terms
+and is shared between all gradual type systems. The source language type
+system allows the implicit conversion of typed and untyped terms via the
+convertibility operator, written $\ConvertE\K{s}{\t}{\tp}$.
 
 This $\ConvertE\K{s}{\t}{\tp}$ relation indicates that type $\t$ is
-convertible to one of type $\tp$, and is used both for traditional up-casting
-and for conversions of \any to non-\any types. Our definition of the type
+convertible to type $\tp$, and is used both for traditional up-casting and for
+conversions of \any to non-\any types. Our definition of the type
 convertibility operator is shown in \figref{fig:tyconvert}. The operator
 enforces type discipline where possible (via \RuleRef{STGC-SUB}) while
 allowing implicit conversion to and from the dynamic type where not (via
@@ -1366,25 +1368,24 @@ must be checked.
 
 \subsection{Translations}
 
-The translations between the source language and \kafka are the cornerstone of
-our approach. These translations encode the soundness guarantee of the gradual
-type system into \kafka types and protect this guarantee via cast insertion,
-the details of which depend on the type system in question.
+The typed-untyped boundary crossings that are key to gradual typing are not
+visible to the dynamic semantics. To enforce guarantees at these boundaries,
+translations insert casts and edit type annotations to ensure correctness. In
+our system, this operation can be described as encoding the source-level
+soundness guarantee in the \kafka type system.
 
-Each translation aims to establish and protect a \kafka soundness guarantee,
-encoded in \kafka's expressions and classes. The soundness guarantee itself,
-the meaning of source level types, is represented with translated \kafka
-types. To protect this guarantee, the translations insert casts, establishing
-the  types of untyped values. We begin by presenting the class translation -
-the encoding of source language soundness - then discuss how expression
-translation maintains the guarantees so encoded.
+Each translation aims to establish a source level soundness guarantee, encoded
+in \kafka's expressions and classes.  The property to be guaranteed arises from
+the \kafka version of source classes, which are protected with \kafka casts
+inserted at boundary crossings.
 
-The soundness guarantee of each gradual type system is encoded directly in
-\kafka types through class translation. Given a source language class, the
-translation will transform it into a \kafka class that encodes the source-
-level guarantees as \kafka types. As each of the gradual type systems provide
-different guarantees for source level types, every one has its own class
-translation approach. These approaches are shown in \figref{fig:traclass}.
+The source level soundness principal determines what runtime values may
+inhabit a given runtime type. Similarly, the \kafka soundness theorem governs
+what values may inhabit variables in the translation result. We rewrite the 
+source level types while translating to \kafka to represent the source level
+soundness guarantee using the \kafka soundness theorem, providing a unified 
+framework for comparison of soundness guarantees. The translations for 
+source level classes are shown in \figref{fig:traclass}.
 
 \begin{figure}[!h]  
   \hrulefill\\
@@ -1426,69 +1427,51 @@ translation approach. These approaches are shown in \figref{fig:traclass}.
  \caption{Translations for classes.}     \label{fig:traclass}    
 \end{figure}
 
-{\bf Optional.~} The optional semantics provides no guarantees whatsoever
-about the correctness of source language types, allowing untyped code to
-run amok with typed references. To represent this, we translate all type
-annotations that appear in the source to the \any type, allowing any value
-to be passed for any type.
+{\bf Optional.~} The optional semantics provides no guarantees about the
+correctness of source language types. With the optional semantics, a typed
+variable may contain a value of a completely different type. Retaining the
+source level type annotations through translation to \kafka would not preserve
+this semantics, so we erase them and replace them with \any. This retains the
+optional source semantics, as the \any type can be inhabited by any value.
 
-{\bf Transient.~} The transient semantics ensures that the methods of a type
-will exist, but nothing more. While typed methods can still be called with any
-argument by untyped code, and untyped methods can still return any value, some
-checks are done. Transient ensures that all specified methods exist
-on the value, but not what the argument or return types of those methods are.
+{\bf Transient.~} The transient semantics guarantees that every method in the
+type exists on inhabitant values, but does not ensure their types. Under the
+transient semantics, typed function invocations themselves will succeed, but
+type assertions in the caller or callee may fail immediately afterward. Field
+values are checked at dereference time, so all assignments always succeed but
+dereferences may fail.
 
-Mutable state in transient is handled by checking at dereference time. Any
-value can be assigned to a field, but must conform to the statically expected
-type when fetched. We can express this in \kafka by converting all field types
-to \any.
+The transient encoding in \kafka is similar to the optional one. We erase all
+argument and return types on methods as well as types on fields. This then
+causes the translated \kafka types to have the same semantic meaning (under
+structural typing) as the source transient types.
 
-Thanks to \kafka's use of structural subtyping, encoding the transient
-soundness guarantee is simple. To allow methods to take or return any value,
-we first erase all of the types on arguments and return types, eliminating all
-type information. By erasing all types we then convert the subtype cast into a
-simple check that one type has all the method names as the other, exactly the
-check semantics  we need. We then use the subtype cast to check the argument
-type prior to (translated) method body entry, matching the transient soundness
-guarantee.
+{\bf Behavioral.~} The behavioral semantics guarantees existence of methods as
+well as types of both methods and fields. Untyped values can be used from
+typed code thanks to wrappers that guarantee return types, while typed values
+are protected from untyped arguments by similar wrappers. Because values will
+always be well-typed with this guarantee, the translation leaves types
+untouched.
 
-{\bf Behavioral.~} Under the behavioral semantics, all values will conform to
-their type up to errors, a simple guarantee to represent in \kafka.  Wrappers
-will be subtypes of the required \kafka type, so source level types are simply
-carried through. Providing this guarantee through translation is therefore
-simple, with the source types retained into \kafka, and protected by casts,
-inserted later in the expression translation.
+{\bf Concrete.~} The concrete soundness guarantee requires that values
+inhabiting a variable of type \t must be a subtype of \t, ensuring that all
+methods exist under their correct types. However, these typed methods cannot
+be safely called from an untyped context, which would dramatically reduce the
+utility of a concrete gradual type system.
 
-{\bf Concrete.~} The concrete semantics provides a soundness guarantee
-identical to that of \kafka's: if a value inhabits a type, then the value is
-of that type. Despite this, the concrete class-level translation to \kafka is
-the most complex of the four.
+To retain the ability to call typed code from an untyped caller, we introduce
+untyped guard methods that protect their typed counterparts. We use dispatch
+(discussed in section 4) to determine if the untyped guard or the typed
+original should be called.
 
-The challenge facing the concrete semantics is not representation, but
-enforcement. Representing types from the concrete semantics in \kafka is
-simple, through the identity function. This simplicity is betrayed by the lack
-of wrappers, as untyped code has a direct reference to typed objects, and
-therefore could potentially make unsafe invocations. To solve this, we use
-overloading (discussed previously in section 4), generating both typed and
-untyped variants of a method.
+\subsection{Expression Translation} Mechanically, expression translation
+produces well-typed \kafka terms from source language terms. With rewritten
+types, expression translation enforces the dynamic guarantees of the source
+semantics.
 
-This scheme protects typed methods from untyped code. When translating  a
-statically typed method, we generate both an identically-typed equivalent
-(with translated body) and a untyped guard method. This untyped guard protects
-the typed method by casting its argument and the return value. Which method is
-called depends on if the receiver is statically typed; if so, then the
-statically typed method is called, if not, then the dynamic one is.
-
-{\bf Expression Translation.~} Expression translation is driven by the
-soundness guarantees enshrined in class translation. By encoding the  meaning
-of soundness of the source language into \kafka, a sound intermediate
-language, we reduce the problem of enforcing a gradual type system's soundness
-guarantee to producing well-typed \kafka terms. 
-
-We present four expression translation systems, one for each of the gradual
-type systems in question. Each takes a well-typed source language term and
-translates it into a well-typed \kafka term, in the presence of a suitably
-translated class table. These expression translation systems come in one of
+We present a translation system for each of the gradual type systems in
+question. Each takes a well-typed source language term and translates it into
+a well-typed \kafka term. These expression translation systems come in one of
 two forms - a straightforward typeless translation used for the optional
 semantics, and a bidirectional type-driven translation used for the other
 three gradual type systems.
