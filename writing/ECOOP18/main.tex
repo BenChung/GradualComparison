@@ -1603,28 +1603,22 @@ the behavioral and concrete semantics, allow these simple forms to be
 translated verbatim, but under weaker guarantees, additional checks must
 be inserted.
 
-Under the transient semantics, we have to treat both variable references
-and field access differently. Variables are translated to contain a cast
-to their statically known type, as while the method checks this upon entry
-(maintaining error semantics), this information cannot be bound in \kafka,
-as no binding forms exist outside of functions. For simplicity, we therefore
-insert a redundant cast (which will always succeed if reached) at each variable
-reference. Moreover, under the transient semantics, the type of field values
-is not guaranteed, so dereference from fields must be checked.
+Under the transient semantics, we have to treat both variable references and
+field access differently. Argument types are not guaranteed by the caller, so
+variable translation inserts a cast to the statically known type of the
+variable. Likewise, under the transient semantics, the type of field values is
+not guaranteed, so field dereferences must be cast as well.
 
-This last property of the transient semantics creates unusual behavior.
-In particular, if an ill-typed value is inserted by untyped code into a 
-typed data structure, then the error will occur at dereference, rather than
-assignment. Even in the presence of a blame system, this error could be
-problematic, as the assigner will only ever be blamed if the reference is
-ever accessed and therefore ill-typed values can exist in the heap without
-error.
+This last property of the transient semantics creates an unusual behavior.
+When an ill-typed value is inserted by untyped code into a  typed data
+structure, then the error will occur at dereference rather than assignment.
+Even in the presence of a blame system, this error could be problematic, as
+it would go unnoticed if the value was never accessed.
 
-The weakest type system under investigation is the optional type system, 
-which provides no soundness guarantee whatsoever. Here, we have the unusual
-problem that direct translation would have \emph{too many} known types, as the
-\this reference's type is always known. To allow the use of dynamic invocation
-on the \this reference, we therefore cast \this to \any.
+The optional semantics provides the weakest guarantee. Here, we have the
+unusual problem that direct translation would have \emph{too many} known
+types, as the \this reference's type is always known. To allow the use of
+dynamic invocation on the \this reference, we therefore cast \this to \any.
 
 \begin{figure}[!h]
 \hrulefill\\
@@ -1653,13 +1647,11 @@ on the \this reference, we therefore cast \this to \any.
 \caption{Translations for field assignment.}\label{fig:trassn}
 \end{figure}
 
-Field assignment is much more typical than variable and field access. Shown in
-\figref{fig:trassn}, the only stand-out case is the transient semantics, which
-uses the assert translation mechanism to ensure that the assigned value is of
-type \any, not the statically asserted type of the field. This is due to the
-weak guarantees provided by the transient semantics, and again indicating that
-no assignment to a typed field in transient will ever fail.
-
+The translation for field assignment, shown in \figref{fig:trassn}, is
+straightforward. All of the semantics translate the value directly, only
+differing in the expected type. The behavioral and concrete semantics require
+that the result has the statically known type, the transient semantics expects
+\any, and the optional semantics imposes no type requirement whatsoever.
 
 \begin{figure}[!h]
 \hrulefill\\
@@ -1686,14 +1678,10 @@ no assignment to a typed field in transient will ever fail.
 \caption{Translations for object creation.}\label{fig:tranew}
 \end{figure}
 
-\figref{fig:tranew} presents the translation for the object creation
-expression.  Apart from the optional semantics, the translation for the
-object creation expression is almost identical between the transient,
-behavioral, and concrete semantics. The only difference lies in the
-recursive translation call for the arguments of the object, whereby each
-semantics call their respective translation. The optional semantics require
-an additional $\star$ cast easing any typing information from the object.
-
+The translation for object creation, shown in \figref{fig:tranew}, follows the
+same reasoning, as it is satisfying the same field types. It translates each
+argument to be the required type according to class translation, ensuring the
+respective soundness guarantee.
 
 \begin{figure}[!h]
 \hrulefill\\
@@ -1736,31 +1724,24 @@ an additional $\star$ cast easing any typing information from the object.
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
 
-In the object oriented context, a type system being sound means that no
+In the object oriented context, a type system being sound means no
 "message not understood" errors are produced, lending great importance to the
 handling of method invocation. Because \kafka's type system is sound in the
 traditional sense, it follows that any typed invocation in \kafka will always
 find an implementation. The guarantees provided by each gradual type system are
-then shown through the result of translation, as the \kafka type encapsulates
+then shown through the result of their translation, as the \kafka type encapsulates
 the source language gradual typing guarantee.
 
-At invocation sites, to avoid ``method not understood'' errors, the available
-methods and their types are the key property. If a method is known to exist,
-and have the correct argument and return types as in the concrete and
-behavioral semantics, it follows that the method can be called safely. However,
-if no methods are guaranteed, then the untyped invocation (with no soundness
-guarantee) must be used.
 
-The detailed translations for invocation are shown in \figref{fig:trafuninv}. 
-Each translation illustrates the soundness guarantee provided by the respective
-gradual type system through its choice of invocation. The optional semantics
-provides no guarantee whatsoever, so it has to always use dynamic invocation.
-The transient semantics is sometimes able to guarantee the existence of the
-method being called, but not what types it has, so it has to call it under 
-type \any and deal with a return type of \any with a cast. Finally, the
-optional and concrete systems both guarantee the existence and types of 
-methods on typed values, so can make statically-checked, fully typed 
-invocations.
+The translations for invocation are shown in \figref{fig:trafuninv}. At
+invocation sites, to avoid ``method not understood'' errors, a method of the
+right name must be known to exist with the correct argument and return types.
+In the concrete and behavioral semantics source typing is retained, so the
+arguments must be of the statically known type. However, in the transient
+semantics, the argument type is ignored, so the argument to a statically typed
+method call is only required to be of type \any. If any of the systems cannot
+establish the type of the receiver, then the untyped (unsound) invocation is
+used.
 
 \subsection{Litmus Test Translation}
 
