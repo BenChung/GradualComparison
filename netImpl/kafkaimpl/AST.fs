@@ -9,8 +9,9 @@ type Expr =
 | Var of string
 | This
 | That
+| Thisfd
 | NewExn of string * (Expr list)
-| GetF of Expr * string 
+| GetF of Expr * string
 | SetF of Expr * string * Expr
 | Call of Expr * Type * Type * string * Expr
 | DynCall of Expr * string * Expr
