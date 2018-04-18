@@ -62,14 +62,14 @@ Transient Semantics:
 
 @"
 class A {
-    m(x:Any):Any { <Any> this } }
+    m(x:Any):Any { <A> this; <Any> this } }
 class I {
-    n(x:Any):Any { <Any> this } }
+    n(x:Any):Any { <I> this; <Any> this } }
 class T {
     s(x:Any):Any { this } 
-    t(x:Any):Any { <|Any|>(this.s : I -> T ( <Any> x)) }}
+    t(x:Any):Any { <Any><T>(this.s : Any -> Any ( <Any><I> x)) }}
 
-(<Any>new T())@t(<|Any|>new A())"
+(<Any>new T())@t(<Any>new A())"
 
 
 *****************Litmus test two*****************
@@ -80,7 +80,7 @@ class T {
 
 
 ***************************************************
-Behavioral Semantics: Is the call for each of the litmus test, <any> or <|any|>?
+Behavioral Semantics:
 
 *****************Litmus test one*****************
 @"
@@ -177,8 +177,6 @@ class F {
 [<EntryPoint>]
 let main argv = 
     
-    printfn "Hello Worldddddddddddddddd" 
-
     let res = Parser.parse @"
     class A {
         m(x:A) : A { this } }
@@ -223,14 +221,6 @@ let main argv =
     let outp = CodeGen.genProg(subtypeRels, true, true)
     let evaluated = Executor.execute(outp)
     
-    printfn "Hello World" 
     printfn "%A" evaluated
-    printfn "%A" evaluated
-    printfn "%A" evaluated
-    printfn "%A" evaluated
-    printfn "%A" evaluated
-    printfn "%A" evaluated
-    printfn "%A" evaluated
-    printfn "Hello World" 
 
     0 // return an integer exit code
