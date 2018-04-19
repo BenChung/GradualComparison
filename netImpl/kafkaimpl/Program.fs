@@ -56,29 +56,55 @@ class F {
 
 
 ***************************************************
+***************************************************
 Transient Semantics:
 
 *****************Litmus test one*****************
 
 @"
 class A {
-    m(x:Any):Any { <A> this; <Any> this } }
+    m(x:Any):Any { <A> x; <Any> this } }
 class I {
-    n(x:Any):Any { <I> this; <Any> this } }
+    n(x:Any):Any { <I> x; <Any> this } }
 class T {
-    s(x:Any):Any { this } 
-    t(x:Any):Any { <Any><T>(this.s : Any -> Any ( <Any><I> x)) }}
+    s(x:Any):Any { <I> x; <Any> this } 
+    t(x:Any):Any { <Any> x; <Any><T>(this.s : Any -> Any ( <Any><Any> x)) }}
 
 (<Any>new T())@t(<Any>new A())"
 
 
 *****************Litmus test two*****************
 
+@"
+class A {
+    m(x:Any):Any { <A> x; <Any> this } }
+class Q {
+    n(x:Any):Any { <Q> x; <Any> this } }
+class I {
+    m(x:Any):Any { <Q> x; <Any> this } }
+class T {
+    s(x:Any):Any { <I> x; <Any> this } 
+    t(x:Any):Any { <Any> x; <Any><T>(this.s : Any -> Any ( <Any><Any> x)) }}
+
+(<Any>new T())@t(<Any>new A())"
+
 *****************Litmus test three*****************
 
+@"
+class C {
+    a(x:Any):Any { <C> x; <Any> this } }
+class D {
+    b(x:Any):Any { <D> x; <Any> this } }
+class E {
+    a(x:Any):Any { <D> x; <Any> this } }
+class F {
+    m(x:Any):Any { <E> x; <Any> x } 
+    n(x:Any):Any { <Any> x; <Any>(<E>(this.m : Any -> Any ( <Any>(<Any> x)))) }}
+
+(<Any>new F())@n(<Any>new C())@a(<Any>new C())"
 
 
-
+***************************************************
 ***************************************************
 Behavioral Semantics:
 
@@ -125,7 +151,7 @@ class F {
 (<Any>new F())@n(<|Any|>new C())@a(<|Any|>new C())"
 
 
-
+***************************************************
 ***************************************************
 Concrete Semantics:
 

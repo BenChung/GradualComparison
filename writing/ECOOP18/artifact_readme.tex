@@ -1,0 +1,272 @@
+\documentclass[]{article}
+
+%opening
+\title{README for Kafka artifact}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Kafka's .Net implementation and what it means}
+
+\section{Coq and what it means}
+
+
+\section{How to install each naive languages}
+
+
+
+\subsection{TypeScript}
+
+
+
+\subsection{Thorn}
+
+
+
+\subsection{Typed Racket}
+
+
+
+\subsection{Reticulated Python}
+
+
+
+\section{Litmus tests in naive languages}
+
+Below we present source code for each of the litmus tests.
+
+\subsection*{Concrete}
+
+The code for the litmus tests in Thorn. \\ 
+
+\noindent
+\textbf{Litmus Test 1}:
+\begin{verbatim}
+class A() { def m(x:A):A = this; }
+class I() { def n(x:I):I = this; }
+class T() {
+def s(x:I):T = this;
+def t(x:dyn):dyn = this.s(x);
+}
+T().t(A());
+\end{verbatim}
+
+\noindent
+\textbf{Litmus Test 2}:
+\begin{verbatim}
+class Q() { def n(x: Q): Q = this;}
+class A() { def m(x:A): A = this;}
+class I() { def m(x:Q):I = this;}
+class T() {
+def s(x:I):T = this; 
+def t(x:dyn):dyn = this.s(x);
+}
+T().t(A());   
+\end{verbatim}
+
+
+\noindent\textbf{Litmus Test 3}:
+\begin{verbatim}
+class C() { def m(x:C):C = x; }
+class D() { def n(x:D):D = x; }
+class E() { def m(x:D):D = x; }      
+class F() {
+def m(x:E):E = x;
+def n(x:dyn):dyn = this.m(x);
+} 
+F().n(C()).m(C());
+\end{verbatim}
+
+\subsection*{Optional}
+
+The code for the litmus tests in TypeScript. \\
+
+\noindent\textbf{Litmus Test 1}:
+\begin{verbatim}
+class A { m(x: A): A { return this } }
+class I { n(x:I):I { return this } }
+class T {
+s(x: I): T { return this }
+t(x: any): any { return this.s(x) }
+}
+new T().t(new A())
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 2}:
+\begin{verbatim}
+class Q { n(x: Q): Q { return this } }
+class A { m(x: A): A { return this } }
+class I { m(x:Q):I { return this } }
+class T {
+s(x: I): T { return this }
+t(x: any): any { return this.s(x) }
+}
+new T().t(new A())
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 3}:
+\begin{verbatim}
+class C { m(x: C): C { return x } }
+class D { n(x: D): D { return x } }
+class E { m(x: D): D { return x } }
+class F {
+m(x: E): E { return x }
+n(x: any): any { return this.m(x) }
+}
+new F().n(new C()).m(new C())
+\end{verbatim}
+
+\subsection*{Behavioral}
+
+The code for the litmus tests in Typed Racket. \\
+
+\noindent\textbf{Litmus Test 1}:
+
+\begin{verbatim}
+#lang racket
+(module u racket
+(define Tp% (class object%
+(super-new)
+(define/public (t x) (send this s x))))
+(provide Tp%))
+(module t typed/racket
+(require/typed (submod ".." u) [Tp% (Class [t (-> Any Any)])])
+(define-type A (Instance (Class (m (-> A A)))))
+(define-type I (Instance (Class (n (-> I I)))))
+(define-type T (Instance (Class (s (-> I T)))))
+(define T% (class Tp%
+(super-new)
+(: s (-> I T))
+(define/public (s x) this)))
+(define A% (class object%
+(super-new)
+(: m (-> A A))
+(define/public (m x) this)))
+(provide T% A%))
+(require 't)
+(send (new T%) t (new A%))
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 2}:
+
+\begin{verbatim}
+#lang racket
+(module u racket
+(define Tp% (class object%
+(super-new)
+(define/public (t x) (send this s x))))
+(provide Tp%))
+(module t typed/racket
+(require/typed (submod ".." u) [Tp% (Class [t (-> Any Any)])])
+(define-type Q (Instance (Class (n (-> Q Q)))))
+(define-type A (Instance (Class (m (-> A A)))))
+(define-type I (Instance (Class (m (-> Q I)))))
+(define-type T (Instance (Class (s (-> I T)))))
+(define T% (class Tp%
+(super-new)
+(: s (-> I T))
+(define/public (s x) this)))
+(define A% (class object%
+(super-new)
+(: m (-> A A))
+(define/public (m x) this)))
+(provide T% A%))
+(require 't)
+(send (new T%) t (new A%))
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 3}:
+
+\begin{verbatim}
+#lang racket
+(module u racket
+(define Fp% (class object%
+(super-new)
+(define/public (n x) (send this m x))))
+(provide Fp%))
+(module t typed/racket
+(require/typed (submod ".." u) [Fp% (Class [n (-> Any Any)])])
+(define-type C (Instance (Class (m (-> C C)))))
+(define-type E (Instance (Class (m (-> D D)))))
+(define-type D (Instance (Class (n (-> D D)))))
+(define F% (class Fp%
+(super-new)
+(: m (-> E E))
+(define/public (m x) x)))
+(define C% (class object%
+(super-new)
+(: n (-> C C))
+(define/public (n x) x)))
+(provide F% C%))
+(require 't)
+(send (send (new F%) n (new C%)) m (new C%))
+\end{verbatim}
+
+
+\subsection*{Transient}
+
+The code for the litmus tests in Transient Reticulated Python. \\
+
+\noindent\textbf{Litmus Test 1}:
+\begin{verbatim}
+class A:
+def m(self, x:A) -> A:
+return self
+class I:
+def n(self, x:I) -> I:
+return self
+class T:
+def s(self, x:I) -> T:
+return self
+def t(self, x:Dyn) -> Dyn:
+return self.s(x)
+T().t(A())
+\end{verbatim}
+
+\noindent
+\textbf{Litmus Test 2}:
+\begin{verbatim}
+class C:
+def n(self, x:C) -> C:
+return self
+class Q:
+def m(self, x:Q) -> Q:
+return self     
+class A:
+def m(self, x:A) -> A:
+return self
+class I:
+def m(self, x:Q) -> I:
+return self
+class T:
+def s(self, x:I) -> T:
+return self
+def t(self, x:Dyn) -> Dyn:
+return self.s(x)
+T().t(A())
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 3}:
+\begin{verbatim}
+class C:
+def m(self, x:C) -> C:
+return x
+class D:
+def n(self, x:D) -> D:
+return x
+class E:
+def m(self, x:D) -> D:
+return x
+class F:
+def m(self, x:E) -> E:
+return x   
+def n(self, x:Dyn) -> Dyn:
+return self.m(x)
+F().n(C()).m(C())
+\end{verbatim}
+
+
+\end{document}
