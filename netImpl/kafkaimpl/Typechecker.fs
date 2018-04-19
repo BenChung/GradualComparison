@@ -44,23 +44,11 @@ let inmtypes (m:mtd) (c:string) (K: Map<string, k>) : mt option =
                                                                 else
                                                                    None
                                                               | _ -> None) mds  
-                | G(name) -> orElse(List.tryPick (fun md -> 
-                                                        match md with
-                                                        | (GDef(mp, t1p, expr)) -> if mp = name then Some(GT(name, t1p)) else None
-                                                        | _ -> None) mds)
-                                   (List.tryPick (fun (FDef(f,tp)) -> if f = name then Some(GT(f, tp)) else None ) fds)
-                | S(name) -> orElse(List.tryPick (fun md -> 
-                                                        match md with
-                                                        | (SDef(mp, xp, t1p, expr)) -> if mp = name then Some(ST(name, t1p)) else None
-                                                        | _ -> None) mds)
-                                   (List.tryPick (fun (FDef(f,tp)) -> if f = name then Some(ST(f, tp)) else None) fds)
         
 let mtypes (ClassDef(name, fds, mds)) : mt list =
     List.append (List.collect (fun (FDef(name, tpe)) -> [GT(name, tpe) ; ST(name,tpe)]) fds)
                 (List.map (function
-                                | (MDef(name, _, t1, t2, _)) -> MDT(name, t1, t2)
-                                | (GDef(name, t1, _)) -> GT(name, t1)
-                                | (SDef(name, _, t1, _)) -> ST(name, t1)) mds)
+                                | (MDef(name, _, t1, t2, _)) -> MDT(name, t1, t2)) mds)
                                    
 let rec subtype(K:Map<string,k>)(mu:Set<string * string>) : Type -> Type -> bool = fun x -> fun y -> 
     match (x,y) with
@@ -174,25 +162,10 @@ let wfmeth (env:Map<string, Type>) (K:Map<string, k>) (def : md) : bool =
    | Some(true) -> true
    | Some(_) -> raise (IncompatibleReturnValue(Any, List.last body))
    | None -> raise (EmptyMethodBody(name))
- | SDef(name, x, t, body) -> 
-   let ienv = Map.add x t env
-   if not (wftype K t) then raise (TypeNotFound(t, K))
-   match butlast (syntype ienv K) (fun e -> anatype ienv K e t) body with
-   | Some(true) -> true
-   | Some(_) -> raise (IncompatibleReturnValue(Any, List.last body))
-   | None -> raise (EmptyMethodBody(name))
- | GDef(name, t, body) -> 
-   if not (wftype K t) then raise (TypeNotFound(t, K))
-   match butlast (syntype env K) (fun e -> anatype env K e t) body with
-   | Some(true) -> true
-   | Some(_) -> raise (IncompatibleReturnValue(Any, List.last body))
-   | None -> raise (EmptyMethodBody(name))
  | _  -> raise (MalformedMethod(def))
 
 let rec private names : md list -> string list = function 
 |               ((MDef(name, _, _, _, _)) :: mds : md list) -> name :: (names mds)
-|               ((GDef(name, _, _)) :: mds : md list) -> name :: (names mds)
-|               ((SDef(name, _, _, _)) :: mds : md list) -> name :: (names mds)
 |               ([]) -> []
 
 type private Seen =
@@ -224,8 +197,6 @@ let rec private overloading : Map<string,Seen> -> fd list -> md list -> unit = f
     |   (FDef(name, t)) :: fds -> fun mds -> overloading (mexists seen name (Property(true, true))) fds mds
     |   [] -> function
         |   (MDef(name, x, t1, t2, body)) :: rest -> overloading (mexists seen name (Method)) [] rest
-        |   (GDef(name, t, body)) :: rest -> overloading (mexists seen name (Property(true, false))) [] rest
-        |   (SDef(name, x, t, body)) :: rest -> overloading (mexists seen name (Property(false, true))) [] rest
         |   [] -> ()
 
 let wfclass (K: Map<string,k>) (ClassDef(name, fds, mds)) : unit =

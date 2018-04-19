@@ -50,12 +50,6 @@ type MtypesTests() =
     member x.mtypes2() =
         Typechecker.mtypes(ClassDef("C",[FDef("x", Any)],[])) |> should equal [GT("x",Any) ; ST("x", Any)]
     [<Test>]
-    member x.mtypes3() =
-        Typechecker.mtypes(ClassDef("C",[],[GDef("x",Any,[])])) |> should equal [GT("x",Any)]
-    [<Test>]
-    member x.mtypes4() =
-        Typechecker.mtypes(ClassDef("C",[],[SDef("x","x",Any,[])])) |> should equal [ST("x",Any)]
-    [<Test>]
     member x.mtypes5() =
         Typechecker.mtypes(ClassDef("C",[],[MDef("x","x",Any,Any,[])])) |> should equal [MDT("x",Any,Any)]
     [<Test>]
@@ -68,7 +62,7 @@ type SubtypeTests() =
     let CK1 = Map[ ("C",ClassDef("C",[],[])) ;
                    ("D",ClassDef("D",[FDef("x",Any)],[])) ;
                    ("E",ClassDef("E",[FDef("x",Any)],[MDef("m","x",Any,Any,[])])) ;
-                   ("F",ClassDef("F",[],[GDef("x", Any, []) ; SDef("x", "y", Any, []) ; MDef("m","x",Any,Any,[])]))]
+                   ("F",ClassDef("F",[],[MDef("m","x",Any,Any,[])]))]
     [<Test>]
     member x.st1() =
         Typechecker.subtype CK1 (Set.empty) (Class "C") (Class "C") |> should be True

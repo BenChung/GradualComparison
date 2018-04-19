@@ -24,7 +24,7 @@ let rec subst(n:string, wth : Expr)(ine:Expr) =
     | This -> This
     | That -> That
     | NewExn(name, exprs) -> NewExn(name, List.map (subst(n, wth)) exprs)
-    | GetF(f) -> Var f
+    | GetF(f) -> GetF(f)
     | SetF(f, v) -> SetF(f, subst(n,wth)(v))
     | Call(recr, t1, t2, m, arg) -> Call(subst(n,wth) recr, t1, t2, m, subst(n,wth) arg)
     | DynCall(recr, m, arg) -> DynCall(subst(n,wth) recr, m, subst(n,wth) arg)
@@ -33,8 +33,6 @@ let rec subst(n:string, wth : Expr)(ine:Expr) =
 
 type md = 
 | MDef of string * string * Type * Type * Expr list
-| SDef of string * string * Type * Expr list
-| GDef of string * Type * Expr list
  override x.ToString() = sprintf "%A" x
 
 type fd =

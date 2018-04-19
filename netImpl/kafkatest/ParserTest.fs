@@ -38,10 +38,10 @@ type ParserTest1() =
         (Parser.parse @"new B(") |> should equal None
     [<Test>]
     member x.TestGet() =
-        (Parser.parse @"x.f()") |> should equal (Some(Program([], GetF(Var "x", "f") )))
+        (Parser.parse @"x.f()") |> should equal (Some(Program([], GetF("f") )))
     [<Test>]
     member x.TestSet() =
-        (Parser.parse @"x.f(y)") |> should equal (Some(Program([], SetF(Var "x", "f", Var "y") )))
+        (Parser.parse @"x.f(y)") |> should equal (Some(Program([], SetF("f", Var "y") )))
     [<Test>]
     member x.TestMCall() =
         (Parser.parse @"x.m : t -> t (y)") |> should equal (Some(Program([], Call(Var "x", Class "t", Class "t", "m", Var "y"))))
@@ -71,14 +71,6 @@ type ParserTest1() =
     member x.TestField2() =
         (Parser.parse @"class B { f:t }
         hello") |> should equal (Some(Program([ClassDef("B",[FDef("f",Class "t")],[])], Var("hello"))))
-    [<Test>]
-    member x.TestGetter() =
-        (Parser.parse @"class B { f():t { baz } }
-        hello") |> should equal (Some(Program([ClassDef("B",[],[GDef("f", Class "t", [Var("baz")])])], Var("hello"))))
-    [<Test>]
-    member x.TestSetter() =
-        (Parser.parse @"class B { f(x):t { baz } }
-        hello") |> should equal (Some(Program([ClassDef("B",[],[SDef("f", "x", Class "t", [Var("baz")])])], Var("hello"))))
     [<Test>]
     member x.TestUTMethod() =
         (Parser.parse @"class B { m(x:any):any { baz } }

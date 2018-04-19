@@ -23,8 +23,8 @@ let parse (prog:string) =
                (pipe2 (pstring "<" >>. ws >>. tpe .>> ws .>> pstring ">") (ws >>. term) (fun t e -> SubCast(t,e))) <|> 
                ((pstring "(" >>. ws >>. term .>> ws .>> pstring ")") |>> (fun e -> e)) <|> 
                (id |>> fun x -> Var x)
-    let callExpr = (attempt (pstring "." >>. (attempt ((id .>> ws .>> pstring "(" .>> ws .>> pstring ")") |>> (fun name -> fun exp -> GetF(name))) <|>
-                                             attempt (pipe2 (id .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name arg -> fun exp -> SetF(name, arg))) <|>
+    let callExpr = (attempt (pstring "." >>. (attempt ((pstring "this." >>. id .>> ws .>> pstring "=" .>> ws) |>> (fun name -> fun exp -> GetF(name))) <|>
+                                             attempt (pipe2 (pstring "this." >>. id .>> ws .>> pstring "=" .>> ws) (term .>> ws) (fun name arg -> fun exp -> SetF(name, arg))) <|>
                                              attempt (pipe4 (id .>> ws .>> pstring ":" .>> ws) (tpe .>> ws .>> pstring "->" .>> ws) (tpe .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name t1 t2 arg -> fun exp -> Call(exp,t1,t2,name,arg)))))) <|>
                    (attempt (pipe2 (pstring "@" >>. id .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name arg -> fun exp -> DynCall(exp, name, arg)))) 
     do termImpl := (attempt (pipe2 expr (many callExpr) (fun e l -> List.fold (fun acc f -> f acc) e l))) <|> expr
@@ -37,16 +37,7 @@ let parse (prog:string) =
                    (tpe .>> ws .>> pstring "{" .>> ws) 
                    ( body .>> ws .>> pstring "}")
                    (fun name var tp t body -> MDef(name, var, tp, t, body)) 
-    let sd = pipe4 (id .>> pstring "(") 
-                   (ws >>. id .>> ws .>> pstring ")" .>> ws .>> pstring ":" .>> ws) 
-                   (tpe .>> ws .>> pstring "{" .>> ws) 
-                   ( body .>> ws .>> pstring "}")
-                   (fun name var t body -> SDef(name, var, t, body)) 
-    let gd = pipe3 (id .>> pstring "(" .>> ws .>> pstring ")" ) 
-                   (ws >>. pstring ":" >>. ws >>. tpe .>> ws) 
-                   (pstring "{" >>. ws >>. body .>> ws .>> pstring "}") 
-                   (fun name tpe expr -> GDef(name, tpe, expr))
-    let clazz = pipe3 (ws >>. str_ws "class" >>. ws >>. id .>> ws .>> pstring "{") (sepEndBy (attempt (ws >>. fd)) ws) ((sepEndBy (ws >>. (attempt sd <|> attempt md <|> attempt gd)) ws) .>> pstring "}") (fun name fds mds -> ClassDef(name, fds, mds))
+    let clazz = pipe3 (ws >>. str_ws "class" >>. ws >>. id .>> ws .>> pstring "{") (sepEndBy (attempt (ws >>. fd)) ws) ((sepEndBy (ws >>. (attempt md)) ws) .>> pstring "}") (fun name fds mds -> ClassDef(name, fds, mds))
     let program = pipe2 ((sepEndBy clazz ws) .>> ws) (term .>> ws) (fun c t -> Program(c,t))
     match run program prog with
     | Success(result, _, _) -> Some(result)

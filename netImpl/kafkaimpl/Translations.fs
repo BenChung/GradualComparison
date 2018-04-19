@@ -76,18 +76,6 @@ let private ts_methtrans(K:Map<string,k>)(C:string) : md -> md = function
                   (fun exp -> SubCast(Any, ts_anatrans K env exp t2)) body with
     |   [] -> raise (EmptyMethodBody(name))
     |   body -> MDef(name, var, Any, Any, body)
-|   GDef(name, t, body) -> 
-    let env = (Map[ ("this", Class C) ])
-    match butlast (fun exp -> match ts_syntrans K env exp with (epr,tr) -> epr) 
-                  (fun exp -> ts_anatrans K env exp t) body with
-    |   [] -> raise (EmptyMethodBody(name))
-    |   body -> GDef(name, Any, body)
-|   SDef(name, var, t, body) ->
-    let env = (Map[ ("this", Class C) ; (var, t) ])
-    match butlast (fun exp -> match ts_syntrans K env exp with (epr,tr) -> epr) 
-                  (fun exp -> ts_anatrans K env exp t) body with
-    |   [] -> raise (EmptyMethodBody(name))
-    |   body -> SDef(name, var, Any, body)
 
 let private ts_classtrans(K:Map<string,k>) : k -> k = function
 |   ClassDef(name, fds, mds) ->

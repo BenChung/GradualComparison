@@ -43,13 +43,7 @@ let findps(fds: fd list) (mds:md list) : (cgfd list) * (cgmd list) =
         | _ -> raise (FieldExistsError "A setter is duplicated... somewhere in your program") 
     let fdsUp : Map<string, cgfd> = List.fold (fun map el -> 
                                  match el with
-                                 | (MDef(_, _, _, _, _)) -> map 
-                                 | GDef(name,tpe,expr) -> 
-                                    let getter = CGDef(expr)
-                                    mapUpdate map name (CPDef(name, tpe, (Some getter), None)) (updateGet tpe getter)
-                                 | SDef(name,var,tpe,expr) ->
-                                    let setter = CSDef(var,expr)
-                                    mapUpdate map name (CPDef(name, tpe,None,(Some setter))) (updateSet tpe setter)) fdsInter mds
+                                 | (MDef(_, _, _, _, _)) -> map) fdsInter mds
     let newmds = List.map (fun (MDef(n,v,t1,t2,e)) -> (CMDef(n,v,t1,t2,e))) (List.filter (fun md -> match md with MDef(_,_,_,_,_) -> true | _ -> false ) mds)
     (List.map (fun (k,v) -> v) (Map.toList fdsUp), newmds)
 

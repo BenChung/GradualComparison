@@ -13,12 +13,12 @@ Optional Semantics:
 
 @"
 class A {
-    m(x:Any):Any { this } }
+    m(x:any):any { this } }
 class I {
-    n(x:Any):Any { this } }
+    n(x:any):any { this } }
 class T {
-    s(x:Any):Any { this } 
-    t(x:Any):Any {this@s : Any -> Any (x) }}
+    s(x:any):any { this } 
+    t(x:any):any {this@s : any -> any (x) }}
 
 (new T())@t(new A())"
 
@@ -27,14 +27,14 @@ class T {
 
 @"
 class A {
-    m(x:Any):Any { this } }
+    m(x:any):any { this } }
 class Q {
-    n(x:Any):Any { this } }
+    n(x:any):any { this } }
 class I {
-    m(x:Any):Any { this } }
+    m(x:any):any { this } }
 class T {
-    s(x:Any):Any { this } 
-    t(x:Any):Any { this@s : Any -> Any (x) }}
+    s(x:any):any { this } 
+    t(x:any):any { this@s : any -> any (x) }}
 
 (new T())@t(new A())"
 
@@ -43,14 +43,14 @@ class T {
 
 @"
 class C {
-    a(x:Any):Any { this } }
+    a(x:any):any { this } }
 class D {
-    b(x:Any):Any { this } }
+    b(x:any):any { this } }
 class E {
-    a(x:Any):Any { this } }
+    a(x:any):any { this } }
 class F {
-    m(x:Any):Any { x } 
-    n(x:Any):Any { this@m : Any -> Any (x) }}
+    m(x:any):any { x } 
+    n(x:any):any { this@m : any -> any (x) }}
 
 (new F())@n(new C())@a(new C())"
 
@@ -63,45 +63,45 @@ Transient Semantics:
 
 @"
 class A {
-    m(x:Any):Any { <A> x; <Any> this } }
+    m(x:any):any { <A> x; <any> this } }
 class I {
-    n(x:Any):Any { <I> x; <Any> this } }
+    n(x:any):any { <I> x; <any> this } }
 class T {
-    s(x:Any):Any { <I> x; <Any> this } 
-    t(x:Any):Any { <Any> x; <Any><T>(this.s : Any -> Any ( <Any><Any> x)) }}
+    s(x:any):any { <I> x; <any> this } 
+    t(x:any):any { <any> x; <any><T>(this.s : any -> any ( <any><any> x)) }}
 
-(<Any>new T())@t(<Any>new A())"
+(<any>new T())@t(<any>new A())"
 
 
 *****************Litmus test two*****************
 
 @"
 class A {
-    m(x:Any):Any { <A> x; <Any> this } }
+    m(x:any):any { <A> x; <any> this } }
 class Q {
-    n(x:Any):Any { <Q> x; <Any> this } }
+    n(x:any):any { <Q> x; <any> this } }
 class I {
-    m(x:Any):Any { <Q> x; <Any> this } }
+    m(x:any):any { <Q> x; <any> this } }
 class T {
-    s(x:Any):Any { <I> x; <Any> this } 
-    t(x:Any):Any { <Any> x; <Any><T>(this.s : Any -> Any ( <Any><Any> x)) }}
+    s(x:any):any { <I> x; <any> this } 
+    t(x:any):any { <any> x; <any><T>(this.s : any -> any ( <any><any> x)) }}
 
-(<Any>new T())@t(<Any>new A())"
+(<any>new T())@t(<any>new A())"
 
 *****************Litmus test three*****************
 
 @"
 class C {
-    a(x:Any):Any { <C> x; <Any> this } }
+    a(x:any):any { <C> x; <any> this } }
 class D {
-    b(x:Any):Any { <D> x; <Any> this } }
+    b(x:any):any { <D> x; <any> this } }
 class E {
-    a(x:Any):Any { <D> x; <Any> this } }
+    a(x:any):any { <D> x; <any> this } }
 class F {
-    m(x:Any):Any { <E> x; <Any> x } 
-    n(x:Any):Any { <Any> x; <Any>(<E>(this.m : Any -> Any ( <Any>(<Any> x)))) }}
+    m(x:any):any { <E> x; <any> x } 
+    n(x:any):any { <any> x; <any>(<E>(this.m : any -> any ( <any>(<any> x)))) }}
 
-(<Any>new F())@n(<Any>new C())@a(<Any>new C())"
+(<any>new F())@n(<any>new C())@a(<any>new C())"
 
 
 ***************************************************
@@ -116,9 +116,9 @@ class I {
     n(x:I):I { this } }
 class T {
     s(x:I):T { this } 
-    t(x:Any):Any { <|Any|>(this.s : I -> T ( <|I|> x)) }}
+    t(x:any):any { <|any|>(this.s : I -> T ( <|I|> x)) }}
 
-(<Any>new T())@t(<|Any|>new A())"
+(<any>new T())@t(<|any|>new A())"
 
 
 *****************Litmus test two*****************
@@ -131,9 +131,9 @@ class I {
     m(x:Q):I { this } }
 class T {
     s(x:I):T { this } 
-    t(x:Any):Any { <|Any|>(this.s : I -> T ( <|I|> x)) }}
+    t(x:any):any { <|any|>(this.s : I -> T ( <|I|> x)) }}
 
-(<Any>new T())@t(<|Any|>new A())"
+(<any>new T())@t(<|any|>new A())"
 
 
 *****************Litmus test three*****************
@@ -146,9 +146,9 @@ class E {
     a(x:D):D { this } }
 class F {
     m(x:E):E { x } 
-    n(x:Any):Any { <|Any|>(this.m : E -> E ( <|E|> x)) }}
+    n(x:any):any { <|any|>(this.m : E -> E ( <|E|> x)) }}
 
-(<Any>new F())@n(<|Any|>new C())@a(<|Any|>new C())"
+(<any>new F())@n(<|any|>new C())@a(<|any|>new C())"
 
 
 ***************************************************
@@ -163,9 +163,9 @@ class I {
     n(x:I):I { this } }
 class T {
     s(x:I):T { this } 
-    t(x:Any):Any { <Any>(this.s : I -> T ( <I> x)) }}
+    t(x:any):any { <any>(this.s : I -> T ( <I> x)) }}
 
-(<Any>new T())@t(<Any>new A())"
+(<any>new T())@t(<any>new A())"
 
 
 *****************Litmus test two*****************
@@ -178,9 +178,9 @@ class I {
     m(x:Q):I { this } }
 class T {
     s(x:I):T { this } 
-    t(x:Any):Any { <Any>(this.s : I -> T ( <I> x)) }}
+    t(x:any):any { <any>(this.s : I -> T ( <I> x)) }}
 
-(<Any>new T())@t(<Any>new A())"
+(<any>new T())@t(<any>new A())"
 
 
 *****************Litmus test three*****************
@@ -193,9 +193,9 @@ class E {
     a(x:D):D { this } }
 class F {
     m(x:E):E { x } 
-    n(x:Any):any { <Any>(this.m : E -> E ( <E> x)) }}
+    n(x:any):any { <any>(this.m : E -> E ( <E> x)) }}
 
-(<Any>new F())@n(<Any>new C())@a(<Any>new C())"
+(<any>new F())@n(<any>new C())@a(<any>new C())"
 
 *)
 
@@ -214,9 +214,9 @@ let main argv =
         n(x:I) : I { this } }
     class T {
         s(x : I) : T { this } 
-        t(x : Any) : Any { <Any>(this.s : I -> T ( <I> x)) } }
+        t(x : any) : any { <any>(this.s : I -> T ( <I> x)) } }
 
-    (<Any>new T())@t(<|Any|>new A())"
+    (<any>new T())@t(<|any|>new A())"
 
     let limtusTwo = Parser.parse @"
     class A {
@@ -227,9 +227,9 @@ let main argv =
         m(x:Q):I { this } }
     class T {
         s(x:I):T { this } 
-        t(x:Any):Any { <Any>(this.s : I -> T ( <I> x)) }}
+        t(x:any):any { <any>(this.s : I -> T ( <I> x)) }}
 
-    (<Any>new T())@t(<|Any|>new A())"
+    (<any>new T())@t(<|any|>new A())"
 
     let limtusThree = Parser.parse @"
     class C {
@@ -240,9 +240,9 @@ let main argv =
         a(x:D):D { this } }
     class F {
         m(x:E):E { x } 
-        n(x:Any):Any { <Any>(this.m : E -> E ( <E> x)) }}
+        n(x:any):any { <any>(this.m : E -> E ( <E> x)) }}
 
-    (<Any>new F())@n(<|Any|>new C())@a(<|Any|>new C())"
+    (<any>new F())@n(<|any|>new C())@a(<|any|>new C())"
  
     let tsv = Translations.ts_progtrans test.Value
     let _ = Typechecker.wfprog tsv
