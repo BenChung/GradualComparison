@@ -17,8 +17,8 @@ let rec genExpr(ex:Expr) : string =
     | This -> "this"
     | That -> "this.that"
     | NewExn(c, exprs) -> "new " + c + "(" + (String.concat "," (List.map genExpr exprs)) + ")"
-    | GetF(rece, f) -> (genExpr rece) + "." + f
-    | SetF(rece, f, v) -> (genExpr rece) + "." + f + " = " + (genExpr v)
+    | GetF(f) -> "this." + f
+    | SetF(f, v) -> "this." + f + " = " + (genExpr v)
     | Call(rece, tp, t, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
     | DynCall(rece, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
     | SubCast(t, expr) -> "(" + (toCsType t) + ")" + (genExpr expr)

@@ -103,21 +103,21 @@ let rec syntype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) : Type
                                let (FDef(name, reqt),arg) = List.find (fun (x,y) -> not (sel x y)) (List.zip fds exps)
                                raise (IncompatibleType(reqt, arg, expr))
                          | None -> raise (ClassNotFound(C, K))
-    | GetF(rece, f) -> match syntype env K rece with
-                       | Any -> raise (FieldAccessOnAny(rece))
+    | GetF(f) -> match syntype env K This with
+                       | Any -> raise (FieldAccessOnAny(This))
                        | Class C -> 
                         match inmtypes(G(f))(C)(K) with
                         | Some(GT(n,t)) -> t
-                        | Some(_) -> raise (IncompatibleMethodFound(G(f), rece, C))
-                        | None -> raise (FieldOrMethodNotFound(f, rece, C))
-    | SetF(rece, f, valu) -> 
-                       match syntype env K rece with
-                       | Any -> raise (FieldAccessOnAny(rece))
+                        | Some(_) -> raise (IncompatibleMethodFound(G(f), This, C))
+                        | None -> raise (FieldOrMethodNotFound(f, This, C))
+    | SetF(f, valu) -> 
+                       match syntype env K This with
+                       | Any -> raise (FieldAccessOnAny(This))
                        | Class C -> 
                         match inmtypes(S(f))(C)(K) with
-                        | Some(ST(n,t)) -> if anatype env K valu t then t else raise (IncompatibleType(t,valu,rece))
-                        | Some(_) -> raise (IncompatibleMethodFound(S(f), rece, C))
-                        | None -> raise (FieldOrMethodNotFound(f, rece, C))
+                        | Some(ST(n,t)) -> if anatype env K valu t then t else raise (IncompatibleType(t,valu,This))
+                        | Some(_) -> raise (IncompatibleMethodFound(S(f), This, C))
+                        | None -> raise (FieldOrMethodNotFound(f, This, C))
     | Call(rece, t1, t2, m, arg) -> 
                        match syntype env K rece with
                        | Any -> raise (MethodCallOnAny(rece))

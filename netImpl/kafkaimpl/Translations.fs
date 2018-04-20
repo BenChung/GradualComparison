@@ -27,23 +27,23 @@ let rec private ts_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> Exp
         let epr = ts_anatrans K env receiver Any
         let epa = ts_anatrans K env argument Any
         DynCall(epr, method, epa), Any
-|   GetF(receiver, field) -> 
-    let epr,tr = ts_syntrans K env receiver
+|   GetF(field) -> 
+    let epr,tr = ts_syntrans K env This
     match tr with
     |   Class(C) -> match inmtypes (G(field)) C K with
                     |   Some(GT(_,t)) ->
-                        GetF(epr,field), t
+                        GetF(field), t
                     |   _ -> raise (FieldOrMethodNotFound(field, epr, ""))
-    |   Any -> (raise (FieldAccessOnAny(receiver)))
-|   SetF(receiver, field, value) ->
-    let epr,tr = ts_syntrans K env receiver
+    |   Any -> (raise (FieldAccessOnAny(This)))
+|   SetF(field, value) ->
+    let epr,tr = ts_syntrans K env This
     match tr with
     |   Class(C) -> match inmtypes (S(field)) C K with
                     |   Some(ST(_,t)) ->
                         let ep = ts_anatrans K env value t
-                        SetF(epr, field, ep), t
+                        SetF(field, ep), t
                     |   _ -> raise (FieldOrMethodNotFound(field, epr, ""))
-    |   Any -> (raise (FieldAccessOnAny(receiver)))
+    |   Any -> (raise (FieldAccessOnAny(This)))
 |   SubCast(target, expr) ->
     let epr, tr = ts_syntrans K env expr
     epr, target

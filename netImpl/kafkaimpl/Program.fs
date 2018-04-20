@@ -199,10 +199,14 @@ class F {
 
 *)
 
-
 [<EntryPoint>]
 let main argv = 
     
+    (*write an example that access fields*)
+    let test = Parser.parse @"
+    class A {
+        m(x:A) : A { this } }"
+
     let res = Parser.parse @"
     class A {
         m(x:A) : A { this } }
@@ -240,7 +244,7 @@ let main argv =
 
     (<Any>new F())@n(<|Any|>new C())@a(<|Any|>new C())"
  
-    let tsv = Translations.ts_progtrans res.Value
+    let tsv = Translations.ts_progtrans test.Value
     let _ = Typechecker.wfprog tsv
     let trans = CGAST.transp(tsv)
     let subtypeRels = SubIL.addSubtypeImpls(tsv)(trans)
