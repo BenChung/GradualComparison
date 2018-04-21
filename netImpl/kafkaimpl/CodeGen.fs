@@ -24,9 +24,9 @@ let rec genExpr(ex:Expr) : string =
     | GetF(f) -> "this." + f
     | SetF(f, v) -> "this." + f + " = " + (genExpr v)
     | Call(rece, tp, t, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
-    | DynCall(rece, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
-    | SubCast(t, expr) -> "(" + (toCsType t) + ")" + (genExpr expr)
-    | BehCast(t, expr) -> match t with
+    | DynCall(rece, m, arg, posn) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
+    | SubCast(t, expr, posn) -> "(" + (toCsType t) + ")" + (genExpr expr)
+    | BehCast(t, expr, posn) -> match t with
                           | Class C -> "Runtime.tyWrapper<" + toCsType(t) + ">(" + genExpr(expr) + ")"
                           | Any -> "Runtime.dyWrapper(" + genExpr(expr) + ")"
 

@@ -1,5 +1,4 @@
-﻿// Learn more about F# at http://fsharp.org
-// See the 'F# Tutorial' project for more help.
+﻿module program
 open System
 open Parser
 open AST
@@ -244,17 +243,17 @@ let main argv =
 
     (<any>new F())@n(<|any|>new C())@a(<|any|>new C())"
     
-    let res1 = Parser.parse @"
+    let res1 = SurfAST.parse @"
     class A {
         m(x:A) : A { this } }
     class I {
         n(x:I) : I { this } }
     class T {
         s(x : I) : T { this } 
-        t(x : any) : any { this.s : I -> T ( <I> x) } }
+        t(x : any) : any { this.s(x) } }
 
-    (new T().t(new A()))"
-
+    new T().t(new A())"
+    
     let tsv = Translations.trs_progtrans res1.Value
     let _ = Typechecker.wfprog tsv
     let trans = CGAST.transp(tsv)

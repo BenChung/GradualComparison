@@ -114,12 +114,12 @@ let rec syntype(env : Map<string, Type>) (K: Map<string, k>) (expr: Expr) : Type
                         | Some(MDT(mp, t1p, t2p)) -> if anatype env K arg t1p then t2p else raise (IncompatibleType(t1p,arg,rece))
                         | Some(_) -> raise (IncompatibleMethodFound(MD(m, t1, t2), rece, C))
                         | None -> raise (FieldOrMethodNotFound(m, rece, C))
-    | DynCall(rece, m, arg) -> match anatype env K rece Any, anatype env K arg Any with
+    | DynCall(rece, m, arg, posn) -> match anatype env K rece Any, anatype env K arg Any with
                                | true, true -> Any
                                | _, _ -> raise (IncompatibleType(Any,rece,arg))
-    | SubCast(t, e) -> match syntype env K e with
+    | SubCast(t, e, posn) -> match syntype env K e with
                        | tp -> t 
-    | BehCast(t, e) -> match syntype env K e with
+    | BehCast(t, e, posn) -> match syntype env K e with
                        | (Class C) as tp -> 
                             match t with 
                             |   Class D -> raise (FullyTypedBehaviouralCast(t))

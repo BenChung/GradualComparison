@@ -19,14 +19,14 @@ let parse (prog:string) =
                (pipe2 (pstring "new" >>. ws >>. id .>> ws .>> pstring "(")
                      ((sepBy (ws >>. term) (ws >>. pstring ",")) .>> pstring ")")
                      (fun className args -> NewExn(className, args))) <|>
-               (attempt (pipe2 (pstring "<|" >>. ws >>. tpe .>> ws .>> pstring "|>") (ws >>. term) (fun t e -> BehCast(t,e)))) <|> 
-               (pipe2 (pstring "<" >>. ws >>. tpe .>> ws .>> pstring ">") (ws >>. term) (fun t e -> SubCast(t,e))) <|> 
+               (attempt (pipe3 getPosition (pstring "<|" >>. ws >>. tpe .>> ws .>> pstring "|>") (ws >>. term) (fun p t e -> BehCast(t,e,p)))) <|> 
+               (pipe3 getPosition (pstring "<" >>. ws >>. tpe .>> ws .>> pstring ">") (ws >>. term) (fun p t e -> SubCast(t,e,p))) <|> 
                ((pstring "(" >>. ws >>. term .>> ws .>> pstring ")") |>> (fun e -> e)) <|> 
                (id |>> fun x -> Var x)
     let callExpr = (attempt (pstring "." >>. (attempt ((pstring "this." >>. id .>> ws .>> pstring "=" .>> ws) |>> (fun name -> fun exp -> GetF(name))) <|>
                                              attempt (pipe2 (pstring "this." >>. id .>> ws .>> pstring "=" .>> ws) (term .>> ws) (fun name arg -> fun exp -> SetF(name, arg))) <|>
                                              attempt (pipe4 (id .>> ws .>> pstring ":" .>> ws) (tpe .>> ws .>> pstring "->" .>> ws) (tpe .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name t1 t2 arg -> fun exp -> Call(exp,t1,t2,name,arg)))))) <|>
-                   (attempt (pipe2 (pstring "@" >>. id .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun name arg -> fun exp -> DynCall(exp, name, arg)))) 
+                   (attempt (pipe3 getPosition (pstring "@" >>. id .>> ws .>> pstring "(" .>> ws) (term .>> ws .>> pstring ")") (fun posn name arg -> fun exp -> DynCall(exp, name, arg, posn)))) 
     do termImpl := (attempt (pipe2 expr (many callExpr) (fun e l -> List.fold (fun acc f -> f acc) e l))) <|> expr
     let term = termImpl.Value
     let body = (sepBy1 term (attempt (ws >>. pstring ";" >>. ws)))
