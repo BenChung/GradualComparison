@@ -9,7 +9,26 @@ using System.Threading.Tasks;
 
 namespace Kafka
 {
-    public class CastException : Exception { }
+    public struct LocationInfo
+    {
+        string filename;
+        int line, index, column;
+        public LocationInfo(string filename, int line, int index, int column)
+        {
+            this.filename = filename;
+            this.line = line;
+            this.index = index;
+            this.column = column;
+        }
+    }
+    public class CastException : Exception {
+        LocationInfo loc;
+        public CastException(LocationInfo loc)
+        {
+            this.loc = loc;
+        }
+    }
+
     public class Runtime
     {
         private static AssemblyName classGenName;
@@ -28,15 +47,24 @@ namespace Kafka
             tyWrapperf = runtimeType.GetMethod("tyWrapper");
         }
 
-        public static dynamic dyWrapper<T>(T src)
+        public static T rtCast<T>(dynamic arg, LocationInfo loc)
+        {
+            if (arg is T)
+            {
+                return (T)arg;
+            } else
+            {
+                throw new CastException(loc);
+            }
+        }
+
+        public static dynamic dyWrapper<T>(LocationInfo sourcelocation, T src)
         {
             Type source = typeof(T);
             BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
 
-            Dictionary<string, PropertyInfo> srcPropMap;
-            Dictionary<string, MethodInfo> srcMethMap;
-            MakeMemberMaps(source, flags, out srcPropMap, out srcMethMap);
-
+            MakeMemberMaps(source, flags, sourcelocation, out Dictionary<string, PropertyInfo> srcPropMap, out Dictionary<string, MethodInfo> srcMethMap);
+            
             // no correctness criteria.
             // emit crank.
 
@@ -44,25 +72,22 @@ namespace Kafka
             // no interface implementations
 
             var thatf = tb.DefineField("that", source, FieldAttributes.Private);
-            MakeConstructor(source, tb, thatf);
-
-            foreach (string k in srcPropMap.Keys)
-            {
-                MakePropertyWrapper(tb, thatf, k, typeof(object), srcPropMap[k]);
-            }
+            var locf = tb.DefineField("loc", typeof(LocationInfo), FieldAttributes.Private);
+            MakeConstructor(source, tb, thatf, locf);
+            
 
             foreach (string k in srcMethMap.Keys)
             {
                 MethodInfo srcInfo = srcMethMap[k];
-                MakeMethodWrapper(tb, thatf, k, srcInfo, new Type[] { typeof(object) }, typeof(object), null);
+                MakeMethodWrapper(tb, thatf, locf, k, srcInfo, new Type[] { typeof(object) }, typeof(object), null, sourcelocation);
             }
 
             Type wrapper = tb.CreateType();
             //ab.Save("KafkaWrapper.dll");
-            return (dynamic)wrapper.GetConstructor(new Type[] { source }).Invoke(new object[] { src });
+            return (dynamic)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
         }
 
-        public static T tyWrapper<T>(dynamic src)
+        public static T tyWrapper<T>(LocationInfo sourcelocation, dynamic src)
         {
             Type source = src.GetType();
             Type target = typeof(T);
@@ -80,19 +105,19 @@ namespace Kafka
 
             Dictionary<string, PropertyInfo> srcPropMap, tgtPropMap;
             Dictionary<string, MethodInfo> srcMethMap, tgtMethMap;
-            MakeMemberMaps(source, flags, out srcPropMap, out srcMethMap);
-            MakeMemberMaps(target, flags, out tgtPropMap, out tgtMethMap);
+            MakeMemberMaps(source, flags, sourcelocation, out srcPropMap, out srcMethMap);
+            MakeMemberMaps(target, flags, sourcelocation, out tgtPropMap, out tgtMethMap);
 
             foreach (string k in tgtPropMap.Keys)
             {
-                if (!srcPropMap.ContainsKey(k)) throw new CastException();
-                if (tgtPropMap[k].CanRead && !srcPropMap[k].CanRead) throw new CastException();
-                if (tgtPropMap[k].CanWrite && !srcPropMap[k].CanWrite) throw new CastException();
+                if (!srcPropMap.ContainsKey(k)) throw new CastException(sourcelocation);
+                if (tgtPropMap[k].CanRead && !srcPropMap[k].CanRead) throw new CastException(sourcelocation);
+                if (tgtPropMap[k].CanWrite && !srcPropMap[k].CanWrite) throw new CastException(sourcelocation);
             }
 
             foreach (string k in tgtMethMap.Keys)
             {
-                if (!srcMethMap.ContainsKey(k)) throw new CastException();
+                if (!srcMethMap.ContainsKey(k)) throw new CastException(sourcelocation);
             }
 
             //all compatibility checks done
@@ -100,21 +125,11 @@ namespace Kafka
             TypeBuilder tb = mb.DefineType(source.Name + "to" + target.Name + "wrapper", TypeAttributes.Public);
             tb.AddInterfaceImplementation(target);
             var thatf = tb.DefineField("that", source, FieldAttributes.Private);
-            MakeConstructor(source, tb, thatf);
+            var locf = tb.DefineField("loc", typeof(LocationInfo), FieldAttributes.Private);
+            MakeConstructor(source, tb, thatf, locf);
 
             Dictionary<string, PropertyBuilder> properties = new Dictionary<string, PropertyBuilder>();
             Dictionary<string, MethodBuilder> methods = new Dictionary<string, MethodBuilder>();
-
-            foreach (string k in srcPropMap.Keys)
-            {
-                PropertyInfo tgtProp = null;
-                if (tgtPropMap.ContainsKey(k))
-                {
-                    tgtProp = tgtPropMap[k];
-                }
-                PropertyInfo srcProp = srcPropMap[k];
-                properties.Add(k, MakePropertyWrapper(tb, thatf, k, tgtProp.PropertyType, srcProp));
-            }
 
             foreach (string k in srcMethMap.Keys)
             {
@@ -123,15 +138,15 @@ namespace Kafka
                 if (tgtMethMap.ContainsKey(k))
                 {
                     MethodInfo tgtInfo = tgtMethMap[k];
-                    generated = MakeMethodWrapper(tb, thatf, k, srcInfo,
+                    generated = MakeMethodWrapper(tb, thatf, locf, k, srcInfo,
                                              tgtInfo.GetParameters().Select(param => param.ParameterType).ToArray(),
-                                             tgtInfo.ReturnType, tgtInfo);
+                                             tgtInfo.ReturnType, tgtInfo, sourcelocation);
                 }
                 else
                 {
-                    generated = MakeMethodWrapper(tb, thatf, k, srcInfo,
+                    generated = MakeMethodWrapper(tb, thatf, locf, k, srcInfo,
                                              srcInfo.GetParameters().Select(param => param.ParameterType).ToArray(),
-                                             srcInfo.ReturnType, null);
+                                             srcInfo.ReturnType, null, sourcelocation);
                 }
                 methods.Add(k, generated);
             }
@@ -144,7 +159,7 @@ namespace Kafka
 
             Type wrapper = tb.CreateType();
             //ab.Save("KafkaWrapper.dll");
-            return (T)wrapper.GetConstructor(new Type[] { source }).Invoke(new object[] { src });
+            return (T)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
         }
 
         private static void MakeExplicitImplementation(TypeBuilder tb, Type mbSt, BindingFlags bf, Dictionary<string, PropertyBuilder> props, Dictionary<string, MethodBuilder> methods)
@@ -170,7 +185,7 @@ namespace Kafka
             }
         }
 
-        private static void MakeMemberMaps(Type source, BindingFlags flags, out Dictionary<string, PropertyInfo> srcPropMap, out Dictionary<string, MethodInfo> srcMethMap)
+        private static void MakeMemberMaps(Type source, BindingFlags flags, LocationInfo sourcelocation, out Dictionary<string, PropertyInfo> srcPropMap, out Dictionary<string, MethodInfo> srcMethMap)
         {
             PropertyInfo[] srcProps = source.GetProperties();
             MethodInfo[] srcMeths = source.GetMethods(flags);
@@ -180,31 +195,35 @@ namespace Kafka
                 srcMethMap = srcMeths.ToDictionary(val => val.Name, val => val);
             } catch (ArgumentException e)
             {
-                throw new CastException();
+                throw new CastException(sourcelocation);
             }
         }
 
-        private static void MakeConstructor(Type source, TypeBuilder tb, FieldBuilder thatf)
+        private static void MakeConstructor(Type source, TypeBuilder tb, FieldBuilder thatf, FieldBuilder locf)
         {
-            var cb = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { source });
+            var cb = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { source, typeof(LocationInfo) });
             var cbIlGen = cb.GetILGenerator();
             cbIlGen.Emit(OpCodes.Ldarg_0);
             cbIlGen.Emit(OpCodes.Ldarg_1);
             cbIlGen.Emit(OpCodes.Stfld, thatf);
+            cbIlGen.Emit(OpCodes.Ldarg_2);
+            cbIlGen.Emit(OpCodes.Stfld, locf);
             cbIlGen.Emit(OpCodes.Ret);
         }
 
-        private static MethodBuilder MakeMethodWrapper(TypeBuilder tb, FieldBuilder thatf, string k, MethodInfo srcInfo, Type[] argTypes, Type retType, MethodInfo tgtInfo)
+        private static MethodBuilder MakeMethodWrapper(TypeBuilder tb, FieldBuilder thatf, FieldBuilder locf, string k, MethodInfo srcInfo, Type[] argTypes, Type retType, MethodInfo tgtInfo, LocationInfo info)
         {
             var methodType = argTypes[0];
             var mb = tb.DefineMethod(k, MethodAttributes.Public | MethodAttributes.Virtual, retType, argTypes);
             var mil = mb.GetILGenerator();
             mil.Emit(OpCodes.Ldarg_0);
             mil.Emit(OpCodes.Ldfld, thatf);
+            mil.Emit(OpCodes.Ldfld, locf);
             mil.Emit(OpCodes.Ldarg_1);
-            WrapValue(argTypes[0], srcInfo.GetParameters()[0].ParameterType, mil);
+            WrapValue(argTypes[0], srcInfo.GetParameters()[0].ParameterType, mil, info);
             mil.Emit(OpCodes.Callvirt, srcInfo);
-            WrapValue(srcInfo.ReturnType, retType, mil);
+            mil.Emit(OpCodes.Ldfld, locf);
+            WrapValue(srcInfo.ReturnType, retType, mil, info);
             mil.Emit(OpCodes.Ret);
             string written = mil.ToString();
             if (tgtInfo != null)
@@ -214,74 +233,20 @@ namespace Kafka
             return mb;
         }
 
-        private static PropertyBuilder MakePropertyWrapper(TypeBuilder tb, FieldBuilder thatf, string k, Type tgtType, PropertyInfo srcProp)
-        {
-            Type srcType = srcProp.PropertyType;
-            PropertyBuilder pb = tb.DefineProperty(k, PropertyAttributes.None, tgtType, null);
-
-            MethodAttributes gsAttr = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
-            if (tgtType != null)
-            {
-                MethodBuilder getPropMthdBuilder = tb.DefineMethod("get_" + k, gsAttr, tgtType, Type.EmptyTypes);
-                ILGenerator ilgen = getPropMthdBuilder.GetILGenerator();
-                ilgen.Emit(OpCodes.Ldarg_0);
-                ilgen.Emit(OpCodes.Ldfld, thatf);
-                ilgen.Emit(OpCodes.Callvirt, srcProp.GetMethod);
-                WrapValue(srcType, tgtType, ilgen);
-                ilgen.Emit(OpCodes.Ret);
-                pb.SetGetMethod(getPropMthdBuilder);
-            }
-            else if (srcProp.GetMethod != null) // src has getter, tgt doesn't, duplicate it through
-            {
-                MethodBuilder getPropMthdBuilder = tb.DefineMethod("get_" + k, gsAttr, srcProp.PropertyType, Type.EmptyTypes);
-                ILGenerator ilgen = getPropMthdBuilder.GetILGenerator();
-                ilgen.Emit(OpCodes.Ldarg_0);
-                ilgen.Emit(OpCodes.Ldfld, thatf);
-                ilgen.Emit(OpCodes.Callvirt, srcProp.GetMethod);
-                ilgen.Emit(OpCodes.Ret);
-                pb.SetGetMethod(getPropMthdBuilder);
-            }
-
-            if (tgtType != null)
-            {
-                MethodBuilder setPropMthdBuilder = tb.DefineMethod("set_" + k, gsAttr, null, new Type[] { tgtType });
-                ILGenerator ilgen = setPropMthdBuilder.GetILGenerator();
-                ilgen.Emit(OpCodes.Ldarg_0);
-                ilgen.Emit(OpCodes.Ldfld, thatf);
-                ilgen.Emit(OpCodes.Ldarg_1);
-                WrapValue(tgtType, srcType, ilgen);
-                ilgen.Emit(OpCodes.Callvirt, srcProp.SetMethod);
-                ilgen.Emit(OpCodes.Ret);
-                pb.SetSetMethod(setPropMthdBuilder);
-            }
-            else if (srcProp.SetMethod != null) // src has setter, tgt doesn't, duplicate it through
-            {
-                MethodBuilder setPropMthdBuilder = tb.DefineMethod("set_" + k, gsAttr, null, new Type[] { tgtType });
-                ILGenerator ilgen = setPropMthdBuilder.GetILGenerator();
-                ilgen.Emit(OpCodes.Ldarg_0);
-                ilgen.Emit(OpCodes.Ldfld, thatf);
-                ilgen.Emit(OpCodes.Ldarg_1);
-                ilgen.Emit(OpCodes.Callvirt, srcProp.SetMethod);
-                ilgen.Emit(OpCodes.Ret);
-                pb.SetSetMethod(setPropMthdBuilder);
-            }
-            return pb;
-        }
-
-        private static void WrapValue(Type srcType, Type tgtType, ILGenerator ilgen)
+        private static void WrapValue(Type srcType, Type tgtType, ILGenerator ilgen, LocationInfo sourceloc)
         {
             if (srcType.IsEquivalentTo(typeof(object)) && tgtType.IsInterface) // * -> C
             {
-                ilgen.Emit(OpCodes.Call, tyWrapperf.MakeGenericMethod(tgtType));
+                ilgen.Emit(OpCodes.Call, tyWrapperf.MakeGenericMethod(typeof(LocationInfo), tgtType));
             }
             else if (srcType.IsInterface && tgtType.IsEquivalentTo(typeof(object))) // C -> *
             {
-                ilgen.Emit(OpCodes.Call, dyWrapperf.MakeGenericMethod(srcType));
+                ilgen.Emit(OpCodes.Call, dyWrapperf.MakeGenericMethod(typeof(LocationInfo), srcType));
             }
             else if (srcType.IsEquivalentTo(tgtType)) { /* do zip */ }
             else
             {
-                throw new CastException();
+                throw new CastException(sourceloc);
             }
         }
     }

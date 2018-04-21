@@ -25,10 +25,14 @@ let rec genExpr(ex:Expr) : string =
     | SetF(f, v) -> "this." + f + " = " + (genExpr v)
     | Call(rece, tp, t, m, arg) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
     | DynCall(rece, m, arg, posn) -> (genExpr rece) + "." + m + "(" + (genExpr arg) + ")"
-    | SubCast(t, expr, posn) -> "(" + (toCsType t) + ")" + (genExpr expr)
-    | BehCast(t, expr, posn) -> match t with
-                          | Class C -> "Runtime.tyWrapper<" + toCsType(t) + ">(" + genExpr(expr) + ")"
-                          | Any -> "Runtime.dyWrapper(" + genExpr(expr) + ")"
+    | SubCast(t, expr, posn) -> 
+        let locinfo = "new LocationInfo(\"" + posn.StreamName + "\", " + string posn.Line + ", " + string posn.Index + ", " + string posn.Column + ")"
+        "Runtime.rtCast<" + (toCsType t) + ">(" + (genExpr expr) + ", " + locinfo + ")"
+    | BehCast(t, expr, posn) -> 
+                          let locinfo = "new LocationInfo(\"" + posn.StreamName + "\", " + string posn.Line + ", " + string posn.Index + ", " + string posn.Column + ")"
+                          match t with
+                          | Class C -> "Runtime.tyWrapper<" + toCsType(t) + ">(" + locinfo + ", " + genExpr(expr) + ")"
+                          | Any -> "Runtime.dyWrapper(" + locinfo + ", " + genExpr(expr) + ")"
 
 and genExprTl(ex:Expr) : string = 
     match ex with 
