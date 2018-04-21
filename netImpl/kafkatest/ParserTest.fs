@@ -38,10 +38,10 @@ type ParserTest1() =
         (Parser.parse @"new B(") |> should equal None
     [<Test>]
     member x.TestGet() =
-        (Parser.parse @"x.f()") |> should equal (Some(Program([], GetF("f") )))
+        (Parser.parse @"this.f") |> should equal (Some(Program([], GetF("f") )))
     [<Test>]
     member x.TestSet() =
-        (Parser.parse @"x.f(y)") |> should equal (Some(Program([], SetF("f", Var "y") )))
+        (Parser.parse @"this.f = y") |> should equal (Some(Program([], SetF("f", Var "y") )))
     [<Test>]
     member x.TestMCall() =
         (Parser.parse @"x.m : t -> t (y)") |> should equal (Some(Program([], Call(Var "x", Class "t", Class "t", "m", Var "y"))))

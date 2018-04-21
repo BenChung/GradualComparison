@@ -38,7 +38,7 @@ let parse (prog:string) =
                    ( body .>> ws .>> pstring "}")
                    (fun name var tp t body -> MDef(name, var, tp, t, body)) 
     let clazz = pipe3 (ws >>. str_ws "class" >>. ws >>. id .>> ws .>> pstring "{") (sepEndBy (attempt (ws >>. fd)) ws) ((sepEndBy (ws >>. (attempt md)) ws) .>> pstring "}") (fun name fds mds -> ClassDef(name, fds, mds))
-    let program = pipe2 ((sepEndBy clazz ws) .>> ws) (term .>> ws) (fun c t -> Program(c,t))
+    let program = pipe2 ((sepEndBy clazz ws) .>> ws) (term .>> ws .>> eof) (fun c t -> Program(c,t))
     match run program prog with
     | Success(result, _, _) -> Some(result)
     | Failure(errorMsg, _, _) -> printfn "Failure %s" errorMsg; None

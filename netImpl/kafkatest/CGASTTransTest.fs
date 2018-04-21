@@ -12,6 +12,4 @@ type CGASTTests() =
     [<Test>]
     member x.TestMd() =
         (match CGAST.findps([])([MDef("m","x",Any,Any, [Var "x"])]) with (a,b) -> a = [] && b = [CMDef("m","x",Any,Any, [Var "x"])]) |> should equal true
-    [<Test>]
-    member x.TestFd() =
-        (match CGAST.findps([FDef("f",Any)])([]) with (a,b) -> a = [CFDef("f",Any)] && b = []) |> should equal true
+     

@@ -31,26 +31,26 @@ let orElse<'a>(a: 'a option) (b: 'a option) : 'a option =
     | Some a' -> Some a'
     | None -> b
                                    
+        
+let mtypes (ClassDef(name, fds, mds)) : mt list =
+    List.append (List.collect (fun (FDef(name, tpe)) -> [GT(name, tpe) ; ST(name,tpe)]) fds)
+                (List.map (function
+                                | (MDef(name, _, t1, t2, _)) -> MDT(name, t1, t2)) mds)
+                  
 
-let inmtypes (m:mtd) (c:string) (K: Map<string, k>) : mt option =
+let rec inmtypes (m:mtd) (c:string) (K: Map<string, k>) : mt option =
     match K.TryFind c with
     | None -> raise (ClassNotFound(c, K))
     | Some (ClassDef(name, fds, mds)) -> 
                 match m with
                 | MD(name, t1, t2) -> List.tryPick (fun md -> match md with 
                                                               | (MDef(mp, x, t1p, t2p, expr)) -> 
-                                                                if mp = name && t1 = t1p && t2 = t2p then
+                                                                if mp = name && subtype K (Set.empty) t1 t1p && 
+                                                                                subtype K (Set.empty) t2p t2 then
                                                                    Some(MDT(name, t1p, t2p))
                                                                 else
-                                                                   None
-                                                              | _ -> None) mds  
-        
-let mtypes (ClassDef(name, fds, mds)) : mt list =
-    List.append (List.collect (fun (FDef(name, tpe)) -> [GT(name, tpe) ; ST(name,tpe)]) fds)
-                (List.map (function
-                                | (MDef(name, _, t1, t2, _)) -> MDT(name, t1, t2)) mds)
-                                   
-let rec subtype(K:Map<string,k>)(mu:Set<string * string>) : Type -> Type -> bool = fun x -> fun y -> 
+                                                                   None) mds                   
+and subtype(K:Map<string,k>)(mu:Set<string * string>) : Type -> Type -> bool = fun x -> fun y -> 
     match (x,y) with
     |   (Class a, Class b) -> 
         match Set.contains (a,b) mu with
@@ -142,7 +142,7 @@ let wffield (K:Map<string, k>) (f: fd) =
 let rec private butlast<'a,'b,'c>(f1 : 'a -> 'b)(f2 : 'a -> 'c)(l:'a list) : 'c option = 
     match l with
     | e1 :: e2 :: r -> let _ = f1(e1)
-                       butlast(f1)(f2)r
+                       butlast(f1)(f2)(e2::r)
     | e2 :: nil -> Some(f2(e2))
     | nil -> None
 

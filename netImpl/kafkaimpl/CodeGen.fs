@@ -10,7 +10,11 @@ let toCsType(t:Type) : string =
     match t with
     | Any -> "dynamic"
     | Class c -> "I" + c
-
+let cnt = ref 0
+let gen() : string = 
+    let ocnt = !cnt
+    cnt := !cnt + 1
+    string ocnt
 let rec genExpr(ex:Expr) : string =
     match ex with
     | Var n -> n
@@ -25,8 +29,17 @@ let rec genExpr(ex:Expr) : string =
     | BehCast(t, expr) -> match t with
                           | Class C -> "Runtime.tyWrapper<" + toCsType(t) + ">(" + genExpr(expr) + ")"
                           | Any -> "Runtime.dyWrapper(" + genExpr(expr) + ")"
+
+and genExprTl(ex:Expr) : string = 
+    match ex with 
+    | NewExn(_,_) -> genExpr(ex)
+    | SetF(_,_) -> genExpr(ex)
+    | _ -> "var xv" + gen() + " = " + genExpr(ex)
     
-let genBody(ex:Expr list) : string = Seq.fold (fun acc x -> acc + x + ";\n") "" (List.mapi (fun i expr -> if i = (List.length ex) - 1 then "return " + expr else expr) (List.map genExpr ex))
+let genBody(ex:Expr list) : string = 
+    Seq.fold (fun acc x -> acc + x + ";\n") "" 
+        (List.mapi (fun i expr -> if i = (List.length ex) - 1 then "return " + (genExpr expr) else (genExprTl expr))
+                ex)
 
 let genDef(md:cgmd) : string =
     match md with
