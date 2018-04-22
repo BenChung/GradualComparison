@@ -23,6 +23,7 @@ let execute(s:string) =
                         CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
     use ms = new MemoryStream()
     let result = compilation.Emit(ms)
+    File.WriteAllBytes("KafkaGen.dll", ms.ToArray());
     match result.Success with
     | false -> result.Diagnostics 
             //|> Seq.filter (fun res -> res.IsWarningAsError || res.Severity = DiagnosticSeverity.Error) 

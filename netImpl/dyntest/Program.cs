@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Runtime.Remoting;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,10 +38,13 @@ namespace Kafka
         private static Type runtimeType;
         private static MethodInfo dyWrapperf, tyWrapperf;
 
+        private static Dictionary<string, Type> dyWrappers = new Dictionary<string, Type>();
+        private static Dictionary<Tuple<string, string>, Type> tyWrappers = new Dictionary<Tuple<string, string>, Type>();
+
         static Runtime()
         {
             classGenName = new AssemblyName("CastAssembly");
-            ab = AppDomain.CurrentDomain.DefineDynamicAssembly(classGenName, AssemblyBuilderAccess.Run);
+            ab = AppDomain.CurrentDomain.DefineDynamicAssembly(classGenName, AssemblyBuilderAccess.RunAndSave);
             mb = ab.DefineDynamicModule("KafkaWrappers"); //, "KafkaWrapper.dll"
             runtimeType = typeof(Runtime);
             dyWrapperf = runtimeType.GetMethod("dyWrapper");
@@ -61,36 +65,69 @@ namespace Kafka
         public static dynamic dyWrapper<T>(LocationInfo sourcelocation, T src)
         {
             Type source = typeof(T);
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
-
-            MakeMemberMaps(source, flags, sourcelocation, out Dictionary<string, PropertyInfo> srcPropMap, out Dictionary<string, MethodInfo> srcMethMap);
+            Type wrapper = null;
+            if (dyWrappers.ContainsKey(source.Name))
+            {
+                wrapper = dyWrappers[source.Name];
+            } else
+            {
+                wrapper = makeDyWrapper(source, sourcelocation);
+                dyWrappers[source.Name] = wrapper;
+            }
             
             // no correctness criteria.
             // emit crank.
+            //ab.Save("KafkaWrapper.dll");
+            return (dynamic)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
+        }
 
+        private static Type makeDyWrapper(Type source, LocationInfo sourcelocation)
+        {
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
+
+            MakeMemberMaps(source, flags, sourcelocation, out Dictionary<string, PropertyInfo> srcPropMap, out Dictionary<string, MethodInfo> srcMethMap);
             TypeBuilder tb = mb.DefineType(source.Name + "toDynwrapper", TypeAttributes.Public);
             // no interface implementations
 
             var thatf = tb.DefineField("that", source, FieldAttributes.Private);
             var locf = tb.DefineField("loc", typeof(LocationInfo), FieldAttributes.Private);
             MakeConstructor(source, tb, thatf, locf);
-            
+
 
             foreach (string k in srcMethMap.Keys)
             {
                 MethodInfo srcInfo = srcMethMap[k];
                 MakeMethodWrapper(tb, thatf, locf, k, srcInfo, new Type[] { typeof(object) }, typeof(object), null, sourcelocation);
             }
-
             Type wrapper = tb.CreateType();
-            //ab.Save("KafkaWrapper.dll");
-            return (dynamic)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
+            //if ((source.Name + "toDynwrapper").Equals("CtoDynwrappertoIEwrappertoDynwrapper"))
+            //    ab.Save("KafkaWrapper.dll");
+            return wrapper;
         }
 
         public static T tyWrapper<T>(LocationInfo sourcelocation, dynamic src)
         {
             Type source = src.GetType();
             Type target = typeof(T);
+            Type wrapper = null;
+
+            var key = Tuple.Create(source.Name, target.Name);
+            if (tyWrappers.ContainsKey(key))
+            {
+                wrapper = tyWrappers[key];
+            }
+            else
+            {
+                wrapper = maketywrapper(sourcelocation, source, target);
+                tyWrappers[key] = wrapper;
+            }
+
+            //ab.Save("KafkaWrapper.dll");
+            return (T)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
+        }
+
+        private static Type maketywrapper(LocationInfo sourcelocation, Type source, Type target)
+        {
             BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly;
 
             SubtypeOf sts = (SubtypeOf)Attribute.GetCustomAttribute(target, typeof(SubtypeOf));
@@ -98,7 +135,8 @@ namespace Kafka
             if (sts != null)
             {
                 explicitSts = sts.Subtypes;
-            } else
+            }
+            else
             {
                 explicitSts = Type.EmptyTypes;
             }
@@ -158,8 +196,7 @@ namespace Kafka
             }
 
             Type wrapper = tb.CreateType();
-            //ab.Save("KafkaWrapper.dll");
-            return (T)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
+            return wrapper;
         }
 
         private static void MakeExplicitImplementation(TypeBuilder tb, Type mbSt, BindingFlags bf, Dictionary<string, PropertyBuilder> props, Dictionary<string, MethodBuilder> methods)
@@ -219,10 +256,12 @@ namespace Kafka
             var mil = mb.GetILGenerator();
             mil.Emit(OpCodes.Ldarg_0);
             mil.Emit(OpCodes.Ldfld, thatf);
+            mil.Emit(OpCodes.Ldarg_0);
             mil.Emit(OpCodes.Ldfld, locf);
             mil.Emit(OpCodes.Ldarg_1);
             WrapValue(argTypes[0], srcInfo.GetParameters()[0].ParameterType, mil, info);
             mil.Emit(OpCodes.Callvirt, srcInfo);
+            mil.Emit(OpCodes.Ldarg_0);
             mil.Emit(OpCodes.Ldfld, locf);
             WrapValue(srcInfo.ReturnType, retType, mil, info);
             mil.Emit(OpCodes.Ret);
