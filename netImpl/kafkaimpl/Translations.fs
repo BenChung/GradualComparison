@@ -138,6 +138,7 @@ let convert_type : Type -> AST.Type = function
 |   Any -> AST.Any
 |   Class C -> AST.Class C
 
+//transient
 let rec trs_anatrans(K:Map<string,k>)(env:Map<string,Type>)(ex : Expr)(tgt : Type)(check:bool)(posn : FParsec.Position): AST.Expr =
     let exp,ty = trs_syntrans K env ex
     match subtype K (Set.empty) ty tgt with
@@ -158,13 +159,13 @@ and trs_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> AST.Expr * Typ
                         AST.SubCast(convert_type t2, AST.Call(epr, AST.Any, AST.Any, method, AST.SubCast(AST.Any, ep, pos)), pos), t2
                     |   _ -> raise (FieldOrMethodNotFound(method, receiver, ""))
     |   Any -> 
-        let ep = ts_anatrans K env argument Any
+        let ep = trs_anatrans K env argument Any true pos
         AST.DynCall(AST.SubCast(AST.Any, epr, pos), method, AST.SubCast(AST.Any, ep, pos), pos), Any
 |   GetF(This(_) as th,field,posn) as g -> 
     let epr,tr = trs_syntrans K env th
     match tr with
     |   Class(C) -> match findfield K C field with
-                    |   Some(t) -> AST.GetF(field), t
+                    |   Some(t) -> AST.SubCast(convert_type t, AST.GetF(field), posn), t
                     |   _ -> raise (FieldOrMethodNotFound(field, g, ""))
     |   Any -> (raise (FieldAccessOnAny(th)))
 |   GetF(_, _, _) as gf -> raise (FieldAccessOnNotThis(gf))
@@ -202,3 +203,68 @@ let trs_progtrans : prog -> AST.prog = function
     let K = makek(ks)
     let expp, outt = trs_syntrans K (Map.empty) exp
     AST.Program(List.map (trs_classtrans K) ks, expp)
+
+    
+//behavioural
+let rec beh_anatrans(K:Map<string,k>)(env:Map<string,Type>)(ex : Expr)(tgt : Type)(posn : FParsec.Position): AST.Expr =
+    let exp,ty = beh_syntrans K env ex
+    match subtype K (Set.empty) ty tgt with
+    | true -> exp
+    | false -> AST.BehCast(convert_type tgt, exp, posn)
+and beh_syntrans(K:Map<string,k>)(env:Map<string,Type>) : Expr -> AST.Expr * Type = function
+|   That(_) -> raise (VariableNotFound("that", env))
+|   This(_) -> AST.This, match env.TryFind "this" with Some(t) -> t | None -> raise (VariableNotFound("this", env))
+|   Var(x,posn) -> match env.TryFind x with Some(t) -> AST.Var(x), t | None -> raise (VariableNotFound(x, env))
+|   SurfAST.Call(receiver, method, argument, pos) -> 
+    let epr,tr = beh_syntrans K env receiver
+    match tr with
+    |   Class(C) -> match findmethod K C method with
+                    |   Some((t1,t2)) ->
+                        let ep = beh_anatrans K env argument t1 pos
+                        AST.Call(epr, convert_type t1, convert_type t2, method, ep), t2
+                    |   _ -> raise (FieldOrMethodNotFound(method, receiver, ""))
+    |   Any -> 
+        let ep = beh_anatrans K env argument Any pos
+        AST.DynCall(epr, method, ep, pos), Any
+|   GetF(This(_) as th,field,posn) as g -> 
+    let epr,tr = beh_syntrans K env th
+    match tr with
+    |   Class(C) -> match findfield K C field with
+                    |   Some(t) -> AST.GetF(field), t
+                    |   _ -> raise (FieldOrMethodNotFound(field, g, ""))
+    |   Any -> (raise (FieldAccessOnAny(th)))
+|   GetF(_, _, _) as gf -> raise (FieldAccessOnNotThis(gf))
+|   SetF(This(_) as th, field, value, posn) as sf ->
+    let epr,tr = beh_syntrans K env th
+    match tr with
+    |   Class(C) -> match findfield K C field with
+                    |   Some(t) -> 
+                        let epv = beh_anatrans K env value t posn
+                        AST.SetF(field,epv), t
+                    |   _ -> raise (FieldOrMethodNotFound(field, sf, ""))
+    |   Any -> (raise (FieldAccessOnAny(th)))
+|   SetF(_,_,_,_) as sf -> raise (FieldAccessOnNotThis(sf))
+|   NewExn(C, exprs, posn) ->
+    let fdts = match K.TryFind C with
+               |   None -> raise (ClassNotFound(C, K))
+               |   Some(ClassDef(_,fds,_, posn)) -> List.map (function (FDef(name, tpe, posn)) -> tpe) fds
+    let tns = List.map2 (fun ex t -> beh_anatrans K env ex t posn) exprs fdts
+    AST.NewExn(C, tns), Class(C)
+
+let private beh_methtrans(K:Map<string,k>)(C:string) : md -> AST.md = function
+|   MDef(name, var, t1, t2, body, posn) ->
+    let env = (Map[ ("this", Class C) ; (var, t1) ])
+    match butlast (fun exp -> match beh_syntrans K env exp with (epr,tr) -> epr) 
+                  (fun exp -> beh_anatrans K env exp t2 posn) body with
+    |   [] -> raise (EmptyMethodBody(name))
+    |   body -> AST.MDef(name, var, convert_type t1, convert_type t2, body)
+
+let private beh_classtrans(K:Map<string,k>) : k -> AST.k = function
+|   ClassDef(name, fds, mds, posn) ->
+    AST.ClassDef(name, List.map (function FDef(name,tpe, posn) -> AST.FDef(name, convert_type tpe)) fds, List.map (beh_methtrans K name) mds)
+
+let beh_progtrans : prog -> AST.prog = function
+|   Program(ks, exp) -> 
+    let K = makek(ks)
+    let expp, outt = beh_syntrans K (Map.empty) exp
+    AST.Program(List.map (beh_classtrans K) ks, expp)

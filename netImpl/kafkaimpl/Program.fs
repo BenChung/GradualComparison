@@ -254,7 +254,7 @@ let main argv =
 
     new T().t(new A())"
     
-    let tsv = Translations.trs_progtrans res1.Value
+    let tsv = Translations.beh_progtrans res1.Value
     let _ = Typechecker.wfprog tsv
     let trans = CGAST.transp(tsv)
     let subtypeRels = SubIL.addSubtypeImpls(tsv)(trans)

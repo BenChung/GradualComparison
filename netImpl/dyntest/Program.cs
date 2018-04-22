@@ -40,8 +40,8 @@ namespace Kafka
         static Runtime()
         {
             classGenName = new AssemblyName("CastAssembly");
-            ab = AppDomain.CurrentDomain.DefineDynamicAssembly(classGenName, AssemblyBuilderAccess.Run);
-            mb = ab.DefineDynamicModule("KafkaWrappers"); //, "KafkaWrapper.dll"
+            ab = AppDomain.CurrentDomain.DefineDynamicAssembly(classGenName, AssemblyBuilderAccess.RunAndSave);
+            mb = ab.DefineDynamicModule("KafkaWrappers", "KafkaWrapper.dll"); //, "KafkaWrapper.dll"
             runtimeType = typeof(Runtime);
             dyWrapperf = runtimeType.GetMethod("dyWrapper");
             tyWrapperf = runtimeType.GetMethod("tyWrapper");
@@ -83,7 +83,7 @@ namespace Kafka
             }
 
             Type wrapper = tb.CreateType();
-            //ab.Save("KafkaWrapper.dll");
+            ab.Save("KafkaWrapper.dll");
             return (dynamic)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
         }
 
@@ -206,6 +206,7 @@ namespace Kafka
             cbIlGen.Emit(OpCodes.Ldarg_0);
             cbIlGen.Emit(OpCodes.Ldarg_1);
             cbIlGen.Emit(OpCodes.Stfld, thatf);
+            cbIlGen.Emit(OpCodes.Ldarg_0);
             cbIlGen.Emit(OpCodes.Ldarg_2);
             cbIlGen.Emit(OpCodes.Stfld, locf);
             cbIlGen.Emit(OpCodes.Ret);
@@ -237,11 +238,11 @@ namespace Kafka
         {
             if (srcType.IsEquivalentTo(typeof(object)) && tgtType.IsInterface) // * -> C
             {
-                ilgen.Emit(OpCodes.Call, tyWrapperf.MakeGenericMethod(typeof(LocationInfo), tgtType));
+                ilgen.Emit(OpCodes.Call, tyWrapperf.MakeGenericMethod(tgtType));
             }
             else if (srcType.IsInterface && tgtType.IsEquivalentTo(typeof(object))) // C -> *
             {
-                ilgen.Emit(OpCodes.Call, dyWrapperf.MakeGenericMethod(typeof(LocationInfo), srcType));
+                ilgen.Emit(OpCodes.Call, dyWrapperf.MakeGenericMethod(srcType));
             }
             else if (srcType.IsEquivalentTo(tgtType)) { /* do zip */ }
             else
