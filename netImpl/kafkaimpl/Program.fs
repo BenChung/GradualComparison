@@ -198,9 +198,47 @@ class F {
 
 *)
 
+let litmus1 = @"
+class A {
+    m(x:A) : A { this } }
+class I {
+    n(x:I) : I { this } }
+class T {
+    s(x : I) : T { this } 
+    t(x : any) : any { this.s(x) } }
+
+new T().t(new A())"
+
+let litmus2 = @"
+class A {
+    m(x:A):A {this}}
+class Q {
+    n(x:Q):Q {this}}
+class I {
+    m(x:Q):I {this}}
+class T {
+    s(x:I):T {this}
+    t(x:any):any {this.s(x)}}
+new T().t(new A())
+"
+
+let litmus3 = @"
+class C {
+    a(x:C):C {x}}
+class D {
+    b(x:D):D {x}}
+class E {
+    a(x:D):D {x}}
+class F {
+    m(x:E):E {x}
+    n(x:any):any {this.m(x)}}
+
+new F().n(new C()).a(new C())
+"
+
 [<EntryPoint>]
 let main argv = 
-    
+    (*
     (*write an example that access fields*)
     let test = Parser.parse @"
     class A {
@@ -241,18 +279,9 @@ let main argv =
         m(x:E):E { x } 
         n(x:any):any { <any>(this.m : E -> E ( <E> x)) }}
 
-    (<any>new F())@n(<|any|>new C())@a(<|any|>new C())"
+    (<any>new F())@n(<|any|>new C())@a(<|any|>new C())" *)
     
-    let res1 = SurfAST.parse @"
-    class A {
-        m(x:A) : A { this } }
-    class I {
-        n(x:I) : I { this } }
-    class T {
-        s(x : I) : T { this } 
-        t(x : any) : any { this.s(x) } }
-
-    new T().t(new A())"
+    let res1 = SurfAST.parse litmus3
     
     let tsv = Translations.beh_progtrans res1.Value
     let _ = Typechecker.wfprog tsv

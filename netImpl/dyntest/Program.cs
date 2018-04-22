@@ -40,8 +40,8 @@ namespace Kafka
         static Runtime()
         {
             classGenName = new AssemblyName("CastAssembly");
-            ab = AppDomain.CurrentDomain.DefineDynamicAssembly(classGenName, AssemblyBuilderAccess.RunAndSave);
-            mb = ab.DefineDynamicModule("KafkaWrappers", "KafkaWrapper.dll"); //, "KafkaWrapper.dll"
+            ab = AppDomain.CurrentDomain.DefineDynamicAssembly(classGenName, AssemblyBuilderAccess.Run);
+            mb = ab.DefineDynamicModule("KafkaWrappers"); //, "KafkaWrapper.dll"
             runtimeType = typeof(Runtime);
             dyWrapperf = runtimeType.GetMethod("dyWrapper");
             tyWrapperf = runtimeType.GetMethod("tyWrapper");
@@ -83,7 +83,7 @@ namespace Kafka
             }
 
             Type wrapper = tb.CreateType();
-            ab.Save("KafkaWrapper.dll");
+            //ab.Save("KafkaWrapper.dll");
             return (dynamic)wrapper.GetConstructor(new Type[] { source, typeof(LocationInfo) }).Invoke(new object[] { src, sourcelocation });
         }
 
