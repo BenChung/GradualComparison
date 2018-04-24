@@ -5,7 +5,14 @@ open AST
 open CGAST
 open CodeGen
 
+    type CommandLineOptions = {
+        gradual: SurfAST.prog -> prog;
+        litmus: string;
+        }
+
 (**
+Limtus tests in Kafka for each gradual semantics.
+
 Optional Semantics:
 
 *****************Litmus test one*****************
@@ -237,6 +244,7 @@ new F().n(new C()).a(new C())
 "
 
 [<EntryPoint>]
+
 let main argv = 
     (*
     (*write an example that access fields*)
@@ -281,9 +289,50 @@ let main argv =
 
     (<any>new F())@n(<|any|>new C())@a(<|any|>new C())" *)
     
-    let res1 = SurfAST.parse litmus3
-    
-    let tsv = Translations.beh_progtrans res1.Value
+
+    (*Just need to set the semantics and the file that will be parsed*)
+  
+    let rec parseCommandLineRec args optionsSoFar = 
+        match args with 
+        // empty list means we're done.
+        | [||] -> optionsSoFar  
+
+        // match verbose flag
+        | args when args.[0] = "beh" -> 
+            let newOptionsSoFar = { optionsSoFar with gradual=Translations.beh_progtrans }
+            parseCommandLineRec args.[1..] newOptionsSoFar 
+        | args when args.[0] = "opt" -> 
+            let newOptionsSoFar = { optionsSoFar with gradual=Translations.ts_progtrans }
+            parseCommandLineRec args.[1..] newOptionsSoFar 
+        | args when args.[0] = "tra" -> 
+            let newOptionsSoFar = { optionsSoFar with gradual=Translations.trs_progtrans }
+            parseCommandLineRec args.[1..] newOptionsSoFar 
+        | args when args.[0] = "con" -> 
+            let newOptionsSoFar = { optionsSoFar with gradual=Translations.con_progtrans }
+            parseCommandLineRec args.[1..] newOptionsSoFar 
+        | args when args.[0] = "litmus1" -> 
+            let newOptionsSoFar = { optionsSoFar with litmus=litmus1}
+            parseCommandLineRec args.[1..] newOptionsSoFar 
+        | args when args.[0] = "litmus2" -> 
+            let newOptionsSoFar = { optionsSoFar with litmus=litmus2}
+            parseCommandLineRec args.[1..] newOptionsSoFar 
+        | args when args.[0] = "litmus3" -> 
+            let newOptionsSoFar = { optionsSoFar with litmus=litmus3}
+            parseCommandLineRec args.[1..] newOptionsSoFar         
+        | _ ->             
+            eprintfn "Option '%s' is unrecognized" args.[0]
+            parseCommandLineRec args.[1..] optionsSoFar 
+
+    let parseCommandLine args = 
+        let defaultOptions = {
+            gradual = Translations.ts_progtrans;
+            litmus = litmus1;
+        }
+        parseCommandLineRec args defaultOptions
+
+    let res = parseCommandLine argv
+    let res1 = SurfAST.parse res.litmus
+    let tsv = res.gradual res1.Value
     let _ = Typechecker.wfprog tsv
     let trans = CGAST.transp(tsv)
     let subtypeRels = SubIL.addSubtypeImpls(tsv)(trans)

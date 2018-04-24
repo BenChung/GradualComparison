@@ -2,6 +2,8 @@
 open NUnit.Framework
 open FsUnit
 open AST
+open Parser
+
 (**
 Parser.parse @"
 class B {
@@ -21,6 +23,24 @@ class B {
 class D {}
 hello"
 *)
+
+let comparexp (parse:Expr)(ast:Expr) : bool =
+    match parse with
+    | DynCall(e, name, e2, _) -> match ast with
+                                    | DynCall(ee, namee, ee2, _) -> e.Equals(ee) && name.Equals(namee) && e2.Equals(ee2)
+                                    | _ -> false
+    | SubCast(typ, ex, _) -> match ast with
+                                    | SubCast(typp, exx, _) -> typ.Equals(typp) && ex.Equals(exx)
+                                    | _ -> false
+    | BehCast(typ, ex, _) -> match ast with
+                                    | BehCast(typp, exx, _) -> typ.Equals(typp) && ex.Equals(exx)
+                                    | _ -> false
+    | _ -> parse.Equals(ast)
+
+let compare (parse:AST.prog) (ast:AST.prog) : bool = 
+    match parse with
+    | Program(classes, expr) -> match ast with
+                                    | Program(classes2, expr2) -> classes.Equals(classes2) && comparexp(expr, expr2)  
 
 [<TestFixture>]
 type ParserTest1() =
@@ -45,18 +65,20 @@ type ParserTest1() =
     [<Test>]
     member x.TestMCall() =
         (Parser.parse @"x.m : t -> t (y)") |> should equal (Some(Program([], Call(Var "x", Class "t", Class "t", "m", Var "y"))))
-    [<Test>]
+    [<Test>] 
     member x.TestMDUCall() =
-        (Parser.parse @"x@m(y)") |> should equal (Some(Program([], DynCall(Var "x", "m", Var "y"))))
+        (Parser.parse @"x@m(y)") |> should equal (Some(Program([], DynCall(Var "x", "m", Var "y", FParsec.Position("", (int64) 1, (int64) 1, (int64) 1)))))
+    (*member x.TestMDUCall2() =
+        compare(Parser.parse @"x@m(y)",Some(Program([], DynCall(Var "x", "m", Var "y", FParsec.Position("", (int64) 1, (int64) 1, (int64) 1)))) |> should equal true*)
     [<Test>]
     member x.TestCast() =
-        (Parser.parse @"<t2>x") |> should equal (Some(Program([], SubCast(Class "t2", Var "x"))))
+        (Parser.parse @"<t2>x") |> should equal (Some(Program([], SubCast(Class "t2", Var "x", FParsec.Position("", (int64) 1, (int64) 1, (int64) 1)))))
     [<Test>]
     member x.TestCast2() =
-        (Parser.parse @"<|t2|>x") |> should equal (Some(Program([], BehCast(Class "t2", Var "x"))))
+        (Parser.parse @"<|t2|>x") |> should equal (Some(Program([], BehCast(Class "t2", Var "x", FParsec.Position("", (int64) 1, (int64) 1, (int64) 1)))))
     [<Test>]
     member x.TestParen() =
-        (Parser.parse @"<t2>(<t1>x)") |> should equal (Some(Program([], SubCast(Class "t2", SubCast(Class "t1", Var "x")))))
+        (Parser.parse @"<t2>(<t1>x)") |> should equal (Some(Program([], SubCast(Class "t2", SubCast(Class "t1", Var "x", FParsec.Position("", (int64) 1, (int64) 1, (int64) 1)), FParsec.Position("", (int64) 1, (int64) 1, (int64) 1)))))
     [<Test>]
     member x.TestClass() =
         (Parser.parse @"class B {}
@@ -83,3 +105,4 @@ type ParserTest1() =
     member x.TestTMethod2() =
         (Parser.parse @"class B { m(x:B):B { baz ; x} }
         hello") |> should equal (Some(Program([ClassDef("B",[],[MDef("m", "x", Class "B", Class "B", [Var("baz") ; Var("x")])])], Var("hello"))))
+
