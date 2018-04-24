@@ -40,7 +40,7 @@ let comparexp (parse:Expr)(ast:Expr) : bool =
 let compare (parse:AST.prog) (ast:AST.prog) : bool = 
     match parse with
     | Program(classes, expr) -> match ast with
-                                    | Program(classes2, expr2) -> classes.Equals(classes2) && comparexp(expr, expr2)  
+                                    | Program(classes2, expr2) -> classes.Equals(classes2) && comparexp expr expr2  
 
 [<TestFixture>]
 type ParserTest1() =

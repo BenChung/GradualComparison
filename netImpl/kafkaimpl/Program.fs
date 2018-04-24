@@ -295,8 +295,8 @@ let main argv =
     let rec parseCommandLineRec args optionsSoFar = 
         match args with 
         // empty array means we're done.
-        | [||] -> optionsSoFar  
-
+        | [||] -> eprintfn "No option for gradual semantics or tests file is passed. The default is optional semantics for litmus test1"
+                  optionsSoFar
         // match verbose flag
         | args when args.[0] = "beh" -> 
             let newOptionsSoFar = { optionsSoFar with gradual=Translations.beh_progtrans }
@@ -309,19 +309,11 @@ let main argv =
             parseCommandLineRec args.[1..] newOptionsSoFar 
         | args when args.[0] = "con" -> 
             let newOptionsSoFar = { optionsSoFar with gradual=Translations.con_progtrans }
-            parseCommandLineRec args.[1..] newOptionsSoFar 
-        | args when args.[0] = "litmus1" -> 
-            let newOptionsSoFar = { optionsSoFar with litmus=litmus1}
-            parseCommandLineRec args.[1..] newOptionsSoFar 
-        | args when args.[0] = "litmus2" -> 
-            let newOptionsSoFar = { optionsSoFar with litmus=litmus2}
-            parseCommandLineRec args.[1..] newOptionsSoFar 
-        | args when args.[0] = "litmus3" -> 
-            let newOptionsSoFar = { optionsSoFar with litmus=litmus3}
-            parseCommandLineRec args.[1..] newOptionsSoFar         
+            parseCommandLineRec args.[1..] newOptionsSoFar       
         | _ ->             
-            eprintfn "Option '%s' is unrecognized" args.[0]
-            parseCommandLineRec args.[1..] optionsSoFar 
+            eprintfn "Test file: '%s'." args.[0]
+            let newOptionsSoFar = { optionsSoFar with litmus = args.[0]}
+            parseCommandLineRec args.[1..] newOptionsSoFar 
 
     let parseCommandLine args = 
         let defaultOptions = {
