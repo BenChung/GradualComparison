@@ -52,7 +52,18 @@ WellFormedState $\K$ $\e$ $\s$ $\rightarrow$ HasType \texttt{nil} $\s$ $\k$ $\e$
 
 HasType \texttt{nil} $\s$ $\k$ $\e$ $\t$ \textit{corresponds to} \texttt{nil} $\s$ $\k$ $\vdash$ $\e$ : $\t$ \\
 
-WellFormedState combines well-typedness of the class table and the running expression with heap typing.
+The WellFormedState statement combines well-typedness of the class table and the running expression with heap typing. \\
+
+There are three holes in the proof, in kafka.v:
+\begin{itemize}
+\item Transitivity of structural recursive subtyping (line number: 342)
+\item Soundness of subtyping (line number: 350)
+\item That subtyping still holds when the class table is expanded (line number: 642)
+\end{itemize}
+	
+The first two components are well-known prior work (e.g. A Mechanical Soundness Proof for Subtyping Over Recursive Types, Jones 2016). 
+The third property simply requires that pre-existing subtyping judgments still hold when the class table is expanded.
+
 
 \section{Installation for the native languages}
 
