@@ -320,7 +320,7 @@ let main argv =
     let parseCommandLine args = 
         let defaultOptions = {
             gradual = Translations.ts_progtrans;
-            litmusfile = litmus1;
+            litmusfile = "litmus1.txt";
         }
         parseCommandLineRec args defaultOptions
 
