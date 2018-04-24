@@ -810,7 +810,7 @@ $\xt{W}$'s are shown in \figref{w}.
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} \\\HS
   \md[1].. \In \App\K\C \HS\HS \names{\mdp[1]..} \subseteq \names{\md[1]..} \\\HS
   \mdp[1].. \In \App\K\Cp \HS\HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
-  \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that 
+  \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D 
 
   \end{cases}
 \end{equation*}
@@ -819,7 +819,7 @@ $\xt{W}$'s are shown in \figref{w}.
   \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
   \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. \In \App\K\C \HS\HS
   \fresh{\D,\ap} \\\HS \cload{\md[1]..} \HS\HS
-  \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \\\HS
+  \Kp = \K\,\wrapAny\C{\md[1]..}\D \\\HS
   \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
 \end{cases}\end{equation*}
 
@@ -847,23 +847,7 @@ then pass a reference to the new heap, value, and class table back.
 As a result, the actual enforcement of type invariants is the responsibility
 of the W class generation meta function, as the dynamics at the call site
 itself are extremely relaxed, with the invariants actually being enforced by
-the wrapper's method bodies.
-
-\begin{figure}[!h]
-\hrulefill
-\small
-
-\begin{tabular}{ll|ll}
-\multicolumn{4}{c}{\wrap\C{\md[1]..}{\mdp[1]..}\D} \\
-\C & Class to wrap & \D & New wrapper class name \\
-\md[1] & Wrapped method declarations & \mdp[1] & Target method declarations \\
-\end{tabular}
-
-\hrulefill
-\vspace{-2mm}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\caption{Wrapper class definition.}\label{w2}\end{figure}
-
+the wrapper's method bodies. 
 \begin{figure}[!h]
 	\hrulefill
 	\small
@@ -874,12 +858,7 @@ the wrapper's method bodies.
 \> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\tp[1]}{\tp[2]}\ep\In\mdp[1].. \\
 \\[-3mm]
 \> \>  \src{\Mdef\m\x{\t[1]}{\t[2]}{~\KCall{\FRead\that}\m{\x}{\t[1]}{\t[2]}}} .. \\ \> \> \HS\HS \textbf{otherwise}
-\\[3mm]
-\begin{tabular}{ll|ll}
-\multicolumn{4}{c}{\wrapAny\C{\md[1]..}\D} \\
-\C & Class to wrap & \D & New wrapper class name \\
-\md[1] & Wrapped method declarations \\
-\end{tabular} \\[3mm]
+\\[6mm]\\[3mm]
   \wrapAny{\C}{\md[1]..}{\D} = \src{\Class \D{ \Fdef\that\C}{ \mdp[1]..}}\\
 \HS\HS\WHERE\HS\=\mdp[1] = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
     \HS\HS\HS\HS \\ \> \> \HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\md[1].. \\
