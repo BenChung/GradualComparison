@@ -1,9 +1,30 @@
 \documentclass[]{article}
+\usepackage{stmaryrd} 
+\usepackage{xspace,listings,url,framed,amssymb,
+	mathpartir,hyperref,doi, mathtools,wrapfig,
+	stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox,
+	pgffor, makecell, microtype}
+\usepackage[customcolors,norndcorners]{hf-tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.multipart}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{backgrounds}
+\usepackage[inline]{enumitem}
+\usepackage{epigraph}
+\setlength{\epigraphrule}{0pt}
+\renewcommand*{\textflush}{flushright}
+\setlength{\epigraphwidth}{4in}
+\newcommand{\code}[1]{{\tt #1}\xspace}
+\newcommand{\FZ}[1]{\textbf{FZ: #1}}
+\input{macros}
 
 %opening
 \title{README for Kafka artifact}
 \author{Ben Chung, Paley Li}
 \date{}
+
 
 \begin{document}
 
@@ -19,12 +40,23 @@ To run this implementation, it takes two command line variables. The gradual sem
 The result of each litmus test under each gradual semantics reflect the behavior expressed in section 3 of our paper.
 
 
-\section{Coq and what its result means}
+\section{Kafka's Coq proof}
 
+We have proved type soundness for Kafka in Coq, the kafka.v file in the impl folder is the self-contained Coq 8.6 proof for KafKa.
+
+Theorem 1 (page 14) in the paper corresponds to the coq theorem \\
+
+Soundness: $\forall$ $\K$ $\e$ $\s$ $\t$,
+
+WellFormedState $\K$ $\e$ $\s$ $\rightarrow$ HasType \texttt{nil} $\s$ $\k$ $\e$ $\t$ $\rightarrow$ is$\_$sound $\k$ $\s$ $\e$ $\t$ .
+
+HasType \texttt{nil} $\s$ $\k$ $\e$ $\t$ \textit{corresponds to} \texttt{nil} $\s$ $\k$ $\vdash$ $\e$ : $\t$ \\
+
+WellFormedState combines well-typedness of the class table and the running expression with heap typing.
 
 \section{Installation for the native languages}
 
-In section \ref{litmus}, we present each of the three litmus tests in the native code of the four gradual languages of TypeScript, Thorn, Typed Racket, and Reticulated Python. In this section, we will discuss how to install each of the native language that is required to run the native litmus tests.
+In section 4 of this document, we present each of the three litmus tests in the native code of the four gradual languages of TypeScript, Thorn, Typed Racket, and Reticulated Python. In this section, we will discuss how to install each of the native language that is required to run the native litmus tests.
 
 \subsection{TypeScript}
 
@@ -32,7 +64,7 @@ For TypeScript, all the information regarding the language and the process of in
 
 \subsection{Thorn}
 
-Unfortunately, there does not currently exist a public implementation of Thorn that is readily available. The Thorn skeleton, which we obtained through private means, was heavily savaged from bit rot and decay, and was not easily installable nor it contain all the necessary components, such as the thorn type checker.
+Unfortunately, there does not exist a public implementation of Thorn that is readily available. The Thorn skeleton, which we obtained through private means, was heavily savaged from bit rot and decay, and was not easily installable nor it contain all the necessary components, such as the thorn type checker.
 
 \subsection{Typed Racket}
 
@@ -44,7 +76,7 @@ For Typed Racket, first you would need to install the Racket IDE called DrRacket
 The information regarding the installment and running of Reticulated Python can be found at: https://github.com/mvitousek/reticulated. It requires Python version 3.5 or older. 
 
 
-\section{Litmus tests in native languages}\label{litmus}
+\section{Litmus tests in native languages}
 
 Below we present source code for each of the litmus tests. If time permits, we would have loved to have to these litmus tests placed on an image. However, for the moment, you are required to copy and paste these code into their corresponding native implementation. We apologies for any inconvenience this has caused. 
 
