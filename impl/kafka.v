@@ -1,3 +1,37 @@
+(* This is a self-contained Coq 8.6 proof for KafKa.
+
+   Theorem 1 (page 14) in the paper corresponds to theorem 
+      soundness: forall k e s t,
+           WellFormedState k e s -> HasType nil s k e t -> is_sound k s e t.
+   HasType nil s k e t corresponds to nil s k |- e : t
+   WellFormedState combines well-typedness of the class table and the running expression with heap typing.
+
+The proof shows progress and preservation for Kafka. The primary lemma of
+interest are the well-typedness theorems for behavioural cast generation,
+correctness_CWrap and subtype_CWrap. The former shows that the wrappers
+are well-typed, while the latter shows that they are subtypes of the type
+that they claim to implement.
+
+There are three holes in the proof:
+* Transitivity of structural recursive subtyping (subtype_transitive)
+* Soundness of subtyping (subtype_method_containment)
+* That subtyping still holds when the class table is expanded (ct_exten_subtyp)
+
+The first two components are well-known prior work (e.g. Jones 2016).
+The third property simply requires that pre-existing subtyping
+judgments still hold when the class table is expanded. Since subtyping
+can only be concluded for pre-existing classes, it follows easily, but
+its proof requires the correspondance of inductive algorithmic subtyping
+and coinductive subtyping which we do not model here.
+
+A command to check the axiomatic dependencies of our soundness proof is 
+included at the end of this file. It depends on one additional axiom,
+JMeq_eq : forall (A : Type) (x y : A), x ~= y -> x = y, provided by
+the standard library and uses John Major equality to imply standard 
+equality.
+ *)
+
+
 Require Import Coq.Setoids.Setoid.
 Require Import Coq.Arith.PeanoNat.
 Require Import Coq.Lists.List.
@@ -10,6 +44,15 @@ Require Import Coq.Structures.OrdersEx.
 Module Nat_Pair_OT := PairOrderedType(Nat_as_OT)(Nat_as_OT).
 Module PairNatList := MSetList.Make(Nat_Pair_OT).
 
+
+Require Import Coq.MSets.MSetProperties.
+Require Import Coq.MSets.MSetDecide.
+Module MProps := WPropertiesOn(Nat_Pair_OT)(PairNatList).
+Module MDec := Decide(PairNatList). 
+Module NatList := MSetList.Make(Nat_as_OT).
+Module NMDec := Decide(NatList).
+
+(* Kafka definitions *)
 
 Definition id := nat.
 Definition this:id := 0.
@@ -99,6 +142,7 @@ Inductive k :=
 Definition ct := list k.
 Require Import Coq.Logic.FinFun.
 
+(* Decidability properties *)
 
 Lemma type_dec : forall x y : type, {x = y} + {x <> y}.
 Proof.
@@ -156,8 +200,9 @@ Fixpoint fields (C:id)(k:ct) :=
   | nil => nil
   end.
 
-Search Nat.eqb.
+(* Utility methods to work with methods *)
 
+(* Finds the methods of c in k *)
 Fixpoint methods (C:id)(k:ct) :=
   match k with
   | (ClassDef D fds mds)::r =>
@@ -168,6 +213,7 @@ Fixpoint methods (C:id)(k:ct) :=
   | nil => nil
   end.
 
+(* finds the definition of m in ms *)
 Fixpoint method_def (m:id) (ms:list md) : (option md) :=
   match ms with
   | (Method m' x t1 t2 e)::r =>
@@ -177,6 +223,8 @@ Fixpoint method_def (m:id) (ms:list md) : (option md) :=
     end
   | nil => None
 end.
+
+(* Subtyping *)
 
 Inductive Subtype : PairNatList.t -> ct -> type -> type -> Prop :=
 | STRefl : forall m k t, Subtype m k t t
@@ -204,10 +252,13 @@ Definition empty_mu := PairNatList.empty.
 Hint Constructors Subtype.
 Hint Constructors Md_Subtypes.
 
+(* Typing *)
+
 Inductive WellFormedType : ct -> type -> Prop :=
 | WFWA : forall k, WellFormedType k Any
 | WFWTC : forall k C fds mds, In (ClassDef C fds mds) k -> WellFormedType k (class C).
 
+(* Typing rule, identical to paper *)
 Inductive HasType : env -> heap -> ct -> expr -> type -> Prop :=
 | KTSUB : forall g s k e t tp, HasType g s k e tp -> Subtype PairNatList.empty k tp t -> HasType g s k e t
 | KTEXPR : forall g s k e t, HasTypeExpr g s k e t -> HasType g s k e t
@@ -301,38 +352,22 @@ Proof.
 Qed.
 
 (*
-Lemma mu_weakening : forall mu mu' k t1 t2,
-  Subtype mu k t1 t2 -> Subtype (mu ++ mu') k t1 t2.
-Proof. 
-  intros. apply subtyping_ind with
-          (P := fun mu => fun k => fun t1 => fun t2 => fun ih => Subtype (mu ++ mu') k t1 t2)
-            (P0 := fun mu => fun k => fun mds1 => fun mds2 => fun ih => Md_Subtypes (mu ++ mu') k mds1 mds2)
-            (P1 := fun mu k md1 md2 ih => Md_Subtype (mu ++ mu') k md1 md2); try eauto.
-  - intros. apply STSeen. apply in_app_iff. eauto.
-  - intros. eapply STClass.
-    + intros.
-      assert (Hin: In tp (m' ++ mu')).
-      { apply in_or_app. apply in_app_or in H1. inject H1.
-        - left. apply i. apply H2.
-        - right. apply H2.
-      }
-      apply Hin.
-    + apply in_or_app. left. eauto.
-    + eauto.
-  - intros. apply MDSub; eauto. 
-Qed.
+Transitivity of subtyping.
 *)
 
 Lemma subtype_transitive : forall mu k t1 t2 t3,
-  Subtype mu k t1 t2 -> Subtype mu k t2 t3 -> Subtype mu k t1 t3. 
+    Subtype mu k t1 t2 -> Subtype mu k t2 t3 -> Subtype mu k t1 t3.
 Admitted.
 
+(*
+Soundness of subtyping. 
+*)
 Lemma subtype_method_containment : forall k C D md,
     Subtype empty_mu k (class C) (class D) -> In md (methods D k) ->
     exists md', In md' (methods C k) /\ Md_Subtypes empty_mu k (md'::nil) (md::nil).
 Admitted.
 
-(* [thisref/this][varref/var](exp) *)
+ (* [thisref/this][varref/var](exp) *)
 Fixpoint subst(thisref : ref)(varref : ref)(var : id)(exp : expr) :=
   match exp with
   | Var x => match Nat.eqb x this, Nat.eqb x var with
@@ -490,6 +525,10 @@ Proof.
         ** apply H1.
 Qed.
 
+(* ct_ext allows class tables to be grown while executing.
+   It's a weak property that only provides a guarantee that the 
+   new classes won't have a name conflict with the old classes *)
+
 Definition ct_ext (k : ct) (k' : ct) := exists k'',
            k' = k'' ++ k /\ NoDupsClasses k'.
 
@@ -574,12 +613,40 @@ Qed.
 
 Hint Resolve fields_ct_ext.
 
-Lemma ct_exten_subtyp : forall m k t t' k',
-        Subtype m k t t' -> ct_ext k k' -> Subtype m k' t t'.
+Lemma methods_opt : forall C k mds, methods C k = mds -> mds <> nil -> exists fds, In (ClassDef C fds mds) k.
 Proof.
-Admitted.
+  intros. induction k0.
+  - simpl in H. rewrite H in H0. contradiction.
+  - simpl in H. destruct a as [C' fds' mds']. destruct (Nat.eq_dec C C').
+    + subst. rewrite Nat.eqb_refl. exists fds'. apply in_eq.
+    + rewrite<- Nat.eqb_neq in n. rewrite n in H. apply IHk0 in H. inject H.
+      exists x. apply in_cons. apply H1.
+Qed.
 
-Hint Resolve ct_exten_subtyp.
+
+Lemma methods_maynil : forall C k mds, methods C k = mds -> mds = nil \/ exists fds, In (ClassDef C fds mds) k.
+Proof.
+  intros. induction k0.
+  - simpl in H. eauto.
+  - simpl in H. destruct a as [C' fds' mds']. destruct (Nat.eq_dec C C').
+    + subst. rewrite Nat.eqb_refl. right. exists fds'. apply in_eq.
+    + rewrite<- Nat.eqb_neq in n. rewrite n in H. apply IHk0 in H. inject H.
+      * eauto.
+      * right. inject H0. exists x. apply in_cons. apply H.
+Qed.
+
+Fixpoint methods_notnil (C : id) (k : ct) : list md + {forall fds mds, ~ (In (ClassDef C fds mds) (k))}.
+Proof. induction k.
+       - right. intros. auto.
+       - destruct a. destruct (Nat.eq_dec C i).
+         + subst. left. apply l0.
+         + destruct IHk.
+           * left. apply l1.
+           * right. intros. unfold not. intros. inject H.
+             ** inject H0. contradiction.
+             ** apply n0 in H0. apply H0.
+Qed.
+
 
 Lemma ct_exten_wft : forall k k' t, WellFormedType k t -> ct_ext k k' -> WellFormedType k' t.
 Proof.
@@ -588,6 +655,14 @@ Proof.
 Qed.
 
 Hint Resolve ct_exten_wft.
+
+
+(* Adding new classes to the class table won't break existing subtype 
+   judgements. *)
+Lemma ct_exten_subtyp : forall m k t t' k',
+    Subtype m k t t' -> ct_ext k k' -> Subtype m k' t t'.
+Admitted.
+Hint Resolve ct_exten_subtyp.
   
 Lemma ct_exten_hastype : forall g s k e t k',
         HasType g s k e t -> ct_ext k k' -> HasType g s k' e t.
@@ -597,7 +672,7 @@ Proof.
                          (fun gi si ki ei ti ih => ki = k0 -> HasTypeExpr gi si k' ei ti)
                          (fun gi si ki esi tsi ih => ki = k0 -> HasTypes gi si k' esi tsi)).
   apply H1; clear H1; try (intros; subst; econstructor; eauto; fail). 
-  - intros. subst. econstructor; eauto. inject H0. inject H2.  apply in_or_app. right. apply i.
+  - intros. subst. econstructor; eauto. inject H0. inject H2. apply in_or_app. right. apply i.
 Qed.
 
 (* Inductive expr :=
@@ -655,34 +730,6 @@ Ltac unfold_existentials H :=
 
 Ltac sync_destruct_exists H :=
   repeat (let x := fresh "x" in destruct H as [x H]; exists x).
-
-Lemma match_method_corr_typed : forall mds m g k e x c1 c2, 
-  (forall md, In md mds -> WellFormedMethod g k md) ->
-  NoDupsMds mds ->
-  (exists x' c1' c2' e', In (Method m x' (class c1') (class c2') e') mds) ->
-  (exists x' c1' c2' e', match_method mds (Method m x (class c1) (class c2) e) = Some(Method m x' (class c1') (class c2') e')).
-Proof.
-  intros. induction mds.
-  - unfold_existentials H1. inject H1.
-  - simpl. destruct a.
-    destruct t; destruct t0.
-    + destruct (Nat.eqb m i) eqn:Heq.
-      * exists i0. exists i1. exists i2. exists e0. apply Nat.eqb_eq in Heq. subst. auto.
-      * apply IHmds.
-        ** intros. apply H. apply in_cons. auto.
-        ** inject H0. auto.
-        ** apply Nat.eqb_neq in Heq. unfold_existentials H1. inject H1.
-           *** inject H2. tauto.
-           *** exists x0. exists x1. exists x2. exists x3. auto.
-    + apply IHmds.
-      * intros. apply H. apply in_cons. auto.
-      * inject H0.
-      * inject H0.
-    + inject H0.
-    + inject H0. apply IHmds.
-      * intros. apply H. apply in_cons. auto.
-      * auto.
-Abort.
 
 Lemma typed_method_dec : forall m md,
     ( { tuple:id*id*id*expr | let '(x,c1,c2,e) := tuple in Method m x (class c1) (class c2) e = md } )
@@ -804,7 +851,6 @@ Fixpoint WrapAny_methods(input_meth : md) (D_meth : list md) : md :=
     Method m (S this) Any Any (BehCast Any (Call (GetF (Var this) that) m t1 t2 (BehCast t1 (Var (S this)))))
 end.
 
-Module NatList := MSetList.Make(Nat_as_OT).
 
 Fixpoint Wrap_many_any_methods (seen:NatList.t) (mds1 : list md) (mds2 : list md) :=
   match mds1 with
@@ -1008,8 +1054,6 @@ Proof.
         ** auto.
 Qed.
 
-
-Module NMDec := Decide(NatList). 
 
 Lemma WrapManyAny_mu : forall mu mds md2 (mname : id),
     NatList.In mname mu -> forall x t1 t2 e, ~In (Method mname x t1 t2 e) (Wrap_many_any_methods mu mds md2).
@@ -2332,6 +2376,7 @@ Proof.
       * apply stp_in in H. destruct H. inject H.
         ** tauto.
         ** inject H1. inject H2. inject H. exists x. exists x0. apply in_cons. apply H1.
+
     + apply IHk0 in H. inject H. inject H0. exists x. exists x0. apply in_cons. eauto.
 Qed.
 
@@ -2387,12 +2432,6 @@ Proof.
       * destruct a. destruct e.  inversion H0. inversion H. inversion H1. simpl in *. subst. left. auto.
       * right. rewrite IHx. apply H0.
 Qed.
-
-Require Import Coq.MSets.MSetProperties.
-Require Import Coq.MSets.MSetDecide.
-Module MProps := WPropertiesOn(Nat_Pair_OT)(PairNatList).
-Module MDec := Decide(PairNatList). 
-
 Lemma add_diff_subset : forall e x y,
    PairNatList.Subset (PairNatList.diff x (PairNatList.add e y)) (PairNatList.diff x y).
 Proof.
@@ -2798,7 +2837,7 @@ Proof.
           g' = nil -> k' = k -> s' = s -> is_sound k s e t)
   (P0 := fun g' s' k' e t ih =>
            g' = nil -> k' = k -> s' = s -> is_sound k s e t)
-  (P1 := fun g' s' k' es ts (ih : HasTypes g' s' k' es ts) => (* TODO: state IH for list of exprs *)
+  (P1 := fun g' s' k' es ts (ih : HasTypes g' s' k' es ts) => 
            g' = nil -> k' = k -> s' = s ->
            exists e1s (a1s : list ref) t1s e2s t2s,
              es = e1s ++ e2s /\
@@ -3239,20 +3278,4 @@ Proof.
     intros. inject H.
 Qed.
 
-(* TODO:
- 1: show transitivity of subtyping (** hard, subtype_transitive. Hint: mu correctness is the tricky part **)
- 2: show that subtyping is retained over ct_ext (** easy **)
- 3: show that subyping implies method containment (** medium, subtype_method_containment **)
- 
-General notes:
-* mu is the tricky issue here. A class being in mu implies that if the relation succeeds, then the class is
-  actually a subtype. If you can write this, then 1 and 3 should be easy enough.
-* mu is also an MSetList of pairs of nats. As a result, fsetdec (in the MDec module that is created here
-  from the functor) is your friend.
-* You will need to use the custom IH that's defined for subtyping, to handle the Md_Subtype and Md_Subtypes
-  cases. Normal induction won't work.
-* It might make sense to redefine #3 (subtype_method_containment) in terms of the more modern 
-  Md_Subtype relation that was introduced as part of the effort to prove that subtyping is decidable.
-  The conclusion of the lemma is equivalent, in any case, and it should be an easy enough change in the
-  rest of the proof.
-*)
+Print Assumptions soundness. 
