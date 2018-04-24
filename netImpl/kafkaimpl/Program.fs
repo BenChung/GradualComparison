@@ -294,7 +294,7 @@ let main argv =
   
     let rec parseCommandLineRec args optionsSoFar = 
         match args with 
-        // empty list means we're done.
+        // empty array means we're done.
         | [||] -> optionsSoFar  
 
         // match verbose flag
