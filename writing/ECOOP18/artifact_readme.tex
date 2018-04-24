@@ -2,28 +2,27 @@
 
 %opening
 \title{README for Kafka artifact}
-\author{}
+\author{Ben Chung, Paley Li}
 \date{}
 
 \begin{document}
 
 \maketitle
 
-\section{Kafka's .Net implementation and what it means}
+\section{Kafka's .Net implementation}
 
-The Kafka implementation is written in F$\#$. The implementation follows the same syntax and semantics as those presented in figure 3 and 4 of the paper. Explain how to build it, how to run it, which tests to run, and what the result of the tests mean. The litmus tests have been translated into each of the gradual semantics (optional, behavioral, transient, concrete).
+Our Kafka and native translation implementations are written in F$\#$. The folder kafkaimpl contains the translation from the surface source language to kafka, the translation from kafka to CIL, and the type checker for Kafka. The folder kafkatests contains unit tests for the kafka implementation. The implementation of Kafka follows the same syntax and semantics as those presented in figure 3 and 4 of the paper. The implementation of our translation from the source language to Kafka follows the rules presented in section 5 of the paper. We strongly recommend loading, building, and running this implementation within Microsoft Visual Studio, it is by far the simplest and easiest option. 
 
-beh is for behavioral
-opt is for optional
-tra is for transient
-con is for concrete
+To run this implementation, it takes two command line variables. The gradual semantics you wish to use and the name path of the file which contains the code that you wish to run. 'beh' is the option for the behavioral semantics, 'opt' for the optional semantics, 'tra' for the transient semantics, and 'con' for the concrete semantics. The three litmus tests presented in the paper are readily available to be ran, and they are in the files: litmus1.txt, litmus2.txt, litmus3.txt. It is possible for the user to pass in a file of their own design.
 
-litmus1, litmus2, litmus3, or pass in a code example or pass in a file.
+% what the litmus tests actually means
+The result of each litmus test under each gradual semantics reflect the behavior expressed in section 3 of our paper.
+
 
 \section{Coq and what its result means}
 
 
-\section{How to install each native languages}
+\section{Installation for the native languages}
 
 In section \ref{litmus}, we present each of the three litmus tests in the native code of the four gradual languages of TypeScript, Thorn, Typed Racket, and Reticulated Python. In this section, we will discuss how to install each of the native language that is required to run the native litmus tests.
 
