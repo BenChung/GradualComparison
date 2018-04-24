@@ -4,10 +4,12 @@ open Parser
 open AST
 open CGAST
 open CodeGen
+open System
+open System.IO
 
     type CommandLineOptions = {
         gradual: SurfAST.prog -> prog;
-        litmus: string;
+        litmusfile: string;
         }
 
 (**
@@ -312,18 +314,19 @@ let main argv =
             parseCommandLineRec args.[1..] newOptionsSoFar       
         | _ ->             
             eprintfn "Test file: '%s'." args.[0]
-            let newOptionsSoFar = { optionsSoFar with litmus = args.[0]}
+            let newOptionsSoFar = { optionsSoFar with litmusfile = args.[0]}
             parseCommandLineRec args.[1..] newOptionsSoFar 
 
     let parseCommandLine args = 
         let defaultOptions = {
             gradual = Translations.ts_progtrans;
-            litmus = litmus1;
+            litmusfile = litmus1;
         }
         parseCommandLineRec args defaultOptions
 
     let res = parseCommandLine argv
-    let res1 = SurfAST.parse res.litmus
+    let litmus = File.ReadAllText(res.litmusfile)
+    let res1 = SurfAST.parse litmus
     let tsv = res.gradual res1.Value
     let _ = Typechecker.wfprog tsv
     let trans = CGAST.transp(tsv)
