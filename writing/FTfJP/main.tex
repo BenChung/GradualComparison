@@ -1,9 +1,9 @@
 \documentclass[sigconf]{acmart}
 
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
-            amsmath,tex/mathpartir,hyperref,doi, rotating,
+            amsmath,mathpartir,hyperref,doi, rotating,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox, pgffor,booktabs} % double brackets llbracket
-\input{../macros}
+\input{macros}
 
 % Copyright
 %\setcopyright{none}
@@ -33,8 +33,7 @@
 
 \begin{document}
 \title{Monotonic Gradual Typing in a Common Calculus}
-\subtitle{Extended Abstract}
-
+\subtitle{}
 
 \author{Ben Trovato}
 \authornote{Dr.~Trovato insisted his name be first.}
@@ -127,114 +126,19 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 \multicolumn{4}{l}{\EE ::= \ldots \B \MonCast\t\EE }
 \end{tabular}
 \end{minipage}
-
-\subsection{Monotonic translation for program, class, and method}
-
-\opdef{$\progtrans{\e~\K}{\e'~{\K'}}$}{Monotonic translation for programs}
-\opdef{$\classtrans {\K}{\Class \C{...}{...}~\K}{\Class \C{...}{...}~\K}$}{Monotonic translation for classes}
-\opdef{$\methtrans {\K}{\C}{\md}{\md'}{\K}$}{Monotonic translation for methods}
-
-\begin{mathpar}
-\IRule{PT}{
-  {\classtrans{\K}{\K}{\K'}} \\ \GenCast{\K}{\cdot}{\e}{\ep}{\t} 
-}{\progtrans{\e~\K}{\e'~{\K'}}}
-
-\IRule{MCT1}{
-  \D \text{ fresh}\\
-  \k = \classgen{\C,\getmds\C\K,{\classoff\C\K},{\classoff\C\K},\D,\K}
-}{
-  \monowrap{\C}{\K} = \D~\k
-}
-
-\IRule{MCT2}{
-}{
-  \monowrap{\any}{\K} = \any
-}
-
-\IRule{CR1}{ 
-  \b{\methtrans \K\C\md{\md'}{\K_m}} \\
-  \classtrans \K\Kp\Kpp \\
-  \b{\monowrap\t\Kpp = \tp~\Kppp}
-}{
-   \classtrans \K{\Class \C{\b{\Ftype\f\t}}{\b\md}~\Kp}{\Class \C {\b{\Ftype\f\tp}}{\b{\md'}}~\Kpp~\K_m~\b{\Kppp}}}
-
-\IRule{CR2}{ 
-}{
-  \classtrans \K\cdot\cdot
-}
-
-\IRule{MTT}{
-  \AnaCastMono \K{\HT\this\C~\HT\x\t}\e\ep\tp{\K_1} \\
-  \monowrap{\t}\K = \t[2]~\K_2 \\
-  \monowrap{\tp}\K = \tp[2]~\K_3
-}{
-  \methtrans \K\C{\Mdef\m\x{\t}{\tp}\e}{\Mdef\m\x{\t_2}{\tp[2]}\ep}{\K_1~\K_2~\K_3}
-}
-\end{mathpar}
-
-\subsection{Monotonic translation for expressions}
-
-\opdef{$\GenCastMono{\K}\E\e\ep\t{\K}$}{Monotonic translation for expressions}
-
-
-\begin{mathpar}
-\IRule{MOS1}{\HasType{\E}\x\t}{\GenCastMono{\K}\E\x\x\t{}}
-
-\IRule[width=30em]{MOS2}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \src{\f(\b{\t_1}):\t_2 \in \classoff\C\K} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\f{\b{\e_2}}}{\Call{\e_3}\f{\b{\e_4}}}{\t_2}{\K_1~\b{\K_2}}
-}
-
-\IRule[width=30em]{MOS3}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ 
-    \m({\t_1}):\t_2 \in \classoff\C\K \\ 
-    \statictype{\t_1}{\K}{\cdot} \\ 
-    {\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{\e_3}\m{{\e_4}}{\t_1}{\t_2}}{\t_2}{\K_1~\b{\K_2}}
-}
-
-\IRule[width=30em]{MOS3}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\C}{\K_1} \\ \m({\t_1}):\t_2 \in \classoff\C\K \\ \lnot\statictype{\t_1}{\K}{\cdot} \\ \b{\AnaCastMono\K\Env{\e_2}{\e_4}{\t_1}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\KCall{(\MonCast\any\e_3)}\m{\MonCast\any{\e_4}}\any\any}{\t_2}{\K_1~\b{\K_2}}
-}
-
-\IRule{MOS4}{
-    \GenCastMono\K\Env{\e_1}{\e_3}{\any}{\K_1} \\ {\AnaCastMono\K\Env{\e_2}{\e_4}{\any}{\K_2}}
-}{
-    \GenCastMono\K\Env{\Call{\e_1}\m{{\e_2}}}{\DynCall{\e_3}\m{{\e_4}}}{\any}{\K_1~\K_2}
-}
-
-\IRule{MOS5}{
-  \b{\AnaCastMono{\K}\E{\e_1}{\e_2}\t{\K}} \\ 
-  \Class \C {\b{\Ftype\f\t}} {\b{\md}} \\
-  \D~\text{fresh} \\
-  \k = \classgen{\C,\getmds\C\K,\classoff\C\K,\classoff\C\K,\D,\K} \\
-  }{\GenCastMono\K\Env{\New\C{\b{\e_1}}}{\New\D{\New\C{\b{\e_2}}}}{\C}{\K~\k}}
-\end{mathpar}
-
 \subsection{Monotonic translation for bidirectional expressions}
 
-\opdef{$\AnaCastMono\K\Env\e\ep\t\K$}{Monotonic translation for bidirectional expressions}
-
-
-\begin{mathpar}
-\IRule{MOA1}{
-  \GenCastMono\K\Env\e\ep\tp\K \\
-  \K \vdash \tp \Sub \t
-}{
-  \AnaCastMono\K\Env\e\ep\t\K
-}
-
-\IRule{MOA2}{
-  \GenCastMono\K\Env\e\ep\tp\K \\
-  \consistent\K\t\tp
-}{
-  \AnaCastMono\K\Env\e{\MonCast\t\ep}\t\K
-}
-\end{mathpar}
+\begin{align*}
+\TRG[M]{\x}\Env = \x & \\
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env = \DynCall{\ep_1}\m{\ep_2} & \tag{\IF\EM{\TypeCk{\K,\Env}\e\any
+\AND \TRG[M]{\e_1}\Env = \ep_1 \wedge \TAG[M]{\e_2}\Env{\any} = \ep_2}}\\
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env = \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & \tag{\IF\EM{\TypeCk{\K,\Env}\e\C
+\AND \Mtype\m{\D[1]}{\D[2]}\In\App\K\C \AND \TRG[M]{\e_1}\Env = \ep_1 \wedge \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}}\\
+\TRG[M]{\New\C{{\e_1}...}}\Env = \New\C{\ep_1...} & \tag{\IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C
+    \AND \ep[1] = \TAG[M]{\e[1]}\Env{\t[1]} ~..}}\\
+\TAG[M]{\e}{\Env}\t = \e' & \tag{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\Sub\t}}\\
+\TAG[M]{\e}{\Env}\t = \MonCast{\t}{\ep} & \tag{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\not\Sub\t}}
+\end{align*}
 
 \section{Generative Monotone Casts}
 
@@ -368,76 +272,6 @@ types $\b\mtpp$ and a class table $\Kp$. \\
   \mmeet{\mt~\b{\mt_1}}{\b{\mt_2}}\P\K =\mt_3\b{\mt_4} ~\Kpp
 }
 \end{mathpar}
-\\
-
-\subsection{Monotonic dynamic expression translation}\label{montrans}
-
-\opdef{$\rtranstz{\b{\mt}}{\b{\mtp}}\e\ep$}{Monotonic dynamic expression translation}
-
-\begin{mathpar}
-\IRule{MREW1}{ }{ \rtranstz{\b{\mt}}{\b{\mtp}}\x\x }
-\\
-\IRule[width=25em]{MREW2}{ 
-  \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\m{{\C_2}}{\Cp_2} \in \b{\mtp} \\ 
-  {\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\this}\m{\e}{\t[1]}{\tp[1]}}{\MonCast{\tp_1}{\KCall{\this}\m{{\MonCast{\C_2}{\ep}}}{\C_2}{\Cp_2}}}
-}
-\\
-\IRule[width=25em]{MREW3}{ 
-  \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\f{\b{\t_2}}{\tp_2} \in \b{\mtp} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\f{\b\e}}{\MonCast{\tp_1}{\Call{\this}\f{\b{\MonCast{\t_2}{\ep}}}}}
-}
-\\
-
-\IRule[width=20em]{MREW4}{ 
-  \Mtype\m{{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\m{{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\this}\m{\e}{{\t_1}}{\tp_1}}{{\KCall{\this}\m{{{\ep}}}{{\t_1}}{\tp_1}}}
-}
-
-\IRule[width=20em]{MREW5}{ 
-  \Mtype\f{\b{\t_1}}{\tp_1} \in \b{\mt} \\ 
-  \Mtype\f{\b{\t_2}}{\tp_2} \not\in \b{\mtp} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\this}\f{\b\e}}{{\Call{\this}\f{\b{{\ep}}}}}
-}
-
-\IRule[width=20em]{MREW6}{ 
-  \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\Call{\e_1}\f{\b{\ep_1}}}{\Call{\e_2}\f{\b{\ep_2}}}
-}
-
-\IRule[width=20em]{MREW7}{ 
-  \e_1 \neq \this \\ \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\ 
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\KCall{\e_1}\m{{\ep_1}}{\t_1}{\tp[1]}}{\KCall{\e_2}\m{{\ep_2}}{\t_1}{\tp[1]}}
-}
-
-\IRule{MREW8}{ 
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\e_1}{\e_2} \\   
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\ep_1}{\ep_2}
-}{
-  \rtranstz{\b{\mt}}{\b{\mtp}}{\DynCall{\e_1}\m{\ep_1}}{\DynCall{\e_2}\m{\ep_2}}
-}
-
-\IRule{MREW9}{
-  \b{\rtranstz{\b{\mt}}{\b{\mtp}}{\e}{\ep}} 
-}{
-  \rtranstz{\b\mt}{\b\mtp}{\New\C{\b\e}}{\New\C{\b\ep}}
-}
-\end{mathpar}
-
 
 \subsection{Monotonic class generation}\label{classgen}
 
