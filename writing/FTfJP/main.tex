@@ -142,134 +142,79 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 
 \section{Generative Monotone Casts}
 
-\subsection{Retype function}\label{retype}
+\begin{mathpar}
+\IRule{CM}{
+  \retype \a\t\cdot\s\K = \S~\Kp\\
+  \spec {\Dom\S} \S\s\Kp = \sp~\Kpp
+}{
+  \moncast \a\t\s\K \Kpp \sp\\
+}
+\end{mathpar}
+{Monotonic cast semantics}
 
-Formally, the \xt{retype} function takes a list of object
-addresses \b\a and a list of types to ascribe to them \b\t, and updates the
-heap \s and class table \K. 
 
+\opdef{
+  $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
+}{
+}
 \begin{align*}
-\S &::= \cdot \B \Map\S{\Bind\a\C}
+\P &::= \cdot \B \P ~{{(\C,\D)}\mapsto\Cp}
 \end{align*}
 \begin{mathpar}
-\IRule{CRM1}{
-  \htype \a\S\s\K = \C~\Kp\\
-  \tmeet\C\t\cdot\Kp = \D\,\Kpp\\ 
-  \C\not\EQ\D  \\
-  \ftypes \a\D \s\Kpp = \b\ap~\b\tp \\
-  \Sp = \Map\S{\Bind\a\D } \\
-  \retype{\b\ap}{\b\tp}\Sp\s\K = \Spp\,\K'''
+\IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
+
+\IRule{TM2}{ }{\tmeet\any\C\P\K = \C\,\K}
+
+\IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
+
+\IRule{TM4}{
+  \fresh\Cp\\
+  (\C,\D) \not\in\P \\
+  \Pp = \P~{{(\C,\D)}\mapsto\Cp} \\
+  \mtype\C\K = {\mt..}\\
+  \mtype\D\K = {\mtp..}\\
+  \mmeet{\mt..}{\mtp..}\Pp\K = \mtpp..\,\Kp\\
+  \Kpp = \Kp~\typegen{\mtpp..}\Cp\\
 }{
-  \retype \a\t\S\s\K = \Spp\,\K'''
+    \tmeet\C\D\P\K = \Cp\,\Kpp
 }
 
-\IRule{CRM2}{
-  \htype \a\S\s\K = \tp\,\Kp\\
-  \tmeet\tp\t\cdot\Kp = \tpp\,\Kp \\
-  \tp\EQ\tpp \\
+\IRule{TM5}{
+    \P(\C,\D) = \Cp
 }{
-  \retype \a\t\S\s\K = \S~\Kpp
-}
-
-\IRule{CRM3}{
-  \retype\a\t\S\s\K = \Sp\,\Kp\\
-  \retype{\b\a}{\b\t}\Sp\s\Kp = \Spp\,\Kpp
-}{
-  \retype {\a\,\b\a}{\t\,\b\t}\S\s\K = \Spp\,\Kpp
+    \tmeet\C\D\P\K = \Cp\,\K
 }
 \end{mathpar}
-
-\subsection{Spec function}\label{mono:spec}
-
-Formally, the \xt{spec} (heap specialization) function takes a
-sequence of object addresses \b\a, a heap typing \S, a heap \s
-and a class table \K and returns a new heap where the objects
-have been retyped. \Dom\S retrieves the list of addresses 
-that have to be retyped.
-
-\begin{mathpar}
-\IRule{CMS1}{
-  \E \text{ fresh}\\
-  \D = \App\S\a \\
-  \obj\C{\ap} = \App\s\a \\
-  \obj\Cp{\b\app} = \App\s\ap \\
-  \classoff\Cp\K = \b\mt \\
-  \classoff\D\K = \b\mtp \\  
-  \names{\b\mtp} \subseteq \names{\b\mt}\\
-  \Kp = \K~\classgen{\Cp,\b\mt,\b\mtp,\E,\K} \\
-  \sp = \Map\s{\Bind\a{\E\{\ap\}}}
-}{
-  \spec \a\S\s\K = \sp~\Kp
-}
-
-\IRule{CMS2}{
-  \spec \a\S\s\K = \sp\\
-  \spec {\b\a}\S\sp\K =\spp
-}{
-   \spec {\a\,\b\a}\S\s\K = \spp
-}
-\end{mathpar}
+{The \texttt{tmeet} function}
 
 \subsection{Meet function}\label{monmeet}
 
 The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
 perform the meet over the typing of each method within a class definition.
 The \texttt{mmeet} function also takes four arguments, the method
-signatures of the original class $\b\mt$, the method signatures of the cast
-class $\b\mtp$, the environment $\P$, a class table $\K$, and outputs method
-types $\b\mtpp$ and a class table $\Kp$. \\
+signatures of the original class $\mt..$, the method signatures of the cast
+class $\mtp..$, the environment $\P$, a class table $\K$, and outputs method
+types $\mtpp..$ and a class table $\Kp$. \\
 
 \hrulefill
-
-\opdef{
-  $\mmeet{\b\mt}{\b\mtp}\P\K = \b\mtpp\,\Kp$
-}{
-}
 \begin{mathpar}
 \IRule{MM1}{
 }{
-  \mmeet{\b\mt}{\cdot}\P\K =\b{\mt} ~\K
+  \mmeet{\mt ..}{\cdot}\Env\K =\mt.. ~\K
 }
 
 \IRule{MM2}{
 }{
-  \mmeet{\cdot}{\b\mt}\P\K =\b{\mt} ~\K
-}
-
-\IRule{MM3}{ 
-  \Mtype\f{}{\t} = \mt \\
-  \Mtype\f{}{\tp} \in \b{\mtp} \\
-  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
-  \Mtype\f{}{\tpp} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
-}
-
-\IRule{MM4}{ 
-  \Mtype\f{\t}{\t} = \mt \\
-  \Mtype\f{\tp}{\tp} \in \b{\mtp} \\
-  \tmeet{\t}{\tp}\P\K = \tpp~\Kp \\
-  \Mtype\f{\tpp}{\tpp} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kp
-}
-
-
-\IRule{MM5}{ 
-  \Mtype\m{\t_1}{\t_2} = \mt \\
-  \Mtype\m{\t_3}{\t_4} \in \b{\mtp} \\
-  \tmeet{\t_3}{\t_1}\P\K = \t_5~\Kp \\
-  \tmeet{\t_2}{\t_4}\P\Kp = {\t_6}~{\Kpp} \\
-  \Mtype\n{\t_5}{\t_6} = \mtpp
-}{ 
-   \mmeet{\mt}{\b{\mtp}}\P\K = \mtpp\,\Kpp 
+  \mmeet{\cdot}{\mt ..}\Env\K ={\mt ..} ~\K
 }
 
 \IRule{MM6}{
-  \mmeet{\mt}{\b{\mt_2}}\P\K = \mt_3~\Kp\\
-  \mmeet{\b{\mt_1}}{\b{\mt_2}}\P\Kp = \b{\mt_4}~\Kpp
+  \Mtype\m{\t_3}{\t_4} \in {\mt_2} \\
+  \tmeet{\t_3}{\t_1}\Env\K = \t_5~\Kp \\
+  \tmeet{\t_2}{\t_4}\Env\Kp = {\t_6}~{\Kpp} \\
+  \mmeet{{\mt_1 ..}}{{\mt_2 ..}}\Env\Kp = {\mt_3 ..}~\Kpp
 }{
-  \mmeet{\mt~\b{\mt_1}}{\b{\mt_2}}\P\K =\mt_3\b{\mt_4} ~\Kpp
+  \mmeet{\Mtype\m{\t_1}{\t_2}~{\mt_1 ..}}{{\mt_2 ..}}\Env\K =\Mtype\n{\t_5}{\t_6} ~{\mt_3 ..} ~\Kpp
 }
 \end{mathpar}
 
@@ -281,27 +226,15 @@ when a monotonic cast is required.
 \footnotesize
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
-\classgen{\C, \b\md, \bmt, \bmtp, \D, \K}= \\
+\classgen{\C, \md.., \mt.., \mtp.., \D, \K}= \\
 \SP \class~\D~\{ \\
-\SPP \Fdef\that\C
-\\[1mm]
-\SPP \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{
-      \Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}}
-&
-\All f \Mtype\f\t\t\in\bmt &\wedge& \Mtype\f\tp\tp\in\bmtp
+\SPP \Fdef\f\t & \All {{\f}\!:{\t} \in \text{fields}(\K,\C)}
 \\[1mm]\hline
-\SPP \Mdefz\f\any{\SubCast\any{\MonCast\tp{\Get{\Get\this\that}\f}}}
-&
- \All f \Mtype\f{}\t \in \bmt &\wedge& \Mtype\f{}\tp \in \bmtp
+\SPP \Mdef\m\x\any\any {~\MonCast\any{\KCall\this\m{\MonCast{\t[1]}\x}{\t[1]}{\t[2]}}~}
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. &\wedge& \Mtype\m{\C_1}{\C_2}\in{\mtp..}
 \\[1mm]\hline
-\SPP \Mdef\m\x\any\any {~\SubCast\any{\MonCast{\tp[2]}{{[{(\MonCast{\t[1]}\x)}/\x]\ep}}}~}
-&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{[{(\MonCast\t\x)}/\x]\e}{\ep}}
-\\[1mm]\hline
-\SPP \Mdef\m\x{\t[2]}{\tp[2]} {\MonCast{\tp[2]}{[{(\MonCast{\t[1]}\x)}/\x]\ep}~}
-&     \All \m \Mdef\m\x{\t[1]}{\tp[1]}\e\in\b\md &\wedge& \Mtype\m{\t[2]}{\tp[2]}\in\bmtp \\
-&&\wedge&\multicolumn{3}{l}{\rtranstz{\bmt}\bmtp{\e}{\ep}} \\
-&&\wedge&\multicolumn{3}{l}{\statictype{\t[2]}{\K}{\cdot}}
+\SPP \Mdef\m\x{\C_1}{\C_2} {\MonCast{\C_2}{[{(\MonCast{\any}\x)}/\x]\ep}~}
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. &\wedge& \Mtype\m{\C_1}{\C_2}\in\mtp.. 
 \\[1mm]\hline
 \SP\}
 \end{array}
@@ -320,127 +253,17 @@ of the type produced by the meet operation.
 \footnotesize
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
-\typegen{\bmt}{\D} = \\
+\typegen{\mt..}{\D} = \\
 \SP \class~\D~\{
 \\[1mm]
 \SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
 &
-\All m \Mtype\m\t\tp\in\bmt
-\\[1mm]\hline
-\SPP \Mdef\f\x\t\t {\x}
-&
-\All f \Mtype\f\t\t\in\bmt
-\\[1mm]\hline
-\SPP \Mdefz\f\t{{\MonCast\t{\New\D{}}}}
-&
- \All f \Mtype\f{}\t \in \bmt
+\All m \Mtype\m\t\tp\in\mt..
 \\[1mm]
 \SP\}
 \end{array}
 \]
 \normalsize
-
-
-
-
-\subsection{Htype function}
-
-The function \htype\a\S\s\K
-returns the class of the object at address \a.  \htype\a\S\s\K is \C if \C =
-\App\S\a or if $\a\not\in\S$ and \obj\C{\b\a}=\App\s\a.
-
-\begin{mathpar}
-\IRule{HT1}{
-  \a \not\in \text{addr}(\S) \\
-  \enfortype\C\cdot\K = \D\,\W\,\Kp
-}{
-  \htype\a\S{\sigma[\a \mapsto \C\{\ap\}]}\K = \D~\Kp
-}
-
-\IRule{HT2}{
-  \S(\a) = \t
-}{
-  \htype{\a}{\S}{\sigma}\K = \t~\K
-}
-\end{mathpar}
-
-\subsection{Lifting function}
-
-\hrulefill
-\begin{align*}
-\W &::= \cdot \B \Map\W{\Bind\C\D}
-\end{align*}
-\begin{mathpar}
-\IRule{ENT1}{ 
-  \Class\C{\hspace{-0.3em}}{\Fdef\that\Cp ~ \b\md} \in \K \\ 
-  \C \notin \text{dom}(\W) \\
-  \D\text{ fresh} \\
-  \Wp = \W\,\Bind\C\D \\
-  \Kp = \K\,\Class\D{\hspace{-0.3em}}{\Fdef\that\Cp ~ \enformt{\b{\md}}{\Wp}{\K}} \\ 
-}{
-  \enfortype{\C}{\W}{\K} = \D\,\Wp\,\Kp
-}
-
-\IRule{ENT2}{ 
-  \W(\C) = \D \\
-}{
-  \enfortype{\C}{\W}{\K} = \D\,\W\,\K
-}
-
-\IRule{ENT3}{ 
-}{
-  \enfortype{\any}{\W}{\K} = \any\,\W\,\K
-}
-\end{mathpar}
-\\
-
-\hrulefill
-
-\begin{mathpar}
-\IRule{ENMT1}{
-  \md =  \Mdef\m\x\any\any {~\SubCast\any{\MonCast\tp{{[{(\MonCast\t\x)}/\x]\ep}}}~} \\
-  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
-  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\
-  \mdpp = \Mdef\m\x\tpp\tppp {\MonCast\tppp\x} \\
-  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENMT2}{
-  \md = \Mdef\m\x\t\tp {\ep~}\\ 
-  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
-  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\  
-  \mdpp =\Mdef\m\x\tpp\tppp {\MonCast\tppp\x}\\
-  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENFS}{
-  \md = \Mdef\f\x\any\any {\SubCast\any{\MonCast\tp{\Set{\Get\this\that}\f{\MonCast\t{\MonCast\tp\x}}}}} \\ 
-  \enfortype\t\W\K = \tpp\,\Wp\,\Kp \\
-  \enfortype\tp\Wp\Kp = \tppp\,\Wpp\Kpp \\   
-  \mdpp = \Mdef\f\x\tpp\tppp {\MonCast\tppp\x} \\
-  \enformt{\b\md}{\Wpp}{\Kpp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENFG}{
-  \md =  \Mdefz\f\any{\SubCast\any{\MonCast\t{\Get{\Get\this\that}\f}}} \\ 
-  \enfortype\t\W\K = \tp\,\Wp\,\Kp \\
-  \mdpp = \Mdefz\f\tp {\MonCast\tp{\Get{\Get\this\that}\f}} \\
-  \enformt{\b\md}{\Wp}{\Kp} = \b\mddp \\
-}{
-  \enformt{\md\,\b\md}{\W}{\K} = \mdpp\,\b\mddp
-}
-
-\IRule{ENE}{
-}{
-  \enformt{\cdot}{\W}{\K} = \cdot
-}
-\end{mathpar}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{sample-bibliography}
