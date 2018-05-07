@@ -1,10 +1,11 @@
 \documentclass[USenglish]{tex/lipics-v2016}
 \usepackage{stmaryrd} 
 \usepackage{xspace,listings,url,framed,amssymb,
-            mathpartir,hyperref,doi, mathtools,wrapfig,
+            hyperref,doi, mathtools,wrapfig,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox,
             pgffor, makecell, microtype}
 \usepackage[customcolors,norndcorners]{hf-tikz}
+\usepackage{tex/mathpartir}
 \usetikzlibrary{arrows}
 \usetikzlibrary{shapes.geometric}
 \usetikzlibrary{shapes.multipart}
@@ -47,23 +48,17 @@
 \begin{document}
 \title{KafKa: Gradual Typing for Objects}
 \titlerunning{Gradual Typing for Objects}
-\author[1]{Benjamin Chung}
-\author[2]{Paley Li}
-\author[3]{Francesco Zappa Nardelli}
-\author[4]{Jan Vitek}
-%\author[1]{B}
-\affil[1,4]{Northeastern University}
-\affil[3]{INRIA}
-\affil[2,4]{Czech Technical University}
+\author{Benjamin Chung, Paley Li, Francesco Zappa Nardelli \& Jan Vitek}
+\affil{Northeastern University \& INRIA \& Czech Technical University}
 \authorrunning{Chung, Li, Zappa Nardelli, Vitek}
-%\Copyright{John Q. Open and Joan R. Access}%mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+\Copyright{Benjamin Chung, Paley Li, Francesco Zappa Nardelli and Jan Vitek}
+\subjclass{F.3.3 Studies of Program Constructs}
+\keywords{Gradual typine, Object oriented programming, type systems}
 
-%\subjclass{Dummy classification -- please refer to \url{http://www.acm.org/about/class/ccs98-html}}% mandatory: Please choose ACM 1998 classifications from http://www.acm.org/about/class/ccs98-html . E.g., cite as "F.1.1 Models of Computation". 
-%\keywords{Dummy keyword -- please provide 1--5 keywords}% mandatory: Please provide 1-5 keywords
 % Author macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\EventEditors{John Q. Open and Joan R. Acces}
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%
+\EventEditors{Todd Milstein}
 \EventNoEds{2}
 \EventLongTitle{European Conference on Object Oriented Programming}
 \EventShortTitle{ECOOP 2018}
@@ -275,8 +270,7 @@ approaches. Under the monotonic
 semantics, a cast updates the type of an object in place by replacing some
 of the occurrences of \any with more specific types, which can then
 propagate recursively through the heap until a fixed point is
-reached.\footnote{A previous version of this paper provided a translation
-  for monotonic, but it was removed for space reasons.}
+reached.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, and
@@ -345,7 +339,6 @@ Reticulated Python    \\
     optional structural constraints. (2) Concretely typed expressions are
     sound in C\#, Thorn, Nom, and StrongScript.}\label{over}
 \end{figure}
-%TODO: Nom is still missing from the figure above, and in the background in general.
 
 \figref{over} reviews gradual type systems with publicly available
 implementations. All languages here are class-based, except TypeScript which
@@ -439,10 +432,7 @@ type. In L2, we also construct an \xt{A}, but this time \xt{I} is structurally
 compatible (has the same method names) with incompatible argument types.
 Lastly, L3 uses the method \m to instantaneously asserts that an instance of a
 \C is actually an \xt{E}, then performs an untyped invocation on the result,
-assuming that the value is still a \C.\footnote{To validate this, we have
-implemented the litmus test in Typescript (optional), Thorn (concrete),  Typed
-Racket (behavioral), and Transient Reticulated Python (transient).  These
-implementations are included in the appendix}
+assuming that the value is still a \C.
 
 \begin{figure}[!h]
   \includegraphics[width=.95\columnwidth]{../figures/litm}
@@ -974,8 +964,7 @@ story. The statics of \kafka are key to enabling comparison of gradual type
 systems, as they enable the expression of gradual typing guarantees through
 the medium of \kafka's static type system.
 
-Unlike the dynamics, \kafka's statics hold few surprises. The entire type
-system is shown in Appendix A, with the key typing rules excerpted in
+Unlike the dynamics, \kafka's statics hold few surprises. The key typing rules excerpted in
 \figref{f:staticsem}. The key typing judgments are the subtyping relation
 \StrSub\M\K\t\tp (shown in \figref{sub}), the standard structural subtyping
 relation with the Amber rule~\cite{cardelli1985amber}, the program typing
@@ -1081,10 +1070,8 @@ Lastly, proving that the type of the wrapper is a subtype of the required type
 proceeds by structural induction over the required type.
 
 To prove this key theorem, we have mechanized the type soundness proof for
-\kafka in
-Coq\footnote{Link to source removed for blind review}. %https://github.com/BenChung/GradualComparison/tree/master/impl
-In Coq syntax, the \kafka type soundness theorem is stated as
-follows:
+\kafka in Coq.  In Coq syntax, the \kafka type soundness theorem is stated
+as follows:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
 morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
@@ -1122,9 +1109,7 @@ lessons learned from translations to \kafka, which needs a different approach.
 to the intermediate languages of commercial VMs so that lessons learned could
 be easily applied in practice. To validate this aspect of our design, we
 implemented a small compiler from \kafka to C\# and the CLR, alongside a
-runtime that provides the behavioral cast operation.\footnote{Link removed for
-double blind review}
-%https://github.com/BenChung/GradualComparison/tree/master/netImpl/kafkaimpl
+runtime that provides the behavioral cast operation.
 
 The main challenges encountered in the compilation of \kafka to C\# arise due
 to the differences between subtyping between the two languages. First, \kafka
@@ -1205,7 +1190,6 @@ identical to those in \kafka, and present only the altered rules.
 
 \subsection{Source Language}
 
-%TODO: Like types are removed from the figure
 \begin{figure}[!h]\hrulefill
 	
 	\begin{tabular}{ll}
@@ -1958,6 +1942,8 @@ of user defined pluggable casts within a single framework.
 
 \bibliographystyle{plainurl}% the recommended bibstyle
 \bibliography{../../bib/jv,../../bib/all}
+
+\end{document}
 
 \newpage
 \appendix
