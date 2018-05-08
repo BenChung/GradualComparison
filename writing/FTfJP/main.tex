@@ -103,49 +103,201 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 \maketitle
 
 
-\section{Complete translation for Monotonic}
+\begin{figure*}[!h]\hrulefill
 
-\subsection{Monotonic cast static and dynamic rules}
+\vspace{4mm}
 
-\begin{minipage}{0.35\textwidth}
+\small\begin{tabular}{@{}lll}
+
+\begin{minipage}{5.5cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+   &\B \this         
+   &\B \that      
+   &\B \FRead\f  \\   
+   & &
+   &\B \FWrite\f\e 
+   &\B \KCall\e\m\e\t\t \\
+   & &   
+   &\B \New\C{\e[1]..}  
+   &\B \DynCall\e\m\e \\
+   & & & \multicolumn{3}{@{}l}{\B \a \B \FReadR\a\f \B \FWriteR\a\f\e} \\
+   & & & \B \src{\MonCast\t\e}
+\end{tabular}\end{minipage}&
+\begin{minipage}{3.5cm}\begin{tabular}{l@{~}l@{}l@{}l}
+  \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+ \md &::= ~ \Mdef\m\x\t\t\e \\ 
+ \fd &::= ~ \Fdef\f\t \\ 
+  \t &::= ~ \any  \B   \C  \\ 
+\end{tabular}\end{minipage} &
+\begin{minipage}{5.5cm}
+
+\begin{tabular}{llllllllllllllllll}
+\EE &::=& ~ \FWriteR\a\f\EE   &\B  
+        \KCall\EE\m\e\t\t  &\B\\
+        &&\KCall\a\m{\EE}\t\t &\B
+        \DynCall\EE\m\e   &\B\\
+&       & \DynCall\a\m\EE   &\B
+       \src{\MonCast\t\EE}  &\B\\
+&&     \New\C{\a[1]..\,\EE\,\e[1]..} &\B 
+      \EM{\square}
+\end{tabular}
+\end{minipage}
+\end{tabular}
+
+
 \begin{mathpar}
-\IRule{W10}{
+\IRule{KT-VAR}{
+   ~\\\\
+   ~\\\\
+   \HasType \Env\x\t
+ }{
+   \EnvType \Env\s\K\x\t
+}
+
+\IRule{KT-SUB}{
+  ~\\\\
+  \EnvType \Env\s\K\e\tp \\\\
+ \StrSub \cdot\K \tp \t
+ }{
+  \EnvType \Env\s\K\e\t 
+}   
+
+\IRule{KT-READ}{
+  ~\\\\
+  \HasType\Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvType \Env\s\K{\FRead\f}\t
+}  
+
+\IRule{KT-REFREAD}{
+  \s(\a) = \C\{..\} \\\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvType \Env\s\K{\FReadR\a\f}\t
+}  
+
+\IRule{KT-WRITE}{
+  \HasType\Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FWrite\f\e}\t
+}    
+
+\IRule[width=12em]{KT-REFWRITE}{
+  \s(\a) = \C\{..\} \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FWriteR\a\f\e}\t
+}  
+
+\IRule[width=16em]{KT-CALL}{
+  \EnvType \Env\s\K\e\C \\\\
+  \EnvType \Env\s\K\ep\t \\\
+  \Mtype\m\t\tp \in \App\K\C 
+}{
+  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
+}    
+
+\IRule{KT-DYNCALL}{
+  ~\\\\
+  \EnvType \Env\s\K\e\any \\\\
+  \EnvType \Env\s\K\ep\any
+}{
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
+}    
+
+\IRule[width=20em]{KT-NEW}{
+  ~\\\\
+  \EnvType \Env\s\K{\e[1]}{\t[1]}..\\\\
+  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K
+}{
+  \EnvType\Env\s\K{\New\C{\e[1]..}}\C
+}
+
+\src{
+\IRule{KT-MONOCAST}{
   \EnvType \Env\s\K\e\tp
 }{
   \EnvType \Env\s\K{\MonCast\t\e}\t
 }
+}
+
+\IRule{KT-REFTYPE}{
+  \s(\a) = \obj\C{\ap[1]..}
+}{
+  \EnvType \Env\s\K\a\C
+}
+
+\IRule{KT-REFANY}{
+ }{
+   \EnvType \Env\s\K\a\any
+}
 \end{mathpar}
+
+\begin{minipage}{0.32\textwidth}
+\begin{align*}
+\TRG[M]{\x}\Env &= \x & \\
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \DynCall{\ep_1}\m{\ep_2} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\any
+\AND \TRG[M]{\e_1}\Env = \ep_1}} \\ &\tag*{\EM{\wedge \TAG[M]{\e_2}\Env{\any} = \ep_2}}\\
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\C
+\AND\; \Mtype\m{\D[1]}{\D[2]}\In\App\K\C}}\\
+\tag*{\EM{\AND \TRG[M]{\e_1}\Env = \ep_1 \wedge \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}}\\
+\TRG[M]{\New\C{{\e_1}...}}\Env &= \New\C{\ep_1...} & \tag*{\IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C
+    \AND \ep[1] = \TAG[M]{\e[1]}\Env{\t[1]} ~..}}\\
+\TAG[M]{\e}{\Env}\t &= \e' & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\Sub\t}}\\
+\TAG[M]{\e}{\Env}\t &= \MonCast{\t}{\ep} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\not\Sub\t}}
+\end{align*}
+\end{minipage}\hspace{1cm}
+\begin{minipage}{0.45\textwidth}
+\begin{tabbing}
+  \K\HS \New\C{\a[1]..} \HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
+\\
+\K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots}
+\\
+\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots} \HS  
+\\ \> \> \> \> \> \> \> \sp = \Map\s{\Bind\a{\obj\C{\a[1],\ldots\ap,\a[n]\ldots}}}
+\\
+\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \\ \> \> \> \> \> \> \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
+\> \> \> \> \> \> \> \StrSub {\emptyset}\K{\t_{2}} \tp
+\\
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \\ \> \> \> \> \> \> \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..} 
+\\
+ \K\HS {\MonCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp    
+\\
+\K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
+\end{tabbing}
 \end{minipage}
-\begin{minipage}{0.5\textwidth}
-\begin{tabular}{l@{}l@{~}l@{~}l}
-\CondRule{E11}{  %Monotonic cast  
-  \moncast \a\t\s\K  \Kp\ap\sp    
-}{    
-  \ReduceA  \K{\MonCast \t\a}\s \Kp\ap\sp   
-} \\
-\multicolumn{4}{l}{\EE ::= \ldots \B \MonCast\t\EE }
-\end{tabular}
-\end{minipage}
+\vspace{2mm}
+
+\noindent\hrulefill\caption{\kafka Syntax.}\label{syn}
+\end{figure*}
+
+
+\begin{figure}[!h]
+
+\medskip
+\hrulefill
+\caption{\kafka dynamic semantics.}\label{fig:semantics}
+\end{figure}
+
+\section{Complete translation for Monotonic}
+
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+%\vspace{-2mm}
+
 \subsection{Monotonic translation for bidirectional expressions}
 
-\begin{align*}
-\TRG[M]{\x}\Env = \x & \\
-\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env = \DynCall{\ep_1}\m{\ep_2} & \tag{\IF\EM{\TypeCk{\K,\Env}\e\any
-\AND \TRG[M]{\e_1}\Env = \ep_1 \wedge \TAG[M]{\e_2}\Env{\any} = \ep_2}}\\
-\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env = \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & \tag{\IF\EM{\TypeCk{\K,\Env}\e\C
-\AND \Mtype\m{\D[1]}{\D[2]}\In\App\K\C \AND \TRG[M]{\e_1}\Env = \ep_1 \wedge \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}}\\
-\TRG[M]{\New\C{{\e_1}...}}\Env = \New\C{\ep_1...} & \tag{\IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C
-    \AND \ep[1] = \TAG[M]{\e[1]}\Env{\t[1]} ~..}}\\
-\TAG[M]{\e}{\Env}\t = \e' & \tag{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\Sub\t}}\\
-\TAG[M]{\e}{\Env}\t = \MonCast{\t}{\ep} & \tag{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\not\Sub\t}}
-\end{align*}
 
 \section{Generative Monotone Casts}
 
 \begin{mathpar}
 \IRule{CM}{
   \s(\a) = \C\{\ap\ldots\} \\
-  \tmeet \a\C\t\s\K = \Cp~\Kp\\
+  \tmeet \C\t\cdot\K = \Cp~\Kp\\
   \sp = \s[\a \mapsto \Cp\{\ap\ldots\}]
 }{
   \moncast \a\t\s\K \Kp \sp\\
@@ -153,11 +305,6 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 \end{mathpar}
 {Monotonic cast semantics}
 
-
-\opdef{
-  $\tmeet{\t}{\tp}\P\K = \tpp\,\Kp$
-}{
-}
 \begin{align*}
 \P &::= \cdot \B \P ~{{(\C,\D)}\mapsto\Cp}
 \end{align*}
@@ -232,10 +379,10 @@ when a monotonic cast is required.
 \SPP \Fdef\f\t & \All {{\f}\!:{\t} \in \text{fields}(\K,\C)}
 \\[1mm]\hline
 \SPP \Mdef\m\x\any\any {~\MonCast\any{\KCall\this\m{\MonCast{\t[1]}\x}{\t[1]}{\t[2]}}~}
-&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. &\wedge& \Mtype\m{\C_1}{\C_2}\in{\mtp..}
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. \\&\wedge\; \Mtype\m{\C_1}{\C_2}\in{\mtp..}
 \\[1mm]\hline
 \SPP \Mdef\m\x{\C_1}{\C_2} {\MonCast{\C_2}{[{(\MonCast{\any}\x)}/\x]\ep}~}
-&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. &\wedge& \Mtype\m{\C_1}{\C_2}\in\mtp.. 
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. \\&\wedge\; \Mtype\m{\C_1}{\C_2}\in\mtp.. 
 \\[1mm]\hline
 \SP\}
 \end{array}
