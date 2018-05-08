@@ -430,52 +430,35 @@ without inheritance, method overloading or cast operations. We give a
 source-level type system for each semantics (notated $\vdash_{\!s}$). To
 simplify the presentation, we elide unsurprising rules.
 
-
 \begin{figure}[!h]\hrulefill
-	
-	\begin{tabular}{ll}
-		\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
-				\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
-				&\B \this         
-				&\B \FRead\f \\    
-				&
-				&\B \FWrite\f\e
-				&\B \Call\e\m\e \\
-				& 
-				&\B \that      
-				&\B \New\C{\e[1]..}  
-		\end{tabular}\end{minipage}&
-		\begin{minipage}{5cm}\begin{tabular}{l@{~}l@{}l@{}l}
-				~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
-				~ \t&::= ~ \any  \B   \C  \\ 
-				\md &::= \Mdef\m\x\t\t\e \\
-				~\fd&::= ~ \Fdef\f\t \\ 
-		\end{tabular}\end{minipage} 
-	\end{tabular}
-	\vspace{2mm} 
 
-\hrulefill
+\begin{tabular}{ll}
+\begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+		    &\B \this         
+		    &\B \FRead\f \\&
+		    &\B \FWrite\f\e
+		    &\B \Call\e\m\e \\& 
+                    &\B \that      
+		   &\B \New\C{\e[1]..}  
+\end{tabular}\end{minipage}&
+\begin{minipage}{5cm}\begin{tabular}{l@{~}l@{}l@{}l}
+		~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+		~ \t&::= ~ \any  \B   \C  \\ 
+		\md &::= \Mdef\m\x\t\t\e \\
+		~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage} 
+\end{tabular}
 
-        \caption{Common source language.}\label{f:sourcesyntax}
-\end{figure}
-
-
-
-\begin{figure}[!h]
-  
-  \hrulefill  \footnotesize
-
-  \vspace{-5mm}
-  
-  \hspace{-.5cm}\begin{mathpar}
-          \Rule{STG-VAR}{
-            ~\\\\  ~\\\\ ~\\\\
+\hspace{-.5cm}\begin{mathpar}
+\Rule{STG-VAR}{
+            ~\\\\ 
             \HasType \Env\x\t
           }{
             \EnvTypeS \Env\K\x\t
           }
 
-          \Rule{STG-GET}{ ~\\\\ ~\\\\
+\Rule{STG-GET}{
             \HasType \Env\this\C \\\\
             \Fdef\f\t \in \App\K\C
           }{
@@ -483,9 +466,9 @@ simplify the presentation, we elide unsurprising rules.
           }    
 
           \Rule{STG-SET}{
-            \HasType \Env\this\C \\\\
+            \HasType \Env\this\C \quad
             {\Fdef\f\t \in \App\K\C} \\\\
-            \EnvTypeS \Env\K\e\tp \\\\
+            \EnvTypeS \Env\K\e\tp \quad
             \ConvertE\K{s}\tp\t
           }{
             \EnvTypeS \Env\K{\FWrite\f\e}\t
@@ -500,17 +483,17 @@ simplify the presentation, we elide unsurprising rules.
           }    
 
           \Rule[width=15em]{STG-CALL}{
-            \EnvTypeS \Env\K\e\C \\\\
+            \EnvTypeS \Env\K\e\C \quad
             \EnvTypeS \Env\K\ep\t \\\\
-            \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
+            \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \quad
             \ConvertE\K{s}\t{\t[1]}
           }{
             \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
           }    
 
-          \Rule{STG-NEW}{~\\\\
+          \Rule{STG-NEW}{
             \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
-            \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
+            \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad
             \ConvertE\K{s}{\tp[1]}{\t[1]}..
           }{
             \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
@@ -519,6 +502,25 @@ simplify the presentation, we elide unsurprising rules.
   
   \vspace{2mm}
   
+  
+  \begin{mathpar}
+    \IRule{STGC-SUB}{
+      \SSub\emptyset\K\t\tp
+    }{
+      \ConvertE\K{s}\t\tp
+    }
+    
+    \IRule{STGC-TOANY}{~
+    }{
+      \ConvertE\K{s}\t\any
+    }
+    
+    \IRule{STGC-ANYCONC}{~
+    }{
+      \ConvertE\K{s}\any\t
+    }
+  \end{mathpar}
+
   \hrulefill
   \caption{Source language type system.}\label{fig:slts}
 \end{figure}
@@ -541,31 +543,6 @@ allowing implicit conversion to and from the dynamic type where not (via
 \RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}). To avoid collapsing the
 type hierarchy, the type convertibility operator is not transitive.
 
-\begin{figure}[!h]
-  \hrulefill  \small  \vspace{-3mm}
-  
-  \begin{mathpar}
-    \IRule{STGC-SUB}{
-      \SSub\emptyset\K\t\tp
-    }{
-      \ConvertE\K{s}\t\tp
-    }
-    
-    \IRule{STGC-TOANY}{~
-    }{
-      \ConvertE\K{s}\t\any
-    }
-    
-    \IRule{STGC-ANYCONC}{~
-    }{
-      \ConvertE\K{s}\any\t
-    }
-  \end{mathpar}
-  \vspace{-8mm}
-  
-  \hrulefill
-  \caption{Source language type convertibility.}\label{fig:tyconvert}
-\end{figure}
 
 Since \kafka only supports subsumption, if \RuleRef{STGC-TOANY} or \RuleRef
 {STGC-ANYCONC} were used, then some dynamic check must be inserted. If
@@ -1950,16 +1927,15 @@ interesting to axiomatize the correctness requirements for a cast and let
 users define their own cast semantics. The goal would be to have a collection
 of user defined pluggable casts within a single framework.
 
-\paragraph{Acknowledgments} The author thank the reviewers of ECOOP, POPL,
+\subsection*{Acknowledgments} The author thank the reviewers of ECOOP, POPL,
 ESOP, and ECOOP (again) for their comments that have helped us gradually
 improve this paper. We are grateful to Benjamin Greenman and Matthias
-Felleisen for their feedback.  This work was funded ... nsf gradual... erc...  onr... darwin...
+Felleisen for their feedback.  This work was funded ... nsf
+gradual... erc...  onr... darwin...
 
-\bibliographystyle{plainurl}% the recommended bibstyle
+\bibliographystyle{plainurl}
 \bibliography{../../bib/jv,../../bib/all}
-
 \end{document}
-
 \newpage
 \appendix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
