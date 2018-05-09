@@ -434,95 +434,89 @@ simplify the presentation, we elide unsurprising rules.
 
 \begin{tabular}{ll}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
-\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
-		    &\B \this         
-		    &\B \FRead\f \\&
-		    &\B \FWrite\f\e
-		    &\B \Call\e\m\e \\& 
-                    &\B \that      
-		   &\B \New\C{\e[1]..}  
+\e\hspace{.1cm} 
+    ::= & \hspace{.2cm} \x        
+        &\B \this         
+	&\B \FRead\f \\&
+	&\B \FWrite\f\e
+	&\B \Call\e\m\e \\& 
+        &\B \that      
+	&\B \New\C{\e[1]..}  
 \end{tabular}\end{minipage}&
 \begin{minipage}{5cm}\begin{tabular}{l@{~}l@{}l@{}l}
-		~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
-		~ \t&::= ~ \any  \B   \C  \\ 
-		\md &::= \Mdef\m\x\t\t\e \\
-		~\fd&::= ~ \Fdef\f\t \\ 
+  ~ \k &::= \Class \C {\fd[1]..}{\md[1]..}\\
+   ~ \t&::= ~ \any \B \C\\ 
+   \md &::= \Mdef\m\x\t\t\e\\
+   ~\fd&::= ~ \Fdef\f\t\\ 
 \end{tabular}\end{minipage} 
 \end{tabular}
 
 \hspace{-.5cm}\begin{mathpar}
-\Rule{STG-VAR}{
-            ~\\\\ 
-            \HasType \Env\x\t
-          }{
-            \EnvTypeS \Env\K\x\t
-          }
+\Rule{STG-VAR}{~\\\\ 
+  \HasType \Env\x\t
+}{
+  \EnvTypeS \Env\K\x\t
+}
 
 \Rule{STG-GET}{
-            \HasType \Env\this\C \\\\
-            \Fdef\f\t \in \App\K\C
-          }{
-            \EnvTypeS \Env\K{\FRead\f}\t
-          }    
+  \HasType \Env\this\C \\\\  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeS \Env\K{\FRead\f}\t
+}    
 
-          \Rule{STG-SET}{
-            \HasType \Env\this\C \quad
-            {\Fdef\f\t \in \App\K\C} \\\\
-            \EnvTypeS \Env\K\e\tp \quad
-            \ConvertE\K{s}\tp\t
-          }{
-            \EnvTypeS \Env\K{\FWrite\f\e}\t
-          }    
+\Rule{STG-SET}{
+  \HasType \Env\this\C \quad \Fdef\f\t \in \App\K\C \\\\
+  \EnvTypeS \Env\K\e\tp \quad  \ConvertE\K{s}\tp\t
+}{
+  \EnvTypeS \Env\K{\FWrite\f\e}\t
+}    
 
-          \Rule[width=15em]{STG-CALL}{
-            ~\\\\ ~\\\\
-            \EnvTypeS \Env\K\e\any \\\\
-            \EnvTypeS \Env\K\ep\t 
-          }{
-            \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
-          }    
+\Rule[width=15em]{STG-CALL}{
+  ~\\\\ ~\\\\
+  \EnvTypeS \Env\K\e\any \\\\
+  \EnvTypeS \Env\K\ep\t 
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
+}    
 
-          \Rule[width=15em]{STG-CALL}{
-            \EnvTypeS \Env\K\e\C \quad
-            \EnvTypeS \Env\K\ep\t \\\\
-            \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \quad
-            \ConvertE\K{s}\t{\t[1]}
-          }{
-            \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
-          }    
+\Rule[width=15em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\C \quad
+  \EnvTypeS \Env\K\ep\t \\\\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \quad
+  \ConvertE\K{s}\t{\t[1]}
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+}   
 
-          \Rule{STG-NEW}{
-            \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
-            \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad
-            \ConvertE\K{s}{\tp[1]}{\t[1]}..
-          }{
-            \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
-          }
-          \end{mathpar}
+\Rule{STG-NEW}{
+  \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad
+  \ConvertE\K{s}{\tp[1]}{\t[1]}..
+}{
+  \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+}
+\end{mathpar}
   
   \vspace{2mm}
   
-  
-  \begin{mathpar}
-    \IRule{STGC-SUB}{
-      \SSub\emptyset\K\t\tp
-    }{
-      \ConvertE\K{s}\t\tp
-    }
+\begin{mathpar}
+\IRule{STGC-SUB}{
+   \SSub\emptyset\K\t\tp
+}{
+   \ConvertE\K{s}\t\tp
+}
     
-    \IRule{STGC-TOANY}{~
-    }{
-      \ConvertE\K{s}\t\any
-    }
+\IRule{STGC-TOANY}{~ }{
+  \ConvertE\K{s}\t\any
+}
     
-    \IRule{STGC-ANYCONC}{~
-    }{
-      \ConvertE\K{s}\any\t
-    }
-  \end{mathpar}
+\IRule{STGC-ANYCONC}{~}{
+  \ConvertE\K{s}\any\t
+ }
+\end{mathpar}
 
-  \hrulefill
-  \caption{Source language type system.}\label{fig:slts}
+\hrulefill
+\caption{Source language type system.}\label{fig:slts}
 \end{figure}
 
 The type system of \figref{fig:slts} is a standard static semantics for
