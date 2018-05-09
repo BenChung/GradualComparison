@@ -35,24 +35,15 @@
 \title{Monotonic Gradual Typing in a Common Calculus}
 \subtitle{}
 
-\author{Ben Trovato}
-\authornote{Dr.~Trovato insisted his name be first.}
-\orcid{1234-5678-9012}
+\author{Benjamin Chung}
 \affiliation{%
-  \institution{Institute for Clarity in Documentation}
-  \streetaddress{P.O. Box 1212}
-  \city{Dublin}
-  \state{Ohio}
-  \postcode{43017-6221}
+  \institution{Northeastern University}
 }
-\email{trovato@corporation.com}
+\email{bchung@ccs.neu.edu}
 
-\author{John Smith}
-\affiliation{\institution{The Th{\o}rv{\"a}ld Group}}
-\email{jsmith@affiliation.org}
-
-% The default list of authors is too long for headers.
-\renewcommand{\shortauthors}{B. Trovato et al.}
+\author{Jan Vitek}
+\affiliation{\institution{Northeastern University}}
+\email{j.vitek@northeastern.edu}
 
 
 \begin{abstract}
@@ -101,6 +92,46 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 
 
 \maketitle
+
+Gradual typing refers to a family of approaches that add types to untyped
+programs. Within this broad description lie a range of semantic choices,
+providing different soundness and performance properties. We examine four of
+these gradual type systems in our paper [how do I cite it? XXXX]. However,
+this work does not discuss the monotonic semantics.
+
+The problem the monotonic semantics sets out to solve is that in gradually
+typed programs, typed mutable field access can be slow. Under the behavioral
+semantics, which adds wrappers to enforce types, every typed field access on
+an untyped object has to have a layer of indirection. Likewise, under the
+transient semantics, every typed field access everywhere in the program is
+protected with a cast, as the field's value could have been mutated by untyped
+code. This can make typed code in a gradually typed language slow.
+
+Suppose we have an object $\x = \a = \{ \f:\any = 3 \}$, then alias it as
+$\xp = \SubCast{\{ \f:\xt{int} \}}\x$. Accessing $\xp.\f$ is not guaranteed
+to be safe, even though \xp is fully typed. If we run \xt{\x.\f = "hello"} at
+some point, then $\xp.\f$ is now ill-typed via the  reference. As mentioned
+previously, both the transient and behavioral semantics deal with this by
+checking the result of dereference in typed code, lazily enforcing the type.
+Under the transient semantics, for example, the assignment to \x.\f will
+succeed but the dereference from \xp.\f will fail. However, the monotonic
+semantics takes the opposite approach.
+
+The monotonic semantics is an \emph{eager} mechanism to enforce types. Under
+the monotonic semantics, once a value in the heap is typed, it will always
+remain of that type. In the example above, once we aliased \x as \xp, \xp's
+type (e.g. that \f has type \xt{int}) will be enforced upon usages of \x. Now,
+our assignment \xt{\x.\f = "hello"} will fail, because we are assigning a
+value of improper type to the field \f of \a. In this manner, all statically
+typed values under the monotonic semantics are known to have correct field
+typing.
+
+In this paper, we present a formalization of the monotonic semantics on our
+framework for comparing gradual type systems. We use a common gradually-typed
+source language and translate it to a common target language (called \kafka)
+according to the monotonic semantics. We then use this formalization to
+discuss the monotonic semantics's properties, and compare it to alternative
+gradual type systems.
 
 
 \begin{figure*}[!h]\hrulefill
