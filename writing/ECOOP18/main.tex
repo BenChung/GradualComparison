@@ -401,7 +401,7 @@ relatively inexpensive nominal subtype tests.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Source Language and Litmus test}\label{litmustest}
+\section{Gradual Source Language and Litmus test}\label{litmustest}
 
 \epigraph{\vspace{-5mm}\small\it ``There is no perfection only life.''} 
 
@@ -410,48 +410,30 @@ relatively inexpensive nominal subtype tests.
 One of the salient implications of the various approaches to gradual typing
 is that they have different notions of what is an erroneous program. By
 observing the errors that each gradual type system produces, one can
-determine what kind of type system is being used. Using this property, we
-propose a litmus test that can distinguish the four gradual type system
-approaches of optional, concrete, behavioral, and transient.
+determine what kind of type system is being used. We propose a litmus test
+that can distinguish the four gradual type system approaches of optional,
+concrete, behavioral, and transient.  The litmus test consists of a set of
+programs whose execution depends on which gradual type system is in
+use. Each program should run without error when executed without gradual
+types, and should be statically well-typed in all the type systems. However,
+with gradual types, the programs should induce cast failures depending on
+what semantics are in play.
 
-To differentiate gradual type systems with a litmus test, we need a set of
-programs whose execution depends on which gradual type system is in use. Each
-program should run without error when executed dynamically, and should be
-statically well-typed. However, in the presence of a gradual type system, the
-programs should induce cast failures depending on what semantics are in play.
+\subsection{A Gradually Typed Language}
 
-
-\subsection{Source}
-
-For simplicity, we present a common source language that will be used to
-express programs for the different type systems.  The source language is
-given in \figref{f:sourcesyntax}. This defines a simple object calculus
-without inheritance, method overloading or cast operations. We give a
-source-level type system for each semantics (notated $\vdash_{\!s}$). To
-simplify the presentation, we elide unsurprising rules.
-
-\begin{figure}[!h]\hrulefill
+\begin{figure}[!tb]\hrulefill
 
 \begin{tabular}{ll}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
-\e\hspace{.1cm} 
-    ::= & \hspace{.2cm} \x        
-        &\B \this         
-	&\B \FRead\f \\&
-	&\B \FWrite\f\e
-	&\B \Call\e\m\e \\& 
-        &\B \that      
-	&\B \New\C{\e[1]..}  
-\end{tabular}\end{minipage}&
-\begin{minipage}{5cm}\begin{tabular}{l@{~}l@{}l@{}l}
-  ~ \k &::= \Class \C {\fd[1]..}{\md[1]..}\\
-   ~ \t&::= ~ \any \B \C\\ 
-   \md &::= \Mdef\m\x\t\t\e\\
-   ~\fd&::= ~ \Fdef\f\t\\ 
+\e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}\\
+\k~::=~ \Class \C {\fd[1]..}{\md[1]..} \qquad
+\md~::=~\Mdef\m\x\t\t\e\qquad
+\fd~::=~ \Fdef\f\t\qquad
+\t~::=~ \any \B \C
 \end{tabular}\end{minipage} 
 \end{tabular}
 
-\hspace{-.5cm}\begin{mathpar}
+\begin{mathpar}
 \Rule{STG-VAR}{~\\\\ 
   \HasType \Env\x\t
 }{
@@ -472,16 +454,13 @@ simplify the presentation, we elide unsurprising rules.
 }    
 
 \Rule[width=15em]{STG-CALL}{
-  ~\\\\ ~\\\\
-  \EnvTypeS \Env\K\e\any \\\\
-  \EnvTypeS \Env\K\ep\t 
+  \EnvTypeS \Env\K\e\any \\\\ \EnvTypeS \Env\K\ep\t 
 }{
   \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
 }    
 
 \Rule[width=15em]{STG-CALL}{
-  \EnvTypeS \Env\K\e\C \quad
-  \EnvTypeS \Env\K\ep\t \\\\
+  \EnvTypeS \Env\K\e\C \quad \EnvTypeS \Env\K\ep\t \\\\
   \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \quad
   \ConvertE\K{s}\t{\t[1]}
 }{
@@ -490,60 +469,67 @@ simplify the presentation, we elide unsurprising rules.
 
 \Rule{STG-NEW}{
   \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
-  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad
-  \ConvertE\K{s}{\tp[1]}{\t[1]}..
+  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad \ConvertE\K{s}{\tp[1]}{\t[1]}..
 }{
   \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
 }
 \end{mathpar}
-  
-  \vspace{2mm}
+
+\vspace{-5mm}  
   
 \begin{mathpar}
-\IRule{STGC-SUB}{
+\IRule{SUB}{
    \SSub\emptyset\K\t\tp
 }{
    \ConvertE\K{s}\t\tp
 }
     
-\IRule{STGC-TOANY}{~ }{
-  \ConvertE\K{s}\t\any
-}
+\IRule{TOANY}{~ }{ \ConvertE\K{s}\t\any}
     
-\IRule{STGC-ANYCONC}{~}{
-  \ConvertE\K{s}\any\t
- }
+\IRule{ANYCONC}{~}{ \ConvertE\K{s}\any\t }
 \end{mathpar}
 
+\vspace{-5mm}  
+
 \hrulefill
-\caption{Source language type system.}\label{fig:slts}
+\caption{Source language syntax and type system (extract).}\label{slts}
 \end{figure}
 
-The type system of \figref{fig:slts} is a standard static semantics for
-gradual typing. To differentiate this type system from the \kafka type
-system, we use the $\EnvTypeS \Env\K\e\t$ judgment form, indicating a
-well-typed expression in the surface type system. This surface static
-semantics allows mixing of static and dynamically typed terms and is shared
-between all gradual type systems. The source language type system allows the
-implicit conversion of typed and untyped terms via the convertibility
-operator, written $\ConvertE\K{s}{\t}{\tp}$.
+We present a common source language that will be used with different gradual
+type systems in \figref{slts}. The source language is a simple object
+calculus without inheritance, method overloading or cast
+operations. Notably, the language is statically typed, subtyping is
+structural -- namely a class is subtype of another if it has all methods of
+the other and the type of the argument and the return values are subtypes.
+
+WIP WIP WIP
+
+We give a source-level type system for each semantics (notated
+$\vdash_{\!s}$). To simplify the presentation, we elide unsurprising rules.
+
+The type system is a standard static semantics for gradual typing. To
+differentiate this type system from the \kafka type system, we use the
+$\EnvTypeS \Env\K\e\t$ judgment form, indicating a well-typed expression in
+the surface type system. This surface static semantics allows mixing of
+static and dynamically typed terms and is shared between all gradual type
+systems. The source language type system allows the implicit conversion of
+typed and untyped terms via the convertibility operator, written
+$\ConvertE\K{s}{\t}{\tp}$.
 
 This $\ConvertE\K{s}{\t}{\tp}$ relation indicates that type $\t$ is
 convertible to type $\tp$, and is used both for traditional up-casting and
-for conversions of \any to non-\any types. Our definition of the type
-convertibility operator is shown in \figref{fig:tyconvert}. The operator
-enforces type discipline where possible (via \RuleRef{STGC-SUB}) while
-allowing implicit conversion to and from the dynamic type where not (via
-\RuleRef{STGC-TOANY} and \RuleRef{STGC-ANYCONC}). To avoid collapsing the
-type hierarchy, the type convertibility operator is not transitive.
+for conversions of \any to non-\any types. The type convertibility operator
+enforces type discipline where possible (via \RuleRef{SUB}) while allowing
+implicit conversion to and from the dynamic type where not (via
+\RuleRef{TOANY} and \RuleRef{ANYCONC}). To avoid collapsing the type
+hierarchy, the type convertibility operator is not transitive.
 
-
-Since \kafka only supports subsumption, if \RuleRef{STGC-TOANY} or \RuleRef
-{STGC-ANYCONC} were used, then some dynamic check must be inserted. If
-\RuleRef{STGC-TOANY} is used, then some typed object is being passed into
-untyped code, and must be protected from misuse. Likewise, if
-\RuleRef{STGC-ANYCONC} is used, then an untyped value is being passed into
-typed code, and type invariants must be checked.
+Since \kafka only supports subsumption, if \RuleRef{TOANY} or
+\RuleRef{ANYCONC} were used, then some dynamic check must be inserted. If
+\RuleRef{TOANY} is used, then some typed object is being passed into untyped
+code, and must be protected from misuse. Likewise, if \RuleRef{ANYCONC} is
+used, then an untyped value is being passed into typed code, and type
+invariants must be checked.
 
 \subsection{Litmus}
 
@@ -1489,10 +1475,10 @@ to encoding the source level soundness guarantee in \kafka.
 
 The convertibility and assert translations, shown in \figref{fig:trtype}, have
 a close correspondence. Every type-driven translation has two rules. The first
-rule handles the case of \RuleRef{STGC-SUB}, when the required type happens to
+rule handles the case of \RuleRef{SUB}, when the required type happens to
 be a supertype of the expression's actual type, and in this case no further
 action is required of the translation. The second case shows the behavior when
-\RuleRef{STGC- TOANY} or \RuleRef {STGC-ANYCONC} were needed to conclude the
+\RuleRef{TOANY} or \RuleRef {ANYCONC} were needed to conclude the
 source level typing judgment. In these cases, we are converting to or from
 \any, and therefore dynamic behavior that depends on the soundness guarantee
 is required.
