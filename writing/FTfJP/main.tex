@@ -15,6 +15,26 @@
 %\setcopyright{cagov}
 %\setcopyright{cagovmixed}
 
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof,new,true,false,instanceof,catch,function,return,null, 
+    catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{darkgray},
+  ndkeywords={class,def,interface,export,boolean,throw,extends,implements,import,this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,  comment=[l]{//},  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,  stringstyle=\color{gray}\ttfamily,
+  morestring=[b]',  morestring=[b]",
+  backgroundcolor=\color{vlightgray},
+  aboveskip=\medskipamount, %0em,
+  belowskip=\smallskipamount, %0em
+  escapeinside={(*@}{@*)}
+}
+\lstset{
+  language=JavaScript,  extendedchars=true,  basicstyle=\footnotesize\ttfamily,
+  showstringspaces=false,   showspaces=false,  numberstyle=\small,
+  numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
+}
 
 % DOI
 \acmDOI{10.475/123_4}
@@ -90,14 +110,51 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 
 \keywords{ACM proceedings, \LaTeX, text tagging}
 
+\definecolor{Gray}{gray}{0.9}
+
+\definecolor{vlightgray}{gray}{0.93}
 
 \maketitle
 
 Gradual typing refers to a family of approaches that add types to untyped
-programs. Within this broad description lie a range of semantic choices,
-providing different soundness and performance properties. We examine four of
-these gradual type systems in our paper [how do I cite it? XXXX]. However,
-this work does not discuss the monotonic semantics.
+programs, approaches which all solve the same problem in different ways.
+Gradual typing allows programmers to assert types for untyped values, types
+which (in a sound system) need to be checked dynamically. The pantheon of
+gradual type systems arises from different mechanisms for checking the types
+of untyped values.
+
+Object-oriented languages pose a particular problem for gradual typing. It is
+easy to check if a base value has a type, but problems arise from higher-order
+behavior. In a functional language, this manifests when trying to assert an
+arrow type on a lambda. Object-oriented languages have this same problem -
+trying to assert a typed method on an object with an untyped version of the
+method - but have additional complexity in the form of subtyping.
+
+\begin{figure}[h]
+\begin{lstlisting}
+class C { f(x:*):* { x } 
+          g(x:*):* { new C() }}
+class D { f(x:D):D { x }}
+new D(<*>new C())
+\end{lstlisting}
+\caption{A simple gradually-typed object oriented-program.}
+\label{fig:simpleprog}
+\end{figure}
+
+Figure~\ref{fig:simpleprog} shows a simple example of a gradually typed
+object oriented program, which uses dynamic behavior to pass an instance
+of class \C as one of type \D. \C has no guarantee to act like a \D, so
+\D-ness must be enforced at runtime. However, how this enforcement happens
+is unclear. The program could fail when the instance of \C is first passed,
+fail if \f is called on \x, or not fail at all because the program never 
+breaks the guarantee provided by the gradual type syste.
+
+We examined four of these approaches to gradual typing in our paper [how do I
+cite it? XXXX]. The approaches investigated in that paper were the optional,
+transient, behavioral, and concrete semantics. We chose these semantics due to
+their popularity and relative simplicity, but elided one, the monotonic
+semantics, due its size and complexity. This paper places the monotonic
+semantics into the same framework as our earlier work.
 
 The problem the monotonic semantics sets out to solve is that in gradually
 typed programs, typed mutable field access can be slow. Under the behavioral
@@ -133,6 +190,44 @@ according to the monotonic semantics. We then use this formalization to
 discuss the monotonic semantics's properties, and compare it to alternative
 gradual type systems.
 
+\section{Monotonic}
+
+The idea behind the monotonic semantics was originally put forward by XXXX
+Siek and Vitousek in DATE XXXX, with first application in their language
+Reticulated Python. The same group then went on to implement the monotonic
+semantics into their Grift implementation XXXX Cite Me XXX, allowing the
+comparison of performance inherent to each gradual type system.
+
+The idea behind the monotonic semantics is that types only ever get more
+precise. This design gives rise to its name; types in a monotonic language's
+heap monotonically get more precise. When a reference is cast to a more
+precise type, that new type will get saved in the reference (and propagated to
+whatever it refers to). If untyped code later tries to mutate the reference to
+a new value that does not conform to the previously applied type, a type error
+will occur. By locking in applied types forevermore, typed code under the
+monotonic semantics can assume that mutable state will remain well typed.
+
+In turn, the ability to rely on types on mutable state absolutely provides
+several advantages over other gradual type systems. The monotonic system has
+a soundness guarantee, unlike the optional semantics (which simply forgets
+about all type annotations at runtime); monotonic languages can elide field
+dereference guards needed by the transient semantics; do not need the wrappers
+inserted by the behavioral semantics; and is far more flexible than the 
+concrete semantics. Additional details about these other semantics can be found
+in our XXXX ECOOP PAPER XXXX.
+
+As a result, monotonic has the potential to provide substantial benefits to
+the performance of gradually typed languages. Types are guaranteed, so they
+can be relied upon for memory layout of objects. Types under the monotonic
+semantics can be used to optimize away generic field accesses, and assignments
+to typed fields from fully typed code do not need to be checked.
+
+In the context of object orientation, monotonic's ability to protect mutable
+state without the need for wrappers is a major advantage. Other gradual type
+systems need guards, wrappers, or an incredibly strong notion of soundness
+in order to guarantee safety of field access. The monotonic semantics, in 
+contrast, prevents untyped code from assigning ill-typed values to previously
+typed references, allowing unchecked dereferencing in typed code.
 
 \begin{figure*}[!h]\hrulefill
 
@@ -154,7 +249,7 @@ gradual type systems.
    & & & \multicolumn{3}{@{}l}{\B \a \B \FReadR\a\f \B \FWriteR\a\f\e} \\
    & & & \B \src{\MonCast\t\e}
 \end{tabular}\end{minipage}&
-\begin{minipage}{3.5cm}\begin{tabular}{l@{~}l@{}l@{}l}
+\begin{minipage}{3.7cm}\begin{tabular}{l@{~}l@{}l@{}l}
   \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
  \md &::= ~ \Mdef\m\x\t\t\e \\ 
  \fd &::= ~ \Fdef\f\t \\ 
