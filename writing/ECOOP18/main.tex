@@ -401,25 +401,23 @@ relatively inexpensive nominal subtype tests.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Gradual Source Language and Litmus test}\label{litmustest}
+\section{A Family of  Gradually Typed Languages and their Litmus test}\label{litmustest}
 
-\epigraph{\vspace{-5mm}\small\it ``There is no perfection only life.''} 
+\epigraph{\vspace{-5mm}\small\it ``There is no perfection only life''} 
 
 \vspace{-10mm}
 \noindent
-One of the salient implications of the various approaches to gradual typing
-is that they have different notions of what is an erroneous program. By
-observing the errors that each gradual type system produces, one can
-determine what kind of type system is being used. We propose a litmus test
-that can distinguish the four gradual type system approaches of optional,
-concrete, behavioral, and transient.  The litmus test consists of a set of
-programs whose execution depends on which gradual type system is in
-use. Each program should run without error when executed without gradual
-types, and should be statically well-typed in all the type systems. However,
-with gradual types, the programs should induce cast failures depending on
-what semantics are in play.
+One of the implications of the various approaches to gradual typing is that
+they have different notions of what constitutes an erroneous program. By
+observing the run-time errors that each gradual type system produces, one
+can tell them apart. We propose a litmus test for the four approaches of
+optional, concrete, behavioral, and transient.  The litmus test consists of
+three programs whose execution depends on which gradual type system is in
+use. Each program runs without error when executed without gradual types,
+and is statically well-typed. However, with gradual types, the programs
+may experience cast failures.
 
-\subsection{A Gradually Typed Language}
+\subsection{A Common Surface Language}
 
 \begin{figure}[!tb]\hrulefill
 
@@ -484,61 +482,55 @@ what semantics are in play.
    \ConvertE\K{s}\t\tp
 }
     
-\IRule{TOANY}{~ }{ \ConvertE\K{s}\t\any}
+\IRule{TOA}{~ }{ \ConvertE\K{s}\t\any}
     
-\IRule{ANYCONC}{~}{ \ConvertE\K{s}\any\t }
+\IRule{ANYC}{~}{ \ConvertE\K{s}\any\t }
 \end{mathpar}
 
 \vspace{-5mm}  
 
 \hrulefill
-\caption{Source language syntax and type system (extract).}\label{slts}
+\caption{Surface language syntax and type system (extract).}\label{slts}
 \end{figure}
 
-We present a common source language that will be used with different gradual
-type systems in \figref{slts}. The source language is a simple object
-calculus without inheritance, method overloading or cast
-operations. Notably, the language is statically typed, subtyping is
-structural -- namely a class is subtype of another if it has all methods of
-the other and the type of the argument and the return values are subtypes.
+We present a common surface language that is used with different gradual
+type systems. The language is a simple object calculus without inheritance,
+method overloading or explicit type cast operations. It is statically typed,
+subtyping is structural, and type \any is the dynamic type. When a method
+receiver is of type \any, invocation is considered well-typed. Values of
+type \any can be statically converted to any type.  Class names are used as
+types.
 
-WIP WIP WIP
-
-We give a source-level type system for each semantics (notated
-$\vdash_{\!s}$). To simplify the presentation, we elide unsurprising rules.
-
-The type system is a standard static semantics for gradual typing. To
-differentiate this type system from the \kafka type system, we use the
-$\EnvTypeS \Env\K\e\t$ judgment form, indicating a well-typed expression in
-the surface type system. This surface static semantics allows mixing of
-static and dynamically typed terms and is shared between all gradual type
-systems. The source language type system allows the implicit conversion of
-typed and untyped terms via the convertibility operator, written
-$\ConvertE\K{s}{\t}{\tp}$.
-
-This $\ConvertE\K{s}{\t}{\tp}$ relation indicates that type $\t$ is
-convertible to type $\tp$, and is used both for traditional up-casting and
-for conversions of \any to non-\any types. The type convertibility operator
-enforces type discipline where possible (via \RuleRef{SUB}) while allowing
-implicit conversion to and from the dynamic type where not (via
-\RuleRef{TOANY} and \RuleRef{ANYCONC}). To avoid collapsing the type
-hierarchy, the type convertibility operator is not transitive.
-
-Since \kafka only supports subsumption, if \RuleRef{TOANY} or
-\RuleRef{ANYCONC} were used, then some dynamic check must be inserted. If
-\RuleRef{TOANY} is used, then some typed object is being passed into untyped
-code, and must be protected from misuse. Likewise, if \RuleRef{ANYCONC} is
+\figref{slts} gives the language's syntax and an extract of its static type
+system.  The type system is mostly standard. To differentiate it from the
+\kafka type system, we use the $\EnvTypeS\Env\K\e\t$ judgment form,
+indicating a well-typed surface expression.  This surface static semantics
+allows mixing of static and dynamically typed terms. The static type system
+allows the implicit conversion of typed and untyped terms via the
+convertibility operator, written $\ConvertE\K s\t\tp$ -- type $\t$ is
+convertible to type $\tp$.  The relation is used both for up-casting and for
+conversions of \any to non-\any types.  \RuleRef{SUB} ensures soundness of
+up-casts. While \RuleRef{TOA} and \RuleRef{ANYC} allow implicit conversion
+to and from the dynamic type.  To avoid collapsing the type hierarchy,
+convertibility is not transitive. \RuleRef{TOA} and \RuleRef{ANYC} are break
+soundness, their use motivates the need for dynamic checks.  If
+\RuleRef{TOA} is used, then some typed object is being passed into untyped
+code, and must be protected from misuse. Likewise, if \RuleRef{ANYC} is
 used, then an untyped value is being passed into typed code, and type
 invariants must be checked.
 
+A number of design choices deserve discussion. The choice of structural
+subtyping is motivated by the desire to accommodate ...
+
+
 \subsection{Litmus}
 
-Using three different programs, we can differentiate between four gradual type
-systems. The litmus test is shown in \figref{litmus} and its constituent
-programs are written in our source language, whose full details appear in 
-section 5. Each of these programs consists of a class table and an expression,
-whose evaluation in the context of the class table determines if the litmus test
-succeeds or fails.
+Using three different programs, we can differentiate between four gradual
+type systems. The litmus test is shown in \figref{litmus} and its
+constituent programs are written in our surface language.  Each of these
+programs consists of a class table and an expression, whose evaluation in
+the context of the class table determines if the litmus test succeeds or
+fails.
 
 The three programs in the litmus test are designed to induce errors in some
 gradual type systems. This is done via the construction of an untyped value
@@ -1478,7 +1470,7 @@ a close correspondence. Every type-driven translation has two rules. The first
 rule handles the case of \RuleRef{SUB}, when the required type happens to
 be a supertype of the expression's actual type, and in this case no further
 action is required of the translation. The second case shows the behavior when
-\RuleRef{TOANY} or \RuleRef {ANYCONC} were needed to conclude the
+\RuleRef{TOA} or \RuleRef {ANYC} were needed to conclude the
 source level typing judgment. In these cases, we are converting to or from
 \any, and therefore dynamic behavior that depends on the soundness guarantee
 is required.
