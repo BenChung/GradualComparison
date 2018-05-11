@@ -542,9 +542,13 @@ The translation is syntax directed, each surface class is translated to an
 eponymous \kafka class. Types of methods and fields are retained in the
 translation. Expressions are translated with $\TRG[M]{\e}\Env$. Variables
 are translated to themselves. Calls are translated to either dynamic calls
-or static calls depending on the type of the receiver. For this we use a
-variant of the translation relation that also returns the type of the
-expression, \TAG[M]{\e}{\Env}\t.
+or static calls depending on the type of the receiver.  If the receiver is
+of type \any, then the argument must be of type \any. If the receiver of
+some class \C then the argument must be of type \D, where \D is the expected
+argument type of the method.  We use a variant of the translation relation
+that performs a cast if necessary on its argument expression,
+\TAG[M]{\e}{\Env}\t.  The inserted cast is the monotonic cast,
+\MonCast{\t}{\ep}.
 
 \begin{figure*}[!t]
 \center
@@ -554,11 +558,11 @@ expression, \TAG[M]{\e}{\Env}\t.
 \begin{align*}
 \TRG[M]{\x}\Env &= \x & \\
 \TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \DynCall{\ep_1}\m{\ep_2} & 
-   \IF\EM{\TypeCk{\K,\Env}\e\any ~ \AND ~
+   \IF\EM{\TypeCk{\K,\Env}{\e[1]}\any ~ \AND ~
     \TRG[M]{\e_1}\Env = \ep_1}
    \EM{~\AND~ \TAG[M]{\e_2}\Env{\any} = \ep_2}\\
 \TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & 
-    \IF\EM{\TypeCk{\K,\Env}\e\C ~ \AND\; ~ 
+    \IF\EM{\TypeCk{\K,\Env}{\e[1]}\C ~ \AND\; ~ 
     \Mtype\m{\D[1]}{\D[2]}\In\App\K\C}
   ~\EM{\AND ~ \TRG[M]{\e_1}\Env= \ep_1 
    ~\AND~ \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}\\
@@ -657,33 +661,30 @@ Translation
 \caption{translation}
 \end{figure*}
 
+At run-time the monotonic cast invokes moncast which takes the address \a of
+an aobject of class \C, a target type \t, a heap \Env and a class table \K;
+it returns an updated heap \Envp and an updated class table \Kp. What it
+does is compute a new class \Cp for the object at \a. That class is obtained
+by taking the meet of \C (the current class) and \t (the target type).
 
 
 
-\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
 
 
-The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
+
+The \texttt{mmeet} function is used by the \texttt{meet} functions to
 perform the meet over the typing of each method within a class definition.
 The \texttt{mmeet} function also takes four arguments, the method
 signatures of the original class $\mt..$, the method signatures of the cast
 class $\mtp..$, the environment $\P$, a class table $\K$, and outputs method
 types $\mtpp..$ and a class table $\Kp$. \\
 
-\subsection{Monotonic class generation}\label{classgen}
 
 The \xt{monWrap} function generates the wrapper for the monotonic translations,
 when a monotonic cast is required.
 
-\begin{figure}
-\footnotesize
-\normalsize
-\end{figure}
 
-
-\subsection{Monotonic equivalent type generation}\label{typegen}
-
-The \xt{typegen} function is used by the \xt{tmeet} function to generate the new classes
+The \xt{typegen} function is used by the \xt{meet} function to generate the new classes
 of the type produced by the meet operation.
 
 \footnotesize
