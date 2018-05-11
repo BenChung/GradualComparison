@@ -536,7 +536,15 @@ section focuses on giving a semantics to that cast.
 \section{Monotonic Semantics}
 
 The monotonic semantics is defined by a translation from the surface
-language down to \kafka and the meaning of the monotonic cast.
+language down to \kafka and the meaning of the monotonic cast. 
+
+The translation is syntax directed, each surface class is translated to an
+eponymous \kafka class. Types of methods and fields are retained in the
+translation. Expressions are translated with $\TRG[M]{\e}\Env$. Variables
+are translated to themselves. Calls are translated to either dynamic calls
+or static calls depending on the type of the receiver. For this we use a
+variant of the translation relation that also returns the type of the
+expression, \TAG[M]{\e}{\Env}\t.
 
 \begin{figure*}[!t]
 \center
