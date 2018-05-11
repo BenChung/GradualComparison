@@ -229,6 +229,105 @@ in order to guarantee safety of field access. The monotonic semantics, in
 contrast, prevents untyped code from assigning ill-typed values to previously
 typed references, allowing unchecked dereferencing in typed code.
 
+\section{Formalism}
+
+We use the framework we set out in our earlier paper to provide a simple
+presentation of the monotonic semantics in an object-oriented setting. Instead
+of using formal languages specially crafted to support each semantics, we use
+a common source and target language for every gradual typing semantics. The 
+semantics is then encoded into the translation, allowing comparison of gradual 
+type systems by examining their translation.
+
+\paragraph{Source Language}
+
+Our common source language is very similar to Featherweight Java, with a few
+notable changes. This language extends the basic framework of FJ with a
+dynamic type and a convertibility relation, allowing gradually typed programs
+to be expressed. This same source language and source language type system
+is shared between the translation presented here and the four in our main
+paper,  allowing the same programs to be ran under all of our semantics. We
+replicate the static semantics for the source language here, in figure~\ref{slts}.
+
+Programs in the source language consist of a class table and an initial
+expression. Classes consist of field and method definitions. Method
+definitions have names, types for their single argument and return type, and
+an expression. Expressions consist of variables, the self-reference \this,
+field read and write \FRead\f and \FWrite\f\e, invocation \Call\e\m\e, and new
+object creation \New\C{\e[1]..}. All operations conform to what they would do
+in Featherweight Java, and the type system is straightforward. 
+
+
+
+
+\begin{figure*}[!h]\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}\\
+\k~::=~ \Class \C {\fd[1]..}{\md[1]..} \qquad
+\md~::=~\Mdef\m\x\t\t\e\qquad
+\fd~::=~ \Fdef\f\t\qquad
+\t~::=~ \any \B \C
+\end{tabular}
+
+\begin{mathpar}
+\Rule{STG-VAR}{~\\\\ 
+  \HasType \Env\x\t
+}{
+  \EnvTypeS \Env\K\x\t
+}
+
+\Rule{STG-GET}{
+  \HasType \Env\this\C \\\\  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeS \Env\K{\FRead\f}\t
+}    
+
+\Rule{STG-SET}{
+  \HasType \Env\this\C \quad \Fdef\f\t \in \App\K\C \\\\
+  \EnvTypeS \Env\K\e\tp \quad  \ConvertE\K{s}\tp\t
+}{
+  \EnvTypeS \Env\K{\FWrite\f\e}\t
+}    
+
+\Rule[width=15em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\any \\\\ \EnvTypeS \Env\K\ep\t 
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
+}    
+
+\Rule[width=15em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\C \quad \EnvTypeS \Env\K\ep\t \\\\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \quad
+  \ConvertE\K{s}\t{\t[1]}
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+}   
+
+\Rule{STG-NEW}{
+  \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad \ConvertE\K{s}{\tp[1]}{\t[1]}..
+}{
+  \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+}
+\end{mathpar}
+
+\vspace{-5mm}  
+  
+\begin{mathpar}
+\IRule{SUB}{
+   \SSub\emptyset\K\t\tp
+}{
+   \ConvertE\K{s}\t\tp
+}
+    
+\IRule{TOA}{~ }{ \ConvertE\K{s}\t\any}
+    
+\IRule{ANYC}{~}{ \ConvertE\K{s}\any\t }
+\end{mathpar}
+
+
+\hrulefill
+\caption{Surface language syntax and type system (extract).}\label{slts}
+\end{figure*}
+
 \begin{figure*}[!h]\hrulefill
 
 \vspace{4mm}
