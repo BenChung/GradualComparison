@@ -62,7 +62,7 @@
 
 \begin{abstract}
 Gradual typing refers to the notion that programs can be incrementally
-decorated with type annotations~\cite{SiekTaha06,tf-dls06}. Languages that
+decorated with type annotations. Languages that
 support this approach to software development allow for programs being in
 various state of ``typedness'' on a scale that ranges from entirely untyped
 to fully statically typed. The intellectual challenge for language designers
@@ -84,12 +84,14 @@ proposal as a translation from a surface language down to a core calculus.
 
 \maketitle
 
+\section{Introduction}
+
 Gradual typing refers to a family of approaches that add types to untyped
-programs, approaches which all solve the same problem in different ways.
-Gradual typing allows programmers to assert types for untyped values, types
-which (in a sound system) need to be checked dynamically. The pantheon of
-gradual type systems arises from different mechanisms for checking the types
-of untyped values.
+programs, approaches which all solve the same problem in different
+ways~\cite{SiekTaha06,tf-dls06}.  Gradual typing allows programmers to
+assert types for untyped values, types which (in a sound system) need to be
+checked dynamically. The pantheon of gradual type systems arises from
+different mechanisms for checking the types of untyped values.
 
 Object-oriented languages pose a particular problem for gradual typing. It
 is easy to check if a base value has a type, but problems arise from
@@ -132,27 +134,21 @@ In a companion paper, to appear at ECOOP 2018~\cite{us}, we examined four of
 these approaches to gradual typing.  The approaches investigated in that
 paper were the optional, transient, behavioral, and concrete semantics. We
 chose these semantics due to their popularity and relative simplicity, but
-elided one semantics, the monotonic semantics of~\cite{}, due its size and
+elided one semantics, the monotonic semantics of~\cite{siek14}, due to its
 complexity. This paper places the monotonic semantics into the same
-framework as our earlier work.
+framework.
 
 The problem the monotonic semantics sets out to solve is that in gradually
-typed programs, typed mutable field access can be slow. Under the behavioral
-semantics, which adds wrappers to enforce types, every typed field access on
-an untyped object has to have a layer of indirection. Likewise, under the
-transient semantics, every typed field access everywhere in the program is
-protected with a cast, as the field's value could have been mutated by untyped
-code. This can make typed code in a gradually typed language slow.
-
-Suppose we have an object $\x = \a = \{ \f:\any = 3 \}$, then alias it as
-$\xp = \SubCast{\{ \f:\xt{int} \}}\x$. Accessing $\xp.\f$ is not guaranteed
-to be safe, even though \xp is fully typed. If we run \xt{\x.\f = "hello"} at
-some point, then $\xp.\f$ is now ill-typed via the  reference. As mentioned
-previously, both the transient and behavioral semantics deal with this by
-checking the result of dereference in typed code, lazily enforcing the type.
-Under the transient semantics, for example, the assignment to \x.\f will
-succeed but the dereference from \xp.\f will fail. However, the monotonic
-semantics takes the opposite approach.
+typed programs, field access can be slow. Under the sound semantics, which
+adds wrappers to enforce types, every access may have a layer of
+indirection. This can make typed code in a gradually typed language slow.
+Suppose we have an object $\x = \{ \f:\any = 3 \}$, then alias it as $\xp =
+\SubCast{\{ \f:\xt{int} \}}\x$. Accessing $\xp.\f$ is not guaranteed to be
+safe, even though \xp is fully typed. If we run \xt{\x.\f = "hello"} at some
+point, then $\xp.\f$ is now ill-typed via the reference. As mentioned
+previously, other semantics deal with this by checking the result of
+dereference in typed code, lazily enforcing soundness of the type
+annotation. 
 
 The monotonic semantics is an \emph{eager} mechanism to enforce types. Under
 the monotonic semantics, once a value in the heap is typed, it will always
