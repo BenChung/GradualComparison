@@ -261,26 +261,13 @@ signatures. Subtyping between objects is computed solely on methods
 signatures.
 
 
-\subsection{KafKa}
+\begin{figure*}[!t]
 
-\kafka's design follows the surface language with some differences.
-Expressions are extended with \that a distinguished variable used for
-wrapped object reference, typed and untyped method invocations, subtype and
-monotonic casts.  Evaluation is likewise standard with a few exceptions,
-with an evaluation context consisting of a class table \K, an expression
-being evaluated \e, and a heap \s, mapping from addresses \a to objects,
-denoted $\C\{\a\ldots\}$. Due to the need for dynamically generate classes,
-the class table \K is part of the state, and not the evaluation context.
+\hrulefill
 
-\kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$
-and the typed invocation $\KCall\e\m\ep{\t}{\tp}$, both denoting a method
-call to method $\m$ with argument \ep. This is unusual for two
-reasons. First, most gradual type systems have no explicit untyped
-invocation form, and second, the typed form also specifies the argument type
-(\t) and return type (\tp).
+\vspace{4mm}
 
-
-\begin{figure*}[!h]\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
 \e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}\\
 \k~::=~ \Class \C {\fd[1]..}{\md[1]..} \qquad
 \md~::=~\Mdef\m\x\t\t\e\qquad
@@ -349,7 +336,9 @@ invocation form, and second, the typed form also specifies the argument type
 \caption{Surface language syntax and type system (extract).}\label{slts}
 \end{figure*}
 
-\begin{figure*}[!h]\hrulefill
+\begin{figure*}[!t]
+
+\hrulefill
 
 \vspace{4mm}
 
@@ -483,7 +472,74 @@ invocation form, and second, the typed form also specifies the argument type
 }
 \end{mathpar}
 
-\begin{minipage}{0.32\textwidth}
+\vspace{4mm}
+
+\begin{minipage}{0.45\textwidth}
+\begin{tabbing}
+\K\HS\New\C{\a[1]..}\HS\=\s~\HS\=\Red\HS\=\K\HS\=\ap\HS\=\sp\HS\=
+   \WHERE\HS\=\fresh\ap \HS\HS\sp ={\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
+\\
+\K\HS \FReadR\a{\f[i]} \> \s \>\Red\>  \K\>$\a[i]$ \> \s  \> 
+   \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..}
+\\
+\K\HS{\FWriteR\a{\f[i]}\ap}\>\s\>\Red\>\K\>\ap\>\sp\>  
+   \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..} 
+   \HS\HS \sp=\Map\s{\Bind\a{\obj\C{\a[1],..\ap,\a[n]..}}}
+\\
+\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> 
+    \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS\HS
+             \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C \HS\HS
+             \App\s\a=\obj\C{\a[1]..} \HS\HS
+               \StrSub {\emptyset}\K\t {\t_{1}} \HS\HS
+ \StrSub {\emptyset}\K{\t_{2}} \tp
+\\
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  
+       \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS\HS
+                \Mdef\m\x\any\any\e \In \App\K\C \HS\HS
+                 \App\s\a=\obj\C{\a[1]..} 
+\\
+ \K\HS {\MonCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp    
+\\
+\K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
+\end{tabbing}\end{minipage}\vspace{2mm}
+
+\noindent\hrulefill
+
+\caption{\kafka syntax, static and dynamic semantics, and monotonic
+  translation.}\label{syn}
+\end{figure*}
+
+
+\subsection{KafKa}
+
+\kafka's design follows the surface language with some differences.
+Expressions are extended with \that a distinguished variable used for
+wrapped object reference, typed and untyped method invocations, subtype and
+monotonic casts.  Evaluation is likewise standard with a few exceptions,
+with an evaluation context consisting of a class table \K, an expression
+being evaluated \e, and a heap \s, mapping from addresses \a to objects,
+denoted $\C\{\a\ldots\}$. Due to the need for dynamically generate classes,
+the class table \K is part of the state, and not the evaluation context.
+
+\kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$
+and the typed invocation $\KCall\e\m\ep{\t}{\tp}$, both denoting a method
+call to method $\m$ with argument \ep. This is unusual for two
+reasons. First, most gradual type systems have no explicit untyped
+invocation form, and second, the typed form also specifies the argument type
+(\t) and return type (\tp).
+
+We use gray background to indicate changes to \kafka in figure~\ref{slts} to
+support monotonic. The only addition is that of the monotonic cast. The next
+section focuses on giving a semantics to that cast.
+
+
+\section{Monotonic Semantics}
+
+The monotonic semantics is defined by a translation from the surface
+language down to \kafka and the meaning of the monotonic cast.
+
+\begin{figure}[!h]
+
 \begin{align*}
 \TRG[M]{\x}\Env &= \x & \\
 \TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \DynCall{\ep_1}\m{\ep_2} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\any
@@ -496,39 +552,23 @@ invocation form, and second, the typed form also specifies the argument type
 \TAG[M]{\e}{\Env}\t &= \e' & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\Sub\t}}\\
 \TAG[M]{\e}{\Env}\t &= \MonCast{\t}{\ep} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\not\Sub\t}}
 \end{align*}
-\end{minipage}\hspace{1cm}
-\begin{minipage}{0.45\textwidth}
-\begin{tabbing}
-  \K\HS \New\C{\a[1]..} \HS\= \s~\HS \=\Red\HS \= \K \HS\= \ap \HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
-\\
-\K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..}
-\\
-\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..} \HS  
-\\ \> \> \> \> \> \> \> \sp = \Map\s{\Bind\a{\obj\C{\a[1],..\ap,\a[n]..}}}
-\\
-\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \\ \> \> \> \> \> \> \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
-\> \> \> \> \> \> \> \StrSub {\emptyset}\K{\t_{2}} \tp
-\\
- \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \\ \> \> \> \> \> \> \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..} 
-\\
- \K\HS {\MonCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp    
-\\
-\K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
-\end{tabbing}\end{minipage}\vspace{2mm}
-\noindent\hrulefill\caption{\kafka syntax, static and dynamic semantics, and
-  monotonic translation.}\label{syn}
-\end{figure*}
+
+\caption{translation}
+\end{figure}
 
 
-\section{Translation for Monotonic}
+
 
 \opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
-%\vspace{-2mm}
+
 
 \subsection{Monotonic translation for bidirectional expressions}
 
 
 \section{Generative Monotone Casts}
+
+
+\begin{figure}[!h]
 
 \begin{mathpar}
 \IRule{CM}{
@@ -569,7 +609,8 @@ invocation form, and second, the typed form also specifies the argument type
     \tmeet\C\D\P\K = \Cp\,\K
 }
 \end{mathpar}
-{The \texttt{tmeet} function}
+\caption{The \texttt{tmeet} function}
+\end{figure}
 
 \subsection{Meet function}\label{monmeet}
 
@@ -580,6 +621,7 @@ signatures of the original class $\mt..$, the method signatures of the cast
 class $\mtp..$, the environment $\P$, a class table $\K$, and outputs method
 types $\mtpp..$ and a class table $\Kp$. \\
 
+\begin{figure}
 \hrulefill
 \begin{mathpar}
 \IRule{MM1}{}{
@@ -599,12 +641,14 @@ types $\mtpp..$ and a class table $\Kp$. \\
   \mmeet{\Mtype\m{\t_1}{\t_2}~{\mt_1 ..}}{{\mt_2 ..}}\Env\K =\Mtype\n{\t_5}{\t_6} ~{\mt_3 ..} ~\Kpp
 }
 \end{mathpar}
+\end{figure}
 
 \subsection{Monotonic class generation}\label{classgen}
 
 The \xt{monWrap} function generates the wrapper for the monotonic translations,
 when a monotonic cast is required.
 
+\begin{figure}
 \footnotesize
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
@@ -622,7 +666,7 @@ when a monotonic cast is required.
 \end{array}
 \]
 \normalsize
-
+\end{figure}
 
 
 \subsection{Monotonic equivalent type generation}\label{typegen}
