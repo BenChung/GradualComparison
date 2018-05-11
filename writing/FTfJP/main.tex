@@ -446,7 +446,7 @@ in Featherweight Java, and the type system is straightforward.
 \TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\C
 \AND\; \Mtype\m{\D[1]}{\D[2]}\In\App\K\C}}\\
 \tag*{\EM{\AND \TRG[M]{\e_1}\Env = \ep_1 \wedge \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}}\\
-\TRG[M]{\New\C{{\e_1}...}}\Env &= \New\C{\ep_1...} & \tag*{\IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C
+\TRG[M]{\New\C{{\e_1}..}}\Env &= \New\C{\ep_1..} & \tag*{\IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C
     \AND \ep[1] = \TAG[M]{\e[1]}\Env{\t[1]} ~..}}\\
 \TAG[M]{\e}{\Env}\t &= \e' & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\Sub\t}}\\
 \TAG[M]{\e}{\Env}\t &= \MonCast{\t}{\ep} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\not\Sub\t}}
@@ -456,10 +456,10 @@ in Featherweight Java, and the type system is straightforward.
 \begin{tabbing}
   \K\HS \New\C{\a[1]..} \HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
 \\
-\K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots}
+\K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..}
 \\
-\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots} \HS  
-\\ \> \> \> \> \> \> \> \sp = \Map\s{\Bind\a{\obj\C{\a[1],\ldots\ap,\a[n]\ldots}}}
+\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..} \HS  
+\\ \> \> \> \> \> \> \> \sp = \Map\s{\Bind\a{\obj\C{\a[1],..\ap,\a[n]..}}}
 \\
 \K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \\ \> \> \> \> \> \> \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
 \> \> \> \> \> \> \> \StrSub {\emptyset}\K{\t_{2}} \tp
@@ -498,9 +498,9 @@ in Featherweight Java, and the type system is straightforward.
 
 \begin{mathpar}
 \IRule{CM}{
-  \s(\a) = \C\{\ap\ldots\} \\
+  \s(\a) = \C\{\ap..\} \\
   \tmeet \C\t\cdot\K = \Cp~\Kp\\
-  \sp = \s[\a \mapsto \Cp\{\ap\ldots\}]
+  \sp = \s[\a \mapsto \Cp\{\ap..\}]
 }{
   \moncast \a\t\s\K \Kp \sp\\
 }
