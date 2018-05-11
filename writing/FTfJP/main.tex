@@ -538,37 +538,31 @@ section focuses on giving a semantics to that cast.
 The monotonic semantics is defined by a translation from the surface
 language down to \kafka and the meaning of the monotonic cast.
 
-\begin{figure}[!h]
+\begin{figure*}[!t]
 
+\begin{center}
+\begin{minipage}{10cm}
 \begin{align*}
 \TRG[M]{\x}\Env &= \x & \\
-\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \DynCall{\ep_1}\m{\ep_2} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\any
-\AND \TRG[M]{\e_1}\Env = \ep_1}} \\ &\tag*{\EM{\wedge \TAG[M]{\e_2}\Env{\any} = \ep_2}}\\
-\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\C
-\AND\; \Mtype\m{\D[1]}{\D[2]}\In\App\K\C}}\\
-\tag*{\EM{\AND \TRG[M]{\e_1}\Env = \ep_1 \wedge \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}}\\
-\TRG[M]{\New\C{{\e_1}..}}\Env &= \New\C{\ep_1..} & \tag*{\IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C
-    \AND \ep[1] = \TAG[M]{\e[1]}\Env{\t[1]} ~..}}\\
-\TAG[M]{\e}{\Env}\t &= \e' & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\Sub\t}}\\
-\TAG[M]{\e}{\Env}\t &= \MonCast{\t}{\ep} & \tag*{\IF\EM{\TypeCk{\K,\Env}\e\tp \AND \K\vdash\tp\not\Sub\t}}
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \DynCall{\ep_1}\m{\ep_2} & 
+   \IF\EM{\TypeCk{\K,\Env}\e\any ~ \AND ~
+    \TRG[M]{\e_1}\Env = \ep_1}
+   \EM{~\AND~ \TAG[M]{\e_2}\Env{\any} = \ep_2}\\
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & 
+    \IF\EM{\TypeCk{\K,\Env}\e\C ~ \AND\; ~ 
+    \Mtype\m{\D[1]}{\D[2]}\In\App\K\C}
+  ~\EM{\AND ~ \TRG[M]{\e_1}\Env= \ep_1 
+   ~\AND~ \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}\\
+\TRG[M]{\New\C{{\e_1}..}}\Env &= \New\C{\ep_1..} & 
+   \IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C ~\AND~
+     \ep[1] = \TAG[M]{\e[1]}\Env{\t[1]} ~..}\\
+\TAG[M]{\e}{\Env}\t &= \e' & \IF\EM{\TypeCk{\K,\Env}\e\tp 
+     ~\AND~ \K\vdash\tp\Sub\t}\\
+\TAG[M]{\e}{\Env}\t &= \MonCast{\t}{\ep} & \IF\EM{\TypeCk{\K,\Env}\e\tp 
+    ~\AND~ \K\vdash\tp\not\Sub\t}
 \end{align*}
-
-\caption{translation}
-\end{figure}
-
-
-
-
-\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
-
-
-\subsection{Monotonic translation for bidirectional expressions}
-
-
-\section{Generative Monotone Casts}
-
-
-\begin{figure}[!h]
+\end{minipage}
+\end{center}
 
 \begin{mathpar}
 \IRule{CM}{
@@ -579,17 +573,25 @@ language down to \kafka and the meaning of the monotonic cast.
   \moncast \a\t\s\K \Kp \sp\\
 }
 \end{mathpar}
-{Monotonic cast semantics}
 
 \begin{align*}
 \P &::= \cdot \B \P ~{{(\C,\D)}\mapsto\Cp}
 \end{align*}
+
+
 \begin{mathpar}
+
 \IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
 
 \IRule{TM2}{ }{\tmeet\any\C\P\K = \C\,\K}
 
 \IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
+
+\IRule{TM5}{
+    \P(\C,\D) = \Cp
+}{
+    \tmeet\C\D\P\K = \Cp\,\K
+}
 
 \IRule{TM4}{
   \fresh\Cp\\
@@ -603,26 +605,9 @@ language down to \kafka and the meaning of the monotonic cast.
     \tmeet\C\D\P\K = \Cp\,\Kpp
 }
 
-\IRule{TM5}{
-    \P(\C,\D) = \Cp
-}{
-    \tmeet\C\D\P\K = \Cp\,\K
-}
 \end{mathpar}
-\caption{The \texttt{tmeet} function}
-\end{figure}
 
-\subsection{Meet function}\label{monmeet}
 
-The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
-perform the meet over the typing of each method within a class definition.
-The \texttt{mmeet} function also takes four arguments, the method
-signatures of the original class $\mt..$, the method signatures of the cast
-class $\mtp..$, the environment $\P$, a class table $\K$, and outputs method
-types $\mtpp..$ and a class table $\Kp$. \\
-
-\begin{figure}
-\hrulefill
 \begin{mathpar}
 \IRule{MM1}{}{
   \mmeet{\mt ..}{\cdot}\Env\K =\mt.. ~\K
@@ -641,6 +626,53 @@ types $\mtpp..$ and a class table $\Kp$. \\
   \mmeet{\Mtype\m{\t_1}{\t_2}~{\mt_1 ..}}{{\mt_2 ..}}\Env\K =\Mtype\n{\t_5}{\t_6} ~{\mt_3 ..} ~\Kpp
 }
 \end{mathpar}
+
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\classgen{\C, \md.., \mt.., \mtp.., \D, \K}= \\
+  \SP \class~\D~\{ \\
+    \SPP \Fdef\f\t   &
+        \All{\f\!:\t\in\text{fields}(\K,\C)} \\[1mm]
+    \SPP \Mdef\m\x\any\any{~\MonCast\any{\KCall\this\m{\MonCast{\t[1]}\x}{\t[1]}{\t[2]}}~} & 
+          \All\m \Mdef\m\x{\any}{\any}\e\in\md..  ~\AND~ \Mtype\m{\C_1}{\C_2}\in{\mtp..}
+\\[1mm]\hline
+\SPP \Mdef\m\x{\C_1}{\C_2} {\MonCast{\C_2}{[{(\MonCast{\any}\x)}/\x]\ep}~}
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\in\mtp.. 
+\\[1mm]\hline
+\SP\}
+\end{array}
+\]
+
+\caption{translation}
+\end{figure*}
+
+
+
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+
+
+\subsection{Monotonic translation for bidirectional expressions}
+
+
+\section{Generative Monotone Casts}
+
+
+\begin{figure}[!h]
+
+\caption{The \texttt{tmeet} function}
+\end{figure}
+
+\subsection{Meet function}\label{monmeet}
+
+The \texttt{mmeet} function is used by the \texttt{tmeet} functions to
+perform the meet over the typing of each method within a class definition.
+The \texttt{mmeet} function also takes four arguments, the method
+signatures of the original class $\mt..$, the method signatures of the cast
+class $\mtp..$, the environment $\P$, a class table $\K$, and outputs method
+types $\mtpp..$ and a class table $\Kp$. \\
+
+\begin{figure}
 \end{figure}
 
 \subsection{Monotonic class generation}\label{classgen}
@@ -650,21 +682,6 @@ when a monotonic cast is required.
 
 \begin{figure}
 \footnotesize
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
-\arrayrulecolor{white}
-\classgen{\C, \md.., \mt.., \mtp.., \D, \K}= \\
-\SP \class~\D~\{ \\
-\SPP \Fdef\f\t & \All {{\f}\!:{\t} \in \text{fields}(\K,\C)}
-\\[1mm]\hline
-\SPP \Mdef\m\x\any\any {~\MonCast\any{\KCall\this\m{\MonCast{\t[1]}\x}{\t[1]}{\t[2]}}~}
-&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. \\&\wedge\; \Mtype\m{\C_1}{\C_2}\in{\mtp..}
-\\[1mm]\hline
-\SPP \Mdef\m\x{\C_1}{\C_2} {\MonCast{\C_2}{[{(\MonCast{\any}\x)}/\x]\ep}~}
-&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. \\&\wedge\; \Mtype\m{\C_1}{\C_2}\in\mtp.. 
-\\[1mm]\hline
-\SP\}
-\end{array}
-\]
 \normalsize
 \end{figure}
 
