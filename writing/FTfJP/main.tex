@@ -528,7 +528,7 @@ reasons. First, most gradual type systems have no explicit untyped
 invocation form, and second, the typed form also specifies the argument type
 (\t) and return type (\tp).
 
-We use gray background to indicate changes to \kafka in figure~\ref{slts} to
+We use a gray background to indicate changes to \kafka in figure~\ref{slts} to
 support monotonic. The only addition is that of the monotonic cast. The next
 section focuses on giving a semantics to that cast.
 
@@ -549,6 +549,36 @@ argument type of the method.  We use a variant of the translation relation
 that performs a cast if necessary on its argument expression,
 \TAG[M]{\e}{\Env}\t.  The inserted cast is the monotonic cast,
 \MonCast{\t}{\ep}.
+
+The semantics of monotonic arises from the implementation of the monocast
+metafunction, used in the evaluation of monotonic casts shown in
+figure~\ref{moncast}. At a high level, the cast operation computes the
+meet of the source types (the most specific join of them), then applies it
+by replacing the class associated with the object in memory. This is depicted
+in rule \xt{CM}.
+
+The first step in this operation is the meet operator. The meet operation is
+akin to the one over a lattice, taking two types and always producing a type
+higher on the type lattice. Two types have a meet if they are structurally the
+same up to \any types distributed throughout their structure. The meet itself
+consists of replacing all \any types in both types with the most specific known type
+in that position from either type.
+
+\begin{figure}[h]
+\begin{lstlisting}
+class C { m(x:*):* { x } n(x:C):C { x } }
+class D { m(x:D):D { x } n(x:*):* { x }}
+class E { m(x:D):D { x } n(x:C):C { x }}
+\end{lstlisting}
+\caption{A simple use of meet}
+\label{fig:meetex}
+\end{figure}
+
+For example, if we were to compute the meet between \C and \D as 
+shown in figure~\ref{fig:meetex}, we would end up with the type
+\xt{E}. The \any typed argument to \m in \C is taken to be of type
+\D from class \D, while the converse is used for \n in \D. The class
+\xt{E} then is more specific than both \C and \D. 
 
 \begin{figure*}[!t]
 \center
@@ -576,9 +606,9 @@ that performs a cast if necessary on its argument expression,
 \end{align*}
 \end{minipage}
 \end{center}
-
-Translation
-
+\caption{Monotonic Translation}
+\end{figure*}
+\begin{figure*}
 \begin{mathpar}
 \IRule{CM}{
   \s(\a) = \C\{\ap..\} \\
@@ -657,17 +687,16 @@ Translation
 \SP\}
 \end{array}
 \]
-
-\caption{translation}
+\caption{Monotonic Cast Operations}
+\label{moncast}
 \end{figure*}
 
-At run-time the monotonic cast invokes moncast which takes the address \a of
-an aobject of class \C, a target type \t, a heap \Env and a class table \K;
-it returns an updated heap \Envp and an updated class table \Kp. What it
-does is compute a new class \Cp for the object at \a. That class is obtained
-by taking the meet of \C (the current class) and \t (the target type).
-
-
+At run-time the monotonic cast invokes the moncast metafunction, which takes
+the address \a of an aobject of class \C, a target type \t, a heap \Env and a
+class table \K; it returns an updated heap \Envp and an updated class table
+\Kp. What it does is compute a new class \Cp for the object at \a. That class
+is obtained by taking the meet of \C (the current class) and \t (the target
+type).
 
 
 
