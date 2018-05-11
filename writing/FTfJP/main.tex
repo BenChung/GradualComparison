@@ -106,9 +106,10 @@ class C {
   g(x:*):* { new C() }
 }
 class D { 
-   f(x:D):D { x }
+  f(x:D):D { x }
 }
-new D(<*>new C())
+
+new D().f( <*> new C() )
 \end{lstlisting}
 \caption{A gradually-typed program.}
 \label{fig:simpleprog}
@@ -119,22 +120,21 @@ object-oriented program. In this program, the type \any indicates that a
 variable is dynamic; thus it can hold a value of any class, and any method
 can be invoked with that variable as a receiver returning a value of type
 \any. Expression that use non-\any types are checked using a run-of-the-mill
-static type system.
+static type system. The program uses dynamic behavior (a cast) to pass an
+instance of class \C as one of type \D in the call to \f. \C has no
+guarantee to act like a \D, so \D-ness must be enforced at runtime. However,
+how this enforcement happens is an open problem. The program could fail when
+the instance of \C is first passed, fail if \f is called on \x, or not fail
+at all because the program never breaks the guarantee provided by the
+gradual type system.
 
-
-, which uses dynamic behavior to pass an instance
-of class \C as one of type \D. \C has no guarantee to act like a \D, so
-\D-ness must be enforced at runtime. However, how this enforcement happens
-is unclear. The program could fail when the instance of \C is first passed,
-fail if \f is called on \x, or not fail at all because the program never 
-breaks the guarantee provided by the gradual type syste.
-
-We examined four of these approaches to gradual typing in our paper [how do I
-cite it? XXXX]. The approaches investigated in that paper were the optional,
-transient, behavioral, and concrete semantics. We chose these semantics due to
-their popularity and relative simplicity, but elided one, the monotonic
-semantics, due its size and complexity. This paper places the monotonic
-semantics into the same framework as our earlier work.
+In a companion paper, to appear at ECOOP 2018~\cite{us}, we examined four of
+these approaches to gradual typing.  The approaches investigated in that
+paper were the optional, transient, behavioral, and concrete semantics. We
+chose these semantics due to their popularity and relative simplicity, but
+elided one semantics, the monotonic semantics of~\cite{}, due its size and
+complexity. This paper places the monotonic semantics into the same
+framework as our earlier work.
 
 The problem the monotonic semantics sets out to solve is that in gradually
 typed programs, typed mutable field access can be slow. Under the behavioral
