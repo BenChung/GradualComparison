@@ -4,6 +4,7 @@
             amsmath,mathpartir,hyperref,doi, rotating,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox, pgffor,booktabs} % double brackets llbracket
 \input{macros}
+\newcommand{\code}[1]{{\tt #1}\xspace}
 
 % Copyright
 %\setcopyright{none}
@@ -64,7 +65,7 @@
 Gradual typing refers to the notion that programs can be incrementally
 decorated with type annotations. Languages that
 support this approach to software development allow for programs being in
-various state of ``typedness'' on a scale that ranges from entirely untyped
+various state of ``typedness'' on a scale ranging from entirely untyped
 to fully statically typed. The intellectual challenge for language designers
 is to assign meaning programs on that scale. The litterature in the field is
 rich with a variety of proposals ranging from the laissez faire of optional
@@ -87,19 +88,20 @@ proposal as a translation from a surface language down to a core calculus.
 \section{Introduction}
 
 Gradual typing refers to a family of approaches that add types to untyped
-programs, approaches which all solve the same problem in different
-ways~\cite{SiekTaha06,tf-dls06}.  Gradual typing allows programmers to
-assert types for untyped values, types which (in a sound system) need to be
-checked dynamically. The pantheon of gradual type systems arises from
-different mechanisms for checking the types of untyped values.
+programs. These approaches each protect the boundary between typed and untype
+code in different ways~\cite{SiekTaha06,tf-dls06}. Gradual typing allows
+untyped code to pass values into typed code, and the static types need to be
+reconciled with the values dynamically. The pantheon of gradual type systems
+arises from different mechanisms for checking the types of untyped values.
 
-Object-oriented languages pose a particular problem for gradual typing. It
-is easy to check if a base value has a type, but problems arise from
-higher-order behavior. In a functional language, this manifests when trying
-to assert an arrow type on a lambda. Object-oriented languages have this
-same problem -- trying to assert a typed method on an object with an untyped
-version of the method -- but have additional complexity in the form of
-subtyping.
+Object-oriented languages pose a particular problem for gradual typing. It is
+easy to check if a base value has a type, but problems arise from higher-order
+behavior (that is, programs that pass around behavior inside values). In a
+functional language, this manifests when trying to assert an arrow type on a
+lambda, whose return type cannot be checked at the cast site. Object-oriented
+languages have this same problem -- trying to assert a typed method on an
+object with an untyped version of the method -- but have additional complexity
+in the form of subtyping.
 
 \begin{figure}[h]
 \begin{lstlisting}
@@ -118,53 +120,55 @@ new D().f( <*> new C() )
 \end{figure}
 
 Figure~\ref{fig:simpleprog} shows a simple example of a gradually typed
-object-oriented program. In this program, the type \any indicates that a
-variable is dynamic; thus it can hold a value of any class, and any method
-can be invoked with that variable as a receiver returning a value of type
-\any. Expression that use non-\any types are checked using a run-of-the-mill
-static type system. The program uses dynamic behavior (a cast) to pass an
-instance of class \C as one of type \D in the call to \f. \C has no
-guarantee to act like a \D, so \D-ness must be enforced at runtime. However,
-how this enforcement happens is an open problem. The program could fail when
-the instance of \C is first passed, fail if \f is called on \x, or not fail
-at all because the program never breaks the guarantee provided by the
-gradual type system.
+object-oriented program. Typed expressions use a standard Featherweight Java-
+like type system with structural subtyping but not all expressions in this
+program are typed. In the surface language, the type \any indicates that a
+variable is dynamic; thus it can hold a value of any class, and any method can
+be invoked with that variable as the receiver, returning a value of type \any.
+The program uses dynamic behavior (a cast) to pass an instance of class \C as
+one of type \D in the call to \f. \C has no guarantee to act like a \D, so
+\D-ness must be enforced at runtime. However, the best way to enforce static
+types on untyped values is an open problem. The program shown here could fail
+when the instance of \C is first passed, fail if \f is called on \x, or not
+fail at all if it does not violate the guarantee enforced by the gradual type
+system.
 
-In a companion paper, to appear at ECOOP 2018~\cite{us}, we examined four of
-these approaches to gradual typing.  The approaches investigated in that
-paper were the optional, transient, behavioral, and concrete semantics. We
-chose these semantics due to their popularity and relative simplicity, but
-elided one semantics, the monotonic semantics of~\cite{siek14}, due to its
-complexity. This paper places the monotonic semantics into the same
-framework.
+In a companion paper, to appear at ECOOP 2018~\cite{us}, we examined four
+gradual typing approaches, each of which addresses this problem differently.
+In that paper, we discussed the optional, transient, behavioral, and concrete
+semantics. We chose these semantics due to their popularity and relative
+simplicity; but elided the monotonic semantics of~\cite{siek14}, due to its
+complexity. This paper places the monotonic semantics into the same framework
+as the companion paper.
 
-The problem the monotonic semantics sets out to solve is that in gradually
-typed programs, field access or method invocation can be slow. Under the
-sound semantics, which adds wrappers to enforce types, every access or call
-may have a layer of indirection. This can make typed code in a gradually
-typed language excruciatingly slow~\cite{popl16}.  Suppose we have an object
-$\x = \{ \f:\any = 3 \}$, then alias it as $\xp = \SubCast{\{ \f:\xt{int}
-  \}}\x$. Accessing $\xp.\f$ is not guaranteed to be safe, even though \xp
-is fully typed. If we run \xt{\x.\f = "hello"} at some point, then $\xp.\f$
-is now ill-typed via the reference. As mentioned previously, other semantics
-deal with this by checking the result of operations in typed code, lazily
-enforcing soundness of type annotations.
+The monotonic semantics sets out to solve a key problem for gradual typing:
+speed of field access. For example, the behavioral semantics adds a wrapper
+around every field access which checks the values type, at the cost of
+indirection. This can make typed code in a gradually typed language
+excruciatingly slow~\cite{popl16}.  Suppose we have an object $\x = \{ \f:\any
+= 3 \}$, then alias it as $\xp = \SubCast{\{ \f:\xt{int}   \}}\x$. Despite
+\xp's static type, the field dereference $\xp.\f$ could return a value of any
+type. If we run \xt{\x.\f = "hello"} at some point, then $\xp.\f$ is now ill-
+typed via the reference. As mentioned previously, other semantics deal with
+this by checking the result of operations in typed code, lazily enforcing
+soundness of type annotations.
 
-The monotonic semantics is an \emph{eager} mechanism to enforce types. With
+The monotonic semantics is an \emph{eager} mechanism to enforce types,
+checking values assigned to fields on assignment rather than dereference. With
 monotonic, once a value in the heap is typed, it will always remain of that
 type. In the example above, once we aliased \x as \xp, \xp's type (e.g. that
-\f has type \xt{int}) will be enforced upon usages of \x. Now, our
-assignment \xt{\x.\f = "hello"} will fail, because we are assigning a value
-of improper type to the field \f of the object. In this manner, all
-statically typed values under the monotonic semantics are known to have
-correct field typing.
+\f has type \xt{int}) will be enforced upon usages of \x. Now, our assignment
+\xt{\x.\f = "hello"} will fail, because we are assigning a value of improper
+type to the field \f of the object. Monotonic uses this mechanism to guarantee
+that all values referred to by typed references will be of that type.
 
-In this paper, we present a formalization of the monotonic semantics in our
-framework for comparing gradual type systems. We use a common
-gradually-typed source language and translate it to a common target language
-(called \kafka) according to the monotonic semantics. We then use this
-formalization to discuss the monotonic semantics's properties, and compare
-it to alternative gradual type systems.
+In this paper, we present a formalization of the monotonic semantics in the
+same framework used in our companion paper~\cite{us} for comparing gradual
+type systems. We use a common gradually-typed object-oriented source language
+and translate it to a common target language (called \kafka) according to the
+monotonic semantics. We then use this formalization to discuss the monotonic
+semantic properties, and compare it to the gradual type systems presented
+in our companion paper.
 
 \section{Monotonic Gradual Types}
 
@@ -567,18 +571,59 @@ in that position from either type.
 \begin{figure}[h]
 \begin{lstlisting}
 class C { m(x:*):* { x } n(x:C):C { x } }
-class D { m(x:D):D { x } n(x:*):* { x }}
-class E { m(x:D):D { x } n(x:C):C { x }}
+class D { m(x:D):D { x } n(x:*):* { x } }
+class E { m(x:D):D { x } n(x:C):C { x } }
 \end{lstlisting}
-\caption{A simple use of meet}
+\caption{Meet example classes}
 \label{fig:meetex}
 \end{figure}
 
-For example, if we were to compute the meet between \C and \D as 
-shown in figure~\ref{fig:meetex}, we would end up with the type
-\xt{E}. The \any typed argument to \m in \C is taken to be of type
-\D from class \D, while the converse is used for \n in \D. The class
-\xt{E} then is more specific than both \C and \D. 
+For example, if we were to compute the meet between \C and \D as  shown in
+figure~\ref{fig:meetex}, we would end up with the type \xt{E}. The \any typed
+argument to \m in \C is taken to be of type \D from class \D, while the
+converse is used for \n in \D. The class \xt{E} then is more specific than
+both \C and \D.
+
+The formal implementation of this operation consists of the meet and mmeet
+metafunctions. The meet metafunction takes the two types being met, a context
+(for use in recursive types), and the class table. It then outputs the meet of
+the two types and a class, which may consist of a new class in the returned
+class table. The context \xt{P} is used to ensure termination of the meet
+operation on recursive types by storing the names of future meet-generated
+classes. The meet of previously-encountered types will be identical, so that
+type is produced and termination is ensured. The mmeet operation simply applies
+the meet operation, but for method definitions. It will pick out the comparable
+method definition in the target method, and generate a suitable method.
+
+The result of the mmeet operation is passed into the typegen method, which
+generates a trivial class with all of the met method definitions. However, the
+result of typegen is not a semantics-preserving class. Suppose we start out
+with $\a = \New\C{}$, then alias it with $\ap = \MonCast\D\a$. If we then call
+$\DynCall\a\m{\New\D{}}$, and the underlying object is an instance of \xt{E},
+the dynamic call will fail as no dynamically-typed method exists. As a result
+of this, our system does not deem \xt{E} to be in a subtyping relationship
+with either \C or \D. Moreover, typegen makes no attempt to produce correct
+method bodies.
+
+\begin{figure}[h]
+\begin{lstlisting}
+class F { m(x:D):D { x } m(x:*):* { <*>this.m(<D>x) }
+          n(x:C):C { x } n(x:*):* { <*>this.n(<C>x) }}
+\end{lstlisting}
+\caption{monWrap output}
+\label{fig:monwrap}
+\end{figure}
+
+
+To fix this, we need to add additional guard methods that ensure the presence
+of an untyped target method even if cast. The meet of classes \C and \D in our
+system is therefore class \xt{F} as shown in figure~\ref{fig:monwrap}, which
+has both the typed and untyped methods specified in both \C and \D. Class
+\xt{F} is a proper structural subtype of both \C and \D, and its methods
+perform semantically correct operations. It is generated by the monWrap
+metafunction, which produces an equivalent class from source and target
+classes. It ensures that any untyped method in the source is retained in
+the target, and that typed methods are inserted. 
 
 \begin{figure*}[!t]
 \center
@@ -672,52 +717,7 @@ shown in figure~\ref{fig:meetex}, we would end up with the type
 }
 \end{mathpar}
 
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
-\arrayrulecolor{white}
-\classgen{\C, \md.., \mt.., \mtp.., \D, \K}= \\
-  \SP \class~\D~\{ \\
-    \SPP \Fdef\f\t   &
-        \All{\f\!:\t\in\text{fields}(\K,\C)} \\[1mm]
-    \SPP \Mdef\m\x\any\any{~\MonCast\any{\KCall\this\m{\MonCast{\t[1]}\x}{\t[1]}{\t[2]}}~}\HS\HS & 
-          \All\m \Mdef\m\x{\any}{\any}\e\in\md..  ~\AND~ \Mtype\m{\C_1}{\C_2}\in{\mtp..}
-\\[1mm]\hline
-\SPP \Mdef\m\x{\C_1}{\C_2} {\MonCast{\C_2}{[{(\MonCast{\any}\x)}/\x]\ep}~}
-&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\in\mtp.. 
-\\[1mm]\hline
-\SP\}
-\end{array}
-\]
-\caption{Monotonic Cast Operations}
-\label{moncast}
-\end{figure*}
-
-At run-time the monotonic cast invokes the moncast metafunction, which takes
-the address \a of an aobject of class \C, a target type \t, a heap \Env and a
-class table \K; it returns an updated heap \Envp and an updated class table
-\Kp. What it does is compute a new class \Cp for the object at \a. That class
-is obtained by taking the meet of \C (the current class) and \t (the target
-type).
-
-
-
-
-The \texttt{mmeet} function is used by the \texttt{meet} functions to
-perform the meet over the typing of each method within a class definition.
-The \texttt{mmeet} function also takes four arguments, the method
-signatures of the original class $\mt..$, the method signatures of the cast
-class $\mtp..$, the environment $\P$, a class table $\K$, and outputs method
-types $\mtpp..$ and a class table $\Kp$. \\
-
-
-The \xt{monWrap} function generates the wrapper for the monotonic translations,
-when a monotonic cast is required.
-
-
-The \xt{typegen} function is used by the \xt{meet} function to generate the new classes
-of the type produced by the meet operation.
-
-\footnotesize
-\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\noindent\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
 \typegen{\mt..}{\D} = \\
 \SP \class~\D~\{
@@ -729,6 +729,132 @@ of the type produced by the meet operation.
 \SP\}
 \end{array}
 \]
+
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\classgen{\C, \md.., \mt.., \mtp.., \D, \K}= \\
+  \SP \class~\D~\{ \\
+    \SPP \Fdef\f\t   &
+        \All{\f\!:\t\in\text{fields}(\K,\C)} \\[1mm]
+    \SPP \Mdef\m\x\any\any{~\MonCast\any{\KCall\this\m{\MonCast{\t[1]}\x}{\t[1]}{\t[2]}}~}\HS\HS & 
+          \All\m \Mdef\m\x{\any}{\any}\e\in\md..  ~\AND~ \Mtype\m{\C_1}{\C_2}\in{\mtp..}
+\\[1mm]\hline
+\SPP \Mdef\m\x{\C_1}{\C_2} {\MonCast{\C_2}{[{(\MonCast{\any}\x)}/\x]\e}~}
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\in\mtp.. 
+\\[1mm]\hline
+\SPP \Mdef\m\x{\C_1}{\C_2} {\e}~
+&     \All \m \Mdef\m\x{\C_1}{\C_2}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\in\mtp.. 
+\\[1mm]\hline
+\SPP \Mdef\m\x{\any}{\any} {\e}~
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\not\in\mtp.. 
+\\[1mm]\hline
+\SP\}
+\end{array}
+\]
+\caption{Monotonic Cast Operations}
+\label{moncast}
+\end{figure*}
+
+\section{Formal Example}
+
+To illustrate the operation of our semantics, we present a fully worked
+example of a simple program running under the monotonic semantics. This
+program, shown in figure~\ref{fig:monoex}, is first translated from source to
+\kafka and then executed according to the \kafka semantics described above.
+
+This program is designed to illustrate the cast semantics of monotonic. The
+method \xt{alias} aliases its argument, casting it to both \C and \D. The
+value cast to \C is then retrieved and its method \xt{check} is then called
+(in untyped code) with an \xt{I}. The reference is identical to the one
+originally passed to \xt{alias} and no wrapper has been applied. One would
+expect then that the untyped call to \xt{check} would pass, since the body of
+\xt{check} is the identity function, but under the monotonic semantics it
+fails.
+
+Before explaining the semantics of this program in more detail, we will first
+describe the top level type-driven transformation. First, casts are inserted
+wherever a statically typed value is passed to any and vice versa. Then, typed
+methods have untyped shims generated, so they can be called in a protected
+manner from untyped code. 
+
+Execution starts with the expression \code{new E().alias(<*>new
+C()).check(<*>new C())}. \code{new E()} evaluates to a reference \a to an
+object $\xt{E}\{\}$, upon which \xt{alias} is invoked with argument \New\C{}
+(which evaluates to \a[1], mapping to $\C\{\}$). \xt{alias} then expands to
+\MonCast\any{\New{\xt{T}}{\MonCast\C\a[1],\MonCast\D\a[1]}}. The first
+\MonCast\C\a[1] is a no-op, as \a[1] is already of type \C, but the second
+\MonCast\D\a[1] modifies the runtime type of the value stored at \a[1].
+
+\D defines \xt{check} to take and return instances of \xt{I}, while \C  has
+\xt{check} taking and returning values of type \any. As \D's definition is
+more precise, it will take priority. As a result, the result of meet will be
+\Cp, with \Class\Cp{}{\Mdef{\xt{check}}\x{\xt{I}}{\xt{I}}\x} appended to the
+class table. monWrap is then applied, producing the final new class \Cpp from
+\Cp, consisting of \Class\Cpp{}{\Mdef{\xt{check}}\x{\xt{I}}{\xt{I}}{\MonCast{\xt{I}}{\MonCast{\any}{\x}}} ~ \Mdef{\xt{check}}\x\any\any{\MonCast{\any}{\KCall\this{\xt{check}}{\MonCast{\xt{I}}{\x}}{\xt{I}}{\xt{I}} }}}. This is then used to overrite \a[1]'s class in the heap. \a[1] originally
+referred to $\C\{\}$, but it will now refer to $\Cpp\{\}$ after the cast.
+
+At this point, the initial expression has been reduced to
+\DynCall{\MonCast\any{\KCall{\New{\xt{T}}{\a[1], \a[1]}}{\xt{first}}\any\any
+}}{\xt{check}}{\MonCast\any{\New\C{}}}. The inner expression
+\KCall{\New{\xt{T}}{\a[1], \a[1]}}{\xt{first}}{\a[1]}\any\any evaluates to
+\KCall{\a[2]}{\xt{first}}{\a[1]}\any\any where \a[2] refers to $\xt{T}\{\a[1],\a[1]\}$
+in the heap. The \xt{first} function then is called, returning \a[1] under type
+\any.
+
+This leaves us with \DynCall{\a[1]}{\xt{check}}{\MonCast\any{\New\C{}}}. We
+evaluate \New\C{} to \a[3] (mapped to $\C\{\}$), and make the invocation. A
+method \xt{check} under type \any and \any exists, so the program does not get
+stuck. \app is an instance of \Cpp, so it is dispatched to the generated
+method \xt{check} made by the monocast operation. As a result, our new term is
+\MonCast{\any}{\KCall{\a[1]}{\xt{check}}{\MonCast{\xt{I}}{\a[3]}}{\xt{I}}{\xt{I}}}.
+However, at this point, we get stuck, as no meet exists between the runtime type of
+\a[3] (mapped to $\C\{\}$) and \xt{I}. 
+ 
+\begin{figure}[!h]
+\begin{tabular}{cc}
+\begin{lstlisting}
+class C { check(x:*) { x } }
+class D { check(x:I):I { x } }
+
+
+
+class I { dif(x:*):* { x }}
+
+class T { 
+  f1:C f2:D 
+  first(x:*):* { this.f1 } }
+class E { 
+  alias(x:*):* { 
+    new T(x,x).first(x) }}
+
+new E().alias(new C())
+       .check(new C())
+\end{lstlisting}  &
+\begin{lstlisting}
+class C { check(x:*) { x } }
+class D { check(x:I):I { x }
+  check(x:*):* { 
+    <*>this.m(<I>x) } }
+
+class I { dif(x:*):* { x }}
+
+class T { 
+  f1:C f2:D 
+  first(x:*):* { <*>this.f1 } }
+class E { 
+  alias(x:*):* { 
+    <*>new T(<C>x,<D>x).first(x) }}
+
+new E().alias(<*>new C())
+       @check(<*>new C())
+\end{lstlisting}\\
+Source & \kafka 
+\end{tabular}
+\caption{Monotonic Semantics Example}
+\label{fig:monoex}
+\end{figure}
+
+\footnotesize
 \normalsize
 
 \bibliographystyle{ACM-Reference-Format}
