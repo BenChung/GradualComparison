@@ -421,15 +421,20 @@ may experience cast failures.
 
 \begin{figure}[!tb]\hrulefill
 
+\small
+\vspace{5mm}
+
 \begin{tabular}{ll}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
-\e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}\\
+\e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}\\[2mm]
 \k~::=~ \Class \C {\fd[1]..}{\md[1]..} \qquad
 \md~::=~\Mdef\m\x\t\t\e\qquad
 \fd~::=~ \Fdef\f\t\qquad
 \t~::=~ \any \B \C
 \end{tabular}\end{minipage} 
 \end{tabular}
+
+\vspace{5mm}
 
 \begin{mathpar}
 \Rule{STG-VAR}{~\\\\ 
@@ -476,11 +481,7 @@ may experience cast failures.
 \vspace{-5mm}  
   
 \begin{mathpar}
-\IRule{SUB}{
-   \SSub\emptyset\K\t\tp
-}{
-   \ConvertE\K{s}\t\tp
-}
+\IRule{SUB}{ \SSub\emptyset\K\t\tp}{ \ConvertE\K{s}\t\tp }
     
 \IRule{TOA}{~ }{ \ConvertE\K{s}\t\any}
     
@@ -488,6 +489,27 @@ may experience cast failures.
 \end{mathpar}
 
 \vspace{-5mm}  
+
+\begin{mathpar}
+\Rule{SAss}{ \C \Sub \D \in \M }{  \StrSub \M\K \C\D }
+
+\hspace{-8mm}
+
+\Rule{SRec}{
+\M'=\M~\C\Sub\D\\\\\md\in\App\K\D\implies\mdp\in\App\K\C~.~\StrSub{\M'}\K\md\mdp
+}{
+ \StrSub \M\K \C \D 
+}
+
+\hspace{-8mm}
+
+\Rule{SMet}{
+  \StrSub \M\K{\tp[1]}{\t[1]} \qquad \StrSub \M\K{\t[2]}{\tp[2]}
+}{
+ \StrSub\M\K{\Mdef\m\x{\t[1]}{\t[2]}\e}{\Mdef\m\x{\tp[1]}{\tp[2]}\ep}
+}
+\end{mathpar}
+
 
 \hrulefill
 \caption{Surface language syntax and type system (extract).}\label{slts}
@@ -504,20 +526,22 @@ types.
 \figref{slts} gives the language's syntax and an extract of its static type
 system.  The type system is mostly standard. To differentiate it from the
 \kafka type system, we use the $\EnvTypeS\Env\K\e\t$ judgment form,
-indicating a well-typed surface expression.  This surface static semantics
-allows mixing of static and dynamically typed terms. The static type system
-allows the implicit conversion of typed and untyped terms via the
-convertibility operator, written $\ConvertE\K s\t\tp$ -- type $\t$ is
-convertible to type $\tp$.  The relation is used both for up-casting and for
-conversions of \any to non-\any types.  \RuleRef{SUB} ensures soundness of
-up-casts. While \RuleRef{TOA} and \RuleRef{ANYC} allow implicit conversion
-to and from the dynamic type.  To avoid collapsing the type hierarchy,
-convertibility is not transitive. \RuleRef{TOA} and \RuleRef{ANYC} are break
-soundness, their use motivates the need for dynamic checks.  If
-\RuleRef{TOA} is used, then some typed object is being passed into untyped
-code, and must be protected from misuse. Likewise, if \RuleRef{ANYC} is
-used, then an untyped value is being passed into typed code, and type
-invariants must be checked.
+indicating a well-typed surface expression.  
+
+
+This surface static semantics allows mixing of static and dynamically typed
+terms. The static type system allows the implicit conversion of typed and
+untyped terms via the convertibility operator, written $\ConvertE\K s\t\tp$
+-- type $\t$ is convertible to type $\tp$.  The relation is used both for
+up-casting and for conversions of \any to non-\any types.  \RuleRef{SUB}
+ensures soundness of up-casts. While \RuleRef{TOA} and \RuleRef{ANYC} allow
+implicit conversion to and from the dynamic type.  To avoid collapsing the
+type hierarchy, convertibility is not transitive. \RuleRef{TOA} and
+\RuleRef{ANYC} are break soundness, their use motivates the need for dynamic
+checks.  If \RuleRef{TOA} is used, then some typed object is being passed
+into untyped code, and must be protected from misuse. Likewise, if
+\RuleRef{ANYC} is used, then an untyped value is being passed into typed
+code, and type invariants must be checked.
 
 A number of design choices deserve discussion. The choice of structural
 subtyping is motivated by the desire to accommodate ...
@@ -1033,39 +1057,6 @@ As \kafka does not allow code to generate new code, we cannot represent the
 $\BehCast\t\e$ operation in \kafka itself, therefore demanding its own
 syntactic form.
 
-\begin{figure}[!b] \hrulefill\small
-
-\vspace{-2mm}
-
-\begin{mathpar}
-\Rule{SAss}{
-\C \Sub \D \in \M
-}{
- \StrSub \M\K \C\D
-}
-
-\hspace{-8mm}
-
-\Rule{SRec}{
- \M' = \M~\C\Sub\D\\\\
-\md \in \App\K\D \implies \mdp \in \App\K\C ~.~ \StrSub{\M'}\K\md{\mdp}
-}{
- \StrSub \M\K \C \D 
-}
-
-\hspace{-8mm}
-
-\Rule{SMet}{
-  \StrSub \M\K {\tp[1]} {\t[1]} \\\\
-  \StrSub \M\K {\t[2]} {\tp[2]}
-}{
- \StrSub \M\K {\Mdef\m\x{\t[1]}{\t[2]}\e} {\Mdef\m\x{\tp[1]}{\tp[2]}\ep}
-}
-\end{mathpar}
-
-\hrulefill\caption{\kafka subtyping.}\label{sub}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\end{figure}
-
 
 \subsection{Static semantics}
 
@@ -1074,14 +1065,14 @@ story. The statics of \kafka are key to enabling comparison of gradual type
 systems, as they enable the expression of gradual typing guarantees through
 the medium of \kafka's static type system.
 
-Unlike the dynamics, \kafka's statics hold few surprises. The key typing rules excerpted in
-\figref{f:staticsem}. The key typing judgments are the subtyping relation
-\StrSub\M\K\t\tp (shown in \figref{sub}), the standard structural subtyping
-relation with the Amber rule~\cite{cardelli1985amber}, the program typing
-relation \WFp\e\K, indicating that expression \e is well-formed with respect
-to class table \K, and the expression typing judgment $\EnvType \Env\s\K\e\t$,
-indicating that against \Env, with heap \s, and class table \K, \e has type
-\t.
+Unlike the dynamics, \kafka's statics hold few surprises. The key typing
+rules excerpted in \figref{f:staticsem}. The key typing judgments are the
+subtyping relation \StrSub\M\K\t\tp (shown in \figref{sub}), the standard
+structural subtyping relation with the Amber rule~\cite{cardelli1985amber},
+the program typing relation \WFp\e\K, indicating that expression \e is
+well-formed with respect to class table \K, and the expression typing
+judgment $\EnvType \Env\s\K\e\t$, indicating that against \Env, with heap
+\s, and class table \K, \e has type \t.
 
 \begin{figure}[!h] \hrulefill\small
 
@@ -1650,13 +1641,13 @@ respective soundness guarantee.
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
 
-In the object oriented context, a type system being sound means no
-"message not understood" errors are produced, lending great importance to the
+In the object oriented context, a type system being sound means no "message
+not understood" errors are produced, lending great importance to the
 handling of method invocation. Because \kafka's type system is sound in the
-traditional sense, it follows that any typed invocation in \kafka will always
-find an implementation. The guarantees provided by each gradual type system are
-then shown through the result of their translation, as the \kafka type encapsulates
-the source language gradual typing guarantee.
+traditional sense, it follows that any typed invocation in \kafka will
+always find an implementation. The guarantees provided by each gradual type
+system are then shown through the result of their translation, as the \kafka
+type encapsulates the source language gradual typing guarantee.
 
 
 The translations for invocation are shown in \figref{fig:trafuninv}. At
