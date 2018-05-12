@@ -594,17 +594,14 @@ takes method definitions. It will pick out the comparable method definition
 in the target method, and generate a suitable method. When two list of
 methods are met, their result is passed into ifcgen, which generates an
 ``interface''. An interface is trivial class that exists only for the
-purpose of giving us a type signature.  It will never ne
-
- with all of the method definitions obtained from meet. However, the
-result of ifcgen is not a semantics-preserving class. 
-
-Suppose we start out with $\x=\New\C{}$, then alias it with
-$\xp=\MonCast\D\x$. If we then call $\DynCall\x\m{\New\D{}}$, and the
-underlying object is an instance of \xt{E}, the dynamic call will fail as no
-dynamically-typed method exists. As a result of this, our system does not
-deem \xt{E} to be in a subtyping relationship with either \C or
-\D. Moreover, ifcgen makes no attempt to produce correct method bodies.
+purpose of giving us a type signature.  It will never be used.  If we were
+to use it we would run into trouble.  Suppose we start out with
+$\x=\New\C{}$, then alias it with $\xp=\MonCast\D\x$. If we then call
+$\DynCall\x\m{\New\D{}}$, and the underlying object is an instance of
+\xt{E}, the dynamic call will fail as no dynamically-typed method exists. As
+a result of this, our system does not deem \xt{E} to be in a subtyping
+relationship with either \C or \D. Moreover, ifcgen makes no attempt to
+produce correct method bodies.
 
 \begin{figure}[h]
 \begin{lstlisting}
@@ -614,7 +611,6 @@ class F { m(x:D):D { x } m(x:*):* { <*>this.m(<D>x) }
 \caption{wrap result}
 \label{fig:monwrap}
 \end{figure}
-
 
 To fix this, we need to add additional guard methods that ensure the
 presence of an untyped target method even if cast. The meet of classes \C
@@ -658,10 +654,15 @@ source is retained in the target, and that typed methods are inserted.
 \begin{mathpar}
 \IRule{CM}{
   \s(\a) = \C\{\ap..\} \\
+  \fresh\Cpp\\
+  \md.. = \xt{mets}(\C,\K)\\
+  \mt.. = \xt{mtypes}(\C,\K)\\
+  \mtp.. = \xt{mtypes}(\Cp,\K)\\\\
   \tmeet \C\t\cdot\K = \Cp~\Kp\\
-  \sp = \s[\a \mapsto \Cp\{\ap..\}]
+  \Kpp = \classgen{\C, \md.., \mt.., \mtp.., \Cpp, \K}\, \Kp \\
+  \sp = \s[\a \mapsto \Cpp\{\ap..\}]
 }{
-  \moncast \a\t\s\K \Kp \sp\\
+  \moncast \a\t\s\K \Kpp \sp\\
 }
 \end{mathpar}
 
@@ -755,20 +756,21 @@ source is retained in the target, and that typed methods are inserted.
 \label{moncast}
 \end{figure*}
 
-\section{Formal Example}
+\section{Example}
 
 To illustrate the operation of our semantics, we present a fully worked
 example of a simple program running under the monotonic semantics. This
-program, shown in figure~\ref{fig:monoex}, is first translated from source to
-\kafka and then executed according to the \kafka semantics described above.
+program, shown in figure~\ref{fig:monoex}, is first translated from source
+to \kafka and then executed according to the \kafka semantics described
+above.
 
 This program is designed to illustrate the cast semantics of monotonic. The
 method \xt{alias} aliases its argument, casting it to both \C and \D. The
 value cast to \C is then retrieved and its method \xt{check} is then called
 (in untyped code) with an \xt{I}. The reference is identical to the one
 originally passed to \xt{alias} and no wrapper has been applied. One would
-expect then that the untyped call to \xt{check} would pass, since the body of
-\xt{check} is the identity function, but under the monotonic semantics it
+expect then that the untyped call to \xt{check} would pass, since the body
+of \xt{check} is the identity function, but under the monotonic semantics it
 fails.
 
 Before explaining the semantics of this program in more detail, we will first
@@ -856,6 +858,31 @@ Source & \kafka
 
 \footnotesize
 \normalsize
+
+\section{Conclusion}
+
+This paper has presented the monotonic semantics for gradual types of object
+oriented programs as a translation from source programs to \kafka.  One of
+the key properties of that translation is that the monotonic casts attempts
+to compute the meet of the class of the target object and the requested
+type.  If the two cannot be reconcilled the cast fails, otherwise the type
+of the object is updated in place to reflect the new type. This allows
+monotonic programs to avoid the potentially unbounded layers of wrappers of
+previous approaches. The monotonicity property ensure that there can be at
+most as many wrappers as there are occurrences of \any in the
+type. Practical implementation can have a single wrapper.
+
+One simplification that we have made here comes from the design of
+\kafka. \kafka does not reflect fields in the types of objects, they are
+fully encapsulated.  This means that when computing the meet we do not have
+to update the type of fields. A language that makes fields accessible
+outside of objects would have to also meet the values referenced by fields,
+which may mean that a meet operation could update multiple objects.
+
+Given the complexity of the operations performed by meet, more experience is
+needed to determine if the approach is viable. The implementation of
+Monotonic Reticulated Python has not yet been widely adopted, so few programs 
+have been written in this style.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{../../bib/jv,../../bib/all}
