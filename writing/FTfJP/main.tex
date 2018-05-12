@@ -1,8 +1,8 @@
 \documentclass[sigconf]{acmart}
 
 \usepackage{xspace,listings,url,framed,amssymb,colortbl,
-            amsmath,mathpartir,hyperref,doi, rotating,
-            stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox, pgffor,booktabs} % double brackets llbracket
+       amsmath,mathpartir,hyperref,doi, rotating, stmaryrd, 
+       graphicx, tikz, colortbl, xparse, etoolbox, pgffor,booktabs} 
 \input{macros}
 \newcommand{\code}[1]{{\tt #1}\xspace}
 
@@ -38,10 +38,10 @@
 }
 
 % DOI
-\acmDOI{10.475/123_4}
+%\acmDOI{10.475/123_4}
 
 % ISBN
-\acmISBN{123-4567-24-567/08/06}
+%\acmISBN{123-4567-24-567/08/06}
 
 %Conference
 \acmConference[FtFJP]{Submitted to FtFJP}{July 2018}{}
@@ -49,7 +49,6 @@
 %\copyrightyear{2016}
 %\acmArticle{4}
 %\acmPrice{15.00}
-
 
 \begin{document}
 \title{Monotonic Gradual Typing in a Common Calculus}
@@ -217,7 +216,7 @@ typed code.
 
 \section{Formalism}
 
-We use the framework we set out in our earlier paper to provide a simple
+We use the framework we set out in our companion paper to provide a simple
 presentation of the monotonic semantics in an object-oriented setting. Instead
 of using formal languages specially crafted to support each semantics, we use
 a common source and target language for every gradual typing semantics. The 
@@ -239,10 +238,10 @@ all of our semantics. We replicate the static semantics for the source
 language here, in figure~\ref{slts}. The dynamic of the source language is
 given by a translation to a lower-level language which we will present next.
 
-Programs in the source language consist of a class table and an initial
-expression. Classes consist of field and method definitions. Fields have a
-name and a type. Method definitions have names, types for their single
-argument and return type, and an expression. Expressions consist of
+Programs in the source language consist of a class table, \K, and an initial
+expression, \e. Classes consist of field and method definitions. Fields have
+a name and a type, \f:\t. Method definitions have names, types for their
+single argument and return type, and an expression. Expressions consist of
 variables, the self-reference \this, field read and write \FRead\f and
 \FWrite\f\e, invocation \Call\e\m\e, and new object creation
 \New\C{\e[1]..}. Each class has an implicit default constructor that merely
@@ -524,14 +523,12 @@ with an evaluation context consisting of a class table \K, an expression
 being evaluated \e, and a heap \s, mapping from addresses \a to objects,
 denoted $\C\{\a\ldots\}$. Due to the need for dynamically generate classes,
 the class table \K is part of the state, and not the evaluation context.
-
 \kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$
-and the typed invocation $\KCall\e\m\ep{\t}{\tp}$, both denoting a method
+and the typed invocation $\KCall\e\m\ep{\C}{\D}$, both denoting a method
 call to method $\m$ with argument \ep. This is unusual for two
 reasons. First, most gradual type systems have no explicit untyped
 invocation form, and second, the typed form also specifies the argument type
-(\t) and return type (\tp).
-
+and return type.
 We use a gray background to indicate changes to \kafka in figure~\ref{slts} to
 support monotonic. The only addition is that of the monotonic cast. The next
 section focuses on giving a semantics to that cast.
@@ -563,10 +560,10 @@ in rule \xt{CM}.
 
 The first step in this operation is the meet operator. The meet operation is
 akin to the one over a lattice, taking two types and always producing a type
-higher on the type lattice. Two types have a meet if they are structurally the
-same up to \any types distributed throughout their structure. The meet itself
-consists of replacing all \any types in both types with the most specific known type
-in that position from either type.
+higher on the type lattice. Two types have a meet if they are structurally
+the same up to \any types distributed throughout their structure. The meet
+itself consists of replacing all \any types in both types with the most
+specific known type in that position from either type.
 
 \begin{figure}[h]
 \begin{lstlisting}
@@ -574,36 +571,37 @@ class C { m(x:*):* { x } n(x:C):C { x } }
 class D { m(x:D):D { x } n(x:*):* { x } }
 class E { m(x:D):D { x } n(x:C):C { x } }
 \end{lstlisting}
-\caption{Meet example classes}
+\caption{Meet C and D}
 \label{fig:meetex}
 \end{figure}
 
+\noindent
 For example, if we were to compute the meet between \C and \D as  shown in
 figure~\ref{fig:meetex}, we would end up with the type \xt{E}. The \any typed
 argument to \m in \C is taken to be of type \D from class \D, while the
 converse is used for \n in \D. The class \xt{E} then is more specific than
 both \C and \D.
 
-The formal implementation of this operation consists of the meet and mmeet
-metafunctions. The meet metafunction takes the two types being met, a context
-(for use in recursive types), and the class table. It then outputs the meet of
-the two types and a class, which may consist of a new class in the returned
-class table. The context \xt{P} is used to ensure termination of the meet
-operation on recursive types by storing the names of future meet-generated
-classes. The meet of previously-encountered types will be identical, so that
-type is produced and termination is ensured. The mmeet operation simply applies
-the meet operation, but for method definitions. It will pick out the comparable
-method definition in the target method, and generate a suitable method.
-
-The result of the mmeet operation is passed into the typegen method, which
-generates a trivial class with all of the met method definitions. However, the
-result of typegen is not a semantics-preserving class. Suppose we start out
-with $\a = \New\C{}$, then alias it with $\ap = \MonCast\D\a$. If we then call
-$\DynCall\a\m{\New\D{}}$, and the underlying object is an instance of \xt{E},
-the dynamic call will fail as no dynamically-typed method exists. As a result
-of this, our system does not deem \xt{E} to be in a subtyping relationship
-with either \C or \D. Moreover, typegen makes no attempt to produce correct
-method bodies.
+The formal implementation of this operation consists of the meet
+metafunction. The meet metafunction takes the two types being met, a context
+(for use in recursive types), and the class table. It then outputs the meet
+of the two types and a class, which may consist of a new class in the
+returned class table. The context \xt{P}, either empty $\cdot$ or a context
+extended with a mapping $\P ~{{(\C,\D)}\mapsto\Cp}$, is used to ensure
+termination of the meet operation on recursive types by storing the names of
+future meet-generated classes. The meet of previously-encountered types will
+be identical, so that type is produced and termination is ensured. The meet
+operation also takes method definitions. It will pick out the comparable
+method definition in the target method, and generate a suitable method.  The
+result of the meet operation on methods is passed into typegen, which
+generates a trivial class with all of the method definitions obtained from
+meet. However, the result of typegen is not a semantics-preserving
+class. Suppose we start out with $\x = \New\C{}$, then alias it with $\xp =
+\MonCast\D\x$. If we then call $\DynCall\x\m{\New\D{}}$, and the underlying
+object is an instance of \xt{E}, the dynamic call will fail as no
+dynamically-typed method exists. As a result of this, our system does not
+deem \xt{E} to be in a subtyping relationship with either \C or
+\D. Moreover, typegen makes no attempt to produce correct method bodies.
 
 \begin{figure}[h]
 \begin{lstlisting}
@@ -664,11 +662,6 @@ the target, and that typed methods are inserted.
 }
 \end{mathpar}
 
-\begin{align*}
-\P &::= \cdot \B \P ~{{(\C,\D)}\mapsto\Cp}
-\end{align*}
-
-
 \begin{mathpar}
 
 \IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
@@ -717,6 +710,9 @@ the target, and that typed methods are inserted.
 }
 \end{mathpar}
 
+\vspace{5mm}
+
+\begin{center}\begin{minipage}{12cm}
 \noindent\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
 \typegen{\mt..}{\D} = \\
@@ -724,11 +720,13 @@ the target, and that typed methods are inserted.
 \\[1mm]
 \SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
 &
-\All m \Mtype\m\t\tp\in\mt..
+\qquad \All m \Mtype\m\t\tp\in\mt..
 \\[1mm]
 \SP\}
 \end{array}
 \]
+
+\vspace{5mm}
 
 \[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
 \arrayrulecolor{white}
@@ -750,7 +748,7 @@ the target, and that typed methods are inserted.
 \\[1mm]\hline
 \SP\}
 \end{array}
-\]
+\]\end{minipage}\end{center}
 \caption{Monotonic Cast Operations}
 \label{moncast}
 \end{figure*}
