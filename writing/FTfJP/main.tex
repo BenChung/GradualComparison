@@ -58,25 +58,29 @@
 \affiliation{\institution{Northeastern University}}
 \author{Jan Vitek}
 \affiliation{\institution{Northeastern and CTU}}
+\thanks{We would like to thank Celeste Hollenbeck for assistence with the writing of this paper.}
 
 
-\begin{abstract}
-Gradual typing refers to the notion that programs can be incrementally
-decorated with type annotations. Languages that
-support this approach to software development allow for programs being in
-various state of ``typedness'' on a scale ranging from entirely untyped
-to fully statically typed. The intellectual challenge for language designers
-is to assign meaning programs on that scale. The litterature in the field is
-rich with a variety of proposals ranging from the laissez faire of optional
-typing to sound approaches that wrap all values in protective shells to
-ensure that they behave as promised by their ascribed type. Each gradual
-type system comes with tradeoffs. Some systems provide strong guarantees at
-the expense of vastly degraded performance, others do not impact the running
-time of programs but do little to pervent type errors. This paper looks at
-an intriguing point the landscape: a variant of Python referred to as
-Monotonic Reticulated Python. Our contribution is a semantics of the
-proposal as a translation from a surface language down to a core calculus.
-\end{abstract}
+\begin{abstract} Gradual typing refers to the notion that programs can be
+incrementally decorated with type annotations. Languages that support this
+approach to software development allow for programs being in various states of
+``typedness'' on a scale ranging from entirely untyped to fully statically
+typed. Points in the middle of this typed-untyped scale create interactions
+between typed and untyped code, which is where gradual type systems differ.
+Each gradual type system comes with tradeoffs. Some systems provide strong
+guarantees at the expense of vastly degraded performance; others do not impact
+the running time of programs, but they do little to prevent type errors. This
+paper looks at an intriguing point in the landscape of these systems: the
+monotonic semantics. The monotonic semantics is designed to reduce the
+overhead of typed field access through a different enforcement mechanism
+compared to other gradual type systems. In our previous paper, \cite{us}, we
+described four semantics for gradual typing. This paper uses the framework of
+that companion paper to present and explore a formulation for the
+\emph{monotonic} semantics.  In comparison to the others, the monotonic
+semantics is designed to reduce the overhead of typed field access. We
+translate a common gradually typed source language to a common statically
+typed target language according to the monotonic semantics, allowing easy
+comparison to other gradual type systems in our framework.  \end{abstract}
 
 \definecolor{Gray}{gray}{0.9}
 
@@ -87,19 +91,19 @@ proposal as a translation from a surface language down to a core calculus.
 \section{Introduction}
 
 Gradual typing refers to a family of approaches that add types to untyped
-programs. These approaches each protect the boundary between typed and untype
+programs. These approaches each protect the boundaries between typed and untyped
 code in different ways~\cite{SiekTaha06,tf-dls06}. Gradual typing allows
-untyped code to pass values into typed code, and the static types need to be
-reconciled with the values dynamically. The pantheon of gradual type systems
-arises from different mechanisms for checking the types of untyped values.
+untyped code to pass values into typed code, and the dynamic values need to be
+reconciled with the new static types dynamically. The pantheon of gradual type systems
+arises from different mechanisms to perform this check of types of untyped values.
 
 Object-oriented languages pose a particular problem for gradual typing. It is
 easy to check if a base value has a type, but problems arise from higher-order
 behavior (that is, programs that pass around behavior inside values). In a
 functional language, this manifests when trying to assert an arrow type on a
 lambda, whose return type cannot be checked at the cast site. Object-oriented
-languages have this same problem -- trying to assert a typed method on an
-object with an untyped version of the method -- but have additional complexity
+languages have this same problem --- trying to assert a typed method on an
+object with an untyped version of the method --- but have additional complexity
 in the form of subtyping.
 
 \begin{figure}[h]
@@ -114,97 +118,106 @@ class D {
 
 new D().f( <*> new C() )
 \end{lstlisting}
-\caption{A gradually-typed program.}
+\caption{A gradually typed program.}
 \label{fig:simpleprog}
 \end{figure}
 
 Figure~\ref{fig:simpleprog} shows a simple example of a gradually typed
-object-oriented program. Typed expressions use a standard Featherweight Java-
-like type system with structural subtyping but not all expressions in this
-program are typed. In the surface language, the type \any indicates that a
-variable is dynamic; thus it can hold a value of any class, and any method can
-be invoked with that variable as the receiver, returning a value of type \any.
+object-oriented program. Typed expressions in our language use a standard
+Featherweight Java-like type system with structural subtyping; however, not
+all expressions in this program are typed. In the surface language, the type
+\any indicates that a variable is dynamic; thus, it can hold a value of any
+class; and any method can be invoked, as long as it returns another instance
+of \any for that variable to receive
+
 The program uses dynamic behavior (a cast) to pass an instance of class \C as
 one of type \D in the call to \f. \C has no guarantee to act like a \D, so
-\D-ness must be enforced at runtime. However, the best way to enforce static
-types on untyped values is an open problem. The program shown here could fail
-when the instance of \C is first passed, fail if \f is called on \x, or not
-fail at all if it does not violate the guarantee enforced by the gradual type
-system.
+\D-ness must be enforced at runtime. However, deciding the best way to enforce
+static types on untyped values is an open problem. The program shown here
+could fail when the instance of \C is first passed, fail if \f is called on
+\x, or not fail at all if it does not violate the guarantee enforced by the
+gradual type system.
 
 In a companion paper, to appear at ECOOP 2018~\cite{us}, we examined four
 gradual typing approaches, each of which addresses this problem differently.
 In that paper, we discussed the optional, transient, behavioral, and concrete
 semantics. We chose these semantics due to their popularity and relative
-simplicity; but elided the monotonic semantics of~\cite{siek14}, due to its
+simplicity; but we elided the monotonic semantics of~\cite{siek14}, due to its
 complexity. This paper places the monotonic semantics into the same framework
 as the companion paper.
 
 The monotonic semantics sets out to solve a key problem for gradual typing:
 speed of field access. For example, the behavioral semantics adds a wrapper
-around every field access which checks the values type, at the cost of
+around every field access which checks the value's type, at the cost of
 indirection. This can make typed code in a gradually typed language
 excruciatingly slow~\cite{popl16}.  Suppose we have an object $\x = \{ \f:\any
 = 3 \}$, then alias it as $\xp = \SubCast{\{ \f:\xt{int}   \}}\x$. Despite
 \xp's static type, the field dereference $\xp.\f$ could return a value of any
-type. If we run \xt{\x.\f = "hello"} at some point, then $\xp.\f$ is now ill-
-typed via the reference. As mentioned previously, other semantics deal with
+type. If we run \xt{\x.\f = "hello"} at some point, then $\xp.\f$ is now ill-typed 
+via the reference. As mentioned previously, other semantics deal with
 this by checking the result of operations in typed code, lazily enforcing
 soundness of type annotations.
 
 The monotonic semantics is an \emph{eager} mechanism to enforce types,
-checking values assigned to fields on assignment rather than dereference. With
-monotonic, once a value in the heap is typed, it will always remain of that
+checking values assigned to fields on assignment rather than dereference. Using
+the monotonic semantics, once a value in the heap is typed, it will always remain of that
 type. In the example above, once we aliased \x as \xp, \xp's type (e.g. that
 \f has type \xt{int}) will be enforced upon usages of \x. Now, our assignment
 \xt{\x.\f = "hello"} will fail, because we are assigning a value of improper
 type to the field \f of the object. Monotonic uses this mechanism to guarantee
-that all values referred to by typed references will be of that type.
+that all values referred to by typed references will be of the correct type.
 
 In this paper, we present a formalization of the monotonic semantics in the
 same framework used in our companion paper~\cite{us} for comparing gradual
 type systems. We use a common gradually-typed object-oriented source language
 and translate it to a common target language (called \kafka) according to the
 monotonic semantics. We then use this formalization to discuss the monotonic
-semantic properties, and compare it to the gradual type systems presented
-in our companion paper.
+semantic properties, and compare it to the gradual type systems presented in
+our companion paper.
 
 \section{Monotonic Gradual Types}
 
-The idea behind the monotonic semantics was originally put forward by Siek
-and Vitousek in~\cite{siek14} for their Reticulated Python language
-implementation. The same group then went on to implement the monotonic
-semantics into their Grift implementation (a functional language), allowing
-the comparison of performance inherent to each gradual type system.
+The idea behind the monotonic semantics' was originally put forward by Siek and
+Vitousek in~\cite{siek14} for their Reticulated Python language
+implementation. Kuhlenschmidt, Almahallawi, and Siek later implemented
+monotonic again as part of their Grift functional programming language~\cite
+{monotonic-grift}, with the goal of demonstrating its performance. For similar
+purposes, it was again implemented for TypeScript by Richards, Arteca, and
+Turcotte~\cite {richards-bettermono}, leveraging the correspondance between
+monotonic's concept of precision and VM object shapes to improve performance.
 
-The idea behind the monotonic semantics is that types only ever get more
-precise. This design gives rise to its name; types of values in a monotonic
-language's heap monotonically get more static. Each object in the heap has
-an associated type, it's run-time tag, in an object-oriented language that
-tag identifies the class of the object and is used for dispatching method
-invocations. When a reference to an object is cast to a more precise type,
-intuitively a type with fewer occurrences of \any, that new type is attached
-to the value in the heap.  If untyped code later tries to read or write
-fields, or call methods, in a way that violates the updated type, a type
-error will occur. By locking in applied types forevermore, typed code under
-the monotonic semantics can assume that mutable state will remain well
-typed.
+The core tenet  of the monotonic semantics is that types only ever get more
+precise. This design gives rise to its name, as types of values in a monotonic
+language's heap monotonically get more static. In an object-oriented language,
+each object in the heap has an associated type, as indicated by its run-time
+tag. This tag identifies the class of the object, and it is used for
+dispatching method invocations. When a reference to an object is cast to a
+more precise type, intuitively a type with fewer occurrences of \any, that new
+type is attached to the value in the heap.  A type error will occur if untyped
+code later tries to read fields, write fields, or call methods in a way that
+violates the updated type. For example, an object may start out under type
+$\{\Mtype\m\any\any\}$, then become more static when cast to
+$\{\Mtype\m{\xt{int}}{\xt{int}}\}$. This new type will be stored in the heap
+and enforced on untyped callers. By locking in applied types forevermore,
+typed code under the monotonic semantics can assume that mutable state will
+remain well-typed.
 
-In turn, the ability to rely on the types of mutable state 
-provides several advantages over other gradual type systems. The monotonic
-system has a soundness guarantee, unlike the optional semantics (which
-simply forgets about all type annotations at runtime); monotonic languages
-can elide field dereference guards needed by the transient semantics; do not
-need the wrappers inserted by the behavioral semantics; and is far more
-flexible than the concrete semantics. Additional details about these other
-semantics can be found in our companion paper~\cite{us}.
+Through this mechanism, the monotonic semantics is able to provide a stronger
+guarantee about values inhabiting mutable typed values when compared to other
+gradual type systems. Unlike the optional semantics, the monotonic semantics
+provides a soundness guarantee. It also allows the elision of guards at typed
+dereference sites, unlike the transient and behavioral semantics. Finally,
+the monotonic guarantee is less strict at the original cast site than the
+concrete semantics. Additional details about these other semantics can be
+found in our companion paper~\cite{us}.
 
-As a result, monotonic has the potential to provide substantial benefits to
-the performance of gradually typed languages. Variables are guaranteed to
-hold values of their cast type, so they can be relied upon for memory layout
-of objects. Types under the monotonic semantics can be used to optimize away
-generic field accesses, and assignments to typed fields from fully typed
-code do not need to be checked.
+As a result of this stronger soundness guarantee, the monotonic system has the
+potential to provide substantial benefits to the performance of gradually
+typed languages. Variables are guaranteed to refer to values of their
+statically known type, and therefore their types can be used to discover the
+memory layout of the underlying object.  Therefore, the objects' memory layout is
+known statically and field references made direct. This optimization has the
+potential to reduce one of gradual typing's largest overheads.
 
 In the context of object orientation, monotonic's ability to protect mutable
 state without the need for wrappers is a significant advantage. Other
@@ -225,18 +238,18 @@ type systems by examining their translation.
 
 \subsection{Source Language}
 
-Our common source language is similar to Featherweight Java, with a few
-changes. This language has classes but relies on structural subtyping
-instead of the nominal subtyping adopted by FJ. For our purposes there is no
-need for inheritance. Structural subtyping is needed to support the
-evolution of types as casts are being applied. The source language also
-introduces a dynamic type, \any, and a convertibility relation, allowing
-gradually typed programs to be expressed. This same source language and
-source language type system is shared between the translation presented here
-and the four in our main paper, allowing the same programs to be ran under
-all of our semantics. We replicate the static semantics for the source
-language here, in figure~\ref{slts}. The dynamic of the source language is
-given by a translation to a lower-level language which we will present next.
+Our common source language is similar to Featherweight Java (FJ), with a few
+changes. This language has classes but relies on structural subtyping instead
+of the nominal subtyping adopted by FJ. For our purposes, there is no need for
+inheritance. Structural subtyping is needed to support the evolution of types,
+as casts are being applied. The source language also introduces a dynamic
+type, \any, and a convertibility relation, allowing gradually typed programs
+to be expressed. This same source language and source language type system is
+shared between the translation presented here and the four in our main paper,
+allowing the same programs to be run under all of our semantics. We replicate
+the static semantics for the source language here, in Figure~\ref{slts}. The
+dynamic semantics of the source language is given by a translation to a
+statically-typed language, which we will present next.
 
 Programs in the source language consist of a class table, \K, and an initial
 expression, \e. Classes consist of field and method definitions. Fields have
@@ -251,12 +264,12 @@ Featherweight Java, and the type system is straightforward.
 The static type system allows the implicit conversion of typed and untyped
 terms via the convertibility operator, written $\ConvertE\K s\t\tp$ -- type
 $\t$ is convertible to type $\tp$.  The relation is used both for up-casting
-and for conversions of \any to non-\any types.  \RuleRef{SUB} ensures
-soundness of up-casts. While \RuleRef{TOA} and \RuleRef{ANYC} allow implicit
+and for conversions of \any to non-\any types.  \RuleRef{SUB} allows transparent
+up-casting, while \RuleRef{TOA} and \RuleRef{ANYC} allow implicit
 conversion to and from the dynamic type.  To avoid collapsing the type
-hierarchy, convertibility is not transitive. \RuleRef{TOA} and
-\RuleRef{ANYC} are break soundness, their use motivates the need for dynamic
-checks. 
+hierarchy, convertibility is not transitive. With a naive semantics, uses
+of \RuleRef{TOA} would break soundness, since dynamically typed values would
+enter statically typed code without any kind of guard. 
 
 The source language enforce privacy on fields. They can only be accessed
 from them method of the object. Furthermore, fields do not show up in type
@@ -501,7 +514,7 @@ signatures.
                 \Mdef\m\x\any\any\e \In \App\K\C \HS\HS
                  \App\s\a=\obj\C{\a[1]..} 
 \\
- \K\HS {\MonCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp    
+\hspace{-1em}\colorbox[gray]{0.89}{\hspace{1.15\textwidth}\vphantom{hello}}\hspace{-1.15\textwidth} \K\HS {\MonCast \t\a} \> \s     \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp 
 \\
 \K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
 \end{tabbing}\end{minipage}\vspace{2mm}
@@ -519,8 +532,8 @@ signatures.
 Expressions are extended with \that a distinguished variable used for
 wrapped object reference, typed and untyped method invocations, subtype and
 monotonic casts.  Evaluation is likewise standard with a few exceptions,
-with an evaluation context consisting of a class table \K, an expression
-being evaluated \e, and a heap \s, mapping from addresses \a to objects,
+with an evaluation context consisting of a class table \K, expression
+being evaluated \e, and heap \s, mapping from addresses \a to objects,
 denoted $\C\{\a\ldots\}$. Due to the need for dynamically generate classes,
 the class table \K is part of the state, and not the evaluation context.
 \kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$
@@ -528,7 +541,11 @@ and the typed invocation $\KCall\e\m\ep{\C}{\D}$, both denoting a method
 call to method $\m$ with argument \ep. This is unusual for two
 reasons. First, most gradual type systems have no explicit untyped
 invocation form, and second, the typed form also specifies the argument type
-and return type.
+and return type. Our system explicitly indicates which function calls are
+statically guaranteed to succeed and which must be dynamically checked. It
+also allows for a limited form of overloading, where both typed and untyped
+versions of a method may share a name.
+
 We use a gray background to indicate changes to \kafka in figure~\ref{slts} to
 support monotonic. The only addition is that of the monotonic cast. The next
 section focuses on giving a semantics to that cast.
@@ -708,7 +725,7 @@ source is retained in the target, and that typed methods are inserted.
   \tmeet{\t_2}{\t_4}\Env\Kp = {\t_6}~{\Kpp} \\
   \mmeet{{\mt_1 ..}}{{\mt_2 ..}}\Env\Kp = {\mt_3 ..}~\Kpp
 }{
-  \mmeet{\Mtype\m{\t_1}{\t_2}~{\mt_1..}}{{\mt_2..}}\Env\K =\Mtype\m %%%TODO: this used to be \n CHECK THAT THIS IS CORRECT
+  \mmeet{\Mtype\m{\t_1}{\t_2}~{\mt_1..}}{{\mt_2..}}\Env\K =\Mtype\m 
    {\t_5}{\t_6} ~{\mt_3 ..} ~\Kpp
 }
 \end{mathpar}
@@ -811,41 +828,52 @@ method \xt{check} made by the monocast operation. As a result, our new term is
 \MonCast{\any}{\KCall{\a[1]}{\xt{check}}{\MonCast{\xt{I}}{\a[3]}}{\xt{I}}{\xt{I}}}.
 However, at this point, we get stuck, as no meet exists between the runtime type of
 \a[3] (mapped to $\C\{\}$) and \xt{I}. 
+
+The example illustrates an interesting property of the monotonic semantics.
+Despite this program working perfectly in an untyped language, the monotonic
+semantics caused it to fail. More interestingly, none of the other semantics
+for gradual type systems would experience a cast error on this program. This
+is because none will apply the type cast on the first alias to \a[3] onto the
+underlying object, since the alias is immediately thrown away. 
  
 \begin{figure}[!h]
 \begin{tabular}{cc}
-\begin{lstlisting}
-class C { check(x:*) { x } }
-class D { check(x:I):I { x } }
+\begin{lstlisting}[linewidth=0.22\textwidth]
+class C{ check(x:*) {x}}
+class D{ check(x:I):I {x}}
 
+  
 
-
-class I { dif(x:*):* { x }}
+class I{ dif(x:*):* {x}}
 
 class T { 
-  f1:C f2:D 
-  first(x:*):* { this.f1 } }
+ f1:C f2:D 
+ first(x:*):* {this.f1}}
+
 class E { 
-  alias(x:*):* { 
-    new T(x,x).first(x) }}
+ alias(x:*):* { 
+  new T(x,x).first(x) }}
+
 
 new E().alias(new C())
        .check(new C())
 \end{lstlisting}  &
-\begin{lstlisting}
-class C { check(x:*) { x } }
-class D { check(x:I):I { x }
-  check(x:*):* { 
-    <*>this.m(<I>x) } }
-
-class I { dif(x:*):* { x }}
+\begin{lstlisting}[linewidth=0.22\textwidth]
+class C { check(x:*) {x}}
+class D { 
+ check(x:I):I {x}
+ check(x:*):* { 
+    <*>this.m(<I>x) }}
+class I { dif(x:*):* {x}}
 
 class T { 
-  f1:C f2:D 
-  first(x:*):* { <*>this.f1 } }
+ f1:C f2:D 
+ first(x:*):* {
+    <*>this.f1}}
 class E { 
-  alias(x:*):* { 
-    <*>new T(<C>x,<D>x).first(x) }}
+ alias(x:*):* { 
+    <*>new T(<C>x,<D>x)
+            .first(x)}}
 
 new E().alias(<*>new C())
        @check(<*>new C())
