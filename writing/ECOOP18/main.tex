@@ -99,32 +99,30 @@ calculus and discuss the implications of their respective designs.
    \it ``Because half the problem is seeing the problem''}
 
 \vspace{-10mm}\noindent There has never been a single approach to gradual
-typing.  Two simultaneously published, independently developed, papers
-opened the field.  Siek and Taha proposed typing of individual Scheme terms
-through a consistency relation and inserted casts based on a simple type
-inference system \cite{SiekTaha06}. Tobin-Hochtstadt and Felleisen
-implemented a system that allow programmers to add types to entire modules,
-using constraint solving to find where casts must be added in untyped
-code~\cite{tf-dls06}. These two solutions set the direction of a decade of
-research. Today, gradual type systems support a variety of languages,
-enforcement mechanisms, and soundness guarantees. However, this linguistic
-diversity is not without consequence. The very notion of what constitutes an
-error remains unsettled.
+typing. The field was created by two independently developed, simultaneously
+published papers. Siek and Taha could type individual Scheme terms using a
+consistency relation, inserting casts based on simple type inference
+\cite{SiekTaha06}. Simultaneously, Tobin-Hochtstadt and Felleisen implemented
+a system allowing programmers to add types to individual modules, using
+constraint solving to determine where casts were needed in untyped code~\cite
+{tf-dls06}. These two solutions set the direction of a decade of research.
+Today, gradual type systems support a variety of languages, enforcement
+mechanisms, and soundness guarantees---a degree of linguistic diversity that
+is not without consequence. The very notion of what constitutes an error
+remains unsettled.
 
 The type system and semantics of a programming language are necessarily
-tightly coupled; each has to deal with the language's complexity. As a
-result, if we were to implement the same gradual type system for different
-languages, the resulting semantics may appear dissimilar, despite both
-starting with the same idea. Comparing different gradual type systems is
-thus difficult.  This is apparent for object-oriented languages. Siek and
-Taha's first effort~\cite{SiekTaha07} presented a gradual type system for a
-variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996:theory-of-objects}. It related objects by
+tightly coupled; each has to deal with the language's complexity. As a result,
+the same gradual typing semantics may seem very different when applied to two
+different languages; an issue that shows up clearly in object-oriented
+languages. Siek and Taha's first effort~\cite{SiekTaha07} presented a gradual
+type system for a variant of Abadi and Cardelli's object-based
+calculus~\cite{cardelli:1996 :theory-of-objects}. It related objects by
 generalizing the notion of consistency~\cite{SiekTaha06} over structural
 subtyping. This early work had drawbacks, most notably in its handling of
-mutable state and aliasing -- vital components of object-oriented languages.
-Underlying each subsequent gradual type system are different choices on how
-to deal with state and aliasing -- often with key differences in soundness
+mutable state and aliasing --- vital components of object-oriented languages.
+Underlying each subsequent gradual type system are different choices on how to
+deal with state and aliasing -- often with key differences in soundness
 properties and enforcement.  Our goal is to explore the design space of
 gradual types for object and allow comparison in a common framework.
 
@@ -142,27 +140,28 @@ languages in this space:
  \item TypeScript: JavaScript with optional types.
  \item StrongScript: a variant of TypeScript with nominal types.
  \item Nom: a language supporting dynamic types and nominal typing.
-\item Reticulated Python: a family of gradual type systems for Python.
+ \item Reticulated Python: a family of gradual type systems for Python.
 \end{itemize}
 
 \noindent These languages can be categorized according to their runtime
-enforcement strategy, there are four approaches which we label here as
-optional, concrete, behavioral and transient. The \emph{optional} approach,
-chosen by TypeScript, Dart, and Hack, amounts to static type-checking
-followed by type-erasure. Optional types will not catch erroneous values
-flowing from dynamically typed code to statically typed code.  The
-\emph{concrete} approach, used in C\# and Nom, use runtime subtype tests on
-type constructors together with static typing. While statically typed code
-executes at native speed, values must be checked each time they cross static
-type boundaries. The \emph{behavioral} approach of Typed Racket, Gradualtalk
-and Reticulated Python, monitors values to ensure that they behave in
-accordance to their assigned types.  This approach allows the language
-implementations to enfore a strong notion of soundness.  The
-\emph{transient} approach, specific to Reticulated Python, lies between
-concrete and behavioral; it adds type casts but does so only for the
-top-level of data structures. Finally, Thorn and StrongScript have a
-particular combination of optional and concrete as they differentiate
-between types that are erased and types the are runtime checked.
+enforcement strategy. We can identify four major approaches, labelled here as
+the optional, concrete, behavioral and transient semantics. The
+\emph{optional} approach, chosen by TypeScript, Dart, and Hack, amounts to
+static type-checking followed by type-erasure. The optional semantics will not
+catch erroneous values flowing from dynamically typed code to statically typed
+code. The \emph{concrete} semantics, used in C\# and Nom, use runtime subtype
+tests on type constructors together with static typing. While, under the
+concrete semantics, statically typed code executes at native speed, values
+must be checked to be a subtype of the required type at typed-untyped
+boundaries. The \emph{behavioral} semantics of Typed Racket, Gradualtalk and
+Reticulated Python, monitors values to ensure that they behave in accordance
+to their assigned types. This approach allows the language implementations to
+enforce a strong notion of soundness. Finally, the \emph{transient} semantics,
+specific to Reticulated Python, lies between concrete and behavioral; it adds
+type casts but does so only for the top-level of data structures. Finally,
+Thorn and StrongScript have a particular combination of optional and concrete
+as they differentiate between types that are erased and types that are runtime
+checked.
 
 A static type system is designed to capture a class of errors. For gradual
 type systems, the meaning of type error depends on the enforcement strategy.
@@ -1291,10 +1290,10 @@ translations insert casts and edit type annotations to ensure correctness. In
 our system, this operation can be described as encoding the source-level
 soundness guarantee in the \kafka type system.
 
-Each translation aims to establish a source level soundness guarantee, encoded
-in \kafka's expressions and classes.  The property to be guaranteed arises from
-the \kafka version of source classes, which are protected with \kafka casts
-inserted at boundary crossings.
+Each translation establishes a source level soundness guarantee, encoded in
+\kafka's expressions and classes. The property to be guaranteed arises from
+the \kafka version of source classes, and the source level soundness principle
+is checked using \kafka casts inserted at boundary crossings.
 
 The source level soundness principal determines what runtime values may
 inhabit a given runtime type. Similarly, the \kafka soundness theorem governs
