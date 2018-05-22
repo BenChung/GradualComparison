@@ -612,10 +612,14 @@ like an \xt E.  However, the transient semantics does not check this,
 letting the invocation to \xt a succeed.
 
 We can use the litmus tests to discover what gradual type system is being
-used, but the test does not describe the semantics of the gradual type
-systems it differentiates. To provide detailed semantics for all four
-gradual type systems we use a two-part approach, the first part of which,
-the \kafka core calculus, we discuss next.
+used, but the test does not describe the semantics of the gradual type systems
+it differentiates. To fully describe the semantics of these systems, we define
+a formal semantics. This semantics is comprised of a source language, a target
+language, and translations that bridge them. Gradually-typed programs written
+in the common source language are translated according to each gradual type
+system into the common target language. We discuss our common target language,
+\kafka, next.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1169,36 +1173,11 @@ class table, construction of the new heap, and well-formedness of the old heap.
 Lastly, proving that the type of the wrapper is a subtype of the required type
 proceeds by structural induction over the required type.
 
-To prove this key theorem, we have mechanized the type soundness proof for
-\kafka in Coq.  In Coq syntax, the \kafka type soundness theorem is stated
-as follows:
-
-\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
-morekeywords={forall, exists, $\forall$}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={--(}{)--}, mathescape=true]
-$\forall$ (k:ct) (s:heap) (e:expr) (t:type),
-  (*condition 1*) --(\emph{WellFormedState})-- k e s $\rightarrow$ 
-  (*condition 2*) --(\emph{HasType})-- nil s k e t $\rightarrow$   
- (*case 1*) ($\exists$ a:ref, e = Ref a) $\vee$
- (*case 2*) ($\exists$ (e$'$:expr) (s$'$:heap)(k$'$:ct), 
-       --(\emph{Steps})-- k e s k$'$ e$'$ s$'$ $\wedge$
-       --(\emph{WellFormedState})-- k$'$ e$'$ s$'$ $\wedge$
-	     --(\emph{HasType})-- nil s$'$ k$'$ e$'$ t $\wedge$
-       --(\emph{retains{\textunderscore}references})-- s s' $\wedge$
-       --(\emph{ct{\textunderscore}ext})-- k k') $\vee$
- ($\exists$ E:EvalCtx,
- (*case 3*) ($\exists$ (a:ref) (m:id) (a$'$:ref) (C:id) (aps:list ref),
-       (e = --(\emph{equivExpr})-- (--(\emph{DynCall})-- (--(\emph{Ref})-- a) m (--(\emph{Ref})-- a$'$)) E) $\wedge$
-       --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
-       $\forall$ x e, ~ (--(\emph{In})-- (--(\emph{Method})-- m x Any Any e) --(\emph{(methods})-- C k))) $\vee$
- (*case 4*) ($\exists$ (t$'$:type) (a:ref) (C:id) (aps:list ref),
-       (e = --(\emph{equivExpr})-- (--(\emph{SubCast})-- t$'$ (--(\emph{Ref})-- a)) E) $\wedge$
-       --(\emph{In})-- (a, --(\emph{HCell})--(C,aps)) s $\wedge$
-       ((--(\emph{Subtype})-- --(\emph{empty{\textunderscore}mu})-- k (--(\emph{class})-- C) t$'$) -> False)) $\vee$
- (*case 5*) ($\exists$ a aps C C$'$, 
-       e = --(\emph{equivExpr})-- (--(\emph{BehCast})-- (--(\emph{class})-- C') (--(\emph{Ref})-- a)) E $\wedge$
-       --(\emph{In})-- (a, --(\emph{HCell})--(C, aps)) s $\wedge$
-       ~(--(\emph{incl})-- (--(\emph{method{\textunderscore}names})-- C$'$ k) (--(\emph{method{\textunderscore}names})-- C k))))
-\end{lstlisting}
+The proof of soundness for our type system has been formalized in Coq, which
+can be found in the supplementary material for this paper. Our proof has two
+key axioms: recursive structural subtyping is transitive and correct. We did
+not prove these assumptions (which have been shown in prior
+work~\cite{JonesStructural}) as they lie outside the scope of our project.
 
 Type soundness is only one means of validating a language design and type
 system, however, as while it demonstrates that reasoning about types only need
