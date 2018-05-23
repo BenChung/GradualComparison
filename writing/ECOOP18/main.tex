@@ -1222,10 +1222,23 @@ methods in \xt{CI} may not be sufficient to implement \xt{DI} in C\#, unlike
 every interface explicitly, with each explicit implementation delegating to
 the real, most general, implementation.
 
-By implementing \kafka on the CLR, we validate that the \kafka design is
-practical. In particular, lessons learned from translation to \kafka can be
-applied to languages that target C\#-like languages. It now only remains to
-define gradual type systems via translation to \kafka.
+This implementation illustrates that guarantees encoded in \kafka are
+convertible into those of common intermediate languages. Despite the different
+notion of subtyping between \kafka and C\#, we were able to accurately
+translate \kafka types into C\# types. As a result, we translate typed and
+untyped \kafka invocations into typed and untyped C\# invocations,
+respectively. The underlying runtime can then use the translated \kafka types
+to perform typed invocations, while inserting dynamic checks wherever the
+\kafka source calls for an untyped invocation. As a result, VM optimizations
+can leverage the soundness guarantee of the gradual type system.
+
+Moreover, this shows that \kafka primitives are close
+to those of intermediate languages. Mapping from \kafka forms to CIL ones
+was simple and straightforward once the class translation was defined. As
+a result, the translation of gradual type systems to \kafka provide insight
+as to how they might be implemented in a practical object-oriented gradually
+typed language. It now only remains to define gradual type systems through
+translation to \kafka.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
