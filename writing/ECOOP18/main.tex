@@ -117,7 +117,7 @@ the same gradual typing semantics may seem very different when applied to two
 different languages; an issue that shows up clearly in object-oriented
 languages. Siek and Taha's first effort~\cite{SiekTaha07} presented a gradual
 type system for a variant of Abadi and Cardelli's object-based
-calculus~\cite{cardelli:1996 :theory-of-objects}. It related objects by
+calculus~\cite{cardelli:1996:theory-of-objects}. It related objects by
 generalizing the notion of consistency~\cite{SiekTaha06} over structural
 subtyping. This early work had drawbacks, most notably in its handling of
 mutable state and aliasing --- vital components of object-oriented languages.
@@ -400,21 +400,25 @@ relatively inexpensive nominal subtype tests.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{A Family of  Gradually Typed Languages and their Litmus test}\label{litmustest}
+\section{A Family of Gradually Typed Languages and their Litmus Test}\label{litmustest}
 
 \epigraph{\vspace{-5mm}\small\it ``There is no perfection only life''} 
 
 \vspace{-10mm}
 \noindent
-One of the implications of the various approaches to gradual typing is that
-they have different notions of what constitutes an erroneous program. By
-observing the run-time errors that each gradual type system produces, one
-can tell them apart. We propose a litmus test for the four approaches of
-optional, concrete, behavioral, and transient.  The litmus test consists of
-three programs whose execution depends on which gradual type system is in
-use. Each program runs without error when executed without gradual types,
-and is statically well-typed. However, with gradual types, the programs
-may experience cast failures.
+A consequence of the variety of approaches to gradual typing is there is no
+single, common, notion of what constitutes an erroneous program. The choice
+of enforcement strategy is reflected in the semantics of the language,
+which, in turn, implies that developers have to understand the details of
+the enforcement strategy if they want to avoid run-time errors.  This also
+means that it is possible to differentiate between approaches by simply
+observing the run-time errors that each type system produces.  We propose a
+litmus test consisting of three programs whose execution depends on which
+gradual type system is in use. Each of these program runs without error when
+executed with a purely dynamic semantics, and each program is statically
+well-typed. We start by presenting a common surface language in which we can
+express our programs, and then explain why the various approaches to gradual
+typing yield different run-time errors.
 
 \subsection{A Common Surface Language}
 
@@ -509,24 +513,40 @@ may experience cast failures.
 }
 \end{mathpar}
 
-
 \hrulefill
 \caption{Surface language syntax and type system (extract).}\label{slts}
 \end{figure}
 
-We present a common surface language that is used with different gradual
-type systems. The language is a simple object calculus without inheritance,
-method overloading or explicit type cast operations. It is statically typed,
-subtyping is structural, and type \any is the dynamic type. When a method
-receiver is of type \any, invocation is considered well-typed. Values of
-type \any can be statically converted to any type.  Class names are used as
-types.
+We present a common surface language that can be used with different gradual
+type systems. The surface language is a statically typed object calculus
+without inheritance, method overloading or explicit type cast operations.
+\figref{slts} gives its syntax and an extract of its static semantics. The
+distinctive feature of the calculus is the presence of type \any\,-- the
+dynamic type. A variable of type \any can hold any value, and an invocation
+of a method with receiver of type \any is statically well-typed.
 
-\figref{slts} gives the language's syntax and an extract of its static type
-system.  The type system is mostly standard. To differentiate it from the
-\kafka type system, we use the $\EnvTypeS\Env\K\e\t$ judgment form,
-indicating a well-typed surface expression.  
+The presence of the dynamic type is sufficient to allow writing gradually
+typed code. A program with no occurrence of \any is statically typed, in
+which case, the usual soundness guarantee holds, namely the program will not
+get stuck on a method invocation. A program where all variables are
+annotated to be \any is fully dynamic and any invocation may get stuck.
 
+Gradual typing is used when an expression of dynamic type occurs as an
+argument to a call of a method that expects some other type \T. The static
+type system of the surface language allows such cases of implicit coercion,
+but the gradual enforcement mechanism has to introduce run-time checks to
+catch potential type mismatches. The semantics of the various gradual type
+systems will be given in terms of a translation from the surface language to
+a common calculus. In this section, we appeal to the reader's intuition.
+
+A more detailed explanation of the surface language will helpful to
+understand the translations presented in the following sections.  Subtyping
+in the calculus is structural, \StrSub\M\K\C\D holds if class \C has all the
+methods of class \D and the arguments and return types are related by
+subtyping in the usual contra- and co-variant way.  \K is the class table
+that holds definitions of all classes in the program.
+
+WIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIP
 
 This surface static semantics allows mixing of static and dynamically typed
 terms. The static type system allows the implicit conversion of typed and
