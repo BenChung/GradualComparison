@@ -4,6 +4,8 @@
             hyperref,doi, mathtools,wrapfig,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox,
             pgffor, makecell, microtype}
+            \usetikzlibrary{decorations.pathreplacing}
+
 \usepackage[customcolors,norndcorners]{hf-tikz}
 \usepackage{tex/mathpartir}
 \usetikzlibrary{arrows}
@@ -178,16 +180,40 @@ fail because \code{x} lacks method \code{m}, in behavioral the call will
 succeed, but a failure may occur upon return if the returned value is not of
 the expected type.
 
-We propose to compare approaches to gradual typing for objects by focusing
-on a simple object calculus with only the features needed for a comparison.
-We translate a common source languages into a common target language which
-we call \kafka.  \kafka is a statically typed class-based object calculus
+\begin{center}
+\begin{tikzpicture}[node distance=3cm]
+\node[draw,minimum height=3cm,minimum width=2cm] at (0,0) (S) {Source};
+\node[draw,minimum height=3cm,minimum width=2cm,right=of S] (K) {\kafka};
+%\node[draw,right=of K] (C) {CIL};
+\draw [->] ([yshift=1cm]S.east) -- node[midway,above] {Optional} ([yshift=1cm]K.west);
+\draw [->] ([yshift=0.33334cm]S.east) -- node[midway,above] {Transient} ([yshift=0.3334cm]K.west);
+\draw [->] ([yshift=-0.33334cm]S.east) -- node[midway,above] {Behavioural} ([yshift=-0.3334cm]K.west);
+\draw [->] ([yshift=-1cm]S.east) -- node[midway,above] {Concrete} ([yshift=-1cm]K.west);
+
+%\draw [->] (K) -- (C);
+
+\draw [decorate,decoration={brace,amplitude=10pt,raise=1pt},yshift=0pt] (S.north east) -- (K.north west) 
+  node [above,midway,yshift=0.4cm] {Translations};
+
+\node[label,below=0cm of S] {\footnotesize Section 3};
+\node[label,below=0cm of K] {\footnotesize Section 4};
+
+\draw [decorate,decoration={brace,amplitude=10pt,mirror,raise=1pt},yshift=0pt] (S.south east) -- (K.south west) 
+  node [below,midway,yshift=-0.4cm] {\footnotesize Section 5};
+\end{tikzpicture}
+\end{center}
+
+We propose to compare approaches to gradual typing for objects by translating
+a gradually typed source calculi to a traditionally sound target language, called
+\kafka. \kafka is a statically typed class-based object calculus
 with explicit mutable state. The key features of \kafka are casts:
 \emph{structural casts} check if the object is a subtype of some type \t,
 while \emph{behavioral casts} create wrappers, enforcing that an object
-behaves as if it was of some type \t. For this it is necessary to generate
-new classes at runtime and to support transparent wrappers.  This paper
-makes the following contributions:
+behaves as if it was of some type \t. By translating to this minimal
+object-oriented calculus, we illustrate the source soundness guarantees 
+provided by each semantics. Our approach is illustrated above.
+
+This paper makes the following contributions:
 \begin{itemize}  
   \item The design of \kafka, a common calculus for gradual type systems for
     objets.
@@ -195,7 +221,7 @@ makes the following contributions:
   approach.
 \item A litmus test comprised of three programs, able to tell apart the
   gradual type systems.
-\item A mechanize proof of soundness of \kafka's type system, including
+\item A mechanized proof of soundness of \kafka's type system, including
   class generation.
 \item A proof-of-concept implementation of \kafka on the .Net Common
   Language Runtime.
