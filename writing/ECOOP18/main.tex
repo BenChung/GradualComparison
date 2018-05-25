@@ -427,17 +427,22 @@ typing yield different run-time errors.
 \small
 \vspace{5mm}
 
+{\bf Syntax:}\\[3mm]
+
 \begin{tabular}{ll}
 \begin{minipage}{6cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
-\e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}\\[2mm]
 \k~::=~ \Class \C {\fd[1]..}{\md[1]..} \qquad
 \md~::=~\Mdef\m\x\t\t\e\qquad
 \fd~::=~ \Fdef\f\t\qquad
-\t~::=~ \any \B \C
+\t~::=~ \any \B \C\\[3mm]
+\e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}
 \end{tabular}\end{minipage} 
 \end{tabular}
 
 \vspace{5mm}
+
+
+{\bf Typing expressions:}\\[-6mm]
 
 \begin{mathpar}
 \Rule{STG-VAR}{~\\\\ 
@@ -481,22 +486,25 @@ typing yield different run-time errors.
 }
 \end{mathpar}
 
-\vspace{-5mm}  
+
+{\bf Convertibility:}\\[-6mm]
   
 \begin{mathpar}
-\IRule{SUB}{ \SSub\emptyset\K\t\tp}{ \ConvertE\K{s}\t\tp }
+\Rule{SUB}{ \SSub\emptyset\K\t\tp}{ \ConvertE\K{s}\t\tp }
     
-\IRule{TOA}{~ }{ \ConvertE\K{s}\t\any}
+\Rule{TOA}{~ }{ \ConvertE\K{s}\t\any}
     
-\IRule{ANYC}{~}{ \ConvertE\K{s}\any\t }
+\Rule{ANYC}{~}{ \ConvertE\K{s}\any\t }
 \end{mathpar}
 
-\vspace{-5mm}  
+
+{\bf Subtyping:}\\[-6mm]
 
 \begin{mathpar}
 \Rule{SAss}{ \C \Sub \D \in \M }{  \StrSub \M\K \C\D }
 
 \hspace{-8mm}
+
 
 \Rule{SRec}{
 \M'=\M~\C\Sub\D\\\\\md\in\App\K\D\implies\mdp\in\App\K\C~.~\StrSub{\M'}\K\md\mdp
@@ -525,45 +533,45 @@ distinctive feature of the calculus is the presence of type \any\,-- the
 dynamic type. A variable of type \any can hold any value, and an invocation
 of a method with receiver of type \any is statically well-typed.
 
-The presence of the dynamic type is sufficient to allow writing gradually
-typed code. A program with no occurrence of \any is statically typed, in
-which case, the usual soundness guarantee holds, namely the program will not
-get stuck on a method invocation. A program where all variables are
-annotated to be \any is fully dynamic and any invocation may get stuck.
+The presence of the dynamic type suffices to allow writing gradually typed
+code. A program with no occurrence of \any is statically typed, in which
+case, the usual soundness guarantee holds, namely programs will not get
+stuck on method invocation. A program where all variables are annotated as
+dynamic is fully dynamic and any invocation may get stuck.
+Gradual typing comes into play when an expression of type \any occurs as an
+argument to a method that expects some other type \C and conversely when an
+argument of type \C is passed to a method that expects \any. The static type
+system of the surface language allows such implicit coercions, but run-time
+checks may be inserted to catch potential type mismatches. The following
+sections formalize the semantics of the different gradual approaches in
+terms of a translation into \kafka, our lower-level common calculus.  In
+this section, we appeal to the reader's intuition.
 
-Gradual typing is used when an expression of dynamic type occurs as an
-argument to a call of a method that expects some other type \T. The static
-type system of the surface language allows such cases of implicit coercion,
-but the gradual enforcement mechanism has to introduce run-time checks to
-catch potential type mismatches. The semantics of the various gradual type
-systems will be given in terms of a translation from the surface language to
-a common calculus. In this section, we appeal to the reader's intuition.
-
-A more detailed explanation of the surface language will helpful to
-understand the translations presented in the following sections.  Subtyping
-in the calculus is structural, \StrSub\M\K\C\D holds if class \C has all the
-methods of class \D and the arguments and return types are related by
-subtyping in the usual contra- and co-variant way.  \K is the class table
-that holds definitions of all classes in the program.
-
-WIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIP
-
-This surface static semantics allows mixing of static and dynamically typed
-terms. The static type system allows the implicit conversion of typed and
-untyped terms via the convertibility operator, written $\ConvertE\K s\t\tp$
--- type $\t$ is convertible to type $\tp$.  The relation is used both for
-up-casting and for conversions of \any to non-\any types.  \RuleRef{SUB}
-ensures soundness of up-casts. While \RuleRef{TOA} and \RuleRef{ANYC} allow
-implicit conversion to and from the dynamic type.  To avoid collapsing the
-type hierarchy, convertibility is not transitive. \RuleRef{TOA} and
-\RuleRef{ANYC} are break soundness, their use motivates the need for dynamic
-checks.  If \RuleRef{TOA} is used, then some typed object is being passed
-into untyped code, and must be protected from misuse. Likewise, if
-\RuleRef{ANYC} is used, then an untyped value is being passed into typed
-code, and type invariants must be checked.
-
-A number of design choices deserve discussion. The choice of structural
-subtyping is motivated by the desire to accommodate ...
+Before presenting the litmus test, some details about the type system of the
+surface language may prove helpful. The subtyping relation is structural,
+\StrSub\M\K\C\D holds if class \C has (at least) all the methods of class \D
+and the arguments and return types are related by subtyping in the usual
+contra- and co-variant way; the class table \K holds definitions of all
+classes and \M is helper for recursion. One noteworthy feature of subtyping
+is that the fields of objects do not play a role in deciding if classes are
+subtypes. Following languages like Smalltalk, fields are encapsulated and
+can only be accessed from their defining object, syntactically field reads
+and write are limited to \this.\f. The static type-checking rules are
+standard with two exceptions.  Method invocation, \EM{\e.\m(\ep)}, when the
+receiver is dynamic, \EM{\e:\any}, allows the invocation of any method \m,
+with a dynamic argument, \EM{\ep:\any}, and a dynamic return type,
+\EM{\e.\m(\ep):\any}.  Mixing static and dynamically typed terms is achieved
+by implicitly converting typed and untyped terms. The convertibility
+relation, written $\ConvertE\K s\t\tp$, states that type $\t$ is convertible
+to type $\tp$ assuming class table \K.  The relation is used both for
+up-casting and for conversions of \any to non-\any types.  $\ConvertE\K
+s\t\tp$ holds when $\t\Sub\tp$, this allows up-casts. The remaining two
+rules allow implicit conversion to and from the dynamic type.  To avoid
+collapsing the type hierarchy, convertibility is not transitive. Implicit
+conversion break soundness, their use motivates the need for dynamic checks.
+If some typed term is passed into untyped code, it must be protected from
+misuse. Likewise, if an untyped term is passed into typed code, then type
+invariants must be checked.
 
 
 \subsection{Litmus}
@@ -575,61 +583,65 @@ programs consists of a class table and an expression, whose evaluation in
 the context of the class table determines if the litmus test succeeds or
 fails.
 
-The three programs in the litmus test are designed to induce errors in some
-gradual type systems. This is done via the construction of an untyped value
-that violates the type guarantees of some systems, but not others. In program
-L1, we build an instance of class \xt{A}, then pass it (as an untyped value)
-to a function that expects an instance of \xt{I}, a structurally incompatible
-type. In L2, we also construct an \xt{A}, but this time \xt{I} is structurally
-compatible (has the same method names) with incompatible argument types.
-Lastly, L3 uses the method \m to instantaneously asserts that an instance of a
-\C is actually an \xt{E}, then performs an untyped invocation on the result,
-assuming that the value is still a \C.
+
+
+The programs are designed to induce errors.  This is done via the
+construction of an untyped value that violates the type guarantees of some
+systems, but not others.  At heart, these programs can be summarized by the
+typed/untyped boundaries that are crossed by an object. Let us use the
+notation $\C ~\vert_{~\t}$ to denote that an object of class \C passes
+through a type boundary that expects it to be of type \t.  In program {\bf
+  L1}, we have \[\A \vert_{~\any} ~ \vert_{~\I}\] an instance of class \A is
+first implicitly converted to \any and then to \I. Classes \A and \I are
+unrelated by subtyping. In program {\bf L2}, the same sequence is applied
+\[\A \vert_{~\any} ~ \vert_{~\I}\] but this time \A and \I both have method
+\m, but with incompatibly argument types. Lastly, in program {\bf L2}
+we start by converting an object of class \C to \any and then to \E and
+finally back to \any.
+\[\C \vert_{~\any}~\vert_{~\E}~\vert_{~\E}~\vert_{~\any}\]
+the resulting value is then used in a call to method \m with an instance of
+\C as an argument. This call is correct as method \m in \C does take an
+argument of the same type. If the object was an instance of \E, the call
+would not be legal because \E's method \m expects a class \D as argument.
+
 
 \begin{figure}[!h]
   \includegraphics[width=.95\columnwidth]{../figures/litm}
   \caption{Gradual typing litmus test.}\label{litmus}
 \end{figure}
 
-The various checks used at each of these type assertions can fail, depending
-on the semantics of the gradual type system in question.
+\vspace{2mm}\noindent
+{\bf Optional.~} An optional gradual type system simply erases all of the
+type annotations at runtime; all three programs run to completion without
+error.
 
-{\bf Optional.~} An optional type system, which simply erases all of the
-type annotations at runtime, will run all programs without error.
+\vspace{2mm}\noindent {\bf Concrete.~} The guarantee provided by the
+concrete semantics is that all implicit conversion imply a run-time subtype
+check.  This causes all three programs to experience failure. {\bf L1} and
+{\bf L2} fail on a subtype test \StrSub{}\K\A\I.  {\bf L3} fails on the
+subtype test \StrSub{}\K\C\E.
 
-{\bf Concrete.~} The guarantee provided by the concrete semantics is that
-only statically checked values can be of a type, implying that untyped
-values can never be passed in place of a typed one. This strong requirement
-causes the concrete semantics to reject all three programs. {\bf L1} fails
-as it attempts to pass an \A instance in place of an instance of \xt I,
-which are incompatible.  {\bf L2} also fails despite \A and \xt I's
-method now being of the same name, the types are statically incompatible due
-to \xt Q not being a static super type of \A. {\bf L3} fails as it tries to
-pass a \C as an \xt E, in the call to \m inside of \xt N in \xt F,
-impossible under the concrete semantics as \C is not a subtype of \xt E.
+\vspace{2mm}\noindent {\bf Behavioral.~} The behavioral semantics does allow
+conversion from \any to \C if the actual value is ``structurally''
+compatible to \C and if, after that, the value ``behaves'' as if it was an
+instance of \C.  This is checked by a run-time cast that looks at method
+names and a wrapper that monitors further interactions.  {\bf L1} is rejected
+because \A does not have the method \xt n expected by \I. {\bf L2}, however,
+executes without error because \A has the method \m expected by \I (argument
+types are not checked). {\bf L3} is fails, the instance of \C has been
+applied a wrapper that checks it behave as if it was an instance of \E.
+When the method \a is called with a \C object as argument, the wrapper will
+observe that \E has a method \a but that method expects a \D and \C and \D
+are not compatible.
 
-{\bf Behavioral.~} In contrast to the concrete semantics, the behavioral
-semantics does allow untyped values to be passed under a type if they are
-structurally compatible, but dynamically ensures that the untyped values to
-respect the type. Like the concrete semantics, {\bf L1} is rejected as \A's
-method, \m, could never be used as \xt I's \xt n. {\bf L2}, however,
-executes without error, as while \A.\xt m does not properly implement \xt
-I.\xt n, this is never observed dynamically, and the value is therefore
-observationally of the ascribed type. {\bf L3} is rejected by the behavioral
-semantics, as when the top-level expression calls \xt a on a \xt C that has
-been cast to an \xt E, the check that the value (another instance of \xt C)
-is structurally compatible with the required type (\xt D), fails.
+\vspace{2mm}\noindent {\bf Transient.~} The transient semantics has a weaker
+guarantee, It retains the structural checks at casts of the behavioral
+semantics, but does not wrap values. Transient fails {\bf L1}, for the same
+reason as the other two type systems, and passes {\bf L2}, for the same
+reason as the behavioral semantics.  {\bf L3} succeeds because transient
+forgets that the \C object was converted to \E.
 
-{\bf Transient.~} The transient semantics further weakens the guarantee,
-retaining the structural checks at casts of the behavioral semantics, but
-only checks adherence to the locally ascribed type, rather than every
-potentially applicable type. Transient fails {\bf L1}, for the same reason
-as the other two type systems, and passes {\bf L2}, for the same reason as
-the behavioral semantics, as a result, but differs in {\bf L3}. {\bf L3}
-failed under the behavioral semantics because the return value of \xt n
-carried the type applied by \xt m with it, forcing the \xt C instance to act
-like an \xt E.  However, the transient semantics does not check this,
-letting the invocation to \xt a succeed.
+\subsection{Discussion}
 
 We can use the litmus tests to discover what gradual type system is being
 used, but the test does not describe the semantics of the gradual type systems
@@ -642,7 +654,6 @@ system into the common target language. We discuss our common target language,
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
 \noindent Even without gradual typing, it is notoriously difficult to compare
