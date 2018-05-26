@@ -527,18 +527,15 @@ typing yield different run-time errors.
 {\bf Subtyping:}\\[-6mm]
 
 \begin{mathpar}
+\Rule{SAss}{  }{  \StrSub \M\K \any\any }
+
 \Rule{SAss}{ \C \Sub \D \in \M }{  \StrSub \M\K \C\D }
-
-\hspace{-8mm}
-
 
 \Rule{SRec}{
 \M'=\M~\C\Sub\D\\\\\md\in\App\K\D\implies\mdp\in\App\K\C~.~\StrSub{\M'}\K\md\mdp
 }{
  \StrSub \M\K \C \D 
 }
-
-\hspace{-8mm}
 
 \Rule{SMet}{
   \StrSub \M\K{\tp[1]}{\t[1]} \qquad \StrSub \M\K{\t[2]}{\tp[2]}
@@ -665,30 +662,57 @@ forgets that the \C object was converted to \E.
 
 \subsection{Discussion}
 
-The litmus tests also capture the behavior of implementations. The tests
+The litmus tests also capture the behavior of real languages. These tests
 programs have been expressed in TypeScript (optional), StrongScript
 (concrete), Typed Racket (behavioral) and Reticulated Python
 (transient).\footnote{http://github.com/FIXME} Those implementations have
 the same errors.
 
-What the litmus tests show is that in gradually typed languages,
-understanding the implementation, the run-time enforcement machinery, is
-crucial for developers to know, precisely, when their programs is
-``correct''.  In the case of the litmus programs, all errors are spurious,
-none of these programs is incorrect. This points to the fact that in
-gradually typed language, bugs can slip into the type specification and
-those bugs can cause run-time errors. Thus, type annotations must be audited
-and tested.
+What the litmus tests show is that understanding the implementation of
+gradually typed languages, the run-time enforcement machinery, is crucial
+for developers to know, precisely, when their programs is ``correct''.  In
+the case of the litmus, all errors are spurious, none of these programs is
+incorrect. This points to the fact that in gradually typed language, bugs
+can slip into the type specification and those bugs can cause run-time
+errors. Thus, type annotations must be audited and tested just like code.
 
-There are clear usability trade-offs between the approaches. Optional types
-are rather permissive, developers need not worry about type annotations
-introducing bugs on the other hand, any method invocation may go wrong. So
-the guarantee they afford is weak. Behavioral types enforce soundness, but
-this comes at the cost of run-time errors in the midst of typed code.
-Concrete types have a simpler semantics, any type error will manifest at the
-boundary between typed and untyped code. Typed code will not experience
-errors. On the other hand, concrete types are more restrictive as the values
-must be of the right type or a subtype.  Transient is 
+There are clear usability trade-offs between approaches. The optional
+approach is the most permissive, developers need not worry about type
+annotations introducing bugs as annotations have no impact on program
+execution. On the other hand, any method invocation may go wrong. So the
+guarantees provided by this approach are the weakest. The behavioral
+approach was designed to be sound, this comes at the cost of not being able
+to rule out run-time errors at any operation. The use of wrappers to monitor
+the behavior of values has the consequence that any method invocation may
+fail if the receiver is a wrapped object.  Concrete types have a much
+simpler semantics, errors only occur at the boundary between untyped and
+typed code. Method invocation on a typed receiver with typed arguments will
+never get stuck. The concrete approach is more restrictive as the values
+that cross a typed boundary must be related by subtyping to expected type.
+Finally the transient approach occupies a middle ground with weaker
+guarantees than behavioral and less restrictions than concrete.
+
+Reticulated Python uses a \emph{consistency} relation instead of
+subtyping~\cite{siek14}.  Consistency allows to treat accept more programs
+as types that have fewer occurrences of \any are consistent with types that
+have more \any. But consistency does not affect the run-time semantics of
+the transient approach, so we omit it here. Consistency is not compatible
+with the concrete approach. As for behavioral, the Type Racket incaranation
+expects code to be either fully or fully untyped, in which case consistency
+boils down to subtyping.
+
+The choice of structural subtyping for the surface language is motivated by
+the desire to support the transient approach. For the concrete approach a
+nominal subtyping relation is more natural (and used in Nom, Thorn and
+StrongScript).
+
+The motivation for private fields is to simplify the system. With private
+fields, errors are limited to method invocation. Fields accesses can be
+trivially checked. Moreover, interposing on method invocation can easily be
+achieved by wrappers, whereas interposiing on field access would require
+modifying the code of clients. This would make the formal development more
+cumbersome without adding much insights.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{KafKa: A Core Calculus}\label{kafkacore}
