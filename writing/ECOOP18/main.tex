@@ -1103,15 +1103,14 @@ the same types as the original \m, and allows the above example to succeed.
 
 \subsection{Type soundness}
 
-Type soundness is a key property of the \kafka type system, as if the
-soundness of gradual type systems is to be represented in terms of it, then
-it follows that \kafka must itself be type safe.  The \kafka type soundness
-theorem is stated as follows:
+The \kafka type soundness theorem ensures that a well-formed program can
+only get stuck at a dynamic invocation, a subtype cast, or a behavioral
+cast, and only there when justified.
 
 \begin{theorem}[\kafka type soundness]
 
-\noindent For every well-formed-state $\WFq{\K~\e~\s}$ and well-typed expression
-$\EnvType\emptyset\s\K\e\t$, one of the following holds:
+\noindent For every well-formed-state $\WFq{\K~\e~\s}$ and well-typed
+expression $\EnvType\emptyset\s\K\e\t$, one of the following holds:
 
 \begin{itemize}
 \item There exists some reference $\a$ such that $\e = \a$.
@@ -1122,25 +1121,20 @@ $\EnvType\emptyset\s\K\e\t$, one of the following holds:
 \end{itemize}
 \end{theorem}
 
-As such, a valid \kafka program can only get stuck at a dynamic invocation, a
-subtype cast, or a behavioral cast, and only there when justified, which in turn
-enables us to reason about the semantics of the gradual type systems by reasoning
-about the type of their \kafka translation.
-
+\noindent
 The proof is mostly straightforward, with one unusual case, centered around
 the \xt{bcast} metafunction. When the expression $\BehCast\C\a$ is
-encountered, the \xt{bcast} metafunction is used to generate a wrapper class,
-which is then instantiated, producing a new class table, return value, and
-heap. We must then show that the new class table is well formed, that the new
-heap is also well formed, and that the new wrapper is a subtype of the given
-type $\C$. 
-
-Proving these properties is relatively straightforward. Class table well-
-formedness follows by construction of the wrapper class and by well-formedness
-of the old class table. Heap well-formedness follows by well-formedness of the
-class table, construction of the new heap, and well-formedness of the old heap.
-Lastly, proving that the type of the wrapper is a subtype of the required type
-proceeds by structural induction over the required type.
+encountered, the \xt{bcast} metafunction is used to generate a wrapper
+class, which is then instantiated, producing a new class table, return
+value, and heap. We must then show that the new class table is well formed,
+that the new heap is also well formed, and that the new wrapper is a subtype
+of the given type $\C$.  Proving these properties is relatively
+straightforward. Class table well- formedness follows by construction of the
+wrapper class and by well-formedness of the old class table. Heap
+well-formedness follows by well-formedness of the class table, construction
+of the new heap, and well-formedness of the old heap.  Lastly, proving that
+the type of the wrapper is a subtype of the required type proceeds by
+structural induction over the required type.
 
 The proof of soundness for our type system has been formalized in Coq, which
 can be found in the supplementary material for this paper. Our proof has two
@@ -1148,15 +1142,8 @@ key axioms: recursive structural subtyping is transitive and correct. We did
 not prove these assumptions (which have been shown in prior
 work~\cite{JonesStructural}) as they lie outside the scope of our project.
 
-Type soundness is only one means of validating a language design and type
-system, however, as while it demonstrates that reasoning about types only need
-be done in \kafka, it does not demonstrate the practical applicability of 
-lessons learned from translations to \kafka, which needs a different approach.
-
 
 \subsection{Discussion}
-
-
 
 Traditionally, dynamic invocations are represented in gradual type translation
 targets through the combination of a cast and a normal typed invocation. For
