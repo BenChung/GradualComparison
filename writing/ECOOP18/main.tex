@@ -609,36 +609,32 @@ programs consists of a class table and an expression, whose evaluation in
 the context of the class table determines if the litmus test succeeds or
 fails.
 
-
-
 The programs are designed to induce errors.  This is done via the
 construction of an untyped value that violates the type guarantees of some
 systems, but not others.  At heart, these programs can be summarized by the
 typed/untyped boundaries that are crossed by an object. Let us use the
-notation $\C ~\vert_{~\t}$ to denote that an object of class \C passes
+notation $\C ~\vert_{\,\t}$ to denote that an object of class \C passes
 through a type boundary that expects it to be of type \t.  In program {\bf
-  L1}, we have \[\A \vert_{~\any} ~ \vert_{~\I}\] an instance of class \A is
+  L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] an instance of class \A is
 first implicitly converted to \any and then to \I. Classes \A and \I are
 unrelated by subtyping. In program {\bf L2}, the same sequence is applied
-\[\A \vert_{~\any} ~ \vert_{~\I}\] but this time \A and \I both have method
+\[\A~ \vert_{\,\any} ~ \vert_{\,\I}\] but this time \A and \I both have method
 \m, but with incompatibly argument types. Lastly, in program {\bf L2}
 we start by converting an object of class \C to \any and then to \E and
 finally back to \any.
-\[\C \vert_{~\any}~\vert_{~\E}~\vert_{~\E}~\vert_{~\any}\]
+\[\C~ \vert_{\,\any}~\vert_{\,\E}~\vert_{\,\E}~\vert_{\,\any}\]
 the resulting value is then used in a call to method \m with an instance of
 \C as an argument. This call is correct as method \m in \C does take an
 argument of the same type. If the object was an instance of \E, the call
 would not be legal because \E's method \m expects a class \D as argument.
 
-
-\begin{figure}[!h]
-  \includegraphics[width=.95\columnwidth]{../figures/litm}
+\begin{figure}[!h] \includegraphics[width=.95\columnwidth]{../figures/litm}
   \caption{Gradual typing litmus test.}\label{litmus}
 \end{figure}
 
 \vspace{2mm}\noindent
 {\bf Optional.~} An optional gradual type system simply erases all of the
-type annotations at runtime; all three programs run to completion without
+type annotations at run-time; all three programs run to completion without
 error.
 
 \vspace{2mm}\noindent {\bf Concrete.~} The guarantee provided by the
@@ -669,23 +665,39 @@ forgets that the \C object was converted to \E.
 
 \subsection{Discussion}
 
-We can use the litmus tests to discover what gradual type system is being
-used, but the test does not describe the semantics of the gradual type systems
-it differentiates. To fully describe the semantics of these systems, we define
-a formal semantics. This semantics is comprised of a source language, a target
-language, and translations that bridge them. Gradually-typed programs written
-in the common source language are translated according to each gradual type
-system into the common target language. We discuss our common target language,
-\kafka, next.
+The litmus tests also capture the behavior of implementations. The tests
+programs have been expressed in TypeScript (optional), StrongScript
+(concrete), Typed Racket (behavioral) and Reticulated Python
+(transient).\footnote{http://github.com/FIXME} Those implementations have
+the same errors.
 
+What the litmus tests show is that in gradually typed languages,
+understanding the implementation, the run-time enforcement machinery, is
+crucial for developers to know, precisely, when their programs is
+``correct''.  In the case of the litmus programs, all errors are spurious,
+none of these programs is incorrect. This points to the fact that in
+gradually typed language, bugs can slip into the type specification and
+those bugs can cause run-time errors. Thus, type annotations must be audited
+and tested.
+
+There are clear usability trade-offs between the approaches. Optional types
+are rather permissive, developers need not worry about type annotations
+introducing bugs on the other hand, any method invocation may go wrong. So
+the guarantee they afford is weak. Behavioral types enforce soundness, but
+this comes at the cost of run-time errors in the midst of typed code.
+Concrete types have a simpler semantics, any type error will manifest at the
+boundary between typed and untyped code. Typed code will not experience
+errors. On the other hand, concrete types are more restrictive as the values
+must be of the right type or a subtype.  Transient is 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{KafKa: A Core Calculus}\label{kafkacore}
 
-\noindent Even without gradual typing, it is notoriously difficult to compare
-languages. Presentation and semantic differences can make even the most similar
-languages look and behave very different. As a result, differences between gradual type
-systems are hard to notice amongst details that are irrelevant to gradual typing itself.
+\noindent Even without gradual typing, it is notoriously difficult to
+compare languages. Presentation and semantic differences can make even the
+most similar languages look and behave very different. As a result,
+differences between gradual type systems are hard to notice amongst details
+that are irrelevant to gradual typing itself.
 
 To enable direct comparison, the different gradual typing approaches need to
 be placed in a single language and formal approach. In this section, we
