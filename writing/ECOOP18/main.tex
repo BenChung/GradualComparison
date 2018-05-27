@@ -237,7 +237,7 @@ of structural subtyping in \kafka. This is motivated by our desire to
 represent behavioral and transient approaches that require structural
 subtyping.  There would be no major difficulty switching \kafka to a nominal
 subtype system or providing an additiomal nominal subtype cast.
-Code and proofs are available from: {\small \url{github.com/new_url}.}
+Code and proofs are available from: {\small \url{github.com/BenChung/GradualComparisonArtifact}.}
 
 \section{Background}
 
@@ -663,8 +663,9 @@ the \C object was converted to \E.
 The litmus tests also capture the behavior of real languages. These three
 programs have been expressed in TypeScript (optional), StrongScript
 (concrete), Typed Racket (behavioral) and Reticulated Python
-(transient).\footnote{http://github.com/FIXME} Those implementations have
-the same errors.
+(transient).\footnote{\small
+  \url{github.com/BenChung/GradualComparisonArtifact/examples}} Those
+implementations have the same errors.
 
 What the litmus tests show is that understanding the implementation of
 gradually typed languages, the run-time enforcement machinery, is crucial
@@ -1154,34 +1155,34 @@ method name to disambiguate between them.
 
 We intended \kafka to match the intermediate languages of commercial VMs.
 To validate this, we implemented a compiler from \kafka to
-C\#.\footnote{http://github.com/XXX} The only challenge was due to
-subtyping. \kafka uses structural typing, while C\# is nominal, and \kafka
-allows methods in subtypes to be contra-variant in argument and co-variant
-in return type, while C\# requires invariance.  Implementing structural
-subtyping on top of a nominally typed language is tricky. Structural types
-create implicit subtyping relationships, which the nominal type system
-expects to be explicit.  Prior work used reflection and complex run-time
-code generation~\cite{StructuralTypesOnJVM}, but this is needlessly complex
-for a proof of concept.  Instead, we reify the implicit relationships
-introduced by structural subtyping into explicit nominal relationships by
-generating interfaces. Given two classes \C and \D, where $\K\vdash \C \Sub
-\D$ holds, we generate two interfaces \xt{CI} and \xt{DI}, where \xt{CI} is
-declared to extend \xt{DI}. As a result, if two types are subtypes, their
-corresponding C\# interfaces will be as well.  The next problem is that
-\kafka allows subtype methods to be contra-variant in argument and
-co-variant in return types.  As a result, a single methods in \xt{CI} may
-not be sufficient to implement \xt{DI}.  We solve this by having every
-class's C\# equivalent implement every interface explicitly, with each
-explicit implementation delegating to the real, most general,
-implementation.  Despite these issues, we were able to accurately translate
-\kafka types. We translate static and dynamic invocations into corresponding
-C\# invocations since C\# has also a dynamic type. The underlying run-time
-can then use the translated \kafka types to perform method dispatch, while
-inserting dynamic checks wherever the \kafka source calls for an untyped
-invocation. This prototype shows that \kafka primitives are close to those
-of intermediate languages. As a result, the translation of gradual type
-systems to \kafka provides insight as to how they might be implemented in a
-practical language.
+C\#.\footnote{\small\url{github.com/BenChung/GradualComparisonArtifact/netImpl}}
+The only challenge was due to subtyping. \kafka uses structural typing,
+while C\# is nominal, and \kafka allows methods in subtypes to be
+contra-variant in argument and co-variant in return type, while C\# requires
+invariance.  Implementing structural subtyping on top of a nominally typed
+language is tricky. Structural types create implicit subtyping
+relationships, which the nominal type system expects to be explicit.  Prior
+work used reflection and complex run-time code
+generation~\cite{StructuralTypesOnJVM}, but this is needlessly complex for a
+proof of concept.  Instead, we reify the implicit relationships introduced
+by structural subtyping into explicit nominal relationships by generating
+interfaces. Given two classes \C and \D, where $\K\vdash \C \Sub \D$ holds,
+we generate two interfaces \xt{CI} and \xt{DI}, where \xt{CI} is declared to
+extend \xt{DI}. As a result, if two types are subtypes, their corresponding
+C\# interfaces will be as well.  The next problem is that \kafka allows
+subtype methods to be contra-variant in argument and co-variant in return
+types.  As a result, a single methods in \xt{CI} may not be sufficient to
+implement \xt{DI}.  We solve this by having every class's C\# equivalent
+implement every interface explicitly, with each explicit implementation
+delegating to the real, most general, implementation.  Despite these issues,
+we were able to accurately translate \kafka types. We translate static and
+dynamic invocations into corresponding C\# invocations since C\# has also a
+dynamic type. The underlying run-time can then use the translated \kafka
+types to perform method dispatch, while inserting dynamic checks wherever
+the \kafka source calls for an untyped invocation. This prototype shows that
+\kafka primitives are close to those of intermediate languages. As a result,
+the translation of gradual type systems to \kafka provides insight as to how
+they might be implemented in a practical language.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
@@ -1761,10 +1762,13 @@ users define their own cast semantics. The goal would be to have a
 collection of user defined pluggable casts within a single framework.
 
 \subsection*{Acknowledgments} The author thank the reviewers of {\sc ecoop},
-{\sc popl},
-{\sc esop}, and again {\sc ecoop} for thoughtful comments that gradually improved this
-paper. We are grateful to Benjamin Greenman and Matthias Felleisen for their
-feedback.  This work was funded ... nsf gradual... erc...  onr... darwin...
+{\sc popl}, {\sc esop}, and again {\sc ecoop} for thoughtful comments that
+gradually improved this paper. We are grateful to Benjamin Greenman and
+Matthias Felleisen for their feedback.  This work funding from the European
+Research Council (ERC) under the European Union’s Horizon 2020 research and
+innovation programme (grant agreement 695412), the NSF (award 1544542) and
+ONR (award 503353).
+
 
 \bibliographystyle{plainurl}
 \bibliography{../../bib/jv,../../bib/all}
