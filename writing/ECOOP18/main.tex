@@ -1048,7 +1048,7 @@ cases to consider, either the type to enforce is a class \Cp, or it is \any.
 \vspace{-2mm}
 
 \hrulefill
-\caption{Behavioral casts semantics.}\label{behavetext}
+\caption{Behavioral cast semantics.}\label{behavetext}
 \end{figure}
 
 \newcommand{\W}{\xt{W}\xspace}
@@ -1767,6 +1767,37 @@ effect, if an optional typed {\xt E} were passed where a behavioral typed
 {\xt E} was expected, then a wrapper, implementing the fully typed {\xt E},
 would be generated on top of the untyped, optional typed {\xt E}, ensuring
 type safety.
+
+To examine the operation of the behavioral cast in more detail,
+figure~\ref{fig:behex}  depicts the wrapper generated at the cast from \C to
+\any and the wrapper going from (\C as \any) to \E.  The first wrapper is
+produced in the call to \xt{n}, while the second is produced when \xt{n} calls
+\xt{n}, shown in figure~\ref{fig:l3trans} and figure~\ref{litmustest}. We name
+wrapper classes as $\t\Rightarrow\tp$ (right-associative), indicating a
+wrapper over an instance of $\t$ enforcing type $\tp$. This does not have
+semantic meaning---the formal system merely specifies a fresh identifier---but 
+is used to indicate the purpose of the wrapper.
+
+\begin{figure}[h!]
+\begin{align*}
+\Class{\wraps\C\any}{&\that : \C}{\\&\Mdef{\xt{a}}\x\any\any{\BehCast\any{\KCall{\this.\that}{\xt{a}}{\BehCast\C\x}\C\C}}} \\
+\Class{\wraps{\wraps\C\any}\E}{&\that : \wraps\C\any}{\\&\Mdef{\xt{a}}\x\D\D{\BehCast\D{\KCall{\this.\that}{\xt{a}}{\BehCast\any\x}\any\any}}}
+\end{align*}
+\caption{Litmus Test 3: Behavioral wrappers.}
+\label{fig:behex}
+\end{figure}
+
+The first wrapper ($\wraps\C\any$) takes an instance of \C and makes it safe
+against use as \any. In the behavioral semantics, no typed invocations can be
+made on a value that was cast to \any (and not cast to some type somewhere); only
+untyped invocations are allowed. As a result, the wrapper need only generate an
+untyped version of \C's method \xt{a}, which calls the underlying \C instance's
+\xt{a} (while adding suitable casts). 
+
+The second ($\wraps{\wraps\C\any}\E$) takes the \C-to-\any wrapper described
+above and casts it back to a type, this time \E. This wrapper takes the untyped
+implementation of \xt{a} and wraps it again, calling it with an argument cast
+to \any and casting the return to \D.   
 
 \section{Conclusion}\label{litm}
 
