@@ -1218,7 +1218,7 @@ return type.  Without a cast, this operation is unsafe.
 \subsection{Class Translation}
 
 The translations for source level classes are shown in
-\figref{fig:traclass}. Each class in the surface language is translate to a
+\figref{fig:traclass}. Each class in the surface language translates to a
 homonymous \kafka class. Grey background denotes generated code.
 
 \begin{figure}[!h]  {\small  \hrulefill\\
@@ -1275,43 +1275,35 @@ homonymous \kafka class. Grey background denotes generated code.
  \caption{Translations for classes.}     \label{fig:traclass}    
 \end{figure}
 
-\vspace{2mm}\noindent {\bf Optional.~} The optional semantics provides no
-guarantees about the correctness.  Retaining the surface type annotations
-through translation would not preserve this semantics, so we erase them.
-The resulting class has all fields as well all method arguments and return
+\vspace{2mm}\noindent {\bf Optional.~} The optional approach provides no
+correctness guarantees.  Retaining the surface type annotations through
+translation would not preserve this semantics, so we erase them.  The
+resulting class has all fields as well all method arguments and return
 values typed as \any.
 
-\vspace{2mm}\noindent {\bf Transient.~} The transient semantics guarantees
-methods are present, but does not ensure their types. Under the transient
-semantics, typed function invocations themselves will succeed, but type
-assertions in the caller or callee may fail immediately afterward. Field
-values are checked at dereference time, so all assignments always succeed
-but dereferences may fail.
+\vspace{2mm}\noindent {\bf Transient.~} The transient approach guarantees
+the presence of methods, but not their signature. Since fields are not part
+of types, they will not be checked. The translation sets them all to \any.
+Methods are translated to accept \any and return \any.  For a method \m that
+accepted a value \x of type \t in the surface language, the translation will
+first check that \x is of type by the means of subtype cast. The subtype
+cast operates on the translated type \t. The one where all argument and
+return types are \any.\footnote{We abuse the notation \EM{\e ; \ep } to
+  denote sequence, this could be encoded in the calculus, but explicit
+  sequence is easier to read.}
 
-The transient encoding in \kafka is similar to the optional one. We erase all
-argument and return types on methods as well as types on fields. This then
-causes the translated \kafka types to have the same semantic meaning (under
-structural typing) as the source transient types.
+\vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach guarantees
+soundness by wrapping values that cross type-untyped boundaries.  Methods
+are presevered by the translation but bodies are translated.
 
-\vspace{2mm}\noindent
-{\bf Behavioral.~} The behavioral semantics guarantees existence of methods as
-well as types of both methods and fields. Untyped values can be used from
-typed code thanks to wrappers that guarantee return types, while typed values
-are protected from untyped arguments by similar wrappers. Because values will
-always be well-typed with this guarantee, the translation leaves types
-untouched.
+\vspace{2mm}\noindent {\bf Concrete.~} The concrete approach ensures that
+variables of non-\any types refer to subtype of the given type. Each method
+appearing in the original class is retained as such with its body
+translated.  Moreover, to all typed method to be called from an untyped
+context, the translation generates untyped methods, that perform subtype
+casts of their argument to the expected type and re-dispatch to the
+corresponding typed method.
 
-\vspace{2mm}\noindent
-{\bf Concrete.~} The concrete soundness guarantee requires that values
-inhabiting a variable of type \t must be a subtype of \t, ensuring that all
-methods exist under their correct types. However, these typed methods cannot
-be safely called from an untyped context, which would dramatically reduce the
-utility of a concrete gradual type system.
-
-To retain the ability to call typed code from an untyped caller, we introduce
-untyped guard methods that protect their typed counterparts. We use dispatch
-(discussed in section 4) to determine if the untyped guard or the typed
-original should be called.
 
 \subsection{Expression Translation} Mechanically, expression translation
 produces well-typed \kafka terms from source language terms. With rewritten
