@@ -1305,284 +1305,255 @@ casts of their argument to the expected type and re-dispatch to the
 corresponding typed method.
 
 
-\subsection{Expression Translation} Mechanically, expression translation
-produces well-typed \kafka terms from source language terms. With rewritten
-types, expression translation enforces the dynamic guarantees of the source
-semantics.
+\subsection{Expression Translation} 
 
-To accommodate differences between the gradual typing semantics, we use  two
+To accommodate differences between the gradual typing semantics, we use two
 different translation schemes. The first is a type-ambivalent one, used for
 the optional semantics, while the second is type-aware, used for the three
 sound semantics.
 
-\begin{itemize}
-  \item We use the notation $\TR[\OTS]\e$ for translating source level terms to \kafka
-  according to the optional semantics. This translation form takes an expression \e and
-  produces a \kafka term without taking into account its statically known type.
+The notation $\TR[\OTS]\e$ denotes optional translation, where \e is the
+target expression, and the result is a \kafka term.  The type-aware
+translation has two forms, $\TRG[\SOMS]\e\Env$ and $\TAG[\SOMS]\e\Env\t$,
+inspired by work on bidirectional type checking~\cite{pierce:1998:local}.
+The differentiation of the two translation forms arises from the need to
+insert casts only where required.  The first form, $\TRG[\SOMS]\e\Env$, is
+analogous to the synthetic case in bidirectional type checking.  It is used
+for expressions \e without any specific required type against environment
+$\Env$.  The second form, $\TAG[\SOMS]\e\Env\t$, is used when $\e$ must have
+type $\t$ against $\Env$.  Analogous to the analytic case of bidirectional
+type checking, this form applies when some enclosing expression has an
+expectation of the type of $\e$. For example, it is used in translation of
+method arguments, which must conform to the types of the arguments to the
+method. We refer to this case as assert translation, for it is asserting the
+type \t of the translation result.
 
-  \item The type-aware translation has two forms, $\TRG[\SOMS]\e\Env$ and
-  $\TAG[\SOMS]\e\Env\t$, inspired by prior work on bidirectional type
-  checking~\cite{pierce:1998:local}. 
+The assertive translation of \figref{fig:trtype} is responsible for
+producing well-typed terms by adding casts into expressions where static
+types differ.  The rules have a close correspondence with the convertiblity
+relation of the surface syntax. Every type-driven translation has two
+cases. The first case is used when the required type happens to be a
+supertype of the expression's actual type, and in this case no further
+action is required. The second case handles typed-untyped boundaries, when
+converting to or from \any, and therefore dynamic behavior that depends on
+the approach.  The concrete and transient semantics rely on a direct mapping
+of their source type soundness principle into \kafka and therefore use the
+subtype cast operator for dynamic type checks. The behavioral semantics uses
+a different notion of barrier crossing, however, so it instead inserts
+behavioral casts at boundaries between typed and untyped code.
+For transient the inserted cast is a subtype cast, but recall that in the
+translation all argument and return types have been erased, thus this cast
+really only checks the presence of method names. For behabioral, a
+behavioral cast is inserted. For concrete, a propert subtype cast is
+performed.
 
-  \begin{itemize}
-    \item The first form, $\TRG[\SOMS]\e\Env$, is analogous to the synthetic case of bidirectional type checking.
-    It is used for expressions \e without any specific required type against environment $\Env$.
-    \item The second form, $\TAG[\SOMS]\e\Env\t$, is used when $\e$ must have type $\t$ against $\Env$.
-    Analogous to the analytic case of bidirectional type checking, this form applies when some enclosing
-    expression has an expectation of the type of $\e$. For example, it is used in translation of method
-    arguments, which must conform to the types of the arguments to the method. We refer to this case
-    as assert translation, for it is asserting the type \t of the translation result.
-  \end{itemize}
+\begin{figure}[!h]\small  \hrulefill\\
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 
-  The differentiation of the two translation forms arises from the need to insert casts
-  only where required. All of the sound gradual type systems insert some kind of
-  check when typed code interacts with untyped code, requiring a type-aware translation
-  relation.
-\end{itemize}
+\\[-2mm]
 
-The assert translation is responsible for producing well-typed \kafka
-terms from source language terms. It adds casts into expressions where static
-types differ, enforcing the required type dynamically. As a result, it is key
-to encoding the source level soundness guarantee in \kafka.
-
-\begin{figure}[!h]\small
-  \hrulefill\\
-  \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-    { \bf{Transient}} \\
-    \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
+{\bf Transient:}\\[2mm]
+\HS \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
     & \TypeCk{\K,\Env}\e\tp
     & \EM{\K\vdash\tp\Sub\t}
     & \ep = \TRG[\TTS]\e\Env \\
-    \TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
+\HS\TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
     & \TypeCk{\K,\Env}\e\tp 
     & \EM{\K\vdash \tp \not \Sub \t}
-    & \EM{\ep = \TRG[\TTS]\e\Env} \\
-    { \bf{Behavioral}} \\ 
-    \TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
+    & \EM{\ep = \TRG[\TTS]\e\Env} \\[2mm]
+{\bf Behavioral:} \\ [2mm]
+ \HS\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
     & \TypeCk{\K,\Env}\e\tp
     & \EM{\K\vdash \tp \Sub \t}
     & \ep = \TRG[\BTS]\e\Env\\
-    \TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
+\HS\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
     & \TypeCk{\K,\Env}\e\tp \HS 
     & \EM{\K\vdash \tp \not \Sub \t}
-    & \ep = \TRG[\BTS]\e\Env \\
-    {\bf{ Concrete}} \\
-    \TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
+    & \ep = \TRG[\BTS]\e\Env \\[2mm]
+{\bf Concrete:} \\[2mm]
+\HS\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
     & \TypeCk{\K,\Env}\e\tp 
     & \EM{\K\vdash\tp \Sub \t} 
     & \ep = \TRG[\CTS]\e\Env\\
-    \TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
+\HS\TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
     & \TypeCk{\K,\Env}\e\tp 
     & \EM{\K\vdash\tp \not\Sub \t}
     & \EM{\ep = \TRG[\CTS]\e\Env} 
-  \end{tabular}\vspace{2mm}
-  \\\hrule\vspace{3mm}
-\caption{Assert translation.}\label{fig:trtype}
+\end{tabular}\vspace{2mm}
+\\\hrule\vspace{3mm}
+\caption{Assertive translation.}\label{fig:trtype}
 \end{figure}
 
-The convertibility and assert translations, shown in \figref{fig:trtype}, have
-a close correspondence. Every type-driven translation has two rules. The first
-rule handles the case of \RuleRef{SUB}, when the required type happens to
-be a supertype of the expression's actual type, and in this case no further
-action is required of the translation. The second case shows the behavior when
-\RuleRef{TOA} or \RuleRef {ANYC} were needed to conclude the
-source level typing judgment. In these cases, we are converting to or from
-\any, and therefore dynamic behavior that depends on the soundness guarantee
-is required.
+The translation of field access appears in \figref{fig:travar}.  The
+optional translation only inserts a cast to \any in front of uses of the
+\this reference, as a technicality required for statically typing terms. The
+transient translation adds casts to the expected type of variable and
+fields. Again, these casts only check the presence of fields.  The
+behavioral translation and the concrete translation leave access intact.
 
-In this second case, the encoding of surface level types into \kafka becomes
-paramount. The concrete and transient semantics rely on a direct mapping of
-their source type soundness principle into \kafka and therefore use the
-subtype cast operator for dynamic type checks. The behavioral semantics uses
-a different notion of barrier crossing, however, so it instead inserts
-behavioral casts at  boundaries between typed and untyped code.
 
+\begin{figure}[!h]\small\hrulefill\\
+\begin{tabular}{@{}l@{\HS}l}
+\\[-2mm]
+
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+
+{ \bf Optional:} \\[2mm]
+\HS\TR[\OTS]\x & = \src \x \\
+\HS\TR[\OTS]\this & = \src{\SubCast\any\this} \\
+\HS\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
+\\
+\end{tabular}
+&
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+{ \bf Transient:}\\[2mm]
+\HS\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
+\HS\TRG[\TTS]\this\Env & = \src\this \\
+\HS\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C \HS \Ftype\f\t\In\App\K\C \\
+\end{tabular}
+\\
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
+{ \bf Behavioral:} \\[2mm]
+\HS\TRG[\BTS]\x\Env &= \src{\x} \\
+\HS\TRG[\BTS]\this\Env &= \src{\this} \\
+\HS\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f}
+\end{tabular}
+&
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
+{\bf Concrete:}\\[2mm]
+\HS\TRG[\CTS]{\x}\Env & = \src \x \\
+\HS\TRG[\CTS]\this\Env &= \src{\this} \\
+\HS\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}
+\HS\end{tabular}
+\end{tabular}\\
+
+\hrulefill
+\caption{Translations variables and field access.}\label{fig:travar}
+\end{figure}
+
+
+The translation for assignment is shown in \figref{fig:trassn}.  All of the
+semantics translate the value directly, only differing in the expected
+type. The behavioral and concrete semantics require that the result has the
+statically known type, the transient semantics expects \any, and the
+optional semantics imposes no type requirement whatsoever.
 
 \begin{figure}[!h]\small
 \hrulefill\\
-	\begin{tabular}{l@{\HS}l}
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{ \bf{Optional}} \\
-		\TR[\OTS]\x & = \src \x \\
-		\TR[\OTS]\this & = \src{\SubCast\any\this} \\
-		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
-    \\
-	\end{tabular}
-	&
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{ \bf{Transient}} \\
-		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
-		\TRG[\TTS]\this\Env & = \src\this \\
-		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \\
-                             &                              &        & \Ftype\f\t\In\App\K\C \\
-	\end{tabular}
-	\\ \\
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
-		{ \bf{Behavioral}} \\ 
-		\TRG[\BTS]\x\Env &= \src{\x} \\
-		\TRG[\BTS]\this\Env &= \src{\this} \\
-		\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
-	\end{tabular}
-	&
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
-		{\bf{Concrete}} \\
-		\TRG[\CTS]{\x}\Env & = \src \x \\
-		\TRG[\CTS]\this\Env &= \src{\this} \\
-		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
-	\end{tabular}
-	\end{tabular}\\
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+\\
+
+{\bf Optional:}\\[2mm]
+\HS\TR[\OTS]{\FWrite\f\e} 
+        & = \src{\FWrite\f\ep} &\WHERE&\ep=\TR[\OTS]\e\\[2mm]
+{\bf Transient:}\\[2mm]
+\HS\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
+        & \TypeCk{\K,\Env}\this\C
+        & \Ftype\f\t\In\App\K\C 
+	& \ep = \TAG[\TTS]\e\Env\any\\[2mm]
+{\bf Behavioral:}\\ [2mm]
+\HS\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
+	& \TypeCk{\K,\Env}{\this}\C
+	& \Ftype\f\t\In\App\K\C 
+	& \ep = \TAG[\BTS]\e\Env\t\\[2mm]
+{\bf Concrete:}\\[2mm]
+\HS\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
+	& \TypeCk{\K, \Env}\this\C
+	& \Ftype\f\t\In\App\K\C
+	& \ep = \TAG[\CTS]\e\Env{\t} 
+\end{tabular}\\
 
 \hrulefill
-\caption{Translations for variables and field access.}\label{fig:travar}
+\caption{Translations for assignment.}\label{fig:trassn}
 \end{figure}
 
-The implications of class translation cause knock-on effects throughout
-the rest of the translation system, even for seemingly trivial expressions.
-This is shown in \figref{fig:travar}, which illustrates the translation for
-field access. Strong gradual type guarantees, such as those provided by
-the behavioral and concrete semantics, allow these simple forms to be
-translated verbatim, but under weaker guarantees, additional checks must
-be inserted.
-
-Under the transient semantics, we have to treat both variable references and
-field access differently. Argument types are not guaranteed by the caller, so
-variable translation inserts a cast to the statically known type of the
-variable. Likewise, under the transient semantics, the type of field values is
-not guaranteed, so field dereferences must be cast as well.
-
-This last property of the transient semantics creates an unusual behavior.
-When an ill-typed value is inserted by untyped code into a  typed data
-structure, then the error will occur at dereference rather than assignment.
-Even in the presence of a blame system, this error could be problematic, as
-it would go unnoticed if the value was never accessed.
-
-The optional semantics provides the weakest guarantee. Here, we have the
-unusual problem that direct translation would have \emph{too many} known
-types, as the \this reference's type is always known. To allow the use of
-dynamic invocation on the \this reference, we therefore cast \this to \any.
+The translation for object creation, shown in \figref{fig:tranew}, follows
+the same reasoning. It translates each argument to be the required type
+according to class translation, ensuring the respective soundness guarantee.
 
 \begin{figure}[!h]\small
 \hrulefill\\
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{ \bf{Optional}} \\
-		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
-		{ \bf{Transient}} \\
-		\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
-		& \TypeCk{\K,\Env}\this\C
-		& \Ftype\f\t\In\App\K\C 
-		& \ep = \TAG[\TTS]\e\Env\any\\
-		{ \bf{Behavioral}} \\ 
-		\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
-		& \TypeCk{\K,\Env}{\this}\C
-		& \Ftype\f\t\In\App\K\C 
-		& \ep = \TAG[\BTS]\e\Env\t\\
-		{ \bf{Concrete}} \\
-		\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
-		& \TypeCk{\K, \Env}\this\C
-		& \Ftype\f\t\In\App\K\C
-		& \ep = \TAG[\CTS]\e\Env{\t} \\
-	\end{tabular}\\
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+\\
+{\bf Optional:}\\[2mm]
+\HS\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
+	& \ep[1] = \TR[\OTS]{\e[1]} .. \\[2mm]
+{\bf Transient:}\\[2mm]
+\HS\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
+	& \Ftype{\f[1]}{\t[1]}\In\App\K\C
+	& \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\[2mm]
+{\bf Behavioral:}\\ [2mm]
+\HS\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
+	& \Ftype{\f[1]}{\t[1]}\In\App\K\C
+	& \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
+{\bf Concrete:} \\[2mm]
+\HS\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
+	& \Ftype{\f[1]}{\t[1]}\In\App\K\C
+	& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
+\end{tabular}\\
 
 \hrulefill
-	
-\caption{Translations for field assignment.}\label{fig:trassn}
-\end{figure}
-
-The translation for field assignment, shown in \figref{fig:trassn}, is
-straightforward. All of the semantics translate the value directly, only
-differing in the expected type. The behavioral and concrete semantics require
-that the result has the statically known type, the transient semantics expects
-\any, and the optional semantics imposes no type requirement whatsoever.
-
-\begin{figure}[!h]\small
-\hrulefill\\
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{ \bf{Optional}} \\
-		\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
-		& \ep[1] = \TR[\OTS]{\e[1]} .. \\
-		{ \bf{Transient}} \\
-		\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
-		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
-		& \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\
-		{ \bf{Behavioral}} \\ 
-		\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
-		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
-		& \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
-		{ \bf{Concrete}} \\
-		\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
-		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
-		& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
-	\end{tabular}\\
-
-\hrulefill
-	
 \caption{Translations for object creation.}\label{fig:tranew}
 \end{figure}
 
-The translation for object creation, shown in \figref{fig:tranew}, follows the
-same reasoning, as it is satisfying the same field types. It translates each
-argument to be the required type according to class translation, ensuring the
-respective soundness guarantee.
+The translations for invocation are shown in \figref{fig:trafuninv}. At
+invocation sites, a method of the right name must be known to exist with the
+correct argument and return types.  In the concrete and behavioral semantics
+source typing is retained, so the arguments must be of the statically known
+type. However, in the transient semantics, the argument type is ignored, so
+the argument to a statically typed method call is only required to be of
+type \any. If any of the systems, if the type of the receiver is \any, 
+dynamic invocation is used.
 
 \begin{figure}[!h]\small
 \hrulefill\\
 \\
-	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-    { \bf{Optional}} \\
-    \TR[\OTS]{\Call{\e[1]}\m{\e[2]}} & = \src{\DynCall{\ep[1]}\m{\ep[2]}} &\WHERE 
-    & \ep[1] = \TR[\OTS]{\e[1]} & \ep[2] = \TR[\OTS]{\e[2]} \\
-		{ \bf{Transient}} \\
-		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
-		& \TypeCk{\K,\Env}{\e[1]}\any 
-		& \ep[1] = \TRG[\TTS]{\e[1]}\Env
-		& \ep[2] = \TAG[\TTS]{\e[2]}\Env\any \\ 
-		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = 
-		& \WHERE
-		& \TypeCk{\K,\Env}{\e[1]}\C  
-		& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\any} \\
-		\multicolumn{2}{l}{\HS\HS\HS\HS\HS\HS\HS\HS\HS
-    \src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\ep[2]}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-		{ \bf{Behavioral}} \\ 
-		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
-		&  \TypeCk{\K,\Env}{\e[1]}\any
-		&  \ep[1] = \TRG[\BTS]{\e[1]}\Env
-		&  \ep[2] = \TAG[\BTS]{\e[2]}\Env\any
-		\\
-		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}} & \WHERE 
-		& \TypeCk{\K,\Env}{\e[1]}\C 
-		& \ep[1] = \TRG[\BTS]{\e[1]}\Env
-		& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
-		& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-		{ \bf{Concrete}} \\
-		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE &
-		\TypeCk{\K,\Env}{\e[1]}\any &  \ep[1]= \TRG[\CTS]{\e[1]}\Env & \ep[2] = \TAG[\CTS]{\e[2]}\Env\any\\
-		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
-		& \WHERE & \TypeCk{\K,\Env}{\e[1]}\C &  \ep[1] = \TRG[\CTS]{\e[1]}\Env &   \ep[2] = \TAG[\CTS]{\e[2]}\Env{\D[1]} \\ 
-		& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
-	\end{tabular}\vspace{2mm}\\
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+{\bf Optional:}\\[2mm]
+\HS\TR[\OTS]{\Call{\e[1]}\m{\e[2]}} &= \src{\DynCall{\ep[1]}\m{\ep[2]}} &\WHERE 
+    & \ep[1] = \TR[\OTS]{\e[1]} & \ep[2] = \TR[\OTS]{\e[2]} \\[2mm]
+{\bf Transient:} \\[2mm]
+\HS\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env 
+        & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
+	& \TypeCk{\K,\Env}{\e[1]}\any 
+	& \ep[1] = \TRG[\TTS]{\e[1]}\Env
+	& \ep[2] = \TAG[\TTS]{\e[2]}\Env\any \\ 
+\HS\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env 
+        & = \src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
+	& \WHERE
+	& \TypeCk{\K,\Env}{\e[1]}\C  
+	& \ep[1] = \TRG[\TTS]{\e[1]}\Env  
+        & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\any} \\
+        & & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\[2mm]
+{\bf Behavioral:}\\[2mm]
+\HS\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env 
+        & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
+	&  \TypeCk{\K,\Env}{\e[1]}\any
+	&  \ep[1] = \TRG[\BTS]{\e[1]}\Env
+	&  \ep[2] = \TAG[\BTS]{\e[2]}\Env\any
+\\
+\HS\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}} & \WHERE 
+	& \TypeCk{\K,\Env}{\e[1]}\C 
+	& \ep[1] = \TRG[\BTS]{\e[1]}\Env
+	& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
+	& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\[2mm]
+{\bf Concrete:}\\[2mm]
+\HS\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env 
+        & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE 
+        &  \TypeCk{\K,\Env}{\e[1]}\any 
+        &  \ep[1]= \TRG[\CTS]{\e[1]}\Env 
+        & \ep[2] = \TAG[\CTS]{\e[2]}\Env\any\\
+\HS\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env 
+        & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
+	& \WHERE & \TypeCk{\K,\Env}{\e[1]}\C 
+        &  \ep[1] = \TRG[\CTS]{\e[1]}\Env 
+        &   \ep[2] = \TAG[\CTS]{\e[2]}\Env{\D[1]} \\ 
+	& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
+\end{tabular}\vspace{2mm}\\
 \hrule\vspace{4mm}
 	
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
-
-In the object oriented context, a type system being sound means no "message
-not understood" errors are produced, lending great importance to the
-handling of method invocation. Because \kafka's type system is sound in the
-traditional sense, it follows that any typed invocation in \kafka will
-always find an implementation. The guarantees provided by each gradual type
-system are then shown through the result of their translation, as the \kafka
-type encapsulates the source language gradual typing guarantee.
-
-
-The translations for invocation are shown in \figref{fig:trafuninv}. At
-invocation sites, to avoid ``method not understood'' errors, a method of the
-right name must be known to exist with the correct argument and return types.
-In the concrete and behavioral semantics source typing is retained, so the
-arguments must be of the statically known type. However, in the transient
-semantics, the argument type is ignored, so the argument to a statically typed
-method call is only required to be of type \any. If any of the systems cannot
-establish the type of the receiver, then the untyped (unsound) invocation is
-used.
 
 \subsection{Litmus Test Translation}
 
@@ -1596,44 +1567,46 @@ test program.
 
 \begin{figure}[!h]\small
 \hrulefill\\
-  \begin{tabular}{l}
-    {\bf{Source}} \\
+\\
+\begin{tabular}{l}
+{\bf Source:} \\[2mm]
 \(
 \begin{array}{l@{\,}l}
-\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
-                &\Mdef\n\x\any\any{\Call\this\m\x}} \\
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \HS\HS
+    \Mdef\n\x\any\any{\Call\this\m\x}} \\
+\end{array}
+\) \\[2mm]
+{\bf Optional:}\\[2mm]
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x{\any}{\any}\x  \HS\HS
+    \Mdef\n\x\any\any{\DynCall{(\SubCast\any\this)}\m\x}} 
+\end{array}
+\) \\[2mm]
+{\bf Transient:}\\[2mm]
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{
+   &\Mdef\m\x\any\any{\SubCast{\xt E}{\x}; ~ \SubCast{\any}{\x} } 
+    \HS\HS \Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
+   \SubCast{\any}{\SubCast{\xt E}{\KCall\this\m{\SubCast\any{\SubCast\any\x}}\any\any}}}} 
+\end{array}
+\)\\[2mm]
+{\bf Behavioral:} \\[2mm]
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \HS\HS
+      \Mdef\n\x\any\any{\BehCast\any{\KCall\this\m{\BehCast{\xt E}\x}{\xt E}{\xt E}}}} 
+\end{array}
+\) \\[2mm]
+{\bf Concrete:} \\[2mm]
+\(
+\begin{array}{l@{\,}l}
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x  \HS\HS
+       \Mdef\n\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\xt E}\x}{\xt E}{\xt E}}}} 
 \end{array}
 \) \\
-    {\bf{Optional}} \\ 
-\(
-\begin{array}{l@{\,}l}
-\Class{\xt F}{}{&\Mdef\m\x{\any}{\any}\x \\
-                &\Mdef\n\x\any\any{\DynCall{(\SubCast\any\this)}\m\x}} \\
-\end{array}
-\) \\
-    {\bf{Transient}} \\
-\(
-\begin{array}{l@{\,}l}
-\Class{\xt F}{}{&\Mdef\m\x\any\any{\SubCast{\xt E}{\x}; ~ \SubCast{\any}{\x} } \\
-                &\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce 
-                \SubCast{\any}{\SubCast{\xt E}{\KCall\this\m{\SubCast\any{\SubCast\any\x}}\any\any}}}} \\
-\end{array}
-\)\\
-    {\bf{Behavioral}} \\
-\(
-\begin{array}{l@{\,}l}
-\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
-                &\Mdef\n\x\any\any{\BehCast\any{\KCall\this\m{\BehCast{\xt E}\x}{\xt E}{\xt E}}}} \\
-\end{array}
-\) \\
-    {\bf{Concrete}} \\
-\(
-\begin{array}{l@{\,}l}
-\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
-                &\Mdef\n\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\xt E}\x}{\xt E}{\xt E}}}} \\
-\end{array}
-\) \\
-  \end{tabular}\vspace{2mm}\\
+\end{tabular}\vspace{2mm}\\
 \hrule\vspace{4mm}
 
  \caption{Class translation for litmus test program 3.} \label{fig:l3trans}
