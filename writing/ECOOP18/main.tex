@@ -1667,13 +1667,13 @@ value that behaves like an \E.
 
 To examine the operation of the behavioral cast in more detail,
 figure~\ref{fig:behex} depicts the wrapper classes generated at the cast from
-\C to \any and from it to \E.  The first class takes an instance of
+\C to \any and from it to \E.  Class \C_1 takes an instance of
 \C and makes it safe against use as \any. In behavioral, no
 typed invocations can be made on a value that was cast to \any (and not cast
 to some type somewhere); only untyped invocations are allowed. As a result,
 the wrapper need only generate an untyped version of \C's method \a, which
 calls the underlying \C instance's \a (adding suitable casts).  The second
-wrapper class takes the $\C_1$ wrapper and casts it back to \E. This wrapper
+wrapper class $\C_2$ takes the $\C_1$ wrapper and casts it back to \E. This wrapper
 takes the untyped implementation of \a and wraps it again, calling it with
 an argument cast to \any and casting the return to \D.
 
@@ -1693,10 +1693,10 @@ an argument cast to \any and casting the return to \D.
 
 \subsection{Discussion}
 
-These translation explicit the semantics of the various approaches.  The
-programs can get stuck at dynamic invocation and casts. Inspecting where
-these are inserted in the various translations gives a precise account of
-what constitutes an error in each gradual type system.
+These translations make explicit the semantics of the various approaches.  The
+programs can get stuck at dynamic invocation and casts. Inspecting where these
+are inserted in the various translations gives a precise account of what
+constitutes an error in each gradual type system.
 
 Our account of the behavioral approach matches its implementation in Typed
 Racket. But one could imagine a slightly less restrictive implementation,
