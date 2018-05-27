@@ -1075,12 +1075,12 @@ If the target type is \any, the wrapper class is simpler. It need to check
 that the argument type matches the type expected by the wrapped object. This
 is done by a behavioral cast. Return values are behaviorally cast to \any.
 
+For example, consider the following program which has two classes \C ad \D.
+Even though \C and \D both have method \a, they are not subtypes because the
+argument of \a are not related.
 
-
-For example, consider the following:
-
-\begin{tabbing}
-\hspace{1cm}\K\HS
+\begin{tabbing}\small
+\hspace{1cm}
 \Call{(\BehCast\C{(\BehCast\D{\New\C{}})})}{\xt{b}}{2} \HS\HS\HS\WHERE\HS
   \K\HS =\HS \= \class\= \C \{\\
        \> \HS \Mdef{\xt{a}}\x\any\any{\HS\x\HS}\\
@@ -1091,15 +1091,13 @@ For example, consider the following:
        \> \}
 \end{tabbing}
 
-In this example, we start with an instance of \C, cast it to \D, which only
-has one of \C's two methods, then cast it back. One interpretation would be
-to generate a wrapper at the first cast that does not include \xt{b}, as it
-is not required to implement \D, but then this would cause the second cast
-to fail.  As a result, if there is some \m that is not specified in \mdp[1],
-the typed W implementation will simply pass calls to it through the
-wrapper. This is still safe, as the wrapper's pass-through method for \m has
-the same types as the original \m, and allows the above example to succeed.
-
+\noindent
+The program start with an instance of \C, cast it to \D, then cast it back
+to \C. The reason we generate pass-through methods, for instance, the 
+wrapper that enforce type \D has a method \xt{b}, is that if we did not
+generate them, some methods would be ``lost''. In this example, when
+we cast the object back to \C, it is necessary to be able to invoke
+method \xt{b}.
 
 \subsection{Type soundness}
 
@@ -1198,115 +1196,104 @@ object-oriented language.
     Es war kein Traum''}
 
 \vspace{-2mm}
-\noindent The four gradual type semantics are now ready to be translated into
-\kafka. Each semantics is translated into \kafka through a function mapping
-well-typed source programs into well-typed \kafka terms. The translation
-function explicitly determines which type casts (and, in turn, \emph{dynamic
-type-checks}) are implicitly inserted and performed by the runtime of each
-semantics.
+\noindent The four gradual type semantics are now ready to be translated
+into \kafka. Each semantics is translated through a function mapping
+well-typed surface programs into well-typed \kafka terms. The translation
+explicitly determines which type casts need to be inserted.  The surface
+languages have no explicit casts, instead they coerce types at typed-untyped
+boundaries. A type driven translation will insert the needed casts. 
 
-Cast insertion is the key to translation according to the gradual typing
-semantics. The source languages have no explicit casts, instead silently
-coercing types at typed-untyped boundaries. These boundaries would not
-normally have any special evaluation semantics, so a type driven translation
-is needed to insert casts that add semantic meaning. For example, consider the
-following small program:
+Consider the following example where method \m takes an argument of type
+\any and returns it under type \C.  If \m is passed a \D (which has no
+subtype relation with \C), the returned value will not match the declared
+return type.  Without a cast, this operation is unsafe.
 
-\begin{tabbing}
-\hspace{1cm}\K\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
-  \K\HS =\HS \= \class\= \C \{\\
-       \> \HS \Mdef\m\x\any\C{\HS\x\HS}\\
-       \> \}  \\
+\begin{tabbing}\small
+\hspace{1cm}\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
+  \K\HS =\HS \= \class\= \C \{~ \Mdef\m\x\any\C{\HS\x\HS} ~ \}  \\
        \>\class \D \{ \}
 \end{tabbing}         
 
-\noindent The method \m takes an argument of type \any and returns the same
-value under type \C. Without a cast, this operation is unsafe. If \m is passed
-a \D (which has no subtype relation with \C), the returned value will not
-match the declared return type. The source language allows this, deferring to
-the translation to provide the necessary safety guarantee. 
 
+\subsection{Class Translation}
 
-\subsection{Translations}
+The translations for source level classes are shown in
+\figref{fig:traclass}. Each class in the surface language is translate to a
+homonymous \kafka class. Grey background denotes generated code.
 
-The typed-untyped boundary crossings that are key to gradual typing are not
-visible to the dynamic semantics. To enforce guarantees at these boundaries,
-translations insert casts and edit type annotations to ensure correctness. In
-our system, this operation can be described as encoding the source-level
-soundness guarantee in the \kafka type system.
-
-Each translation establishes a source level soundness guarantee, encoded in
-\kafka's expressions and classes. The property to be guaranteed arises from
-the \kafka version of source classes, and the source level soundness principle
-is checked using \kafka casts inserted at boundary crossings.
-
-The source level soundness principal determines what runtime values may
-inhabit a given runtime type. Similarly, the \kafka soundness theorem governs
-what values may inhabit variables in the translation result. We rewrite the 
-source level types while translating to \kafka to represent the source level
-soundness guarantee using the \kafka soundness theorem, providing a unified 
-framework for comparison of soundness guarantees. The translations for 
-source level classes are shown in \figref{fig:traclass}.
-
-\begin{figure}[!h]  \small
-  \hrulefill\\
-  \begin{tabular}{llc@{\hspace{.25cm}}l}    
+\begin{figure}[!h]  {\small  \hrulefill\\
+\begin{tabular}{llc@{\hspace{.25cm}}l}    
         
-    {\scriptsize \bf{Optional}} \\    
-    \TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\     
-    & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t .. \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \ep = \TR[\OTS]{\e} \\   
+\\
+
+{\bf Optional:} \\[2mm]
+
+\HS\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }}
+   & = \src{\Class\C{\fdp[1]..}{\mdp[1]..}}\\     
+   & \WHERE\HS\HS\HS \fdp[1] = \src{\Ftype\f\any}..\HS\HS \fd[1] = \Ftype\f\t..\\
+   & \HS\HS\HS\HS\HS\HS\HS\HS\HS  \mdp[1] = \src{\Mdef\m\x\any\any\ep}..\\   
+   & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \HS\HS
+                                 \ep=\;\TR[\OTS]{\e}\\   
         
-    {\scriptsize \bf{Transient}} \\   
-    \TR[\TTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } } \\   
+\\[-2mm]
+
+{\bf Transient:} \\[2mm]   
+\HS\TR[\TTS]{\Class\C{\fd[1]..}{\md[1]..}}
+    & = \src{\Class\C{\fdp[1]..}{\mdp[1]..}}\\   
     & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any} .. \HS    
     \fd[1] = \Ftype\f\t ..\HS\HS \\   
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\any~ .. \\        
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. 
+   \HS \HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\any~ .. \\        
         
-    {\scriptsize \bf{Behavioral}} \\    
-    \TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\    
+\\[-2mm]
+
+{\bf Behavioral:} \\[2mm]
+\HS\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} 
+    & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\    
     & \WHERE \HS\HS\HS \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS 
+    \HS\HS \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\    
         
-    {\scriptsize \bf{Concrete}} \\    
-    \TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\   
+
+\\[-2mm]
+
+{\bf Concrete:} \\[2mm]
+   
+\HS\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} 
+    & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\   
     & \WHERE \HS\HS\HS {\mdp[1]} = \src{\Mdef\m\x{{\t[1]}}{{\t[2]}}{\ep}} .. \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. \\   
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\            
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e .. 
+   \HS\HS \ep = \TAG[\CTS]{\e}{\this:\C\,\x:\t[1]}{\t[2]}~  ..\\
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{{\t[1]}}\x}{\t[1]}{\t[2]}}}} \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} $\neq$ \any \\    
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty} \\     
-    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS {\bf otherwise}  ..   
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} $\neq$ \any \\    
+    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty}    
+    \HS {\bf otherwise}  ..   
   \end{tabular}   
       
-  \hrulefill
+\hrulefill}
  \caption{Translations for classes.}     \label{fig:traclass}    
 \end{figure}
 
-{\bf Optional.~} The optional semantics provides no guarantees about the
-correctness of source language types. With the optional semantics, a typed
-variable may contain a value of a completely different type. Retaining the
-source level type annotations through translation to \kafka would not preserve
-this semantics, so we erase them and replace them with \any. This retains the
-optional source semantics, as the \any type can be inhabited by any value.
+\vspace{2mm}\noindent {\bf Optional.~} The optional semantics provides no
+guarantees about the correctness.  Retaining the surface type annotations
+through translation would not preserve this semantics, so we erase them.
+The resulting class has all fields as well all method arguments and return
+values typed as \any.
 
-{\bf Transient.~} The transient semantics guarantees that every method in the
-type exists on inhabitant values, but does not ensure their types. Under the
-transient semantics, typed function invocations themselves will succeed, but
-type assertions in the caller or callee may fail immediately afterward. Field
-values are checked at dereference time, so all assignments always succeed but
-dereferences may fail.
+\vspace{2mm}\noindent {\bf Transient.~} The transient semantics guarantees
+methods are present, but does not ensure their types. Under the transient
+semantics, typed function invocations themselves will succeed, but type
+assertions in the caller or callee may fail immediately afterward. Field
+values are checked at dereference time, so all assignments always succeed
+but dereferences may fail.
 
 The transient encoding in \kafka is similar to the optional one. We erase all
 argument and return types on methods as well as types on fields. This then
 causes the translated \kafka types to have the same semantic meaning (under
 structural typing) as the source transient types.
 
+\vspace{2mm}\noindent
 {\bf Behavioral.~} The behavioral semantics guarantees existence of methods as
 well as types of both methods and fields. Untyped values can be used from
 typed code thanks to wrappers that guarantee return types, while typed values
@@ -1314,6 +1301,7 @@ are protected from untyped arguments by similar wrappers. Because values will
 always be well-typed with this guarantee, the translation leaves types
 untouched.
 
+\vspace{2mm}\noindent
 {\bf Concrete.~} The concrete soundness guarantee requires that values
 inhabiting a variable of type \t must be a subtype of \t, ensuring that all
 methods exist under their correct types. However, these typed methods cannot
@@ -1368,7 +1356,7 @@ to encoding the source level soundness guarantee in \kafka.
 \begin{figure}[!h]\small
   \hrulefill\\
   \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-    {\scriptsize \bf{Transient}} \\
+    { \bf{Transient}} \\
     \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
     & \TypeCk{\K,\Env}\e\tp
     & \EM{\K\vdash\tp\Sub\t}
@@ -1377,7 +1365,7 @@ to encoding the source level soundness guarantee in \kafka.
     & \TypeCk{\K,\Env}\e\tp 
     & \EM{\K\vdash \tp \not \Sub \t}
     & \EM{\ep = \TRG[\TTS]\e\Env} \\
-    {\scriptsize \bf{Behavioral}} \\ 
+    { \bf{Behavioral}} \\ 
     \TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
     & \TypeCk{\K,\Env}\e\tp
     & \EM{\K\vdash \tp \Sub \t}
@@ -1386,7 +1374,7 @@ to encoding the source level soundness guarantee in \kafka.
     & \TypeCk{\K,\Env}\e\tp \HS 
     & \EM{\K\vdash \tp \not \Sub \t}
     & \ep = \TRG[\BTS]\e\Env \\
-    {\scriptsize\bf{ Concrete}} \\
+    {\bf{ Concrete}} \\
     \TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
     & \TypeCk{\K,\Env}\e\tp 
     & \EM{\K\vdash\tp \Sub \t} 
@@ -1422,7 +1410,7 @@ behavioral casts at  boundaries between typed and untyped code.
 \hrulefill\\
 	\begin{tabular}{l@{\HS}l}
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize \bf{Optional}} \\
+		{ \bf{Optional}} \\
 		\TR[\OTS]\x & = \src \x \\
 		\TR[\OTS]\this & = \src{\SubCast\any\this} \\
 		\TR[\OTS]{\FRead\f} & = \src{\FRead\f} \\
@@ -1430,7 +1418,7 @@ behavioral casts at  boundaries between typed and untyped code.
 	\end{tabular}
 	&
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize \bf{Transient}} \\
+		{ \bf{Transient}} \\
 		\TRG[\TTS]\x\Env & = \src{\SubCast\t\x} & \WHERE & \TypeCk{\K,\Env}\x\t \\
 		\TRG[\TTS]\this\Env & = \src\this \\
 		\TRG[\TTS]{\FRead\f}\Env & = \src{\SubCast\t{\FRead\f}} & \WHERE & \TypeCk{\K,\Env}\this\C & \\
@@ -1438,14 +1426,14 @@ behavioral casts at  boundaries between typed and untyped code.
 	\end{tabular}
 	\\ \\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
-		{\scriptsize \bf{Behavioral}} \\ 
+		{ \bf{Behavioral}} \\ 
 		\TRG[\BTS]\x\Env &= \src{\x} \\
 		\TRG[\BTS]\this\Env &= \src{\this} \\
 		\TRG[\BTS]{\FRead\f}\Env  &= \src{\FRead\f} \\
 	\end{tabular}
 	&
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}		
-		{\scriptsize\bf{Concrete}} \\
+		{\bf{Concrete}} \\
 		\TRG[\CTS]{\x}\Env & = \src \x \\
 		\TRG[\CTS]\this\Env &= \src{\this} \\
 		\TRG[\CTS]{\FRead\f}\Env        & = \src{\FRead\f}  \\
@@ -1484,19 +1472,19 @@ dynamic invocation on the \this reference, we therefore cast \this to \any.
 \begin{figure}[!h]\small
 \hrulefill\\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize \bf{Optional}} \\
+		{ \bf{Optional}} \\
 		\TR[\OTS]{\FWrite\f\e} & = \src{\FWrite\f\ep} & \WHERE & \ep=\TR[\OTS]\e \\
-		{\scriptsize \bf{Transient}} \\
+		{ \bf{Transient}} \\
 		\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
 		& \TypeCk{\K,\Env}\this\C
 		& \Ftype\f\t\In\App\K\C 
 		& \ep = \TAG[\TTS]\e\Env\any\\
-		{\scriptsize \bf{Behavioral}} \\ 
+		{ \bf{Behavioral}} \\ 
 		\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
 		& \TypeCk{\K,\Env}{\this}\C
 		& \Ftype\f\t\In\App\K\C 
 		& \ep = \TAG[\BTS]\e\Env\t\\
-		{\scriptsize \bf{Concrete}} \\
+		{ \bf{Concrete}} \\
 		\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
 		& \TypeCk{\K, \Env}\this\C
 		& \Ftype\f\t\In\App\K\C
@@ -1517,18 +1505,18 @@ that the result has the statically known type, the transient semantics expects
 \begin{figure}[!h]\small
 \hrulefill\\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-		{\scriptsize \bf{Optional}} \\
+		{ \bf{Optional}} \\
 		\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
 		& \ep[1] = \TR[\OTS]{\e[1]} .. \\
-		{\scriptsize \bf{Transient}} \\
+		{ \bf{Transient}} \\
 		\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
 		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 		& \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\
-		{\scriptsize \bf{Behavioral}} \\ 
+		{ \bf{Behavioral}} \\ 
 		\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
 		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 		& \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
-		{\scriptsize \bf{Concrete}} \\
+		{ \bf{Concrete}} \\
 		\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
 		& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 		& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
@@ -1548,10 +1536,10 @@ respective soundness guarantee.
 \hrulefill\\
 \\
 	\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-    {\scriptsize \bf{Optional}} \\
+    { \bf{Optional}} \\
     \TR[\OTS]{\Call{\e[1]}\m{\e[2]}} & = \src{\DynCall{\ep[1]}\m{\ep[2]}} &\WHERE 
     & \ep[1] = \TR[\OTS]{\e[1]} & \ep[2] = \TR[\OTS]{\e[2]} \\
-		{\scriptsize \bf{Transient}} \\
+		{ \bf{Transient}} \\
 		\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
 		& \TypeCk{\K,\Env}{\e[1]}\any 
 		& \ep[1] = \TRG[\TTS]{\e[1]}\Env
@@ -1562,7 +1550,7 @@ respective soundness guarantee.
 		& \ep[1] = \TRG[\TTS]{\e[1]}\Env  & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\any} \\
 		\multicolumn{2}{l}{\HS\HS\HS\HS\HS\HS\HS\HS\HS
     \src{\SubCast{\D[2]}{\KCall{\ep[1]}\m{\ep[2]}\any\any}}} & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-		{\scriptsize \bf{Behavioral}} \\ 
+		{ \bf{Behavioral}} \\ 
 		\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
 		&  \TypeCk{\K,\Env}{\e[1]}\any
 		&  \ep[1] = \TRG[\BTS]{\e[1]}\Env
@@ -1573,7 +1561,7 @@ respective soundness guarantee.
 		& \ep[1] = \TRG[\BTS]{\e[1]}\Env
 		& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
 		& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\
-		{\scriptsize \bf{Concrete}} \\
+		{ \bf{Concrete}} \\
 		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE &
 		\TypeCk{\K,\Env}{\e[1]}\any &  \ep[1]= \TRG[\CTS]{\e[1]}\Env & \ep[2] = \TAG[\CTS]{\e[2]}\Env\any\\
 		\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env & = \src{\KCall{\ep[1]}{\m}{\ep[2]}{\D[1]}{\D[2]}} 
@@ -1617,21 +1605,21 @@ test program.
 \begin{figure}[!h]\small
 \hrulefill\\
   \begin{tabular}{l}
-    {\scriptsize\bf{Source}} \\
+    {\bf{Source}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
                 &\Mdef\n\x\any\any{\Call\this\m\x}} \\
 \end{array}
 \) \\
-    {\scriptsize\bf{Optional}} \\ 
+    {\bf{Optional}} \\ 
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt F}{}{&\Mdef\m\x{\any}{\any}\x \\
                 &\Mdef\n\x\any\any{\DynCall{(\SubCast\any\this)}\m\x}} \\
 \end{array}
 \) \\
-    {\scriptsize\bf{Transient}} \\
+    {\bf{Transient}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt F}{}{&\Mdef\m\x\any\any{\SubCast{\xt E}{\x}; ~ \SubCast{\any}{\x} } \\
@@ -1639,14 +1627,14 @@ test program.
                 \SubCast{\any}{\SubCast{\xt E}{\KCall\this\m{\SubCast\any{\SubCast\any\x}}\any\any}}}} \\
 \end{array}
 \)\\
-    {\scriptsize\bf{Behavioral}} \\
+    {\bf{Behavioral}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
                 &\Mdef\n\x\any\any{\BehCast\any{\KCall\this\m{\BehCast{\xt E}\x}{\xt E}{\xt E}}}} \\
 \end{array}
 \) \\
-    {\scriptsize\bf{Concrete}} \\
+    {\bf{Concrete}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
@@ -1713,7 +1701,7 @@ difference semantics.
   \begin{tabular}{rl}
   \multicolumn{2}{c}{
   \begin{tabular}{l}
-    {\scriptsize\bf{Source}} \\
+    {\bf{Source}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x{\xt D}{\xt D}\x } \\
@@ -1722,7 +1710,7 @@ difference semantics.
 \end{tabular}}
 \\
   \begin{tabular}{l}
-    {\scriptsize\bf{Optional}} \\ 
+    {\bf{Optional}} \\ 
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x{\any}{\any}\x } \\
@@ -1730,7 +1718,7 @@ difference semantics.
 \) 
 \end{tabular}&
   \begin{tabular}{l}
-    {\scriptsize\bf{Transient}} \\
+    {\bf{Transient}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x\any\any{\SubCast{\xt E}\x ; ~ \SubCast{\any}{\x}}} \\
@@ -1738,7 +1726,7 @@ difference semantics.
 \)
 \end{tabular}\\
   \begin{tabular}{l}
-    {\scriptsize\bf{Behavioral}} \\
+    {\bf{Behavioral}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x{\xt E}{\xt E}\x} \\
@@ -1746,7 +1734,7 @@ difference semantics.
 \) 
 \end{tabular} &
   \begin{tabular}{l}
-    {\scriptsize\bf{Concrete}} \\
+    {\bf{Concrete}} \\
 \(
 \begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x{\xt E}{\xt E}\x} \\
