@@ -1152,62 +1152,62 @@ from a typed or untyped context may require different attention, we decided
 to all classes to have two versions of the method and add types to the
 method name to disambiguate between them.
 
-We designed \kafka to match the intermediate languages of commercial VMs.
-To validate this is the case, we implemented a compiler from \kafka to
-C\#.\footnote{http://github.com/XXX} The only implementation challenge was
-due to subtyping. \kafka uses structural typing, while C\# is nominal, and
-\kafka allows methods in subtypes to be contravariant in argument and
-covariant in return type, while C\# requires invariance.  Implementing
-structural subtyping on top of a nominally typed language is
-tricky. Structural types create implicit subtyping relationships, which the
-nominal type system expects to be explicit.  Prior work used reflection and
-complex run-time code generation~\cite{StructuralTypesOnJVM}, but this is
-needlessly complex for a proof of concept.  Instead, we reify the implicit
-relationships introduced by structural subtyping into explicit nominal
-relationships by generating interfaces. Given two classes \C and \D, where
-$\K\vdash \C \Sub \D$ holds, we generate two C\# interfaces \xt{CI} and
-\xt{DI}, where \xt{CI} is declared to extend \xt{DI}. As a result, if two
-types are subtypes, their corresponding C\# interfaces will be as well.  The
-next problem is that \kafka allows subtype methods to be contravariant in
-argument and covariant in return types.  As a result, implementing only the
-methods in \xt{CI} may not be sufficient to implement \xt{DI} in C\#.  We
-solve this by having every class's C\# equivalent implement every interface
-explicitly, with each explicit implementation delegating to the real, most
-general, implementation.  Despite these issues, we were able to accurately
-translate \kafka types into C\#. We translate static and dynamic \kafka
-invocations into corresponding C\# invocations since C\# has also a dynamic
-type. The underlying run-time can then use the translated \kafka types to
-perform typed invocations, while inserting dynamic checks wherever the
-\kafka source calls for an untyped invocation. This shows that \kafka
-primitives are close to those of intermediate languages. Mapping from \kafka
-forms to CIL ones was simple and straightforward once the class translation
-was defined. As a result, the translation of gradual type systems to \kafka
-provide insight as to how they might be implemented in a practical
-object-oriented language.
+We intended \kafka to match the intermediate languages of commercial VMs.
+To validate this, we implemented a compiler from \kafka to
+C\#.\footnote{http://github.com/XXX} The only challenge was due to
+subtyping. \kafka uses structural typing, while C\# is nominal, and \kafka
+allows methods in subtypes to be contra-variant in argument and co-variant
+in return type, while C\# requires invariance.  Implementing structural
+subtyping on top of a nominally typed language is tricky. Structural types
+create implicit subtyping relationships, which the nominal type system
+expects to be explicit.  Prior work used reflection and complex run-time
+code generation~\cite{StructuralTypesOnJVM}, but this is needlessly complex
+for a proof of concept.  Instead, we reify the implicit relationships
+introduced by structural subtyping into explicit nominal relationships by
+generating interfaces. Given two classes \C and \D, where $\K\vdash \C \Sub
+\D$ holds, we generate two interfaces \xt{CI} and \xt{DI}, where \xt{CI} is
+declared to extend \xt{DI}. As a result, if two types are subtypes, their
+corresponding C\# interfaces will be as well.  The next problem is that
+\kafka allows subtype methods to be contra-variant in argument and
+co-variant in return types.  As a result, a single methods in \xt{CI} may
+not be sufficient to implement \xt{DI}.  We solve this by having every
+class's C\# equivalent implement every interface explicitly, with each
+explicit implementation delegating to the real, most general,
+implementation.  Despite these issues, we were able to accurately translate
+\kafka types. We translate static and dynamic invocations into corresponding
+C\# invocations since C\# has also a dynamic type. The underlying run-time
+can then use the translated \kafka types to perform method dispatch, while
+inserting dynamic checks wherever the \kafka source calls for an untyped
+invocation. This prototype shows that \kafka primitives are close to those
+of intermediate languages. As a result, the translation of gradual type
+systems to \kafka provides insight as to how they might be implemented in a
+practical language.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Translating Gradual Type Systems}
 
+\vspace{-4mm}
+
 \epigraph{\small\it ``Was ist mit mir geschehen? dachte er.
     Es war kein Traum''}
 
-\vspace{-2mm}
+\vspace{-7mm}
+
 \noindent The four gradual type semantics are now ready to be translated
 into \kafka. Each semantics is translated through a function mapping
 well-typed surface programs into well-typed \kafka terms. The translation
-explicitly determines which type casts need to be inserted.  The surface
-languages have no explicit casts, instead they coerce types at typed-untyped
-boundaries. A type driven translation will insert the needed casts. 
-
+explicitly determines which type casts need to be inserted and the
+invocation forms to use.  The surface languages have no explicit casts,
+instead it coerces types at typed-untyped boundaries. A type-driven
+translation will insert the needed casts.
 Consider the following example where method \m takes an argument of type
 \any and returns it under type \C.  If \m is passed a \D (which has no
 subtype relation with \C), the returned value will not match the declared
 return type.  Without a cast, this operation is unsafe.
 
 \begin{tabbing}\small
-\hspace{1cm}\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
-  \K\HS =\HS \= \class\= \C \{~ \Mdef\m\x\any\C{\HS\x\HS} ~ \}  \\
-       \>\class \D \{ \}
+\hspace{.4cm}\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
+  \K~=\HS\class\D\{\}\HS\HS\HS\class\C\{~\Mdef\m\x\any\C{~\x~}~\} 
 \end{tabbing}         
 
 
@@ -1215,7 +1215,8 @@ return type.  Without a cast, this operation is unsafe.
 
 The translations for source level classes are shown in
 \figref{fig:traclass}. Each class in the surface language translates to a
-homonymous \kafka class. Grey background denotes generated code.
+homonymous \kafka class, thus type names are retained in the
+translation. Grey background denotes generated code.
 
 \begin{figure}[!h]  {\small  \hrulefill\\
 \begin{tabular}{llc@{\hspace{.25cm}}l}    
@@ -1283,67 +1284,56 @@ of types, they will not be checked. The translation sets them all to \any.
 Methods are translated to accept \any and return \any.  For a method \m that
 accepted a value \x of type \t in the surface language, the translation will
 first check that \x is of type by the means of subtype cast. The subtype
-cast operates on the translated type \t. The one where all argument and
-return types are \any.\footnote{We abuse the notation \EM{\e ; \ep } to
-  denote sequence, this could be encoded in the calculus, but explicit
-  sequence is easier to read.}
+cast operates on the translated type \t -- the type with all methods
+untyped.\footnote{We abuse the notation \EM{\e ; \ep } to denote sequence,
+  this could be encoded in the calculus, but explicit sequence is easier to
+  read.}
 
 \vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach guarantees
 soundness by wrapping values that cross type-untyped boundaries.  Methods
 are presevered by the translation but bodies are translated.
 
 \vspace{2mm}\noindent {\bf Concrete.~} The concrete approach ensures that
-variables of non-\any types refer to subtype of the given type. Each method
+variables of non-\any types refer to subtypes of the given type. Each method
 appearing in the original class is retained as such with its body
-translated.  Moreover, to all typed method to be called from an untyped
-context, the translation generates untyped methods, that perform subtype
-casts of their argument to the expected type and re-dispatch to the
-corresponding typed method.
-
+translated.  Moreover, all typed method, to be called from an untyped
+context, need to have an untyped variant that performs subtype casts of the
+argument to its expected type and re-dispatches to the corresponding typed
+method.
 
 \subsection{Expression Translation} 
 
 To accommodate differences between the gradual typing semantics, we use two
-different translation schemes. The first is a type-ambivalent one, used for
-the optional semantics, while the second is type-aware, used for the three
-sound semantics.
-
-The notation $\TR[\OTS]\e$ denotes optional translation, where \e is the
-target expression, and the result is a \kafka term.  The type-aware
-translation has two forms, $\TRG[\SOMS]\e\Env$ and $\TAG[\SOMS]\e\Env\t$,
-inspired by work on bidirectional type-checking~\cite{pierce:1998:local}.
-The differentiation of the two translation forms arises from the need to
-insert casts only where required.  The first form, $\TRG[\SOMS]\e\Env$, is
-analogous to the synthetic case in bidirectional type-checking.  It is used
-for expressions \e without any specific required type against environment
-$\Env$.  The second form, $\TAG[\SOMS]\e\Env\t$, is used when $\e$ must have
-type $\t$ against $\Env$.  Analogous to the analytic case of bidirectional
+different expression translation schemes. The first is a type-ambivalent
+one, used for the optional approach, while the second is type-aware, used
+for the three other approaches.  $\TR[\OTS]\e$ denotes optional translation,
+where \e is the target expression, and the result is a \kafka term.  The
+type-aware translation has two forms, $\TRG[\SOMS]\e\Env$ and
+$\TAG[\SOMS]\e\Env\t$, inspired by work on bidirectional
+type-checking~\cite{pierce:1998:local}.  The differentiation between them
+arises from the need to insert casts only where required.  The first form,
+$\TRG[\SOMS]\e\Env$, is analogous to the synthetic case in bidirectional
+type-checking.  It is used for expressions without any specific required
+type.  The second form, $\TAG[\SOMS]\e\Env\t$, is used when \e must have
+some type \t.  Analogous to the analytic case of bidirectional
 type-checking, this form applies when some enclosing expression has an
-expectation of the type of $\e$. For example, it is used in translation of
+expectation of the type of \e. For example, it is used in translation of
 method arguments, which must conform to the types of the arguments to the
-method. We refer to this case as assert translation, for it is asserting the
-type \t of the translation result.
+method. We refer to this case as assertive translation.
 
 The assertive translation of \figref{fig:trtype} is responsible for
 producing well-typed terms by adding casts into expressions where static
-types differ.  The rules have a close correspondence with the convertiblity
-relation of the surface syntax. Every type-driven translation has two
-cases. The first case is used when the required type happens to be a
-supertype of the expression's actual type, and in this case no further
-action is required. The second case handles typed-untyped boundaries, when
-converting to or from \any, and therefore dynamic behavior that depends on
-the approach.  The concrete and transient semantics rely on a direct mapping
-of their source type soundness principle into \kafka and therefore use the
-subtype cast operator for dynamic type checks. The behavioral semantics uses
-a different notion of barrier crossing, however, so it instead inserts
-behavioral casts at boundaries between typed and untyped code.
-For transient the inserted cast is a subtype cast, but recall that in the
-translation all argument and return types have been erased, thus this cast
-really only checks the presence of method names. For behabioral, a
-behavioral cast is inserted. For concrete, a propert subtype cast is
-performed.
+types differ.  The rules closely track the convertibility relation of the
+surface language. Every type-driven translation has two cases. The first
+case is used when the required type happens to be a supertype of the
+expression's actual type, then no further action is required. The second
+case handles typed-untyped boundaries, conversions to or from \any.  The
+concrete and transient approaches use the subtype cast operator for dynamic
+type checks. The behavioral approach instead inserts behavioral casts at
+boundaries.  For transient, since the class translation erase all types, the
+subtype cast really only checks the presence of method names.
 
-\begin{figure}[!h]\small  \hrulefill\\
+\begin{figure}[!t]\small  \hrulefill\\
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 
 \\[-2mm]
@@ -1382,11 +1372,10 @@ performed.
 
 The translation of field access appears in \figref{fig:travar}.  The
 optional translation only inserts a cast to \any in front of uses of the
-\this reference, as a technicality required for statically typing terms. The
+\this reference as a technicality required for statically typing terms. The
 transient translation adds casts to the expected type of variable and
 fields. Again, these casts only check the presence of fields.  The
 behavioral translation and the concrete translation leave access intact.
-
 
 \begin{figure}[!h]\small\hrulefill\\
 \begin{tabular}{@{}l@{\HS}l}
@@ -1427,12 +1416,11 @@ behavioral translation and the concrete translation leave access intact.
 \caption{Translations variables and field access.}\label{fig:travar}
 \end{figure}
 
-
-The translation for assignment is shown in \figref{fig:trassn}.  All of the
-semantics translate the value directly, only differing in the expected
-type. The behavioral and concrete semantics require that the result has the
-statically known type, the transient semantics expects \any, and the
-optional semantics imposes no type requirement whatsoever.
+The translation for assignment is shown in \figref{fig:trassn}.  All the
+approaches translate the value only differing in the expected
+type. Behavioral and concrete require that the result has the statically
+known type, transient expects \any, and the optional semantics imposes no
+type requirement whatsoever.
 
 \begin{figure}[!h]\small
 \hrulefill\\
@@ -1465,7 +1453,7 @@ optional semantics imposes no type requirement whatsoever.
 
 The translation for object creation, shown in \figref{fig:tranew}, follows
 the same reasoning. It translates each argument to be the required type
-according to class translation, ensuring the respective soundness guarantee.
+according to class translation.
 
 \begin{figure}[!h]\small
 \hrulefill\\
@@ -1492,14 +1480,15 @@ according to class translation, ensuring the respective soundness guarantee.
 \caption{Translations for object creation.}\label{fig:tranew}
 \end{figure}
 
-The translations for invocation are shown in \figref{fig:trafuninv}. At
-invocation sites, a method of the right name must be known to exist with the
-correct argument and return types.  In the concrete and behavioral semantics
-source typing is retained, so the arguments must be of the statically known
+The translations for invocation are shown in \figref{fig:trafuninv}.
+Optional translates all invocations to dynamic invocation.  At invocation
+sites, a method of the right name must be known to exist with the correct
+argument and return types.  In the concrete and behavioral semantics source
+typing is retained, so the arguments must be of the statically known
 type. However, in the transient semantics, the argument type is ignored, so
 the argument to a statically typed method call is only required to be of
-type \any. If any of the systems, if the type of the receiver is \any, 
-dynamic invocation is used.
+type \any, but the return type is checked.  If any of the systems, if the
+type of the receiver is \any, dynamic invocation is used.
 
 \begin{figure}[!h]\small
 \hrulefill\\
@@ -1607,23 +1596,19 @@ is not exercised.
  \caption{Class translation for litmus test L3.} \label{fig:l3trans}
 \end{figure}
 
-Two of the gradual type systems notice this invalid type. The concrete
-approach rejects {\bf L3} because \E is not a subtype of \C.  With
-behavioral, the unused type ascription is saved as a wrapper and is enforced
-later causing an error.  While this reasoning provides a high level
-intuition for why each approach detected an error where it did, it provides
-little technical detail, for which we turn to our formalism.  We present the
-working of our translation from the top down, starting with classes in
-\figref{fig:l3trans}.  The optional approach does no checking whatsoever,
-and simply erases all types. Transient erases all of the types on methods,
-and adds argument casts on method entry. In the case of method \m, argument
-\x is checked to be of type \E, as the translation of type \E does not
-include types no type error will be reported.  Behavioral retains typed
-methods but adds behavioral casts on untyped methods.  The concrete
-semantics retains typed methods, and add a subtype cast when a variable of
-type \any is passed to a method that expects and \E.
-
-
+Two of the gradual type systems notice this invalid type. Concrete rejects
+{\bf L3} because \E is not a subtype of \C.  With behavioral, the unused
+type ascription is saved as a wrapper and is enforced causing an error.
+While this reasoning provides an intuition, it provides few detail for which
+we turn to our formalism.  We present the translation from the top, starting
+with classes in \figref{fig:l3trans}.  The optional approach does no
+checking whatsoever, and simply erases types. Transient also erases types,
+but adds argument casts on method entry. In the case of \m, argument \x is
+checked to be of type \E, as the translation of type \E does not include
+types no type error will be reported.  Behavioral retains typed methods but
+adds behavioral casts on untyped methods.  The concrete semantics retains
+typed methods, and add a subtype cast when a variable of type \any is passed
+to a method that expects and \E.
 
 \begin{figure}[!h]\small
 \hrulefill\\
@@ -1680,17 +1665,16 @@ representation for \E as concrete. The behavioral cast allows to use any
 value that behaves like an \E.
 
 To examine the operation of the behavioral cast in more detail,
-figure~\ref{fig:behex} depicts the wrapper class generated at the cast from
-\C to \any and the wrapper going from it to \E.  The first wrapper class
-takes an instance of \C and makes it safe against use as \any. In the
-behavioral semantics, no typed invocations can be made on a value that was
-cast to \any (and not cast to some type somewhere); only untyped invocations
-are allowed. As a result, the wrapper need only generate an untyped version
-of \C's method \a, which calls the underlying \C instance's \a (adding
-suitable casts).  The second wrapper class takes the $\C_1$ wrapper and casts
-it back to \E. This wrapper takes the untyped implementation of \a and wraps
-it again, calling it with an argument cast to \any and casting the return to
-\D.
+figure~\ref{fig:behex} depicts the wrapper classes generated at the cast from
+\C to \any and from it to \E.  The first wrapper class takes an instance of
+\C and makes it safe against use as \any. In the behavioral semantics, no
+typed invocations can be made on a value that was cast to \any (and not cast
+to some type somewhere); only untyped invocations are allowed. As a result,
+the wrapper need only generate an untyped version of \C's method \a, which
+calls the underlying \C instance's \a (adding suitable casts).  The second
+wrapper class takes the $\C_1$ wrapper and casts it back to \E. This wrapper
+takes the untyped implementation of \a and wraps it again, calling it with
+an argument cast to \any and casting the return to \D.
 
 \begin{figure}[h!]
 \begin{align*}
