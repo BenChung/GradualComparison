@@ -1555,15 +1555,14 @@ dynamic invocation is used.
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
 
-\subsection{Litmus Test Translation}
+\subsection{Example}
 
-We have presented the differences between gradual type systems by means of
-either a litmus test or a formal semantics, but have not shown how they
-correspond. The litmus test shows that there are observable differences in
-execution based on chosen gradual typing semantic, while the formalization
-provides a detailed look into each gradual type system and how they differ
-internally. Now, we use our formalism to explain the behavior of one litmus
-test program.
+We illustrate the translation with the behavior of litmus program {\bf L3}.
+The operational principle of {\bf L3} is that it creates a new object (an
+instance of \C), then uses an untyped shim to represent it as type \E. Type
+\E ascribes the wrong type for argument \x, substituting \D for the correct
+type \C. However, since the object never uses its argument, this faulty type
+is not exercised.
 
 \begin{figure}[!h]\small
 \hrulefill\\
@@ -1609,160 +1608,103 @@ test program.
 \end{tabular}\vspace{2mm}\\
 \hrule\vspace{4mm}
 
- \caption{Class translation for litmus test program 3.} \label{fig:l3trans}
+ \caption{Class translation for litmus test L3.} \label{fig:l3trans}
 \end{figure}
 
-In this example, we will focus on litmus test program 3, as its execution
-displays the most varied behavior between each of the gradual typing
-semantics. The operational principle of litmus test program 3 is that it
-creates a new object (an instance of \C), then uses an untyped shim to
-represent it as type \xt{E}. Type \xt{E} ascribes the wrong type for \xt{a}'s
-argument \x, substituting \xt{D} for the correct type \xt{C}. This type \xt{D}
-is structurally incompatible with \xt{C}. However, \xt{a} never uses its
-argument, so this faulty type is not relied upon anywhere else.
-
-When we presented this example as part of the litmus test, we found that two
-of the gradual type systems notice this invalid type. Under the concrete
-semantics, \xt{E} is trivially not a subtype of \xt{C}, so this program is
-instantly rejected. Under the behavioral semantics, the unused type ascription
-is saved as a wrapper and is enforced later causing an error. The transient
-semantics does not check the argument types when casting, so produces no
-error. The optional semantics does no checking at all, so likewise produces
-no error.
-
-While this reasoning provides a high level intuition for why each approach
-detected an error where it did, it provides little technical detail, for which
-we turn to our formalism. In summary, the goal of the formalism is to make the
-input gradually typed program pass the \kafka type checker through
-translation, thereby extracting a type soundness property. We present the
-working of our translation on litmus test program 3 from the top down,
-starting with classes, then discussing method and expression translation in
-turn.
-
-The translations of the classes in litmus test program 3 are shown in
-\figref{fig:l3trans}, and demonstrate the top level transformation undertaken
-by each gradual typing approach to generate such a well-typed \kafka program.
-
-\begin{itemize}
-  \item The optional semantics does no checking whatsoever - and therefore cannot
-  provide any \kafka level type guarantees. As a result, its class translation 
-  deletes all types.
-  \item The transient semantics checks the existence of methods but does not
-  guarantee their types. As a result, if we delete all of the types on methods,
-  then the \kafka soundness guarantee becomes equivalent to the transient one. 
-  \item The behavioral semantics is conventionally sound, and therefore can 
-  use unmolested types in its \kafka translation.
-  \item The concrete semantics is likewise conventionally sound, and can also
-  not change the classes types through translation.
-\end{itemize}
+Two of the gradual type systems notice this invalid type. The concrete
+approach rejects {\bf L3} because \E is not a subtype of \C.  With
+behavioral, the unused type ascription is saved as a wrapper and is enforced
+later causing an error.  While this reasoning provides a high level
+intuition for why each approach detected an error where it did, it provides
+little technical detail, for which we turn to our formalism.  We present the
+working of our translation from the top down, starting with classes in
+\figref{fig:l3trans}.  The optional approach does no checking whatsoever,
+and simply erases all types. Transient erases all of the types on methods,
+and adds argument casts on method entry. In the case of method \m, argument
+\x is checked to be of type \E, as the translation of type \E does not
+include types no type error will be reported.  Behavioral retains typed
+methods but adds behavioral casts on untyped methods.  The concrete
+semantics retains typed methods, and add a subtype cast when a variable of
+type \any is passed to a method that expects and \E.
 
 
-In \figref{fig:l3etrans} we present the translation of a simple class {\xt E}.
-This example aims to illustrate the difference in guarantee provided by the
-difference semantics.
 
 \begin{figure}[!h]\small
 \hrulefill\\
-  \begin{tabular}{rl}
-  \multicolumn{2}{c}{
-  \begin{tabular}{l}
-    {\bf{Source}} \\
-\(
-\begin{array}{l@{\,}l}
-\Class{\xt E}{}{&\Mdef\m\x{\xt D}{\xt D}\x } \\
-\end{array}
-\) 
-\end{tabular}}
 \\
-  \begin{tabular}{l}
-    {\bf{Optional}} \\ 
-\(
-\begin{array}{l@{\,}l}
+\begin{tabular}{rl}
+  \multicolumn{2}{l}{\begin{tabular}{l}
+{\bf Source:}\\[2mm]
+\(\begin{array}{l@{\,}l} 
+\Class{\xt E}{}{&\Mdef\m\x{\xt D}{\xt D}\x } \\
+\end{array}\) 
+\end{tabular}}
+\\[2mm]\\
+\begin{tabular}{@{}l}
+{\bf Optional:}\\[2mm]
+\(\begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x{\any}{\any}\x } \\
-\end{array}
-\) 
+\end{array}\) 
 \end{tabular}&
-  \begin{tabular}{l}
-    {\bf{Transient}} \\
-\(
-\begin{array}{l@{\,}l}
+\begin{tabular}{l}
+{\bf Transient:}\\[2mm]
+\(\begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x\any\any{\SubCast{\xt E}\x ; ~ \SubCast{\any}{\x}}} \\
-\end{array}
-\)
-\end{tabular}\\
-  \begin{tabular}{l}
-    {\bf{Behavioral}} \\
-\(
-\begin{array}{l@{\,}l}
+\end{array}\)
+\end{tabular}\\\\
+\begin{tabular}{l}
+{\bf Behavioral:}\\[2mm]
+\(\begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x{\xt E}{\xt E}\x} \\
-\end{array}
-\) 
+\end{array}\) 
 \end{tabular} &
-  \begin{tabular}{l}
-    {\bf{Concrete}} \\
-\(
-\begin{array}{l@{\,}l}
+\begin{tabular}{l}
+{\bf Concrete:}\\[2mm]
+\(\begin{array}{l@{\,}l}
 \Class{\xt E}{}{&\Mdef\m\x{\xt E}{\xt E}\x} \\
-\end{array}
-\) 
+\end{array}\) 
 \end{tabular}\\
-  \end{tabular}\vspace{2mm}\\
+\end{tabular}\vspace{2mm}\\
 \hrule\vspace{4mm}
   
  \caption{Translation of \xt{E} in litmus test 3.}  \label{fig:l3etrans}
 \end{figure}
 
-For the transient semantics, when \x is cast to {\xt E}, all of the types on
-{\xt E} are erased by the transient class translation. Casting to {\xt E} is
-tantamount to asking for the existence of the method \m. In contrast, the
-concrete semantics retained the types of \m. A concrete translation that
-checks if a class is a subtype of {\xt E} is equivalent to checking if a
-method \m that takes and returns an {\xt E} exists.  While the concrete
-semantics provide a stronger type guarantee, it comes at the cost of the
-ability to migrate between untyped and typed code. Suppose that both the
-optional and concrete versions of {\xt E} existed, under different a name
-{\xt F}. In that system, only the concrete version of {\xt E} could be used
-with the concrete version of {\xt F}. Despite implementing the same
-behavior, the optional version of {\xt E} would not be able to be used with
-the concrete version of {\xt F}, as statically it does not know \m would
-take and return an {\xt E}.  The behavioral semantics is able to use the
-same representation for {\xt E} as the concrete semantics. The behavioral
-cast allows the behavioral semantics to use an optional typed {\xt E}. In
-effect, if an optional typed {\xt E} were passed where a behavioral typed
-{\xt E} was expected, then a wrapper, implementing the fully typed {\xt E},
-would be generated on top of the untyped, optional typed {\xt E}, ensuring
-type safety.
+\figref{fig:l3etrans} presents the translation of class \E.  For the
+transient semantics, when \x is cast to \E, all of the types on \E are
+erased. Casting to \E is tantamount to asking for the existence of the
+method \m. In contrast, the concrete semantics retains the types of \m. A
+cast to \E is equivalent to checking if a method \m that takes and returns
+an \E exists.  This comes at the cost of the ability to migrate between
+untyped and typed code. Suppose that both the optional and concrete versions
+of \E existed, under a different name {\xt F}. In that program, only the
+concrete version of \E could be used with the concrete version of {\xt
+  F}. Despite implementing the same behavior, Behavioral uses the same
+representation for \E as concrete. The behavioral cast allows to use any
+value that behaves like an \E.
 
 To examine the operation of the behavioral cast in more detail,
-figure~\ref{fig:behex}  depicts the wrapper generated at the cast from \C to
-\any and the wrapper going from (\C as \any) to \E.  The first wrapper is
-produced in the call to \xt{n}, while the second is produced when \xt{n} calls
-\xt{n}, shown in figure~\ref{fig:l3trans} and figure~\ref{litmustest}. We name
-wrapper classes as $\t\Rightarrow\tp$ (right-associative), indicating a
-wrapper over an instance of $\t$ enforcing type $\tp$. This does not have
-semantic meaning---the formal system merely specifies a fresh identifier---but 
-is used to indicate the purpose of the wrapper.
+figure~\ref{fig:behex} depicts the wrapper class generated at the cast from
+\C to \any and the wrapper going from it to \E.  The first wrapper class
+takes an instance of \C and makes it safe against use as \any. In the
+behavioral semantics, no typed invocations can be made on a value that was
+cast to \any (and not cast to some type somewhere); only untyped invocations
+are allowed. As a result, the wrapper need only generate an untyped version
+of \C's method \a, which calls the underlying \C instance's \a (adding
+suitable casts).  The second wrapper class takes the $\C_1$ wrapper and casts
+it back to \E. This wrapper takes the untyped implementation of \a and wraps
+it again, calling it with an argument cast to \any and casting the return to
+\D.
 
 \begin{figure}[h!]
 \begin{align*}
-\Class{\wraps\C\any}{&\that : \C}{\\&\Mdef{\xt{a}}\x\any\any{\BehCast\any{\KCall{\this.\that}{\xt{a}}{\BehCast\C\x}\C\C}}} \\
-\Class{\wraps{\wraps\C\any}\E}{&\that : \wraps\C\any}{\\&\Mdef{\xt{a}}\x\D\D{\BehCast\D{\KCall{\this.\that}{\xt{a}}{\BehCast\any\x}\any\any}}}
+\Class{\C_1}{&\that : \C}{\\&\Mdef{\xt{a}}\x\any\any{\BehCast\any{\KCall{\this.\that}{\xt{a}}{\BehCast\C\x}\C\C}}} \\
+\Class{\C_2}{&\that : \C_1}{\\&\Mdef{\xt{a}}\x\D\D{\BehCast\D{\KCall{\this.\that}{\xt{a}}{\BehCast\any\x}\any\any}}}
 \end{align*}
-\caption{Litmus Test 3: Behavioral wrappers.}
+\caption{Behavioral wrappers.}
 \label{fig:behex}
 \end{figure}
 
-The first wrapper ($\wraps\C\any$) takes an instance of \C and makes it safe
-against use as \any. In the behavioral semantics, no typed invocations can be
-made on a value that was cast to \any (and not cast to some type somewhere); only
-untyped invocations are allowed. As a result, the wrapper need only generate an
-untyped version of \C's method \xt{a}, which calls the underlying \C instance's
-\xt{a} (while adding suitable casts). 
-
-The second ($\wraps{\wraps\C\any}\E$) takes the \C-to-\any wrapper described
-above and casts it back to a type, this time \E. This wrapper takes the untyped
-implementation of \xt{a} and wraps it again, calling it with an argument cast
-to \any and casting the return to \D.   
 
 \section{Conclusion}\label{litm}
 
