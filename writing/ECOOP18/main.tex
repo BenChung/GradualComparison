@@ -102,21 +102,21 @@ calculus and discuss the implications of their respective designs.
 
 \vspace{-10mm}\noindent There has never been a single approach to gradual
 typing. The field was opened by two independently developed, simultaneously
-published papers. Siek and Taha could type individual Scheme terms using a
+published papers. One, by Siek and Taha, typed individual Scheme terms using a
 consistency relation, inserting casts based on simple type inference
-\cite{SiekTaha06}. Simultaneously, Tobin-Hochtstadt and Felleisen
-implemented a system allowing programmers to add types to individual
-modules, using constraint solving to determine where casts were needed in
-untyped code~\cite{tf-dls06}. These two approaches set the direction for a
-decade of research.  Today, gradual type systems support a variety of
-languages, enforcement mechanisms, and soundness guarantees---a degree of
-linguistic diversity that is not without consequence as the very notion of
-what constitutes an error remains unsettled.
+\cite{SiekTaha06}. The other, by Tobin-Hochtstadt and Felleisen, implemented a
+system allowing programmers to add types to individual modules, using
+constraint solving to determine where casts were needed in untyped code~\cite
+{tf-dls06}. These two approaches set the direction for a decade of research.
+Today, gradual type systems support a variety of languages, enforcement
+mechanisms, and soundness guarantees; this degree of linguistic diversity is
+not without consequence, however, as the very notion of what constitutes an
+error remains unsettled.
 
 The type system and semantics of a programming language are necessarily
-tightly coupled; each has to deal with the language's complexity. As a result,
+tightly coupled;  each has to deal with the language's complexity. As a result,
 the same gradual typing semantics may seem very different when applied to two
-different languages; an issue that shows up clearly in object-oriented
+different languages, an issue that shows up clearly in object-oriented
 languages. Siek and Taha's first effort~\cite{SiekTaha07} presented a gradual
 type system for a variant of Abadi and Cardelli's object-based
 calculus~\cite{cardelli:1996:theory-of-objects}. It related objects by
@@ -152,31 +152,37 @@ type-checking followed by type-erasure.  Erroneous values flowing from
 dynamically typed code to statically typed code will not be caught. The
 \emph{concrete} approach, used in C\# and Nom, uses runtime subtype tests on
 type constructors to supplement static typing.  While statically typed code
-executes at native speed, values must be checked at typed-untyped
-boundaries. The \emph{behavioral} approach of Typed Racket, Gradualtalk and
-Reticulated Python, monitors values to ensure that they behave in accordance
-to their assigned types. This approach allows the language implementations
-to enforce soundness. Finally, the \emph{transient} approach, specific to
+executes at native speed, higher-order values are checked to be of statically
+known type at typed-untyped boundaries. The \emph{behavioral} approach of Typed Racket, Gradualtalk and
+Reticulated Python monitors values to ensure that they behave in accordance
+to their assigned types. Instead of checking higher order values for static
+type tags like concrete, they add wrappers over higher order behavior to ensure
+it acts as the type says it should. The \emph{transient} approach, specific to
 Reticulated Python, lies between concrete and behavioral; it adds type casts
 but does so only for the top-level of data structures. Finally, Thorn and
-StrongScript have a particular combination of optional and concrete as they
-differentiate between types that are erased and types that are run-time
+StrongScript combine the optional and concrete semantics,
+differentiating between types that are erased and types that are run-time
 checked.
 
-Each static type system is designed to capture some class of errors. For
-gradual type systems, the meaning of error depends on the choice of run-time
-enforcement strategy.  In other words, each gradual type system may catch
+Static type systems are designed to capture some class of errors. For
+gradual type systems, however, it is impossible to rule out all errors;
+untyped code can violate type guarantees. The meaning of error for a gradual
+type system therefore depends on how it enforces type guarantees upon untyped
+code. As a result, the meaning of error depends on the choice of run-time
+enforcement strategy. In other words, each gradual type system may catch
 different ``errors''.  We demonstrate this with a litmus test consisting of
-three simple programs capable of distinguishing all four approaches to
-gradual typing. The litmus test programs are statically well-typed and are
-``correct'' in the sense that in an untyped language they run to completion
-without error. Yet, they display different errors at run-time depending on
-which gradual type system is used. For an intuition, consider a call,
-\EM{\x.\m()}, in the concrete approach, if variable \code x has type \C,
-some class in the program, this statement is guaranteed to succeed, with an
-optional or transient approach the call may fail because \x lacks method \m,
-in behavioral the call will succeed, but a failure may occur if the value it
-returns is not of the expected type.
+three simple programs capable of distinguishing all four major approaches to
+gradual typing. The litmus test programs are statically well-typed, and are
+``correct'' in the sense that they run to completion without error in an
+untyped language. However, when executed with different gradual typing
+semantics, they produce different errors. For intuition,
+consider a call, \EM{\x.\m()}. In the concrete approach, if variable \code x
+has type \C (some class in the program) with method \m, this statement is guaranteed to
+succeed. Under the behavioral semantics, the call will go through, but the function
+might error if it attempts to return the wrong value. In the transient semantics, the call is similarly
+guaranteed to go through, but might return the wrong value and not produce an error.
+Finally, in the optional semantics, it could error at any time, including the initial
+call.
 
 \begin{wrapfigure}{r}{7cm}\begin{center}
 \vspace{-6mm}
@@ -203,15 +209,19 @@ returns is not of the expected type.
 \end{center}
 \vspace{-7mm}\end{wrapfigure}
 
-We propose to compare approaches to gradual typing for objects by
-translating a gradually typed surface language to a target language, called
-\kafka. \kafka is a statically typed class-based object calculus with
-explicit mutable state. The key features of \kafka are casts:
-\emph{structural casts} check if the object is a subtype of some type \t,
-while \emph{behavioral casts} create wrappers, enforcing that an object
-behaves as if it was of some type \t. By translating to this minimal
-object-oriented calculus, we illustrate the source soundness guarantees
-provided by each semantics. 
+We propose to compare approaches to gradual typing for objects by translating
+a gradually typed surface language to a target language, called \kafka. Our
+surface language is a \emph{gradually} typed class-based object oriented
+language, similar to Featherweight Java. \kafka is a \emph{statically} typed
+class-based object calculus with explicit mutable state. The key difference
+between the languages is the statically sound type system and casts of \kafka.
+Where the surface language will allow implicit coercions, \kafka requires
+explicit casts to convert types. The \kafka language supports two kinds of
+casts: \emph{structural casts} check if the object is a subtype of some type
+\t, while \emph{behavioral casts} create wrappers, enforcing that an object
+behaves as if it was of some type \t. Translating from the gradually typed
+source language to the statically typed target language involves adding casts,
+the location and type of which depends on the gradual typing semantics.
 
 \noindent
 This paper makes the following contributions:
@@ -228,16 +238,17 @@ This paper makes the following contributions:
 \end{itemize}
 
 \noindent Our work does not address the question of performance of the
-translations. While there are intrinsic performance costs to the various
-approaches, these costs could be mitigated by compiler optimizations.  A
-departure from previous work is that \kafka is statically typed.  By
-translating to a statically typed core, we can clearly see where
-wrapper-induced dynamic errors can occur. Another design choice is the use
-of structural subtyping in \kafka. This is motivated by our desire to
-represent behavioral and transient approaches that require structural
-subtyping.  There would be no major difficulty switching \kafka to a nominal
-subtype system or providing an additiomal nominal subtype cast.
-Code and proofs are available from: {\small \url{github.com/BenChung/GradualComparisonArtifact}.}
+translations. Each of the semantics for gradual typing has intrinsic
+performance costs, but these can be mitigated by compiler and runtime
+optimizations which we do not perform. A departure from previous work is that
+\kafka is statically typed.  By translating to a statically typed core, we can
+clearly see where wrapper-induced dynamic errors can occur. Another design
+choice is the use of structural subtyping in \kafka. This is motivated by our
+desire to represent behavioral and transient approaches that require
+structural subtyping.  There would be no major difficulty switching \kafka to
+a nominal subtype system or providing an additiomal nominal subtype cast. Code
+and proofs are available from: {\small
+\url{github.com/BenChung/GradualComparisonArtifact}.}
 
 \section{Background}
 
