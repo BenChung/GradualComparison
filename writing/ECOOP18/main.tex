@@ -276,9 +276,8 @@ Typed Racket is influenced by their earlier work on higher-order
 contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a vehicle for
 teaching programming. Thus, being able to explain the source of errors was
 an important design consideration. Another consideration was to prevent
-surprises for beginning users, thus the value held in a variable annotated
-with type \t should always behave as if it was of that type, this even when
-transfered to a variable of another type. To aid debugging, any departure
+surprises for beginning users. Values of type \t, for example, should act
+like type \t even when typed differently. To aid debugging, any departure
 from the expected behavior of an object, as defined by its behavioral type,
 is reported at the first discrepancy.  Whenever a value crosses a boundary
 between typed and untyped code, it is wrapped in a contract that monitors
@@ -292,13 +291,19 @@ al. in~\cite{Takikawa:2012}.
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
 for a program by choosing to annotate function parameters with types, or
-not.'' Their contribution was a formalization of the idea in a lambda
-calculus equipped with references. They defined the type consistency
-relation $\t \sim \tp$ which states that types that agree on non-\any
-positions are compatible.  In~\cite{SiekTaha07} the authors extended their
-result to an object calculus and combined consistency with structural
-subtyping, but extending this approach to mutable objects with subtyping
-proved challenging. Reticulated Python~\cite{siek14} is a compromise between
+not.'' They formalized this idea in the lambda calculus augmented with
+references. To make the type system a gradual one, they defined the type consistency
+relation $\t \sim \tp$. If $\t \sim \tp$, then \t is consistent with \tp,
+and can therefore be used implicitly where a \tp instance is expected.
+This enables gradual typing, as $\any \sim \t$ for every $\t$ and vice versa,
+allowing untyped values to be passed where typed ones are expected.
+In~\cite{SiekTaha07} the authors extended this idea to an object calculus.
+In order to do so, they combined consistency with structural subtyping,
+producing consistent subtyping. With consistent subtyping, consistency can be used
+when checking structural subtyping, allowing typed objects and untyped objects
+to be passed in one another's places. However, both the basic work and its extension
+to classes use the same enforcement mechanism, the behavioural semantics. 
+To explore the space of semantics further, Reticulated Python~\cite{siek14} is a compromise between
 soundness and efficiency.  The language has three modes: the \emph{guarded}
 mode behaves as Typed Racket with contracts applied to values.  The
 \emph{transient} mode performs shallow subtype checks on reads and method
@@ -379,21 +384,22 @@ Reticulated Python    \\
 
 \figref{over} reviews implemented gradual type systems for objects.  All
 languages here are class-based, except TypeScript which has both classes and
-plain JavaScript objects. That choice does not appear to be crucial, classes
-are handy as they are obvious source of type declarations.  Most languages build
-subtyping on explicit subtype declarations -- nominal subtyping -- rather
+plain JavaScript objects. The choice of whether to include classes is not 
+crucial; classes are useful as a source of type declarations, but are nonessential
+to the type system.  Most languages build subtyping on explicit subtype declarations -- nominal subtyping -- rather
 than on structural similarities.  TypeScript uses structural subtyping, but
-does not implement a run-time check for it.  Anecdotal evidence suggests
-that structural subtyping is rarely needed in TypeScript~\cite{ecoop15},
-Strong\-Script switches it to nominal for improved performance. While
-nominal subtyping leads to more efficient type casts, Reticulated's
-consistency relation is fundamentally structural; it would be nonsensical to
-use it in a nominal system. Consistency relates classes that differ in the
-number of occurrences of \any in their type signature and not whether they
-are declared to extend one another.  For Racket, the heavy use of
+does not implement a run-time check for it (as it is unsound). However, anecdotal evidence suggests
+that most used TypeScript type relations are declared nominally; structural
+relations are not widely used in TypeScript code~\cite{ecoop15}. Taking advantage of this,
+Strong\-Script uses nominal subtyping instead for improved performance in checking
+values, an key change due to Strong\-Script's dynamically checked sound types. While
+nominal subtyping leads to more efficient type casts, Reticulated Python's
+subtype consistency relation is fundamentally structural; it would be nonsensical to
+use it in a nominal system. For Racket, the heavy use of
 first-class classes and class generation naturally leads to structural
 subtyping as many of the classes being manipulated have no names and arise
 during computation.
+
 The optional approach is the default for Dart, Hack and TypeScript.
 Transient Reticulated Python allows any value to flow in a field regardless
 of type annotations, leading to its ``open world'' soundness
@@ -409,12 +415,17 @@ with a reference or an object.
 
 Blame assignment is a topic of investigation in its own right. Anecdotal
 evidence suggests that the context provided by blame helps developers
-pinpoint the provenance of errors. A fitting analogy are the stack traces
-printed by Java when a program terminates abruptly. Developers working in,
-e.g, C++ must run their program in a debugger to obtain the same
-information. Stack traces have little run-time cost because they piggyback on
-precise exceptions. Recording blame has a cost, but no data exists on its
-performance impact. We do not consider blame further in this paper.
+pinpoint the provenance of errors. In the same way that a Java stack trace
+identifies the function that went wrong, blame identifies where a type assertion
+came from. This is especially important in behavioural gradual type systems,
+as type assertions become wrappers which can propagate through the heap. Blame
+identifies where a failing wrapper came from, a task that would otherwise require
+extensive backtracking debugging. Unlike stack traces, which have little run-time cost,
+blame tracking has considerable cost due to its metadata. Blame information has to be
+stored whenever a wrapper is applied, a substantial overhead, and is reported
+to cause substantial slowdowns. However, no concrete data exists for this slowdown.
+We are primarily concerned with where the error arises, rather than what information
+is included in the error; we do not consider blame further.
 
 The last column of \figref{over} lists self-reported performance
 pathologies.  These numbers are not comparable as they refer to different
@@ -427,10 +438,10 @@ that can be optimized.  The performance of the transient semantics for
 Reticulated Python is a worst case scenario for concrete types -- i.e. there
 is a cast at almost every call. Finally, languages with behavioral casts are
 prone to significant slow downs. Compiler optimizations for reducing these
-overheads are an active research topic.  Languages such as C\#, Nom, Thorn,
-and Strong\-Script are designed in such way that the performance of fully
-typed code is better than untyped code, and that mixed code performs well
-thanks to the relatively inexpensive nominal subtype tests.
+overheads are an active research topic~\cite{richards-bettermono,OnlyMostly}.  
+Languages such as C\#, Nom, Thorn, and Strong\-Script are designed so that
+the performance of fully typed code is better than untyped code, and so that
+ mixed code performs well thanks to the relatively inexpensive nominal subtype tests.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
