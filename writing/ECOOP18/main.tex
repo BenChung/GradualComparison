@@ -643,15 +643,14 @@ typed/untyped boundaries that are crossed by an object. Let us use the
 notation $\C ~\vert_{\,\t}$ to denote that an object of class \C passes
 through a type boundary that expects it to be of type \t. For example,
 if method \m expects an argument of type \t, a method call $\e.\m(\ep)$ would
-induce the boundary transition \[\ep ~\vert_{\,\t}\]. 
+induce the boundary \[\ep ~\vert_{\,\t}\]. 
 
-In program {\bf
-  L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] an instance of class \A
-is first implicitly converted to \any and then to \I; in this program
+In program {\bf L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\]: an instance of 
+class \A is first implicitly converted to \any and then to \I; in this program
 classes \A and \I are unrelated by subtyping. In {\bf L2}, the same sequence
 of conversions is applied
 \[\A~ \vert_{\,\any} ~ \vert_{\,\I}\] but this time \A and \I both have a
-method \m, but the methods have incompatibly argument types.  Lastly, in
+method \m, but the methods have incompatible argument types.  Lastly, in
 {\bf L3} we start by converting an object of class \C to \any and then to \E
 and finally back to \any.
 \[\C~ \vert_{\,\any}~\vert_{\,\E}~\vert_{\,\any}\]
@@ -664,6 +663,8 @@ would not be legal because \E's method \m expects a class \D as argument.
   \caption{Gradual typing litmus test.}\label{litmus}
 \end{figure}
 
+\noindent We will use this litmus test to differentiate between four different
+gradual type systems:
 \vspace{2mm}\noindent
 {\bf Optional.~} An optional gradual type system simply erases all of the
 type annotations at run-time; all three programs run to completion without
@@ -671,7 +672,7 @@ error.
 
 \vspace{2mm}\noindent {\bf Concrete.~} The guarantee provided by the
 concrete semantics is that all implicit conversion imply a run-time subtype
-check.  This causes all three programs to experience failure. {\bf L1} and
+check.  This causes all three programs to fail. {\bf L1} and
 {\bf L2} fail on a subtype test \StrSub{}\K\A\I.  {\bf L3} fails on the
 subtype test \StrSub{}\K\C\E.
 
@@ -704,41 +705,65 @@ programs have been expressed in TypeScript (optional), StrongScript
 implementations have the same errors.
 
 What the litmus tests show is that understanding the implementation of
-gradually typed languages, the run-time enforcement machinery, is crucial
-for developers to know, precisely, when their programs is ``correct''.  In
-the case of the litmus, all errors are spurious, none of these programs is
-incorrect. This underlines the fact that in gradually typed language, bugs
-can slip into the type specification and those bugs can cause run-time
-errors. Thus, type annotations must be audited and tested just like code.
+gradually typed languages, the run-time enforcement machinery, is crucial;
+in order for developers to know when their programs is ``correct,'' they must
+understand when the gradual type system will produce an error. In
+the litmus test, all errors are spurious, since none of these programs ever
+actually performs an invalid operation. This underlines the fact that in 
+gradually typed language, false type specifications can create run-time
+errors just as faulty code could. Thus, type annotations must be audited 
+and tested just like code.
 
-There are clear usability trade-offs between approaches. The optional
-approach is the most permissive, developers need not worry about type
-annotations introducing bugs as annotations have no impact on program
-execution. On the other hand, any method invocation may go wrong. So the
-guarantees provided by this approach are the weakest. The behavioral
-approach was designed to be sound, this comes at the cost of not being able
-to rule out run-time errors at any operation. The use of wrappers to monitor
-the behavior of values also has the consequence that any method invocation
-may fail if the receiver is a wrapped object.  Concrete types have a much
-simpler semantics, errors only occur at the boundary between untyped and
-typed code. Method invocation on a typed receiver with typed arguments will
-never get stuck. The concrete approach is the most restrictive as the values
-that cross typed boundaries must be related by subtyping to expected type.
-Finally, the transient approach occupies a middle ground with weaker
-guarantees than behavioral and less restrictions than concrete.
+The different approaches induce usability trade-offs. One way to contextualize
+this is with the gradual guarantee of Siek et al~\cite{GradualGuarantee}. Put
+informally, the gradual guarantee states that if there exists a static type
+assignment to an untyped program, any partial assignment of those types will
+still execute successfully. Trivially, the optional semantics fulfills this
+guarantee; under the optional semantics, the types are dynamically meaningless
+so have no impact on the runtime. However, this comes at the cost of
+soundness, as the type parameters are unchecked and function calls may go
+wrong at any time.  The transient semantics likewise satisfies the gradual
+guarantee~\cite{Vitousek2017},  as it only checks top-level structure of
+values at type boundaries. Unlike the  optional semantics, the transient
+semantics does guarantee that typed function calls will succeed; however, the
+function may produce a dynamic error if the receiver is of the wrong type
+(even when called from a typed context), or it can return an  ill-typed value
+to a typed call site (which is checked by the caller). The behavioral
+semantics also fulfills the gradual guarantee, as it will only check argument
+and return types when wrappers are invoked. However, typed function calls
+might fail still if they call an untyped function that returns the wrong
+value. Finally, the concrete semantics provides an absolute guarantee that
+every typed function call will be successful (e.g. method will exist, under
+the right argument types, and return the correct value). However, this comes
+at the expense of not fulfilling the gradual guarantee---partially typed
+classes are not compatible with more-or-less typed ones under the concrete
+semantics.
 
-Reticulated Python uses a \emph{consistency} relation instead of
-subtyping~\cite{siek14}.  Consistency allows the static type system to
-accept more programs, as types that have fewer occurrences of \any are
-consistent with types that have more \any. But consistency does not affect
-the run-time semantics of the transient approach, so we omit it
-here. Consistency is not compatible with the concrete approach. As for
-behavioral, Type Racket expects code to be either fully or fully untyped, in
-that case consistency boils down to subtyping.
+The problem that the concrete semantics has with the gradual guarantee is
+that the gradual guarantee is incompatible with concrete (i.e. traditional)
+subtyping. Suppose the fully typed version of the program relies on the static
+subtyping judgment $\{m(\C):\C\} <: \{m(\C):\C\}$. Using unaltered subtyping,
+no single one of these \C types can be removed while retaining the subtyping 
+relationship. To overcome this problem, Reticulated Python augments subtyping
+with the aforementioned \emph{consistency} relation, or consistent subtyping~\cite{siek14,SiekTaha07}.
+Consistent subtyping would admit $\{m(\any):\C\} <: \{m(\C):\C\}$, for example, 
+as it allows consistency to be used while concluding a subtyping relation.
+This strictly increases the number of programs accepted by the static type
+system. However, consistent subtyping is not essential to the runtime semantics of any
+of the gradual type systems, and is fundamentally incompatible with the concrete
+semantics (any use of consistent subtyping is guaranteed to fail). As a result,
+we omit consistent subtyping from our source language for the reason of 
+simplicity.
 
-Thorn and StrongScript combine the concrete and optional approach as they
-support three kinds of types, \any (dynamic), \C (concrete) and \xt{like} \C
-(optional). The run-time semantics matches that of the concrete approach.
+An alternative to the gradual guarantee is presented in the approaches
+taken by Thorn or StrongScript. They have three kinds of types, \any (dynamic),
+\C (concrete), and \xt{like} \C (optional), combining the concrete and
+optional semantics into the same language. This design allows for a different
+kind of migration than languages with the gradual guarantee permit; once
+a program is fully annotated with optional types, they all can be
+converted to concrete types without introducing any runtime errors~\cite{ecoop15}.
+We do not model this combination directly, as the underlying details
+are no different from the concrete semantics.
 
 The choice of structural subtyping for the surface language is motivated by
 the desire to support the transient approach. For the concrete approach a
