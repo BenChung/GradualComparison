@@ -452,17 +452,18 @@ the performance of fully typed code is better than untyped code, and so that
 
 \vspace{-10mm}
 \noindent
-A consequence of the variety of approaches to gradual typing is there is no
-single, common, notion of what constitutes an erroneous program. The choice
+There is no single, common, notion of what constitutes an erroneous gradually
+typed program---a consequence of the varied enforcement strategies. The choice
 of enforcement strategy is reflected in the semantics of the language,
 which, in turn, implies that developers have to understand the details of
-that strategy if they want to avoid run-time errors.  This also
+that strategy to avoid run-time errors.  This also
 means that it is possible to differentiate between approaches by simply
-observing the run-time errors that each type system produces.  We propose a
+observing the run-time errors that each type system produces. We propose a
 litmus test consisting of three programs whose execution depends on which
-gradual type system is in use. Each of these program runs without error when
-executed with a purely dynamic semantics, and each program is statically
-well-typed. We start by presenting a common surface language in which we can
+gradual type system is in use. Each of these programs is statically 
+well-typed and runs without error when executed with a purely dynamic semantics.
+However, this varies as we use different semantics for gradual typing.
+We start by presenting a common surface language in which we can
 express our programs, and then explain why the various approaches to gradual
 typing yield different run-time errors.
 
@@ -568,54 +569,62 @@ typing yield different run-time errors.
 \caption{Surface language syntax and type system (extract).}\label{slts}
 \end{figure}
 
-We present a common surface language that can be used with different gradual
-type systems. The surface language is a statically typed object calculus
-without inheritance, method overloading or explicit type cast operations.
-\figref{slts} gives its syntax and an extract of its static semantics. The
-distinctive feature of the calculus is the presence of type \any\,-- the
-dynamic type. A variable of type \any can hold any value, and an invocation
-of a method with receiver of type \any is statically well-typed.
+To normalize our presentation, we use a single common source language for all
+four of the gradual type systems under study. The surface language is  a
+\emph{gradually} typed object calculus without inheritance, method overloading
+or explicit type cast operations. \figref{slts} gives its syntax and an
+extract of its static semantics. The distinctive feature of the calculus  is
+the presence of type \any\,-- the dynamic type. A variable of type \any can
+hold any value, an invocation of a method with receiver of type \any is
+always statically well-typed, and an expression of type \any can appear
+anywhere within a typed program.
 
-The presence of the dynamic type suffices to allow writing gradually typed
-code. A program with no occurrence of \any is statically typed, in which
-case, the usual soundness guarantee holds, namely programs will not get
-stuck on method invocation. A program where all variables are annotated as
-dynamic is fully dynamic and any invocation may get stuck.
-Gradual typing comes into play when an expression of type \any occurs as an
-argument to a method that expects some other type \C and conversely when an
-argument of type \C is passed to a method that expects \any. The static type
-system of the surface language allows such implicit coercions, but run-time
-checks may be inserted to catch potential type mismatches. The following
-sections formalize the semantics of the different gradual approaches in
-terms of a translation into \kafka, our lower-level common calculus.  In
-this section, we appeal to the reader's intuition.
+This dynamic type converts our otherwise statically typed language to being
+gradually typed. If a program in the surface language has no appearances of
+\any then it will be traditionally sound (not get stuck on method invocation).
+A program where all variables are annotated as dynamic is fully dynamic and
+any invocation may get stuck. Gradual typing comes into play when an
+expression  of type \any occurs as an argument to a method that expects some
+other type \C  and conversely when an argument of type \C is passed to a
+method that expects \any. The static type system of the surface language
+allows such implicit coercions---using the convertability relation---but run-
+time checks may be inserted to catch potential type mismatches. We will fully
+formalize the semantics of this systems in future sections in terms of
+\kafka, a low level object calculus; here, we appeal to the reader\s
+intuition.
 
 Before presenting the litmus test, some details about the type system of the
 surface language may prove helpful. The subtyping relation is structural
-with the Amber rule~\cite{cardelli1985amber}, \StrSub\M\K\C\D holds if class
+with the Amber rule~\cite{cardelli1985amber} to enable recursion. \StrSub\M\K\C\D holds if class
 \C has (at least) all the methods of class \D and the arguments and return
 types are related by subtyping in the usual contra- and co-variant way; the
 class table \K holds definitions of all classes and \M is helper for
 recursion. One noteworthy feature of subtyping is that the fields of objects
 do not play a role in deciding if classes are subtypes. Following languages
-like Smalltalk, fields are encapsulated and can only be accessed from their
-defining object, syntactically field reads and write are limited to
-\this.\f. The static type-checking rules are standard with two exceptions.
-Method invocation, \EM{\e.\m(\ep)}, when the receiver is dynamic,
-\EM{\e:\any}, allows the invocation of any method \m, with a dynamic
-argument, \EM{\ep:\any}, and a dynamic return type, \EM{\e.\m(\ep):\any}.
-Mixing static and dynamically typed terms is achieved by implicitly
-converting typed and untyped terms. The convertibility relation, written
-$\ConvertE\K s\t\tp$, states that type $\t$ is convertible to type $\tp$ in
-class table \K.  The relation is used both for up-casting and for
-conversions of \any to non-\any types.  $\ConvertE\K s\t\tp$ holds when
-$\t\Sub\tp$, this allows up-casts. The remaining two rules allow implicit
-conversion to and from the dynamic type.  To avoid collapsing the type
-hierarchy, convertibility is not transitive. Implicit conversion break type
-soundness, their use motivates the need for dynamic checks.  If some typed
-term flows into an untyped variable, it must be protected from
-misuse. Likewise, if an untyped term is passed into typed code, then type
-invariants must be checked.
+like Smalltalk, fields are encapsulated and can only be accessed from within their
+defining object. Syntactically, field reads and writes are limited to
+the self-reference \this. 
+
+The static type-checking rules are standard with two exceptions:
+Method invocation is always allowed when the receiver \e is of 
+type \any; therefore \EM{\e.\m(\ep)} has type \any if the argument
+can have type \any. Secondly, we introduce a notion of convertibility, 
+which allows the mixing of static and dynamic types. 
+
+Convertibility is used when statically typed and dynamically typed terms
+interact. The convertibility relation, written $\ConvertE\K s\t\tp$, states
+that type $\t$ is convertible to type $\tp$ in class table \K.  The relation
+is used both for up-casting and for conversions of \any to non-\any types.
+$\ConvertE\K s\t\tp$ holds when $\t\Sub\tp$, this allows up-casts. The
+remaining two rules allow implicit conversion to and from the dynamic type.
+To avoid collapsing the type hierarchy, convertibility is not transitive.
+
+It is through convertibility that our source language becomes gradual; the
+implicit conversions that it allows break type soundness. The semantics of the
+source language must therefore add dynamic checks wherever it was used. 
+Typed values manipulated from untyped code cannot make any type assumptions
+about their arguments. Similarly, untyped values in typed code may return ill-typed
+values. 
 
 
 \subsection{Litmus}
@@ -632,7 +641,11 @@ construction of an untyped value that violates the type guarantees of some
 systems, but not others.  At heart, these programs can be summarized by the
 typed/untyped boundaries that are crossed by an object. Let us use the
 notation $\C ~\vert_{\,\t}$ to denote that an object of class \C passes
-through a type boundary that expects it to be of type \t.  In program {\bf
+through a type boundary that expects it to be of type \t. For example,
+if method \m expects an argument of type \t, a method call $\e.\m(\ep)$ would
+induce the boundary transition \[\ep ~\vert_{\,\t}\]. 
+
+In program {\bf
   L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] an instance of class \A
 is first implicitly converted to \any and then to \I; in this program
 classes \A and \I are unrelated by subtyping. In {\bf L2}, the same sequence
