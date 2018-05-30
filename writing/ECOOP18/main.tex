@@ -205,15 +205,14 @@ We propose to compare approaches to gradual typing for objects by translating
 a gradually typed surface language to a target language, called \kafka. Our
 surface language is a \emph{gradually} typed class-based object oriented
 language, similar to Featherweight Java. \kafka is a \emph{statically} typed
-class-based object calculus with explicit mutable state. The key difference
-between the languages is the statically sound type system and casts of \kafka.
-Where the surface language will allow implicit coercions, \kafka requires
-explicit casts to convert types. The \kafka language supports two kinds of
-casts: \emph{structural casts} check if the object is a subtype of some type
-\t, while \emph{behavioral casts} create wrappers, enforcing that an object
-behaves as if it was of some type \t. Translating from the gradually typed
-source language to the statically typed target language involves adding casts,
-the location and type of which depends on the gradual typing semantics.
+class-based object calculus with mutable state. The key difference
+between the two is the sound type system and casts of \kafka.
+Where the surface language allows implicit coercions, \kafka requires
+explicit casts to convert types. Casts come in two kinds:
+\emph{structural casts} check if an object is a subtype of some type
+\t, while \emph{behavioral casts} monitor that an object
+behaves as if it was of some type \t. Translating from surface to target language
+involves adding casts, the location and type of which depends on the gradual type system.
 
 \noindent
 This paper makes the following contributions:
@@ -224,7 +223,7 @@ This paper makes the following contributions:
   type systems.
 \item Supplementary material includes a mechanized proof of soundness of the
   type system of the core calculus and its proof-of-concept implementation
-  on the .Net Common Language Runtime.
+  on  .Net.
 \end{itemize}
 
 \noindent Our work does not address the question of performance of the
@@ -250,32 +249,28 @@ attempts to add types to Smalltalk and LISP. On the Smalltalk side, work on
 the Strongtalk optional type system~\cite{Bracha93} led to Bracha's notion
 of pluggable types~\cite{pluggabletypes}. For him, types exist solely to
 catch errors at compile-time, never affecting the run-time behavior of
-programs. The rationale is that types exist to provide aid to the programmer
-and only create additional errors. In the terms of Richards~\emph{et
-  al.}~\cite{ecoop15}, an optional type system is \emph{trace preserving};
+programs. An optional type system is \emph{trace preserving},
 that is to say, if a term \e reduce to \a, then adding type annotations to
-\e does not prevent \e from reducing.  This property is valuable to
-developers as it ensures that type annotations will not introduce errors.
+\e does not prevent it from reducing to that value~\cite{ecoop15}.  This property is valuable to
+developers as it ensures that type annotations will not introduce errors, and
+thus that adding types does not increase the testing burden!
 Optional type systems in wide use include Hack~\cite{hack13},
 TypeScript~\cite{BAT14} and Dart~\cite{dart13}.
 
-Felleisen and his students have contributed substantially to functional
-gradual typing. The Typed Scheme~\cite{tf-popl08} design that later became
-Typed Racket is influenced by their earlier work on higher-order
+Felleisen and his students have contributed substantially to gradual
+typing. The Typed Scheme~\cite{tf-popl08} design that later became Typed
+Racket is influenced by their earlier work on higher-order
 contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a vehicle for
-teaching programming. Thus, being able to explain the source of errors was
-an important design consideration. Another consideration was to prevent
-surprises for beginning users. Values of type \t, for example, should act
-like type \t even when typed differently. To aid debugging, any departure
-from the expected behavior of an object, as defined by its behavioral type,
-is reported at the first discrepancy.  Whenever a value crosses a boundary
-between typed and untyped code, it is wrapped in a contract that monitors
-its behavior. This ensures that mutable values remain consistent with their
-declared type and functions respect their declared interface. When a value
-misbehaves, blame can be assigned to a boundary. The granularity of typing
-is the module, thus a module is either entirely typed or entirely untyped.
-Typed Racket's support for objects was described by Takikawa et
-al. in~\cite{Takikawa:2012}.
+teaching programming. Thus, being able to explain the source of errors and
+avoiding surprises for beginning users were important considerations. Thus,
+a value that flows in a variable of type \t, should behave as if it belonged
+to that type throughout its lifetime.  Whenever a higher-order or mutable
+value crosses a boundary between typed and untyped code, it is wrapped in a
+contract that monitors the value's behavior.  If the value misbehaves, blame
+can be assigned to the boundary that assigned it the type that was
+violated. The granularity of typing is the module, thus a module is either
+entirely typed or entirely untyped.  Typed Racket's support for objects was
+described by Takikawa et al.~in~\cite{Takikawa:2012}.
 
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
@@ -290,17 +285,16 @@ In~\cite{SiekTaha07} the authors extended this idea to an object calculus.
 In order to do so, they combined consistency with structural subtyping,
 producing consistent subtyping. With consistent subtyping, consistency can be used
 when checking structural subtyping, allowing typed objects and untyped objects
-to be passed in one another's places. However, both the basic work and its extension
-to classes use the same enforcement mechanism, the behavioural semantics. 
-To explore the space of semantics further, Reticulated Python~\cite{siek14} is a compromise between
-soundness and efficiency.  The language has three modes: the \emph{guarded}
+to be mixed. 
+To explore the design space, Reticulated Python~\cite{siek14} was given
+three modes: the \emph{guarded}
 mode behaves as Typed Racket with contracts applied to values.  The
 \emph{transient} mode performs shallow subtype checks on reads and method
 returns, only validating if the value obtained has matching method types.
-The \emph{monotonic} mode is fundamentally different from any of the other
-previous approaches. Under the monotonic semantics, a cast updates the type
-of an object in place by replacing some of the occurrences of \any with more
-specific types, which can then propagate recursively through the heap until
+The \emph{monotonic} mode is fundamentally different from any of the
+previous approaches. Monotonic cast updates the type 
+of values in place by replacing some of the occurrences of \any with more
+specific types, these updates propagate recursively through the heap until
 a fixed point is reached.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
@@ -308,7 +302,7 @@ Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 Strong\-Script~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
 Felleisen-style contracts and mostly nominal type equivalence (structural
 equivalence can be specified on demand, but it is rarely
-used). C\# 4.0 adds the type {\sf dynamic} to C\# and dynamically resolved
+used). C\# 4.0 adds the type {\sf dynamic} to C\# and adds dynamically resolved
 method invocation. Thus C\# has a dynamic sublanguage that allows developers
 to write unchecked code, working alongside a strongly typed sublanguage in
 which values are guaranteed to be of their declared type.  The
@@ -371,17 +365,15 @@ Reticulated Python    \\
     Typed expressions are sound.}\label{over}
 \end{figure}
 
-\figref{over} reviews implemented gradual type systems for objects.  All
-languages here are class-based, except TypeScript which has both classes and
-plain JavaScript objects. The choice of whether to include classes is not 
-crucial; classes are useful as a source of type declarations, but are nonessential
-to the type system.  Most languages build subtyping on explicit subtype declarations -- nominal subtyping -- rather
+\figref{over} reviews gradual type systems for objects.  All
+languages are class-based, except TypeScript which has both classes and
+JavaScript objects. While that choice is not
+crucial; classes are useful as a source of type declarations.
+Most languages build subtyping on explicit subtype declarations -- nominal subtyping -- rather
 than on structural similarities.  TypeScript uses structural subtyping, but
-does not implement a run-time check for it (as it is unsound). However, anecdotal evidence suggests
-that most used TypeScript type relations are declared nominally; structural
-relations are not widely used in TypeScript code~\cite{ecoop15}. Taking advantage of this,
-Strong\-Script uses nominal subtyping instead for improved performance in checking
-values, an key change due to Strong\-Script's dynamically checked sound types. While
+does not implement a run-time check for it. Anecdotal evidence suggests
+that TypeScript could by switched to nominal subtyping with little effort, as
+was done for StrongScript~\cite{ecoop15}.  While
 nominal subtyping leads to more efficient type casts, Reticulated Python's
 subtype consistency relation is fundamentally structural; it would be nonsensical to
 use it in a nominal system. For Racket, the heavy use of
@@ -397,8 +389,8 @@ typed; they can be unboxed without tagging.  The choice of casts follows
 from other design decisions. The concrete approach naturally tend to use
 subtype tests to establish the type of values. For nominal systems, there
 are highly optimized algorithms. Shallow casts are casts that only check the
-presence of methods, but not their signature. These are used by Racket and
-Python to ensure some basic form of type conformance.  Behavioral casts are
+presence of methods, but not their signature. They are used by Racket and
+Reticulated Python to ensure some basic form of type conformance.  Behavioral casts are
 used when information such as a type or a blame label must be associated
 with a reference or an object.
 
@@ -410,11 +402,11 @@ came from. This is especially important in behavioural gradual type systems,
 as type assertions become wrappers which can propagate through the heap. Blame
 identifies where a failing wrapper came from, a task that would otherwise require
 extensive backtracking debugging. Unlike stack traces, which have little run-time cost,
-blame tracking has considerable cost due to its metadata. Blame information has to be
-stored whenever a wrapper is applied, a substantial overhead, and is reported
-to cause substantial slowdowns. However, no concrete data exists for this slowdown.
+blame tracking has a cost due to its meta-data. Blame information has to be
+stored whenever a wrapper is applied and is believed
+to cause substantial slowdowns. However, this has not been measured in detail.
 We are primarily concerned with where the error arises, rather than what information
-is included in the error; we do not consider blame further.
+is included in the error, thus we do not consider blame further.
 
 The last column of \figref{over} lists self-reported performance
 pathologies.  These numbers are not comparable as they refer to different
@@ -444,8 +436,6 @@ non-optimizing implementation of the embeddedings, the results are as
 expected: behavioral has extreme worst cases and locally-defensive
 significantly slows down fully-typed programs. While they do not evalute
 object-oriented programs, these are unlikely to fare better.
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
