@@ -671,7 +671,7 @@ type annotations at run-time; all three programs run to completion without
 error.
 
 \vspace{2mm}\noindent {\bf Concrete.~} The guarantee provided by the
-concrete semantics is that all implicit conversion imply a run-time subtype
+concrete approach is that all implicit conversion imply a run-time subtype
 check.  This causes all three programs to fail. {\bf L1} and
 {\bf L2} fail on a subtype test \StrSub{}\K\A\I.  {\bf L3} fails on the
 subtype test \StrSub{}\K\C\E.
@@ -718,28 +718,28 @@ The different approaches induce usability trade-offs. One way to contextualize
 this is with the gradual guarantee of Siek et al~\cite{GradualGuarantee}. Put
 informally, the gradual guarantee states that if there exists a static type
 assignment to an untyped program, any partial assignment of those types will
-still execute successfully. Trivially, the optional semantics fulfills this
-guarantee; under the optional semantics, the types are dynamically meaningless
+still execute successfully. Trivially, the optional approach fulfills this
+guarantee; under the optional approach, the types are dynamically meaningless
 so have no impact on the runtime. However, this comes at the cost of
 soundness, as the type parameters are unchecked and function calls may go
-wrong at any time.  The transient semantics likewise satisfies the gradual
+wrong at any time.  The transient approach likewise satisfies the gradual
 guarantee~\cite{Vitousek2017},  as it only checks top-level structure of
-values at type boundaries. Unlike the  optional semantics, the transient
-semantics does guarantee that typed function calls will succeed; however, the
+values at type boundaries. Unlike the  optional approach, the transient
+approach does guarantee that typed function calls will succeed; however, the
 function may produce a dynamic error if the receiver is of the wrong type
 (even when called from a typed context), or it can return an  ill-typed value
 to a typed call site (which is checked by the caller). The behavioral
-semantics also fulfills the gradual guarantee, as it will only check argument
+approach also fulfills the gradual guarantee, as it will only check argument
 and return types when wrappers are invoked. However, typed function calls
 might fail still if they call an untyped function that returns the wrong
-value. Finally, the concrete semantics provides an absolute guarantee that
+value. Finally, the concrete approach provides an absolute guarantee that
 every typed function call will be successful (e.g. method will exist, under
 the right argument types, and return the correct value). However, this comes
 at the expense of not fulfilling the gradual guarantee---partially typed
 classes are not compatible with more-or-less typed ones under the concrete
-semantics.
+approach.
 
-The problem that the concrete semantics has with the gradual guarantee is
+The problem that the concrete approach has with the gradual guarantee is
 that the gradual guarantee is incompatible with concrete (i.e. traditional)
 subtyping. Suppose the fully typed version of the program relies on the static
 subtyping judgment $\{m(\C):\C\} <: \{m(\C):\C\}$. Using unaltered subtyping,
@@ -751,19 +751,19 @@ as it allows consistency to be used while concluding a subtyping relation.
 This strictly increases the number of programs accepted by the static type
 system. However, consistent subtyping is not essential to the runtime semantics of any
 of the gradual type systems, and is fundamentally incompatible with the concrete
-semantics (any use of consistent subtyping is guaranteed to fail). As a result,
+approach (any use of consistent subtyping is guaranteed to fail). As a result,
 we omit consistent subtyping from our source language for the reason of 
 simplicity.
 
 An alternative to the gradual guarantee is presented in the approaches
 taken by Thorn or StrongScript. They have three kinds of types, \any (dynamic),
 \C (concrete), and \xt{like} \C (optional), combining the concrete and
-optional semantics into the same language. This design allows for a different
+optional approach into the same language. This design allows for a different
 kind of migration than languages with the gradual guarantee permit; once
 a program is fully annotated with optional types, they all can be
 converted to concrete types without introducing any runtime errors~\cite{ecoop15}.
 We do not model this combination directly, as the underlying details
-are no different from the concrete semantics.
+are no different from the concrete approach.
 
 The choice of structural subtyping for the surface language is motivated by
 the desire to support the transient approach. For the concrete approach a
