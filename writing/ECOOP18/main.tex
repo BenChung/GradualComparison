@@ -71,7 +71,7 @@ type systems}
 \EventLocation{Amsterdam, Netherlands}
 \EventLogo{}
 \SeriesVolume{42}
-\ArticleNo{-1}
+\ArticleNo{12}
 % Editor-only macros::end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -1136,9 +1136,25 @@ The program starts with a \C, casts it to \D, and then back to \C. The
 reason we generate pass-through methods (the wrapper that enforce type \D
 has a method \n) is that without them, the method \n would be ``lost''. 
 Without the pass-through method, it would be impossible to cast back to
-\C, as the wrapper would only have an implementation for \m. With the
-pass through method, we are able to cast it successfully, and end up
-with a doubly-wrapped reference to the original \C.
+\C, as the wrapper would only have an implementation for \m. Wrappers
+with this semantics are referred to as opaque, as it is not possible
+to see methods of the underlying object though them. In contrast,
+\kafka uses transparent wrappers.
+
+To illustrate what this looks like, the following class \xt E is generated
+by the cast from \C to \D:
+
+\begin{tabbing}\small
+\class\= \xt E \{\\
+\> \HS \Fdef\that\C \\
+\> \HS \Mdef\m\x\Int\Int{\HS\BehCast\Int{\KCall\that\m{\BehCast\any\x}\any\any\HS}} \\ 
+\> \HS \Mdef\n\x\any\any{\HS \KCall\that\n{\x}\any\any\HS} \\ 
+\}
+\end{tabbing}
+
+By keeping \n present, it is possible to return an instance of
+\E to \C again. If we were to remove \n, then \xt E would no longer
+be convertible back to \C again.
 
 \subsection{Type soundness}
 
