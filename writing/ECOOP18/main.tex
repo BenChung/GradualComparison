@@ -766,25 +766,34 @@ system designs.
 
 Our gradually typed surface language has implicit conversions; to make surface
 programs statically typed, we need to make these conversions into explicit casts. 
-The target for this translation is our core language, \kafka. \kafka is a statically
-typed language, very similar to the surface language, but substituting two cast operations for
-the surface language's implicit conversions. Additionally, \kafka makes a syntactic distinction between
-dynamic method invocation, written \KCall\e\m\ep\t\tp, and static
-invocation, written \DynCall\e\m\ep. Its static type system ensures that
-static invocations will not go wrong, whereas dynamic invocations may get
-stuck. The two cast operations include a structural subtype cast, written
-\SubCast\t\e, that ensure the object that expression \e evaluates to a
-subtype of \t, and a behavioral cast, written \BehCast\t\e, that creates a
-wrapper around an object to monitor that it indeed behaves according to type
-\t. The translations from surface language to \kafka precisely describe
-the enforcement machinery required by each approach.
+The target for this translation is our core language, \kafka. \kafka is a staticallytyped language similar to the source, but adding several features to enable its use
+as a common target language.
 
-\kafka was also designed to align with the capabilities of compilation
-target such as .NET or the JVM. It is a class-based, object-oriented,
-language and it supports dynamic code generation. This last feature is
-somewhat unusual for formal calculi but required to express behavioral
-casts.
+These additions make explicit boundaries between typed and untyped code
+as well as the guarantees given to operations. In particular, \kafka substitutes two 
+cast operations for the source's implicit conversions and makes a syntactic distinction between
+static and dynamic method invocation (\KCall\e\m\ep\t\tp and \DynCall\e\m\ep respectively).
+These additions are required to allow the translation of gradually typed code
+into statically typed code.
 
+\kafka's first set of additions, the two casts, are used when a typed
+value becomes untyped or vice versa. The structural subtype cast, written
+\SubCast\t\e, ensures that expression \e evaluates to a
+subtype of \t. The behavioral cast, written \BehCast\t\e, creates a
+wrapper around the value of \e. This wrapper monitors \e's value to
+ensure that it acts as type \t specifies. Both of these casts can go wrong,
+and are used at boundaries between typed and untyped code.
+
+Method invocations are given special syntax to indicate what guarantees
+they provide. Typed invocations in \kafka are guaranteed to not get
+stuck, whereas untyped invocations could get stuck at any call. This
+makes explicit what function calls could fail and which are statically
+guaranteed to be successful.
+
+\kafka's design is intended to align with common statically-typed object
+oriented compilation targets, like .NET or the JVM. Its class based, 
+object-oriented language design with dynamic code generation makes it
+very comparable to practical VM intermediate languages.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[!h]\small\noindent\hrulefill
@@ -914,11 +923,10 @@ casts.
 Designing \kafka we had two requirements. First, it must be expressive
 enough to capture the dynamic semantics implied by each gradual type
 system. Second, it should have a type system that can express that some code
-can be statically shown to be error free.  Syntax and semantics of the
-calculus appear in \figref{fig:kafka}. They are loosely inspired by
-Featherweight Java~\cite{FJ}.  At the top level, classes are notated as
+can be statically shown to be error free. \kafka's syntax and semantics, loosely inspired by
+Featherweight Java~\cite{FJ}, are shown in \figref{fig:kafka}.  At the top level, classes are notated as
 \Class\C{\fd[1]..}{\md[1]..}, methods, ranged over by \md, are denoted as
-\Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist of
+\Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist of:
 
 \vspace{-2mm}
 
@@ -927,33 +935,27 @@ Featherweight Java~\cite{FJ}.  At the top level, classes are notated as
 \item self-reference \this, and wrapped reference, \that;
 \item field access, \FRead\f, and writes, \FWrite\f\e;
 \item object creation, \New\C{\e[1]..};
-\item static and dynamicd method invocations;
+\item static and dynamic method invocations;
 \item subtype and behavioral casts;
-\item references, assignment, and dereference forms for run-time use.
+\item references, assignment, and dereference forms (for the runtime).
 \end{itemize}
 
 \noindent
 Evaluation is mostly standard with an evaluation context consisting of a
 class table \K, an expression being evaluated \e, and a heap \s, mapping
 from addresses \a to objects, denoted $\C\{\a\ldots\}$. Due to the need for
-dynamic code generation, the class table is part of the state.  The
-treatment for majority of these constructs are orthogonal to the issues
-related to supporting gradual typing, therefore their semantics are typical
-for calculi of this style.  Calls and casts, however, are atypical.
+dynamic code generation, the class table is part of the state. To emphasize
+the details of the gradual type systems, we have chosen a typical 
+object oriented calculi design. Calls and casts, however, are atypical.
 
 The static semantics hold few surprises; key typing rules appear in
 \figref{fig:kafka}. The subtyping relation is inherited from the surface
 language.  The program typing relation (not shown here), \WFp\e\K, indicates
-that expression \e is well-formed with respect to class table \K, and the
+that expression \e is well-formed with respect to class table \K. The
 expression typing judgment $\EnvType \Env\s\K\e\t$, indicates that against
 \Env, with heap \s, and class table \K, \e has type \t.  Unlike the surface
 language, \kafka does not rely on a convertibility relation from \any to \C
-and back.  Instead, explicit casts are required. The subtype cast
-\SubCast\t\e and behavioral cast \BehCast\t\e both allow to retype an
-expression \e of type \tp as type \t without any checks. The 
-rule for dynamic method invocation \DynCall\e\m\ep allows invocation of
-any method \m on a receiver and argument of type \any, with a return type
-of \any.
+and back; instead, explicit casts are required.
 
 \subsubsection{Method Invocation}
 
@@ -980,8 +982,8 @@ class definition
 \end{tabbing}
 
 \noindent
-and assume that class table \K holds a definition for \xt{Int}. Furthermore
-we take liberties with syntax around addition and integers for illustration.
+and assume that class table \K holds a definition for \xt{Int}. To illustrate
+this example, we take liberties with the syntax of addition for integers.
 
 The class above demonstrates several features of \kafka. Its class
 well-formedness rules (not shown here) allow a limited form of method
@@ -995,14 +997,17 @@ The static type system enforces a single means of invoking a typed method
 
 \noindent
 Here the receiver is obviously of type \C and the argument is \Int, thus the
-call is statically well-typed. The expression is thus guaranteed to evaluate
+call is statically well-typed. The expression is therefore guaranteed to evaluate
 the body of \m.  For an untyped method, there are two invocation modes:
 
 \vspace{-6mm}\[\DynCall{\New\C{}}\m{2}\]\vspace{-5mm}
 
-\noindent in a dynamic invocation, the method may be missing, and thus
-evaluation may get stuck. On the other hand, one could use  static
-method invocation form such as
+\noindent This form will execute correctly in this example; we know
+that \C has an untyped \m. However, in the general case, there is no
+static guarantee that the receiver of an untyped invocation has the correct
+method, and therefore this form could get stuck. We know, however, that
+\C has method \m. We can therefore use the static invocation form to
+reflect this knowledge,
 
 \vspace{-6mm}\[\KCall{\New\C{}}\m{2}\any\any\]\vspace{-5mm}
 
@@ -1015,14 +1020,17 @@ translating the surface language to \kafka.
 \kafka has two cast operations: the subtype cast $\SubCast\t\e$ and the
 behavioral cast $\BehCast\t\e$, both indicating the desire that the result
 of evaluating \e has type \t.  Where the casts differ is what is meant by
-``has type \t''.  The subtype casts checks that the result of evaluating \e
-is an object whose class is a subtype of \t. If \EM{\t=\any} then the cast
-trivially succeeds. This cast is possible because every value in the heap is
+``has type \t''.  The subtype cast checks that the result of evaluating \e
+is an object whose class is compatible with \t. If \t is a class, then it
+will check for a subtyping relation; otherwise, If \EM{\t=\any} then the cast 
+always succeeds. This cast is possible because every value in the heap is
 tagged by its type construct. The behavioral cast is more complex, we will
-describe it in the remainder.
+describe it in the remainder of this section.
 
-The behavioral cast wraps the result of evaluating \e in a newly created
-object which enforces the invariant that the object \emph{behaves} as a
+The objective of the behavioural cast is to ensure that the wrapped object
+behaves as the target type dictates. The behavioral cast wraps the result
+\a of its argument \e in a newly created object, which we refer to as \ap. 
+This wrapper object enforces the invariant that \a \emph{behaves} as a
 value of type \t.  Function \behcastE\a\t\s\K \Kp\ap\sp specifies its
 semantics, shown in \figref{behavetext}.  There are two cases to consider,
 either the target type is a class \Cp, or it is \any.
@@ -1087,21 +1095,22 @@ either the target type is a class \Cp, or it is \any.
 
 If the target type is \Cp, then \behcastS\a\Cp\s\K will return an updated
 class table \Kp, a reference to the wrapped object \ap, and an updated heap
-\sp. The only property immediately checked is that \a has all the method
-names declared by \Cp. If this is not the case, it is impossible for the
-object to implement the desired interface, and an early failure is
-acceptable. The \xt{wrap} function generates a wrapper, that is, it generates code for
-a new class for the wrapper object, instantiates it, and returns a wrapper
-\ap that points to \a. The metafunction \W does the heavy lifting of class
-creation. It is used as follows, \EM{\W(\C,\md_1..,\mdp_1.., \D)} takes a
+\sp. As long as \a has every method name specified by \Cp, the cast itself will
+succeed. If \a is missing a method, it is impossible for \a to implement \Cp correctly,
+and early failure is indicated. Otherwise, the metafunction continues to generate
+a type wrapper, made by the \xt{wrap} function.
+
+The \xt{wrap} function generates, instantiates with \a, and returns a new wrapper class \ap (which refers to \a)
+Class generation itself is delegated to the \W metafunction.
+A \W invocation, \EM{\W(\C,\md_1..,\mdp_1.., \D)}, takes a
 class \C, a fresh name \D, and two method lists $\md_1..$ and $\mdp_1$,
 respectively the method of \C and the methods of the type to enforce.  The
-generated class will have adapter methods for each method \m occurring in
-both $\md_1..$ and $\mdp_1..$.  The adapter will introduce behavioral casts
-for argument and return values.  For method that do not need to be adapted
-(methods only in $\md_1..$) as simple pass-through method is generated that
-calls the wrapped object; that object is referenced by distinguished
-variable \that.
+class generated by \W will have adapter methods for each method \m occurring in
+both $\md_1..$ and $\mdp_1..$. Type mismatches between the wrapped object
+and the wrapping type are resolved with more behavioral casts. For methods that do not need to be adapted
+(methods only in $\md_1..$), a simple pass-through method is generated. This
+method simply calls the wrapped object; itself referred to by the
+distinguished variable \that.
 
 If the target type is \any, the wrapper class is simpler. It only needs to
 check that method arguments matches the type expected by the wrapped
@@ -1110,7 +1119,7 @@ object. This is done by another behavioral cast. Return values are cast to
 
 For example, consider the following program which has two classes \C ad \D.
 Even though \C and \D both have method \a, they are not subtypes because the
-argument of \m are not related.
+arguments to their \m implementations are not related.
 
 \begin{tabbing}\small
 \hspace{1cm}
@@ -1125,9 +1134,11 @@ argument of \m are not related.
 \noindent
 The program starts with a \C, casts it to \D, and then back to \C. The
 reason we generate pass-through methods (the wrapper that enforce type \D
-has a method \n) is that without them, the methods would be ``lost''. In
-When we cast the object back to \C, it has two layers of wrapper
-and the pass-through method is needed to be able to invoke \n.
+has a method \n) is that without them, the method \n would be ``lost''. 
+Without the pass-through method, it would be impossible to cast back to
+\C, as the wrapper would only have an implementation for \m. With the
+pass through method, we are able to cast it successfully, and end up
+with a doubly-wrapped reference to the original \C.
 
 \subsection{Type soundness}
 
@@ -1179,16 +1190,17 @@ The design of \kafka's two invocation forms bears discussion. In some
 previous works, dynamic invocation has been implemented by a combination of
 a cast and a statically typed call.  In our case, following this approach
 would require creating a type for each invocation (as was done
-in~\cite{popl10}), providing a dynamic invocation form seemed more natural
+in~\cite{popl10}). Instead, providing a dynamic invocation form seemed more natural
 and simpler. The use of explicitly typed invocation is a result of our
-desire to be able to rule out some errors statically. The particular design
+desire to be able to rule out some errors statically. This particular design
 comes from the observation that the same method name needs to called from
-both typed and untyped contexts. Depending on the gradual semantics, calls
-from a typed or untyped context may require different attention, we decided
+both typed and untyped contexts. In particular, some gradual semantics
+require that the same object be callable from both typed and untyped settings.
+To accomodate this, wee decided
 to all classes to have two versions of the method and add types to the
 method name to disambiguate between them.
 
-We intended \kafka to match the intermediate languages of commercial VMs.
+\kafka was intended to match the intermediate languages of commercial VMs.
 To validate this, we implemented a compiler from \kafka to
 C\#.\footnote{\small\url{github.com/BenChung/GradualComparisonArtifact/netImpl}}
 The only challenge was due to subtyping. \kafka uses structural typing,
