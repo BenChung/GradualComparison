@@ -681,7 +681,7 @@ conversion from \any to \C if the actual value is ``structurally''
 compatible to \C and if, after that, the value ``behaves'' as if it was an
 instance of \C.  This is checked by a run-time shallow subtype cast that
 looks at method names, and by a wrapper that monitors further interactions.
-{\bf L1} is rejected because \A does not have the method \xt n expected by
+{\bf L1} is fails at runtime because \A does not have the method \xt n expected by
 \I. {\bf L2}, however, executes without error because \A has the method \m
 expected by \I (argument types are not checked). {\bf L3} fails, the
 instance of \C has been applied a wrapper that checks it behave as if it was
@@ -708,7 +708,7 @@ What the litmus tests show is that understanding the implementation of
 gradually typed languages, the run-time enforcement machinery, is crucial;
 in order for developers to know when their programs is ``correct,'' they must
 understand when the gradual type system will produce an error. In
-the litmus test, all errors are spurious, since none of these programs ever
+the litmus test, all errors are false positives, since none of these programs ever
 actually performs an invalid operation. This underlines the fact that in 
 gradually typed language, false type specifications can create run-time
 errors just as faulty code could. Thus, type annotations must be audited 
@@ -787,25 +787,27 @@ the formal development more cumbersome without adding insight.
 
 \vspace{-7mm}
 
-\noindent Even without gradual typing, it is difficult to compare languages.
-Small differences in syntax and supported features can make even the most
+\noindent Even without gradual typing, comparing languages is difficult.
+Small differences in syntax and features can make even the most
 similar languages appear different. As a result, the nuances of gradual type
 systems are often hidden amongst irrelevant details.  To enable direct
-comparison, we propose to translate gradually typed languages down to a common
-calculus designed to highlight the distinctions between type
-systems.
+comparison, we propose to translate a single gradually typed language 
+down to a common calculus designed to highlight the distinctions between type
+system designs.
 
-One goal is to explicit the guarantees provided by the surface language.  To
-this we designed a target language, \kafka, that is statically typed and has
-two dedicated cast operations. It makes a syntactic distinction between
+Our gradually typed surface language has implicit conversions; to make surface
+programs statically typed, we need to make these conversions into explicit casts. 
+The target for this translation is our core language, \kafka. \kafka is a statically
+typed language, very similar to the source, but substituting two cast operations for
+the source's implicit conversions. Additionally, \kafka makes a syntactic distinction between
 dynamic method invocation, written \KCall\e\m\ep\t\tp, and static
 invocation, written \DynCall\e\m\ep. Its static type system ensures that
 static invocations will not go wrong, whereas dynamic invocations may get
 stuck. The two cast operations include a structural subtype cast, written
 \SubCast\t\e, that ensure the object that expression \e evaluates to a
 subtype of \t, and a behavioral cast, written \BehCast\t\e, that creates a
-wrapper around an object to monitors that it indeed behave according to type
-\t. The translations from the source language to \kafka precisely describes
+wrapper around an object to monitor that it indeed behaves according to type
+\t. The translations from the source language to \kafka precisely describe
 the enforcement machinery required by each approach.
 
 \kafka was also designed to align with the capabilities of compilation
@@ -994,7 +996,10 @@ for objects to be used in a dynamic context.  A dynamic call is only
 successful if the receiver has a method of the expected name and argument
 and return types of \any. Thus, even dynamic invocation has to be
 well-typed. Secondly, it is possible for a static invocation to call an
-untyped method (of type \any to \any).  Consider the following definition
+untyped method (of type \any to \any).  
+
+To examine \kafka's semantics for method calls, consider the following
+class definition
 
 \newcommand{\Int}{\xt{Int}}
 
@@ -1011,7 +1016,7 @@ we take liberties with syntax around addition and integers for illustration.
 
 The class above demonstrates several features of \kafka. Its class
 well-formedness rules (not shown here) allow a limited form of method
-overloading. A class may have at most two occurences of any menthod \m. One,
+overloading. A class may have at most two occurences of any method \m. One,
 which we call ``untyped'', with \any as argument and return type. And one,
 which call ``typed'', with either argument and return type differ from \any.
 The static type system enforces a single means of invoking a typed method
@@ -1115,8 +1120,8 @@ If the target type is \Cp, then \behcastS\a\Cp\s\K will return an updated
 class table \Kp, a reference to the wrapped object \ap, and an updated heap
 \sp. The only property immediately checked is that \a has all the method
 names declared by \Cp. If this is not the case, it is impossible for the
-obejct to implement the desired interface so an early failure is
-acceptable. The function generates a wrapper, that is, it generates code for
+object to implement the desired interface, and an early failure is
+acceptable. The \xt{wrap} function generates a wrapper, that is, it generates code for
 a new class for the wrapper object, instantiates it, and returns a wrapper
 \ap that points to \a. The metafunction \W does the heavy lifting of class
 creation. It is used as follows, \EM{\W(\C,\md_1..,\mdp_1.., \D)} takes a
@@ -1260,7 +1265,7 @@ into \kafka. Each semantics is translated through a function mapping
 well-typed surface programs into well-typed \kafka terms. The translation
 explicitly determines which type casts need to be inserted and the
 invocation forms to use.  The surface languages have no explicit casts,
-instead it coerces types at typed-untyped boundaries. A type-driven
+instead they coerce types at typed-untyped boundaries. A type-driven
 translation will insert the needed casts.
 Consider the following example where method \m takes an argument of type
 \any and returns it under type \C.  If \m is passed a \D (which has no
@@ -1606,7 +1611,7 @@ type of the receiver is \any, dynamic invocation is used.
 
 We illustrate the translation with the behavior of litmus program {\bf L3}.
 The operational principle of {\bf L3} is that it creates a new object (an
-instance of \C), then uses an untyped shim to represent it as type \E. Type
+instance of \C), then uses an untyped intermediate to represent it as type \E. Type
 \E ascribes the wrong type for argument \x, substituting \D for the correct
 type \C. However, since the object never uses its argument, this faulty type
 is not exercised.
@@ -1658,9 +1663,9 @@ is not exercised.
  \caption{Class translation for litmus test L3.} \label{fig:l3trans}
 \end{figure}
 
-Two of the gradual type systems notice this invalid type. Concrete rejects
+Two of the gradual type systems notice this invalid type. Concrete errors on
 {\bf L3} because \E is not a subtype of \C.  With behavioral, the unused
-type ascription is saved as a wrapper and is enforced causing an error.
+type ascription is saved as a wrapper and is enforced causing a runtime error.
 While this reasoning provides an intuition, it provides few detail for which
 we turn to our formalism.  We present the translation from the top, starting
 with classes in \figref{fig:l3trans}.  The optional approach does no
@@ -1669,7 +1674,7 @@ but adds argument casts on method entry. In the case of \m, argument \x is
 checked to be of type \E, as the translation of type \E does not include
 types no type error will be reported.  Behavioral retains typed methods but
 adds behavioral casts on untyped methods.  The concrete semantics retains
-typed methods, and add a subtype cast when a variable of type \any is passed
+typed methods, and adds a subtype cast when a variable of type \any is passed
 to a method that expects and \E.
 
 \begin{figure}[!h]\small
