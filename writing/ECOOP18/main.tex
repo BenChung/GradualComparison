@@ -562,7 +562,7 @@ typing yield different run-time errors.
 \caption{Surface language syntax and type system (extract).}\label{slts}
 \end{figure}
 
-To normalize our presentation, we use a single common source language for all
+To normalize our presentation, we use a single common surface language for all
 four of the gradual type systems under study. The surface language is  a
 \emph{gradually} typed object calculus without inheritance, method overloading
 or explicit type cast operations. \figref{slts} gives its syntax and an
@@ -612,9 +612,9 @@ $\ConvertE\K s\t\tp$ holds when $\t\Sub\tp$, this allows up-casts. The
 remaining two rules allow implicit conversion to and from the dynamic type.
 To avoid collapsing the type hierarchy, convertibility is not transitive.
 
-It is through convertibility that our source language becomes gradual; the
+It is through convertibility that our surface language becomes gradual; the
 implicit conversions that it allows break type soundness. The semantics of the
-source language must therefore add dynamic checks wherever it was used. 
+surface language must therefore add dynamic checks wherever it was used. 
 Typed values manipulated from untyped code cannot make any type assumptions
 about their arguments. Similarly, untyped values in typed code may return ill-typed
 values. 
@@ -745,7 +745,7 @@ This strictly increases the number of programs accepted by the static type
 system. However, consistent subtyping is not essential to the run-time semantics of any
 of the gradual type systems, and is fundamentally incompatible with the concrete
 approach (any use of consistent subtyping is guaranteed to fail). As a result,
-we omit consistent subtyping from our source language for the reason of 
+we omit consistent subtyping from our surface language for the reason of 
 simplicity.
 
 An alternative to the gradual guarantee is presented in the approaches
@@ -791,8 +791,8 @@ system designs.
 Our gradually typed surface language has implicit conversions; to make surface
 programs statically typed, we need to make these conversions into explicit casts. 
 The target for this translation is our core language, \kafka. \kafka is a statically
-typed language, very similar to the source, but substituting two cast operations for
-the source's implicit conversions. Additionally, \kafka makes a syntactic distinction between
+typed language, very similar to the surface language, but substituting two cast operations for
+the surface language's implicit conversions. Additionally, \kafka makes a syntactic distinction between
 dynamic method invocation, written \KCall\e\m\ep\t\tp, and static
 invocation, written \DynCall\e\m\ep. Its static type system ensures that
 static invocations will not go wrong, whereas dynamic invocations may get
@@ -800,7 +800,7 @@ stuck. The two cast operations include a structural subtype cast, written
 \SubCast\t\e, that ensure the object that expression \e evaluates to a
 subtype of \t, and a behavioral cast, written \BehCast\t\e, that creates a
 wrapper around an object to monitor that it indeed behaves according to type
-\t. The translations from the source language to \kafka precisely describe
+\t. The translations from surface language to \kafka precisely describe
 the enforcement machinery required by each approach.
 
 \kafka was also designed to align with the capabilities of compilation
@@ -1238,7 +1238,7 @@ we were able to accurately translate \kafka types. We translate static and
 dynamic invocations into corresponding C\# invocations since C\# has also a
 dynamic type. The underlying run-time can then use the translated \kafka
 types to perform method dispatch, while inserting dynamic checks wherever
-the \kafka source calls for an untyped invocation. This prototype shows that
+the \kafka code calls for an untyped invocation. This prototype shows that
 \kafka primitives are close to those of intermediate languages. As a result,
 the translation of gradual type systems to \kafka provides insight as to how
 they might be implemented in a practical language.
@@ -1273,7 +1273,7 @@ return type.  Without a cast, this operation is unsafe.
 
 \subsection{Class Translation}
 
-The translations for source level classes are shown in
+The translations for surface level classes are shown in
 \figref{fig:traclass}. Each class in the surface language translates to a
 homonymous \kafka class, thus type names are retained in the
 translation. Grey background denotes generated code.
@@ -1543,7 +1543,7 @@ according to class translation.
 The translations for invocation are shown in \figref{fig:trafuninv}.
 Optional translates all invocations to dynamic invocation.  At invocation
 sites, a method of the right name must be known to exist with the correct
-argument and return types.  In the concrete and behavioral semantics source
+argument and return types.  In the concrete and behavioral approaches surface-level
 typing is retained, so the arguments must be of the statically known
 type. However, in the transient semantics, the argument type is ignored, so
 the argument to a statically typed method call is only required to be of
