@@ -462,7 +462,7 @@ typing yield different run-time errors.
 
 \subsection{A Common Surface Language}
 
-\begin{figure}[!b]\hrulefill
+\begin{figure}[!t]\hrulefill
 
 \small
 \vspace{5mm}
@@ -562,7 +562,7 @@ typing yield different run-time errors.
 \caption{Surface language syntax and type system (extract).}\label{slts}
 \end{figure}
 
-To normalize our presentation, we use a single common surface language for all
+To normalize our presentation, we use a single surface language for all
 four of the gradual type systems under study. The surface language is  a
 \emph{gradually} typed object calculus without inheritance, method overloading
 or explicit type cast operations. \figref{slts} gives its syntax and an
@@ -572,26 +572,24 @@ hold any value, an invocation of a method with receiver of type \any is
 always statically well-typed, and an expression of type \any can appear
 anywhere within a typed program.
 
-This dynamic type converts our otherwise statically typed language to being
-gradually typed. If a program in the surface language has no appearances of
-\any then it will be traditionally sound (not get stuck on method invocation).
-A program where all variables are annotated as dynamic is fully dynamic and
-any invocation may get stuck. Gradual typing comes into play when an
-expression  of type \any occurs as an argument to a method that expects some
-other type \C  and conversely when an argument of type \C is passed to a
-method that expects \any. The static type system of the surface language
-allows such implicit coercions---using the convertability relation---but run-
-time checks may be inserted to catch potential type mismatches. We will fully
-formalize the semantics of this systems in future sections in terms of
-\kafka, a low level object calculus; here, we appeal to the reader\s
-intuition.
+This dynamic type lets us convert our otherwise statically typed language to
+being gradually typed. If a well-typed program does not use \any then it
+will not get stuck on method invocation.  A program where all variables are
+annotated as \any is fully dynamic and any given invocation may get
+stuck. Gradual typing comes into play when an expression of type \any occurs
+as an argument to a method that expects some other type \C and conversely
+when an argument of type \C is passed to a method that expects \any. The
+static type system of the surface language allows such implicit coercions --
+using the \emph{convertibility} relation -- but run-time checks may be
+inserted to catch potential type mismatches. We formalize the
+semantics of this system later; here, we appeal to the reader's intuition.
 
-Before presenting the litmus test, some details about the type system of the
+Before presenting the litmus tests, some details about the type system of the
 surface language may prove helpful. The subtyping relation is structural
 with the Amber rule~\cite{cardelli1985amber} to enable recursion. \StrSub\M\K\C\D holds if class
 \C has (at least) all the methods of class \D and the arguments and return
 types are related by subtyping in the usual contra- and co-variant way; the
-class table \K holds definitions of all classes and \M is helper for
+class table \K holds definitions of all classes and \M is a helper for
 recursion. One noteworthy feature of subtyping is that the fields of objects
 do not play a role in deciding if classes are subtypes. Following languages
 like Smalltalk, fields are encapsulated and can only be accessed from within their
@@ -603,21 +601,15 @@ Method invocation is always allowed when the receiver \e is of
 type \any; therefore \EM{\e.\m(\ep)} has type \any if the argument
 can have type \any. Secondly, we introduce a notion of convertibility, 
 which allows the mixing of static and dynamic types. 
-
 Convertibility is used when statically typed and dynamically typed terms
 interact. The convertibility relation, written $\ConvertE\K s\t\tp$, states
-that type $\t$ is convertible to type $\tp$ in class table \K.  The relation
+that type $\t$ is convertible to type $\tp$ in class table \K.  It
 is used both for up-casting and for conversions of \any to non-\any types.
 $\ConvertE\K s\t\tp$ holds when $\t\Sub\tp$, this allows up-casts. The
 remaining two rules allow implicit conversion to and from the dynamic type.
 To avoid collapsing the type hierarchy, convertibility is not transitive.
-
 It is through convertibility that our surface language becomes gradual; the
-implicit conversions that it allows break type soundness. The semantics of the
-surface language must therefore add dynamic checks wherever it was used. 
-Typed values manipulated from untyped code cannot make any type assumptions
-about their arguments. Similarly, untyped values in typed code may return ill-typed
-values. 
+implicit conversions that it allows break soundness of the type system.
 
 
 \subsection{Litmus}
@@ -636,20 +628,19 @@ typed/untyped boundaries that are crossed by an object. Let us use the
 notation $\C ~\vert_{\,\t}$ to denote that an object of class \C passes
 through a type boundary that expects it to be of type \t. For example,
 if method \m expects an argument of type \t, a method call $\e.\m(\ep)$ would
-induce the boundary \[\ep ~\vert_{\,\t}\]. 
-
-In program {\bf L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\]: an instance of 
+induce the boundary $\ep ~\vert_{\,\t}$. 
+In program {\bf L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] an instance of 
 class \A is first implicitly converted to \any and then to \I; in this program
 classes \A and \I are unrelated by subtyping. In {\bf L2}, the same sequence
 of conversions is applied
 \[\A~ \vert_{\,\any} ~ \vert_{\,\I}\] but this time \A and \I both have a
 method \m, but the methods have incompatible argument types.  Lastly, in
-{\bf L3} we start by converting an object of class \C to \any and then to \E
+{\bf L3} we start by converting a \C to \any and then to \E
 and finally back to \any.
 \[\C~ \vert_{\,\any}~\vert_{\,\E}~\vert_{\,\any}\]
-the resulting value is then used in a call to method \m with an instance of
-\C as an argument. This call is correct as method \m in \C does take an
-argument of the same type. If the object was an instance of \E, the call
+The resulting value is then used to call  method \m with argument of class \C.
+This correct as method \m in \C does expect an
+argument of that type. If the object was an instance of \E instead, the call
 would not be legal because \E's method \m expects a class \D as argument.
 
 \begin{figure}[!h] \includegraphics[width=.95\columnwidth]{../figures/litm}
@@ -697,9 +688,9 @@ programs have been expressed in TypeScript (optional), StrongScript
   \url{github.com/BenChung/GradualComparisonArtifact/examples}} Those
 implementations have the same errors.
 
-What the litmus tests show is that understanding the implementation of
-gradually typed languages, the run-time enforcement machinery, is crucial;
-in order for developers to know when their programs is ``correct,'' they must
+What the litmus tests show is that a precise understanding of the semantics of
+gradually typed languages, their run-time enforcement machinery, is crucial
+for developers to know when their programs is ``correct.'' They must
 understand when the gradual type system will produce an error. In
 the litmus test, all errors are false positives, since none of these programs ever
 actually performs an invalid operation. This underlines the fact that in 
@@ -707,46 +698,36 @@ gradually typed language, false type specifications can create run-time
 errors just as faulty code could. Thus, type annotations must be audited 
 and tested just like code.
 
-The different approaches induce usability trade-offs. One way to contextualize
-this is with the gradual guarantee of Siek et al~\cite{GradualGuarantee}. Put
-informally, the gradual guarantee states that if there exists a static type
-assignment to an untyped program, any partial assignment of those types will
-still execute successfully. Trivially, the optional approach fulfills this
-guarantee; under the optional approach, the types are dynamically meaningless
-so have no impact on the run-time. However, this comes at the cost of
-soundness, as the type parameters are unchecked and function calls may go
-wrong at any time.  The transient approach likewise satisfies the gradual
-guarantee~\cite{Vitousek2017},  as it only checks top-level structure of
-values at type boundaries. Unlike the  optional approach, the transient
-approach does guarantee that typed function calls will succeed; however, the
-function may produce a dynamic error if the receiver is of the wrong type
-(even when called from a typed context), or it can return an  ill-typed value
-to a typed call site (which is checked by the caller). The behavioral
-approach also fulfills the gradual guarantee, as it will only check argument
-and return types when wrappers are invoked. However, typed function calls
-might fail still if they call an untyped function that returns the wrong
-value. Finally, the concrete approach provides an absolute guarantee that
-every typed function call will be successful (e.g. method will exist, under
-the right argument types, and return the correct value). However, this comes
-at the expense of not fulfilling the gradual guarantee---partially typed
-classes are not compatible with more-or-less typed ones under the concrete
-approach.
-
-The problem that the concrete approach has with the gradual guarantee is
-that the gradual guarantee is incompatible with concrete (i.e. traditional)
-subtyping. Suppose the fully typed version of the program relies on the static
-subtyping judgment $\{m(\C):\C\} <: \{m(\C):\C\}$. Using unaltered subtyping,
-no single one of these \C types can be removed while retaining the subtyping 
-relationship. To overcome this problem, Reticulated Python augments subtyping
-with the aforementioned \emph{consistency} relation, or consistent subtyping~\cite{siek14,SiekTaha07}.
-Consistent subtyping would admit $\{m(\any):\C\} <: \{m(\C):\C\}$, for example, 
-as it allows consistency to be used while concluding a subtyping relation.
-This strictly increases the number of programs accepted by the static type
-system. However, consistent subtyping is not essential to the run-time semantics of any
-of the gradual type systems, and is fundamentally incompatible with the concrete
-approach (any use of consistent subtyping is guaranteed to fail). As a result,
-we omit consistent subtyping from our surface language for the reason of 
-simplicity.
+The different approaches induce usability trade-offs. One way to
+contextualize this is with the gradual guarantee of Siek et
+al~\cite{GradualGuarantee}. Put informally, the gradual guarantee states
+that if there exists a static type assignment to an untyped program, any
+partial assignment of those types will still execute successfully. The
+optional approach trivially fulfills this guarantee.  However, this comes at
+the cost of soundness. Transient likewise satisfies the gradual
+guarantee~\cite{Vitousek2017}, as it only checks top-level structure of
+values at type boundaries. Unlike optional, transient does guarantee that
+typed calls will succeed; however, the call may produce a dynamic error if
+the receiver is of the wrong type (even when called from a typed context),
+or it can return an ill-typed value to a typed call site (which is checked
+by the caller). The behavioral approach also fulfills the gradual guarantee,
+as it will only check argument and return types when wrappers are
+invoked. However, typed function calls might fail still if they call an
+untyped function that returns the wrong value. Finally, the concrete
+approach provides an absolute guarantee that every typed function call will
+be successful. However, this comes at the expense of the gradual guarantee
+-- partially typed classes are not compatible with more-or-less typed ones
+under the concrete approach.  The gradual guarantee is incompatible with
+subtyping. Suppose a program were to rely on the judgment $\{m(\C):\D\} <:
+\{m(\C):\D\}$.  No one of these \C types can be removed while retaining the
+subtyping relationship. To overcome this, Reticulated Python augments
+subtyping with the aforementioned consistency relation.  Consistent
+subtyping admits $\{m(\any):\D\} <: \{m(\C):\D\}$.  This increases the
+number of programs accepted by the static type system. However, consistent
+subtyping is not used by the run-time semantics, and is fundamentally
+incompatible with the concrete approach (any use of consistent subtyping is
+guaranteed to fail).  We omit consistent subtyping from our surface
+language.
 
 An alternative to the gradual guarantee is presented in the approaches
 taken by Thorn or StrongScript. They have three kinds of types, \any (dynamic),
@@ -757,11 +738,6 @@ a program is fully annotated with optional types, they all can be
 converted to concrete types without introducing any run-time errors~\cite{ecoop15}.
 We do not model this combination directly, as the underlying details
 are no different from the concrete approach.
-
-The choice of structural subtyping for the surface language is motivated by
-the desire to support the transient approach. For the concrete approach a
-nominal subtyping relation is more natural (and used in Nom, Thorn and
-StrongScript).
 
 The motivation for making fields private is to simplify the system. With
 private fields, errors are limited to method invocation. Fields accesses can
