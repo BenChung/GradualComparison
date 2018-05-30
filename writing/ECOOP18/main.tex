@@ -719,15 +719,14 @@ be successful. However, this comes at the expense of the gradual guarantee
 -- partially typed classes are not compatible with more-or-less typed ones
 under the concrete approach.  The gradual guarantee is incompatible with
 subtyping. Suppose a program were to rely on the judgment $\{m(\C):\D\} <:
-\{m(\C):\D\}$.  No one of these \C types can be removed while retaining the
-subtyping relationship. To overcome this, Reticulated Python augments
-subtyping with the aforementioned consistency relation.  Consistent
-subtyping admits $\{m(\any):\D\} <: \{m(\C):\D\}$.  This increases the
-number of programs accepted by the static type system. However, consistent
-subtyping is not used by the run-time semantics, and is fundamentally
-incompatible with the concrete approach (any use of consistent subtyping is
-guaranteed to fail).  We omit consistent subtyping from our surface
-language.
+\{m(\C):\D\}$.  Relaxing the argument type to a dynamic type,
+$\{m(\any):\D\} <: \{m(\C):\D\}$, violates subtyping.  To overcome this,
+Reticulated Python augments subtyping with the aforementioned consistency
+relation. This increases the number of programs accepted by the static type
+system. However, it is not used by the run-time semantics, and is
+fundamentally incompatible with the concrete approach (any use of consistent
+subtyping is guaranteed to fail).  We omit consistent subtyping from our
+surface language.
 
 An alternative to the gradual guarantee is presented in the approaches
 taken by Thorn or StrongScript. They have three kinds of types, \any (dynamic),
@@ -1745,7 +1744,7 @@ It is difficult to provide guesses of how a highly optimizing language
 implementation will perform, as these implementations are likely to optimize
 away the majority of the casts and the dynamic dispatches. Consider the
 progress in the performance of Typed Racket reported since the publication
-of Takakiwa et al. paper~\cite{popl16}.  What we can tell by looking at the
+of Takakiwa et al.~paper~\cite{popl16}.  What we can tell by looking at the
 translations is that in the optional approach there is no obvious benefit or
 cost to having type annotations. The transient approach has checks on reads,
 and typically reads are frequent, so, this seems like an unlucky design
