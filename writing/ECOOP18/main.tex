@@ -79,17 +79,17 @@ type systems}
 The enduring popularity of dynamically typed languages has motivated
 research on \emph{gradual type systems} to allow developers to annotate
 legacy dynamic code piecemeal. Type soundness for a program which contains a
-mixture of typed and untyped code cannot mean the traditional absence of a class of
-errors. While some errors will be caught at type-checking time, other errors
-can only be caught as the program executes. After a decade of research
-there are a number of competing approaches to providing gradual type
-support for object-oriented languages. We introduce a framework for
-comparing gradual type systems, combining a common surface language with
-a core calculus to which the surface language can be translated. 
-The core calculus  is strongly typed in order to highlight where dynamic
-operations are required.  We illustrate our approach by translating
-idealizations of four different approach to gradually typing objects into that core
-calculus and discuss the implications of the respective designs.
+mixture of typed and untyped code cannot mean the traditional absence of a
+class of errors. While some errors will be caught at type-checking time,
+other errors can only be caught as the program executes. After a decade of
+research there are a number of competing approaches to providing gradual
+type support for object-oriented languages. We introduce a framework for
+comparing gradual type systems, combining a common surface language with a
+core calculus to which the surface language can be translated.  The core
+calculus is typed in order to highlight where dynamic operations are
+required.  We illustrate our approach by translating idealizations of four
+different approach to gradually typing objects into that core calculus and
+discuss the implications of the respective designs.
 \end{abstract}
 
 \section{Introduction}
@@ -160,8 +160,8 @@ checked.
 
 Static type systems are designed to capture some class of errors. For
 gradual type systems, however, some errors cannot be ruled out before
-execution as untyped code can violate type guarantees. The meaning of error
-for a gradual type system therefore depends on how type guarantees are
+execution as untyped code can violate type soundness. The meaning of error
+for a gradual type system therefore depends on how type specifications are
 enforced.  In other words, each gradual type system may catch different
 ``errors''.  We demonstrate this with a litmus test consisting of three
 simple programs capable of distinguishing the four above mentioned
@@ -170,7 +170,7 @@ approaches.  The litmus test programs are statically well-typed, and are
 untyped language. However, when executed under different gradual typing
 systems, they produce different errors. For intuition, consider a call,
 \EM{\x.\m()}, where \EM{\x:\C} and \C has a method \m returning a \D.  In
-the concrete approach, this call is guaranteed to succeed. With behavioral,
+the concrete approach, this call will succeed. With behavioral,
 the call will go through, but an error may be reported if \m return the
 wrong value. In transient, the call is similarly guaranteed to go through,
 but might return the wrong value and not produce an error.  Finally, in
@@ -181,22 +181,6 @@ type \D will be returned.
 \begin{wrapfigure}{r}{5cm}
 \vspace{-6mm}
 \includegraphics[width=5cm]{fig1}
-%% \begin{center}\begin{tikzpicture}[node distance=3cm]
-%% \node[draw,minimum height=3cm,minimum width=2cm] at (0,0) (S) {Source};
-%% \node[draw,minimum height=3cm,minimum width=2cm,right=of S] (K) {\kafka};
-%% %\node[draw,right=of K] (C) {CIL};
-%% \draw [->] ([yshift=1cm]S.east) -- node[midway,above] {Optional} ([yshift=1cm]K.west);
-%% \draw [->] ([yshift=0.33334cm]S.east) -- node[midway,above] {Transient} ([yshift=0.3334cm]K.west);
-%% \draw [->] ([yshift=-0.33334cm]S.east) -- node[midway,above] {Behavioural} ([yshift=-0.3334cm]K.west);
-%% \draw [->] ([yshift=-1cm]S.east) -- node[midway,above] {Concrete} ([yshift=-1cm]K.west);
-%% %\draw [->] (K) -- (C);
-%% \draw [decorate,decoration={brace,amplitude=10pt,raise=1pt},yshift=0pt] (S.north east) -- (K.north west) 
-%%   node [above,midway,yshift=0.4cm] {Translations};
-%% \node[label,below=0cm of S] {\footnotesize Section 3};
-%% \node[label,below=0cm of K] {\footnotesize Section 4};
-%% \draw [decorate,decoration={brace,amplitude=10pt,mirror,raise=1pt},yshift=0pt] (S.south east) -- (K.south west) 
-%%   node [below,midway,yshift=-0.4cm] {\footnotesize Section 5};
-%% \end{tikzpicture}\end{center}
 \vspace{-7mm}\end{wrapfigure}
 
 We propose to compare approaches to gradual typing for objects by translating
@@ -302,14 +286,14 @@ Felleisen-style contracts and mostly nominal type equivalence (structural
 equivalence can be specified on demand, but it is rarely
 used). C\# 4.0 adds the type {\sf dynamic} to C\# and adds dynamically resolved
 method invocation. Thus C\# has a dynamic sublanguage that allows developers
-to write unchecked code, working alongside a strongly typed sublanguage in
-which values are guaranteed to be of their declared type.  The
+to write unchecked code, working alongside a sound typed sublanguage in
+which values are always of their declared type.  The
 implementation replaces \any by the type {\tt object} and adds casts where
 needed.  Thorn and StrongScript extend the C\# approach with the addition of
 optional types (called {\em like types} in Thorn).  Thorn is implemented by
 translation to the JVM. StrongScript translate to an extended version of
 V8. The presence of concrete types means that the compiler can optimize code
-(unbox data and in-line methods) and programmers are guaranteed that type
+(unbox data and in-line methods) and programmers are ensured that type
 errors will not occur within concretely typed code. Nom is similar to Thorn
 in that it is nominal and follows the concrete approach.
 
@@ -619,12 +603,13 @@ programs consists of a class table and an expression whose evaluation in
 the context of the class table determines if the litmus test succeeds or
 fails.
 
-The programs are designed to induce errors.  This is done via the
-construction of an untyped value that violates the type guarantees of some
-systems, but not others.  At heart, these programs can be summarized by the
-typed/untyped boundaries that are crossed by an object. Let us use the
-notation $\C ~\vert_{\,\t}$ to denote that an object of class \C passes
-through a type boundary that expects it to be of type \t. For example,
+The programs are designed to induce errors.  This is done by arranging for
+values to cross typed/untyped boundaries in a way that will cause some type
+systems to report an error but not others. At heart, these programs can 
+be summarized by the
+type boundaries that are crossed by an object. The
+notation $\C ~\vert_{\,\t}$ denotes an object of class \C passing
+through a boundary that expects it to be of type \t. For example,
 if method \m expects an argument of type \t, a method call $\e.\m(\ep)$ would
 induce the boundary $\ep ~\vert_{\,\t}$. 
 In program {\bf L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] an instance of 
@@ -652,26 +637,26 @@ gradual type systems:
 type annotations at run-time; all three programs run to completion without
 error.
 
-\vspace{2mm}\noindent {\bf Concrete.~} The guarantee provided by the
-concrete approach is that all implicit conversion imply a run-time subtype
-check.  This causes all three programs to fail. {\bf L1} and
-{\bf L2} fail on a subtype test \StrSub{}\K\A\I.  {\bf L3} fails on the
+\vspace{2mm}\noindent {\bf Concrete.~} The concrete approach ensures that a
+variable of some class \C always refers to an object of that class or of a
+subtype of it.  To ensure this is the case, all implicit conversion imply a
+run-time subtype check.  This causes all three programs to fail. {\bf L1}
+and {\bf L2} fail on a subtype test \StrSub{}\K\A\I.  {\bf L3} fails on the
 subtype test \StrSub{}\K\C\E.
 
 \vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach does allow
-conversion from \any to \C if the actual value is ``structurally''
-compatible to \C and if, after that, the value ``behaves'' as if it was an
-instance of \C.  This is checked by a run-time shallow subtype cast that
-looks at method names, and by a wrapper that monitors further interactions.
-{\bf L1} is fails at run-time because \A does not have the method \xt n expected by
-\I. {\bf L2}, however, executes without error because \A has the method \m
-expected by \I (argument types are not checked). {\bf L3} fails, the
-instance of \C has been applied a wrapper that checks it behave as if it was
-an \E.  When method \a is called with a \C as argument, the wrapper notices
+conversion from \any to \C if the actual value is compatible to \C and if,
+after that, the value behaves as if it was an instance of \C.  The former is
+checked by a shallow subtype cast that only looks at method names, and the
+latter by a wrapper that monitors further interactions.  {\bf L1} fails at
+because \A does not have the method \xt n expected by \I. {\bf L2}, however,
+executes without error because \A has the method \m expected by \I (argument
+types are not checked). {\bf L3} fails, the instance of \C has been applied
+a wrapper for \E.  When method \a is called with a \C, the wrapper notices
 that \E's method \a expects a \D and that \C and \D are not compatible.
 
-\vspace{2mm}\noindent {\bf Transient.~} The transient approach has a weaker
-guarantee. It retains the shallow structural checks at casts of the
+\vspace{2mm}\noindent {\bf Transient.~} The transient approach is weaker
+than behavioral. It retains the shallow structural checks at casts of the
 behavioral approach, but does not wrap values. Transient fails {\bf L1}, for
 the same reason as the other two type systems, and passes {\bf L2}, for the
 same reason as behavioral.  {\bf L3} succeeds because transient forgets that
@@ -704,7 +689,7 @@ partial assignment of those types will still execute successfully. The
 optional approach trivially fulfills this guarantee.  However, this comes at
 the cost of soundness. Transient likewise satisfies the gradual
 guarantee~\cite{Vitousek2017}, as it only checks top-level structure of
-values at type boundaries. Unlike optional, transient does guarantee that
+values at type boundaries. Unlike optional, transient does ensure that
 typed calls will succeed; however, the call may produce a dynamic error if
 the receiver is of the wrong type (even when called from a typed context),
 or it can return an ill-typed value to a typed call site (which is checked
@@ -712,8 +697,8 @@ by the caller). The behavioral approach also fulfills the gradual guarantee,
 as it will only check argument and return types when wrappers are
 invoked. However, typed function calls might fail still if they call an
 untyped function that returns the wrong value. Finally, the concrete
-approach provides an absolute guarantee that every typed function call will
-be successful. However, this comes at the expense of the gradual guarantee
+approach ensures that every typed function call is
+successful. However, this comes at the expense of the gradual guarantee
 -- partially typed classes are not compatible with more-or-less typed ones
 under the concrete approach.  The gradual guarantee is incompatible with
 subtyping. Suppose a program were to rely on the judgment $\{m(\C):\D\} <:
@@ -723,18 +708,18 @@ Reticulated Python augments subtyping with the aforementioned consistency
 relation. This increases the number of programs accepted by the static type
 system. However, it is not used by the run-time semantics, and is
 fundamentally incompatible with the concrete approach (any use of consistent
-subtyping is guaranteed to fail).  We omit consistent subtyping from our
+subtyping will fail).  We omit consistent subtyping from our
 surface language.
 
-An alternative to the gradual guarantee is presented in the approaches
-taken by Thorn or StrongScript. They have three kinds of types, \any (dynamic),
-\C (concrete), and \xt{like} \C (optional), combining the concrete and
-optional approach into the same language. This design allows for a different
-kind of migration than languages with the gradual guarantee permit; once
-a program is fully annotated with optional types, they all can be
-converted to concrete types without introducing any run-time errors~\cite{ecoop15}.
-We do not model this combination directly, as the underlying details
-are no different from the concrete approach.
+An alternative to the gradual guarantee is presented in the approaches taken
+by Thorn or StrongScript. They have three kinds of types, \any (dynamic), \C
+(concrete), and \xt{like} \C (optional), combining the concrete and optional
+approach into the same language. This design allows for a different kind of
+migration than languages with the gradual guarantee permit; once a program
+is fully annotated with optional types, they all can be converted to
+concrete types without introducing any run-time errors~\cite{ecoop15}.  We
+do not model this combination directly, as the underlying details are no
+different from the concrete approach.
 
 The motivation for making fields private is to simplify the system. With
 private fields, errors are limited to method invocation. Fields accesses can
@@ -772,8 +757,8 @@ cast, written \BehCast\t\e, creates a wrapper around the value of \e that
 monitors \e to ensure that it behaves as if it was of type \t.
 Additionally, a syntactic distinction is made between static method
 invocation, written \KCall\e\m\ep\t\tp, dynamic method invocation,
-\DynCall\e\m\ep.  Static invocations is guaranteed to not get stuck, whereas
-dynamic invocations cam. This makes explicit which function calls can fail.
+\DynCall\e\m\ep.  Static invocations does not get stuck, whereas
+dynamic invocations can. This makes explicit which function calls can fail.
 
 \kafka was designed to align with common statically-typed class-based
 object-oriented compilation targets like .NET or the JVM. It maps to the
@@ -983,8 +968,9 @@ The static type system enforces a single means of invoking a typed method
 
 \noindent
 Here the receiver is obviously of type \C and the argument is \Int, thus the
-call is statically well-typed. The expression is therefore guaranteed to evaluate
-the body of \m.  For an untyped method, there are two invocation modes:
+call is statically well-typed. The expression will therefore 
+evaluate the body of \m.  For an untyped method, there are two invocation
+modes:
 
 \vspace{-6mm}\[\DynCall{\New\C{}}\m{2}\]\vspace{-5mm}
 
@@ -997,7 +983,7 @@ then the static invocation can be used:
 
 \vspace{-6mm}\[\KCall{\New\C{}}\m{2}\any\any\]\vspace{-5mm}
 
-\noindent The invocation is guaranteed to succeed. All nuances of invocation
+\noindent The invocation will succeed. All nuances of invocation
 will come in handy when translating the surface language to \kafka.
 
 \subsubsection{Run-time Casts}
@@ -1251,18 +1237,6 @@ explicitly determines which type casts need to be inserted and the
 invocation forms to use. A type-driven translation will insert casts
 where the surface language used consistency.
 
-%%Consider the following example where method \m takes an argument of type
-%%\any and returns it under type \C.  If \m is passed a \D (which has no
-%%subtype relation with \C), the returned value will not match the declared
-%%return type. Without a cast, this operation is unsafe; however, what kind
-%%of cast is needed will depend on the chosen gradual typing approach.
-
-%%\begin{tabbing}\small
-%%\hspace{.4cm}\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
-%%  \K~=\HS\class\D\{\}\HS\HS\HS\class\C\{~\Mdef\m\x\any\C{~\x~}~\} 
-%%\end{tabbing}         
-
-
 \subsection{Class Translation}
 
 The translations for surface level classes are shown in
@@ -1330,21 +1304,16 @@ translation would not preserve this semantics, so we erase them.  The
 resulting class has all fields, all method arguments, and all return
 values typed as \any.
 
-\vspace{2mm}\noindent {\bf Transient.~} The transient approach guarantees
-the presence of methods, but not their signature. We represent this within
-the \kafka type system by replacing all of the argument and return types from
-method definitions with \any; a translation that also represents that transient
-allows functions to be called under any type and return values of any type. Casts
-to the erased types are then effectively structural consistency checks only.
-\footnote{We abuse the notation \EM{\e ; \ep } to denote sequence,
-  this could be encoded in the calculus, but explicit sequence is easier to
-  read.}
-
-\noindent Fields in transient are erased to \any. The transient approach does
-not guarantee that fields contain values of their type, and field accessors
-are responsible  for checking their values. Moreover, untyped code to assign
-to any accessible field at any time. By giving all fields type \any, we
-capture this semantics in our translation.
+\vspace{2mm}\noindent {\bf Transient.~} In the transient approach, ensure
+that for any method call, the receiver does have a method with the
+corresponding name. To encode this within the \kafka type system requires
+replacing all of the argument and return types with \any. This translation
+allows functions to be called under any type and to return values of any
+type. Casts to the erased types are then effectively shallow structural
+checks only.\footnote{The notation \EM{\e;\ep} denotes sequencing. While it
+  could be encoded, explicit sequences are easier to read.}  As there is no
+guarantee that fields contain values of their type,
+the translation sets their type to \any.
 
 \vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach guarantees
 soundness by wrapping values that cross type-untyped boundaries. Methods
@@ -1436,10 +1405,10 @@ at boundaries.
 The translation of field access appears in \figref{fig:travar}.  The
 optional translation only inserts a cast to \any in front of uses of the
 \this reference as a technicality required for statically typing terms. The
-transient translation casts variables and fields to their statically expected
-type, as their values are not guaranteed to be of the statically known types.
-In transient, however, subtype casts only check the structure of the types. The
-behavioral translation and the concrete translation leave both types of access intact.
+transient translation casts variables and fields to their statically
+expected type, as their values may be of any type.  In transient, however,
+subtype casts only check the structure of the types. The behavioral
+translation and the concrete translation leave both types of access intact.
 
 \begin{figure}[!h]\small\hrulefill\\
 \begin{tabular}{@{}l@{\HS}l}
@@ -1806,16 +1775,16 @@ can be straightforwardly implemented on top of a stock virtual machine.
 
 A open question for gradual type system designers is performance of the
 resulting implementation. Performance remains a major obstacle to adoption
-of approaches that attempt to provide strong guarantees.  Under the optional
-approach, types are removed by the translation, as a result, performance
-will be identical to that of untyped code.  The transient approach checks
-types at uses, the act of adding types to a program introduces more casts
-and may slow the program down. This is true even in fully typed code.  In
-contrast, the behavioral approach avoids casts in typed code,. The price it
-pays for soundness, however, is heavyweight wrappers are inserted at
-typed-untyped boundaries.  Lastly, the concrete semantics also provide
-strong guarantees and has relatively low overheads, but this comes at a cost
-in expressiveness.
+of approaches that attempt to provide soundness guarantees.  Under the
+optional approach, types are removed by the translation, as a result,
+performance will be identical to that of untyped code.  The transient
+approach checks types at uses, the act of adding types to a program
+introduces more casts and may slow the program down. This is true even in
+fully typed code.  In contrast, the behavioral approach avoids casts in
+typed code,. The price it pays for soundness, however, is heavyweight
+wrappers are inserted at typed-untyped boundaries.  Lastly, the concrete
+semantics is also sound and has low overheads, but this comes at a cost in
+expressiveness.
 
 Going forward there are several issues we wish to investigate.  We do not
 envision that supporting nominal subtyping within \kafka will pose problems,
