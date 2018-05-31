@@ -1,6 +1,4 @@
-\documentclass[USenglish]{tex/lipics-v2016}
-\usepackage{stmaryrd} 
-\usepackage{xspace,listings,url,framed,amssymb,
+\documentclass[USenglish]{tex/lipics-v2016}f
             hyperref,doi, mathtools,wrapfig,
             stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox,
             pgffor, makecell, microtype}
@@ -1143,7 +1141,7 @@ by the cast from \C to \D:
 \noindent
 By keeping \n present, it is possible to return an instance of
 \E to \C again. If we were to remove \n, then \xt E would no longer
-be convertible back to \C again.
+be convertible back to \C again.    
 
 \subsection{Type soundness}
 
@@ -1245,30 +1243,32 @@ they might be implemented in a practical language.
 
 \vspace{-7mm}
 
-\noindent The four gradual type semantics are now ready to be translated
-into \kafka. Each semantics is translated through a function mapping
-well-typed surface programs into well-typed \kafka terms. The translation
+\noindent Now armed with the source and target languages, we can describe
+the gradual-to-statically typed translation from source to \kafka.
+Each semantics is translated through a function mapping well-typed
+surface programs into well-typed \kafka terms. The translation
 explicitly determines which type casts need to be inserted and the
-invocation forms to use.  The surface languages have no explicit casts,
-instead they coerce types at typed-untyped boundaries. A type-driven
-translation will insert the needed casts.
-Consider the following example where method \m takes an argument of type
-\any and returns it under type \C.  If \m is passed a \D (which has no
-subtype relation with \C), the returned value will not match the declared
-return type.  Without a cast, this operation is unsafe.
+invocation forms to use. A type-driven translation will insert casts
+where the surface language used consistency.
 
-\begin{tabbing}\small
-\hspace{.4cm}\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
-  \K~=\HS\class\D\{\}\HS\HS\HS\class\C\{~\Mdef\m\x\any\C{~\x~}~\} 
-\end{tabbing}         
+%%Consider the following example where method \m takes an argument of type
+%%\any and returns it under type \C.  If \m is passed a \D (which has no
+%%subtype relation with \C), the returned value will not match the declared
+%%return type. Without a cast, this operation is unsafe; however, what kind
+%%of cast is needed will depend on the chosen gradual typing approach.
+
+%%\begin{tabbing}\small
+%%\hspace{.4cm}\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
+%%  \K~=\HS\class\D\{\}\HS\HS\HS\class\C\{~\Mdef\m\x\any\C{~\x~}~\} 
+%%\end{tabbing}         
 
 
 \subsection{Class Translation}
 
 The translations for surface level classes are shown in
 \figref{fig:traclass}. Each class in the surface language translates to a
-homonymous \kafka class, thus type names are retained in the
-translation. Grey background denotes generated code.
+homonymous \kafka class, retaining type names through translation.
+The grey background denotes code generated in the translation.
 
 \begin{figure}[!h]  {\small  \hrulefill\\
 \begin{tabular}{llc@{\hspace{.25cm}}l}    
@@ -1327,63 +1327,75 @@ translation. Grey background denotes generated code.
 \vspace{2mm}\noindent {\bf Optional.~} The optional approach provides no
 correctness guarantees.  Retaining the surface type annotations through
 translation would not preserve this semantics, so we erase them.  The
-resulting class has all fields as well all method arguments and return
+resulting class has all fields, all method arguments, and all return
 values typed as \any.
 
 \vspace{2mm}\noindent {\bf Transient.~} The transient approach guarantees
-the presence of methods, but not their signature. Since fields are not part
-of types, they will not be checked. The translation sets them all to \any.
-Methods are translated to accept \any and return \any.  For a method \m that
-accepted a value \x of type \t in the surface language, the translation will
-first check that \x is of type by the means of subtype cast. The subtype
-cast operates on the translated type \t -- the type with all methods
-untyped.\footnote{For readability, we abuse the notation \EM{\e ; \ep } to
-  denote sequencing.}
+the presence of methods, but not their signature. We represent this within
+the \kafka type system by replacing all of the argument and return types from
+method definitions with \any; a translation that also represents that transient
+allows functions to be called under any type and return values of any type. Casts
+to the erased types are then effectively structural consistency checks only.
+\footnote{We abuse the notation \EM{\e ; \ep } to denote sequence,
+  this could be encoded in the calculus, but explicit sequence is easier to
+  read.}
+
+\noindent Fields in transient are erased to \any. The transient approach does
+not guarantee that fields contain values of their type, and field accessors
+are responsible  for checking their values. Moreover, untyped code to assign
+to any accessible field at any time. By giving all fields type \any, we
+capture this semantics in our translation.
 
 \vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach guarantees
-soundness by wrapping values that cross type-untyped boundaries.  Methods
-are presevered by the translation but bodies are translated.
+soundness by wrapping values that cross type-untyped boundaries. Methods
+are preserved by the translation but bodies are translated.
 
 \vspace{2mm}\noindent {\bf Concrete.~} The concrete approach ensures that
 variables of non-\any types refer to subtypes of the given type. Each method
 appearing in the original class is retained as such with its body
-translated.  Moreover, all typed method, to be called from an untyped
-context, need to have an untyped variant that performs subtype casts of the
-argument to its expected type and re-dispatches to the corresponding typed
-method.
+translated.  Moreover, all typed methods could be called from an untyped
+context, so untyped variants are generated that guard the typed functions.
+These variants perform subtype casts on their arguments to ensure that they
+were given the right types, then call the guarded typed function.
 
 \subsection{Expression Translation} 
 
 To accommodate differences between the gradual typing semantics, we use two
 different expression translation schemes. The first is a type-ambivalent
-one, used for the optional approach, while the second is type-aware, used
-for the three other approaches.  $\TR[\OTS]\e$ denotes optional translation,
-where \e is the target expression, and the result is a \kafka term.  The
+one, used for the optional approach. $\TR[\OTS]\e$ denotes optional translation,
+where \e is the target expression, and the result is a \kafka term. We use
+this form to simplify the optional translation, as it is ambivalent about the
+types of the expressions it is translating; the optional semantics simply
+eliminates all of them.
+
+The second translation form is type-aware, used for the three other approaches. The
 type-aware translation has two forms, $\TRG[\SOMS]\e\Env$ and
 $\TAG[\SOMS]\e\Env\t$, inspired by work on bidirectional
-type-checking~\cite{pierce:1998:local}.  The differentiation between them
-arises from the need to insert casts only where required.  The first form,
+type-checking~\cite{pierce:1998:local}.  The first form,
 $\TRG[\SOMS]\e\Env$, is analogous to the synthetic case in bidirectional
 type-checking.  It is used for expressions without any specific required
 type.  The second form, $\TAG[\SOMS]\e\Env\t$, is used when \e must have
-some type \t.  Analogous to the analytic case of bidirectional
+some type \t. Analogous to the analytic case of bidirectional
 type-checking, this form applies when some enclosing expression has an
 expectation of the type of \e. For example, it is used in translation of
 method arguments, which must conform to the types of the arguments to the
-method. We refer to this case as assertive translation.
+method. We refer to this as assertive translation. These two forms allow us to identify
+where consistency was needed to conclude the surface level typing judgment.
 
-The assertive translation of \figref{fig:trtype} is responsible for
-producing well-typed terms by adding casts into expressions where static
-types differ.  The rules closely track the convertibility relation of the
-surface language. Every type-driven translation has two cases. The first
-case is used when the required type happens to be a supertype of the
-expression's actual type, then no further action is required. The second
-case handles typed-untyped boundaries, conversions to or from \any.  The
-concrete and transient approaches use the subtype cast operator for dynamic
-type checks. The behavioral approach instead inserts behavioral casts at
-boundaries.  For transient, since the class translation erase all types, the
-subtype cast really only checks the presence of method names.
-
+The assertive translation of \figref{fig:trtype} is responsible for producing
+well-typed terms by adding casts into expressions where static types differ.
+The rules closely track the convertibility relation of the surface language.
+Every type-driven translation has two cases. The first case is used when the
+required type happens to be a supertype of the expression's actual type, in
+which cast upcasting can happen implicitly  and no further action is required.
+The second case handles typed-untyped boundaries, conversions to or from \any.
+The concrete and transient approaches both use the subtype cast operator to
+protect these boundaries, though the effective semantics are different; concrete
+retains the types that transient erases, so subtype casts in transient check
+structural compatibility (e.g. are all the needed methods present) alone
+whereas concrete subtype casts check the entire object's types.
+The behavioral approach instead inserts behavioral casts
+at boundaries.
 \begin{figure}[!t]\small  \hrulefill\\
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
 
@@ -1424,9 +1436,10 @@ subtype cast really only checks the presence of method names.
 The translation of field access appears in \figref{fig:travar}.  The
 optional translation only inserts a cast to \any in front of uses of the
 \this reference as a technicality required for statically typing terms. The
-transient translation adds casts to the expected type of variable and
-fields. Again, these casts only check the presence of fields.  The
-behavioral translation and the concrete translation leave access intact.
+transient translation casts variables and fields to their statically expected
+type, as their values are not guaranteed to be of the statically known types.
+In transient, however, subtype casts only check the structure of the types. The
+behavioral translation and the concrete translation leave both types of access intact.
 
 \begin{figure}[!h]\small\hrulefill\\
 \begin{tabular}{@{}l@{\HS}l}
@@ -1503,7 +1516,7 @@ type requirement whatsoever.
 \end{figure}
 
 The translation for object creation, shown in \figref{fig:tranew}, follows
-the same reasoning. It translates each argument to be the required type
+the same reasoning. It inserts casts for each argument to be the required type
 according to class translation.
 
 \begin{figure}[!h]\small
@@ -1532,13 +1545,12 @@ according to class translation.
 \end{figure}
 
 The translations for invocation are shown in \figref{fig:trafuninv}.
-Optional translates all invocations to dynamic invocation.  At invocation
-sites, a method of the right name must be known to exist with the correct
-argument and return types.  In the concrete and behavioral approaches surface-level
-typing is retained, so the arguments must be of the statically known
-type. However, in the transient semantics, the argument type is ignored, so
+The optional approach translates all invocations to dynamic invocation, as
+it cannot provide any static guarantee. In the concrete and behavioral approaches,
+since the static types are retained, arguments must be asserted to have the
+statically known type. In the transient semantics, the argument type is ignored, so
 the argument to a statically typed method call is only required to be of
-type \any, but the return type is checked.  If any of the systems, if the
+type \any, but the return type is checked.  In all of the systems, if the
 type of the receiver is \any, dynamic invocation is used.
 
 \begin{figure}[!h]\small
