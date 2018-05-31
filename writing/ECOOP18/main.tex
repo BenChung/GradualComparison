@@ -878,7 +878,7 @@ environments but typically not present in object calculi.
 \hspace{7mm}\begin{minipage}{\textwidth}
 
 \begin{tabbing}
-  \K\HS \New\C{\a[1]..} \HS\= \s~ \HS \=\Red\HS \= \K \HS\= \ap \HS\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
+\K\HS \New\C{\a[1]..} \HS\=\s~\HS\=\Red\HS\=\K\HS\=\ap\HS~\= \sp\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
 \\
 \K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1],\ldots\a[i],\a[n]\ldots}
 \\
@@ -1129,18 +1129,18 @@ Without the pass-through method, it would be impossible to cast back to
 with this semantics are referred to as opaque, as it is not possible
 to see methods of the underlying object though them. In contrast,
 \kafka uses transparent wrappers.
-
 To illustrate what this looks like, the following class \xt E is generated
 by the cast from \C to \D:
 
 \begin{tabbing}\small
-\class\= \xt E \{\\
-\> \HS \Fdef\that\C \\
-\> \HS \Mdef\m\x\Int\Int{\HS\BehCast\Int{\KCall\that\m{\BehCast\any\x}\any\any\HS}} \\ 
-\> \HS \Mdef\n\x\any\any{\HS \KCall\that\n{\x}\any\any\HS} \\ 
-\}
+\HS\HS\=\class\= \xt E \{\\
+\>\> \HS \Fdef\that\C \\
+\>\> \HS \Mdef\m\x\Int\Int{\HS\BehCast\Int{\KCall\that\m{\BehCast\any\x}\any\any\HS}} \\ 
+\>\> \HS \Mdef\n\x\any\any{\HS \KCall\that\n{\x}\any\any\HS} \\ 
+\>\}
 \end{tabbing}
 
+\noindent
 By keeping \n present, it is possible to return an instance of
 \E to \C again. If we were to remove \n, then \xt E would no longer
 be convertible back to \C again.
@@ -1181,8 +1181,7 @@ well-formedness of the class table, construction of the new heap, and
 well-formedness of the old heap.  Proving that the type of the wrapper is a
 subtype of the required type proceeds by structural induction over the
 required type.
-
-The proof of soundness has been formalized in Coq; available in the
+The proof of soundness has been formalized in Coq and is available in the
 supplementary material. The proof has two axioms: recursive structural
 subtyping is transitive and correct. We did not prove these (which have been
 shown in prior work~\cite{JonesStructural}) as they lie outside the scope of
@@ -1338,9 +1337,8 @@ Methods are translated to accept \any and return \any.  For a method \m that
 accepted a value \x of type \t in the surface language, the translation will
 first check that \x is of type by the means of subtype cast. The subtype
 cast operates on the translated type \t -- the type with all methods
-untyped.\footnote{We abuse the notation \EM{\e ; \ep } to denote sequence,
-  this could be encoded in the calculus, but explicit sequence is easier to
-  read.}
+untyped.\footnote{For readability, we abuse the notation \EM{\e ; \ep } to
+  denote sequencing.}
 
 \vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach guarantees
 soundness by wrapping values that cross type-untyped boundaries.  Methods
