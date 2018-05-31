@@ -756,43 +756,33 @@ the formal development more cumbersome without adding insight.
 \vspace{-7mm}
 
 \noindent Even without gradual typing, comparing languages is difficult.
-Small differences in syntax and features can make even the most
-similar languages appear different. As a result, the nuances of gradual type
-systems are often hidden amongst irrelevant details.  To enable direct
-comparison, we propose to translate a single gradually typed language 
-down to a common calculus designed to highlight the distinctions between type
-system designs.
+Small differences in syntax and features can make even the most similar
+languages appear different. As a result, the nuances of gradual type systems
+are often hidden amongst irrelevant details.  To enable direct comparison,
+we propose to translate gradually typed languages down to a common calculus
+designed to highlight the distinctions between designs.  The target for this
+translation is our core language, \kafka. \kafka is a statically typed
+language similar to the surface language but with several features added to
+enable its use as a common target language.
 
-Our gradually typed surface language has implicit conversions; to make surface
-programs statically typed, we need to make these conversions into explicit casts. 
-The target for this translation is our core language, \kafka. \kafka is a staticallytyped language similar to the source, but adding several features to enable its use
-as a common target language.
+These additions make an explicit distinction between static and dynamic
+operations and replace implicit conversions with explicit casts.  \kafka's
+first additions consist of two casts which are used at boundaries between
+typed and untyped code. The structural subtype cast, written \SubCast\t\e,
+ensures that expression \e evaluates to a subtype of \t. The behavioral
+cast, written \BehCast\t\e, creates a wrapper around the value of \e that
+monitors \e to ensure that it behaves as if it was of type \t.
+Additionally, a syntactic distinction is made between static method
+invocation, written \KCall\e\m\ep\t\tp, dynamic method invocation,
+\DynCall\e\m\ep.  Static invocations is guaranteed to not get stuck, whereas
+dynamic invocations cam. This makes explicit which function calls can fail.
 
-These additions make explicit boundaries between typed and untyped code
-as well as the guarantees given to operations. In particular, \kafka substitutes two 
-cast operations for the source's implicit conversions and makes a syntactic distinction between
-static and dynamic method invocation (\KCall\e\m\ep\t\tp and \DynCall\e\m\ep respectively).
-These additions are required to allow the translation of gradually typed code
-into statically typed code.
+\kafka was designed to align with common statically-typed class-based
+object-oriented compilation targets like .NET or the JVM. It maps to the
+intermediate language supported by these platforms. \kafka also requires the
+ability to generate new classes at run-time, a feature supported by these
+environments but typically not present in object calculi.
 
-\kafka's first set of additions, the two casts, are used when a typed
-value becomes untyped or vice versa. The structural subtype cast, written
-\SubCast\t\e, ensures that expression \e evaluates to a
-subtype of \t. The behavioral cast, written \BehCast\t\e, creates a
-wrapper around the value of \e. This wrapper monitors \e's value to
-ensure that it acts as type \t specifies. Both of these casts can go wrong,
-and are used at boundaries between typed and untyped code.
-
-Method invocations are given special syntax to indicate what guarantees
-they provide. Typed invocations in \kafka are guaranteed to not get
-stuck, whereas untyped invocations could get stuck at any call. This
-makes explicit what function calls could fail and which are statically
-guaranteed to be successful.
-
-\kafka's design is intended to align with common statically-typed object
-oriented compilation targets, like .NET or the JVM. Its class based, 
-object-oriented language design with dynamic code generation makes it
-very comparable to practical VM intermediate languages.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[!h]\small\noindent\hrulefill
@@ -919,34 +909,28 @@ very comparable to practical VM intermediate languages.
 
 \subsection{Syntax and Semantics}
 
-Designing \kafka we had two requirements. First, it must be expressive
-enough to capture the dynamic semantics implied by each gradual type
-system. Second, it should have a type system that can express that some code
-can be statically shown to be error free. \kafka's syntax and semantics, loosely inspired by
-Featherweight Java~\cite{FJ}, are shown in \figref{fig:kafka}.  At the top level, classes are notated as
-\Class\C{\fd[1]..}{\md[1]..}, methods, ranged over by \md, are denoted as
-\Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist of:
+Designing \kafka we had two requirements. First, to be expressive enough to
+capture the dynamic semantics implied by each gradual type system. Second,
+have a type system that can express when code is known to be error
+free. \kafka's syntax and semantics, loosely inspired by Featherweight
+Java~\cite{FJ}, are shown in \figref{fig:kafka}.  At the top level, classes
+are notated as \Class\C{\fd[1]..}{\md[1]..}, methods, ranged over by \md,
+are denoted as \Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist
+of:
 
-\vspace{-2mm}
+\vspace{-3mm}
 
 \begin{itemize}
-\item variable references, \x;
-\item self-reference \this, and wrapped reference, \that;
+\item variables, \x;
+\item self-reference \this, and wrapper target, \that;
 \item field access, \FRead\f, and writes, \FWrite\f\e;
 \item object creation, \New\C{\e[1]..};
 \item static and dynamic method invocations;
 \item subtype and behavioral casts;
-\item references, assignment, and dereference forms (for the runtime).
+\item heap addresses.
 \end{itemize}
 
 \noindent
-Evaluation is mostly standard with an evaluation context consisting of a
-class table \K, an expression being evaluated \e, and a heap \s, mapping
-from addresses \a to objects, denoted $\C\{\a\ldots\}$. Due to the need for
-dynamic code generation, the class table is part of the state. To emphasize
-the details of the gradual type systems, we have chosen a typical 
-object oriented calculi design. Calls and casts, however, are atypical.
-
 The static semantics hold few surprises; key typing rules appear in
 \figref{fig:kafka}. The subtyping relation is inherited from the surface
 language.  The program typing relation (not shown here), \WFp\e\K, indicates
@@ -955,6 +939,12 @@ expression typing judgment $\EnvType \Env\s\K\e\t$, indicates that against
 \Env, with heap \s, and class table \K, \e has type \t.  Unlike the surface
 language, \kafka does not rely on a convertibility relation from \any to \C
 and back; instead, explicit casts are required.
+
+Evaluation is mostly standard with an evaluation context consisting of a
+class table \K, the expression being evaluated \e, and a heap \s, mapping
+from addresses \a to objects, denoted $\C\{\a\ldots\}$. Due to the need for
+dynamic code generation, the class table is part of the state.
+
 
 \subsubsection{Method Invocation}
 
