@@ -945,7 +945,6 @@ class table \K, the expression being evaluated \e, and a heap \s, mapping
 from addresses \a to objects, denoted $\C\{\a\ldots\}$. Due to the need for
 dynamic code generation, the class table is part of the state.
 
-
 \subsubsection{Method Invocation}
 
 \kafka has two invocation forms, the dynamic \DynCall\e\m\ep and the static
@@ -953,7 +952,7 @@ dynamic code generation, the class table is part of the state.
 There are several design issues worth discussing.  First, as our calculus is
 a translation target, it is acceptable to require some explicit preparation
 for objects to be used in a dynamic context.  A dynamic call is only
-successful if the receiver has a method of the expected name and argument
+successful if the receiver has a method of the expected name and with argument
 and return types of \any. Thus, even dynamic invocation has to be
 well-typed. Secondly, it is possible for a static invocation to call an
 untyped method (of type \any to \any).  
@@ -971,14 +970,14 @@ class definition
 \end{tabbing}
 
 \noindent
-and assume that class table \K holds a definition for \xt{Int}. To illustrate
-this example, we take liberties with the syntax of addition for integers.
+and assume that class table \K holds a definition for \Int. To illustrate
+this example, we take liberties with the syntax of integer operations.
 
 The class above demonstrates several features of \kafka. Its class
 well-formedness rules (not shown here) allow a limited form of method
-overloading. A class may have at most two occurences of any method \m. One,
+overloading. A class may have at most two occurrences of any method \m. One,
 which we call ``untyped'', with \any as argument and return type. And one,
-which call ``typed'', with either argument and return type differ from \any.
+which call ``typed'', with either argument or return type differ from \any.
 The static type system enforces a single means of invoking a typed method
 \m:
 
@@ -991,35 +990,35 @@ the body of \m.  For an untyped method, there are two invocation modes:
 
 \vspace{-6mm}\[\DynCall{\New\C{}}\m{2}\]\vspace{-5mm}
 
-\noindent This form will execute correctly in this example; we know
-that \C has an untyped \m. However, in the general case, there is no
-static guarantee that the receiver of an untyped invocation has the correct
-method, and therefore this form could get stuck. We know, however, that
-\C has method \m. We can therefore use the static invocation form to
-reflect this knowledge,
+\noindent The call execute correctly here as \C has an untyped \m. However,
+in the general case, there is no guarantee that the receiver of an untyped
+invocation has the requested method, and therefore a dynamic invocation can
+get stuck. The receiver of a dynamic invocation has type \any.  When the
+receiver type is know to be some \C and that class has the requested method,
+then the static invocation can be used:
 
 \vspace{-6mm}\[\KCall{\New\C{}}\m{2}\any\any\]\vspace{-5mm}
 
-\noindent then the receiver is checked for an untyped method, and the
-invocation is guaranteed to succeed. All nuances will come in handy when
-translating the surface language to \kafka.
+\noindent The invocation is guaranteed to succeed. All nuances of invocation
+will come in handy when translating the surface language to \kafka.
 
 \subsubsection{Run-time Casts}
 
-\kafka has two cast operations: the subtype cast $\SubCast\t\e$ and the
+\kafka has two cast operations: the structural subtype cast $\SubCast\t\e$ and the
 behavioral cast $\BehCast\t\e$, both indicating the desire that the result
-of evaluating \e has type \t.  Where the casts differ is what is meant by
+of evaluating \e to be of type \t.  Where the casts differ is what is meant by
 ``has type \t''.  The subtype cast checks that the result of evaluating \e
 is an object whose class is compatible with \t. If \t is a class, then it
-will check for a subtyping relation; otherwise, If \EM{\t=\any} then the cast 
-always succeeds. This cast is possible because every value in the heap is
-tagged by its type construct. The behavioral cast is more complex, we will
+will check for a subtyping relation; otherwise, if \EM{\t=\any}, the cast 
+will succeeds. As every value in the heap is
+tagged by its type constructor, it is always possible to perform this check. 
+The behavioral cast is more complex, we will
 describe it in the remainder of this section.
 
-The objective of the behavioural cast is to ensure that the wrapped object
-behaves as the target type dictates. The behavioral cast wraps the result
-\a of its argument \e in a newly created object, which we refer to as \ap. 
-This wrapper object enforces the invariant that \a \emph{behaves} as a
+The objective of the behavioral cast is to ensure that the wrapped object
+behaves as the target type dictates. When given the address \a of some
+object, this cast creates a wrapper object, say \ap that enforces the 
+invariant that \a \emph{behaves} as a
 value of type \t.  Function \behcastE\a\t\s\K \Kp\ap\sp specifies its
 semantics, shown in \figref{behavetext}.  There are two cases to consider,
 either the target type is a class \Cp, or it is \any.
@@ -1089,7 +1088,8 @@ succeed. If \a is missing a method, it is impossible for \a to implement \Cp cor
 and early failure is indicated. Otherwise, the metafunction continues to generate
 a type wrapper, made by the \xt{wrap} function.
 
-The \xt{wrap} function generates, instantiates with \a, and returns a new wrapper class \ap (which refers to \a)
+The \xt{wrap} function generates, instantiates with \a, and returns 
+a new wrapper class \ap (which refers to \a)
 Class generation itself is delegated to the \W metafunction.
 A \W invocation, \EM{\W(\C,\md_1..,\mdp_1.., \D)}, takes a
 class \C, a fresh name \D, and two method lists $\md_1..$ and $\mdp_1$,
@@ -1195,14 +1195,14 @@ The design of \kafka's two invocation forms bears discussion. In some
 previous works, dynamic invocation has been implemented by a combination of
 a cast and a statically typed call.  In our case, following this approach
 would require creating a type for each invocation (as was done
-in~\cite{popl10}). Instead, providing a dynamic invocation form seemed more natural
-and simpler. The use of explicitly typed invocation is a result of our
+in~\cite{popl10}). Instead, providing a dynamic invocation form seemed more natural.
+The use of explicitly typed invocation is a result of our
 desire to be able to rule out some errors statically. This particular design
 comes from the observation that the same method name needs to called from
 both typed and untyped contexts. In particular, some gradual semantics
 require that the same object be callable from both typed and untyped settings.
-To accomodate this, wee decided
-to all classes to have two versions of the method and add types to the
+To accommodate this, wee decided
+all classes would have two versions of the method and add types to the
 method name to disambiguate between them.
 
 \kafka was intended to match the intermediate languages of commercial VMs.
