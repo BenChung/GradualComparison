@@ -1724,7 +1724,7 @@ are inserted in the various translations gives a precise account of what
 constitutes an error in each gradual type system.
 
 Our account of the behavioral approach matches its implementation in Typed
-Racket. But one could imagine a slightly less restrictive implementation,
+Racket. However, one could imagine a slightly less restrictive implementation,
 one which does not have a check for method names at wrapper creation.  That
 check is pragmatic but perhaps too strict -- it will rule out programs that
 may be fine just because a method is missing. One could have a wrapper that
@@ -1733,16 +1733,15 @@ simply reports an error if a missing method is called.
 Performance is a perennial worry for implementers of static type systems.
 It is difficult to provide guesses of how a highly optimizing language
 implementation will perform, as these implementations are likely to optimize
-away the majority of the casts and the dynamic dispatches. Consider the
+away the majority of the casts and dynamic dispatches. Consider the
 progress in the performance of Typed Racket reported since the publication
-of Takakiwa et al.~paper~\cite{popl16}.  What we can tell by looking at the
+of Takakiwa et al.'s~paper~\cite{popl16,OnlyMostly}.  What we can tell by looking at the
 translations is that in the optional approach there is no obvious benefit or
-cost to having type annotations. The transient approach has checks on reads,
-and typically reads are frequent, so, this seems like an unlucky design
-choice. Furthermore, those checks are needed even if the entire program is
+cost to having type annotations. The transient approach has checks on reads and typed function calls,
+which are common. Furthermore, those checks are needed even if the entire program is
 typed. Both concrete and behavioral can benefit from type information in
-typed code.  The difference is that cost of boundary crossing are low for
-concrete as they end up being a subtype check, whereas behavioral
+typed code.  The difference is that the cost of boundary crossing is low in the
+concrete approach, as it uses a subtype check whereas behavioral
 requires allocation of a wrapper. Wrappers have other costs as they may
 complicate the task of devirtualization and unboxing.
 
@@ -1750,16 +1749,16 @@ complicate the task of devirtualization and unboxing.
 \section{Conclusion}
 
 This paper has introduced \kafka, a framework for comparing the design of
-gradual type systems for object-oriented languages. Our approach is to
-provide translations from common surface language with different gradual
-semantics into \kafka. These translations highlight the different run-time
-enforcement strategies deployed by the languages under study. The
-differences between gradual type systems are highlighted explicitly by the
-observable differences of their behavior in our litmus tests, demonstrating
-how there is no consensus on the meaning of error.  These litmus tests
-motivated the need to have a common framework to explore the design space.
+gradual type systems for object-oriented languages. Our approach is to provide
+translations with different gradual semantics from a common surface language
+into \kafka. These translations highlight the different run-time enforcement
+strategies deployed by the languages under study. The differences between
+gradual type systems are highlighted explicitly by the observable differences
+of their behavior in our litmus tests, demonstrating how there is no consensus
+on the meaning of error.  These litmus tests motivated the need to have a
+common framework to explore the design space.
 
-\kafka demonstrates that to express the different gradual approach, one
+\kafka demonstrates that to express the different gradual approaches, one
 needs a calculus with two casts, one structural and one behavioral, two
 invocations forms, one dynamic and one static, the ability to extend the
 class table at run-time, and wrappers that expose their underlining
@@ -1770,17 +1769,17 @@ can be straightforwardly implemented on top of a stock virtual machine.
 A open question for gradual type system designers is performance of the
 resulting implementation. Performance remains a major obstacle to adoption
 of approaches that attempt to provide soundness guarantees.  Under the
-optional approach, types are removed by the translation, as a result,
+optional approach, types are removed by the translation; as a result,
 performance will be identical to that of untyped code.  The transient
-approach checks types at uses, the act of adding types to a program
-introduces more casts and may slow the program down. This is true even in
-fully typed code.  In contrast, the behavioral approach avoids casts in
-typed code,. The price it pays for soundness, however, is heavyweight
-wrappers are inserted at typed-untyped boundaries.  Lastly, the concrete
-semantics is also sound and has low overheads, but this comes at a cost in
-expressiveness.
+approach checks types at uses, so the act of adding types to a program
+introduces more casts and may slow the program down (even in fully typed code). 
+In contrast, the behavioral approach avoids casts in
+typed code. The price it pays for this conventional soundness, however, is heavyweight
+wrappers inserted at typed-untyped boundaries.  Lastly, the concrete
+semantics is also conventionally sound and has low overheads, but comes at a cost in
+expressiveness and ability to migrate from untyped to typed.
 
-Going forward there are several issues we wish to investigate.  We do not
+Going forward, there are several issues we wish to investigate.  We do not
 envision that supporting nominal subtyping within \kafka will pose problems,
 it would only take adding a nominal cast and changing the definition of
 classes. Then nominal and structural could coexist. A more challenging
