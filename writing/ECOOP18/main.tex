@@ -80,14 +80,15 @@ type systems}
 A wide range of gradual type systems have been proposed, providing many
 languages with the ability to mix typed and untyped code. However, hiding
 under language details, these gradual type systems have fundamentally
-different ideas of what it means to be typed. In this paper, we show that four 
-of the most common gradual type systems provide distinct guarantees, and we 
-give a formal framework for comparing gradual type systems for object-oriented languages. First, we show that the different
-gradual type systems are practically distinguishable via a three-part litmus tests. Then, we present a formal framework for defining and
-comparing gradual type systems. Within this framework, different
-gradual type systems become translations between a common source and
-target language, allowing for direct comparison of semantics and
-guarantees.
+different ideas of what it means to be typed. In this paper, we show that
+four of the most common gradual type systems provide distinct guarantees,
+and we give a formal framework for comparing gradual type systems for
+object-oriented languages. First, we show that the different gradual type
+systems are practically distinguishable via a three-part litmus test. Then,
+we present a formal framework for defining and comparing gradual type
+systems. Within this framework, different gradual type systems become
+translations between a common source and target language, allowing for
+direct comparison of semantics and guarantees.
 \end{abstract}
 
 \section{Introduction}
@@ -108,20 +109,20 @@ degree of linguistic diversity is not without consequence, however, as the
 very notion of what constitutes an error remains unsettled.
 
 The type system and semantics of a programming language are necessarily
-tightly coupled;  each has to deal with the language's complexity. As a result,
-the same gradual type system may seem very different when applied to two
-different languages, an issue that shows up clearly with object-oriented
-languages. Siek and Taha's first effort~\cite{SiekTaha07} presented a gradual
-type system for an object-based. It related objects by
-generalizing the notion of consistency~\cite{SiekTaha06} over structural
-subtyping. The work had drawbacks, most notably in the handling of
-mutable state and aliasing --- vital features of object-oriented languages.
-Underlying each subsequent gradual type system are different design choices on how to
-deal with those features.
+tightly coupled; each has to deal with the language's complexity. As a
+result, the same gradual type system may seem very different when applied to
+two different languages, an issue that shows up clearly with object-oriented
+languages. Siek and Taha's first effort~\cite{SiekTaha07} presented a
+gradual type system for an object-based. It related objects by generalizing
+the notion of consistency~\cite{SiekTaha06} over structural subtyping. The
+work had drawbacks, most notably in the handling of mutable state and
+aliasing --- vital features of object-oriented languages.  Underlying each
+subsequent gradual type system are different design choices on how to deal
+with those features.
 
-The landscape of gradually typed object-oriented languages is rich. 
-Consider some of the languages in this space:
+The landscape of gradually typed object-oriented languages is rich and includes:
 
+\vspace{-2mm}
 \begin{itemize}
  \item Typed Racket: a rich gradual type system based on contracts.
  \item Gradualtalk: a variant of Smalltalk with contracts.
@@ -135,25 +136,24 @@ Consider some of the languages in this space:
  \item Reticulated Python: a family of gradual type systems for Python.
 \end{itemize}
 
-\noindent These languages differ in their type system and the associated run-time
-enforcement strategy. There are four major approaches, labeled here
+\noindent These languages differ in their type system and the associated
+run-time enforcement strategy. There are four major approaches, labeled here
 as optional, concrete, behavioral and transient. The \emph{optional}
 approach, chosen by TypeScript, Dart, and Hack, amounts to static
 type-checking followed by type-erasure.  Erroneous values flowing from
 dynamically typed code to statically typed code will not be caught. The
-\emph{concrete} approach, used in C\# and Nom, uses run-time subtype tests on
-type constructors to supplement static typing.  While statically typed code
-executes at native speed, values are dynamically checked 
-at typed-untyped boundaries. The \emph{behavioral} approach of Typed Racket, Gradualtalk and
-Reticulated Python monitors values to ensure that they behave in accordance
-to their assigned types. Instead of checking higher-order and mutable values for static
-type tags like concrete, wrappers ensures enduring conformance of values to their declared type.
-The \emph{transient} approach, specific to
+\emph{concrete} approach, used in C\# and Nom, uses run-time subtype tests
+on type constructors to supplement static typing.  While statically typed
+code executes at native speed, values are dynamically checked at
+typed-untyped boundaries. The \emph{behavioral} approach of Typed Racket and
+Gradualtalk monitors values to ensure that they behave in accordance to
+their assigned types. Instead of checking higher-order and mutable values
+for static type tags like concrete, wrappers ensures enduring conformance of
+values to their declared type.  The \emph{transient} approach, specific to
 Reticulated Python, lies between concrete and behavioral; it adds type casts
 but does so only for the top-level of data structures. Finally, Thorn and
-StrongScript combine the optional and concrete approaches,
-differentiating between types that are erased and types that are run-time
-checked.
+StrongScript combine the optional and concrete approaches, differentiating
+between erased types and run-time checked types.
 
 Static type systems are designed to capture some class of errors. For
 gradual type systems, however, some errors cannot be ruled out before
@@ -167,33 +167,31 @@ approaches.  The litmus test programs are statically well-typed, and are
 untyped language. However, when executed under different gradual typing
 systems, they produce different errors. For intuition, consider a call,
 \EM{\x.\m()}, where \EM{\x:\C} and \C has a method \m returning a \D.  In
-the concrete approach, this call will succeed. With behavioral,
-the call will go through, but an error may be reported if \m return the
-wrong value. In transient, the call is similarly guaranteed to go through,
-but might return the wrong value and not produce an error.  Finally, in
-optional, the call may get stuck if the object denoted by \x does not have a
-method \m, and if the call succeeds, there is no guarantee that a value of
-type \D will be returned.
+the concrete approach, this call will succeed. With behavioral, the call
+will go through, but an error may be reported if \m return a value of the
+wrong type. In transient, the call is similarly guaranteed to go through,
+but might return the wrong type without reporting an error.  Finally, in
+optional, the call may get stuck as \x may not have a method named \m, and,
+if it succeeds, there is no guarantee that type \D will be returned.
 
 \begin{wrapfigure}{r}{5cm}
-\vspace{-6mm}
+\vspace{-4mm}
 \includegraphics[width=5cm]{fig1}
-\vspace{-7mm}\end{wrapfigure}
+\vspace{-8mm}\end{wrapfigure}
 
-We propose to compare approaches to gradual typing for objects by translating
-a gradually typed surface language to a target language, called \kafka. Our
-surface language is a \emph{gradually} typed class-based object oriented
-language, similar to Featherweight Java. \kafka is a \emph{statically} typed
-class-based object calculus with mutable state. The key difference
-between the two is the sound type system and casts of \kafka.
+We propose to compare approaches to gradual typing for objects by
+translating a gradually typed surface language to a target language, called
+\kafka. Our surface language is a \emph{gradually} typed class-based object
+oriented language, similar to Featherweight Java. \kafka is a
+\emph{statically} typed class-based object calculus with mutable state. The
+key difference between the two is the sound type system and casts of \kafka.
 Where the surface language allows implicit coercions, \kafka requires
-explicit casts to convert types. Casts come in two kinds:
-\emph{structural casts} check if an object is a subtype of some type
-\t, while \emph{behavioral casts} monitor that an object
-behaves as if it was of some type \t. Translating from surface to target language
-involves adding casts, the location and type of which depends on the gradual type system.
+explicit casts to convert types. Casts come in two kinds: \emph{structural
+  casts} check for subtyping, while \emph{behavioral casts} monitor that an
+object behaves as if it was of some type. Translating from surface to target
+language involves adding casts, the location and type of which depends on
+the gradual type system.
 
-\noindent
 This paper makes the following contributions:
 \begin{itemize}  
   \item The design of a core calculus for gradual type systems for objects.
@@ -414,7 +412,10 @@ objects, mutable state or subtying. They give performance results for a
 non-optimizing implementation of the embeddedings, the results are as
 expected: behavioral has extreme worst cases and locally-defensive
 significantly slows down fully-typed programs. While they do not evalute
-object-oriented programs, these are unlikely to fare better.
+object-oriented programs, these are unlikely to fare better. The performance
+results also do not measure the cost of propagating blame information.  Our
+work differs in that we were trying to express a translation between object
+calculi using features that readily available in most virtual machines.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
@@ -1241,13 +1242,12 @@ The translations for surface level classes are shown in
 \figref{fig:traclass}. Each class in the surface language translates to a
 homonymous \kafka class, retaining type names through translation.
 The grey background denotes code generated in the translation.
+The notation \EM{\e;\ep} denotes sequencing. 
 
-\begin{figure}[!h]  {\small  \hrulefill\\
-\begin{tabular}{llc@{\hspace{.25cm}}l}    
-        
-\\
+\begin{figure}[!b]  {\small  \hrulefill\\
+\begin{tabular}{llc@{\hspace{.25cm}}l}     \\[-2mm]
 
-{\bf Optional:} \\[2mm]
+{\bf Optional:} \\[1mm]
 
 \HS\TR[\OTS]{\Class\C{\fd[1]..}{\md[1].. }}
    & = \src{\Class\C{\fdp[1]..}{\mdp[1]..}}\\     
@@ -1256,9 +1256,7 @@ The grey background denotes code generated in the translation.
    & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \HS\HS
                                  \ep=\;\TR[\OTS]{\e}\\   
         
-\\[-2mm]
-
-{\bf Transient:} \\[2mm]   
+{\bf Transient:} \\[1mm]   
 \HS\TR[\TTS]{\Class\C{\fd[1]..}{\md[1]..}}
     & = \src{\Class\C{\fdp[1]..}{\mdp[1]..}}\\   
     & \WHERE \HS\HS\HS \fdp[1] = \src{\Ftype\f\any} .. \HS    
@@ -1267,19 +1265,15 @@ The grey background denotes code generated in the translation.
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp\e .. 
    \HS \HS \ep[1] = \TAG[\TTS]\e{\x:\t\,\this:\C}\any~ .. \\        
         
-\\[-2mm]
-
-{\bf Behavioral:} \\[2mm]
+{\bf Behavioral:} \\[1mm]
 \HS\TR[\BTS]{\Class\C{\fd[1]..}{\md[1].. }} 
     & =  \src{\Class \C {\fd[1]..}{\mdp[1].. } } \\    
     & \WHERE \HS\HS\HS \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS \\   
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS 
     \HS\HS \ep[1] = \TRG[\BTS]{\e[1]}{\x:\t\,\this:\C} \\    
-        
 
-\\[-2mm]
 
-{\bf Concrete:} \\[2mm]
+{\bf Concrete:} \\[1mm]
    
 \HS\TR[\CTS]{\Class\C{\fd[1]..}{\md[1].. }} 
     & = \src{ \Class \C{ \fd[1]..}{\mdp[1].. \mdpp[1]..}} \\   
@@ -1290,7 +1284,7 @@ The grey background denotes code generated in the translation.
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \textbf{\IF} {\t[1]} $\neq$ \any \\    
     & \HS\HS\HS\HS\HS\HS\HS\HS\HS \HS\HS\HS\HS\HS\HS \src{empty}    
     \HS {\bf otherwise}  ..   
-  \end{tabular}   
+  \end{tabular}   \\[-2mm]
       
 \hrulefill}
  \caption{Translations for classes.}     \label{fig:traclass}    
@@ -1308,8 +1302,7 @@ corresponding name. To encode this within the \kafka type system requires
 replacing all of the argument and return types with \any. This translation
 allows functions to be called under any type and to return values of any
 type. Casts to the erased types are then effectively shallow structural
-checks only.\footnote{The notation \EM{\e;\ep} denotes sequencing. While it
-  could be encoded, explicit sequences are easier to read.}  As there is no
+checks only.  As there is no
 guarantee that fields contain values of their type,
 the translation sets their type to \any.
 
@@ -1335,19 +1328,57 @@ this form to simplify the optional translation, as it is ambivalent about the
 types of the expressions it is translating; the optional semantics simply
 eliminates all of them.
 
-The second translation form is type-aware, used for the three other approaches. The
-type-aware translation has two forms, $\TRG[\SOMS]\e\Env$ and
-$\TAG[\SOMS]\e\Env\t$, inspired by work on bidirectional
+The second translation form is type-aware, used for the three other
+approaches. The type-aware translation has two forms, $\TRG[\SOMS]\e\Env$
+and $\TAG[\SOMS]\e\Env\t$, inspired by work on bidirectional
 type-checking~\cite{pierce:1998:local}.  The first form,
 $\TRG[\SOMS]\e\Env$, is analogous to the synthetic case in bidirectional
 type-checking.  It is used for expressions without any specific required
 type.  The second form, $\TAG[\SOMS]\e\Env\t$, is used when \e must have
-some type \t. Analogous to the analytic case of bidirectional
-type-checking, this form applies when some enclosing expression has an
-expectation of the type of \e. For example, it is used in translation of
-method arguments, which must conform to the types of the arguments to the
-method. We refer to this as assertive translation. These two forms allow us to identify
-where consistency was needed to conclude the surface level typing judgment.
+some type \t. Analogous to the analytic case of bidirectional type-checking,
+this form applies when some enclosing expression has an expectation of the
+type of \e. For example, it is used in translation of method arguments,
+which must conform to the types of the arguments to the method. We refer to
+this as assertive translation. These two forms allow us to identify where
+consistency was needed to conclude the surface level typing judgment.
+
+\begin{figure}[!b]\small  \hrulefill\\[2mm]
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
+
+{\bf Transient:}\\[1mm]
+\HS \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
+    & \TypeCk{\K,\Env}\e\tp
+    & \EM{\K\vdash\tp\Sub\t}
+    & \ep = \TRG[\TTS]\e\Env \\
+\HS\TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
+    & \TypeCk{\K,\Env}\e\tp 
+    & \EM{\K\vdash \tp \not \Sub \t}
+    & \EM{\ep = \TRG[\TTS]\e\Env} \\[2mm]
+{\bf Behavioral:} \\ [1mm]
+ \HS\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
+    & \TypeCk{\K,\Env}\e\tp
+    & \EM{\K\vdash \tp \Sub \t}
+    & \ep = \TRG[\BTS]\e\Env\\
+\HS\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
+    & \TypeCk{\K,\Env}\e\tp \HS 
+    & \EM{\K\vdash \tp \not \Sub \t}
+    & \ep = \TRG[\BTS]\e\Env \\[2mm]
+{\bf Concrete:} \\[1mm]
+\HS\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
+    & \TypeCk{\K,\Env}\e\tp 
+    & \EM{\K\vdash\tp \Sub \t} 
+    & \ep = \TRG[\CTS]\e\Env\\
+\HS\TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
+    & \TypeCk{\K,\Env}\e\tp 
+    & \EM{\K\vdash\tp \not\Sub \t}
+    & \EM{\ep = \TRG[\CTS]\e\Env} 
+\end{tabular}
+\\
+
+\hrulefill
+
+\caption{Assertive translation.}\label{fig:trtype}
+\end{figure}
 
 The assertive translation of \figref{fig:trtype} is responsible for producing
 well-typed terms by adding casts into expressions where static types differ.
@@ -1363,42 +1394,6 @@ structural compatibility (e.g. are all the needed methods present) alone
 whereas concrete subtype casts check the entire object's types.
 The behavioral approach instead inserts behavioral casts
 at boundaries.
-\begin{figure}[!t]\small  \hrulefill\\
-\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-
-\\[-2mm]
-
-{\bf Transient:}\\[2mm]
-\HS \TAG[\TTS]\e\Env\t & = \src\ep &\WHERE
-    & \TypeCk{\K,\Env}\e\tp
-    & \EM{\K\vdash\tp\Sub\t}
-    & \ep = \TRG[\TTS]\e\Env \\
-\HS\TAG[\TTS]\e\Env\t &= \src{\SubCast\t\ep} &\WHERE
-    & \TypeCk{\K,\Env}\e\tp 
-    & \EM{\K\vdash \tp \not \Sub \t}
-    & \EM{\ep = \TRG[\TTS]\e\Env} \\[2mm]
-{\bf Behavioral:} \\ [2mm]
- \HS\TAG[\BTS]\e\Env\t & = \src\ep & \WHERE
-    & \TypeCk{\K,\Env}\e\tp
-    & \EM{\K\vdash \tp \Sub \t}
-    & \ep = \TRG[\BTS]\e\Env\\
-\HS\TAG[\BTS]\e\Env\t & = \src{\BehCast\t\ep} & \WHERE
-    & \TypeCk{\K,\Env}\e\tp \HS 
-    & \EM{\K\vdash \tp \not \Sub \t}
-    & \ep = \TRG[\BTS]\e\Env \\[2mm]
-{\bf Concrete:} \\[2mm]
-\HS\TAG[\CTS]\e\Env\t &= \src\ep &\WHERE
-    & \TypeCk{\K,\Env}\e\tp 
-    & \EM{\K\vdash\tp \Sub \t} 
-    & \ep = \TRG[\CTS]\e\Env\\
-\HS\TAG[\CTS]\e\Env\t &= \src{\SubCast{\t}\ep} &\WHERE
-    & \TypeCk{\K,\Env}\e\tp 
-    & \EM{\K\vdash\tp \not\Sub \t}
-    & \EM{\ep = \TRG[\CTS]\e\Env} 
-\end{tabular}\vspace{2mm}
-\\\hrule\vspace{3mm}
-\caption{Assertive translation.}\label{fig:trtype}
-\end{figure}
 
 The translation of field access appears in \figref{fig:travar}.  The
 optional translation only inserts a cast to \any in front of uses of the
@@ -1455,79 +1450,63 @@ type requirement whatsoever.
 
 \begin{figure}[!h]\small
 \hrulefill\\
-\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-\\
+\begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}\\[-1mm]
 
-{\bf Optional:}\\[2mm]
+{\bf Optional:}\\[1mm]
 \HS\TR[\OTS]{\FWrite\f\e} 
         & = \src{\FWrite\f\ep} &\WHERE&\ep=\TR[\OTS]\e\\[2mm]
-{\bf Transient:}\\[2mm]
+{\bf Transient:}\\[1mm]
 \HS\TRG[\TTS]{\FWrite\f\e}\Env & =  \src{{\FWrite\f\ep}} &\WHERE
         & \TypeCk{\K,\Env}\this\C
         & \Ftype\f\t\In\App\K\C 
 	& \ep = \TAG[\TTS]\e\Env\any\\[2mm]
-{\bf Behavioral:}\\ [2mm]
+{\bf Behavioral:}\\ [1mm]
 \HS\TRG[\BTS]{\FWrite\f\e}\Env &=  \src{\FWrite\f\ep} & \WHERE
 	& \TypeCk{\K,\Env}{\this}\C
 	& \Ftype\f\t\In\App\K\C 
 	& \ep = \TAG[\BTS]\e\Env\t\\[2mm]
-{\bf Concrete:}\\[2mm]
+{\bf Concrete:}\\[1mm]
 \HS\TRG[\CTS]{\FWrite\f\e}\Env     & = \src{\FWrite\f\ep} & \WHERE
 	& \TypeCk{\K, \Env}\this\C
 	& \Ftype\f\t\In\App\K\C
 	& \ep = \TAG[\CTS]\e\Env{\t} 
-\end{tabular}\\
+\end{tabular}\\[-2mm]
 
-\hrulefill
+\hrulefill\vspace{1mm}
 \caption{Translations for assignment.}\label{fig:trassn}
-\end{figure}
+\vspace{1mm}
 
-The translation for object creation, shown in \figref{fig:tranew}, follows
-the same reasoning. It inserts casts for each argument to be the required type
-according to class translation.
-
-\begin{figure}[!h]\small
 \hrulefill\\
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-\\
-{\bf Optional:}\\[2mm]
+\\[-2mm]
+{\bf Optional:}\\[1mm]
 \HS\TR[\OTS]{\New\C{\e[1]..}} & = \src{\SubCast\any{\New\C{\ep[1]..}}} &\WHERE 
 	& \ep[1] = \TR[\OTS]{\e[1]} .. \\[2mm]
-{\bf Transient:}\\[2mm]
+{\bf Transient:}\\[1mm]
 \HS\TRG[\TTS]{\New\C{\e[1]..}}\Env &=  \src{\New\C{\ep[1]..}} &\WHERE 
 	& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 	& \ep[1] = \TAG[\TTS]{\e[1]}\Env{\any} ~.. \\[2mm]
-{\bf Behavioral:}\\ [2mm]
+{\bf Behavioral:}\\ [1mm]
 \HS\TRG[\BTS]{\New\C{\e[1]..}}\Env & = \src{\New\C{\ep[1]..}} &\WHERE 
 	& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 	& \ep[1] = \TAG[\BTS]{\e[1]}\Env{\t[1]} ~..\\
-{\bf Concrete:} \\[2mm]
+{\bf Concrete:} \\[1mm]
 \HS\TRG[\CTS]{\New\C{\e[1]..}}\Env &= \src{\New\C{\ep[1]..}}  &\WHERE
 	& \Ftype{\f[1]}{\t[1]}\In\App\K\C
 	& \ep[1] = \TAG[\CTS]{\e[1]}\Env{\t[1]} ..
-\end{tabular}\\
+\end{tabular}\\[-2mm]
 
-\hrulefill
+\hrulefill\vspace{1mm}
 \caption{Translations for object creation.}\label{fig:tranew}
-\end{figure}
+\vspace{1mm}
 
-The translations for invocation are shown in \figref{fig:trafuninv}.
-The optional approach translates all invocations to dynamic invocation, as
-it cannot provide any static guarantee. In the concrete and behavioral approaches,
-since the static types are retained, arguments must be asserted to have the
-statically known type. In the transient semantics, the argument type is ignored, so
-the argument to a statically typed method call is only required to be of
-type \any, but the return type is checked.  In all of the systems, if the
-type of the receiver is \any, dynamic invocation is used.
-
-\begin{figure}[!h]\small
 \hrulefill\\
-\\
+\\[-2mm]
 \begin{tabular}{llc@{\hspace{.25cm}}l@{\HS}l@{\HS}l}
-{\bf Optional:}\\[2mm]
+{\bf Optional:}\\[1mm]
 \HS\TR[\OTS]{\Call{\e[1]}\m{\e[2]}} &= \src{\DynCall{\ep[1]}\m{\ep[2]}} &\WHERE 
     & \ep[1] = \TR[\OTS]{\e[1]} & \ep[2] = \TR[\OTS]{\e[2]} \\[2mm]
-{\bf Transient:} \\[2mm]
+{\bf Transient:} \\[1mm]
 \HS\TRG[\TTS]{\Call{\e[1]}\m{\e[2]}}\Env 
         & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE 
 	& \TypeCk{\K,\Env}{\e[1]}\any 
@@ -1540,7 +1519,7 @@ type of the receiver is \any, dynamic invocation is used.
 	& \ep[1] = \TRG[\TTS]{\e[1]}\Env  
         & \ep[2] = \TAG[\TTS]{\e[2]}\Env{\any} \\
         & & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\[2mm]
-{\bf Behavioral:}\\[2mm]
+{\bf Behavioral:}\\[1mm]
 \HS\TRG[\BTS]{\Call{\e[1]}\m{\e[2]}}\Env 
         & = \src{\DynCall{\ep[1]}\m{\ep[2]}} & \WHERE
 	&  \TypeCk{\K,\Env}{\e[1]}\any
@@ -1552,7 +1531,7 @@ type of the receiver is \any, dynamic invocation is used.
 	& \ep[1] = \TRG[\BTS]{\e[1]}\Env
 	& \ep[2] = \TAG[\BTS]{\e[2]}\Env{\D[1]}  \\
 	& & &  \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} \\[2mm]
-{\bf Concrete:}\\[2mm]
+{\bf Concrete:}\\[1mm]
 \HS\TRG[\CTS]{\Call{\e[1]}\m{\e[2]}}\Env 
         & = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} & \WHERE 
         &  \TypeCk{\K,\Env}{\e[1]}\any 
@@ -1564,20 +1543,34 @@ type of the receiver is \any, dynamic invocation is used.
         &  \ep[1] = \TRG[\CTS]{\e[1]}\Env 
         &   \ep[2] = \TAG[\CTS]{\e[2]}\Env{\D[1]} \\ 
 	& & & \multicolumn{2}{l}{\Mtype\m{\D[1]}{\D[2]}\In\App\K\C} &  \\
-\end{tabular}\vspace{2mm}\\
-\hrule\vspace{4mm}
-	
+\end{tabular}\\
+\hrule	\vspace{1mm}
 \caption{Translations for function invocation.}\label{fig:trafuninv}
 \end{figure}
+
+The translation for object creation, shown in \figref{fig:tranew}, follows
+the same reasoning. It inserts casts for each argument to be the required type
+according to class translation.
+
+The translations for invocation are shown in \figref{fig:trafuninv}.  The
+optional approach translates all invocations to dynamic invocation, as it
+cannot provide any static guarantee. In the concrete and behavioral
+approaches, since the static types are retained, arguments must be asserted
+to have the statically known type. In the transient semantics, the argument
+type is ignored, so the argument to a statically typed method call is only
+required to be of type \any, but the return type is checked.  In all of the
+systems, if the type of the receiver is \any, dynamic invocation is used.
+
+\newpage
 
 \subsection{Example}
 
 We illustrate the translation with the behavior of litmus program {\bf L3}.
 The operational principle of {\bf L3} is that it creates a new object (an
-instance of \C), then uses an untyped intermediate to represent it as type \E. Type
-\E ascribes the wrong type for argument \x, substituting \D for the correct
-type \C. However, since the object never uses its argument, this faulty type
-is not exercised.
+instance of \C), then uses an untyped intermediate to represent it as type
+\E. Type \E ascribes the wrong type for argument \x, substituting \D for the
+correct type \C. However, since the object never uses its argument, this
+faulty type is not exercised.
 
 \begin{figure}[!h]\small
 \hrulefill\\
@@ -1706,18 +1699,21 @@ wrapper class $\C_2$ takes the $\C_1$ wrapper and casts it back to \E. This wrap
 takes the untyped implementation of \a and wraps it again, calling it with
 an argument cast to \any and casting the return to \D.
 
-\begin{figure}[h!]
+\begin{figure}[h!]\hrulefill\vspace{2mm}
+
 \begin{tabularx}{\textwidth}{XX}
 \Class\C{}{\Mdef{\xt{a}}\x\C\C\x} & \Class{\xt E}{}{\Mdef{\xt{a}}\x\D\D\x}
 \end{tabularx}
 
-\hrulefill
+\vspace{-4mm}
 \begin{align*}
-\Class{\C_1}{&\that : \C}{\\&\Mdef{\xt{a}}\x\any\any{\BehCast\any{\KCall{\this.\that}{\xt{a}}{\BehCast\C\x}\C\C}}} \\
-\Class{\C_2}{&\that : \C_1}{\\&\Mdef{\xt{a}}\x\D\D{\BehCast\D{\KCall{\this.\that}{\xt{a}}{\BehCast\any\x}\any\any}}}
+\Class{\C_1}{\HS&\that : \C}{&\Mdef{\xt{a}}\x\any\any{\BehCast\any{\KCall{\this.\that}{\xt{a}}{\BehCast\C\x}\C\C}}} \\
+\Class{\C_2}{\HS &\that : \C_1}{&\Mdef{\xt{a}}\x\D\D{\BehCast\D{\KCall{\this.\that}{\xt{a}}{\BehCast\any\x}\any\any}}}
 \end{align*}
-\caption{Behavioral wrappers.}
-\label{fig:behex}
+\vspace{-4mm}
+
+\hrulefill
+\caption{Behavioral wrappers.}\label{fig:behex}
 \end{figure}
 
 \subsection{Discussion}
@@ -1746,9 +1742,9 @@ and typically reads are frequent, so, this seems like an unlucky design
 choice. Furthermore, those checks are needed even if the entire program is
 typed. Both concrete and behavioral can benefit from type information in
 typed code.  The difference is that cost of boundary crossing are low for
-concrete as they end up being a tqg check, whereas behavioral requires
-allocation of wrapper. Wrappers have other costs as they may complicate
-the task of devirtualization and unboxing.
+concrete as they end up being a subtype check, whereas behavioral
+requires allocation of a wrapper. Wrappers have other costs as they may
+complicate the task of devirtualization and unboxing.
 
 
 \section{Conclusion}
@@ -1795,14 +1791,17 @@ interesting to axiomatize the correctness requirements for a cast and let
 users define their own cast semantics. The goal would be to have a
 collection of user defined pluggable casts within a single framework.
 
-\subsection*{Acknowledgments} The author thank the reviewers of {\sc ecoop},
-{\sc popl}, {\sc esop}, and again {\sc ecoop} for thoughtful comments that
-gradually improved this paper. We are grateful to Benjamin Greenman and
-Matthias Felleisen for their feedback.  This work funding from the European
-Research Council (ERC) under the European Union’s Horizon 2020 research and
-innovation programme (grant agreement 695412), the NSF (award 1544542) and
-ONR (award 503353).
+~\\
 
+\subsection*{Acknowledgments} The author thank the reviewers of {\sc ecoop},
+{\sc popl}, {\sc esop}, and again {\sc ecoop} for comments that gradually
+improved this paper. We are grateful to Benjamin Greenman and Matthias
+Felleisen for their feedback.  This work funding from the European Research
+Council (ERC) under the European Union’s Horizon 2020 research and
+innovation programme (grant agreement 695412), the NSF (award 1544542) and
+(award 1518844) as well as ONR (award 503353).
+
+\newpage
 
 \bibliographystyle{plainurl}
 \bibliography{../../bib/jv,../../bib/all}
