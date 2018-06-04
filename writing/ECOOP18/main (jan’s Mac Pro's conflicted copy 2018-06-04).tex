@@ -125,7 +125,7 @@ The landscape of gradually typed object-oriented languages is rich and includes:
 \vspace{-2mm}
 \begin{itemize}
  \item Typed Racket: a rich gradual type system based on contracts.
- \item Gradualtalk: a gradual variant of Smalltalk.
+ \item Gradualtalk: a variant of Smalltalk with contracts.
  \item C\#: a statically typed language with a dynamic type.
  \item Dart: a class based language with optional types.
  \item Hack: a statically typed variant of PHP that allows untyped code.
@@ -253,44 +253,44 @@ Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
 for a program by choosing to annotate function parameters with types, or
 not.'' They formalized this idea in the lambda calculus augmented with
-references. To make the type system a gradual one, they defined the type
-consistency relation $\t \sim \tp$. If $\t \sim \tp$, then \t is consistent
-with \tp, and can therefore be used implicitly where a \tp instance is
-expected.  This enables gradual typing, as $\any \sim \t$ for every $\t$ and
-vice versa, allowing untyped values to be passed where typed ones are
-expected.  In~\cite{SiekTaha07} the authors extended this idea to an object
-calculus.  In order to do so, they combined consistency with structural
-subtyping, producing consistent subtyping. With consistent subtyping,
-consistency can be used when checking structural subtyping, allowing typed
-objects and untyped objects to be mixed.  To explore the design space,
-Reticulated Python~\cite{siek14} was given three modes: the \emph{guarded}
+references. To make the type system a gradual one, they defined the type consistency
+relation $\t \sim \tp$. If $\t \sim \tp$, then \t is consistent with \tp,
+and can therefore be used implicitly where a \tp instance is expected.
+This enables gradual typing, as $\any \sim \t$ for every $\t$ and vice versa,
+allowing untyped values to be passed where typed ones are expected.
+In~\cite{SiekTaha07} the authors extended this idea to an object calculus.
+In order to do so, they combined consistency with structural subtyping,
+producing consistent subtyping. With consistent subtyping, consistency can be used
+when checking structural subtyping, allowing typed objects and untyped objects
+to be mixed. 
+To explore the design space, Reticulated Python~\cite{siek14} was given
+three modes: the \emph{guarded}
 mode behaves as Typed Racket with contracts applied to values.  The
 \emph{transient} mode performs shallow subtype checks on reads and method
 returns, only validating if the value obtained has matching method types.
 The \emph{monotonic} mode is fundamentally different from any of the
-previous approaches. Monotonic cast updates the type of values in place by
-replacing some of the occurrences of \any with more specific types, these
-updates propagate recursively through the heap until a fixed point is
-reached.
+previous approaches. Monotonic cast updates the type 
+of values in place by replacing some of the occurrences of \any with more
+specific types, these updates propagate recursively through the heap until
+a fixed point is reached.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, Nom~\cite{Muehlboeck2017} and
 Strong\-Script~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
-behavioral casts and mostly nominal type equivalence (structural equivalence
-can be specified on demand, but it is rarely used).  It has an optional mode
-and a mode in which blame can be turned off.  C\# 4.0 adds the type {\sf
-  dynamic} to C\# and adds dynamically resolved method invocation. Thus C\#
-has a dynamic sublanguage that allows developers to write unchecked code,
-working alongside a sound typed sublanguage in which values are always of
-their declared type.  The implementation replaces \any by the type {\tt
-  object} and adds casts where needed.  Thorn and StrongScript extend the
-C\# approach with the addition of optional types (called {\em like types} in
-Thorn).  Thorn is implemented by translation to the JVM. StrongScript
-translate to an extended version of V8. The presence of concrete types means
-that the compiler can optimize code (unbox data and in-line methods) and
-programmers are ensured that type errors will not occur within concretely
-typed code. Nom is similar to Thorn in that it is nominal and follows the
-concrete approach.
+Felleisen-style contracts and mostly nominal type equivalence (structural
+equivalence can be specified on demand, but it is rarely
+used). C\# 4.0 adds the type {\sf dynamic} to C\# and adds dynamically resolved
+method invocation. Thus C\# has a dynamic sublanguage that allows developers
+to write unchecked code, working alongside a sound typed sublanguage in
+which values are always of their declared type.  The
+implementation replaces \any by the type {\tt object} and adds casts where
+needed.  Thorn and StrongScript extend the C\# approach with the addition of
+optional types (called {\em like types} in Thorn).  Thorn is implemented by
+translation to the JVM. StrongScript translate to an extended version of
+V8. The presence of concrete types means that the compiler can optimize code
+(unbox data and in-line methods) and programmers are ensured that type
+errors will not occur within concretely typed code. Nom is similar to Thorn
+in that it is nominal and follows the concrete approach.
 
 \newcommand{\rot}[1]{\rotatebox{80}{#1}\hspace{-10px}}
 \newcommand{\X}{\EM{\bullet}}
@@ -360,16 +360,15 @@ being manipulated have no names and arise during computation.
 The optional approach is the default for Dart, Hack and TypeScript.
 Transient Reticulated Python allows any value to flow in a field regardless
 of type annotations, leading to its ``open world'' soundness
-guarantee~\cite{siek14}.  Some languages like Dart and Gradualtalk can
-operate in a checked and an uncheck mode.  In Thorn, Nom and C\#, primitives
-are concretely typed; they can be unboxed without tagging.  The choice of
-casts follows from other design decisions. The concrete approach naturally
-tend to use subtype tests to establish the type of values. For nominal
-systems, there are highly optimized algorithms. Shallow casts are casts that
-only check the presence of methods, but not their signature. They are used
-by Racket and Reticulated Python to ensure some basic form of type
-conformance.  Behavioral casts are used when information such as a type or a
-blame label must be associated with a reference or an object.
+guarantee~\cite{siek14}.  In Thorn, Nom and C\#, primitives are concretely
+typed; they can be unboxed without tagging.  The choice of casts follows
+from other design decisions. The concrete approach naturally tend to use
+subtype tests to establish the type of values. For nominal systems, there
+are highly optimized algorithms. Shallow casts are casts that only check the
+presence of methods, but not their signature. They are used by Racket and
+Reticulated Python to ensure some basic form of type conformance.
+Behavioral casts are used when information such as a type or a blame label
+must be associated with a reference or an object.
 
 Blame assignment is a topic of investigation in its own right. Anecdotal
 evidence suggests that the context provided by blame helps developers
@@ -399,11 +398,11 @@ that can be optimized.  The performance of the transient semantics for
 Reticulated Python is a worst case scenario for concrete types -- i.e. there
 is a cast at almost every call. Finally, languages with behavioral casts are
 prone to significant slow downs. Compiler optimizations for reducing these
-overheads are an active research
-topic~\cite{richards-bettermono,OnlyMostly}.  Languages such as C\#, Nom,
-Thorn, and Strong\-Script are designed so that the performance of fully
-typed code is better than untyped code, and so that mixed code performs well
-thanks to the relatively inexpensive nominal subtype tests.
+overheads are an active research topic~\cite{richards-bettermono,OnlyMostly}.  
+Languages such as C\#, Nom, Thorn, and Strong\-Script are designed so that
+the performance of fully typed code is better than untyped code, and so that
+mixed code performs well thanks to the relatively inexpensive nominal subtype tests.
+
 
 In contemporary work, Greenman and Felleisen describe three approaches to
 \emph{migratory typing} in the context of a lambda calculus extended with
@@ -413,12 +412,12 @@ optional approach, and the \emph{locally-defensive embeddeding} is
 transient. They do not consider the concrete approach nor do they support
 objects, mutable state or subtying. They give performance results for a
 non-optimizing implementation of the embeddedings, the results are as
-expected: behavioral has extreme worst cases and transient significantly
-slows down fully-typed programs. While they do not evalute object-oriented
-programs, these are unlikely to fare better. The performance results also do
-not measure the cost of propagating blame information.  Our work differs in
-that we are trying to express a translation between object calculi using
-features that are readily available in most virtual machines.
+expected: behavioral has extreme worst cases and locally-defensive
+significantly slows down fully-typed programs. While they do not evalute
+object-oriented programs, these are unlikely to fare better. The performance
+results also do not measure the cost of propagating blame information.  Our
+work differs in that we were trying to express a translation between object
+calculi using features that readily available in most virtual machines.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
