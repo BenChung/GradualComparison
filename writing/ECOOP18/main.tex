@@ -79,13 +79,13 @@ type systems}
 \begin{abstract} 
 A wide range of gradual type systems have been proposed, providing many
 languages with the ability to mix typed and untyped code. However, hiding
-under language details, these gradual type systems have fundamentally
-different ideas of what it means to be typed. In this paper, we show that
+under language details, these gradual type systems embody fundamentally
+different ideas of what it means to be well-typed. In this paper, we show that
 four of the most common gradual type systems provide distinct guarantees,
 and we give a formal framework for comparing gradual type systems for
 object-oriented languages. First, we show that the different gradual type
-systems are practically distinguishable via a three-part litmus test. Then,
-we present a formal framework for defining and comparing gradual type
+systems are practically distinguishable via a three-part litmus test. 
+We present a formal framework for defining and comparing gradual type
 systems. Within this framework, different gradual type systems become
 translations between a common source and target language, allowing for
 direct comparison of semantics and guarantees.
@@ -99,10 +99,11 @@ direct comparison of semantics and guarantees.
 \vspace{-10mm}\noindent There never was a single approach to gradual
 typing. The field was opened by two simultaneously published papers. One, by
 Siek and Taha, typed individual Scheme terms using a consistency relation,
-inserting casts based on type inference \cite{SiekTaha06}. The other, by
+casts being inserted by a type directed translation~\cite{SiekTaha06}. 
+The other, by
 Tobin-Hochtstadt and Felleisen, described a system allowing programmers to
 add types to individual modules, using constraint solving to determine where
-casts were needed in untyped code~\cite{tf-dls06}.  These two approaches set
+contracts are needed to protect typed and untyped code from each other~\cite{tf-dls06}.  These two approaches set
 the tone for a decade of research.  Today, gradual type systems support a
 variety of languages, enforcement mechanisms, and soundness guarantees; this
 degree of linguistic diversity is not without consequence, however, as the
@@ -237,17 +238,19 @@ TypeScript~\cite{BAT14} and Dart~\cite{dart13}.
 Felleisen and his students have contributed substantially to gradual
 typing. The Typed Scheme~\cite{tf-popl08} design that later became Typed
 Racket is influenced by their earlier work on higher-order
-contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a vehicle for
-teaching programming. Thus, being able to explain the source of errors and
-avoiding surprises for beginning users were important considerations. Thus,
-a value that flows in a variable of type \t, should behave as if it belonged
+contracts and semantic casts~\cite{ff-icfp02,semanticasts}. 
+Typed Racket was envisioned as a vehicle for
+teaching programming, being able to explain the source of errors and
+avoiding surprises for beginning users were important considerations. 
+For this reason,  a value that flowed in a variable of type \t, 
+was required behave as if it belonged
 to that type throughout its lifetime.  Whenever a higher-order or mutable
 value crosses a boundary between typed and untyped code, it is wrapped in a
 contract that monitors the value's behavior.  If the value misbehaves, blame
 can be assigned to the boundary that assigned it the type that was
 violated. The granularity of typing is the module, thus a module is either
 entirely typed or entirely untyped.  Typed Racket's support for objects was
-described by Takikawa et al.~in~\cite{Takikawa:2012}.
+described by Takikawa et al.~\cite{Takikawa:2012}.
 
 Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
 type system that allows programmers to control the degree of static checking
@@ -258,8 +261,9 @@ consistency relation $\t \sim \tp$. If $\t \sim \tp$, then \t is consistent
 with \tp, and can therefore be used implicitly where a \tp instance is
 expected.  This enables gradual typing, as $\any \sim \t$ for every $\t$ and
 vice versa, allowing untyped values to be passed where typed ones are
-expected.  In~\cite{SiekTaha07} the authors extended this idea to an object
-calculus.  In order to do so, they combined consistency with structural
+expected.  Siek and Taha extended this idea to an object
+calculus~\cite{SiekTaha07}.  
+In order to do so, they combined consistency with structural
 subtyping, producing consistent subtyping. With consistent subtyping,
 consistency can be used when checking structural subtyping, allowing typed
 objects and untyped objects to be mixed.  To explore the design space,
@@ -286,7 +290,7 @@ their declared type.  The implementation replaces \any by the type {\tt
   object} and adds casts where needed.  Thorn and StrongScript extend the
 C\# approach with the addition of optional types (called {\em like types} in
 Thorn).  Thorn is implemented by translation to the JVM. StrongScript
-translate to an extended version of V8. The presence of concrete types means
+translates to an extended version of V8. The presence of concrete types means
 that the compiler can optimize code (unbox data and in-line methods) and
 programmers are ensured that type errors will not occur within concretely
 typed code. Nom is similar to Thorn in that it is nominal and follows the
@@ -323,7 +327,7 @@ TypeScript   &&   &\X &   &   &\X &   &    &    &   &   &   &   &  -
 \\\hline
 C\#          &&\X &   &\X &   &\X &   &\XX & \X &\X &   &   &\X &  -  
 \\\hline
-Thorn        &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   & 0.8x
+Thorn        &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   & -
 \\\hline
 StrongScript &&\X &\X &\X &\X &\X &   &\XX &    &\X &   &\X &   & 1.1x   
 \\\hline
@@ -334,8 +338,8 @@ Gradualtalk  &&\XY&   &   &\X &\X &   & \X &    &   &   &\X &\X &  5x
 Typed Racket &&   &   &   &\X &\X &\X &\X  &    &   &\X &\X &\X & 121x 
 \\\hline
 Reticulated Python    \\
-\it Transient&&   &\X &   &   & \X &  & \X &    &   &\X &   &\X & 10x \\
-\it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  27x\\
+\it Transient&&   &\X &   &   & \X &  & \X &    &   &\X &   &  & 10x \\
+\it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &  &  27x\\
 \it Guarded  &&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  21x\\
 \end{tabular}}
   \caption{Gradual type systems. (1) Opt.~structural constraints. (2)
@@ -346,7 +350,7 @@ Reticulated Python    \\
 class-based, except TypeScript which has both classes and JavaScript
 objects. While that choice is not crucial; classes are useful as a source of
 type declarations.  Most languages build subtyping on explicit subtype
-declarations -- nominal subtyping -- rather than on structural similarities.
+declarations, nominal typing, rather than on structural similarities.
 TypeScript uses structural subtyping, but does not implement a run-time
 check for it. Anecdotal evidence suggests that TypeScript could by switched
 to nominal subtyping with little effort, as was done for
@@ -400,7 +404,7 @@ Reticulated Python is a worst case scenario for concrete types -- i.e. there
 is a cast at almost every call. Finally, languages with behavioral casts are
 prone to significant slow downs. Compiler optimizations for reducing these
 overheads are an active research
-topic~\cite{richards-bettermono,OnlyMostly}.  Languages such as C\#, Nom,
+topic~\cite{OnlyMostly,richards-bettermono}.  Languages such as C\#, Nom,
 Thorn, and Strong\-Script are designed so that the performance of fully
 typed code is better than untyped code, and so that mixed code performs well
 thanks to the relatively inexpensive nominal subtype tests.
@@ -410,13 +414,12 @@ In contemporary work, Greenman and Felleisen describe three approaches to
 pairs and primitive values~\cite{greenman18}. Their \emph{natural embedding}
 corresponds to the behavioral approach, the \emph{erasure embedding} is the
 optional approach, and the \emph{locally-defensive embeddeding} is
-transient. They do not consider the concrete approach nor do they support
-objects, mutable state or subtying. They give performance results for a
+transient. They do not consider the concrete approach,
+objects or  mutable state. They give performance results for a
 non-optimizing implementation of the embeddedings, the results are as
 expected: behavioral has extreme worst cases and transient significantly
 slows down fully-typed programs. While they do not evalute object-oriented
-programs, these are unlikely to fare better. The performance results also do
-not measure the cost of propagating blame information.  Our work differs in
+programs, these are unlikely to fare better.  Our work differs in
 that we are trying to express a translation between object calculi using
 features that are readily available in most virtual machines.
 
@@ -429,7 +432,7 @@ features that are readily available in most virtual machines.
 
 \vspace{-10mm}
 \noindent
-There is no single, common, notion of what constitutes an erroneous gradually
+There is no single, common notion of what constitutes an erroneous gradually
 typed program---a consequence of the varied enforcement strategies. The choice
 of enforcement strategy is reflected in the semantics of the language,
 which, in turn, implies that developers have to understand the details of
