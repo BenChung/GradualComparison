@@ -159,20 +159,20 @@ between erased types and run-time-checked types.
 Static type systems for object-oriented languages are designed to prevent dynamic ``method not understood'' errors. For
 gradual type systems, however, some method not found errors cannot be ruled out before
 execution. In such a gradual type system, untyped code can pass an ill-typed value to typed code, breaking soundness. 
-The meaning of ``error'' for a gradual type system therefore depends on how type specifications are
+The meaning of ``error'' for a gradual type system, therefore, depends on how type specifications are
 enforced.  In other words, each gradual type system may catch different
 ``errors''.  We demonstrate this with a litmus test consisting of three
-simple programs capable of distinguishing the four above mentioned
-approaches.  The litmus test programs are statically well-typed, and are
+simple programs capable of distinguishing the four above-mentioned
+approaches.  The litmus test programs are statically well-typed and
 ``correct'' in the sense that they run to completion without error in an
 untyped language. However, when executed under different gradual typing
 systems, they produce different errors. For intuition, consider a call,
 \EM{\x.\m()}, where \EM{\x:\C} and \C has a method \m returning a \D.  In
 the concrete approach, this call will succeed. With behavioral, the call
-will go through, but an error may be reported if \m return a value of the
+will go through, but an error may be reported if \m returns a value of the
 wrong type. In transient, the call is similarly guaranteed to go through,
 but might return the wrong type without reporting an error.  Finally, in
-optional, the call may get stuck as \x may not have a method named \m, and,
+optional, the call may get stuck, as \x may not have a method named \m; and,
 if it succeeds, there is no guarantee that type \D will be returned.
 
 \begin{wrapfigure}{r}{5cm}
@@ -181,9 +181,9 @@ if it succeeds, there is no guarantee that type \D will be returned.
 \vspace{-8mm}\end{wrapfigure}
 
 We propose to compare approaches to gradual typing for objects by
-translating a gradually typed surface language to a target language, called
-\kafka. Our surface language is a \emph{gradually} typed class-based object
-oriented language, similar to Featherweight Java. \kafka is a
+translating a gradually typed surface language to a target language called
+\kafka. Our surface language is a \emph{gradually} typed class-based object-oriented 
+language similar to Featherweight Java. \kafka is a
 \emph{statically} typed class-based object calculus with mutable state. The
 key difference between the two is the sound type system and casts of \kafka.
 Where the surface language allows implicit coercions, \kafka requires
@@ -206,9 +206,9 @@ This paper makes the following contributions:
 
 \noindent Our work does not address the question of performance of the
 translations. Each of the semantics for gradual typing has intrinsic
-performance costs, but these can be mitigated by compiler and run-time
-optimizations which we do not perform. A departure from previous work
-(e.g.~\cite{greenman18}) is that \kafka is statically typed.  By translating
+performance costs; but these can be mitigated by compiler and run-time
+optimizations, which we do not perform. \kafka departs from prior work
+(e.g.~\cite{greenman18} as \kafka is statically typed. By translating
 to a statically typed core, we can clearly see where wrapper-induced dynamic
 errors can occur. Another design choice is the use of structural subtyping
 in \kafka. This is motivated by our desire to represent behavioral and
@@ -225,19 +225,19 @@ additional nominal subtype cast. Code and proofs are available from: {\small
 \noindent The intellectual lineage of gradual typing can be traced back to
 attempts to add types to Smalltalk and LISP. On the Smalltalk side, work on
 the Strongtalk optional type system~\cite{Bracha93} led to Bracha's notion
-of pluggable types~\cite{pluggabletypes}. For him, types exist solely to
+of pluggable types~\cite{pluggabletypes}. In Bracha's notion of pluggable types, types exist solely to
 catch errors at compile-time, never affecting the run-time behavior of
-programs. An optional type system is \emph{trace preserving},
-that is to say, if a term \e reduce to \a, then adding type annotations to
-\e does not prevent it from reducing to that value~\cite{ecoop15}.  This property is valuable to
-developers as it ensures that type annotations will not introduce errors, and
-thus that adding types does not increase the testing burden!
+programs. An optional type system is \emph{trace preserving}:
+that is to say, if a term \e reduces to \a, then adding type annotations to
+\e does not prevent it from reducing to \a~\cite{ecoop15}.  This property is valuable to
+developers as it ensures that type annotations will not introduce errors; and
+thus, adding types does not increase the testing burden!
 Optional type systems in wide use include Hack~\cite{hack13},
 TypeScript~\cite{BAT14} and Dart~\cite{dart13}.
 
 Felleisen and his students have contributed substantially to gradual
-typing. The Typed Scheme~\cite{tf-popl08} design that later became Typed
-Racket is influenced by their earlier work on higher-order
+typing. The Typed Scheme~\cite{tf-popl08} design, that later became Typed
+Racket, is influenced by their earlier work on higher-order
 contracts and semantic casts~\cite{ff-icfp02,semanticasts}. 
 Typed Racket was envisioned as a vehicle for
 teaching programming, being able to explain the source of errors and
@@ -266,14 +266,14 @@ calculus~\cite{SiekTaha07}.
 In order to do so, they combined consistency with structural
 subtyping, producing consistent subtyping. With consistent subtyping,
 consistency can be used when checking structural subtyping, allowing typed
-objects and untyped objects to be mixed.  To explore the design space,
+objects and untyped objects to be mixed. To explore the design space,
 Reticulated Python~\cite{siek14} was given three modes: the \emph{guarded}
 mode behaves as Typed Racket with contracts applied to values.  The
 \emph{transient} mode performs shallow subtype checks on reads and method
 returns, only validating if the value obtained has matching method types.
 The \emph{monotonic} mode is fundamentally different from any of the
 previous approaches. Monotonic cast updates the type of values in place by
-replacing some of the occurrences of \any with more specific types, these
+replacing some of the occurrences of \any with more specific types, and these
 updates propagate recursively through the heap until a fixed point is
 reached.
 
@@ -290,7 +290,7 @@ their declared type.  The implementation replaces \any by the type {\tt
   object} and adds casts where needed.  Thorn and StrongScript extend the
 C\# approach with the addition of optional types (called {\em like types} in
 Thorn).  Thorn is implemented by translation to the JVM. StrongScript
-translates to an extended version of V8. The presence of concrete types means
+is implemented on top of a modified version of the V8 VM. The presence of concrete types means
 that the compiler can optimize code (unbox data and in-line methods) and
 programmers are ensured that type errors will not occur within concretely
 typed code. Nom is similar to Thorn in that it is nominal and follows the
@@ -351,8 +351,8 @@ class-based, except TypeScript which has both classes and JavaScript
 objects. While that choice is not crucial; classes are useful as a source of
 type declarations.  Most languages build subtyping on explicit subtype
 declarations, nominal typing, rather than on structural similarities.
-TypeScript uses structural subtyping, but does not implement a run-time
-check for it. Anecdotal evidence suggests that TypeScript could by switched
+TypeScript uses structural subtyping but does not implement a run-time
+check for it. Anecdotal evidence suggests that TypeScript could switch
 to nominal subtyping with little effort, as was done for
 StrongScript~\cite{ecoop15}.  While nominal subtyping leads to more
 efficient type casts, Reticulated Python's subtype consistency relation is
@@ -361,19 +361,19 @@ system. For Racket, the heavy use of first-class classes and class
 generation naturally leads to structural subtyping as many of the classes
 being manipulated have no names and arise during computation.
 
-The optional approach is the default for Dart, Hack and TypeScript.
-Transient Reticulated Python allows any value to flow in a field regardless
+The optional approach is the default for Dart, Hack, and TypeScript.
+Transient Reticulated Python allows any value to flow in a field, regardless
 of type annotations, leading to its ``open world'' soundness
 guarantee~\cite{siek14}.  Some languages like Dart and Gradualtalk can
-operate in a checked and an uncheck mode.  In Thorn, Nom and C\#, primitives
+operate in a checked and an uncheck mode.  In Thorn, Nom, and C\#, primitives
 are concretely typed; they can be unboxed without tagging.  The choice of
 casts follows from other design decisions. The concrete approach naturally
-tend to use subtype tests to establish the type of values. For nominal
+tends to use subtype tests to establish the type of values. For nominal
 systems, there are highly optimized algorithms. Shallow casts are casts that
-only check the presence of methods, but not their signature. They are used
+only check the presence of methods but not their signature. They are used
 by Racket and Reticulated Python to ensure some basic form of type
-conformance.  Behavioral casts are used when information such as a type or a
-blame label must be associated with a reference or an object.
+conformance.  Behavioral casts are used when information, such as a type or a
+blame label, must be associated with a reference or an object.
 
 Blame assignment is a topic of investigation in its own right. Anecdotal
 evidence suggests that the context provided by blame helps developers
@@ -389,24 +389,24 @@ applied and is believed to cause substantial slowdowns. However, this has
 not been measured in detail. With the concrete approach, blame is trivially
 available as evaluation stops at the boundary that causes the
 failure~\cite{Muehlboeck2017}.  We are primarily concerned with where the
-error arises, rather than what information is included in the error, thus we
+error arises, rather than what information is included in the error; thus, we
 do not consider blame further.
 
 The last column of \figref{over} lists self-reported performance
-pathologies.  These numbers are not comparable as they refer to different
+pathologies.  These numbers are not comparable, as they refer to different
 programs and different configurations of type annotations. They are not
 worst case scenarios either; most languages lack a sufficient corpus of code
 to conduct a thorough evaluation.  Nevertheless, one can observe that for
 optional types no overhead is expected, as the type annotations are erased
-during compilation. Concrete types insert efficient casts, and lead to code
+during compilation. Concrete types insert efficient casts and lead to code
 that can be optimized.  The performance of the transient semantics for
-Reticulated Python is a worst case scenario for concrete types -- i.e. there
+Reticulated Python is a worst case scenario for concrete types---i.e, there
 is a cast at almost every call. Finally, languages with behavioral casts are
-prone to significant slow downs. Compiler optimizations for reducing these
+prone to significant slowdowns. Compiler optimizations for reducing these
 overheads are an active research
 topic~\cite{OnlyMostly,richards-bettermono}.  Languages such as C\#, Nom,
 Thorn, and Strong\-Script are designed so that the performance of fully
-typed code is better than untyped code, and so that mixed code performs well
+typed code is better than untyped code, so that mixed code performs well
 thanks to the relatively inexpensive nominal subtype tests.
 
 In contemporary work, Greenman and Felleisen describe three approaches to
@@ -414,9 +414,9 @@ In contemporary work, Greenman and Felleisen describe three approaches to
 pairs and primitive values~\cite{greenman18}. Their \emph{natural embedding}
 corresponds to the behavioral approach, the \emph{erasure embedding} is the
 optional approach, and the \emph{locally-defensive embeddeding} is
-transient. They do not consider the concrete approach,
-objects or  mutable state. They give performance results for a
-non-optimizing implementation of the embeddedings, the results are as
+transient. They do not consider the concrete approach---neither
+objects or mutable state. They give performance results for a
+non-optimizing implementation of the embeddedings, and the results are as
 expected: behavioral has extreme worst cases and transient significantly
 slows down fully-typed programs. While they do not evalute object-oriented
 programs, these are unlikely to fare better.  Our work differs in
@@ -434,7 +434,7 @@ features that are readily available in most virtual machines.
 \noindent
 There is no single, common notion of what constitutes an erroneous gradually
 typed program---a consequence of the varied enforcement strategies. The choice
-of enforcement strategy is reflected in the semantics of the language,
+of enforcement strategy is reflected in the semantics of the language
 which, in turn, implies that developers have to understand the details of
 that strategy to avoid run-time errors.  This also
 means that it is possible to differentiate between approaches by simply
@@ -553,15 +553,15 @@ four of the gradual type systems under study. The surface language is  a
 \emph{gradually} typed object calculus without inheritance, method overloading
 or explicit type cast operations. \figref{slts} gives its syntax and an
 extract of its static semantics. The distinctive feature of the calculus  is
-the presence of type \any\,-- the dynamic type. A variable of type \any can
+the presence of type \any\,--- the dynamic type. A variable of type \any can
 hold any value, an invocation of a method with receiver of type \any is
 always statically well-typed, and an expression of type \any can appear
 anywhere within a typed program.
 
 This dynamic type lets us convert our otherwise statically typed language to
-being gradually typed. If a well-typed program does not use \any then it
+a gradually typed one. If a well-typed program does not use \any, then it
 will not get stuck on method invocation.  A program where all variables are
-annotated as \any is fully dynamic and any given invocation may get
+annotated as \any is fully dynamic, and any given invocation may get
 stuck. Gradual typing comes into play when an expression of type \any occurs
 as an argument to a method that expects some other type \C and conversely
 when an argument of type \C is passed to a method that expects \any. The
@@ -575,7 +575,7 @@ surface language may prove helpful. The subtyping relation is structural
 with the Amber rule~\cite{cardelli1985amber} to enable recursion. \StrSub\M\K\C\D holds if class
 \C has (at least) all the methods of class \D and the arguments and return
 types are related by subtyping in the usual contra- and co-variant way; the
-class table \K holds definitions of all classes and \M is a helper for
+class table \K holds definitions of all classes, and \M is a helper for
 recursion that records the subtype relations encountered so far. One noteworthy feature of subtyping is that the fields of objects
 do not play a role in deciding if classes are subtypes. Following languages
 like Smalltalk, fields are encapsulated and can only be accessed from within their
@@ -586,7 +586,7 @@ The static type-checking rules,   \EnvTypeS \Env\K\e\t where \Env is
 a type environment and \K is a class table,
  are standard with two exceptions: method invocation and convertibility. 
 Method invocation is always allowed when the receiver \e is of 
-type \any; therefore \EM{\e.\m(\ep)} has type \any if the argument
+type \any; therefore, \EM{\e.\m(\ep)} has type \any if the argument
 can have type \any. Convertibility 
 is used when statically typed and dynamically typed terms
 interact. The convertibility relation, written $\ConvertE\K s\t\tp$, states
@@ -616,31 +616,31 @@ notation $\C ~\vert_{\,\t}$ denotes an object of class \C passing
 through a boundary that expects it to be of type \t. For example,
 if method \m expects an argument of type \t, a method call $\e.\m(\ep)$ would
 induce the boundary $\ep ~\vert_{\,\t}$. 
-In program {\bf L1}, we have 
+In program {\bf L1}, we have:
 
 \vspace{-5mm}
 \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] 
 
 \vspace{-2mm}\noindent
-an instance of 
+An instance of 
 class \A is first implicitly converted to \any and then to \I; in this program
 classes \A and \I are unrelated by subtyping. In {\bf L2}, the same sequence
-of conversions is applied
+of conversions is applied:
 
 \vspace{-6mm}
 \[\A~ \vert_{\,\any} ~ \vert_{\,\I}\] 
 
 \vspace{-2mm}\noindent
-but this time \A and \I both have a
+This time, however, \A and \I both have a
 method \m, but the methods have incompatible argument types.  Lastly, in
 {\bf L3} we start by converting a \C to \any and then to \E
-and finally back to \any.
+and finally back to \any:
 
 \vspace{-6mm}
 \[\C~ \vert_{\,\any}~\vert_{\,\E}~\vert_{\,\any}\]
 
 \vspace{-2mm}\noindent
-The resulting value is then used to call  method \m with argument of class \C.
+The resulting value is then used to call  method \m with an argument of class \C.
 This correct as method \m in \C does expect an
 argument of that type. If the object was an instance of \E instead, the call
 would not be legal because \E's method \m expects a class \D as argument.
@@ -659,7 +659,7 @@ error.
 
 \vspace{2mm}\noindent {\bf Concrete.~} The concrete approach ensures that a
 variable of some class \C always refers to an object of that class or of a
-subtype of it.  To ensure this is the case, all implicit conversion imply a
+subtype of it.  To ensure this is the case, all implicit conversions imply a
 run-time subtype check.  This causes all three programs to fail. {\bf L1}
 and {\bf L2} fail on a subtype test \StrSub{}\K\A\I.  {\bf L3} fails on the
 subtype test \StrSub{}\K\C\E.
@@ -670,7 +670,7 @@ after that, it behaves as if it was an instance of \C.  The former is
 checked by a shallow cast that only looks at method names, and the
 latter by a wrapper that monitors further interactions.  {\bf L1} fails at
 because \A does not have the method \xt n expected by \I. {\bf L2}, however,
-executes without error because \A has the method \m expected by \I. {\bf L3} fails, the instance of \C has been applied
+executes without error because \A has the method \m expected by \I. {\bf L3} fails, since the instance of \C has been applied
 a wrapper for \E.  When method \a is called with a \C, the wrapper notices
 that \E's method \a expects a \D and that \C and \D are not compatible.
 
@@ -690,9 +690,9 @@ errors.\footnote{\small
   \url{github.com/BenChung/GradualComparisonArtifact/examples}}
 
 What the litmus tests show is that a precise understanding of the semantics
-of gradually typed languages, their run-time enforcement machinery, is
+of gradually typed languages, and their run-time enforcement machinery, is
 crucial for developers to know if a program is ``correct.''  Here, all
-errors are false positives, none of these programs performs an invalid
+errors are false positives, since none of these programs performs an invalid
 operation. This underlines the fact that in gradually typed language, type
 specifications can lead to run-time errors just as faulty code can. Thus,
 type annotations must be audited and tested just like code.
@@ -712,19 +712,19 @@ guarantee, as it only checks arguments and return types when wrappers are
 invoked. However, typed function calls can fail if they call an untyped
 function that returns the wrong value. Finally, the concrete approach
 ensures that every typed call is successful. However, this comes at the
-expense of the gradual guarantee -- partially typed classes are not
+expense of the gradual guarantee --- partially typed classes are not
 compatible with more-or-less typed ones.  The guarantee
 is incompatible with subtyping. Suppose a program were to rely on the
 judgment $\{m(\C):\D\} <: \{m(\C):\D\}$.  Relaxing the argument type to a
 dynamic type, $\{m(\any):\D\} <: \{m(\C):\D\}$, violates subtyping.  To
 overcome this, Reticulated Python augments subtyping with the aforementioned
 consistency relation. This increases the number of programs accepted by the
-static type system. However, it is not used by the run-time semantics, and
-is fundamentally incompatible with the concrete approach (any use of
+static type system. However, it is not used by the run-time semantics and
+is fundamentally incompatible with the concrete approach (because any use of
 consistent subtyping will fail).  We omit consistent subtyping.
 
 As an alternative consider the approaches taken by Thorn or
-StrongScript. They have three kinds of types, \any (dynamic), \C (concrete),
+StrongScript. They have three kinds of types: \any (dynamic), \C (concrete),
 and \xt{like} \C (optional), combining the concrete and optional approach
 into the same language. This design allows for a different kind of
 migration; once a program is fully annotated with optional types, they all
@@ -733,8 +733,8 @@ errors~\cite{ecoop15}.  We do not model this combination directly, as the
 underlying details are no different from the concrete approach.
 
 The motivation for making fields private is to simplify the system. With
-private fields, errors are limited to method invocation. Fields accesses can
-be trivially checked as they are always accessing \this. Moreover, interposing on
+private fields, errors are limited to method invocation. Field accesses can
+be trivially checked; as they are always accessing \this. Moreover, interposing on
 method invocation can easily be achieved by wrappers, whereas interposing
 on field access would require modifying the code of clients. This would make
 the formal development more cumbersome without adding insight.
@@ -794,10 +794,12 @@ environments but typically not present in class-based calculi.
  &  \a  &\B \FReadR\a\f &\B \FWriteR\a\f\e 
 \end{tabular}\end{minipage}&
 \begin{minipage}{2.4cm}\begin{tabular}{l@{~}l@{}l@{}l}
-  \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+  \k &::= ~ \Class \C {\fd[1]..}{\md[1]..} \\
  \md &::= ~ \Mdef\m\x\t\t\e \\ 
  \fd &::= ~ \Fdef\f\t \\ 
   \t &::= ~ \any  \B   \C  \\ 
+  \K &::= ~ \k \K \B $\cdot$ \\
+  \S &::= ~ \HT\ama\t $\Sigma$ \B $\cdot$ \\
 \end{tabular}\end{minipage}\end{tabular}
 
 \vspace{6mm}
@@ -904,20 +906,20 @@ environments but typically not present in class-based calculi.
 
 \subsection{Syntax and Semantics}
 
-Designing \kafka we had two requirements. First, to be expressive enough to
-capture the dynamic semantics implied by each gradual type system. Second,
-have a type system that can express when code is known to be error
+Designing \kafka, we had two requirements: first, to be expressive enough to
+capture the dynamic semantics implied by each gradual type system; second,
+to have a type system that can express when code is known to be error
 free. \kafka's syntax and semantics, loosely inspired by Featherweight
 Java~\cite{FJ}, are shown in \figref{fig:kafka}.  At the top level, classes
-are notated as \Class\C{\fd[1]..}{\md[1]..}, methods, ranged over by \md,
-are denoted as \Mdef\m\x\t\t\e, and fields \Fdef\f\t. Expressions consist
+are notated as \Class\C{\fd[1]..}{\md[1]..}; methods, ranged over by \md,
+are denoted as \Mdef\m\x\t\t\e; and fields \Fdef\f\t. Expressions consist
 of:
 
 \vspace{-3mm}
 
 \begin{itemize}
 \item variables, \x;
-\item self-reference \this, and wrapper target, \that;
+\item self-reference \this; and wrapper target, \that;
 \item field access, \FRead\f, and writes, \FWrite\f\e;
 \item object creation, \New\C{\e[1]..};
 \item static and dynamic method invocations;
@@ -926,17 +928,17 @@ of:
 \end{itemize}
 
 \noindent
-The static semantics hold few surprises; key typing rules appear in
+The static semantics holds only a few surprises; key typing rules appear in
 \figref{fig:kafka}. The subtyping relation is inherited from the surface
 language.  The program typing relation (not shown here), \WFp\e\K, indicates
 that expression \e is well-formed with respect to class table \K. The
 expression typing judgment $\EnvType \Env\S\K\e\t$, indicates that against
-\Env, with heap typing \S, and class table \K, \e has type \t.  Unlike the
+\Env with heap typing \S and class table \K, \e has type \t.  Unlike the
 surface language, \kafka does not rely on a convertibility relation from
 \any to \C and back; instead, explicit casts are required.
 
 Evaluation is mostly standard with an evaluation context consisting of a
-class table \K, the expression being evaluated \e, and a heap \s, mapping
+class table \K, the expression being evaluated \e, and a heap \s mapping
 from addresses \a to objects, denoted $\C\{\a\ldots\}$. Due to the need for
 dynamic code generation, the class table is part of the state.
 
@@ -969,27 +971,27 @@ assume that class table \K holds a definition for \Int, and that we have
 integer constants and addition.
 The class demonstrates several features of \kafka. Its class
 well-formedness rules (not shown here) allow a limited form of method
-overloading. A class may have at most two occurrences of any method \m. One 
-``untyped'' with \any as argument and return type. And one,
-which call ``typed'', with either argument or return type differ from \any.
+overloading. A class may have at most two occurrences of any method \m: one 
+``untyped'' with \any as argument and return type; and one,
+which we call ``typed'', where either its argument or return type differ from \any.
 The static type system enforces a single means of invoking a typed method
 \m:
 
 \vspace{-6mm}\[\KCall{\New\C{}}\m{2}\Int\Int\] \vspace{-5mm}
 
 \noindent
-Here the receiver is obviously of type \C and the argument is \Int, thus the
+Here, the receiver is obviously of type \C and the argument is \Int; thus, the
 call is statically well-typed. The expression will therefore 
 evaluate the body of \m.  For an untyped method, there are two invocation
 modes:
 
 \vspace{-6mm}\[\DynCall{\New\C{}}\m{2}\]\vspace{-5mm}
 
-\noindent The call execute correctly here as \C has an untyped \m. However,
+\noindent The call executes correctly here, as \C has an untyped \m. However,
 in the general case, there is no guarantee that the receiver of an untyped
-invocation has the requested method, and therefore a dynamic invocation can
+invocation has the requested method; and therefore, a dynamic invocation can
 get stuck. The receiver of a dynamic invocation has type \any.  When the
-receiver type is know to be some \C and that class has the requested method,
+receiver type is known to be some \C and that class has the requested method,
 then the static invocation can be used:
 
 \vspace{-6mm}\[\KCall{\New\C{}}\m{2}\any\any\]\vspace{-5mm}
@@ -1000,22 +1002,22 @@ will come in handy when translating the surface language to \kafka.
 \subsubsection{Run-time Casts}
 
 \kafka has two cast operations: the structural subtype cast $\SubCast\t\e$ and the
-behavioral cast $\BehCast\t\e$, both indicating the desire that the result
+behavioral cast $\BehCast\t\e$, both indicating the desire for the result
 of evaluating \e to be of type \t.  Where the casts differ is what is meant by
 ``has type \t''.  The subtype cast checks that the result of evaluating \e
 is an object whose class is compatible with \t. If \t is a class, then it
 will check for a subtyping relation; otherwise, if \EM{\t=\any}, the cast 
 will succeeds. As every value in the heap is
 tagged by its type constructor, it is always possible to perform this check. 
-The behavioral cast is more complex, we will
+The behavioral cast is more complex; we will
 describe it in the remainder of this section.
 
 The objective of the behavioral cast is to ensure that the wrapped object
 behaves as the target type dictates. When given the address \a of some
-object, this cast creates a wrapper object, say \ap that enforces the 
+object, this cast creates a wrapper object, say \ap, that enforces the 
 invariant that \a \emph{behaves} as a
 value of type \t.  Function \behcastE\a\t\s\K \Kp\ap\sp specifies its
-semantics, shown in \figref{behavetext}.  There are two cases to consider,
+semantics, shown in \figref{behavetext}.  There are two cases to consider:
 either the target type is a class \Cp, or it is \any.
 
 \begin{figure}[!h]\hrulefill\small
@@ -1081,7 +1083,7 @@ class table \Kp, a reference to the wrapped object \ap, and an updated heap
 \sp. As long as \a has every method name specified by \Cp, the cast itself
 will succeed. If \a is missing a method, it is impossible for \a to
 implement \Cp correctly, and early failure is indicated. Otherwise, the
-metafunction continues to generate a type wrapper.  Class generation itself
+metafunction continues to generate a type wrapper. Class generation itself
 is delegated to the \W metafunction.  A \W invocation,
 \EM{\W(\C,\md_1..,\mdp_1.., \D)}, takes a class \C, a fresh name \D, and two
 method lists $\md_1..$ and $\mdp_1$, respectively the method of \C and the
@@ -1155,8 +1157,8 @@ following holds:
 \begin{itemize}
 \item There exists some reference \a such that $\e = \a$.
 \item $\K~\e~\s\Red\Kp~\ep~\sp$, where $\WFq{\Kp~\ep~\sp}$,
-  \EnvType\emptyset\Sp\Kp\ep\t, \sp has all of the values of \s, \Sp has all
-  the value of \S, and \Kp has all of the classes of \K.
+  \EnvType\emptyset\Sp\Kp\ep\t, \sp has all of the values of \s, \Sp has all of the
+  types of \sp, and \Kp has all of the classes of \K.
 \item $\e=E[\DynCall\a\m\ap]$ and \a refers to an object without a method \m.
 \item $\e=E[\SubCast\C\a]$, and \a refers to an object whose class is not
   a subtype of \C.
@@ -1745,7 +1747,7 @@ a precise account of what constitutes an error in each gradual type system.
 Our account of the behavioral approach matches its implementation in Typed
 Racket. However, one could imagine a slightly less restrictive implementation,
 one which does not have a check for method names at wrapper creation.  That
-check is pragmatic but perhaps too strict -- it will rule out programs that
+check is pragmatic but perhaps too strict --- it will rule out programs that
 may be fine just because a method is missing. One could have a wrapper that
 simply reports an error if a missing method is called.
 
@@ -2392,7 +2394,7 @@ the requested method. The designers of TypeScript saw this unsoundness as a
 way to ensure that types do not get in the way of running correct programs,
 e.g. when importing a new library with type annotations inconsistent with
 existing client code; and an insurance for backwards compatibility, as
-ignoring types means all browsers can run TypeScript code -- with no
+ignoring types means all browsers can run TypeScript code --- with no
 additional overhead.
 
 \begin{figure}[hb]
