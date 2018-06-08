@@ -1729,7 +1729,7 @@ an argument cast to \any and casting the return to \D.
 \Class{\C_1}{\HS&\that : \C}{&\Mdef{\xt{a}}\x\any\any{\BehCast\any{\KCall{\this.\that}{\xt{a}}{\BehCast\C\x}\C\C}}} \\
 \Class{\C_2}{\HS &\that : \C_1}{&\Mdef{\xt{a}}\x\D\D{\BehCast\D{\KCall{\this.\that}{\xt{a}}{\BehCast\any\x}\any\any}}}
 \end{align*}
-\vspace{-4mm}
+\vspace{-8mm}
 
 \hrulefill
 \caption{Behavioral wrappers.}\label{fig:behex}
@@ -1737,10 +1737,10 @@ an argument cast to \any and casting the return to \D.
 
 \subsection{Discussion}
 
-These translations make explicit the enforcement machinery of each of the
-four approaches.  The programs can get stuck at dynamic invocation and
-casts. Inspecting where these are inserted in the various translations gives
-a precise account of what constitutes an error in each gradual type system.
+These translations explicit the enforcement machinery of each of the four
+approaches.  Programs can get stuck at dynamic invocation and
+casts. Inspecting where these are inserted gives a precise account of what
+constitutes an error in each gradual type system.
 
 Our account of the behavioral approach matches its implementation in Typed
 Racket. However, one could imagine a slightly less restrictive implementation,
@@ -1752,17 +1752,17 @@ simply reports an error if a missing method is called.
 Performance is a perennial worry for implementers of gradual type systems.
 It is difficult to provide guesses of how a highly optimizing language
 implementation will perform, as these implementations are likely to optimize
-away the majority of the casts and dynamic dispatches. Consider the
-progress in the performance of Typed Racket reported since the publication
-of Takakiwa et al.'s~paper~\cite{popl16,OnlyMostly}.  What we can tell by looking at the
-translations is that in the optional approach there is no obvious benefit or
-cost to having type annotations. The transient approach has checks on reads and typed function calls,
-which are common. Furthermore, those checks are needed even if the entire program is
-typed. Both concrete and behavioral can benefit from type information in
-typed code.  The difference is that the cost of boundary crossing is low in the
-concrete approach, as it uses a subtype check whereas behavioral
-requires allocation of a wrapper. Wrappers have other costs as they may
-complicate the task of devirtualization and unboxing.
+away the majority of the casts and dynamic dispatches. Consider the progress
+in the performance of Typed Racket reported in the
+literature~\cite{popl16,OnlyMostly}.  What we can tell by looking at the
+translations is that with optional there is no obvious benefit or cost to
+having type annotations. Transient has checks on reads, which are common,
+and typed function calls. Furthermore, those checks are needed even if the
+entire program is typed. Both concrete and behavioral can benefit from type
+information in typed code.  The difference is that the cost of boundary
+crossing is low in the concrete approach, as it uses a subtype check whereas
+behavioral requires allocation of a wrapper. Wrappers 
+may also complicate the task of devirtualization and unboxing.
 
 
 \section{Conclusion}
