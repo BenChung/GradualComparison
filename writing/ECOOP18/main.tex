@@ -451,8 +451,7 @@ typing yield different run-time errors.
 
 \begin{figure}[!t]\hrulefill
 
-\small
-\vspace{5mm}
+\small\vspace{5mm}
 
 {\bf Syntax:}\\[3mm]
 
@@ -577,26 +576,26 @@ with the Amber rule~\cite{cardelli1985amber} to enable recursion. \StrSub\M\K\C\
 \C has (at least) all the methods of class \D and the arguments and return
 types are related by subtyping in the usual contra- and co-variant way; the
 class table \K holds definitions of all classes and \M is a helper for
-recursion. One noteworthy feature of subtyping is that the fields of objects
+recursion that records the subtype relations encountered so far. One noteworthy feature of subtyping is that the fields of objects
 do not play a role in deciding if classes are subtypes. Following languages
 like Smalltalk, fields are encapsulated and can only be accessed from within their
 defining object. Syntactically, field reads and writes are limited to
 the self-reference \this. 
 
-The static type-checking rules are standard with two exceptions:
+The static type-checking rules,   \EnvTypeS \Env\K\e\t where \Env is 
+a type environment and \K is a class table,
+ are standard with two exceptions: method invocation and convertibility. 
 Method invocation is always allowed when the receiver \e is of 
 type \any; therefore \EM{\e.\m(\ep)} has type \any if the argument
-can have type \any. Secondly, we introduce a notion of convertibility, 
-which allows the mixing of static and dynamic types. 
-Convertibility is used when statically typed and dynamically typed terms
+can have type \any. Convertibility 
+is used when statically typed and dynamically typed terms
 interact. The convertibility relation, written $\ConvertE\K s\t\tp$, states
 that type $\t$ is convertible to type $\tp$ in class table \K.  It
 is used both for up-casting and for conversions of \any to non-\any types.
 $\ConvertE\K s\t\tp$ holds when $\t\Sub\tp$, this allows up-casts. The
 remaining two rules allow implicit conversion to and from the dynamic type.
 To avoid collapsing the type hierarchy, convertibility is not transitive.
-It is through convertibility that our surface language becomes gradual; the
-implicit conversions that it allows break soundness of the type system.
+It is through convertibility that our surface language becomes gradual.
 
 
 \subsection{Litmus}
@@ -617,26 +616,42 @@ notation $\C ~\vert_{\,\t}$ denotes an object of class \C passing
 through a boundary that expects it to be of type \t. For example,
 if method \m expects an argument of type \t, a method call $\e.\m(\ep)$ would
 induce the boundary $\ep ~\vert_{\,\t}$. 
-In program {\bf L1}, we have \[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] an instance of 
+In program {\bf L1}, we have 
+
+\vspace{-5mm}
+\[\A ~\vert_{\,\any} ~ \vert_{\,\I}\] 
+
+\vspace{-2mm}\noindent
+an instance of 
 class \A is first implicitly converted to \any and then to \I; in this program
 classes \A and \I are unrelated by subtyping. In {\bf L2}, the same sequence
 of conversions is applied
-\[\A~ \vert_{\,\any} ~ \vert_{\,\I}\] but this time \A and \I both have a
+
+\vspace{-6mm}
+\[\A~ \vert_{\,\any} ~ \vert_{\,\I}\] 
+
+\vspace{-2mm}\noindent
+but this time \A and \I both have a
 method \m, but the methods have incompatible argument types.  Lastly, in
 {\bf L3} we start by converting a \C to \any and then to \E
 and finally back to \any.
+
+\vspace{-6mm}
 \[\C~ \vert_{\,\any}~\vert_{\,\E}~\vert_{\,\any}\]
+
+\vspace{-2mm}\noindent
 The resulting value is then used to call  method \m with argument of class \C.
 This correct as method \m in \C does expect an
 argument of that type. If the object was an instance of \E instead, the call
 would not be legal because \E's method \m expects a class \D as argument.
 
-\begin{figure}[!h] \includegraphics[width=.95\columnwidth]{../figures/litm}
+\begin{figure}[!b] \includegraphics[width=.95\columnwidth]{../figures/litm}
   \caption{Gradual typing litmus test.}\label{litmus}
 \end{figure}
 
 \noindent We will use this litmus test to differentiate between four different
 gradual type systems:
+
 \vspace{2mm}\noindent
 {\bf Optional.~} An optional gradual type system simply erases all of the
 type annotations at run-time; all three programs run to completion without
@@ -649,14 +664,13 @@ run-time subtype check.  This causes all three programs to fail. {\bf L1}
 and {\bf L2} fail on a subtype test \StrSub{}\K\A\I.  {\bf L3} fails on the
 subtype test \StrSub{}\K\C\E.
 
-\vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach does allow
-conversion from \any to \C if the actual value is compatible to \C and if,
-after that, the value behaves as if it was an instance of \C.  The former is
-checked by a shallow subtype cast that only looks at method names, and the
+\vspace{2mm}\noindent {\bf Behavioral.~} The behavioral approach allows
+conversion from \any to \C if the value is compatible to \C and if,
+after that, it behaves as if it was an instance of \C.  The former is
+checked by a shallow cast that only looks at method names, and the
 latter by a wrapper that monitors further interactions.  {\bf L1} fails at
 because \A does not have the method \xt n expected by \I. {\bf L2}, however,
-executes without error because \A has the method \m expected by \I (argument
-types are not checked). {\bf L3} fails, the instance of \C has been applied
+executes without error because \A has the method \m expected by \I. {\bf L3} fails, the instance of \C has been applied
 a wrapper for \E.  When method \a is called with a \C, the wrapper notices
 that \E's method \a expects a \D and that \C and \D are not compatible.
 
@@ -665,7 +679,7 @@ than behavioral. It retains the shallow structural checks at casts of the
 behavioral approach, but does not wrap values. Transient fails {\bf L1}, for
 the same reason as the other two type systems, and passes {\bf L2}, for the
 same reason as behavioral.  {\bf L3} succeeds because transient forgets that
-the \C object was converted to \E.
+the \C object was cast to \E.
 
 \subsection{Discussion}
 
