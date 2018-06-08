@@ -114,12 +114,12 @@ tightly coupled; each has to deal with the language's complexity. As a
 result, the same gradual type system may seem very different when applied to
 two different languages, an issue that shows up clearly with object-oriented
 languages. Siek and Taha's first effort~\cite{SiekTaha07} presented a
-gradual type system for an object-based. It related objects by generalizing
+gradual type system for an object-oriented programing language. It related objects by generalizing
 the notion of consistency~\cite{SiekTaha06} over structural subtyping. The
 work had drawbacks, most notably in the handling of mutable state and
 aliasing --- vital features of object-oriented languages.  Underlying each
 subsequent gradual type system are different design choices on how to deal
-with those features.
+with mutability and aliasing.
 
 The landscape of gradually typed object-oriented languages is rich and includes:
 
@@ -128,7 +128,7 @@ The landscape of gradually typed object-oriented languages is rich and includes:
  \item Typed Racket: a rich gradual type system based on contracts.
  \item Gradualtalk: a gradual variant of Smalltalk.
  \item C\#: a statically typed language with a dynamic type.
- \item Dart: a class based language with optional types.
+ \item Dart: a class-based language with optional types.
  \item Hack: a statically typed variant of PHP that allows untyped code.
  \item Thorn: a language with both statically typed and untyped code.
  \item TypeScript: JavaScript with optional types.
@@ -137,9 +137,9 @@ The landscape of gradually typed object-oriented languages is rich and includes:
  \item Reticulated Python: a family of gradual type systems for Python.
 \end{itemize}
 
-\noindent These languages differ in their type system and the associated
-run-time enforcement strategy. There are four major approaches, labeled here
-as optional, concrete, behavioral and transient. The \emph{optional}
+\noindent These languages differ in their type systems and associated
+run-time enforcement strategies. There are four major approaches, labeled here
+as optional, concrete, behavioral, and transient. The \emph{optional}
 approach, chosen by TypeScript, Dart, and Hack, amounts to static
 type-checking followed by type-erasure.  Erroneous values flowing from
 dynamically typed code to statically typed code will not be caught. The
@@ -149,17 +149,17 @@ code executes at native speed, values are dynamically checked at
 typed-untyped boundaries. The \emph{behavioral} approach of Typed Racket and
 Gradualtalk monitors values to ensure that they behave in accordance to
 their assigned types. Instead of checking higher-order and mutable values
-for static type tags like concrete, wrappers ensures enduring conformance of
+for static type tags like concrete, wrappers ensure enduring conformance of
 values to their declared type.  The \emph{transient} approach, specific to
 Reticulated Python, lies between concrete and behavioral; it adds type casts
-but does so only for the top-level of data structures. Finally, Thorn and
+but does so only for the top level of data structures. Finally, Thorn and
 StrongScript combine the optional and concrete approaches, differentiating
-between erased types and run-time checked types.
+between erased types and run-time-checked types.
 
-Static type systems are designed to capture some class of errors. For
-gradual type systems, however, some errors cannot be ruled out before
-execution as untyped code can violate type soundness. The meaning of error
-for a gradual type system therefore depends on how type specifications are
+Static type systems for object-oriented languages are designed to prevent dynamic ``method not understood'' errors. For
+gradual type systems, however, some method not found errors cannot be ruled out before
+execution. In such a gradual type system, untyped code can pass an ill-typed value to typed code, breaking soundness. 
+The meaning of ``error'' for a gradual type system therefore depends on how type specifications are
 enforced.  In other words, each gradual type system may catch different
 ``errors''.  We demonstrate this with a litmus test consisting of three
 simple programs capable of distinguishing the four above mentioned
