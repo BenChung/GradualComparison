@@ -1,7 +1,6 @@
 \documentclass{tex/lipics-v2018}
-\usepackage{xspace,url,framed,amssymb,hyperref,doi, mathtools,wrapfig,
-            stmaryrd, graphicx,  xparse, etoolbox,
-            pgffor, makecell}
+\usepackage{xspace,url,amssymb,hyperref,doi,wrapfig,
+            stmaryrd, graphicx, xparse, etoolbox}
 \usepackage{tex/mathpartir}
 \usepackage[inline]{enumitem}
 \usepackage{epigraph}
@@ -26,7 +25,6 @@
   sensitive=false,  comment=[l]{//},  morecomment=[s]{/*}{*/},
   commentstyle=\color{gray}\ttfamily,  stringstyle=\color{gray}\ttfamily,
   morestring=[b]',  morestring=[b]",
-  %backgroundcolor=\color{vlightgray},
   aboveskip=\medskipamount, %0em,
   belowskip=\medskipamount, %0em
   escapeinside={(*@}{@*)}
@@ -89,15 +87,15 @@ direct comparison of semantics and guarantees.
 \vspace{-7mm}\noindent There never was a single approach to gradual
 typing. The field was opened by two simultaneously published papers. One, by
 Siek and Taha, typed individual Scheme terms using a consistency relation,
-casts being inserted by a type directed translation~\cite{SiekTaha06}. 
-The other, by
-Tobin-Hochtstadt and Felleisen, described a system allowing programmers to
-add types to individual modules, using constraint solving to determine where
-contracts are needed to protect typed and untyped code from each other~\cite{tf-dls06}.  These two approaches set
-the tone for a decade of research.  Today, gradual type systems support a
-variety of languages, enforcement mechanisms, and soundness guarantees; this
-degree of linguistic diversity is not without consequence, however, as the
-very notion of what constitutes an error remains unsettled.
+casts being inserted by a type directed translation~\cite{SiekTaha06}.  The
+other, by Tobin-Hochtstadt and Felleisen, described a system allowing
+programmers to add types to individual modules, using constraint solving to
+determine where contracts are needed to protect typed and untyped code from
+each other~\cite{tf-dls06}.  These two approaches set the tone for a decade
+of research.  Today, gradual type systems rely on a variety of languages,
+enforcement mechanisms with various guarantees; this linguistic diversity is
+not without consequence, however, as the very notion of what constitutes an
+error remains unsettled.
 
 The type system and semantics of a programming language are necessarily
 tightly coupled; each has to deal with the language's complexity. As a
@@ -264,8 +262,7 @@ returns, only validating if the value obtained has matching method types.
 The \emph{monotonic} mode is fundamentally different from any of the
 previous approaches. Monotonic cast updates the type of values in place by
 replacing some of the occurrences of \any with more specific types, and these
-updates propagate recursively through the heap until a fixed point is
-reached.
+updates propagate recursively through the heap until fix-point.
 
 Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
 4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, Nom~\cite{Muehlboeck2017} and
@@ -332,7 +329,7 @@ Reticulated Python    \\
 \it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &  &  27x\\
 \it Guarded  &&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  21x\\
 \end{tabular}}
-  \caption{Gradual type systems. (1) Opt.~structural constraints. (2)
+  \caption{Gradual type systems.~(1) Opt.~structural constraints.~(2)
     Typed expressions are sound.}\label{over}
 \end{figure}
 
@@ -379,7 +376,7 @@ applied and is believed to cause substantial slowdowns. However, this has
 not been measured in detail. With the concrete approach, blame is trivially
 available as evaluation stops at the boundary that causes the
 failure~\cite{Muehlboeck2017}.  We are primarily concerned with where the
-error arises, rather than what information is included in the error; thus, we
+error arises, rather than what information is reported; thus, we
 do not consider blame further.
 
 The last column of \figref{over} lists self-reported performance
@@ -439,9 +436,7 @@ typing yield different run-time errors.
 
 \subsection{A Common Surface Language}
 
-\begin{figure}[!t]\hrulefill
-
-\small\vspace{5mm}
+\begin{figure}[!t]\hrulefill \small\vspace{2mm}
 
 {\bf Syntax:}\\[3mm]
 
@@ -624,7 +619,7 @@ of conversions is applied:
 \[\A~ \vert_{\,\any} ~ \vert_{\,\I}\] 
 
 \vspace{-2mm}\noindent
-This time, however, \A and \I both have a
+This time \A and \I both have a
 method \m, but the methods have incompatible argument types.  Lastly, in
 {\bf L3} we start by converting a \C to \any and then to \E
 and finally back to \any:
@@ -639,9 +634,9 @@ argument of that type. If the object was an instance of \E instead, the call
 would not be legal because \E's method \m expects a class \D as argument.
 
 \begin{figure}[!b] \includegraphics[width=.95\columnwidth]{../figures/litm}
-  \caption{Gradual typing litmus test. Each program consists of a class table
-  (on top) and an executing expression (on bottom). Top left table indicates successful execution
-  or error for semantics/program pairs.}\label{litmus}
+  \caption{Litmus test. Each program consists of a class table (top) and
+    an expression (bottom). Top left table indicates successful
+    executions.}\label{litmus}
 \end{figure}
 
 \noindent We will use this litmus test to differentiate between four different
@@ -683,7 +678,6 @@ expressed in TypeScript (optional), StrongScript (concrete), Typed Racket
 (behavioral) and Reticulated Python (transient), with the same
 errors.\footnote{\small
   \url{github.com/BenChung/GradualComparisonArtifact/examples}}
-
 What the litmus tests show is that a precise understanding of the semantics
 of gradually typed languages, and their run-time enforcement machinery, is
 crucial for developers to know if a program is ``correct.''  Here, all
