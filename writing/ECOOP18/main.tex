@@ -141,7 +141,7 @@ The landscape of gradually typed object-oriented languages is rich and includes:
 run-time enforcement strategies. There are four major approaches, labeled here
 as optional, concrete, behavioral, and transient. The \emph{optional}
 approach, chosen by TypeScript, Dart, and Hack, amounts to static
-type-checking followed by type-erasure.  Erroneous values flowing from
+type checking followed by type erasure.  Erroneous values flowing from
 dynamically typed code to statically typed code will not be caught. The
 \emph{concrete} approach, used in C\# and Nom, uses run-time subtype tests
 on type constructors to supplement static typing.  While statically typed
@@ -159,9 +159,9 @@ between erased types and run-time-checked types.
 Static type systems for object-oriented languages are designed to prevent dynamic ``method not understood'' errors. For
 gradual type systems, however, some method not found errors cannot be ruled out before
 execution. In such a gradual type system, untyped code can pass an ill-typed value to typed code, breaking soundness. 
-The meaning of ``error'' for a gradual type system, therefore, depends on how type specifications are
+The meaning of an ``error'' for a gradual type system, therefore, depends on how type specifications are
 enforced.  In other words, each gradual type system may catch different
-``errors''.  We demonstrate this with a litmus test consisting of three
+``errors.''  We demonstrate this with a litmus test consisting of three
 simple programs capable of distinguishing the four above-mentioned
 approaches.  The litmus test programs are statically well-typed and
 ``correct'' in the sense that they run to completion without error in an
@@ -461,6 +461,9 @@ typing yield different run-time errors.
 \md~::=~\Mdef\m\x\t\t\e\qquad
 \fd~::=~ \Fdef\f\t\qquad
 \t~::=~ \any \B \C\\[3mm]
+\K~::=~\k \K \B $\cdot$ \qquad
+\Env~::=~\HT{\x}{\t} ~\Env \B $\cdot$ \qquad
+\M~::=~\C <: \D ~\M \B $\cdot$ \\[3mm]
 \e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}
 \end{tabular}\end{minipage} 
 \end{tabular}
@@ -516,7 +519,7 @@ typing yield different run-time errors.
 {\bf Convertibility:}\\[-6mm]
   
 \begin{mathpar}
-\Rule{SUB}{ \SSub\emptyset\K\t\tp}{ \ConvertE\K{s}\t\tp }
+\Rule{SUB}{ \SSub\cdot\K\t\tp}{ \ConvertE\K{s}\t\tp }
     
 \Rule{TOA}{~ }{ \ConvertE\K{s}\t\any}
     
@@ -532,7 +535,7 @@ typing yield different run-time errors.
 \Rule{SAss}{ \C \Sub \D \in \M }{  \StrSub \M\K \C\D }
 
 \Rule{SRec}{
-\M'=\M~\C\Sub\D\\\\\md\in\App\K\D\implies\mdp\in\App\K\C~.~\StrSub{\M'}\K\md\mdp
+\M'=\C\Sub\D~\M\\\\\md\in\App\K\D\implies\mdp\in\App\K\C~.~\StrSub{\M'}\K\md\mdp
 }{
  \StrSub \M\K \C \D 
 }
@@ -568,7 +571,7 @@ when an argument of type \C is passed to a method that expects \any. The
 static type system of the surface language allows such implicit coercions --
 using the \emph{convertibility} relation -- but run-time checks may be
 inserted to catch potential type mismatches. We formalize the
-semantics of this system later; here, we appeal to the reader's intuition.
+semantics of this system later; here, we appeal to the readers' intuition.
 
 Before presenting the litmus tests, some details about the type system of the
 surface language may prove helpful. The subtyping relation is structural
@@ -582,7 +585,7 @@ like Smalltalk, fields are encapsulated and can only be accessed from within the
 defining object. Syntactically, field reads and writes are limited to
 the self-reference \this. 
 
-The static type-checking rules,   \EnvTypeS \Env\K\e\t where \Env is 
+The static type checking rules,   \EnvTypeS \Env\K\e\t where \Env is 
 a type environment and \K is a class table,
  are standard with two exceptions: method invocation and convertibility. 
 Method invocation is always allowed when the receiver \e is of 
@@ -646,7 +649,9 @@ argument of that type. If the object was an instance of \E instead, the call
 would not be legal because \E's method \m expects a class \D as argument.
 
 \begin{figure}[!b] \includegraphics[width=.95\columnwidth]{../figures/litm}
-  \caption{Gradual typing litmus test.}\label{litmus}
+  \caption{Gradual typing litmus test. Each program consists of a class table
+  (on top) and an executing expression (on bottom). Top left table indicates successful execution
+  or error for semantics/program pairs.}\label{litmus}
 \end{figure}
 
 \noindent We will use this litmus test to differentiate between four different
@@ -906,7 +911,7 @@ environments but typically not present in class-based calculi.
 
 \subsection{Syntax and Semantics}
 
-Designing \kafka, we had two requirements: first, to be expressive enough to
+We had two requirements when designing \kafka: first, to be expressive enough to
 capture the dynamic semantics implied by each gradual type system; second,
 to have a type system that can express when code is known to be error
 free. \kafka's syntax and semantics, loosely inspired by Featherweight
@@ -919,12 +924,12 @@ of:
 
 \begin{itemize}
 \item variables, \x;
-\item self-reference \this; and wrapper target, \that;
-\item field access, \FRead\f, and writes, \FWrite\f\e;
+\item the self-reference \this; and wrapper target, \that;
+\item field accesses, \FRead\f, and field writes, \FWrite\f\e;
 \item object creation, \New\C{\e[1]..};
 \item static and dynamic method invocations;
 \item subtype and behavioral casts;
-\item heap addresses.
+\item and heap addresses.
 \end{itemize}
 
 \noindent
@@ -1096,11 +1101,11 @@ method simply calls the wrapped object; itself referred to by the
 distinguished variable \that.
 
 If the target type is \any, the wrapper class is simpler. It only needs to
-check that method arguments matches the type expected by the wrapped
+check that method arguments match the types expected by the wrapped
 object. This is done by another behavioral cast. Return values are cast to
 \any.
 
-For example, consider the following program which has two classes \C ad \D.
+For example, consider the following program which has two classes \C and \D.
 Even though \C and \D both have method \a, they are not subtypes because the
 arguments to their \m implementations are not related.
 
@@ -1116,7 +1121,7 @@ arguments to their \m implementations are not related.
 
 \noindent
 The program starts with a \C, casts it to \D, and then back to \C. The
-reason we generate pass-through methods (the wrapper that enforce type \D
+reason we generate pass-through methods (the wrapper that enforces type \D
 has a method \n) is that without them, the method \n would be ``lost''. 
 Without the pass-through method, it would be impossible to cast back to
 \C, as the wrapper would only have an implementation for \m. Wrappers
@@ -1147,7 +1152,7 @@ cast, and only there when justified.
 
 \begin{theorem}[\kafka type soundness]
 
-\noindent For every well-formed-state $\WFq{\K~\e~\s}$ and well-typed
+\noindent For every well-formed state $\WFq{\K~\e~\s}$ and well-typed
 expression $\EnvType\emptyset\S\K\e\t$, where heap typing \S is obtained by
 mapping the class of each object to the corresponding address, one of the
 following holds:
@@ -1225,13 +1230,13 @@ we generate two interfaces \xt{CI} and \xt{DI}, where \xt{CI} is declared to
 extend \xt{DI}. As a result, if two types are subtypes, their corresponding
 C\# interfaces will be as well.  The next problem is that \kafka allows
 subtype methods to be contra-variant in argument and co-variant in return
-types.  As a result, a single methods in \xt{CI} may not be sufficient to
+types.  As a result, a single method in \xt{CI} may not be sufficient to
 implement \xt{DI}.  We solve this by having every class's C\# equivalent
 implement every interface explicitly, with each explicit implementation
 delegating to the real, most general, implementation.  Despite these issues,
 we were able to accurately translate \kafka types. We translate static and
-dynamic invocations into corresponding C\# invocations since C\# has also a
-dynamic type. The underlying run-time can then use the translated \kafka
+dynamic invocations into corresponding C\# invocations since C\# also has a
+dynamic type. The underlying run time can then use the translated \kafka
 types to perform method dispatch, while inserting dynamic checks wherever
 the \kafka code calls for an untyped invocation. This prototype shows that
 \kafka primitives are close to those of intermediate languages. As a result,
@@ -1342,7 +1347,7 @@ were given the right types, then call the guarded typed function.
 \subsection{Expression Translation} 
 
 To accommodate differences between the gradual typing semantics, we use two
-different expression translation schemes. The first is a type-ambivalent
+different expression translation schemes. The first is a type-agnostic
 one, used for the optional approach. $\TR[\OTS]\e$ denotes optional translation,
 where \e is the target expression, and the result is a \kafka term. We use
 this form to simplify the optional translation, as it is ambivalent about the
@@ -1692,7 +1697,7 @@ to a method that expects and \E.
 \end{tabular}\vspace{2mm}\\
 \hrule\vspace{4mm}
   
- \caption{Translation of \xt{E} in litmus test 3.}  \label{fig:l3etrans}
+ \caption{Translation of \xt{E} in litmus test L3.}  \label{fig:l3etrans}
 \end{figure}
 
 \figref{fig:l3etrans} presents the translation of class \E.  For the
@@ -1709,7 +1714,7 @@ representation for \E as concrete. The behavioral cast allows to use any
 value that behaves like an \E.
 
 To examine the operation of the behavioral cast in more detail,
-figure~\ref{fig:behex} depicts the wrapper classes generated at the cast
+\figref{fig:behex} depicts the wrapper classes generated at the cast
 from \C to \any and from it to \xt E.  Class $\C_1$ takes an instance of \C
 and makes it safe against use as \any. In behavioral, no typed invocations
 can be made on a value that was cast to \any (and not cast to some type
@@ -1752,7 +1757,7 @@ may be fine just because a method is missing. One could have a wrapper that
 simply reports an error if a missing method is called.
 
 Performance is a perennial worry for implementers of gradual type systems.
-It is difficult to provide guesses of how a highly optimizing language
+It is difficult to guess how a highly optimizing language
 implementation will perform, as these implementations are likely to optimize
 away the majority of the casts and dynamic dispatches. Consider the progress
 in the performance of Typed Racket reported in the
@@ -1762,14 +1767,14 @@ having type annotations. Transient has checks on reads, which are common,
 and typed function calls. Furthermore, those checks are needed even if the
 entire program is typed. Both concrete and behavioral can benefit from type
 information in typed code.  The difference is that the cost of boundary
-crossing is low in the concrete approach, as it uses a subtype check whereas
+crossing are low in the concrete approach, as it uses a subtype check whereas
 behavioral requires allocation of a wrapper. Wrappers 
 may also complicate the task of devirtualization and unboxing.
 
 
 \section{Conclusion}
 
-This paper has introduced \kafka, a framework for comparing the design of
+This paper introduced \kafka, a framework for comparing the design of
 gradual type systems for object-oriented languages. Our approach is to provide
 translations with different gradual semantics from a common surface language
 into \kafka. These translations highlight the different run-time enforcement
@@ -1780,9 +1785,9 @@ on the meaning of error.  These litmus tests motivated the need to have a
 common framework to explore the design space.
 
 \kafka demonstrates that to express the different gradual approaches, one
-needs a calculus with two casts, one structural and one behavioral, two
-invocations forms, one dynamic and one static, the ability to extend the
-class table at run-time, and wrappers that expose their underlining
+needs a calculus with two casts (structural and behavioral), two
+invocation forms (dynamic and static), the ability to extend the
+class table at run-time, and wrappers that expose their underlying
 unwrapped methods.  We provide a mechanized proof of soundness for \kafka
 that includes run-time class generation.  We also demonstrate that \kafka
 can be straightforwardly implemented on top of a stock virtual machine.
@@ -1795,7 +1800,7 @@ performance will be identical to that of untyped code.  The transient
 approach checks types at uses, so the act of adding types to a program
 introduces more casts and may slow the program down (even in fully typed code). 
 In contrast, the behavioral approach avoids casts in
-typed code. The price it pays for this soundness, however, is heavyweight
+typed code. The price it pays for this soundness, however, is that heavyweight
 wrappers inserted at typed-untyped boundaries.  Lastly, the concrete
 semantics is also sound and has low overheads, but comes at a cost in
 expressiveness and ability to migrate from untyped to typed.
@@ -1815,9 +1820,9 @@ collection of user defined pluggable casts within a single framework.
 
 \subsection*{Acknowledgments} The author thank the reviewers of {\sc ecoop},
 {\sc popl}, {\sc esop}, and again {\sc ecoop} for comments that gradually
-improved this paper. We are grateful to Benjamin Greenman and Matthias
-Felleisen for their feedback.  This work funding from the European Research
-Council (ERC) under the European Union’s Horizon 2020 research and
+improved this paper. We are grateful to Leif Andersen, Fabian Muelbrock, Éric Tanter, Sam Caldwell, Ming-Ho Yee, Lionel Zoubritzky, Benjamin Greenman and
+Matthias Felleisen for their feedback.  This work funding from the European
+Research Council (ERC) under the European Union’s Horizon 2020 research and
 innovation programme (grant agreement 695412), the NSF (award 1544542) and
 (award 1518844) as well as ONR (award 503353).
 
