@@ -1,0 +1,918 @@
+\documentclass[sigconf]{acmart}
+
+\usepackage{xspace,listings,url,framed,amssymb,colortbl,
+       amsmath,mathpartir,hyperref,doi, rotating, stmaryrd, 
+       graphicx, tikz, colortbl, xparse, etoolbox, pgffor,booktabs} 
+\input{macros}
+\newcommand{\code}[1]{{\tt #1}\xspace}
+
+% Copyright
+%\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+\setcopyright{rightsretained}
+%\setcopyright{usgov}
+%\setcopyright{usgovmixed}
+%\setcopyright{cagov}
+%\setcopyright{cagovmixed}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof,new,true,false,instanceof,catch,function,return,null, 
+    catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{darkgray},
+  ndkeywords={class,def,interface,export,boolean,throw,extends,implements,import,this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,  comment=[l]{//},  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,  stringstyle=\color{gray}\ttfamily,
+  morestring=[b]',  morestring=[b]",
+  backgroundcolor=\color{vlightgray},
+  aboveskip=\medskipamount, %0em,
+  belowskip=\smallskipamount, %0em
+  escapeinside={(*@}{@*)}
+}
+\lstset{
+  language=JavaScript,  extendedchars=true,  basicstyle=\footnotesize\ttfamily,
+  showstringspaces=false,   showspaces=false,  numberstyle=\small,
+  numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
+}
+
+% DOI
+%\acmDOI{10.475/123_4}
+
+% ISBN
+%\acmISBN{123-4567-24-567/08/06}
+
+%Conference
+\acmConference[FtFJP]{Submitted to FtFJP}{July 2018}{}
+\acmYear{2018}
+%\copyrightyear{2016}
+%\acmArticle{4}
+%\acmPrice{15.00}
+
+\begin{document}
+\title{Monotonic Gradual Typing in a Common Calculus}
+\subtitle{}
+
+\author{Benjamin Chung}
+\affiliation{\institution{Northeastern University}}
+\author{Jan Vitek}
+\affiliation{\institution{Northeastern and CTU}}
+\thanks{We would like to thank Celeste Hollenbeck for assistence with the writing of this paper.}
+
+
+\begin{abstract} Gradual typing refers to the notion that programs can be
+incrementally decorated with type annotations. Languages that support this
+approach to software development allow for programs being in various states of
+``typedness'' on a scale ranging from entirely untyped to fully statically
+typed. Points in the middle of this typed-untyped scale create interactions
+between typed and untyped code, which is where gradual type systems differ.
+Each gradual type system comes with tradeoffs. Some systems provide strong
+guarantees at the expense of vastly degraded performance; others do not impact
+the running time of programs, but they do little to prevent type errors. This
+paper looks at an intriguing point in the landscape of these systems: the
+monotonic semantics. The monotonic semantics is designed to reduce the
+overhead of typed field access through a different enforcement mechanism
+compared to other gradual type systems. In our previous paper, \cite{us}, we
+described four semantics for gradual typing. This paper uses the framework of
+that companion paper to present and explore a formulation for the
+\emph{monotonic} semantics.  In comparison to the others, the monotonic
+semantics is designed to reduce the overhead of typed field access. We
+translate a common gradually typed source language to a common statically
+typed target language according to the monotonic semantics, allowing easy
+comparison to other gradual type systems in our framework.  \end{abstract}
+
+\definecolor{Gray}{gray}{0.9}
+
+\definecolor{vlightgray}{gray}{0.93}
+
+\maketitle
+
+\section{Introduction}
+
+Gradual typing refers to a family of approaches that add types to untyped
+programs. These approaches each protect the boundaries between typed and untyped
+code in different ways~\cite{SiekTaha06,tf-dls06}. Gradual typing allows
+untyped code to pass values into typed code, and the dynamic values need to be
+reconciled with the new static types dynamically. The pantheon of gradual type systems
+arises from different mechanisms to perform this check of types of untyped values.
+
+Object-oriented languages pose a particular problem for gradual typing. It is
+easy to check if a base value has a type, but problems arise from higher-order
+behavior (that is, programs that pass around behavior inside values). In a
+functional language, this manifests when trying to assert an arrow type on a
+lambda, whose return type cannot be checked at the cast site. Object-oriented
+languages have this same problem --- trying to assert a typed method on an
+object with an untyped version of the method --- but have additional complexity
+in the form of subtyping.
+
+\begin{figure}[h]
+\begin{lstlisting}
+class C { 
+  f(x:*):* { x } 
+  g(x:*):* { new C() }
+}
+class D { 
+  f(x:D):D { x }
+}
+
+new D().f( <*> new C() )
+\end{lstlisting}
+\caption{A gradually typed program.}
+\label{fig:simpleprog}
+\end{figure}
+
+Figure~\ref{fig:simpleprog} shows a simple example of a gradually typed
+object-oriented program. Typed expressions in our language use a standard
+Featherweight Java-like type system with structural subtyping; however, not
+all expressions in this program are typed. In the surface language, the type
+\any indicates that a variable is dynamic; thus, it can hold a value of any
+class; and any method can be invoked, as long as it returns another instance
+of \any for that variable to receive
+
+The program uses dynamic behavior (a cast) to pass an instance of class \C as
+one of type \D in the call to \f. \C has no guarantee to act like a \D, so
+\D-ness must be enforced at runtime. However, deciding the best way to enforce
+static types on untyped values is an open problem. The program shown here
+could fail when the instance of \C is first passed, fail if \f is called on
+\x, or not fail at all if it does not violate the guarantee enforced by the
+gradual type system.
+
+In a companion paper, to appear at ECOOP 2018~\cite{us}, we examined four
+gradual typing approaches, each of which addresses this problem differently.
+In that paper, we discussed the optional, transient, behavioral, and concrete
+semantics. We chose these semantics due to their popularity and relative
+simplicity; but we elided the monotonic semantics of~\cite{siek14}, due to its
+complexity. This paper places the monotonic semantics into the same framework
+as the companion paper.
+
+The monotonic semantics sets out to solve a key problem for gradual typing:
+speed of field access. For example, the behavioral semantics adds a wrapper
+around every field access which checks the value's type, at the cost of
+indirection. This can make typed code in a gradually typed language
+excruciatingly slow~\cite{popl16}.  Suppose we have an object $\x = \{ \f:\any
+= 3 \}$, then alias it as $\xp = \SubCast{\{ \f:\xt{int}   \}}\x$. Despite
+\xp's static type, the field dereference $\xp.\f$ could return a value of any
+type. If we run \xt{\x.\f = "hello"} at some point, then $\xp.\f$ is now ill-typed 
+via the reference. As mentioned previously, other semantics deal with
+this by checking the result of operations in typed code, lazily enforcing
+soundness of type annotations.
+
+The monotonic semantics is an \emph{eager} mechanism to enforce types,
+checking values assigned to fields on assignment rather than dereference. Using
+the monotonic semantics, once a value in the heap is typed, it will always remain of that
+type. In the example above, once we aliased \x as \xp, \xp's type (e.g. that
+\f has type \xt{int}) will be enforced upon usages of \x. Now, our assignment
+\xt{\x.\f = "hello"} will fail, because we are assigning a value of improper
+type to the field \f of the object. Monotonic uses this mechanism to guarantee
+that all values referred to by typed references will be of the correct type.
+
+In this paper, we present a formalization of the monotonic semantics in the
+same framework used in our companion paper~\cite{us} for comparing gradual
+type systems. We use a common gradually-typed object-oriented source language
+and translate it to a common target language (called \kafka) according to the
+monotonic semantics. We then use this formalization to discuss the monotonic
+semantic properties, and compare it to the gradual type systems presented in
+our companion paper.
+
+\section{Monotonic Gradual Types}
+
+The idea behind the monotonic semantics' was originally put forward by Siek and
+Vitousek in~\cite{siek14} for their Reticulated Python language
+implementation. Kuhlenschmidt, Almahallawi, and Siek later implemented
+monotonic again as part of their Grift functional programming language~\cite
+{monotonic-grift}, with the goal of demonstrating its performance. For similar
+purposes, it was again implemented for TypeScript by Richards, Arteca, and
+Turcotte~\cite {richards-bettermono}, leveraging the correspondance between
+monotonic's concept of precision and VM object shapes to improve performance.
+
+The core tenet  of the monotonic semantics is that types only ever get more
+precise. This design gives rise to its name, as types of values in a monotonic
+language's heap monotonically get more static. In an object-oriented language,
+each object in the heap has an associated type, as indicated by its run-time
+tag. This tag identifies the class of the object, and it is used for
+dispatching method invocations. When a reference to an object is cast to a
+more precise type, intuitively a type with fewer occurrences of \any, that new
+type is attached to the value in the heap.  A type error will occur if untyped
+code later tries to read fields, write fields, or call methods in a way that
+violates the updated type. For example, an object may start out under type
+$\{\Mtype\m\any\any\}$, then become more static when cast to
+$\{\Mtype\m{\xt{int}}{\xt{int}}\}$. This new type will be stored in the heap
+and enforced on untyped callers. By locking in applied types forevermore,
+typed code under the monotonic semantics can assume that mutable state will
+remain well-typed.
+
+Through this mechanism, the monotonic semantics is able to provide a stronger
+guarantee about values inhabiting mutable typed values when compared to other
+gradual type systems. Unlike the optional semantics, the monotonic semantics
+provides a soundness guarantee. It also allows the elision of guards at typed
+dereference sites, unlike the transient and behavioral semantics. Finally,
+the monotonic guarantee is less strict at the original cast site than the
+concrete semantics. Additional details about these other semantics can be
+found in our companion paper~\cite{us}.
+
+As a result of this stronger soundness guarantee, the monotonic system has the
+potential to provide substantial benefits to the performance of gradually
+typed languages. Variables are guaranteed to refer to values of their
+statically known type, and therefore their types can be used to discover the
+memory layout of the underlying object.  Therefore, the objects' memory layout is
+known statically and field references made direct. This optimization has the
+potential to reduce one of gradual typing's largest overheads.
+
+In the context of object orientation, monotonic's ability to protect mutable
+state without the need for wrappers is a significant advantage. Other
+gradual type systems need guards, wrappers, or a stronger notion of
+soundness in order to guarantee safety of field access. The monotonic
+semantics, in contrast, prevents untyped code from assigning ill-typed
+values to previously typed references, allowing unchecked dereferencing in
+typed code.
+
+\section{Formalism}
+
+We use the framework we set out in our companion paper to provide a simple
+presentation of the monotonic semantics in an object-oriented setting. Instead
+of using formal languages specially crafted to support each semantics, we use
+a common source and target language for every gradual typing semantics. The 
+semantics is then encoded into the translation, allowing comparison of gradual 
+type systems by examining their translation.
+
+\subsection{Source Language}
+
+Our common source language is similar to Featherweight Java (FJ), with a few
+changes. This language has classes but relies on structural subtyping instead
+of the nominal subtyping adopted by FJ. For our purposes, there is no need for
+inheritance. Structural subtyping is needed to support the evolution of types,
+as casts are being applied. The source language also introduces a dynamic
+type, \any, and a convertibility relation, allowing gradually typed programs
+to be expressed. This same source language and source language type system is
+shared between the translation presented here and the four in our main paper,
+allowing the same programs to be run under all of our semantics. We replicate
+the static semantics for the source language here, in Figure~\ref{slts}. The
+dynamic semantics of the source language is given by a translation to a
+statically-typed language, which we will present next.
+
+Programs in the source language consist of a class table, \K, and an initial
+expression, \e. Classes consist of field and method definitions. Fields have
+a name and a type, \f:\t. Method definitions have names, types for their
+single argument and return type, and an expression. Expressions consist of
+variables, the self-reference \this, field read and write \FRead\f and
+\FWrite\f\e, invocation \Call\e\m\e, and new object creation
+\New\C{\e[1]..}. Each class has an implicit default constructor that merely
+assigns arguments to fields. All operations conform to what they would do in
+Featherweight Java, and the type system is straightforward.
+
+The static type system allows the implicit conversion of typed and untyped
+terms via the convertibility operator, written $\ConvertE\K s\t\tp$ -- type
+$\t$ is convertible to type $\tp$.  The relation is used both for up-casting
+and for conversions of \any to non-\any types.  \RuleRef{SUB} allows transparent
+up-casting, while \RuleRef{TOA} and \RuleRef{ANYC} allow implicit
+conversion to and from the dynamic type.  To avoid collapsing the type
+hierarchy, convertibility is not transitive. With a naive semantics, uses
+of \RuleRef{TOA} would break soundness, since dynamically typed values would
+enter statically typed code without any kind of guard. 
+
+The source language enforce privacy on fields. They can only be accessed
+from them method of the object. Furthermore, fields do not show up in type
+signatures. Subtyping between objects is computed solely on methods
+signatures.
+
+
+\begin{figure*}[!t]
+
+\hrulefill
+
+\vspace{4mm}
+
+\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e~::=~\x\B\this\B\FRead\f\B\FWrite\f\e\B\Call\e\m\e\B\New\C{\e[1]..}\\
+\k~::=~ \Class \C {\fd[1]..}{\md[1]..} \qquad
+\md~::=~\Mdef\m\x\t\t\e\qquad
+\fd~::=~ \Fdef\f\t\qquad
+\t~::=~ \any \B \C
+\end{tabular}
+
+\begin{mathpar}
+\Rule{STG-VAR}{~\\\\
+  \HasType \Env\x\t
+}{
+  \EnvTypeS \Env\K\x\t
+}
+
+\Rule{STG-GET}{
+  \HasType \Env\this\C \\\\  \Fdef\f\t \in \App\K\C
+}{
+  \EnvTypeS \Env\K{\FRead\f}\t
+}    
+
+\Rule{STG-SET}{
+  \HasType \Env\this\C \quad \Fdef\f\t \in \App\K\C \\\\
+  \EnvTypeS \Env\K\e\tp \quad  \ConvertE\K{s}\tp\t
+}{
+  \EnvTypeS \Env\K{\FWrite\f\e}\t
+}    
+
+\Rule[width=15em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\any \\\\ \EnvTypeS \Env\K\ep\t 
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\any}
+}    
+
+\Rule[width=15em]{STG-CALL}{
+  \EnvTypeS \Env\K\e\C \quad \EnvTypeS \Env\K\ep\t \\\\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \quad
+  \ConvertE\K{s}\t{\t[1]}
+}{
+  \EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+}   
+
+\Rule{STG-NEW}{
+  \Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+  \EnvTypeS \Env\K{\e[1]}{\tp[1]}..\quad \ConvertE\K{s}{\tp[1]}{\t[1]}..
+}{
+  \EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+}
+\end{mathpar}
+
+\vspace{-5mm}  
+  
+\begin{mathpar}
+\IRule{SUB}{
+   \SSub\emptyset\K\t\tp
+}{
+   \ConvertE\K{s}\t\tp
+}
+    
+\IRule{TOA}{~ }{ \ConvertE\K{s}\t\any}
+    
+\IRule{ANYC}{~}{ \ConvertE\K{s}\any\t }
+\end{mathpar}
+
+
+\hrulefill
+\caption{Surface language syntax and type system (extract).}\label{slts}
+\end{figure*}
+
+\begin{figure*}[!t]
+
+\hrulefill
+
+\vspace{4mm}
+
+\small\begin{tabular}{@{}lll}
+
+\begin{minipage}{5.5cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+   &\B \this         
+   &\B \that      
+   &\B \FRead\f  \\   
+   & &
+   &\B \FWrite\f\e 
+   &\B \KCall\e\m\e\t\t \\
+   & &   
+   &\B \New\C{\e[1]..}  
+   &\B \DynCall\e\m\e \\
+   & & & \multicolumn{3}{@{}l}{\B \a \B \FReadR\a\f \B \FWriteR\a\f\e} \\
+   & & & \B \src{\MonCast\t\e}
+\end{tabular}\end{minipage}&
+\begin{minipage}{3.7cm}\begin{tabular}{l@{~}l@{}l@{}l}
+  \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+ \md &::= ~ \Mdef\m\x\t\t\e \\ 
+ \fd &::= ~ \Fdef\f\t \\ 
+  \t &::= ~ \any  \B   \C  \\ 
+\end{tabular}\end{minipage} &
+\begin{minipage}{5.5cm}
+
+\begin{tabular}{llllllllllllllllll}
+\EE &::=& ~ \FWriteR\a\f\EE   &\B  
+        \KCall\EE\m\e\t\t  &\B\\
+        &&\KCall\a\m{\EE}\t\t &\B
+        \DynCall\EE\m\e   &\B\\
+&       & \DynCall\a\m\EE   &\B
+       \src{\MonCast\t\EE}  &\B\\
+&&     \New\C{\a[1]..\,\EE\,\e[1]..} &\B 
+      \EM{\square}
+\end{tabular}
+\end{minipage}
+\end{tabular}
+
+
+\begin{mathpar}
+\IRule{KT-VAR}{
+   ~\\\\
+   ~\\\\
+   \HasType \Env\x\t
+ }{
+   \EnvType \Env\s\K\x\t
+}
+
+\IRule{KT-SUB}{
+  ~\\\\
+  \EnvType \Env\s\K\e\tp \\\\
+ \StrSub \cdot\K \tp \t
+ }{
+  \EnvType \Env\s\K\e\t 
+}   
+
+\IRule{KT-READ}{
+  ~\\\\
+  \HasType\Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvType \Env\s\K{\FRead\f}\t
+}  
+
+\IRule{KT-REFREAD}{
+  \s(\a) = \C\{..\} \\\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvType \Env\s\K{\FReadR\a\f}\t
+}  
+
+\IRule{KT-WRITE}{
+  \HasType\Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FWrite\f\e}\t
+}    
+
+\IRule[width=12em]{KT-REFWRITE}{
+  \s(\a) = \C\{..\} \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FWriteR\a\f\e}\t
+}  
+
+\IRule[width=16em]{KT-CALL}{
+  \EnvType \Env\s\K\e\C \\\\
+  \EnvType \Env\s\K\ep\t \\\
+  \Mtype\m\t\tp \in \App\K\C 
+}{
+  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
+}    
+
+\IRule{KT-DYNCALL}{
+  ~\\\\
+  \EnvType \Env\s\K\e\any \\\\
+  \EnvType \Env\s\K\ep\any
+}{
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
+}    
+
+\IRule[width=20em]{KT-NEW}{
+  ~\\\\
+  \EnvType \Env\s\K{\e[1]}{\t[1]}..\\\\
+  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K
+}{
+  \EnvType\Env\s\K{\New\C{\e[1]..}}\C
+}
+
+\src{
+\IRule{KT-MONOCAST}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\MonCast\t\e}\t
+}
+}
+
+\IRule{KT-REFTYPE}{
+  \s(\a) = \obj\C{\ap[1]..}
+}{
+  \EnvType \Env\s\K\a\C
+}
+
+\IRule{KT-REFANY}{
+ }{
+   \EnvType \Env\s\K\a\any
+}
+\end{mathpar}
+
+\vspace{4mm}
+
+\begin{minipage}{0.45\textwidth}
+\begin{tabbing}
+\K\HS\New\C{\a[1]..}\HS\=\s~\HS\=\Red\HS\=\K\HS\=\ap\HS\=\sp\HS\=
+   \WHERE\HS\=\fresh\ap \HS\HS\sp ={\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
+\\
+\K\HS \FReadR\a{\f[i]} \> \s \>\Red\>  \K\>$\a[i]$ \> \s  \> 
+   \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..}
+\\
+\K\HS{\FWriteR\a{\f[i]}\ap}\>\s\>\Red\>\K\>\ap\>\sp\>  
+   \WHERE \>\App\s\a=\obj\C{\a[1],..\a[i],\a[n]..} 
+   \HS\HS \sp=\Map\s{\Bind\a{\obj\C{\a[1],..\ap,\a[n]..}}}
+\\
+\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> 
+    \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS\HS
+             \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C \HS\HS
+             \App\s\a=\obj\C{\a[1]..} \HS\HS
+               \StrSub {\emptyset}\K\t {\t_{1}} \HS\HS
+ \StrSub {\emptyset}\K{\t_{2}} \tp
+\\
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  
+       \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS\HS
+                \Mdef\m\x\any\any\e \In \App\K\C \HS\HS
+                 \App\s\a=\obj\C{\a[1]..} 
+\\
+\hspace{-1em}\colorbox[gray]{0.89}{\hspace{1.15\textwidth}\vphantom{hello}}\hspace{-1.15\textwidth} \K\HS {\MonCast \t\a} \> \s     \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp 
+\\
+\K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
+\end{tabbing}\end{minipage}\vspace{2mm}
+
+\noindent\hrulefill
+
+\caption{\kafka syntax, static and dynamic semantics, and monotonic
+  translation.}\label{syn}
+\end{figure*}
+
+
+\subsection{KafKa}
+
+\kafka's design follows the surface language with some differences.
+Expressions are extended with \that a distinguished variable used for
+wrapped object reference, typed and untyped method invocations, subtype and
+monotonic casts.  Evaluation is likewise standard with a few exceptions,
+with an evaluation context consisting of a class table \K, expression
+being evaluated \e, and heap \s, mapping from addresses \a to objects,
+denoted $\C\{\a\ldots\}$. Due to the need for dynamically generate classes,
+the class table \K is part of the state, and not the evaluation context.
+\kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$
+and the typed invocation $\KCall\e\m\ep{\C}{\D}$, both denoting a method
+call to method $\m$ with argument \ep. This is unusual for two
+reasons. First, most gradual type systems have no explicit untyped
+invocation form, and second, the typed form also specifies the argument type
+and return type. Our system explicitly indicates which function calls are
+statically guaranteed to succeed and which must be dynamically checked. It
+also allows for a limited form of overloading, where both typed and untyped
+versions of a method may share a name.
+
+We use a gray background to indicate changes to \kafka in figure~\ref{slts} to
+support monotonic. The only addition is that of the monotonic cast. The next
+section focuses on giving a semantics to that cast.
+
+
+\section{Monotonic Semantics}
+
+The monotonic semantics is defined by a translation from the surface
+language down to \kafka and the meaning of the monotonic cast. 
+
+The translation is syntax directed, each surface class is translated to an
+eponymous \kafka class. Types of methods and fields are retained in the
+translation. Expressions are translated with $\TRG[M]{\e}\Env$. Variables
+are translated to themselves. Calls are translated to either dynamic calls
+or static calls depending on the type of the receiver.  If the receiver is
+of type \any, then the argument must be of type \any. If the receiver of
+some class \C then the argument must be of type \D, where \D is the expected
+argument type of the method.  We use a variant of the translation relation
+that performs a cast if necessary on its argument expression,
+\TAG[M]{\e}{\Env}\t.  The inserted cast is the monotonic cast,
+\MonCast{\t}{\ep}.
+
+The semantics of monotonic arises from the implementation of the monocast
+metafunction, used in the evaluation of monotonic casts shown in
+figure~\ref{moncast}. At a high level, the cast operation computes the
+meet of the source types (the most specific join of them), then applies it
+by replacing the class associated with the object in memory. This is depicted
+in rule \xt{CM}.
+
+The first step in this operation is the meet operator. The meet operation is
+akin to the one over a lattice, taking two types and always producing a type
+higher on the type lattice. Two types have a meet if they are structurally
+the same up to \any types distributed throughout their structure. The meet
+itself consists of replacing all \any types in both types with the most
+specific known type in that position from either type.
+
+\begin{figure}[h]
+\begin{lstlisting}
+class C { m(x:*):* { x } n(x:C):C { x } }
+class D { m(x:D):D { x } n(x:*):* { x } }
+class E { m(x:D):D { x } n(x:C):C { x } }
+\end{lstlisting}
+\caption{Meet C and D}
+\label{fig:meetex}
+\end{figure}
+
+\noindent
+For example, if we were to compute the meet between \C and \D as  shown in
+figure~\ref{fig:meetex}, we would end up with the type \xt{E}. The \any typed
+argument to \m in \C is taken to be of type \D from class \D, while the
+converse is used for \n in \D. The class \xt{E} then is more specific than
+both \C and \D.
+
+This operation relies on the meet metafunction which takes the two target
+types, a context (for use in recursive types), and the class table. It then
+outputs a new class, the meet of the two types, and an updated classes table
+(meet can create multiple types). The context \xt{P}, either empty $\cdot$
+or a context extended with a mapping $\P ~{{(\C,\D)}\mapsto\Cp}$, is used to
+ensure termination of the meet operation on recursive types by storing the
+names of meet-generated classes. Meet is deterministic, so meet of
+previously-encountered types will be identical.  The meet operation can also
+takes method definitions. It will pick out the comparable method definition
+in the target method, and generate a suitable method. When two list of
+methods are met, their result is passed into ifcgen, which generates an
+``interface''. An interface is trivial class that exists only for the
+purpose of giving us a type signature.  It will never be used.  If we were
+to use it we would run into trouble.  Suppose we start out with
+$\x=\New\C{}$, then alias it with $\xp=\MonCast\D\x$. If we then call
+$\DynCall\x\m{\New\D{}}$, and the underlying object is an instance of
+\xt{E}, the dynamic call will fail as no dynamically-typed method exists. As
+a result of this, our system does not deem \xt{E} to be in a subtyping
+relationship with either \C or \D. Moreover, ifcgen makes no attempt to
+produce correct method bodies.
+
+\begin{figure}[h]
+\begin{lstlisting}
+class F { m(x:D):D { x } m(x:*):* { <*>this.m(<D>x) }
+          n(x:C):C { x } n(x:*):* { <*>this.n(<C>x) }}
+\end{lstlisting}
+\caption{wrap result}
+\label{fig:monwrap}
+\end{figure}
+
+To fix this, we need to add additional guard methods that ensure the
+presence of an untyped target method even if cast. The meet of classes \C
+and \D in our system is therefore class \xt{F} as shown in
+figure~\ref{fig:monwrap}, which has both the typed and untyped methods
+specified in both \C and \D. Class \xt{F} is a proper structural subtype of
+both \C and \D, and its methods perform semantically correct operations. It
+is generated by the wrap metafunction, which produces an equivalent class
+from source and target classes. It ensures that any untyped method in the
+source is retained in the target, and that typed methods are inserted.
+
+\begin{figure*}[!t]
+\center
+
+\begin{center}
+\begin{minipage}{10cm}
+\begin{align*}
+\TRG[M]{\x}\Env &= \x & \\
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \DynCall{\ep_1}\m{\ep_2} & 
+   \IF\EM{\TypeCk{\K,\Env}{\e[1]}\any ~ \AND ~
+    \TRG[M]{\e_1}\Env = \ep_1}
+   \EM{~\AND~ \TAG[M]{\e_2}\Env{\any} = \ep_2}\\
+\TRG[M]{\Call{\e_1}\m{{\e_2}}}\Env &= \KCall{\ep_1}\m{\ep_2}{\D[1]}{\D[2]} & 
+    \IF\EM{\TypeCk{\K,\Env}{\e[1]}\C ~ \AND\; ~ 
+    \Mtype\m{\D[1]}{\D[2]}\In\App\K\C}
+  ~\EM{\AND ~ \TRG[M]{\e_1}\Env= \ep_1 
+   ~\AND~ \TAG[M]{\e_2}\Env{\D[1]} = \ep_2}\\
+\TRG[M]{\New\C{{\e_1}..}}\Env &= \New\C{\ep_1..} & 
+   \IF\EM{\Ftype{\f[1]}{\t[1]}\In\App\K\C ~\AND~
+     \ep[1] = \TAG[M]{\e[1]}\Env{\t[1]} ~..}\\
+\TAG[M]{\e}{\Env}\t &= \e' & \IF\EM{\TypeCk{\K,\Env}\e\tp 
+     ~\AND~ \K\vdash\tp\Sub\t}\\
+\TAG[M]{\e}{\Env}\t &= \MonCast{\t}{\ep} & \IF\EM{\TypeCk{\K,\Env}\e\tp 
+    ~\AND~ \K\vdash\tp\not\Sub\t}
+\end{align*}
+\end{minipage}
+\end{center}
+\caption{Monotonic Translation}
+\end{figure*}
+\begin{figure*}
+\begin{mathpar}
+\IRule{CM}{
+  \s(\a) = \C\{\ap..\} \\
+  \fresh\Cpp\\
+  \md.. = \xt{mets}(\C,\K)\\
+  \mt.. = \xt{mtypes}(\C,\K)\\
+  \mtp.. = \xt{mtypes}(\Cp,\K)\\\\
+  \tmeet \C\t\cdot\K = \Cp~\Kp\\
+  \Kpp = \classgen{\C, \md.., \mt.., \mtp.., \Cpp, \K}\, \Kp \\
+  \sp = \s[\a \mapsto \Cpp\{\ap..\}]
+}{
+  \moncast \a\t\s\K \Kpp \sp\\
+}
+\end{mathpar}
+
+\begin{mathpar}
+
+\IRule{TM1}{ }{\tmeet\C\any\P\K = \C\,\K}
+
+\IRule{TM2}{ }{\tmeet\any\C\P\K = \C\,\K}
+
+\IRule{TM3}{ }{\tmeet\t\t\P\K = \t\,\K}
+
+\IRule{TM5}{
+    \P(\C,\D) = \Cp
+}{
+    \tmeet\C\D\P\K = \Cp\,\K
+}
+
+\IRule{TM4}{
+  \fresh\Cp\\
+  (\C,\D) \not\in\P \\
+  \Pp = \P~{{(\C,\D)}\mapsto\Cp} \\
+  \mmeet{\xt{mtypes}(\C,\K)}{\xt{mtypes}(\D,\K)}\Pp\K = \mtpp..\,\Kp\\
+  \Kpp = \Kp~\typegen{\mtpp..}\Cp\\
+}{
+    \tmeet\C\D\P\K = \Cp\,\Kpp
+}
+
+\end{mathpar}
+
+
+\begin{mathpar}
+\IRule{MM1}{}{
+  \mmeet{\mt ..}{\cdot}\Env\K =\mt.. ~\K
+}
+
+\IRule{MM2}{}{
+  \mmeet{\cdot}{\mt ..}\Env\K ={\mt ..} ~\K
+}
+
+\IRule{MM6}{
+  \Mtype\m{\t_3}{\t_4} \in {\mt_2} \\
+  \tmeet{\t_3}{\t_1}\Env\K = \t_5~\Kp \\
+  \tmeet{\t_2}{\t_4}\Env\Kp = {\t_6}~{\Kpp} \\
+  \mmeet{{\mt_1 ..}}{{\mt_2 ..}}\Env\Kp = {\mt_3 ..}~\Kpp
+}{
+  \mmeet{\Mtype\m{\t_1}{\t_2}~{\mt_1..}}{{\mt_2..}}\Env\K =\Mtype\m 
+   {\t_5}{\t_6} ~{\mt_3 ..} ~\Kpp
+}
+\end{mathpar}
+
+\vspace{5mm}
+
+\begin{center}\begin{minipage}{12cm}
+\noindent\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\typegen{\mt..}{\D} = \\
+\SP \class~\D~\{
+\\[1mm]
+\SPP \Mdef\m\x\t\tp {{\MonCast\tp{\x}}} 
+&
+\qquad \All m \Mtype\m\t\tp\in\mt..
+\\[1mm]
+\SP\}
+\end{array}
+\]
+
+\vspace{5mm}
+
+\[\begin{array}{l@{~}r@{}r@{~}r@{~}r@{~}rr}
+\arrayrulecolor{white}
+\classgen{\C, \md.., \mt.., \mtp.., \D, \K}= \\
+  \SP \class~\D~\{ \\
+    \SPP \Fdef\f\t   &
+        \All{\f\!:\t\in\text{fields}(\K,\C)} \\[1mm]
+    \SPP \Mdef\m\x\any\any{~\MonCast\any{\KCall\this\m{\MonCast{\t[1]}\x}{\t[1]}{\t[2]}}~}\HS\HS & 
+          \All\m \Mdef\m\x{\any}{\any}\e\in\md..  ~\AND~ \Mtype\m{\C_1}{\C_2}\in{\mtp..}
+\\[1mm]\hline
+\SPP \Mdef\m\x{\C_1}{\C_2} {\MonCast{\C_2}{[{(\MonCast{\any}\x)}/\x]\e}~}
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\in\mtp.. 
+\\[1mm]\hline
+\SPP \Mdef\m\x{\C_1}{\C_2} {\e}~
+&     \All \m \Mdef\m\x{\C_1}{\C_2}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\in\mtp.. 
+\\[1mm]\hline
+\SPP \Mdef\m\x{\any}{\any} {\e}~
+&     \All \m \Mdef\m\x{\any}{\any}\e\in\md.. ~\AND~ \Mtype\m{\C_1}{\C_2}\not\in\mtp.. 
+\\[1mm]\hline
+\SP\}
+\end{array}
+\]\end{minipage}\end{center}
+\caption{Monotonic Cast Operations}
+\label{moncast}
+\end{figure*}
+
+\section{Example}
+
+To illustrate the operation of our semantics, we present a fully worked
+example of a simple program running under the monotonic semantics. This
+program, shown in figure~\ref{fig:monoex}, is first translated from source
+to \kafka and then executed according to the \kafka semantics described
+above.
+
+This program is designed to illustrate the cast semantics of monotonic. The
+method \xt{alias} aliases its argument, casting it to both \C and \D. The
+value cast to \C is then retrieved and its method \xt{check} is then called
+(in untyped code) with an \xt{I}. The reference is identical to the one
+originally passed to \xt{alias} and no wrapper has been applied. One would
+expect then that the untyped call to \xt{check} would pass, since the body
+of \xt{check} is the identity function, but under the monotonic semantics it
+fails.
+
+Before explaining the semantics of this program in more detail, we will first
+describe the top level type-driven transformation. First, casts are inserted
+wherever a statically typed value is passed to any and vice versa. Then, typed
+methods have untyped shims generated, so they can be called in a protected
+manner from untyped code. 
+
+Execution starts with the expression \code{new E().alias(<*>new
+C()).check(<*>new C())}. \code{new E()} evaluates to a reference \a to an
+object $\xt{E}\{\}$, upon which \xt{alias} is invoked with argument \New\C{}
+(which evaluates to \a[1], mapping to $\C\{\}$). \xt{alias} then expands to
+\MonCast\any{\New{\xt{T}}{\MonCast\C\a[1],\MonCast\D\a[1]}}. The first
+\MonCast\C\a[1] is a no-op, as \a[1] is already of type \C, but the second
+\MonCast\D\a[1] modifies the runtime type of the value stored at \a[1].
+
+\D defines \xt{check} to take and return instances of \xt{I}, while \C  has
+\xt{check} taking and returning values of type \any. As \D's definition is
+more precise, it will take priority. As a result, the result of meet will be
+\Cp, with \Class\Cp{}{\Mdef{\xt{check}}\x{\xt{I}}{\xt{I}}\x} appended to the
+class table. monWrap is then applied, producing the final new class \Cpp from
+\Cp, consisting of \Class\Cpp{}{\Mdef{\xt{check}}\x{\xt{I}}{\xt{I}}{\MonCast{\xt{I}}{\MonCast{\any}{\x}}} ~ \Mdef{\xt{check}}\x\any\any{\MonCast{\any}{\KCall\this{\xt{check}}{\MonCast{\xt{I}}{\x}}{\xt{I}}{\xt{I}} }}}. This is then used to overrite \a[1]'s class in the heap. \a[1] originally
+referred to $\C\{\}$, but it will now refer to $\Cpp\{\}$ after the cast.
+
+At this point, the initial expression has been reduced to
+\DynCall{\MonCast\any{\KCall{\New{\xt{T}}{\a[1], \a[1]}}{\xt{first}}\any\any
+}}{\xt{check}}{\MonCast\any{\New\C{}}}. The inner expression
+\KCall{\New{\xt{T}}{\a[1], \a[1]}}{\xt{first}}{\a[1]}\any\any evaluates to
+\KCall{\a[2]}{\xt{first}}{\a[1]}\any\any where \a[2] refers to $\xt{T}\{\a[1],\a[1]\}$
+in the heap. The \xt{first} function then is called, returning \a[1] under type
+\any.
+
+This leaves us with \DynCall{\a[1]}{\xt{check}}{\MonCast\any{\New\C{}}}. We
+evaluate \New\C{} to \a[3] (mapped to $\C\{\}$), and make the invocation. A
+method \xt{check} under type \any and \any exists, so the program does not get
+stuck. \app is an instance of \Cpp, so it is dispatched to the generated
+method \xt{check} made by the monocast operation. As a result, our new term is
+\MonCast{\any}{\KCall{\a[1]}{\xt{check}}{\MonCast{\xt{I}}{\a[3]}}{\xt{I}}{\xt{I}}}.
+However, at this point, we get stuck, as no meet exists between the runtime type of
+\a[3] (mapped to $\C\{\}$) and \xt{I}. 
+
+The example illustrates an interesting property of the monotonic semantics.
+Despite this program working perfectly in an untyped language, the monotonic
+semantics caused it to fail. More interestingly, none of the other semantics
+for gradual type systems would experience a cast error on this program. This
+is because none will apply the type cast on the first alias to \a[3] onto the
+underlying object, since the alias is immediately thrown away. 
+ 
+\begin{figure}[!h]
+\begin{tabular}{cc}
+\begin{lstlisting}[linewidth=0.22\textwidth]
+class C{ check(x:*) {x}}
+class D{ check(x:I):I {x}}
+
+  
+
+class I{ dif(x:*):* {x}}
+
+class T { 
+ f1:C f2:D 
+ first(x:*):* {this.f1}}
+
+class E { 
+ alias(x:*):* { 
+  new T(x,x).first(x) }}
+
+
+new E().alias(new C())
+       .check(new C())
+\end{lstlisting}  &
+\begin{lstlisting}[linewidth=0.22\textwidth]
+class C { check(x:*) {x}}
+class D { 
+ check(x:I):I {x}
+ check(x:*):* { 
+    <*>this.m(<I>x) }}
+class I { dif(x:*):* {x}}
+
+class T { 
+ f1:C f2:D 
+ first(x:*):* {
+    <*>this.f1}}
+class E { 
+ alias(x:*):* { 
+    <*>new T(<C>x,<D>x)
+            .first(x)}}
+
+new E().alias(<*>new C())
+       @check(<*>new C())
+\end{lstlisting}\\
+Source & \kafka 
+\end{tabular}
+\caption{Monotonic Semantics Example}
+\label{fig:monoex}
+\end{figure}
+
+\footnotesize
+\normalsize
+
+\section{Conclusion}
+
+This paper has presented the monotonic semantics for gradual types of object
+oriented programs as a translation from source programs to \kafka.  One of
+the key properties of that translation is that the monotonic casts attempts
+to compute the meet of the class of the target object and the requested
+type.  If the two cannot be reconcilled the cast fails, otherwise the type
+of the object is updated in place to reflect the new type. This allows
+monotonic programs to avoid the potentially unbounded layers of wrappers of
+previous approaches. The monotonicity property ensure that there can be at
+most as many wrappers as there are occurrences of \any in the
+type. Practical implementation can have a single wrapper.
+
+One simplification that we have made here comes from the design of
+\kafka. \kafka does not reflect fields in the types of objects, they are
+fully encapsulated.  This means that when computing the meet we do not have
+to update the type of fields. A language that makes fields accessible
+outside of objects would have to also meet the values referenced by fields,
+which may mean that a meet operation could update multiple objects.
+
+Given the complexity of the operations performed by meet, more experience is
+needed to determine if the approach is viable. The implementation of
+Monotonic Reticulated Python has not yet been widely adopted, so few programs 
+have been written in this style.
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{../../bib/jv,../../bib/all}
+
+\end{document}

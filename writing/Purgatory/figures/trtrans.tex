@@ -1,0 +1,25 @@
+%!TEX root = ../ss.tex
+\begin{mathpar}
+\IRule{UTWrap}{
+	\Class\C{\b{\Mdef\m\x{\tp1}{\tp2}\e}~\b{\Mdef{\m'_u}\x{\tp1}{\tp2}\e}}
+}{
+	\wrapper{\C\Rightarrow\any,\xt{D}} = \Class{\xt{D}}{\xt{s} : \C}{\b{\Mdef{\m_\xt{u}}\x{\any}{\any}{\Cast{\any}{\this.\xt{s}.\m(\b{\Cast{\tp1}{\x}})}}} ~ \b{\Mdef{\m'_u}\x{\tp1}{\tp2}{\xt{s}.\m'_u(\b{x})}}}
+}
+
+\IRule{TWrap}{
+	\Class\C{\b{\fd}}{\b{\md}} \\ 
+}{
+	\wrapper{\C\Rightarrow\{\b{\mt}\},\xt{D}} = \Class{\xt{D}}{\xt{s} : \C}{\tw{\b\md, \b\mt} ~ {\utw{\b\md, \b\mt}}}
+}
+
+\IRule{MTWrap}{
+}{
+  \tw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\Mtype\m{\b{\tp1}}{\tp2};\b{\mt}} = \Mdef{\m}\x{\tp1}{\tp2}{\Cast{\tp2}{\this.\xt{s}.{\m_\xt{u}(\b{\Cast{\any}{\x}})}}} ~ \tw{\b{\md},\b{\mt}}
+}
+
+\IRule{MUTWrap}{
+	\m \not\in\b{\mt}
+}{
+  \utw{\Mdef{\m_\xt{u}}\x\any\any\e;\b{\md},\b{\mt}} = \Mdef{\m_\xt{u}}\x\any\any\e ~ \utw{\b{\md},\b{\mt}}
+}
+\end{mathpar}

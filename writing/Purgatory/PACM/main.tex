@@ -1,0 +1,2688 @@
+\documentclass[acmsmall, anonymous, authordraft, review]{acmart} % can add review if you want line numbers
+\settopmatter{printacmref=false} % get rid of acm noise
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\usepackage{stmaryrd}
+\usepackage{xspace,listings,url,framed,amssymb,
+            mathpartir,hyperref,doi, mathtools,wrapfig,
+            stmaryrd, graphicx, tikz, colortbl, xparse, etoolbox,
+            pgffor, makecell} % double brackets llbracket
+\usepackage[customcolors,norndcorners]{hf-tikz}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{shapes.multipart}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\usetikzlibrary{backgrounds}
+\usepackage[inline]{enumitem}
+\usepackage{epigraph}
+\setlength{\epigraphrule}{0pt}
+\renewcommand*{\textflush}{flushright}
+\setlength{\epigraphwidth}{4in}
+\newcommand{\code}[1]{{\tt #1}\xspace}
+\newcommand{\FZ}[1]{\textbf{FZ: #1}}
+\input{macros}
+\definecolor{Gray}{gray}{0.9}
+\definecolor{vlightgray}{gray}{0.93}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof,new,true,false,instanceof,catch,function,return,null, 
+    catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{darkgray},
+  ndkeywords={class,def,interface,export,boolean,throw,extends,implements,import,this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,  comment=[l]{//},  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\ttfamily,  stringstyle=\color{gray}\ttfamily,
+  morestring=[b]',  morestring=[b]",
+  %backgroundcolor=\color{vlightgray},
+  aboveskip=\medskipamount, %0em,
+  belowskip=\medskipamount, %0em
+  escapeinside={(*@}{@*)}
+}
+\lstset{
+  language=JavaScript,  extendedchars=true,  basicstyle=\small\ttfamily,
+  showstringspaces=false,   showspaces=false,  numberstyle=\small,
+  numbersep=9pt,  tabsize=2, breaklines=true,  showtabs=false, captionpos=b
+}
+
+
+%\usepackage[ruled]{algorithm2e} % For algorithms
+%\renewcommand{\algorithmcfname}{ALGORITHM}
+%\SetAlFnt{\small}
+%\SetAlCapFnt{\small}
+%\SetAlCapNameFnt{\small}
+%\SetAlCapHSkip{0pt}
+%\IncMargin{-\parindent}
+%% Metadata Information
+%\acmJournal{POMACS}
+%\acmVolume{9}
+%\acmNumber{4}
+%\acmArticle{39}
+%\acmYear{2010}
+%\acmMonth{3}
+%\acmArticleSeq{11}
+%\acmBadgeR[http://ctuning.org/ae/ppopp2016.html]{ae-logo}
+%\acmBadgeL[http://ctuning.org/ae/ppopp2016.html]{ae-logo}
+% Copyright
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+%\setcopyright{rightsretained}
+%\setcopyright{usgov}
+%\setcopyright{usgovmixed}
+%\setcopyright{cagov}
+%\setcopyright{cagovmixed}
+\setcopyright{none}
+% DOI
+%\acmDOI{0000001.0000001}
+\begin{document}
+\title{Gradual Types for Objects Redux}
+\author{No Author}
+%\orcid{1234-5678-9012-3456}
+%\affiliation{%
+ % \institution{Myself}
+ % }
+%  \streetaddress{104 Jamestown Rd}
+ % \city{Williamsburg}
+ % \state{VA}
+ % \postcode{23185}
+ % \country{USA}}
+%\author{Chengdu Huang}
+%\author{John A. Stankovic}
+%\author{Tarek F. Abdelzaher}
+%\affiliation{%
+%  \institution{University of Virginia}
+%  \department{School of Engineering}
+%  \city{Charlottesville}
+%  \state{VA}
+%  \postcode{22903}
+%  \country{USA}
+%}
+
+\begin{abstract}
+The enduring popularity of dynamically typed languages has given rise to a
+cottage industry of static type systems, often called \emph{gradual type
+  systems}, that let developers annotate legacy code piecemeal. Type
+soundness for a program which mixes typed and untyped code does not ensure
+the absence of errors at runtime, rather it means that some errors will
+caught at type checking time, while other will be caught as the program
+executes. After a decade of research it is clear that the combination of
+mutable state, self references and subtyping presents interesting challenges
+to designers of gradual type systems.  This paper reviews the state of the
+art in gradual typing for objects. We introduce \kafka, a class-based object
+calculus with a static type system, dynamic method dispatch, transparent
+wrappers and dynamic class generation. We model key features of four gradual
+type systems by translation to \kafka and discuss the implications of the
+respective designs.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+\epigraph{\small\it ``Because half the problem is seeing the problem''}
+
+\vspace{-5mm}
+
+\noindent A decade ago Siek and Taha~\cite{SiekTaha07} presented a gradual
+type system for a variant of Abadi and Cardelli's object-based
+calculus~\cite{cardelli:1996:theory-of-objects}. Their system featured a
+dynamic type, denoted \any, and a subtype relation that combined structural
+subtyping with a consistency relation between terms that only differ in
+dynamic type annotations.  Soundness at the boundaries between typed and
+untyped code is ensured by inserting casts following in their earlier work
+for functional languages~\cite{SiekTaha06}.
+
+A decade later, practical realizations of Siek and Taha's elegant idea have
+proved elusive. One potential reason may be that the original paper did not
+consider state. The combination of mutable state, aliasing and subtyping
+prevalent in object-oriented languages complicates enforcement strategies,
+as one must consider situations where an object is being accessed and
+mutated at different types. While several solutions have been proposed,
+their performance implications appear daunting. Predictably, developers of
+industrial languages have chosen to compromise on soundness to avoid
+degrading performance.
+
+This paper explores the design space of gradual type systems for
+object-oriented languages by studying four distinctive systems,
+idealizations of TypeScript~\cite{BAT14}, Thorn~\cite{oopsla09}, Typed
+Racket~\cite{tf-popl08}, and Transient Reticulated Python~\cite{siek14},
+which significantly different semantics.  Beyond the difference in runtime
+overheads imposed by these systems, which we do not study here, there is not
+even agreement over what constitutes a runtime error.  To highlight the
+issue, we propose a litmus test consisting of three simple programs,
+well-typed in the four respective source languages, which allow us to
+distinguish between the type systems. In an untyped language these programs
+run without error, but with gradual types we observe different numbers of
+errors depending on the runtime enforcement strategy used.
+
+Our aim is to shed light on core features of each type system, namely their
+treatment of objects, and which errors are caught statically and which ones
+are caught dynamically.  These four languages were selected because they had
+open source implementations and their designs were representative of
+different philosophies.  TypeScript stands for unsound systems that work by
+erasure, such as Dart and Hack.  Thorn combines dynamic and static types
+inspired by C\# and further developed in StrongScript. Typed Racket provides
+a sound type system that is close in spirit to Siek and Taha's original
+idea. Lastly, Transient was designed to decrease the overhead of soundness,
+while retaining some systematic runtime checks.
+
+To capture the essence of gradual typing, we present translations of
+representative subsets of four gradually typed languages into a common
+target. This target language, dubbed \kafka, is modeled on the features
+exposed by the intermediate languages of the Java Virtual Machine and the
+Common Language Runtime -- both of which have been used as targets for
+implementations of gradual typing systems.  The particular features we
+exploit are a simple static type system equipped with dynamic casts that
+check the runtime type of values, the ability to dynamically resolve method
+targets, and support for generating new classes at runtime.
+
+Translating a gradually typed language into a statically typed language,
+such as the JVM's bytecode or \kafka makes explicit which of the underlying
+type system's guarantees can be relied upon statically, and where dynamism
+is really required.  Our core contribution is thus four translations, each
+taking a gradually typed expression \HT\e\T in the source language and
+returning the corresponding \kafka term. The translation of a term entails
+translation of the classes needed to evaluate it.  The translation allows us
+to study where program can get stuck in the different systems.  With gradual
+types, an expression \Call\x\m\e, where \x is declared to be of class \C,
+can have significantly different behavior depending on choices made while
+designing the type system. TypeScript has \emph{optional types}; any call
+can get stuck, as every type translates to \any. Thorn has \emph{concrete
+  types}; a program will not get stuck at calls on these types as they
+translate to statically typed method calls in \kafka. Typed Racket has
+\emph{promised types}; a well-typed program will not get stuck at a call to
+\m, because \x refers to an object, or wrapper, that implements \m. Wrappers
+may fail if their target does not behave like the type that they
+enforce. Transient Python will also allow calls to go through, but may get
+stuck if the called function returns a value of the wrong type.
+
+The design of \kafka is another contribution.  \kafka is a statically typed
+object calculus.  It is class based (with an explicit class table \K) with
+mutable state (a heap address \a refers to an object with a set of private
+fields denoted by \f). It allows the dynamic generation of wrapper classes
+(by addition of new classes to the class table \K and allocation of objects
+\a).  Methods can be statically resolved, denoted by a typed call
+\KCall\a\m\x\t\tp, or can be dynamically resolved, denoted by a dynamic call
+\DynCall\a\m\x. The \kafka type system has two kinds of types; classes which
+give rise to homonymous types, and the dynamic type \any.  \kafka subtyping
+is structural with recursion.  The heart of any gradual type system are the
+explicit casts that are inserted at type boundaries.  Structural casts,
+\SubCast\t\a, check if the object referenced by \a is a subtype of type \t.
+Behavioral casts, \BehCast\t\a, create wrappers that enforce a specific
+type, this entails runtime generation of a new class. Finally, We give
+\kafka an operational semantics. We report on a mechanized proof of
+soundness for \kafka inclusive of its casts, as well as a proof-of-concept
+implementation of the calculus on top of the .NET virtual machine.
+
+\section{Background}
+
+
+\epigraph{\small\it ``If you know the enemy and know yourself...''}
+
+\vspace{-5mm}
+
+\noindent The intellectual lineage of gradual types can be traced back to
+attempts to add types to Smalltalk and LISP. A highlight on the Smalltalk
+side is the Strongtalk optional type system~\cite{Bracha93}, which led to
+Bracha's notion of pluggable types~\cite{pluggabletypes}. For him, types
+exist solely to catch errors at compile-time, never affecting the runtime
+behavior of programs. The rationale is that types are an add-on that can be
+turned off without affecting semantics.  In the words of Richards~\emph{et
+  al.}~\cite{ecoop15}, an optional type system is \emph{trace preserving},
+which means that if a term \e reduces to value \a, adding type annotations
+will never cause \e to get stuck. This property is valuable to developers as
+type annotations will not introduce errors or affect performance.  Optional
+type systems in wide use include Hack~\cite{hack13}, TypeScript~\cite{BAT14}
+and Dart~\cite{dart13}.
+
+On the functional side, the ancestry is dominated by the work of Felleisen
+and his students.  The Typed Scheme~\cite{tf-popl08} design that later
+became Typed Racket is influenced by the authors' earlier work on
+higher-order contracts~\cite{ff-icfp02}. Typed Racket was envisioned as a
+vehicle for teaching programming, thus being able to explain the source of
+errors was an important design consideration. Another consideration was to
+prevent surprises for beginning users, thus the value held in a variable
+annotated as a \C should always behave as a \C. To aid debugging, any
+departure from the expected behavior of an object, as defined by its
+promised type, must be reported at the first discrepancy.  Whenever a value
+crosses a boundary between typed and untyped code, it is wrapped in a
+contract that monitors its behavior. This ensures that mutable values
+remains consistent with their declared type and functions respect their
+declared interface. When a value misbehaves, blame can be assigned to a
+boundary. The granularity of typing is the module, thus a module is either
+entirely typed or entirely untyped. 
+
+Siek and Taha coined the term gradual typing in~\cite{SiekTaha06} as ``any
+type system that allows programmers to control the degree of static checking
+for a program by choosing to annotate function parameters with types, or
+not.'' Their contribution was a formalization of the idea in a lambda
+calculus with references and a proof of soundness. They defined the type
+consistency relation $\t \sim \tp$ which states that types that agree on
+non-\any positions are compatible.  In~\cite{SiekTaha07} the authors
+extended their result to a stateless object calculus and combined
+consistency with structural subtyping, but extending this approach to
+mutable objects proved challenging.  Reticulated Python~\cite{siek14} is a
+compromise between soundness and efficiency.  The language has three modes:
+the \emph{guarded} mode behaves as Racket with contracts applied to values.
+The \emph{transient} mode performs shallow checks on reads and returns, only
+validating if the value obtained has matching method names.  The
+\emph{monotonic} mode is fundamentally different. Under the monotonic
+semantics, a cast updates the type of an object in place by replacing some
+of the occurrences of \any with more specific types, which can then
+propagate recursively through the heap until a fixed point is reached.
+
+Other noteworthy systems include Gradualtalk~\cite{GS13}, C\#
+4.0~\cite{Bierman10}, Thorn~\cite{oopsla09}, and
+StrongScript~\cite{ecoop15}. Gradualtalk is a variant of Smalltalk with
+Felleisen-style contracts and mostly nominal type equivalence (structural
+equivalence can be specified on demand, but it is, in practice, rarely
+used). C\# 4.0 adds the type {\sf dynamic} to C\# and dynamically resolved
+method invocation.  C\# has thus a dynamic sublanguage that allows
+developers to write unchecked code, working alongside a strongly typed
+sublanguage in which values are guaranteed to be of their declared type.
+The implementation replaces \any by the type {\tt object} and adds casts
+where needed.  Thorn and StrongScript extend the C\# approach with the
+addition of optional types (called {\em like types} in Thorn).  Thorn is
+implemented by translation to the JVM. The presence of concrete types means
+that the compiler can optimize code (unbox data and in-line methods) and
+programmers are guaranteed that type errors will not occur within concretely
+typed code.
+
+\newcommand{\rot}[1]{\rotatebox{80}{#1}}
+\newcommand{\X}{\EM{\bullet}}
+\newcommand{\XX}{\EM{\bullet^{(2)}}}
+\newcommand{\XY}{\EM{\bullet^{(1)}}}
+
+\begin{figure}[!ht]
+  \center
+~ \\[2cm]
+  {\footnotesize
+\begin{tabular}{r|lllllllllllllr}
+ & & \rot{Nominal}
+  & \rot{Optional types}
+  & \rot{Concrete types}
+  & \rot{Promised types}
+  & \rot{Class based}
+  & \rot{First-class Class}
+  & \rot{Soundness claim}
+  & \rot{Unboxed prim.}
+  & \rot{Subtype cast}
+  & \rot{Shallow cast}
+  & \rot{Generative cast}
+  & \rot{Blame}
+  & \rot{Pathologies}
+  \\
+Dart         &&\X &\X &   &   &\X &   &    &    &\X &   &   &   &  - 
+\\\hline
+Hack         &&\X &\X &   &   &\X &   &    &    &\X &   &   &   &  -  
+\\\hline
+TypeScript   &&   &\X &   &   &\X &   &    &    &   &   &   &   &  -  
+\\\hline
+C\#          &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   &  -  
+\\\hline
+Thorn        &&\X &\X &\X &   &\X &   &\XX & \X &\X &   &   &   & 0.8x
+\\\hline
+StrongScript &&\X &\X &\X &\X &\X &   &\XX &    &\X &   &\X &   & 1.1x   
+\\\hline
+Gradualtalk  &&\XY&   &   &\X &\X &   & \X &    &   &   &\X &\X &  5x
+\\\hline
+Typed Racket &&   &   &   &\X &\X &\X &\X  &    &   &\X &\X &\X & 121x 
+\\\hline
+Reticulated Python    \\
+\it Transient&&   &\X &   &   & \X &  & \X &    &   &\X &   &\X & 10x \\
+\it Monotonic&&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  27x\\
+\it Guarded  &&   &   &   &\X & \X &  & \X &    &   &   &\X &\X &  21x\\
+\end{tabular}}
+  \caption{Overview of implemented gradual type systems. (1) Gradualtalk has
+    optional structural constraints. (2) Concretely typed expressions are
+    sound in C\#, Thorn and StrongScript.}\label{over}
+\end{figure}
+
+\figref{over} reviews gradual type systems with publicly available
+implementations. All languages here are class-based, except TypeScript which
+has both classes and plain JavaScript objects. Most languages base subtyping
+on explicit name-based subtype declarations, rather than on structural
+similarities.  TypeScript uses structural subtyping, but does not implement
+a runtime check for it.  Anecdotal evidence suggests that structural
+subtyping is rarely needed in TypeScript~\cite{ecoop15}. StongScript extends
+TypeScript changing subtyping back to nominal.  The consistency relation
+used in Reticulated Python is fundamentally structural, it would be
+nonsensical to use it in a nominal system.\footnote{Consistency relates
+  classes that differ in the number of occurrences of \any in their type
+  signature and not whether they are declared to extend one another.}  For
+Racket, the heavy use of first-class classes and class generation naturally
+leads to structural subtyping as many of the classes being manipulated have
+no names.  Optional types are the default execution mode for Dart, Hack and
+TypeScript.  Transient Python is, in some senses, optionally typed as any
+value can flow into a variable regardless of its type annotation, leading to
+its ``open world'' soundness guarantee~\cite{siek14}.  In Thorn and C\#,
+primitives are concretely typed; they can be unboxed without tagging.  The
+choice of casts follows from other design decisions. Languages with concrete
+types naturally tend to use subtype casts to establish the type of
+values. For nominal systems, there are highly optimized algorithms. Shallow
+casts are casts that only check the presence of methods, but not their
+signature. These are used by Racket and Python to ensure some basic form of
+type conformance. Generative casts are used when information such as a type
+or a blame label must be associated with a reference or an object.
+
+Blame assignment is a topic of investigation in its own right. Anecdotal
+evidence suggests that the context provided by blame helps developers
+pinpoint the provenance of errors. A fitting analogy are the stack traces
+printed by Java when a program terminates abruptly. Developers working in,
+e.g, C++ must run their program in a debugger to obtain the same
+information. Stack traces have little runtime cost because they piggyback on
+precise exceptions. Recording blame has a cost, but no data exists on its
+performance impact.
+
+The last column of \figref{over} lists self-reported performance
+pathologies.  These numbers are not comparable as they refer to different
+programs and different configurations of type annotations. They are not
+worst case scenarios either; most languages lack a sufficient corpus of code
+to conduct a thorough evaluation.  Nevertheless, one can observe that for
+optional types no overhead is expected, as the type annotations are erased
+during compilation. Concrete types insert efficient casts, and lead to code
+that can be optimized.  The performance of the transient semantics for
+Reticulated Python is a worst case scenario for concrete types -- i.e. there
+is a cast at almost every call. Finally, languages with generative
+casts tend to suffer prohibitive slow downs in pathological cases.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Litmus test}\label{litmustest}
+
+\epigraph{\small ``There is no perfection only life.''}
+
+\vspace{-5mm}
+
+One of the salient implication of the various runtime type enforcement
+strategies used in the four gradual type systems under study is that they
+have different notions of what constitutes as an erroneous program.
+Understanding why a program fails due to a certain runtime error is something that
+should be clear for usability.
+
+In this section, we propose a litmus test that can be used to distinguish
+the four type systems. The three programs of \figref{litmus} are statically
+well-typed in all four gradual type system. Furthermore, in an untyped
+language all three programs would execute without error. Depending on the
+runtime enforcement strategy, some of these program will halt with a runtime
+error due to inserted casts. Different type system will report a different
+number of errors, and will stop at different points.  For completeness we
+provide source code in TypeScript, Typed Racket, Thorn and Reticulated
+Python in the appendix.
+
+\begin{figure}[!h]
+	\includegraphics[width=.95\columnwidth]{../figures/litm}
+	\caption{Gradual typing semantic litmus test.}\label{litmus}
+\end{figure}
+
+The programs of \figref{litmus} are given in our idealized syntax, presented
+in Section 5, we assume they are translated to \kafka and that they execute
+according to the semantics of Section \ref{kafkacore}. Each program consist of a class
+table (larger box), and a top-level expression (smaller box).
+
+All the programs execute without getting stuck under TypeScript's permissive
+semantics.
+
+{\bf L1} fails in each of the other semantics.  For Thorn, the method call
+to {\tt this.s(x)} in method {\tt t} of class {\tt T} fails because \A is
+not a subtype of \xt I, as method {\tt m} of class \A exhibits different
+types to method {\tt n} of class \xt I. For Typed Racket and Transient
+Python, \A and \xt I are also not considered subtypes because their
+respective class have methods with different sets of names.
+
+{\bf L2} fails only in Thorn. As shown in {\bf L1}, Thorn's concrete type
+checking requires \A to be a subtype of \xt I, while in {\bf L2}, \xt Q
+is not a subtype of \A as methods {\tt m} and {\tt n} exhibit different
+types.  Typed Racket and Transient works fine because \A have the same
+methods as \xt I.
+
+{\bf L3} fails in Thorn and Typed Racket.  For Thorn, the method invocation
+of {\tt this.m(x)} in method \n of class \xt F fails because an instance of
+\C is being casted to \xt E, despite \C not being a subtype of \xt E.  Just as
+\A is not a subtype of \xt I for {\bf L1} and {\bf L2}, \C is not a subtype
+of \xt E. {\bf L3} also fails in Typed Racket as the method invocation of
+\xt{.a(new C())} in the top-level expression is calling method \texttt{a} of
+class \xt E. This requires casting an instance of \C to \D, which in turn
+requires method \texttt{a} of class \C to only take and return values of
+type \D, however, there are no subtyping relation between \C and \D.
+Transient, in contrast, can run {\bf L3} without error, as, unlike Thorn, it
+does not compare argument types, and, unlike Racket, it does not recall the
+prior cast to \xt E. Thus given these three programs and the ability to
+observe errors, one can divine which semantics a language implements.
+
+\section{KafKa: A Core Calculus}\label{kafkacore}
+
+\epigraph{\hspace{-1cm}\small\it ``Aux chenilles du monde entier et aux papillons qu'elles renferment''}
+
+\vspace{-5mm}
+
+\noindent
+The basis of our formal approach is \kafka, a class-based, statically typed
+object-oriented language. The distinctive features of the calculus are its
+support for both typed and untyped method innovation, as well as that
+dynamic class generation by explicit class tables.  The features of \kafka
+are modeled on common compilation targets for object-oriented language such
+as the JVM's Java Bytecode or the .NET CLR's Common Intermediate
+Language. Both of which have typed intermediate language with support for
+untyped method call (through their reflection API) and class generation (by
+dynamic loading).  Our design is guided by the intuition that the semantics
+of object-oriented languages with gradual types can be translated to a
+common representation by the introduction of \emph{casts} and
+\emph{wrappers}.
+
+\begin{figure}[!h]\hrulefill
+
+\vspace{4mm}
+
+\small\begin{tabular}{@{}ll}
+
+\begin{minipage}{9cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+    &\B \this         
+   &\B \that      
+   &\B \FRead\f     
+   &\B \FWrite\f\e   
+   &\B \KCall\e\m\e\t\t \\
+   & &
+   &\B \SubCast\t\e 
+   &\B \BehCast\t\e 
+   &\B \New\C{\e[1]..}  
+   &\B \DynCall\e\m\e 
+\end{tabular}\end{minipage}&
+\begin{minipage}{3.4cm}\begin{tabular}{l@{~}l@{}l@{}l}
+  \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+ \md &::= ~ \Mdef\m\x\t\t\e \\ 
+ \fd &::= ~ \Fdef\f\t \\ 
+  \t &::= ~ \any  \B   \C  \\ 
+\end{tabular}\end{minipage} 
+\end{tabular}
+
+\vspace{4mm}
+
+\noindent\hrulefill
+\caption{\kafka Syntax.}\label{syn}
+\end{figure}
+
+\paragraph{Syntax}  
+\kafka is an object calculus that satisfies the above design
+requirement. Its syntax is given in \figref{syn}.  Types consist of class
+names \C, \D and the dynamic type, written \any.  Class definitions have a
+class name and (possibly empty) sequences of field and method definitions,
+\Class\C{\fd[1]..}{\md[1]..}. Field definitions consist of a field and its
+type, \Fdef\f\t. Method definitions have (for simplicity) a single argument
+and an expression, denoted \Mdef\m\x\t\t\e.  \kafka supports a limited form
+of overloading, allowing both a typed implementation and an untyped
+implementation for each method.  Fields are private to objects, and can be
+accessed only from the object's scope; reading a field is denoted
+\(\FRead\f\) and writing a field is denoted \(\FWrite\f\e \).  The calculus
+supports both statically and dynamically resolved method invocation.  A
+statically resolved call, denoted \KCall\e\m\ep\t\tp, is guaranteed to
+succeed as the type system ensures that the expression \e will evaluate to
+an object of a class which has a method \Mtype\m\t\tp. A dynamically
+resolved call, \DynCall\e\m\ep, can get stuck if the object that \e
+evaluates to does not have a method \Mtype\m\any\any.  We let meta-variables
+\x ranges over variable names, \m and \f range over methods and fields
+respectively; \this is a distinguished identifier representing a method
+receiver, while \that is a distinguished field name that will be used in
+wrapper classes.  Providing two different cast mechanisms is a key feature
+of the calculus.  The former, the \emph{structural cast}, \(\SubCast\t\e\),
+denotes the usual subtype cast that dynamically type-checks its argument.
+The latter, the \emph{behavioral cast}, \(\BehCast\t\e\), rather than
+type-checking the argument at runtime, builds a wrapper around it.  The
+wrapper then ensures that all the successive requests to the object will be
+understood (or raise an error). The design of the behavioral cast is
+intricate, and deserves its own section below.  State is represented via a
+heap \s mapping addresses ranged over by \a to objects
+denoted \hspace{-1mm}\obj\C{\a[1]..}.
+
+
+\paragraph{Static semantics}
+A well-formed program, denoted \WFp\e\K, consists of an expression \e and a
+class table \K where each class \k is well-formed and \e is well-typed with
+respect to \K.  A class is well-formed if all its fields and methods are
+well-typed and it has at most two definitions for any method \m, one typed
+\Mdef\m\x\C\D\e and one untyped \Mdef\m\x\any\any\e.  The static semantics
+of \kafka is mostly standard; the complete set of rules is in Appendix.  The
+subtype relation, \StrSub\M\K\t\tp, shown in \figref{sub}, allows for
+recursive structural subtyping: for this the environment \M keeps track of
+the set of subtype relations assumed.  The dynamic type \any is a singleton
+in the subtype relation, it is neither a super or a sub-type of any other
+type.  The notation \md\In\App\K\C denotes the method definition \md
+occurring in class \C and class table \K.  Recall fields are hidden from the
+class type signature, so subtyping is limited to method definitions.  Key
+type rules are in \figref{f:staticsem}.  Method calls use syntactic
+disambiguation to select between typed and untyped methods (dynamic method
+resolution uses @). A dynamically resolved call places no requirements on
+the receiver or argument, and returns a value of type \any.  A statically
+resolved call has the usual type requirements on arguments. The two subtype
+cast rules are similar; they ensure the value has the cast-to type. However,
+the way their soundness is enforced at runtime is very different.  
+
+\begin{figure}[!t] \hrulefill\small
+
+\vspace{-2mm}
+
+\begin{mathpar}
+\Rule{SAss}{
+\C \Sub \D \in \M
+}{
+ \StrSub \M\K \C\D
+}
+
+\hspace{-8mm}
+
+\Rule{SRec}{
+ \M' = \M~\C\Sub\D\\\\
+\md \in \App\K\D \implies \mdp \in \App\K\C ~.~ \StrSub{\M'}\K\md{\mdp}
+}{
+ \StrSub \M\K \C \D 
+}
+
+\hspace{-8mm}
+
+\Rule{SMet}{
+  \StrSub \M\K {\tp[1]} {\t[1]} \\\\
+  \StrSub \M\K {\t[2]} {\tp[2]}
+}{
+ \StrSub \M\K {\Mdef\m\x{\t[1]}{\t[2]}\e} {\Mdef\m\x{\tp[1]}{\tp[2]}\ep}
+}
+\end{mathpar}
+
+\hrulefill\caption{\kafka subtyping}\label{sub}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\hrulefill\small
+
+\begin{mathpar}
+\Rule{W6}{
+  \EnvType \Env\s\K\e\C \\
+  \Mtype\m\t\tp \in \App\K\C  \\
+  \EnvType \Env\s\K\ep\t
+}{
+  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
+}    
+
+\Rule{W7}{
+  \EnvType \Env\s\K\e\any \\
+  \EnvType \Env\s\K\ep\any
+}{
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
+}    
+
+\\
+
+\Rule{W9}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\SubCast\t\e}\t
+}
+
+\Rule{WB}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\BehCast\t\e}\t
+}
+
+\Rule{W9}{
+  \s(\a) = \obj\C{\ap[1]..}
+}{
+  \EnvType \Env\s\K\a\C
+}
+
+\Rule{W10}{
+ }{
+   \EnvType \Env\s\K\a\any
+}
+\end{mathpar}
+
+\hrulefill
+\caption{\kafka static semantics (excerpt)}\label{f:staticsem}
+\end{figure}
+
+
+\paragraph{Dynamic Semantics}
+The small step operational semantics for \kafka appears in
+\figref{fig:semantics}.  To resolve the \this reference in field accesses,
+the syntax of expressions is extended at runtime with forms
+%
+\[ \e  ::= \dots \B \a \B \FReadR\a\f \B \FWriteR\a\f\e \]
+%
+where \a is a reference.  The static typing of references
+(\figref{f:staticsem}) can be either the class of the object they map to in
+the heap \s or the dynamic type \any.  We also use evaluation contexts, \EE,
+defined as follows
+\[
+\begin{tabular}{llllllllllllllllll}
+\EE &::=& ~ \FWriteR\a\f\EE   &\B  
+        \KCall\EE\m\e\t\t  &\B
+        \KCall\a\m{\EE}\t\t &\B
+        \DynCall\EE\m\e   &\B\\
+&       & \DynCall\a\m\EE   &\B
+       \SubCast\t\EE  &\B
+      \BehCast\t\EE  &\B
+       \New\C{\a[1]..\,\EE\,\e[1]..} &\B 
+      \EM{\square}
+\end{tabular}
+\]
+\noindent
+The dynamic semantics is defined over \emph{configurations}: triples \K\e\s,
+where \K is a class table, \e is an expression and \s is a heap.  A
+configuration evaluates in one step to a new configuration, \Reduce
+\K\e\s\Kp\ep\sp; the new configuration may include a new class table built
+by extending the previous table with new classes.  Calling forms specify the
+typing of the method to resolve overloading; this is always \(\any \to
+\any\) for dynamic calls, but can be either \(\C \to \D\) or \(\any \to
+\any\) for static calls.  Structural casts to \any always succeed while
+structural casts to \C check that the runtime object is an instance of a
+subtype of \C.  Evaluation contexts are deterministic and enforce a strict
+evaluation order.
+
+
+
+
+%
+\begin{figure}[!h]
+\noindent\hrulefill
+
+
+\medskip
+\small
+
+\begin{minipage}{\textwidth}
+\small        
+\begin{tabbing}
+  \K\HS \New\C{\a[1]..} \HS\HS\HS\= \s~ \HS\HS \=\Red\HS\HS \= \K \HS\= \ap \HS\HS\= \sp\HS\HS \= \WHERE\HS\= \fresh\ap \HS\HS\HS\HS\HS\HS\HS\HS\=  \sp = {\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
+\\
+\K\HS \FReadR\a{\f[i]} \> \s           \>\Red\>     \K \>$\a[i]$ \> \s  \> \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..}
+\\
+\K\HS {\FWriteR\a{\f[i]}\ap} \> \s     \>\Red\>     \K \> \ap \> \sp \>  \WHERE \>\App\s\a=\obj\C{\a[1]..\a[i]..} \HS  \> \sp = \Map\s{\Bind\a{\obj\C{\a[1]..\ap..}}}
+\\
+\K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS \> \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C  \\ \> \> \> \> \> \> \>  \App\s\a=\obj\C{\a[1]..} \> \StrSub {\emptyset}\K\t {\t_{1}} \\ 
+\> \> \> \> \> \> \> \StrSub {\emptyset}\K{\t_{2}} \tp
+\\
+ \K\HS {\DynCall\a\m\ap}\> \s        \>\Red\>    \K \> \ep \> \s \>  \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e}\HS \> \Mdef\m\x\any\any\e \In \App\K\C \\ \> \> \> \> \> \> \> \App\s\a=\obj\C{\a[1]..} 
+\\
+ \K\HS {\SubCast \any\a} \> \s       \>\Red\>   \K \> \a \> \s
+\\
+ \K\HS {\SubCast \D\a} \> \s        \>\Red\>    \K \> \a \> \s \>  \WHERE\> \StrSub {\emptyset}\K\C \D \>\App\s\a=\obj\C{\a[1]..} 
+\\
+ \K\HS {\BehCast \t\a} \> \s         \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \behcast \a\t\s\K \Kp\ap\sp    
+\\
+\K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
+\end{tabbing}
+\end{minipage}
+
+\medskip
+
+\hrulefill
+\caption{\kafka dynamic semantics}\label{fig:semantics}
+\end{figure}
+
+
+
+\paragraph{Behavioral Casts}\label{p:behcast}
+A cast \BehCast\t\a creates a wrapped object \ap which dynamically checks
+that object \a behaves as if it was of type \t.  We refer to the type of \a
+as the \emph{source} type, and to the type \t as the \emph{target} type.
+This cast is generative as it creates both a new class (for the wrapper
+object) and a new instance of that class (the wrapper itself). Its dynamic
+semantics is reported in \figref{behavetext} and \figref{w}.  When the
+target type is a class, say \Cp, the bcast function wraps a reference \a
+with an instance of a freshly generated wrapper class \D that abides by the
+interface of \Cp or gets stuck. The function allocates the wrapper in the
+heap and updates the class table.  The cast performs a check that the source
+type has at least all the method names requested by the target type.  Also
+the cast is not defined for classes with overloaded methods (\textsf{nodups}
+checks that).  This prevents ambiguity in method resolution for wrapped
+objects. When the target type is \any, the cast allows \a to act like an
+instance of \any.
+
+One way to understand wrappers is that they play two roles, they check that
+object being wrapped has the method expected by the target type, and they
+are adapters that ensure \kafka code is well-typed. Consider for example
+a \EM{\BehCast\D\New\C{}} where \C and \D are defined as follows.
+
+\begin{tabbing}
+\hspace{1cm}\= \class\= \C \{    \hspace{3cm}\=  \class\=  \D \{\\
+   \>  \> \Mdef\m\x\any\any\x   \>        \>  \Mdef\m\x\D\D\x\\
+   \>  \}  \> \>                         \}
+\end{tabbing}
+
+\noindent
+The cast will check that the instance of \C has the method expected by \D,
+in this case this is the sole method \m.  Importantly, it does not check
+whether argument and return types match (in this example, they do not). 
+The second role of the cast is for soundness of \kafka, the value 
+returned by the cast must be a subtype of the target type \D. This is 
+achieved by generating a new class with the right method signatures.
+
+\begin{figure}[!b]
+\hrulefill
+\small
+
+\vspace{-4mm}
+
+\begin{equation*}
+  \behcastE\a\Cp\s\K \Kp\ap\sp \HS\HS\WHERE\HS\HS \begin{cases}
+\HS  \App\s\a = \obj\C{\a[1]..} \HS\HS
+  \fresh{\D,\ap} \HS\HS
+  \md[1].. \In \App\K\C \HS \mdp[1].. \In \App\K\Cp \\\HS
+  \names{\mdp[1]..} \subseteq \names{\md[1]..} \HS \cload{\md[1]..} \HS \cload{\mdp[1]..} \\\HS
+  \Kp = \K\,\wrap\C{\md[1]..}{\mdp[1]..}\D\that \HS\HS
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
+  \end{cases}
+\end{equation*}
+
+\begin{equation*}
+  \behcastE\a\any\s\K \Kp\ap\sp  \HS\HS\WHERE\HS\HS\begin{cases}\HS
+  \App\s\a = \obj\C{\a[1]..} \HS\HS \md[1].. \In \App\K\C \HS\HS
+  \fresh{\D,\ap} \HS\HS \cload{\md[1]..} \\\HS
+  \Kp = \K\,\wrapAny\C{\md[1]..}\D\that \HS\HS
+  \sp = \Map \s{\Bind\ap{\obj\D{\a}}} 
+\end{cases}\end{equation*}
+
+
+\hrulefill
+\vspace{-2mm}\caption{Behavioral casts}\label{behavetext}
+
+%\end{figure} \begin{figure}[!t]
+\hrulefill
+\small
+
+\begin{tabbing}\small
+  \wrap\C{\md[1]..}{\mdp[1]..}\D\that = \src{\Class\D{\Fdef\that\C}{\mdpp[1]..}}\\
+  \HS\HS\WHERE\HS\= \Mdef\m\x{\t[1]}{\t[2]}\e\In\md[1].. \\
+                 \> \mdpp[1] =\= \src{\Mdef\m\x{\tp[1]}{\tp[2]}{~\BehCast{\tp[2]}{\KCall{\FRead\that}\m{\bscast{\tp[1]}\x}{\t[1]}{\t[2]}}}} ..
+    \HS \= \textbf{if} \HS \Mdef\m\x{\tp[1]}{\tp[2]}\ep\In\mdp[1].. \\
+\\[-3mm]
+\> \>  \src{\Mdef\m\x{\t[1]}{\t[2]}{~\KCall{\FRead\that}\m{\x}{\t[1]}{\t[2]}}} ..  \>\textbf{otherwise}
+\\[3mm]
+  \wrapAny{\C}{\md[1]..}{\D}{\that} = \src{\Class \D{ \Fdef\that\C}{ \mdp[1]..}}\\
+\HS\HS\WHERE\HS\=\mdp[1] = \src{ \Mdef\m\x{\any}{\any}{~\BehCast\any{ \KCall{\FRead\that} \m {\bscast{\t}\x}{\t}{\tp}} } }   ..
+    \HS\HS\HS\HS \= \textbf{if} \HS \Mdef\m\x{\t}{\tp}\e\In\md[1].. \\
+\end{tabbing}
+
+\vspace{-5mm}
+
+\hrulefill
+\vspace{-2mm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\caption{Wrapper class generation}\label{w}\end{figure}
+
+
+Wrapper class generation is implemented by the \xt{W} and \xt{W\!\any}
+functions. Their first three arguments \(\C\), \(\md[1]..\), \(\mdp[1]..\)
+are the source type and its methods definitions, and the method definitions
+of the target type. The fourth argument, \(\D\), is the class name of the
+wrapper class being built; this is always a fresh name. The last argument is
+the \that field name, which is also fresh.  The function builds a new
+wrapper class \(\D\).  The field \that stores a reference to the target
+object and has thus type \(\C\).  The invocation of a method that appears in
+\(\mdp[1]..\) is forwarded to the corresponding method invocation in
+\(\md[1]\), except that the arguments are protected by behavioral casts
+following the interface in \(\md[1]..\) and the return type following the
+interface in \(\mdp[1]..\).  Methods defined in the source type but missing
+from \(\mdp[1]..\) are added to the wrapper class and simply redirected to
+corresponding method in the wrapped object.  Wrapping an object so that it
+behaves as \any is simpler, as the wrapper systematically protects the input
+type and casts back the return type to \any. Only methods existing in the
+source type are wrapped. The behavioral cast reduction rule satisfies a
+property instrumental to our design: a wrapper class generated for a target
+type \D, is always a subtype of \D.  This will allow us to refer to both
+unwrapped and wrapped objects via the original, source language, types. The
+wrapper generation function will always produce a well-formed class for a
+target type $\D$. The reason being that the wrapper class only contain
+methods from either the source or the target type. The wrapper class will
+also never contain any duplicates as it can only contain methods that exists
+in the source type.  Furthermore, at most the wrapper class will contain
+every method of the source type.
+
+\newpage
+
+\subsection{Type soundness} 
+We have mechanized the type soundness proof for \kafka in Coq, 
+available at \emph{[link omitted for blind review]}. In Coq syntax, the
+\kafka type soundness theorem is stated as follows:
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize, language={}, 
+morekeywords={forall, exists}, keywordstyle={\ttfamily\color{blue!80}}, escapeinside={}]
+forall (k:ct) (s:heap) (e:expr) (t:type),
+  (*condition 1*) WellFormedState k e s -> 
+  (*condition 2*) HasType nil s k e t -> 
+  (*case 1*) (exists a:ref, e = Ref a) \/
+  (*case 2*) (exists (e':expr) (s':heap)(k':ct), 
+       Steps k e s k' e' s' /\
+       WellFormedState k' e' s' /\
+       HasType nil s' k' e' t /\
+       retains_references s s' /\
+       ct_ext k k') \/
+  (exists E:EvalCtx,
+    (*case 3*) (exists (a:ref) (m:id) (a':ref) (C:id) (aps:list ref),
+       (e = equivExpr (DynCall (Ref a) m (Ref a')) E) /\
+       In (a, HCell(C, aps)) s /\
+       forall x e, ~ (In (Method m x Any Any e) (methods C k))) \/
+    (*case 4*) (exists (t':type) (a:ref) (C:id) (aps:list ref),
+       (e = equivExpr (SubCast t' (Ref a)) E) /\
+       In (a, HCell(C,aps)) s /\
+       ((Subtype empty_mu k (class C) t') -> False)) \/
+    (*case 5*) (exists a aps C C', 
+       e = equivExpr (BehCast (class C') (Ref a)) E /\
+       In (a, HCell(C, aps)) s /\
+       ~(incl (method_names C' k) (method_names C k))))
+\end{lstlisting}
+
+Our Coq mechanization is identical to our formalism. In particular,
+$\EnvType\Env\s\k\e\t$ is equivalent to \verb|HasType g s k e t| and
+$\WFq{\K~\e~\s}$ is equivalent to \verb|WellFormedState k e s|. Note that in
+each of the three error stuck states, cases 3 through 5, the actual stuck
+expression can be inside some evaluation context \verb|E|. \verb|equivExpr|
+fills in the hole in \verb|E| with the given expression.
+
+Informally, our theorem states that for any class table (\verb|k|), heap
+(\verb|s|), expression (\verb|e|), and type (\verb|t|), if the state is well
+formed (condition 1), and if the top-level expression \verb|e| has type
+\verb|t| (condition 2), then the program can only make one of the following
+five choices:
+
+\begin{description}
+  \item[Case 1] The program is already fully evaluated. Since \kafka has only one value,
+  reference (ref in our Coq formalization), we can say that there exists some
+  reference that is equal to our entire program, or \verb|exists a : ref, e = Ref a|.
+
+  \item[Case 2] The program can take a step. In this case, the program will
+step to some new configuration (expression \verb|e'|, heap \verb|s'|, and
+class table \verb|k'|) that is both itself well formed and that retains all of
+the entries and types in the old heap \verb|s| (expressed using
+\verb|retains_references|) and class table \verb|k| (expressed using \verb|ct_ext|).
+
+  \item[Case 3] The program could be stuck at a dynamic call expression. T
+  A dynamic call expression of the form \verb|DynCall (Ref a) m (Ref a')| can get 
+  stuck if \verb|a| refers to an instance of class \verb|C| in \verb|s| 
+  that does not contain a method \verb|m| to call. 
+  
+  \item[Case 4] The program could have gotten stuck on a subtype cast. 
+  In an expression of the form \verb|SubCast t' (Ref a)|, the program
+  can get stuck if \verb|s| maps \verb|a| to an object of class \verb|C|,
+  and if \verb|C| is not a subtype of \verb|t'|.
+
+  \item[Case 5] The program may get stuck on a behavioral cast, of the form
+\verb|BehCast (class C') (Ref a)|, if \verb|C|, the class of \verb|a| in
+\verb|s| does not have all of the methods needed to implement \verb|C'|.
+\end{description}
+
+We have proven that a \kafka program will not get stuck, except if it
+encounters a dynamic call to an object that does not have the required method,
+tries to use subtype cast on a value that is not actually a subtype, or attempts
+to force an object to act like another object, however with missing required 
+method signature. 
+
+As a result of this soundness theorem, the \kafka type system provides a
+strong guarantee of progress, where most expressions are guaranteed to step.
+By providing this guarantee, we localize where \kafka programs could
+potentially encounter runtime errors, which will allow us to reason easily
+about where gradually typed programs go wrong under each of the semantics.
+
+\subsection{Implementation}
+
+We designed \kafka to have a close correspondence to the intermediate
+languages used by common VMs. To validate this aspect of our design, we
+implemented a small compiler from \kafka to C\# and the CLR, alongside a
+runtime that provides the behavioral cast operation. The implementation is
+available from our website \emph{[link omitted for blind review]}.
+
+The only substantial challenge in the development relates to one of our earliest design
+choices: the use of a structural type system. As previously mentioned,
+structural typing is key for the consistent subtyping used in Reticulated
+Python, but few virtual machines have built-in support for it. Thus our
+implementation converts structural types to nominal types, maintaining
+semantic equivalence.  We do this by whole program analysis. Consider a
+class table \K, and assume that \StrSub{}\K\t\tp for some \t and \tp. C\#
+already handles the case where \t or \tp is \any, via its \xt{dynamic} type,
+which has the same semantics as \any in \kafka. If $\t=\C$ and $\tp=\D$,
+then we generate the interface \xt{ID}, which the translated version of \C
+implements. \xt{ID} has the same methods as \D, allowing the same operations
+to be performed on its instances. We then refer to \D by \xt{ID} in the
+generated C\# type signatures and casts, which then allows our translation
+of \C to be used wherever a \D is expected, satisfying subtyping. If we
+apply this to every pair of types \C and \D where the subtyping relation
+holds, the C\# subtyping relation ends up mirroring the \kafka one exactly.
+C\# has another quirk in its type system, namely it does not allow for
+covariance or contravariance in interface implementation, whereas \kafka's
+subtyping allows both. However, C\# does allow for \emph{explicit
+  implementations}, which we use to implement covariant and contravariant
+interface implementation, by explicitly calling out the interface method to
+implement and forwarding to the actual implementation.
+
+The goal of our implementation was to validate the choice of features to
+include in \kafka by showing how they match against those provided in modern, high
+performance VMs, and for most of \kafka's functionality, the implementation
+was trivial. What our implementation does not do is provide a picture of the
+performance of the gradual typing systems. This limitation is due to a wide
+range of factors, including having none of the commonly-cited performance
+optimizations, such as threesomes~\cite{siek10}, combined with the inherent
+restrictions on what programs can be reasonably written in \kafka.
+
+
+\medskip
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Translating Gradual Type Systems}
+
+\epigraph{\small\it ``Was ist mit mir geschehen? dachte er. Es war kein Traum''}
+
+\vspace{-5mm}
+
+\noindent
+We are now ready to give semantics to the four gradual type systems of
+interest by translating them into \kafka.  For each source language,
+compilation into \kafka is realized by a translation function that maps
+well-typed source programs into well-typed \kafka terms, respecting a
+uniform mapping of source types to \kafka types.  The compilation makes
+explicit which type casts (and, in turn, \emph{dynamic type-checks}) are
+implicitly inserted and performed by the runtime of each language,
+highlighting the similarities and differences between them.
+
+To avoid unnecessary clutter, we represent the source languages using the
+common syntax reported in \figref{f:sourcesyntax}.  This defines a simple
+object calculus similar to \kafka, but without method overloading and, most
+importantly, cast operations. Additionally, when modeling the Thorn type
+system, the additional type \CW is added to the type grammar to denote Thorn
+\emph{like   types}. Lastly, we also give a source-level type system for 
+each language (notated $\vdash_{\!s}$), which are largely identical. To 
+simplify the presentation, we will elide the identical rules, instead presenting
+only the altered rules.
+
+\begin{figure}[!h]\hrulefill
+\vspace{2mm}  \small
+
+\begin{tabular}{lll}
+\begin{minipage}{5.5cm}\begin{tabular}{@{}l@{~}l@{}l@{}l@{}l@{}l@{}l@{}l}
+\e\hspace{.1cm} ::= & \hspace{.2cm} \x        
+    &\B \this         
+   &\B \FRead\f     
+   &\B \FWrite\f\e \\
+   &  
+   &\B \Call\e\m\e 
+   &\B \that      
+   &\B \New\C{\e[1]..}  
+\end{tabular}\end{minipage}&
+\begin{minipage}{4cm}\begin{tabular}{l@{~}l@{}l@{}ll}
+   ~ \k &::= \Class \C {\fd[1]..}{\md[1]..} \\
+~ \t&::= ~ \any  \B   \C  \B \src{\CW}  \\ 
+\end{tabular}\end{minipage} &
+\begin{minipage}{2.9cm}\begin{tabular}{l@{~}l@{}l@{}l}
+\md &::= \Mdef\m\x\t\t\e \\
+~\fd&::= ~ \Fdef\f\t \\ 
+\end{tabular}\end{minipage}\end{tabular}
+
+\vspace{2mm}\hrulefill
+\caption{Common syntax of source languages}\label{f:sourcesyntax}
+\end{figure}
+
+Our source language has no explicit casts, instead silently coercing
+types at typed-untyped boundaries, allowing code like the following:
+
+\begin{tabbing}
+\hspace{1cm}\K\HS \Call{\New\C{}}\m{\New\D{}} \HS\HS\HS\WHERE\HS
+  \K\HS =\HS \= \class\= \C \{\\
+       \> \HS \Mdef\m\x\any\C{\HS\x\HS}\\
+       \> \}  \\
+       \>\class \D \{ \}
+\end{tabbing}         
+
+\noindent Here, the method \m takes an argument of type \any and returns the
+same value under type \C. Without a cast, this operation is patently unsafe,
+as if \m is passed a \D, the return type of \m will be wrong. However, our
+source language allows this, instead deferring  to the translation to  provide
+a safety guarantee.
+
+By deferring to the translation to provide a soundness guarantee, the source 
+language allows us to implement very different approaches to gradual typing
+within the same framework. Through the simple invariant that well-typed source
+terms translate to well-typed \kafka terms, we are able to provide a simple
+soundness guarantee, and provide some intuition as to where different approaches
+allow programs to go wrong.
+
+\subsection{TypeScript}
+
+\begin{figure}[hb]
+
+\hrulefill  \footnotesize
+
+\hspace{-.5cm}\begin{minipage}{\textwidth}\begin{tabular}{lllllll}  
+\begin{minipage}{1cm}\begin{mathpar}  
+		\Rule{STG-VAR}{
+			~\\\\  ~\\\\ ~\\\\
+			\HasType \Env\x\t
+		}{
+			\EnvTypeS \Env\K\x\t
+		}
+\end{mathpar}\end{minipage}
+&
+\begin{minipage}{1.5cm}\begin{mathpar}
+		\Rule{STG-GET}{ ~\\\\ ~\\\\
+			\HasType \Env\this\C \\\\
+			\Fdef\f\t \in \App\K\C
+		}{
+			\EnvTypeS \Env\K{\FRead\f}\t
+		}    
+	\end{mathpar}
+\end{minipage} &
+\begin{minipage}{2.7cm}\begin{mathpar}  
+		\Rule{STG-SET}{
+			\HasType \Env\this\C \\\\
+			{\Fdef\f\t \in \App\K\C} \\\\
+			\EnvTypeS \Env\K\e\tp \\\\
+			\ConvertE\K{s}\tp\t
+		}{
+			\EnvTypeS \Env\K{\FWrite\f\e}\t
+		}    
+\end{mathpar}\end{minipage}& \begin{minipage}{1.6cm}\begin{mathpar}  
+		\Rule[width=15em]{STG-CALL}{
+			~\\\\ ~\\\\
+			\EnvTypeS \Env\K\e\any \\\\
+			\EnvTypeS \Env\K\ep\t 
+		}{
+			\EnvTypeS \Env\K{\Call\e\m\ep}{\any}
+		}    
+\end{mathpar}\end{minipage}& \begin{minipage}{2.8cm}\begin{mathpar}  
+		\Rule[width=15em]{STG-CALL}{
+			\EnvTypeS \Env\K\e\C \\\\
+			\EnvTypeS \Env\K\ep\t \\\\
+			\Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\\\
+			\ConvertE\K{s}\t{\t[1]}
+		}{
+			\EnvTypeS \Env\K{\Call\e\m\ep}{\t[2]}
+		}    
+\end{mathpar}\end{minipage}&\begin{minipage}{2.4cm}\begin{mathpar}  
+		\Rule{STG-NEW}{~\\\\
+			\Ftype{\f[1]}{\t[1]}.. \in \App\K\C \\\\
+			\EnvTypeS \Env\K{\e[1]}{\tp[1]}..\\\\
+			\ConvertE\K{s}{\tp[1]}{\t[1]}..
+		}{
+			\EnvTypeS \Env\K{\New\C{\e[1]..}}\C
+		}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+
+\vspace{2mm}
+
+\hrulefill
+\caption{TypeScript type system}\label{convts}
+
+\hrulefill  \small  \vspace{-3mm}
+  
+\begin{mathpar}
+\Rule{STGC-SUB}{
+  \SSub\cdot\K\t\tp
+}{
+  \ConvertE\K{s}\t\tp
+}
+
+\Rule{STGC-TOANY}{~
+}{
+  \ConvertE\K{s}\t\any
+}
+
+\Rule{STGC-ANYCONC}{~
+}{
+  \ConvertE\K{s}\any\tp
+}
+\end{mathpar}
+\vspace{-5mm}
+
+\hrulefill\caption{TypeScript type convertibility}\label{tsts}
+
+\hrulefill
+
+\smallskip
+
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+\small
+ \begin{minipage}{8cm}  
+\begin{tabbing}
+\TR{\Class \C{\fd[1]..}{\md[1] .. } } = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..}}\HS \WHERE\HS
+  \=\fdp[1] = \src{\Ftype\f\any}..\HS\HS\=\fd[1] = \Ftype\f\t .. \HS\HS\=\md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e \\
+  \>\mdp[1] = \src{\Mdef\m\x\any\any\ep}..\HS\HS \>\>\ep = \TR{\e}
+\end{tabbing}
+\begin{tabbing}
+\TR{\FRead\f}\HS\HS\HS\HS\= = \src{\FRead\f}
+\\
+\TR{\FWrite\f\e} \> = \src{\FWrite\f\ep} \HS\HS\HS\HS\HS\=\WHERE~\ep=\TR\e
+\\
+\TR\this           \>= \src{\SubCast\any\this}
+\\
+\TR\x \> = \src \x
+\\
+\TR{\Call{\e[1]}\m{\e[2]}} \> = \src{\DynCall{\ep[1]}{\m}{\ep[2]}} \HS\>\WHERE\HS\ep[1] = \TR{ \e[1]} \HS \ep[2] = \TR{\e[2]}
+\\
+\TR{\New\C{\e[1]..}} \> = \src{\SubCast\any{\New\C{\ep[1]..}}} \HS \>\WHERE \HS   \ep[1] = \TR{\e[1]} ..
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+
+\smallskip
+\hrulefill
+\caption{TypeScript translation}\label{tst}
+
+\end{figure}
+
+TypeScript is a backward compatible extension of JavaScript with classes and
+type annotations. Type equivalence is structural and subtyping of recursive
+types is supported. The following three expressions illustrate the language.
+The first expression is ill-typed because method the receiver of the
+invocation to \n is of type \C and \C does not have a method by that name.
+The second expression will also be flagged as erroneous as the argument to
+\m is \C rather than a \D as expected. The last expression is statically
+correct as the instance of \C is cast to a \D via method \mp. At runtime
+that expression will evaluate successfully.
+
+
+{\small
+\begin{tabbing}
+  \hspace{.5cm}
+   \=  \Call{\New\C{}}\n{\New\D{}} \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \> \Call{\New\C{}}\m{\New\C{}}                                  \>  \HS  \Mdef\m\x\D\C{~\this~} \\
+   \> \Call{\New\C{}}\m{\Call{\New\C{}}\mp{\New\C{}}}              \>  \HS  \Mdef\mp\x\any\D{~\x~}\\
+   \>                                                              \>  \}   \\
+   \>                                                              \> \Class\D{}{}
+\end{tabbing}}
+
+
+\noindent
+Our formalization of TypeScript's type system is in
+\figref{convts}. The type system relies on the \emph{convertibility}
+relation, denoted \ConvertE\K{s}\t\tp, which captures precisely the implicit
+type conversions allowed by TypeScript.  The relation appears in
+\figref{tsts} and states that a type is convertible to a super type and
+that \any is convertible to anything and conversely. We illustrate the type
+system by focusing on the example above. For the first expression, the
+receiver has type \C, but the class does not have method \n. The second
+expression is ill-typed because the argument to method \m is of type \C and
+\C is not convertible to \D. The third expression is correct because the
+argument to \mp is of type \C and \C is convertible to \any, the expected
+type of \mp.
+
+The TypeScript compiler translates code to JavaScript with all types erased.
+Since convertibility allows arbitrary values can be passed whenever a \any
+value is expected, method calls may fail because the receiver need not have
+the requested method. The designers of TypeScript saw this unsoundness as a
+way to ensure that types do not get in the way of running correct programs,
+e.g. when importing a new library with type annotations inconsistent with
+existing client code; and an insurance for backwards compatibility, as
+ignoring types means all browsers can run TypeScript code -- with no
+additional overhead.
+
+The translation to \kafka appears in \figref{tst} and is straightforward.
+The translation function \(\TR{\dots}\) is applied to class definitions and
+expression, it takes TypeScript and returns the corresponding \kafka
+code. Grey background is used to identify translated terms. The translation
+is exceedingly simple, all type annotations become \any and all source
+method calls are translated to dynamic \kafka calls.  For instance one would
+translate the class definition and the last expression of the example above as:
+
+\medskip
+{\small
+\begin{tabbing}
+  \hspace{.2cm}
+   \= \DynCall{(\SubCast\any{\New\C{}})}\m{\DynCall{(\SubCast\any{\New\C{}})}\n{\New\C{}}} \HS\HS\HS\WHERE\HS \K\HS =\HS\= \class\= \C \{\\
+   \>              \>\HS \Mdef\m\x\any\any{~\SubCast\any\this~} \\
+   \>              \>\HS  \Mdef\mp\x\any\any{~\x~}\\
+   \>                                                              \>  \}   
+\end{tabbing}}
+\medskip
+
+\noindent
+Observe that the TypeScript translations does insert some structural casts
+to \any, they are needed for the result to be well-typed, but these have no
+operational effect (a structural cast to \any always succeed at runtime).
+The unsoundness of the TypeScript type system is evidence in the
+translation, by discarding the type of the callee and systematically relying
+on dynamic method invocation for method calls it clear that TypeScript
+programs can get stuck at any point of their execution.
+
+
+All TypeScript types are represented with the dynamic \kafka type, \any, and
+all translated expressions have type \any.  This is a simple instance of a
+general property that all our translations into \kafka satisfy.  Let
+\(\kty\t\) be a mapping from source types to \kafka types -- for TypeScript
+the mapping is trivial: for all types \t, \kty\t = \src{\any}.  It then
+holds that if \e is a well-typed source expression with type \t, then
+\TR{\e} is a well-typed \kafka expression with type \kty{\t}. 
+
+%\paragraph{Litmus Test}%
+
+%TypeScript passes all three programs in our litmus test, as seen in
+%figure~\ref{litmus}, as they are all well-typed, and because TypeScript
+%inserts no runtime checks whatsoever, as illustrated in figure~\ref{tst}.
+%\kafka's soundness theorem tells us that any dynamic call can get stuck if the
+%passed value does not have the required method, so by translating all calls to
+%dynamic calls, TypeScript provides no guarantee that any given call will
+%succeed. Moreover, since all method types are erased, argument types are not
+%guaranteed, either, as illustrated by the first litmus test, which passes
+%an instance of \xt{A} to a method expecting an \xt{I}.
+
+% \subsection*{Type Correctness}
+% 
+% The type correctness lemma states that well-typed TypeScript expressions 
+% will always translate to well-typed \kafka expressions.
+% 
+% \medskip\noindent{\bf Lemma: Type correctness of TypeScript translation.}
+% {\bf Given} $~\WFpX\K\e{s}~$,
+% and $~\WFtypeX \K{s}\t$,
+% and $\HT\x\tp \in \Env \implies \WFtypeX\K{s}\tp$,
+% and $~\EnvTypeE\Env\K{s}\e\t$,
+% and $~\TR\K = \Kp$,
+% and $~\TR\Env = \Envp$,
+% {\bf then} $~\EnvType\Envp\cdot\Kp{\TRG{\e}\Env}{\t}$. \\
+
+\subsection{Thorn}
+
+Thorn has a combination of dynamic, optional, and concrete types.  Concrete
+types, written \C, behave as one would expect: a variable \HT\x\C is
+guaranteed to refer to an instance of \C or a subtype thereof.  Optional
+types are analogous of TypeScript type annotations: occurrences of
+optionally typed variables, denoted \HT\x{\dt\C}, are checked statically
+within their scope but may be bound to dynamic values.  Optional types thus
+provide some of the benefits of static typing without any loss of
+expressiveness or flexibility.  Subtyping on optional types is inherited
+from the subtyping relation on concrete types, that is {\dt\C} \Sub {\dt\D}
+whenever \C \Sub \D; also, it always hold that \C \Sub \dt\C.
+
+\begin{figure}[!t]
+
+\hrulefill  \small
+\vspace{-3mm}
+  
+\begin{mathpar}
+\Rule{TSWeak}{
+  \SSub \M\K\C\D
+}{
+  \SSub \M\K{\dt\C}{\dt\D}
+}
+
+\Rule{TSLow}{
+  \SSub \M\K\C\D
+}{
+  \SSub \M\K{\C}{\dt\D}
+}
+\end{mathpar}
+
+\hrulefill
+\caption{Thorn subtyping}\label{subth}
+
+\hrulefill  \small
+\vspace{-3mm}
+  
+\begin{mathpar}
+\Rule{STHC-OPTCONC}{
+  \SSub\cdot\K\C\D
+}{
+  \ConvertE\K{th}\CW\D
+}
+\end{mathpar}
+
+\hrulefill
+\caption{Thorn type convertibility}\label{convth}
+
+
+\hrulefill  
+\vspace{0.5mm}
+
+\begin{mathpar}  
+\Rule{STH-CALL}{
+  \EnvTypeW \Env\K\e\tp \\  (\tp=\C~~\vee~~\tp=\CW) \\
+  \Mtype \m{\t[1]}{\t[2]}\in \App\K\C  \\
+  \EnvTypeW \Env\K\ep\tpp  \\
+  \ConvertE\K{th}\tpp{\t[1]}
+  }{
+  \EnvTypeW \Env\K{\Call\e\m\ep}{\t[2]}
+}    
+\end{mathpar}
+
+\hrulefill
+\caption{Thorn type system}\label{thts}
+ 
+
+\hrulefill
+
+\medskip
+
+\begin{tabular}{@{}l@{~ ~ ~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}ll}
+  \small
+ \begin{minipage}{8cm}  
+\begin{tabbing}
+\TR{\Class \C{\fd[1]..}{\md[1].. }}\= = \src{ \Class \C{ \fdp[1]..}{\mdp[1]..~ \mdpp[1]..}} 
+\HS \WHERE \\ \> {\fdp[1]} = \src{\Ftype\f{\kty\t}} .. \LS\LS\LS \=\fd[1] = \Ftype\f\t ..   \\
+\> {\mdp[1]} = \src{\Mdef\m\x{\kty{\t[1]}}{\kty{\t[2]}}{\ep}} .. \HS\HS \= \md[1] = \Mdef\m\x{\t[1]}{\t[2]}\e ..\HS\HS\= \ep = \TAG{\e}{\HT\this\C\,\HT\x{\t[1]}}{\t[2]} ..\\
+\> {\mdpp[1]} = \src{\Mdef\m\x\any\any{\SubCast\any{\KCall\this\m{\SubCast{\kty{\t[1]}}\x}{\t[1]}{\t[2]}}}}
+\HS \textbf{\IF} \kty{\t[1]} = \D \textbf{\OR} \kty{\t[2]} = \D\\
+          \>\hspace{1cm} empty \HS  {\bf otherwise}  ..                  
+\end{tabbing}
+\begin{tabbing}
+\TRG{\x}\Env\hspace{1.4cm}\= = \src \x
+\\
+\TRG{\FRead\f}\Env        \> = \src{\FRead\f} 
+\\
+\TRG{\FWrite\f\e}\Env     \> = \src{\FWrite\f\ep} \hspace{.5cm}
+   \=\WHERE\HS \TypeCk{\K, \Env}\this\C \HS\HS\=  \Ftype\f\t\In\App\K\C \HS\HS\= \ep = \TAG\e\Env{\kty\t}
+\\
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}{\m}{\ep[2]}} 
+   \>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\t \> \kty\t=\any \>  \ep[1]= \TRG{\e[1]}\Env \HS\HS\= \ep[2]=\TAG{\e[2]}\Env\any
+\\
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\KCall{\ep[1]}{\m}{\ep[2]}{\t[2]}{\tp[2]}} 
+\>\WHERE\HS \TypeCk{\K,\Env}{\e[1]}\C \>  \ep[1] = \TRG{\e[1]}\Env \>   \ep[2] = \TAG{\e[2]}\Env{\t[2]} \>  \Mtype\m{\t[1]}{\tp[1]}\In\App\K\C \\
+\> \> \> \t[2] = \kty{\t[1]} \> \tp[2] = \kty{\tp[1]}
+\\
+\TRG{\New\C{\e[1]..}}\Env\> = \src{\New\C{\ep[1]..}} 
+     \>\WHERE\HS \Ftype{\f[1]}{\t[1]}\In\C \> \ep[1] = \TAG{\e[1]}\Env{\t[1]} ..
+\\
+\TAG\e\Env\t\> = \src\ep 
+     \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \Sub \kty\t}
+\\
+ \TAG\e\Env\t \>= \src{\SubCast{\kty\t}\ep}
+     \>\WHERE\HS   \TypeCk{\K,\Env}\e\tp \> \ep = \TRG\e\Env \> \EM{\K\vdash\kty\tp \not\Sub \kty\t} 
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+
+\medskip
+
+\hrulefill
+\caption{Thorn translation}\label{thtr}
+\end{figure}
+
+The formalization of the Thorn type system is built on top of the rules
+presented for TypeScript in \figref{tsts} and \figref{convts}. The
+definition of subtyping is extended to account for optional types, this 
+appears in \figref{subth}. Optional types are subtypes if the corresponding
+concrete types are subtypes. Concrete types are subtypes of optional types,
+if the relation holds on concrete types. The convertibility rule must be
+extended by one case, as shown in \figref{convth}, this extra rule states
+that an optional type is convertible to a concrete parent type. Type rule
+for method calls, shown in \figref{thts} must be extended to handle
+receivers of optional types, they are treated as if they were concrete
+types.
+
+\medskip
+\small
+\begin{tabbing}
+\HS\HS\HS\=  
+\Call{\New\A{}}\n{\New\D{}}\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=\class\= \A \{
+% ERR -- D !|=> C} 
+\\\>
+\Call{\New\A{}}\m{\New\D{}}
+  \>    \HS  \Mdef \n\x\C\C{~\x~}
+% ERR -- D !|=> ?C 
+\\\>
+\Call{\New\A{}}\m{\Call{\New\A{}}\n{\New\C{}}}
+  \>    \HS \Mdef \m\x{\dt\C} {\dt\C}{~\x~}
+\\\>
+\Call{\New\A{}}\n{\Call{\New\A{}}\m{\New\C{}}}
+%  -- Cast inserted} 
+  \> \}
+  \\\>   \> \Class\C{}{\Mdef\mp\x\any\any\x}
+  \\\>   \> \Class\D{}{\Mdef\m\x\any\any\x}
+
+
+\end{tabbing}
+\medskip
+
+\normalsize
+
+The following expressions illustrate the difference between Thorn and
+TypeScript.  The class table \K has three classes, class \A defines methods
+\m and \n which both return their argument. The only difference between them
+is that \m uses optional types for its argument and return value, in both
+cases \CW.  Classes \C and \D are defined such that they are unrelated by
+subtyping. We will study the four expressions, the first two are ill-typed,
+the remaining two are deemed well-typed, but the last one will require
+dynamic checks.
+
+%\noindent
+The first expression is ill-typed because method \n expects a \C, it gets
+a \D which is not convertible to \C. The second expression is ill-typed
+because it attempts to convert a \D into a \dt\C.  Typing the argument of \m
+as a \dt\C suggests that the intention of the programmer is to invoke this
+method only with instances that behave as \C; since \D does not convert to
+\C the expression is flagged as erroneous. The third expression passes \C
+where \dt\C is expected; this is allowed as subtyping implies
+convertibility.  The last expression invokes \n and passes a \dt\C where a
+\C is expected; although potentially unsound, this is allowed by Thorn to
+foster program evolution.  Convertibility thus includes a \(\dt\C\Mapsto\C\)
+rule; at runtime Thorn protects the call and ensures soundness by inserting
+a dynamic type cast to \C around the argument.  If the receiver object has
+an optional type, method invocation is statically checked: optional types
+behave as contracts between variables and contexts, and whenever an object
+has type \dt\C a well-typed context is expected to use it only as a variable
+pointing to an instance of the class \C.  Since the runtime does not
+guarantee that \dt\C variables points to instances of the class \C, the
+conformance of the value actually accessed is checked individually at each
+method invocation, as if the callee had type \any.
+
+The translation of Thorn into \kafka is given in~\figref{thtr}. As with
+TypeScript translation proceeds top-down. The differences are that the
+translation function for expressions, \TRG{\e}\Env, takes a source-level
+typing environment as input. This is used to record the expect type of \this
+and arguments \x to methods. Furthermore, the translation can also request
+the insertion of casts, this is done with the function \TAG{\e}\Env\t which
+translates an expression and ensures that the result is of type \t. The most
+interesting case in the translation is the handling of method invocation
+\Call\e\m\ep. If the type of \e is a concrete \C, then a statically resolved
+invocation of the form \KCall\e\m\ep\t\tp will be emitted. If \e is dynamic
+or an optional type, then a dynamically resolved call of the form
+\DynCall\e\m\ep is emitted.  The argument of statically resolved method
+invocation, as well as constructors and field assignment are all translated
+using the auxiliary function as their expected type is known.  This function
+translates its argument, checks if its type is a subtype of the expected
+type \t, and if not it inserts the appropriate cast.  The cast is performed
+in the \kafka type system, and not in the source type system, and must
+respect the mapping from Thorn types to \kafka types.  This mapping is
+defined by the \kty\t function: \kty\t = \any if \t=\dt\C or \t=\any, \t
+otherwise.  Thorn optional and dynamic types are mapped to the \any type,
+while concrete types are unchanged.
+
+We have seen that any method can be called statically and dynamically. For
+this to work out it is necessary to generate a dynamic version of all Thorn
+methods.  Class translation relies on overloading to provide two
+implementations of each method: one is used with concrete receiver
+and the other is
+optionally typed (or dynamic) object.  More precisely, given a Thorn method
+\(\md\) with type \(\t[1] \to \t[2]\), the \kafka translation first
+generates a method \(\mdp\) with type \(\kty{\t[1]} \to \kty{\t[2]}\)
+(protecting the the return value with appropriate cast to \kty{\t[2]} if
+necessary), to be used in a concretely typed context.  The \kafka
+translation also generates a second method \mdpp, that wraps \mdp so that it
+is safe to invoke it with type \(\any \to \any\), that is from an optionally
+typed or dynamic context.  Finally, each field \f:\t is mapped to the
+corresponding \f:\kty\t field.  As an example, the above translates to:
+
+\begin{tabbing}
+  \HS
+  \KCall{\New \A{}}\n{\SubCast\C{(\KCall{\New\A{}}\m{\SubCast\any{\New\C{}}}\any\any)}}\C\C\
+  \\ \HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+\WHERE\HS \K=\HS\=
+ \class\= \A \{\\
+\>\HS    \Mdef \m\x\any \any{~\x~}\\
+\>\HS    \Mdef \n\x\C\C{~\x~}\\
+\>\HS    \Mdef \n\x\any\any {\SubCast\any{\KCall\this\n{\SubCast\C\x}\C\C }} \\
+\>\}
+ \end{tabbing}
+\medskip
+
+\noindent As expected, the outer invocation to \n has been protected by a
+structural cast to \C, illustrating how Thorn relies on overloading and the
+different invocation forms to protect its type invariants from untyped code.
+
+%\paragraph{Litmus Test}
+
+%In contrast to TypeScript, which allowed all three programs in the litmus test
+%to run without error, the Thorn approach causes cast failures in all of the
+%programs, as a result of the strength of the subtype cast. To illustrate this, 
+%consider the Thorn translated version of the methods \xt{T.t} in L1 and L2, as
+%well as \xt{F.n} in L3. 
+
+%\begin{figure}
+%\begin{tabular}{ccc}
+%\end{tabular}
+%\end{figure}
+
+
+
+\subsection{Typed Racket}
+
+
+\begin{figure}[!b]
+
+\hrulefill
+
+\medskip
+
+ \small
+\begin{minipage}{12cm}  
+\begin{tabbing}
+\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fd[1]..}{\mdp[1].. } }\\
+\hspace{4.6cm}\= \WHERE\HS 
+  \mdp[1] = \src{\Mdef\m\x\t\tp{\ep[1]}} ..\HS\HS
+  \md[1] = \Mdef\m\x\t\tp{\e[1]} ..\HS\HS \\
+  \>\qquad\HS\HS\HS\HS \ep[1] = \TRG{\e[1]}{\x:\t\,\this:\C}
+\\
+\TRG\x\Env = \src{\x}
+\\
+\TRG{\FRead\f}\Env  = \src{\FRead\f}
+\\
+\TRG{\FWrite\f\e}\Env =  \src{\FWrite\f\ep} 
+\>\WHERE\HS
+\= \TypeCk\K{\this}\C \HS\HS
+\=  \ep = \TAG\e\Env\t \HS\HS
+\= \Ftype\f\t\In\App\K\C
+\\
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\DynCall{\ep[1]}\m{\ep[2]}}
+\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\any \HS
+\> \ep[1] = \TRG{\e[1]}\Env \HS
+\> \ep[2] = \TAG{\e[2]}\Env\any
+\\
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env = \src{\KCall{\ep[1]}\m{\ep[2]}{\D[1]}{\D[2]}}
+\>\WHERE \> \TypeCk{\K,\Env}{\e[1]}\C 
+\> \ep[1] = \TRG{\e[1]}\Env\HS\HS
+\> \ep[2] = \TAG{\e[2]}\Env{\D[1]} \HS\HS
+\=  \Mtype\m{\D[1]}{\D[2]}\In\App\K\C 
+\\
+\TRG{\New\C{\e[1]..}}\Env =  \src{\New\C{\ep[1]..}}
+\>\WHERE \>  \ep[1] = \TAG{\e[1]}\Env{\t[1]} ~..
+\> \Ftype{\f[1]}{\t[1]}\In\App\K\C ~..
+\\
+\TAG\e\Env\t = \src\ep
+\> \WHERE\> \TypeCk{\K,\Env}\e\tp \HS
+\> \EM{\K\vdash \t \Sub \tp}
+\>  \ep = \TRG\e\Env
+\\
+\TAG\e\Env\t = \src{\BehCast\t\e}
+\>\WHERE\> \TypeCk{\K,\Env}\e\tp \HS
+   \> \EM{\K\vdash \t \not \Sub \tp}
+  \>     \ep = \TRG\e\Env
+\end{tabbing}
+\end{minipage}
+
+\medskip
+
+\hrulefill
+\caption{Typed Racket translation}\label{trtr}
+\end{figure}
+
+Typed Racket is an extension of the Racket programming language, supporting
+Racket's key functionality through a system of contracts that dynamically
+enforces type guarantees.  At first brush the formalization may appear
+exceedingly simple.  The Typed Racket static type system is identical to
+that of TypeScript. The translation, shown in \figref{trtr} maps classes to
+homonymous classes and types to types of the same name. The \kty{t} function
+is the identity.  Calls with a receiver of type \any are translated to
+\kafka dynamic calls, and calls with a receiver of some type \C are
+translated to statically typed calls. The auxiliary type-directed
+translation function \TAG\e\Env\t introduces behavioral casts to \any or \C
+appropriately. Thus casts can appear are at typed/untyped boundaries in
+assignment, argument of calls or constructors. Because of the strong
+guarantee provided by the behavioral cast, the Typed Racket translation is
+straightforward. In Typed Racket, every typed value is assumed to behave as
+specified, delegating the complexity of checking for consistency with the
+type to the wrapper introduced by the behavioral cast.  So the difference
+with the TypeScript translation is that typed code is able to use typed
+accesses. The difference with Thorn is essentially the presence of wrappers
+and the fact that each wrapper application only check the presence of
+methods names rather than complete signatures for concrete types.  To
+illustrate the semantics of Typed Racket, consider the following example:
+
+\medskip
+\begin{minipage}{\textwidth}
+\begin{tabbing}
+ \HS\HS\HS
+  \Call{\New\A{}}\m{\New\C{}}
+  \HS\HS\HS\HS \WHERE \HS\K\HS=\HS\=
+  \class\=  \A \{ \\
+  \>\HS \Mdef\m\x\any\any{ ~ \Call{\New\D{}}\m\x ~} \\
+  \> \}\\
+ \> \Class \C{}{\Mdef\m\x\any\any{~\x~}} \\
+ \> \Class \D{}{\Mdef\m\x\D\D{~\Call\x\m\x~}} \\
+\end{tabbing}
+\end{minipage}
+\medskip
+
+\noindent Values cross several typed/untyped boundaries in this example.
+For instance, \A's method \m expects a value of type \any while the method 
+\m of \D expects a value of type \D.  The resulting
+translation will insert a behavioral cast from \any to \D at the call site.  
+In order to protect class \D from misbehaving objects, Typed Racket inserts a wrapper
+object around the argument of \D; the wrapper is responsible for ensuring
+that the actual value respects the constraints of class \D.  The \kafka
+translation for Typed Racket inserts a behavioral cast at the boundary
+between the invocation of class \D's method \m in class \A.  This has the
+same effect of Typed Racket wrapping: the object with type \C is wrapped to
+make sure that it acts as an object of type {\xt D}.  The generated \kafka
+code for the example is:
+
+\medskip
+\begin{minipage}{\textwidth}
+\begin{tabbing}
+\HS\HS \KCall{\New\A{}}\m{\BehCast\any{\New\C{}}}\any\any \\
+\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS\HS
+\WHERE\HS\K\HS=\HS\=
+\class\= \A \{\\
+\>\HS \Mdef\m\x\any\any{ ~ \BehCast\any{\KCall{\New\D{}}\m{\BehCast\D\x}{\D}\D~}} \\
+\>\}\\
+ \>  \Class\D{}{\Mdef\m\x\D\D{\KCall\x\m\x\D\D}} \\
+ \>  \Class{\C}{}{\Mdef\m\x{\any}{\any}{\x}} \\
+\end{tabbing}
+\end{minipage}
+\medskip
+
+
+\noindent By enforcing types on the values and not leaving the check that
+the value has the correct types to the user, Typed Racket is able to
+translate the typed code in class \D as if the language had no untyped
+code. Any misbehavior will be instantly caught by the value themselves.
+
+As mentioned earlier, we depart from Typed Racket in several ways. In Type
+Racket the granularity of boundaries is the module, all classes in the same
+module are either typed or untyped.  The finer granularity adopted here does
+not lose expressiveness and matches the approach adopted in the Guarded
+variant of Reticulated Python. Another feature of Typed Racket, that can be
+switched on or off is protection of the \this reference. When that feature
+is on, accesses to the \this reference are protected. This is needed to
+support inheritance -- if an untyped class inherits from a typed one, then
+the self-reference may be accessed from both typed and untyped contexts
+without necessarily passing through a typed/untyped boundary. As a result,
+inheritance in a gradually typed setting requires the protection of all
+self-references.
+
+
+\subsection{Transient Python}
+
+The Transient variant of Reticulated Python aims for a form soundness with a
+predictable cost model. The intuition for the Transient guarantee is that,
+in a call such as \Call\e\m\ep, if the type of \e is some class \C, then that
+method invocation will succeed. More precisely, if \e evaluates to a value
+\a, the object denoted by \a has a method \m. Of course, if the type of \e is
+\any, then the call can get stuck on a method not found. Transient obtains
+that guarantee by statically checking that every expression is consistent to
+the expected type and dynamically checking that expressions evaluates to a
+value that has the method requested.
+
+The Transient static type system is based on TypeScript except that the
+convertibility rules now builds on an auxiliary \emph{consistency} relation,
+defined in~\figref{subtp} to relate types \t and \tp. The modified
+convertibility rule appears in \figref{convtp}. Consistent subtyping holds
+between types with signatures that agree up to \any.  It is worth observing
+that the Transient runtime does not use consistent subtyping, instead
+it merely validates that all required method names are present.
+
+\begin{figure}[!t]
+\hrulefill
+\vspace{-4mm}
+
+\begin{mathpar}
+\Rule{STTC-SUB}{
+  \ConSub\cdot\K\t\tp
+}{
+  \ConvertE\K{tr}\t\tp
+}
+\end{mathpar}
+\vspace{-6mm}
+
+\hrulefill
+\caption{Transient convertibility}\label{convtp}
+
+
+\hrulefill
+\small\vspace{-4mm}
+
+\begin{mathpar} 
+\Rule{CSCons}{
+ ~
+}{
+ \ConSub\M\K \any \C
+}
+
+\Rule{CSCons}{
+  ~
+}{
+ \ConSub\M\K \C \any
+}
+
+\Rule{CSCons}{
+  ~
+}{
+ \ConSub\M\K \t \t
+}
+
+\Rule{CSAss}{
+\C \Sub \D \in \M
+}{
+ \ConSub \M\K \C\D
+}
+
+\Rule{CSRec}{
+ \M' = \M~\C\Sub\D \\\\
+\mt \in \App\K\D \implies 
+\mtp \in \App\K\C ~~~\wedge~~~   \ConSub{\M'}\K\mt{\mtp}
+}{
+ \ConSub \M\K \C \D 
+}
+
+\Rule{CSMet}{
+  \ConSub \M\K {\t[2]} {\t[1]} \\
+  \ConSub \M\K {\tp[1]} {\tp[2]}
+}{
+ \ConSub \M\K {\Mtype\m{\t[1]}{\tp[1]}} {\Mtype\m{\t[2]}{\tp[2]}}
+}
+\end{mathpar}
+
+\hrulefill
+\caption{Transient consistent subtyping}\label{subtp}
+
+\hrulefill
+\vspace{1mm}
+
+\begin{tabular}{@{}l@{~ ~ ~}ll}
+ \small
+\begin{minipage}{8cm}  
+\begin{tabbing}
+\TR{\Class\C{\fd[1]..}{\md[1].. }} =  \src{\Class \C {\fdp[1]..}{\mdp[1].. } }\\
+\hspace{.5cm}  \WHERE\HS \=
+  \fdp[1] = \src{\Ftype\f\any} .. \HS
+  \fd[1] = \Ftype\f\t ..\HS\HS
+  \mdp[1] = \src{\Mdef\m\x\any\any{\SubCast\t\x ~; ~\ep[1]}} .. \HS
+  \md[1] = \Mdef\m\x\t\tp\e .. \\
+  \HS\HS\HS\HS\HS\HS\HS\HS\HS
+   \ep[1] = \TAG\e{\x:\t\,\this:\C}\tp~ ..
+\end{tabbing}
+\begin{tabbing}
+\TRG\this\Env \hspace{1cm} \= = \src\this
+\\
+\TRG\x\Env \>= \src{\SubCast\t\x} \hspace{1.5cm} \=\WHERE \HS \TypeCk{\K,\Env}\x\t
+\\
+\TRG{\FRead\f}\Env \>= \src{\SubCast\t{\FRead\f}} \>\WHERE\HS  \TypeCk{\K,\Env}\this\C \HS\HS\= \Ftype\f\t\In\App\K\C
+\\
+\TRG{\FWrite\f\e}\Env \>=  \src{\SubCast\t{\FWrite\f\ep}}
+  \>\WHERE\HS
+  \TypeCk{\K,\Env}\this\C
+  \> \Ftype\f\t\In\App\K\C \hspace{.7cm}
+  \= \ep = \TAG\e\Env\any
+\\
+  \TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\DynCall{\ep[1]}\m{\ep[2]}}
+  \>\WHERE \HS 
+  \TypeCk{\K,\Env}{\e[1]}\any \HS
+  \> \ep[1] = \TRG{\e[1]}\Env 
+  \> \ep[2] = \TAG{\e[2]}\Env\any
+\\
+\TRG{\Call{\e[1]}\m{\e[2]}}\Env \>= \src{\SubCast\tp{\KCall{\ep[1]}\m{\ep[2]}\any\any}}
+   \>\WHERE\HS
+   \TypeCk{\K,\Env}{\e[1]}\C
+   \> \Mtype\m\t\tp\In\App\K\C\HS
+   \> \ep[1] = \TRG{\e[1]}\Env \HS\HS\=
+   \ep[2] = \TAG{\e[2]}\Env\any
+\\
+\TRG{\New\C{\e[1]..}}\Env \>=  \src{\New\C{\ep[1]..}} \>\WHERE\HS
+\Ftype{\f[1]}{\t[1]}\In\App\K\C
+  \>\ep[1] = \TAG{\e[1]}\Env{\any} ~..
+\\
+\TAG\e\Env\t \>= \src{\SubCast\t\ep}
+    \>\WHERE\HS \TypeCk{\K,\Env}\e\tp 
+    \> \EM{\ConSub{}\K\t\tp} 
+    \> \EM{\K\vdash\t\not{<:}\tp} 
+    \> \EM{\ep = \TRG\e\Env}
+\\
+\TAG\e\Env\t \>= \src\ep \>\WHERE\HS  \TypeCk{\K,\Env}\e\tp
+     \>\EM{\K\vdash\t\Sub\tp} \HS \> \ep = \TRG\e\Env
+\end{tabbing}
+\end{minipage}
+\end{tabular}
+
+\medskip
+
+\hrulefill
+
+\caption{Transient translation}\label{tptr}
+\end{figure}
+
+The Transient translation appears in \figref{tptr}. Each class is translated
+to a homonymous \kafka class, field types are translated to \any, method
+types are given the $\any \to \any$ signature. Since argument and return
+types are erased, our translation can use structural casts to implement
+Transient runtime checks. They degenerate to simple inclusion checks on
+method names.  The translation of method invocation makes explicit the
+Transient guarantee.  A method call \Call\e\m\ep is translated to
+\KCall\e\m\ep\any\any if the type \e is not \any. This translation combined
+with the soundness of \kafka entails that the method call will not get
+stuck.  Of course of \e is of type \any, the call will be translated to
+\DynCall\e\m\ep which can get stuck.  To achieve that guarantee the
+translation must insert structural casts at every expression read. Transient
+also checks arguments of methods, since the expression may not use the
+argument (but Transient checks it anyway) our translation generates method
+bodies of the form \SubCast\t\x; \e where \e is the body of the expression
+and the semi colon is syntactic sugar for sequencing.\footnote{This can be
+  sugared to
+  \SubCast\tp{\KCall{\New\A{\SubCast\any{\SubCast\t\x}}}\m{\SubCast\any\e}\any\any}
+  where \A is class with a single field of type \any and an identity method
+  \m. The type of \e is \tp. All of the cast expect the one to \t are only
+  there to please the type system and can be optimized away as they will
+  always succeed. } Likewise, in order to ensure that field assignment will
+not get stuck, Transient gives all fields type \any, then checks the field
+value on reads based on the static typing.
+
+
+\newcommand{\sspce}{;~}
+\newcommand{\idbody}[1]{\SubCast{#1}\x\sspce \SubCast{#1}\x}
+\begin{tabular}{lr}
+\multicolumn{1}{c}{\textbf{Source}} & \multicolumn{1}{c}{\textsf{\textbf{KafKa}}} \\
+\(
+\begin{array}{l@{\,}l}
+\Class\C{}{&\Mdef\m\x\C\C\x} \\
+\Class\D{}{&\Mdef{\xt n}\x\D\D\x} \\
+\Class{\xt E}{}{&\Mdef\m\x\D\D\x} \\
+\Class{\xt F}{}{&\Mdef\m\x{\xt E}{\xt E}\x \\
+                &\Mdef\n\x\any\any{\Call\this\m\x}} \\
+\multicolumn{2}{l}{\Call{\Call{\New{\xt F}{}}\n{\New\C{}}}\m{\New\C{}}}
+\end{array}
+\) &
+\(
+\begin{array}{l@{\,}l}
+\Class\C{}{&\Mdef\m\x\any\any{\idbody\C}} \\
+\Class\D{}{&\Mdef{\xt n}\x\any\any{\idbody\D}} \\
+\Class{\xt E}{}{&\Mdef\m\x\any\any{\idbody\D}} \\
+\Class{\xt F}{}{&\Mdef\m\x\any\any{\idbody{\xt E}} \\
+                &\Mdef\n\x\any\any{\SubCast{\any}{\x}\sspce \SubCast{\xt E}{\KCall\this\m{\SubCast\any\x}\any\any}}} \\
+\multicolumn{2}{l}{\DynCall{\KCall{\New{\xt F}{}}\n{\SubCast\any{\New\C{}}}\any\any}\m{\New\C{}}}
+\end{array}
+\)
+\end{tabular} \\[1em]
+
+The example presents two mutually incompatible classes \C and \D,
+along two potential consumers for \C and \D, \C itself and \code E,
+and a conversion class \code F. \code F is used to acquire a
+reference to \C as an \code E, which implies that the method \m of \C has type \D to
+\D, despite it actually having type \C to \C, even with the possibility to call
+method \m through untyped code.
+
+In Typed Racket, any call to method \m of class \code F, encounters a
+wrapper that ensures that the argument and return type of \m is always a
+\D. Therefore, if the method \m is called with a \C, the program would get
+stuck at the cast to \D. In Transient, the cast to \code E is a no-op, so
+when we call \m with \C, no extra cast to \D is encountered. The Transient
+design allows method \m, which expects an instance of class \C as argument,
+to be called with a value of type \any at any point. However, this forces \m
+to check its arguments at every method invocation.
+ 
+%%
+%%\begin{figure}[!t]
+%% \small
+%%  \begin{tabular}{|lll|}\hline
+%%   \begin{minipage}{4.6cm}
+%%     \begin{lstlisting}
+   %%
+    %%
+    %%
+%% class A {
+%%  m(x:A):A {this}}
+%%
+%% class I {
+%%  n(x:I):I {this}}
+%%
+%% class T {
+%%  s(x:I):T {this}
+%%  t(x:*):* {this.s(x)}}
+ %%
+%% new T().t(new A()) 
+%%       \end{lstlisting}    
+%%   \end{minipage}
+%% &
+%%   \begin{minipage}{4.6cm}
+%%     \begin{lstlisting}
+%% class A {
+%%  m(x:A):A {this}}
+%%
+%% class Q { 
+%%  n(x:Q):Q {this}} 
+ %%
+%% class I {
+%%  m(x:Q):I {this}}
+%%
+%% class T {
+%%  s(x:I):T {this}
+%%  t(x:*):* {this.s(x)}}
+ %%
+%% new T().t(new A()) 
+%%       \end{lstlisting}    
+%%   \end{minipage}
+%% &  
+%%   \begin{minipage}{4.4cm}
+%%     \begin{lstlisting}
+    %%
+%% class C {
+%%  a(x:C):C {x}}
+%%
+%% class D {
+%%  b(x:D):D {x}} 
+ %%
+%% class E {
+%%  a(x:D):D {x}}
+%%
+%% class F {
+%%  m(x:E):E {x}
+%%  n(x:*):* {this.m(x)}}
+ %%
+%% new F().n(new C())
+%%        .a(new C()) 
+%%       \end{lstlisting}    
+%%   \end{minipage}  
+%% \\[2mm]
+%% (Litmus test 1) & (Litmus test 2) & (Litmus test 3) 
+%% \\[3mm]
+%%
+%% \\\hline
+%% \end{tabular}
+%%
+%% \center
+%%
+%% \begin{tabular}{|r|l@{~}l@{~}l|}\hline
+%%                      & L1 & L2 & L3 \\\hline\rowcolor{Gray}
+%% Thorn                &    &    &    \\
+%% Typed Racket         &    & \V &    \\\rowcolor{Gray}
+%% Transient RetPy      &    & \V & \V \\
+%% TypeScript           & \V & \V & \V \\\hline
+%% \end{tabular}  
+%%  \caption{Semantic litmus tests.}\label{litmus}
+%%\end{figure}
+
+
+\section{Conclusion}\label{litm}
+
+This paper has introduced \kafka, a framework for comparing the design of
+gradual type systems for object-oriented languages. Our approach is to
+provide translations from different source language into \kafka. These
+translations highlight the different runtime enforcement strategies deployed
+by the languages under study. The differences between gradual type systems
+are made explicit with a litmus test that demonstrates observable
+differences between type systems.
+
+The key features needed in \kafka are two casts, one structural and 
+one behavioral, and the ability to extend the class table at runtime.
+\kafka was also carefully engineered to support transparent wrappers.  We
+provide a mechanized proof of soundness for \kafka that includes runtime
+class generation.  We also demonstrate that \kafka can be straightforwardly
+implemented on top of a stock virtual machine.
+
+Going forward there are several issues we wish to investigate further.  We do
+not envision supporting nominal subtyping within \kafka will pose
+problems, it would only take adding a nominal cast and changing the
+definition of classes. Then nominal and structural could coexist. A more
+challenging question is how to handle the intricate semantics of Monotonic
+Python. For these we would need a somewhat more powerful cast operation.
+Rather than building each new cast into the calculus itself, it would be
+interesting to axiomatize the correctness requirements for a cast and let
+users define their own cast semantics. 
+
+Another open question for gradual type system designers is performance of
+the resulting implementation. Type annotations are a source of information
+that can be used to generate efficient code, but without soundness this
+cannot be relied upon and becomes, at best, hints.  Some guarantees become
+apparent in our translations -- when the translation generates static method
+invocations, for Thorn, Racket and Python, these invocations can be
+optimized. This comes at the cost of casts and wrappers.  The nature of
+these casts and their dynamic frequency will make a significant difference
+to end users.  Thorn inserts them at boundaries of concrete types
+only. Racket inserts them whenever a value crosses either a typed or untyped
+boundary. Transient Python inserts casts after variable reads.
+
+
+\bibliographystyle{unsrturl}
+\bibliography{../../bib/jv,../../bib/all}
+
+\appendix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Full  Definition}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\label{appendix:kafka}
+\subsection{Well-formedness}
+
+The well-formedness judgments for \kafka are defined for programs, classes, methods, fields, and types.
+
+\vspace{-1cm}
+
+\begin{figure}[!h]
+	\footnotesize
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{6cm}\begin{mathpar}  
+\opdef{~\WFq{\K~\e~\s}}{\text{Well-formed program}}
+\vspace{-3mm}
+\IRule{WP}{
+  \EnvType\emptyset\s\K\e\t \\\\
+  \WFtype\K\s \\\\
+  \k \in \K \implies \WF{}\cdot\K\k
+}{
+  \WFq{\K~\e~\s}
+}
+\end{mathpar}\end{minipage}& \begin{minipage}{5.5cm}\begin{mathpar} 
+
+\opdef{\WF{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed class}}
+\vspace{-2.5mm}
+\IRule{WC}{
+ \WF {}{}\K {\fd[1]..} \\\\
+ \WF {\this:\C~}\s\K {\md[1]..} \\\\
+  \cload{\md[1]..~\fd[1]..}
+}{
+ \WF {}\s\K {\Class \C {\fd[1]..}{\md[1]..}}
+}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}\end{figure}
+
+% \vspace{-1cm}
+
+% The \xt{nodups} function states that there are no overloaded 
+% field or method names within the given field and method definitions. \\
+
+\footnotesize
+\opdef{~\WF \Env\s\K \md}{Well-formed methods}
+\vspace{-1mm}
+\begin{mathpar}
+\IRule[width=18em]{WT1}{
+ \Envp = \Env{~\Ftype\x\any} \\
+ \EnvType \Envp\s\K\e\any\\
+ \WFtype\K\any \\
+}{
+ \WF \Env\s\K {\Mdef\m\x\any\any\e}
+}
+
+% \IRule[width=18em]{WT2}{
+\IRule{WT2}{
+ \Envp = \Env{~\Ftype\x\C}\\ 
+ \EnvType \Envp\s\K\e\Cp\\
+ \WFtype\K\C \\
+ \WFtype\K\Cp \\
+}{
+ \WF \Env\s\K {\Mdef\m\x\C\Cp\e}
+}
+\end{mathpar}
+
+\begin{figure}[!h]
+	\footnotesize
+\begin{minipage}{\textwidth}\begin{tabular}{lll}  
+\begin{minipage}[t]{3.7cm}\begin{mathpar}  
+\vspace{4mm}
+\opdef{~\WFtype \K {\fd}}{\text{Well-formed fields}}
+% \vspace{-3mm}
+\IRule{WF}{
+%  ~\\\\
+ \WFtype\K\t 
+}{
+ \WFtype\K{\Fdef\f\t}
+}
+\end{mathpar}\end{minipage}& \begin{minipage}[t]{4.2cm}\begin{mathpar} 
+ 
+\opdef{~\WFtype\K\t}{\text{Well-formed types}}
+% \vspace{-3mm}
+\IRule{WA}{
+  ~\\\\
+}{
+ \WFtype\K\any
+}
+
+\IRule{WC}{
+ ~\\\\
+ \C \in \K
+}{
+ \WFtype\K\C
+}
+\end{mathpar}\end{minipage}& \begin{minipage}[t]{5cm}\begin{mathpar} 
+
+\opdef{~\WFtype\K\s}{\text{Well-formed heaps}}
+\IRule{WH}{
+\Bind\ap{\obj\C{\a[1] ..}}~\in~\s \implies \\\\
+\Class\C{\fd[1]..}{\md[1]..}\in\K ~~~\wedge~~~  
+\EnvType\cdot\s\K{\a[1]}{\t[1]} ~..
+}{
+ \WFtype\K\s
+}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}\end{figure}
+
+\subsection{Expression typing}
+
+The expression typing judgments for \kafka includes in ascending order as listed in the formalism:
+variable, untyped address, subsumption, field assignment, field read, static method invocation, dynamic method invocation, object creation,
+subtype cast, typed address.
+
+
+\opdef{\EnvType\Env\s\K\e\t}{\e has type \t in environment \Env against heap \s and class table \K}
+%\vspace{-2mm}
+\begin{mathpar}
+\IRule{KT-VAR}{
+   ~\\\\
+   ~\\\\
+   \HasType \Env\x\t
+ }{
+   \EnvType \Env\s\K\x\t
+}
+
+\IRule{KT-SUB}{
+  ~\\\\
+  \EnvType \Env\s\K\e\tp \\\\
+ \StrSub \cdot\K \tp \t
+ }{
+  \EnvType \Env\s\K\e\t 
+}   
+
+\IRule{KT-READ}{
+  ~\\\\
+  \HasType\Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvType \Env\s\K{\FRead\f}\t
+}  
+
+\IRule{KT-REFREAD}{
+  \s(\a) = \C\{..\} \\\\
+  \Fdef\f\t \in \App\K\C
+}{
+  \EnvType \Env\s\K{\FReadR\a\f}\t
+}  
+
+\IRule{KT-WRITE}{
+  \HasType\Env\this\C \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FWrite\f\e}\t
+}    
+
+\IRule[width=12em]{KT-REFWRITE}{
+  \s(\a) = \C\{..\} \\\\
+  \Fdef\f\t \in \App\K\C \\\\
+  \EnvType \Env\s\K\e\t
+}{
+  \EnvType \Env\s\K{\FWriteR\a\f\e}\t
+}  
+
+\IRule[width=16em]{KT-CALL}{
+  \EnvType \Env\s\K\e\C \\\\
+  \EnvType \Env\s\K\ep\t \\\
+  \Mtype\m\t\tp \in \App\K\C 
+}{
+  \EnvType \Env\s\K{\KCall\e\m\ep\t\tp}\tp
+}    
+
+\IRule{KT-DYNCALL}{
+  ~\\\\
+  \EnvType \Env\s\K\e\any \\\\
+  \EnvType \Env\s\K\ep\any
+}{
+  \EnvType \Env\s\K{\DynCall\e\m\ep}\any
+}    
+
+\IRule[width=20em]{KT-NEW}{
+  ~\\\\
+  \EnvType \Env\s\K{\e[1]}{\t[1]}..\\\\
+  \Class \C {\Fdef{\f[1]}{\t[1]}..}{\md[1]..} \in \K
+}{
+  \EnvType\Env\s\K{\New\C{\e[1]..}}\C
+}
+
+\IRule{KT-SUBCAST}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\SubCast\t\e}\t
+}
+
+\IRule{KT-BEHCAST}{
+  \EnvType \Env\s\K\e\tp
+}{
+  \EnvType \Env\s\K{\BehCast\t\e}\t
+}
+
+\IRule{KT-REFTYPE}{
+  \s(\a) = \obj\C{\ap[1]..}
+}{
+  \EnvType \Env\s\K\a\C
+}
+
+\IRule{KT-REFANY}{
+ }{
+   \EnvType \Env\s\K\a\any
+}
+\end{mathpar}
+
+\subsection{Dynamic function}
+
+The \xt{dyn} function returns all the methods with $\star$ type for a particular set of 
+signatures of method typing.
+
+\begin{mathpar}
+\IRule{DYNE}{
+}{
+  \dyn{\cdot} = \cdot
+}
+
+\IRule{DYN}{
+ \dyn{\mt[1]..} = \mtp[1].. \\
+}{
+  \dyn{\Mtype{\m}{\t}{\t} ~\,\mt[1]..} = \Mtype{\m}{\any}{\any}~\,\mtp[1]..
+}
+\end{mathpar}
+
+\subsection{Signature function}
+
+The \xt{signature} function returns method typing signatures ($\mt$) of method definitions ($\md$).
+
+\begin{mathpar}
+\IRule{SGE}{
+}{
+  \sign{\cdot} = \cdot
+}
+
+\IRule{SG}{
+  \md = \Mdef\m\x\t\t\e \\
+  \sign{\md[1]..} = \mt[1].. \\
+}{
+  \sign{\md\,\md[1]..} = \Mtype\m\t\t~~\mt[1]..
+}
+\end{mathpar}
+
+\subsection{Names function}
+
+The \xt{names} function (\names{\fd[1]..}, \names{\md[1]..}, \names{\mt[1]..}) takes either field definitions, method definitions, or 
+method typings, and returns the name of the respective fields or methods.
+
+\subsection{Duplicated method names}
+
+The \xt{nodups} function (\cload{\mt[1]..}, \cload{\md[1]..}) takes either
+method definitions or method typings, and ensures there are no duplicates.
+
+
+\section{Source language syntax and semantics}
+
+\subsection*{Well-formedness for Thorn}
+
+The well-formedness judgments for Thorn is similar to the well-formedness
+judgments of \kafka with the addition of well-formed optional types
+($\CW$). The turnstile ($\vdash_{\!s}$) of all source language judgment is
+characterized with s.
+
+\begin{figure}[!h]
+	\footnotesize
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{6cm}\begin{mathpar}  
+\hspace{-1cm}
+\opdef{~\WFpW{\e}{\K}}{\text{Well-formed programs}}
+\vspace{-3mm}
+\IRule{WP}{
+  ~\\\\
+  \k \in \K \implies \WFW{}\K\k \\
+  \EnvTypeW\Env\K\e\t
+}{
+  \WFpW\e\K
+}
+\end{mathpar}\end{minipage}& \begin{minipage}{6.0cm}\begin{mathpar}
+%\vspace{-6mm}
+
+\opdef{\WFW{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed classes}}
+\vspace{-1mm}
+\IRule[width=25em]{WCL}{
+ \cload{\fd[1],\md[1]..} \\
+ \fd\in\fd[1]..\implies \WFW {}\K \fd \\
+ \md\in\md[1]..\implies \WFW {\text{this}:\C~}\K \md 
+}{
+ \WFW {}\K {\Class \C {\fd[1]..}{\md[1]..}}
+}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+
+\vspace{6mm}
+
+\begin{minipage}{\textwidth}\begin{tabular}{l}  
+\begin{mathpar}  
+\hspace{-7.5cm}                             
+\opdef{~\WFW \Env\s\K \md}{\text{Well-formed methods}}
+
+\vspace{-3mm}
+
+\IRule[width=18em]{WT}{
+ \EnvTypeW {\Env{~\Ftype\x\C}~}\K\e\D\\
+ \WFtypeW\K\C \\
+ \WFtypeW\K\D \\
+}{
+ \WFW \Env\K {\Mdef\m\x\C\D\e}
+}
+
+\IRule[width=18em]{WWT}{
+ \EnvTypeW {\Env{~\Ftype\x\t}~}\K\e\tp\\
+ \WFtypeW\K\t \\
+ \WFtypeW\K\tp \\
+ \kty\t = \kty\tp = \any
+}{
+ \WFW \Env\K {\Mdef\m\x\t\tp\e}
+}
+\end{mathpar}\end{tabular}\end{minipage}
+
+\vspace{4mm}
+
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{5cm}\begin{mathpar}  
+% \hspace{-1cm}
+\opdef{~\WFtypeW \K {\Fdef\f\t}}{\text{Well-formed fields}}
+\vspace{-3mm}
+\IRule{WF}{
+ \WFtypeW\K\t 
+}{
+ \WFtypeW\K{\Fdef\f\t}
+}
+
+\end{mathpar}\end{minipage}& \begin{minipage}{6.0cm}\begin{mathpar} 
+\hspace{-2cm}
+\opdef{~\WFtypeW\K\t}{\text{Well-formed types}}
+\vspace{-3mm}
+
+\IRule{WA}{
+}{
+ \WFtypeW\K\any
+}
+
+\IRule{WC}{
+ \C \in \K
+}{
+ \WFtypeW\K\C
+}
+
+\IRule{WW}{
+ \C \in \K
+}{
+ \WFtypeW\K{\CW}
+}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\end{figure}
+
+
+\subsection*{Well-formedness for Typed Racket, TypeScript, Transient}
+
+The well-formedness judgments for Typed Racket, TypeScript, and Transient is a subset of the well-formedness judgment for \kafka.
+
+\begin{figure}[!h]
+% \vspace{-8mm}
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{4cm}\begin{mathpar} 
+\opdef{~$\WFpx{\e}{\K}$}{\text{Well-formed programs}}
+\vspace{-2mm}
+\IRule{SWF-PROG}{
+  \EnvTypex\Env\cdot\K\e\t \\\\
+  \k \in \K \implies \WFx{}\cdot\K\k
+}{
+  \WFpW\e\K
+}
+\end{mathpar}\end{minipage}& \begin{minipage}{9.0cm}\begin{mathpar} 
+
+\opdef{\WFx{}\s\K {\Class\C{\fd[1]..}{\md[1]..}}}{\text{Well-formed classes}}
+\vspace{-3mm}
+\IRule[width=25em]{SWF-CLASS}{
+ \cload{\fd[1]..,\md[1]..} \\
+ \fd\in\fd[1]..\implies \WFx {}{}\K \fd \\
+ \md\in\md[1]..\implies \WFx {\this:\C~}{}\K \md 
+}{
+ \WFx {}{}\K {\Class \C {\fd[1]..}{\md[1]..}}
+}
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\end{figure}
+
+\opdef{~\WFx \Env{}\K \md}{Well-formed methods}
+\begin{mathpar}
+\hspace{-8mm}
+
+\IRule[width=18em]{SWF-TYMETH}{
+ \EnvTypex {\Env{~\Ftype\x\C}~}\K\e\D\\
+ \WFtypex\K\C \\
+ \WFtypex\K\D \\
+}{
+ \WFx \Env{}\K {\Mdef\m\x\C\D\e}
+}
+
+\IRule[width=18em]{SWF-DYMETH}{
+ \EnvTypex {\Env{~\Ftype\x\any}~}\K\e\any\\
+ \WFtypex\K\any \\
+ \WFtypex\K\any
+}{
+ \WFx \Env{}\K {\Mdef\m\x\any\any\e}
+}
+\end{mathpar}
+
+
+\begin{figure}[!h]
+% \vspace{-8mm}
+\begin{minipage}{\textwidth}\begin{tabular}{ll}  
+\begin{minipage}{4cm}\begin{mathpar} 
+\opdef{~\WFtypex \K {\Fdef\f\t}}{\text{Well-formed fields}}
+% \vspace{-3mm}
+\IRule{SWF-FIELD}{
+ \WFtypex\K\t 
+}{
+ \WFtypex\K{\Fdef\f\t}
+}
+\end{mathpar}\end{minipage}& \begin{minipage}{10.0cm}\begin{mathpar} 
+
+\hspace{-5cm}
+
+\opdef{~\WFtypex\K\t}{\text{Well-formed types}}
+% \vspace{-3mm}
+\IRule{SWT-ANY}{
+}{
+ \WFtypex\K\any
+}
+
+\IRule{SWT-TYPE}{
+ \C \in \K
+}{
+ \WFtypex\K\C
+} 
+\end{mathpar}\end{minipage}\end{tabular}\end{minipage}
+\end{figure}
+
+
+\section{Litmus tests}
+
+In this section, we present the examples of the litmus test, present in
+\figref{litmus} of section \ref{litmustest}, in the source code of
+the  four gradual typing languages: Thorn, TypeScript, Typed Racket, and Transient.
+
+\subsection*{Thorn}
+
+\noindent
+\textbf{Litmus Test 1}:
+\begin{verbatim}
+class A() { def m(x:A):A = this; }
+class I() { def n(x:I):I = this; }
+class T() {
+  def s(x:I):T = this;
+  def t(x:dyn):dyn = this.s(x);
+}
+T().t(A());
+\end{verbatim}
+
+\noindent
+\textbf{Litmus Test 2}:
+\begin{verbatim}
+class Q() { def n(x: Q): Q = this;}
+class A() { def m(x:A): A = this;}
+class I() { def m(x:Q):I = this;}
+class T() {
+   def s(x:I):T = this; 
+   def t(x:dyn):dyn = this.s(x);
+}
+T().t(A());   
+\end{verbatim}
+
+
+\noindent\textbf{Litmus Test 3}:
+\begin{verbatim}
+class C() { def m(x:C):C = x; }
+class D() { def n(x:D):D = x; }
+class E() { def m(x:D):D = x; }      
+class F() {
+   def m(x:E):E = x;
+   def n(x:dyn):dyn = this.m(x);
+} 
+F().n(C()).m(C());
+\end{verbatim}
+
+\subsection*{TypeScript}
+\noindent\textbf{Litmus Test 1}:
+\begin{verbatim}
+class A { m(x: A): A { return this } }
+class I { n(x:I):I { return this } }
+class T {
+    s(x: I): T { return this }
+    t(x: any): any { return this.s(x) }
+}
+new T().t(new A())
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 2}:
+\begin{verbatim}
+class Q { n(x: Q): Q { return this } }
+class A { m(x: A): A { return this } }
+class I { m(x:Q):I { return this } }
+class T {
+    s(x: I): T { return this }
+    t(x: any): any { return this.s(x) }
+}
+new T().t(new A())
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 3}:
+\begin{verbatim}
+class C { m(x: C): C { return x } }
+class D { n(x: D): D { return x } }
+class E { m(x: D): D { return x } }
+class F {
+    m(x: E): E { return x }
+    n(x: any): any { return this.m(x) }
+}
+new F().n(new C()).m(new C())
+\end{verbatim}
+
+\subsection*{Typed Racket}
+
+\noindent\textbf{Litmus Test 1}:
+
+\begin{verbatim}
+#lang racket
+(module u racket
+  (define Tp% (class object%
+                (super-new)
+                (define/public (t x) (send this s x))))
+  (provide Tp%))
+(module t typed/racket
+  (require/typed (submod ".." u) [Tp% (Class [t (-> Any Any)])])
+  (define-type A (Instance (Class (m (-> A A)))))
+  (define-type I (Instance (Class (n (-> I I)))))
+  (define-type T (Instance (Class (s (-> I T)))))
+  (define T% (class Tp%
+               (super-new)
+               (: s (-> I T))
+               (define/public (s x) this)))
+  (define A% (class object%
+               (super-new)
+               (: m (-> A A))
+               (define/public (m x) this)))
+  (provide T% A%))
+(require 't)
+(send (new T%) t (new A%))
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 2}:
+
+\begin{verbatim}
+#lang racket
+(module u racket
+  (define Tp% (class object%
+                (super-new)
+                (define/public (t x) (send this s x))))
+  (provide Tp%))
+(module t typed/racket
+  (require/typed (submod ".." u) [Tp% (Class [t (-> Any Any)])])
+  (define-type Q (Instance (Class (n (-> Q Q)))))
+  (define-type A (Instance (Class (m (-> A A)))))
+  (define-type I (Instance (Class (m (-> Q I)))))
+  (define-type T (Instance (Class (s (-> I T)))))
+  (define T% (class Tp%
+               (super-new)
+               (: s (-> I T))
+               (define/public (s x) this)))
+  (define A% (class object%
+               (super-new)
+               (: m (-> A A))
+               (define/public (m x) this)))
+  (provide T% A%))
+(require 't)
+(send (new T%) t (new A%))
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 3}:
+
+\begin{verbatim}
+#lang racket
+(module u racket
+  (define Fp% (class object%
+                (super-new)
+                (define/public (n x) (send this m x))))
+  (provide Fp%))
+(module t typed/racket
+  (require/typed (submod ".." u) [Fp% (Class [n (-> Any Any)])])
+  (define-type C (Instance (Class (m (-> C C)))))
+  (define-type E (Instance (Class (m (-> D D)))))
+  (define-type D (Instance (Class (n (-> D D)))))
+  (define F% (class Fp%
+               (super-new)
+               (: m (-> E E))
+               (define/public (m x) x)))
+  (define C% (class object%
+               (super-new)
+               (: n (-> C C))
+               (define/public (n x) x)))
+  (provide F% C%))
+(require 't)
+(send (send (new F%) n (new C%)) m (new C%))
+\end{verbatim}
+
+
+\subsection*{Transient}
+
+\noindent\textbf{Litmus Test 1}:
+\begin{verbatim}
+class A:
+   def m(self, x:A) -> A:
+    return self
+class I:
+   def n(self, x:I) -> I:
+     return self
+class T:
+   def s(self, x:I) -> T:
+     return self
+   def t(self, x:Dyn) -> Dyn:
+     return self.s(x)
+T().t(A())
+\end{verbatim}
+
+\noindent
+\textbf{Litmus Test 2}:
+\begin{verbatim}
+class C:
+   def n(self, x:C) -> C:
+     return self
+class Q:
+   def m(self, x:Q) -> Q:
+     return self     
+class A:
+   def m(self, x:A) -> A:
+     return self
+class I:
+   def m(self, x:Q) -> I:
+     return self
+class T:
+   def s(self, x:I) -> T:
+     return self
+   def t(self, x:Dyn) -> Dyn:
+     return self.s(x)
+T().t(A())
+\end{verbatim}
+
+\noindent\textbf{Litmus Test 3}:
+\begin{verbatim}
+class C:
+  def m(self, x:C) -> C:
+     return x
+class D:
+  def n(self, x:D) -> D:
+     return x
+class E:
+  def m(self, x:D) -> D:
+     return x
+class F:
+  def m(self, x:E) -> E:
+     return x   
+  def n(self, x:Dyn) -> Dyn:
+     return self.m(x)
+F().n(C()).m(C())
+\end{verbatim}
+\end{document}
