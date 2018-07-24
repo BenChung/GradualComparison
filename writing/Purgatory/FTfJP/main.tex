@@ -44,7 +44,7 @@
 %\acmISBN{123-4567-24-567/08/06}
 
 %Conference
-\acmConference[FtFJP]{Submitted to FtFJP}{July 2018}{}
+\acmConference[FTfJP]{FTfJP}{July 2018}{}
 \acmYear{2018}
 %\copyrightyear{2016}
 %\acmArticle{4}
@@ -58,7 +58,7 @@
 \affiliation{\institution{Northeastern University}}
 \author{Jan Vitek}
 \affiliation{\institution{Northeastern and CTU}}
-\thanks{We would like to thank Celeste Hollenbeck for assistence with the writing of this paper.}
+\thanks{We would like to thank Celeste Hollenbeck for assistance with the writing of this paper.}
 
 
 \begin{abstract} Gradual typing refers to the notion that programs can be
@@ -271,8 +271,8 @@ hierarchy, convertibility is not transitive. With a naive semantics, uses
 of \RuleRef{TOA} would break soundness, since dynamically typed values would
 enter statically typed code without any kind of guard. 
 
-The source language enforce privacy on fields. They can only be accessed
-from them method of the object. Furthermore, fields do not show up in type
+The source language enforces field privacy. Fields can only be accessed
+from an object's own methods. Furthermore, fields do not show up in type
 signatures. Subtyping between objects is computed solely on methods
 signatures.
 
@@ -492,7 +492,7 @@ signatures.
 
 \begin{minipage}{0.45\textwidth}
 \begin{tabbing}
-\K\HS\New\C{\a[1]..}\HS\=\s~\HS\=\Red\HS\=\K\HS\=\ap\HS\=\sp\HS\=
+\K\HS\New\C{\a[1]..}\HS\=\s~\HS\=\Red\HS\=\K\HS\=\ap\HS\hspace{1em}\=\sp\HS\=
    \WHERE\HS\=\fresh\ap \HS\HS\sp ={\Map\s{\Bind\ap{\obj\C{\a[1]..}}}}
 \\
 \K\HS \FReadR\a{\f[i]} \> \s \>\Red\>  \K\>$\a[i]$ \> \s  \> 
@@ -505,7 +505,7 @@ signatures.
 \K\HS{\KCall\a\m\ap\t\tp} \> \s      \>\Red\>     \K \>  \ep \> \s \> 
     \WHERE\> \ep = {[\a/\this~{\ap/\x}]\e} \HS\HS
              \Mdef\m\x{\t_{1}}{\t_{2}}\e\In \App\K\C \HS\HS
-             \App\s\a=\obj\C{\a[1]..} \HS\HS
+             \App\s\a=\obj\C{\a[1]..} \\ \>\>\>\>\>\>\>
                \StrSub {\emptyset}\K\t {\t_{1}} \HS\HS
  \StrSub {\emptyset}\K{\t_{2}} \tp
 \\
@@ -514,7 +514,7 @@ signatures.
                 \Mdef\m\x\any\any\e \In \App\K\C \HS\HS
                  \App\s\a=\obj\C{\a[1]..} 
 \\
-\hspace{-1em}\colorbox[gray]{0.89}{\hspace{1.15\textwidth}\vphantom{hello}}\hspace{-1.15\textwidth} \K\HS {\MonCast \t\a} \> \s     \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp 
+\hspace{-1em}\colorbox[gray]{0.89}{\hspace{1.20\textwidth}\vphantom{hello}}\hspace{-1.20\textwidth} \K\HS {\MonCast \t\a} \> \s     \>\Red\>   \Kp \> \ap \> \sp \> \WHERE\> \moncast \a\t\s\K \Kp\ap\sp 
 \\
 \K \HS \EM{\EE[\e]} \> \s            \>\Red\>   \Kp \> \EM{\EE[\ep]} \> \sp \> \WHERE \> \K~\e~\s \Red~\Kp~\ep~\sp
 \end{tabbing}\end{minipage}\vspace{2mm}
@@ -529,12 +529,12 @@ signatures.
 \subsection{KafKa}
 
 \kafka's design follows the surface language with some differences.
-Expressions are extended with \that a distinguished variable used for
+Expressions are extended with \that, a distinguished variable used for
 wrapped object reference, typed and untyped method invocations, subtype and
 monotonic casts.  Evaluation is likewise standard with a few exceptions,
 with an evaluation context consisting of a class table \K, expression
 being evaluated \e, and heap \s, mapping from addresses \a to objects,
-denoted $\C\{\a\ldots\}$. Due to the need for dynamically generate classes,
+denoted $\C\{\a\ldots\}$. Due to the need for dynamically generated classes,
 the class table \K is part of the state, and not the evaluation context.
 \kafka has two invocation forms, the untyped invocation $\DynCall\e\m\ep$
 and the typed invocation $\KCall\e\m\ep{\C}{\D}$, both denoting a method
@@ -606,8 +606,8 @@ outputs a new class, the meet of the two types, and an updated classes table
 or a context extended with a mapping $\P ~{{(\C,\D)}\mapsto\Cp}$, is used to
 ensure termination of the meet operation on recursive types by storing the
 names of meet-generated classes. Meet is deterministic, so meet of
-previously-encountered types will be identical.  The meet operation can also
-takes method definitions. It will pick out the comparable method definition
+previously-encountered types will be identical. We similarly extend meet to
+operate over method definitions, picking out the comparable method definition
 in the target method, and generate a suitable method. When two list of
 methods are met, their result is passed into ifcgen, which generates an
 ``interface''. An interface is trivial class that exists only for the
@@ -672,7 +672,7 @@ source is retained in the target, and that typed methods are inserted.
 \IRule{CM}{
   \s(\a) = \C\{\ap..\} \\
   \fresh\Cpp\\
-  \md.. = \xt{mets}(\C,\K)\\
+  \md.. = \xt{meths}(\C,\K)\\
   \mt.. = \xt{mtypes}(\C,\K)\\
   \mtp.. = \xt{mtypes}(\Cp,\K)\\\\
   \tmeet \C\t\cdot\K = \Cp~\Kp\\
@@ -792,48 +792,48 @@ fails.
 
 Before explaining the semantics of this program in more detail, we will first
 describe the top level type-driven transformation. First, casts are inserted
-wherever a statically typed value is passed to any and vice versa. Then, typed
+wherever a statically typed value is passed to the dynamic type \any and vice versa. Then, typed
 methods have untyped shims generated, so they can be called in a protected
 manner from untyped code. 
 
 Execution starts with the expression \code{new E().alias(<*>new
 C()).check(<*>new C())}. \code{new E()} evaluates to a reference \a to an
 object $\xt{E}\{\}$, upon which \xt{alias} is invoked with argument \New\C{}
-(which evaluates to \a[1], mapping to $\C\{\}$). \xt{alias} then expands to
-\MonCast\any{\New{\xt{T}}{\MonCast\C\a[1],\MonCast\D\a[1]}}. The first
-\MonCast\C\a[1] is a no-op, as \a[1] is already of type \C, but the second
-\MonCast\D\a[1] modifies the runtime type of the value stored at \a[1].
+(which evaluates to $\a[1]$, mapping to $\C\{\}$). \xt{alias} then expands to
+$\MonCast\any{\New{\xt{T}}{\MonCast\C{\a[1]},\MonCast\D{\a[1]}}}$. The first
+$\MonCast\C{\a[1]}$ is a no-op, as ${\a[1]}$ is already of type \C, but the second
+$\MonCast\D{\a[1]}$ modifies the runtime type of the value stored at ${\a[1]}$.
 
 \D defines \xt{check} to take and return instances of \xt{I}, while \C  has
 \xt{check} taking and returning values of type \any. As \D's definition is
 more precise, it will take priority. As a result, the result of meet will be
 \Cp, with \Class\Cp{}{\Mdef{\xt{check}}\x{\xt{I}}{\xt{I}}\x} appended to the
 class table. monWrap is then applied, producing the final new class \Cpp from
-\Cp, consisting of \Class\Cpp{}{\Mdef{\xt{check}}\x{\xt{I}}{\xt{I}}{\MonCast{\xt{I}}{\MonCast{\any}{\x}}} ~ \Mdef{\xt{check}}\x\any\any{\MonCast{\any}{\KCall\this{\xt{check}}{\MonCast{\xt{I}}{\x}}{\xt{I}}{\xt{I}} }}}. This is then used to overrite \a[1]'s class in the heap. \a[1] originally
+\Cp, consisting of \Class\Cpp{}{\Mdef{\xt{check}}\x{\xt{I}}{\xt{I}}{\MonCast{\xt{I}}{\MonCast{\any}{\x}}} ~ \Mdef{\xt{check}}\x\any\any{\MonCast{\any}{\KCall\this{\xt{check}}{\MonCast{\xt{I}}{\x}}{\xt{I}}{\xt{I}} }}}. This is then used to overrite ${\a[1]}$'s class in the heap. ${\a[1]}$ originally
 referred to $\C\{\}$, but it will now refer to $\Cpp\{\}$ after the cast.
 
 At this point, the initial expression has been reduced to
-\DynCall{\MonCast\any{\KCall{\New{\xt{T}}{\a[1], \a[1]}}{\xt{first}}\any\any
+\DynCall{\MonCast\any{\KCall{\New{\xt{T}}{{\a[1]}, {\a[1]}}}{\xt{first}}\any\any
 }}{\xt{check}}{\MonCast\any{\New\C{}}}. The inner expression
-\KCall{\New{\xt{T}}{\a[1], \a[1]}}{\xt{first}}{\a[1]}\any\any evaluates to
-\KCall{\a[2]}{\xt{first}}{\a[1]}\any\any where \a[2] refers to $\xt{T}\{\a[1],\a[1]\}$
-in the heap. The \xt{first} function then is called, returning \a[1] under type
+\KCall{\New{\xt{T}}{{\a[1]}, {\a[1]}}}{\xt{first}}{{\a[1]}}\any\any evaluates to
+\KCall{\a[2]}{\xt{first}}{{\a[1]}}\any\any where \a[2] refers to $\xt{T}\{{\a[1]},{\a[1]}\}$
+in the heap. The \xt{first} function then is called, returning {\a[1]} under type
 \any.
 
-This leaves us with \DynCall{\a[1]}{\xt{check}}{\MonCast\any{\New\C{}}}. We
+This leaves us with \DynCall{{\a[1]}}{\xt{check}}{\MonCast\any{\New\C{}}}. We
 evaluate \New\C{} to \a[3] (mapped to $\C\{\}$), and make the invocation. A
 method \xt{check} under type \any and \any exists, so the program does not get
 stuck. \app is an instance of \Cpp, so it is dispatched to the generated
 method \xt{check} made by the monocast operation. As a result, our new term is
-\MonCast{\any}{\KCall{\a[1]}{\xt{check}}{\MonCast{\xt{I}}{\a[3]}}{\xt{I}}{\xt{I}}}.
+\MonCast{\any}{\KCall{{\a[1]}}{\xt{check}}{\MonCast{\xt{I}}{\a[3]}}{\xt{I}}{\xt{I}}}.
 However, at this point, we get stuck, as no meet exists between the runtime type of
 \a[3] (mapped to $\C\{\}$) and \xt{I}. 
 
 The example illustrates an interesting property of the monotonic semantics.
 Despite this program working perfectly in an untyped language, the monotonic
-semantics caused it to fail. More interestingly, none of the other semantics
-for gradual type systems would experience a cast error on this program. This
-is because none will apply the type cast on the first alias to \a[3] onto the
+semantics caused it to fail. More interestingly, no other gradual typing semantics
+would experience a cast error on this program. This
+is because none will retain the type cast of the first alias to \a[3] in the
 underlying object, since the alias is immediately thrown away. 
  
 \begin{figure}[!h]
